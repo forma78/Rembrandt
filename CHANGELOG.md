@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Rembrandt runs on its own** (the owner, 2026-10-01: "run everything in
+  Rembrandt, so there is order from day one"): the pages say "start
+  rembrandt.py" where they said rubens.py; nothing reads from `../Rubens`.
 - **The Create tab, first cut** (build order step 1, without the bands yet):
   the image area 568.5 × 865 mm with the canvas in it, 50 × 70 or 60 × 80,
   placed from Calibration or, until then, 50 mm under the top wall; the

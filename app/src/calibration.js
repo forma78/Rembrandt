@@ -13,7 +13,7 @@ const $ = s => document.querySelector(s);
 const INK = '#24221F', MUTE = '#7D776D', ORANGE = '#EB7A25', PAPER = '#EEEAE2';
 
 const S = {
-  link: 'wait',                 // ok · lost (no board on USB) · server (no rubens.py)
+  link: 'wait',                 // ok · lost (no board on USB) · server (no rembrandt.py)
   pos: { x: null, y: null },    // carriage, mm; null — that axis has no zero
   edge: { x: false, y: false },
   trail: [],
@@ -63,7 +63,7 @@ async function ping() {
 
 function showLink() {
   const el = $('#linkState');
-  const txt = { ok: '● MACHINE', lost: 'NO BOARD · USB and 12 V?', server: 'NO SERVER · start rubens.py', wait: '…' }[S.link];
+  const txt = { ok: '● MACHINE', lost: 'NO BOARD · USB and 12 V?', server: 'NO SERVER · start rembrandt.py', wait: '…' }[S.link];
   el.textContent = txt;
   el.className = 'link-state ' + (S.link === 'ok' ? 'ok' : 'bad');
 }
@@ -175,7 +175,7 @@ for (const [k, K, lo, hi] of ARM) {
       const r = await fetch(`/arm?j=${k}&d=${d}`, { method: 'POST' }), t = await r.text();
       let o; try { o = JSON.parse(t); } catch { o = { ok: false, message: t }; }
       if (!r.ok || !o.ok) msg = o.message || t;
-    } catch { msg = 'start rubens.py'; }
+    } catch { msg = 'start rembrandt.py'; }
     armBusy.delete(k); ax.classList.remove('busy'); e.target.blur();
     $('#arm' + K + 'V').innerHTML = msg ? `<span class="warn">${msg}</span>` : '';
     armLook();
@@ -250,7 +250,7 @@ async function save() {
   try {
     const r = await fetch('/calibration', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(S.cal, null, 2) });
     $('#saved').textContent = r.ok ? 'saved to calibration.json' : 'NOT SAVED';
-  } catch { $('#saved').textContent = 'NOT SAVED · start rubens.py'; }
+  } catch { $('#saved').textContent = 'NOT SAVED · start rembrandt.py'; }
 }
 async function load() {
   try {

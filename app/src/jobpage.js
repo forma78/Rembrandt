@@ -93,7 +93,7 @@ function machine() {
   S.onMachine = null; S.fit = null;
   if (!S.doc) { el.innerHTML = ''; return; }
   const corners = S.cal?.corners || {}, n = CORNERS.filter(k => corners[k]).length;
-  if (!S.cal) { el.innerHTML = '<p class="none">No calibration: start rubens.py.</p>'; return; }
+  if (!S.cal) { el.innerHTML = '<p class="none">No calibration: start rembrandt.py.</p>'; return; }
   if (n < 3) { el.innerHTML = `<p class="none">Record at least three canvas corners on the Calibration tab (${n} so far). Until then the job stays on the artboard.</p>`; return; }
   if (S.cal.format !== S.doc.format) {
     // Nothing says where a canvas of the drawing's format lies on the
@@ -350,7 +350,7 @@ async function saveJob() {
     const r = await fetch('/job', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
     $('#saved').textContent = !r.ok ? 'NOT SAVED' : `job.json saved · ${S.steps.length} steps` + (S.onMachine ? ` · ${S.onMachine.blocks.length} machine blocks` : ' · artboard only, the canvas is not placed on the machine');
     return r.ok;
-  } catch { $('#saved').textContent = 'NOT SAVED · start rubens.py'; return false; }
+  } catch { $('#saved').textContent = 'NOT SAVED · start rembrandt.py'; return false; }
 }
 $('#btnSaveJob').onclick = saveJob;
 
@@ -370,7 +370,7 @@ $('#btnDoJob').onclick = async e => {
     + 'STOP or Esc brakes along the path; HARD STOP stops at once.')) return;
   if (!(await saveJob())) return;
   const r = await fetch('/run', { method: 'POST' }).catch(() => null);
-  const msg = r ? await r.text() : 'start rubens.py';
+  const msg = r ? await r.text() : 'start rembrandt.py';
   if (!r || !r.ok) { S.run = { state: 'error', message: msg, percent: 0, block: 0, blocks: 0 }; showRun(); return; }
   pollRun();
 };
@@ -428,7 +428,7 @@ addEventListener('keydown', e => {
 // Never the plus side: the camera (rubens.py, REACH).
 async function brush(where) {
   const r = await fetch('/brush/' + where, { method: 'POST' }).catch(() => null);
-  const msg = r ? await r.text() : 'start rubens.py';
+  const msg = r ? await r.text() : 'start rembrandt.py';
   $('#brushState').innerHTML = r && r.ok && msg.startsWith('ok J')
     ? `Brush ${where === 'off' ? 'off the canvas · −54°' : 'on the canvas · 0°'}`
     : `<span class="warn">${msg}</span>`;
