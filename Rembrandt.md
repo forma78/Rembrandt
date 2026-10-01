@@ -35,6 +35,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Layer** | Everything painted in one session over the dry layer below it: a band, its tubes, its drops. Not "pass" — in RUBENS a pass is a brush run inside a lane. |
 | **Hand layer** | A layer the owner paints by hand (the black). Rembrandt only shows where. |
 | **Ground** | What lies under the first layer: the white canvas. |
+| **Image area** | What the machine paints: its whole reach between the walls (Calibration), now 568.5 × 865 mm (Y × X), about 57 × 86 cm — nearly the 2 : 3 of IMG_9422. The canvas lies inside it; paint past the canvas lands on the canvas underneath, on purpose. |
 | **Tube** | One paint on the owner's shelf: name, pigment code, swatches. The **inventory** is the list of tubes. |
 | **Drop** | One squeeze of paint across the lanes before a layer runs. Florian Markus's method, made exact. |
 | **Standard drop** | The unit of dosing: fixed nozzle, fixed length, fixed ml. The amount of paint is set by the number of drops, never by squeezing harder. |
@@ -62,8 +63,21 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **Calibration and Job come from RUBENS.** Rembrandt reuses them, it does
   not rewrite them.
 - **During a job only X, Y and the wrist (J3) move.** Shoulder and elbow hold
-  a static pose: it buys the reach (57 → ~80 cm). Moving them during a job
-  slows it down. (2026-10-01)
+  one static pose for the whole painting. Moving them during a job slows it
+  down. (2026-10-01) One pose reaches 568.5 mm across, between the Y walls;
+  the ~80 cm of `../Rubens/CALIBRATION.md` (2026-09-29) needs two poses, and
+  Rembrandt uses one.
+- **The image area is the machine's reach, not the canvas** (§0). The
+  experiments are on 50 × 70 cm canvases laid on the 100 × 70 one; what runs
+  past the small canvas (about 3.5 cm on each side, about 5 cm at the top)
+  lands on the big one. On purpose. The owner, 2026-10-01: "We have 57 cm
+  instead of 70 — so I lay a 50 × 70 canvas on the 100 × 70 one and let the
+  machine think the image area is 57 cm. This is contemporary art: ±7 cm
+  across may wander, that is even cooler. For experiments the precision of
+  the edges does not matter at all." And: "If the 50 × 70 canvases sell, I
+  buy 2000 × 1220 mm profile and rebuild the machine with a new frame. If
+  they don't, the missing centimetres are not worth worrying about." So the
+  size of the image area is never hardcoded: it comes from Calibration.
 - **No machine-drawn outlines.** The pencil sits in the same spring holder as
   the MOLOTOW marker and drifts from run to run. **No projector.**
   (2026-10-01)
@@ -213,8 +227,9 @@ tip's sideways offset in X/Y. Fallback: a laser dot on the bracket.
 
 ## 9. The first painting — the sheet
 
-Canvas 70 × 100 cm, portrait, white ground. One curve; a white sheet over a
-warm glow; black around.
+Canvas 50 × 70 cm, portrait, white ground, laid on the 100 × 70 one. The
+reference covers the whole image area (§0), the canvas is a window in it.
+One curve; a white sheet over a warm glow; black around.
 
 | layer | how | lanes | tubes and drops | ml |
 |---|---|---|---|---|

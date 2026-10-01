@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The image area is the machine's reach** (the owner, 2026-10-01): one arm
+  pose, 568.5 × 865 mm, a 50 × 70 canvas inside it on the 100 × 70 one; the
+  paint past the small canvas is on purpose. The "57 → ~80 cm" of §1 was
+  two poses; Rembrandt uses one.
 - **Rembrandt is private** (the owner, 2026-10-01). **The copy from RUBENS**
   is from commit `a143fbc`, not the tag v0.1.3, and takes every module the
   listed ones import (`config.js`, `cnc.js`, `paint.js`, `gesture.js`,
