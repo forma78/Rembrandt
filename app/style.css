@@ -409,3 +409,14 @@ body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11p
 .runstate{margin:2px 0 4px;font:12px/1.5 var(--mono);color:var(--ink)}
 .runstate .warn{color:#B3470C}
 .runkeys,.arm3 .stops{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+
+/* ---------- Test: sliders as on Calibration; the Library's second shelf (2026-10-02) ---------- */
+.sliders{display:flex;flex-direction:column;margin-bottom:10px}
+.sl{display:block}
+.slh{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.sl .slider{margin:6px 0 2px}
+.sl .slider:disabled{opacity:.4}
+.lib-split{display:flex;align-items:center;gap:12px;margin:4px 24px 0;color:var(--mute);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.lib-split::before,.lib-split::after{content:"";flex:1;height:1px;background:var(--line)}
+.lib-split[hidden]{display:none}
+.slh .val{text-transform:none;letter-spacing:0}

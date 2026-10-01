@@ -16,11 +16,15 @@ for (const k of ['sweep', 'reach', 'fast', 'turnSpeed']) delete S[k];   // the a
 if (S.board) { S.boardW = S.boardH = S.board; delete S.board; }          // one size for both before; width and height apart since 2026-10-02
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
 
-const FIELDS = [
-  ['rows', 'Rows', '', 1], ['turn', 'Turn', 'mm', 1], ['pitch', 'Row to row', 'mm', 1], ['length', 'Row length', 'mm', 5],
-  ['speed', 'Brush on', 'mm/s', 1], ['travel', 'Between rows', 'mm/s', 5],
-  ['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10],
+// Sliders, as on the Calibration tab (the owner, 2026-10-02); the board's
+// size stays two numbers.
+const SLIDERS = [
+  ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 1, 4, 80],
+  ['length', 'Row length', 'mm', 5, 20, 800], ['speed', 'Brush on', 'mm/s', 1, 5, 120], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
 ];
+const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
+$('#sliders').innerHTML = SLIDERS.map(([k, label, , step, min, max]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${k}"></span></span><input class="slider" type="range" data-k="${k}" min="${min}" max="${max}" step="${step}"></label>`).join('');
+$('#sliders').querySelectorAll('input').forEach(inp => inp.oninput = () => { S[inp.dataset.k] = +inp.value; update(); });
 $('#fields').innerHTML = FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; update(); });
 $('#pat').querySelectorAll('button').forEach(b => b.onclick = () => { S.pattern = b.dataset.p; Object.assign(S, PATTERNS[S.pattern]); update(); });
@@ -38,12 +42,13 @@ function layout() {
   cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
 }
-// screen: Y to the right, X up; the board's centre in the middle
-const sx = y => ((S.boardW + 40) / 2 + y) * k, sy = x => ((S.boardH + 40) / 2 - x) * k;
-function draw() {
-  const c = ctx, hw = S.boardW / 2, hh = S.boardH / 2, m = S.margin;
-  c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  c.fillStyle = '#E2DED6'; c.fillRect(0, 0, cv.width, cv.height);
+// screen: Y to the right, X up; the board's centre in the middle (drawOn)
+function draw() { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); drawOn(ctx, k, cv.width, cv.height); }
+// The board and the rows on c, kk px a mm (the caller sets the transform).
+function drawOn(c, kk, W, H) {
+  const sx = y => ((S.boardW + 40) / 2 + y) * kk, sy = x => ((S.boardH + 40) / 2 - x) * kk, k = kk;
+  const hw = S.boardW / 2, hh = S.boardH / 2, m = S.margin;
+  c.fillStyle = '#E2DED6'; c.fillRect(0, 0, W, H);
   c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * k, S.boardH * k);
   c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-hw) + .5, sy(hh) + .5, S.boardW * k - 1, S.boardH * k - 1);
   c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-hw + m), sy(hh - m), (S.boardW - 2 * m) * k, (S.boardH - 2 * m) * k); c.setLineDash([]);
@@ -61,7 +66,12 @@ function update() {
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
   $('#pause').checked = S.pause && !S.snake;
   // C, the snake: the turn is the row to row, and a continuous line has no pause
-  $('#fields input[data-k="turn"]').disabled = !!S.snake;
+  $('#sliders input[data-k="turn"]').disabled = !!S.snake;
+  for (const [k, , unit] of SLIDERS) {
+    const inp = $(`#sliders input[data-k="${k}"]`);
+    if (document.activeElement !== inp) inp.value = S[k];
+    $(`#sliders [data-v="${k}"]`).textContent = `${S[k]}${unit ? ' ' + unit : ''}`;
+  }
   $('#pause').disabled = !!S.snake; $('#pause').parentElement.classList.toggle('off', !!S.snake);
   $('#planRead').innerHTML = (P.snake
     ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down all the way, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
@@ -97,6 +107,55 @@ function walls() {
   return out.length ? `The brush would go ${out.join(', ')}: move Here or make the pattern smaller.` : '';
 }
 
+// ---------- 💾 SAVE TEST: into the Library, its second shelf ----------
+// (the owner, 2026-10-02). An SVG of the board in mm with the rows, the
+// settings in its metadata, and a PNG preview; the Library opens it here.
+function testLabel() { return `${S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
+function testSvg() {
+  const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
+  const settings = Object.fromEntries(['pattern', 'rows', 'turn', 'pitch', 'length', 'speed', 'travel', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+  const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const rows = P.preview.map(line => `  <path d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
+<!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm -->
+<metadata id="rembrandt-test">${meta}</metadata>
+<rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
+<g fill="none" stroke="#1B1A19" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+${rows}
+</g>
+</svg>`;
+}
+function testPng() {
+  const kk = 800 / Math.max(S.boardW + 40, S.boardH + 40), c2 = document.createElement('canvas');
+  c2.width = Math.round((S.boardW + 40) * kk); c2.height = Math.round((S.boardH + 40) * kk);
+  drawOn(c2.getContext('2d'), kk, c2.width, c2.height);
+  return c2.toDataURL('image/png');
+}
+$('#btnSave').onclick = async () => {
+  const st = $('#saveState'), b = $('#btnSave');
+  b.disabled = true; st.textContent = 'saving…';
+  try {
+    const r = await fetch('/library', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ svg: testSvg(), png: testPng() }) });
+    const o = await r.json();
+    st.textContent = o.ok ? `saved · ${o.name}` : `not saved · ${o.message}`;
+  } catch { st.textContent = 'not saved · start rembrandt.py'; }
+  b.disabled = false;
+};
+// Opened from the Library (library.html → test.html?open=<file>).
+async function openFromLibrary(file) {
+  history.replaceState(null, '', location.pathname);
+  try {
+    const r = await fetch('library/' + encodeURIComponent(file) + '.svg', { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const meta = new DOMParser().parseFromString(await r.text(), 'image/svg+xml').querySelector('metadata#rembrandt-test');
+    if (!meta) { $('#saveState').textContent = 'not a test: open it on Create'; return; }
+    Object.assign(S, JSON.parse(meta.textContent.replace(/- -/g, '--')).settings || {});
+    update();
+    $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
+  } catch { $('#saveState').textContent = 'could not open it from the Library'; }
+}
+
 // ---------- the run ----------
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 $('#btnDoJob').onclick = async () => {
@@ -126,3 +185,5 @@ async function watch() {
 setInterval(watch, 500);
 new ResizeObserver(layout).observe(stage);
 update(); watch();
+const opening = new URLSearchParams(location.search).get('open');   // from the Library
+if (opening) openFromLibrary(opening);

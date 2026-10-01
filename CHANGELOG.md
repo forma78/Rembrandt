@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: sliders and 💾 SAVE TEST** (the owner, 2026-10-02): the rows, the
+  turn, the row to row, the length and the speeds on sliders as on
+  Calibration, the board's size two numbers; SAVE TEST puts the test in the
+  Library — an SVG of the board with the rows and the settings, and its
+  preview. **The Library has two shelves**: paintings, then a line, then the
+  tests; a test opens on the Test tab. `rembrandt.py` takes a test into the
+  Library (`rembrandt-test`) and tells it from a painting.
 - **Test: the board's width and height apart** (the owner, 2026-10-02: 40 × 60
   too); a size saved before reads as both.
 - **Test: pattern C, the snake** (the owner, 2026-10-02): one continuous line,
