@@ -1,0 +1,318 @@
+/* RUBENS · Brush Preview — Braun style, like the MELNICOMM pendant:
+   cream #EDEAE4, orange #EB7A25 (picked with an eyedropper, see the machine's CLAUDE.md).
+   Soft Braun since 2026-09-28 (the owner's references braun_design.gif and
+   braun_design_1.gif): raised keys and recessed wells; a pressed key is the
+   chosen one and turns orange; sliders in a recessed slot with an orange fill
+   (src/ui.js) and a white knob with an orange mark; one accent, orange.
+   Then, the same evening, after Dieter Rams's keys (Screenshot 2026-09-28
+   rams.png): less orange, no brown. Keys are neutral grey; the chosen one is
+   pressed and carries an orange dot; STOP is "• STOP", HARD STOP "•• HARD
+   STOP"; the Job tab's progress is an LCD. The Stroke section of the Create
+   tab keeps the look of before (.stroke-sec): "тут идеально все". */
+:root{
+  --bg:#EDEAE4;
+  --panel:#F5F3EF;
+  --stage:#E2DED6;
+  --line:#D5CFC4;
+  --ink:#24221F;
+  --mute:#7D776D;
+  --orange:#EB7A25;
+  --blue:#3D6BFF;
+  --card:#F7F6F3;
+  /* neutral greys, no brown (the owner, 2026-09-28, after the Rams keys) */
+  --well:#DFDEDA;
+  --key:radial-gradient(120% 90% at 50% 100%,#FFFFFF 0%,#F4F3F0 45%,#E7E6E2 100%);
+  --key-on:linear-gradient(#DEDDD9,#EAE9E6);
+  --raise:0 0 0 1px rgba(0,0,0,.13),0 1px 1px rgba(0,0,0,.07),inset 0 -1px 0 rgba(255,255,255,.9);
+  --press:inset 0 1px 3px rgba(0,0,0,.2),inset 0 0 0 1px rgba(0,0,0,.13);
+  --dot:radial-gradient(circle,var(--orange) 0 3px,transparent 3.5px);
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sans:"Helvetica Neue",Helvetica,"Nimbus Sans",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.35 var(--sans);-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+
+body{display:grid;grid-template-columns:100%;grid-template-rows:56px 1fr 30px;height:100vh;overflow:hidden}
+
+/* ---------- top ---------- */
+.top{min-width:0;overflow:hidden;display:flex;align-items:center;gap:18px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--bg)}
+.brand{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.logo{font-weight:700;font-size:20px;letter-spacing:.32em}
+.sub{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.ver{font:11px var(--mono);color:var(--orange)}
+.top-mid{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.field{white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.field select{text-transform:none;letter-spacing:0;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:13px}
+.toggles{display:flex;gap:3px;padding:3px;background:var(--well);border-radius:9px;box-shadow:var(--press)}
+.tog{white-space:nowrap;border:0;background:var(--key);border-radius:6px;padding:6px 11px;font-size:12px;color:var(--mute);box-shadow:var(--raise)}
+.tog:hover{color:var(--ink)}
+.tog.on{background:var(--key-on);color:var(--ink);box-shadow:var(--press)}
+.top-right{display:flex;gap:8px}
+.btn{white-space:nowrap;border:0;background:var(--key);border-radius:8px;padding:8px 12px;font-size:12px;letter-spacing:.04em;color:var(--ink);box-shadow:var(--raise)}
+.btn:hover{color:#000}
+.btn:active{background:var(--key-on);box-shadow:var(--press);transform:translateY(.5px)}
+/* the main key of a place, STOP and HARD STOP: grey keys marked with orange
+   dots, as Rams would — one dot for the main key and STOP, two for HARD STOP */
+.btn.primary,.btn.go,#btnStop,#btnRunStop{font-weight:600}
+.btn.primary::before,.btn.go::before,#btnStop::before,#btnRunStop::before,.btn.danger::before{content:"";display:inline-block;vertical-align:-1px;margin-right:7px;width:7px;height:7px;background:var(--dot) center/7px 7px no-repeat}
+.btn.danger::before{width:17px;background:var(--dot) 0 50%/7px 7px no-repeat,var(--dot) 10px 50%/7px 7px no-repeat}
+
+/* ---------- middle ---------- */
+main{display:grid;grid-template-columns:60px 1fr 340px;min-height:0}
+.tools{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0;border-right:1px solid var(--line)}
+.tool{width:44px;height:44px;border:1px solid transparent;border-radius:10px;background:transparent;position:relative;display:grid;place-items:center}
+.tool svg{width:22px;height:22px;fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tool svg .dot{fill:var(--orange);stroke:none}
+.tool span{position:absolute;right:3px;bottom:2px;font:9px var(--mono);color:var(--mute)}
+.tool:hover{background:var(--panel)}
+.tool.on{background:var(--key-on);box-shadow:var(--press)}
+.tool.on::after{content:"";position:absolute;top:5px;left:5px;width:6px;height:6px;background:var(--dot) center/6px 6px no-repeat}
+.tool.armed{border-color:var(--orange)}
+.tool.armed svg{stroke:var(--orange)}
+.sep{width:26px;height:1px;background:var(--line);margin:6px 0}
+
+.stage{position:relative;background:var(--stage);overflow:hidden;display:grid;place-items:center}
+.board{position:relative;box-shadow:0 1px 0 rgba(0,0,0,.05),0 12px 36px rgba(40,30,20,.16)}
+.board canvas{position:absolute;left:0;top:0;display:block}
+#wire{touch-action:none}
+.stage.t-gesture #wire,.stage.t-pen #wire{cursor:crosshair}
+.stage.t-select #wire{cursor:default}
+
+/* ---------- panel ---------- */
+.panel{border-left:1px solid var(--line);background:#ECEAE6;overflow-y:auto;padding:2px 0 30px}
+/* 💾 SAVE into the Library, where "Editing" used to be (the owner, 2026-09-30) */
+.savebar{display:flex;align-items:center;gap:12px;margin:10px 12px 0;padding:8px 10px 8px 8px;border-radius:12px;background:var(--well);box-shadow:var(--press)}
+.btn.save{font-weight:600;letter-spacing:.08em;padding:9px 14px}
+.save-state{font:11px var(--mono);color:var(--mute);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sec{margin:10px 12px 0;padding:14px 16px 16px;background:var(--card);border-radius:14px;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.035),inset 0 1px 0 #fff}
+/* The Stroke section of the Create tab as it was (the owner: "leave it all as it is") */
+.stroke-sec{--card:#F7F5F1;--well:#E4E0D8;--key:linear-gradient(#FCFBF9,#EEEBE5);
+  --raise:0 0 0 1px rgba(70,55,40,.07),0 1px 2px rgba(70,55,40,.16),0 3px 8px rgba(70,55,40,.06),inset 0 1px 0 #fff;
+  --press:inset 0 1px 3px rgba(70,55,40,.24),inset 0 0 0 1px rgba(70,55,40,.07);
+  box-shadow:0 0 0 1px rgba(70,55,40,.05),0 1px 2px rgba(70,55,40,.09),0 4px 14px rgba(70,55,40,.05),inset 0 1px 0 #fff}
+.sec h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
+.sec h4{margin:14px 0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:500}
+.hint{font-weight:400;letter-spacing:.02em;text-transform:none;color:var(--mute);font-size:11px}
+.val{font:12px var(--mono);letter-spacing:0;color:var(--orange)}
+.row{display:flex;align-items:center;gap:6px}
+.weight input{width:64px;text-align:right;border:1px solid rgba(70,55,40,.12);background:#FBFAF8;border-radius:6px;padding:6px 7px;font:14px var(--mono);box-shadow:inset 0 1px 2px rgba(70,55,40,.1)}
+.unit{color:var(--mute);font-size:12px}
+.step{width:30px;height:30px;border:0;background:var(--key);border-radius:8px;font-size:16px;line-height:1;box-shadow:var(--raise)}
+.step:active{box-shadow:var(--press)}
+.weight select{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px}
+/* mm | pt: a small key pair in the Stroke heading */
+.unit-seg{padding:2px;gap:2px;border-radius:7px}
+.unit-seg button{padding:2px 7px;flex-direction:row;gap:4px;font:11px var(--mono);letter-spacing:0;text-transform:none;border-radius:5px}
+#wWhat[hidden]{display:none}
+
+.scale{display:flex;justify-content:space-between;font:10px var(--mono);color:var(--mute)}
+.read{margin:8px 0 0;font-size:12px;color:var(--mute)}
+.read b{color:var(--ink);font-weight:600}
+.read .warn{color:#B3470C}
+.link{border:0;background:none;color:var(--orange);text-decoration:underline;padding:0;font-size:12px}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;background:var(--well);border-radius:10px;box-shadow:var(--press)}
+.seg button{border:0;background:var(--key);border-radius:7px;padding:8px 6px 7px;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--mute);box-shadow:var(--raise)}
+.seg button:hover:not(.on):not(:disabled){color:var(--ink)}
+.seg button.on{background:var(--key-on);color:var(--ink);box-shadow:var(--press)}
+.seg button.on::before{content:"";flex:none;width:6px;height:6px;background:var(--dot) center/6px 6px no-repeat}
+#brushSeg{grid-template-columns:repeat(3,1fr)}
+#speedX{grid-template-columns:repeat(4,1fr);margin:2px 0 6px}
+#perLaneSeg{margin:0 0 6px;grid-template-columns:repeat(3,1fr)}
+#perLaneSeg[hidden]{display:none}
+#perLaneSeg button{padding:6px;flex-direction:row;justify-content:center;font-size:12px}
+#speedX button{padding:7px 6px;flex-direction:row;justify-content:center;font:12px var(--mono)}
+.seg .bico{height:18px;display:flex;align-items:flex-end;gap:0}
+.seg .bico i{display:block;background:currentColor;border-radius:1px 1px 0 0}
+
+/* palettes (paint loads) */
+.pal{border:0;border-radius:10px;background:#FBFAF8;margin-bottom:8px;padding:8px 10px;box-shadow:0 0 0 1px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06)}
+.pal.on{box-shadow:0 0 0 1.5px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.08)}
+.pal.on .pal-head .nm::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;vertical-align:1px;background:var(--dot) center/6px 6px no-repeat}
+.pal-head{display:flex;align-items:center;gap:8px;cursor:pointer}
+.pal-head .no{font:11px var(--mono);color:var(--mute)}
+.pal-head .nm{font-weight:600;flex:1}
+.pal-head .copy{border:0;background:var(--key);border-radius:6px;font-size:11px;padding:3px 8px;box-shadow:var(--raise)}
+.drops{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:8px}
+.drop{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px}
+.drop .sw{width:26px;height:26px;border-radius:50%;border:1px solid rgba(0,0,0,.18);cursor:pointer;position:relative;overflow:hidden}
+.drop .sw.empty{border:1.5px dashed var(--mute);background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(0,0,0,.05) 3px 5px)}
+.drop .sw input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop .ix{font:9px var(--mono);color:var(--mute)}
+.hexes{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px}
+.hexes label{display:flex;align-items:center;gap:3px;font:10px var(--mono);color:var(--mute)}
+.hexes input{width:100%;min-width:0;border:1px solid var(--line);border-radius:3px;padding:3px 3px;font:11px var(--mono);text-transform:uppercase;background:var(--panel)}
+.hexes input.bad{border-color:#D9481C}
+.pal:not(.on) .hexes{display:none}
+.xsec-wrap{margin-top:6px}
+#xsec{width:100%;height:44px;display:block;border-radius:3px;background:#EEEAE2}
+.xsec-lab{display:flex;justify-content:space-between;font:10px var(--mono);color:var(--mute);margin-top:3px}
+
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid4 label{display:flex;flex-direction:column;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);gap:3px;position:relative}
+.grid4 input{border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 22px 5px 6px;font:12px var(--mono);width:100%}
+.grid4 em{position:absolute;right:6px;bottom:6px;font-style:normal;font-size:10px;text-transform:none}
+.loadmode{display:flex;flex-direction:column;gap:5px;margin:10px 0 8px;font-size:12px}
+.loadmode input[type=number]{width:62px;border:1px solid var(--line);border-radius:4px;padding:3px 5px;font:12px var(--mono)}
+.loadmode input[type=radio]{accent-color:var(--orange)}
+.math{font-size:12px}
+.math table{width:100%;border-collapse:collapse}
+.math td{padding:3px 0;border-bottom:1px solid #E8E4DC;vertical-align:middle}
+.math td.r{text-align:right;font-family:var(--mono)}
+.math .chip{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.2);vertical-align:-1px;margin-right:6px}
+.math .mono{font-family:var(--mono);color:var(--mute)}
+.math .warn{color:#B3470C;margin-top:6px}
+.math .none{color:var(--mute)}
+
+/* ---------- bottom ---------- */
+.status{display:flex;align-items:center;gap:24px;padding:0 18px;border-top:1px solid var(--line);font-size:12px;color:var(--mute)}
+#hint{flex:1;color:var(--ink)}
+#coords,#stats{font-family:var(--mono)}
+
+.math .lanes td{font-size:11.5px}
+.math .lanes td.n{font-family:var(--mono);color:var(--mute);width:18px}
+.inline{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:var(--mute)}
+.inline.check input{width:auto;margin:0}
+/* a checkbox is a switch, as on the references: a well, a knob, orange when on */
+.inline.check input[type=checkbox]{-webkit-appearance:none;appearance:none;width:34px;height:18px;padding:0;border:0;border-radius:9px;background:var(--well);box-shadow:var(--press);position:relative;cursor:pointer;flex:none;transition:background .15s}
+.inline.check input[type=checkbox]::before{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:linear-gradient(#fff,#ECEBE8);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:left .15s}
+.inline.check input[type=checkbox]:checked{background:#CFCDC8}
+.inline.check input[type=checkbox]:checked::before{background:var(--dot) center/6px 6px no-repeat,linear-gradient(#fff,#ECEBE8)}
+.inline.check input[type=checkbox]:checked::before{left:18px}
+.inline.check.off{opacity:.45}
+.inline.check.off input[type=checkbox]{cursor:default}
+.inline input{width:56px;border:1px solid var(--line);background:#fff;border-radius:4px;padding:4px 6px;font:12px var(--mono)}
+
+/* ---------- pages ---------- */
+.tabs{display:flex;gap:3px;align-self:center;padding:3px;background:var(--well);border-radius:9px;box-shadow:var(--press)}
+.tabs a{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);text-decoration:none;padding:5px 10px;border-radius:6px;background:var(--key);box-shadow:var(--raise)}
+.tabs a.on{background:var(--key-on);color:var(--ink);box-shadow:var(--press)}
+.tabs a.on::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;vertical-align:0;background:var(--dot) center/6px 6px no-repeat}
+.tabs a:not(.on):hover{color:var(--ink)}
+.btn[disabled]{opacity:.45;cursor:default;color:var(--mute)}
+.btn[disabled]:active{transform:none;background:var(--key);box-shadow:var(--raise)}
+/* HARD STOP: a grey key with two dots, never mistaken for STOP's one */
+.btn.danger{font-weight:700}
+
+/* ---------- calibration ---------- */
+main.cal{grid-template-columns:1fr 340px}
+.cal .stage{display:block}
+#top{position:absolute;inset:0;width:100%;height:100%;display:block}
+.link-state{font:11px var(--mono);letter-spacing:.06em;white-space:nowrap}
+.link-state.ok{color:var(--ink)}
+.link-state.bad{color:var(--orange)}
+.axis{padding:4px 0 14px}
+.axis + .axis{border-top:1px solid #ECE8E1;padding-top:12px}
+.axis-head{display:flex;align-items:baseline;gap:10px}
+.axis-head .k{font:600 15px var(--mono);width:14px}
+.axis.servo .axis-head .k{width:auto;font-size:13px;letter-spacing:.04em}
+.axis.servo.busy .speed{color:var(--orange)}
+.pos{font:21px var(--mono);letter-spacing:-.01em;white-space:nowrap}
+.pos.none{color:var(--orange);font-size:15px}
+.speed{margin-left:auto;font:600 12px var(--mono);white-space:nowrap}
+.axis.live .speed{color:var(--orange)}
+.dir{margin:2px 0 6px 24px;font-size:11px;color:var(--mute)}
+/* sliders, as on the MELNICOMM pendant: a recessed slot, orange from the
+   origin to the handle (--f0, --f1 from src/ui.js), a white knob with an
+   orange mark. The knob stays 18 px, so the ticks line up with the levels. */
+.jog-slider,.slider{-webkit-appearance:none;appearance:none;width:100%;height:22px;margin:0;background:transparent;display:block;--f0:.5;--f1:.5;
+  --fill:linear-gradient(90deg,var(--well) calc(9px + (100% - 18px) * var(--f0)),var(--orange) 0,var(--orange) calc(9px + (100% - 18px) * var(--f1)),var(--well) 0)}
+.slider{margin:12px 0 2px}
+.jog-slider::-webkit-slider-runnable-track,.slider::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--fill);box-shadow:var(--press)}
+.jog-slider::-moz-range-track,.slider::-moz-range-track{height:8px;border-radius:4px;background:var(--fill);box-shadow:var(--press)}
+.jog-slider::-webkit-slider-thumb,.slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-5px;border:0;border-radius:50%;
+  background:linear-gradient(90deg,transparent 8.25px,var(--orange) 8.25px,var(--orange) 9.75px,transparent 9.75px) center/100% 8px no-repeat,linear-gradient(#fff,#EBE8E2);
+  box-shadow:0 0 0 1px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.32)}
+.jog-slider::-moz-range-thumb,.slider::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;box-sizing:border-box;
+  background:linear-gradient(90deg,transparent 8.25px,var(--orange) 8.25px,var(--orange) 9.75px,transparent 9.75px) center/100% 8px no-repeat,linear-gradient(#fff,#EBE8E2);
+  box-shadow:0 0 0 1px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.32)}
+.stroke-sec .slider::-webkit-slider-thumb{box-shadow:0 0 0 1px rgba(70,55,40,.1),0 1px 3px rgba(70,55,40,.38)}
+.stroke-sec .slider::-moz-range-thumb{box-shadow:0 0 0 1px rgba(70,55,40,.1),0 1px 3px rgba(70,55,40,.38)}
+.ticks{position:relative;height:22px}
+.ticks i{position:absolute;top:2px;width:3px;height:3px;border-radius:50%;background:#CBC4B8;transform:translateX(-1.5px)}
+.ticks i.major{top:1px;width:5px;height:5px;background:#ADA597;transform:translateX(-2.5px)}
+.ticks i span{position:absolute;top:9px;left:50%;transform:translateX(-50%);font:10px var(--mono);font-style:normal;color:var(--mute);white-space:nowrap}
+.stops{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stops .btn{padding:10px}
+#btnRunPause{grid-column:1 / -1}
+.home-row{gap:8px;margin-top:10px}
+.warn{color:#B3470C}
+.cal-format{margin-bottom:8px}
+.corner{display:grid;grid-template-columns:92px 1fr auto;gap:6px 8px;align-items:center;padding:8px 0;border-bottom:1px solid #ECE8E1;font-size:12px}
+.corner .nm{font-weight:600}
+.corner .xy{font:11.5px var(--mono);color:var(--mute);white-space:nowrap}
+.corner .xy.set{color:var(--ink)}
+.corner .acts{display:flex;gap:8px;align-items:center}
+.corner .off{grid-column:1 / 4;display:flex;gap:10px;align-items:center;font:11px var(--mono);color:var(--mute)}
+.corner .off input{width:60px;border:1px solid var(--line);background:#fff;border-radius:4px;padding:3px 5px;font:11px var(--mono)}
+#report p{margin:8px 0 0}
+#saved{font-family:var(--mono)}
+
+/* ---------- job ---------- */
+#jobView{position:absolute;inset:0;width:100%;height:100%;display:block}
+.btn.job{font-weight:600}
+/* ⚡️ Do Job and 🖨 Open Job: the green keys, like a Braun power key (the
+   owner, 2026-09-30: #4F7A28) */
+#btnDoJob,#btnDoJob:hover,#btnJob,#btnJob:hover{color:#fff;background:linear-gradient(#5A8A2F,#4F7A28);box-shadow:0 0 0 1px rgba(40,62,20,.55),0 1px 2px rgba(40,62,20,.3),0 3px 8px rgba(40,62,20,.18),inset 0 1px 0 rgba(255,255,255,.22)}
+#btnDoJob:active,#btnJob:active{background:#4F7A28;box-shadow:inset 0 1px 3px rgba(0,0,0,.35),0 0 0 1px rgba(40,62,20,.55)}
+.progress{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+/* the Job tab's progress: an LCD, as on the owner's clock reference
+   (Screenshot 2026-09-28 at 10.52.30 PM.png), digits from src/lcd.js. Grey,
+   set into a niche like the Create tab's "Editing" plate (the owner). */
+.lcd{--lcd-ink:#1E1F1E;--lcd-ghost:rgba(30,31,30,.07);
+  background:linear-gradient(#D6D5D1,#CBCAC6);border-radius:10px;padding:9px 11px;color:var(--lcd-ink);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.26),inset 0 0 0 1px rgba(0,0,0,.16),0 1px 0 #fff;
+  font:700 9.5px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase}
+.lcd .segs{display:block;overflow:visible}
+.lcd .segs polygon,.lcd .segs rect{fill:var(--lcd-ghost)}
+.lcd .segs .seg-on{fill:var(--lcd-ink)}
+.lcd-top{display:flex;justify-content:space-between;gap:8px;margin-bottom:7px}
+.lcd-mid{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.lcd-big{display:flex;align-items:flex-start;gap:4px}
+.lcd-big .u{font-size:14px;margin-top:3px}
+.lcd-times{display:grid;grid-template-columns:auto auto;justify-items:end;align-items:center;gap:5px 8px}
+.lcd-times .k{opacity:.7}
+.lcd .bars{display:flex;gap:2px;height:13px;margin:9px 0 7px}
+.lcd .bars i{flex:1;background:var(--lcd-ghost);border-radius:.5px}
+.lcd .bars i.on{background:var(--lcd-ink)}
+.lcd-now{font-weight:600;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mode-seg{margin:2px 0 8px}
+.seg button:disabled{opacity:.45;cursor:default}
+.hint.live{color:var(--ink)}
+.mode-seg button{padding:7px 8px;flex-direction:row;justify-content:center;font-size:13px}
+#now{color:var(--ink);text-align:center;flex:1;padding:0 6px}
+.run{margin-top:12px;padding-top:10px;border-top:1px solid #ECE8E1}
+.brush-row{gap:8px}
+.brush-row .btn{flex:1;padding:9px}
+
+/* fields: recessed, as the wells */
+.field select,.grid4 input,.inline input:not([type=checkbox]),.loadmode input[type=number],.corner .off input,.hexes input{
+  background:#FBFBF9;border:1px solid rgba(0,0,0,.13);border-radius:6px;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
+.weight select{background:#FBFAF8;border:1px solid rgba(70,55,40,.12);border-radius:6px;box-shadow:inset 0 1px 2px rgba(70,55,40,.1)}
+.math td{border-bottom-color:#ECE8E1}
+
+/* ---------- Library (2026-09-30): the saved drawings, newest first ---------- */
+main.lib{display:block;overflow-y:auto;background:var(--stage)}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;padding:24px}
+.lib-grid .none{grid-column:1/-1;color:var(--mute);font-size:13px}
+.card{position:relative;background:var(--card);border-radius:14px;overflow:hidden;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.07),0 4px 14px rgba(0,0,0,.035)}
+.card:hover{box-shadow:0 0 0 1.5px rgba(0,0,0,.35),0 2px 8px rgba(0,0,0,.1)}
+.card .thumb{aspect-ratio:3/4;background:#EEEAE2;display:grid;place-items:center;border-bottom:1px solid var(--line)}
+.card .thumb img{max-width:100%;max-height:100%;display:block}
+.card .meta{display:flex;flex-direction:column;gap:3px;padding:10px 14px 12px}
+.card .name{font:13px var(--mono);color:var(--ink)}
+.card .sub{font-size:11px;color:var(--mute)}
+.card .del{position:absolute;top:8px;right:8px;width:28px;height:28px;border:0;border-radius:50%;background:var(--key);box-shadow:var(--raise);color:#D9481C;font-size:18px;line-height:1;font-weight:600}
+.card .del:hover{color:#B3260C}
+.card .del:active{box-shadow:var(--press)}
+
+/* ---------- Create: the second row (2026-09-30) ---------- */
+/* The drawing's format and snap, the view toggles, import and export — in
+   the top row they piled up and hid under each other. Wraps rather than
+   overlaps on a narrow window. */
+body.create{grid-template-rows:56px auto 1fr 30px}
+.bar2{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:7px 18px;border-bottom:1px solid var(--line);background:var(--bg);min-width:0}
+.bar2 .spacer{flex:1}
+.bar2 .io{display:flex;flex-wrap:wrap;gap:8px}
