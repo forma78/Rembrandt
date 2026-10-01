@@ -8,9 +8,10 @@ import { FORMATS } from './config.js';
 import { fmt } from './util.js';
 import { HOME_STEPS, STOPS, WALLS, CORNERS, EDGE_SIDES, toMm, parsePing, cornerAt, artboardCorner, canvasReport, canvasFromEdges, reach } from './machine.js';
 import './ui.js';
+import { isNight, themeColor } from './lamp.js';
 
 const $ = s => document.querySelector(s);
-const INK = '#24221F', MUTE = '#7D776D', ORANGE = '#EB7A25', PAPER = '#EEEAE2';
+const INK = '#24221F', MUTE = '#7D776D', ORANGE = '#EB7A25', PAPER = '#EEEAE2';   // INK: on the paper, day or night
 
 const S = {
   link: 'wait',                 // ok · lost (no board on USB) · server (no rembrandt.py)
@@ -310,6 +311,7 @@ function draw() {
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
+  const night = isNight(), ink = themeColor('--ink', INK), mute = themeColor('--mute', MUTE);   // on the table
 
   const F = fmtOf(), rep = canvasReport(S.cal.corners, F.w, F.h), C = canvasCorners(rep, F), R = reach();
   const pts = [...Object.values(C).filter(Boolean), ...S.trail, ...(S.pos.x != null && S.pos.y != null ? [S.pos] : [])];
@@ -321,7 +323,7 @@ function draw() {
   ctx.font = '10px "SF Mono", ui-monospace, Menlo, monospace';
 
   // grid every 100 mm
-  ctx.strokeStyle = 'rgba(36,34,31,.07)'; ctx.lineWidth = 1; ctx.fillStyle = MUTE;
+  ctx.strokeStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(36,34,31,.07)'; ctx.lineWidth = 1; ctx.fillStyle = mute;
   for (let x = Math.ceil(x0 / 100) * 100; x <= x1; x += 100) {
     ctx.beginPath(); ctx.moveTo(sx(y0), sy(x)); ctx.lineTo(sx(y1), sy(x)); ctx.stroke();
     ctx.textAlign = 'right'; ctx.fillText(`X ${x}`, sx(y0) - 4, sy(x) + 3);
@@ -333,7 +335,7 @@ function draw() {
 
   // travel between the walls (or up to the stops where there is no wall)
   const rx0 = R.x.min ?? x0, rx1 = R.x.max ?? x1, ry0 = R.y.min ?? y0, ry1 = R.y.max ?? y1;
-  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  ctx.fillStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.35)';
   ctx.fillRect(sx(ry0), sy(rx1), (ry1 - ry0) * k, (rx1 - rx0) * k);
 
   // the canvas
@@ -379,11 +381,11 @@ function draw() {
   wall(W_.x.max, y0, W_.x.max, y1, true, `wall X +${fmt(W_.x.max)}`, sx(y1) - 4, sy(W_.x.max) + 13, 'right');
   wall(W_.x.min, y0, W_.x.min, y1, W_.x.checked.min, `wall X +${fmt(W_.x.min)}${W_.x.checked.min ? '' : ' · not checked'}`, sx(y1) - 4, sy(W_.x.min) - 5, 'right');
   wall(x0, W_.y.min, x1, W_.y.min, true, `wall Y +${fmt(W_.y.min)}`, sx(W_.y.min) + 4, sy(x0) - 6, 'left');
-  if (W_.y.max == null) { ctx.fillStyle = MUTE; ctx.textAlign = 'right'; ctx.fillText('right Y stop: not measured, no wall', sx(y1) - 4, sy(x0) - 6); }
+  if (W_.y.max == null) { ctx.fillStyle = mute; ctx.textAlign = 'right'; ctx.fillText('right Y stop: not measured, no wall', sx(y1) - 4, sy(x0) - 6); }
 
   // the trail and the tip
   if (S.trail.length > 1) {
-    ctx.strokeStyle = 'rgba(36,34,31,.35)'; ctx.lineWidth = 1;
+    ctx.strokeStyle = night ? 'rgba(214,215,216,.35)' : 'rgba(36,34,31,.35)'; ctx.lineWidth = 1;
     ctx.beginPath(); S.trail.forEach((p, i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, sx(p.y), sy(p.x))); ctx.stroke();
   }
   if (S.pos.x != null && S.pos.y != null) {
@@ -392,17 +394,18 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(X, 0); ctx.lineTo(X, H); ctx.moveTo(0, Y); ctx.lineTo(W, Y); ctx.stroke();
     ctx.fillStyle = ORANGE; ctx.beginPath(); ctx.arc(X, Y, 5, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = ORANGE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(X, Y, 10, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = INK; ctx.textAlign = 'left';
+    ctx.fillStyle = ink; ctx.textAlign = 'left';
     ctx.fillText(`X ${fmt(S.pos.x)} · Y ${fmt(S.pos.y)}`, X + 14, Y - 12);
   }
 
   // which way is which
-  ctx.fillStyle = MUTE; ctx.textAlign = 'left';
+  ctx.fillStyle = mute; ctx.textAlign = 'left';
   ctx.fillText('↑ top of the picture · X+', 10, 16);
   ctx.fillText('↓ bottom · the beam, where you stand', 10, H - 10);
   ctx.textAlign = 'right'; ctx.fillText('Y+ →', W - 10, 16);
 }
 addEventListener('resize', draw);
+addEventListener('rembrandt-night', draw);
 
 // ---------- start ----------
 await load();

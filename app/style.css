@@ -10,10 +10,13 @@
    STOP"; the Job tab's progress is an LCD. The Stroke section of the Create
    tab keeps the look of before (.stroke-sec): "тут идеально все". */
 :root{
+  --table:#D9D4CA;                 /* drawn by the canvases (lamp.js, themeColor) */
+  --veil:rgba(217,212,202,.55);
   --bg:#EDEAE4;
   --panel:#F5F3EF;
   --stage:#E2DED6;
   --line:#D5CFC4;
+  --rule:#ECE8E1;                  /* the faint rules inside a section */
   --ink:#24221F;
   --mute:#7D776D;
   --orange:#EB7A25;
@@ -204,7 +207,7 @@ main.cal{grid-template-columns:1fr 340px}
 .link-state.ok{color:var(--ink)}
 .link-state.bad{color:var(--orange)}
 .axis{padding:4px 0 14px}
-.axis + .axis{border-top:1px solid #ECE8E1;padding-top:12px}
+.axis + .axis{border-top:1px solid var(--rule);padding-top:12px}
 .axis-head{display:flex;align-items:baseline;gap:10px}
 .axis-head .k{font:600 15px var(--mono);width:14px}
 .axis.servo .axis-head .k{width:auto;font-size:13px;letter-spacing:.04em}
@@ -240,7 +243,7 @@ main.cal{grid-template-columns:1fr 340px}
 .home-row{gap:8px;margin-top:10px}
 .warn{color:#B3470C}
 .cal-format{margin-bottom:8px}
-.corner{display:grid;grid-template-columns:92px 1fr auto;gap:6px 8px;align-items:center;padding:8px 0;border-bottom:1px solid #ECE8E1;font-size:12px}
+.corner{display:grid;grid-template-columns:92px 1fr auto;gap:6px 8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--rule);font-size:12px}
 .corner .nm{font-weight:600}
 .corner .xy{font:11.5px var(--mono);color:var(--mute);white-space:nowrap}
 .corner .xy.set{color:var(--ink)}
@@ -283,7 +286,7 @@ main.cal{grid-template-columns:1fr 340px}
 .hint.live{color:var(--ink)}
 .mode-seg button{padding:7px 8px;flex-direction:row;justify-content:center;font-size:13px}
 #now{color:var(--ink);text-align:center;flex:1;padding:0 6px}
-.run{margin-top:12px;padding-top:10px;border-top:1px solid #ECE8E1}
+.run{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
 .brush-row{gap:8px}
 .brush-row .btn{flex:1;padding:9px}
 
@@ -291,7 +294,7 @@ main.cal{grid-template-columns:1fr 340px}
 .field select,.grid4 input,.inline input:not([type=checkbox]),.loadmode input[type=number],.corner .off input,.hexes input{
   background:#FBFBF9;border:1px solid rgba(0,0,0,.13);border-radius:6px;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
 .weight select{background:#FBFAF8;border:1px solid rgba(70,55,40,.12);border-radius:6px;box-shadow:inset 0 1px 2px rgba(70,55,40,.1)}
-.math td{border-bottom-color:#ECE8E1}
+.math td{border-bottom-color:var(--rule)}
 
 /* ---------- Library (2026-09-30): the saved drawings, newest first ---------- */
 main.lib{display:block;overflow-y:auto;background:var(--stage)}
@@ -429,6 +432,37 @@ body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11p
 .lampsw button.on::before{display:none}
 .lampsw button.on{color:var(--orange)}
 .lcd{transition:background .3s,box-shadow .3s}
-body.lamp .lcd{--lcd-ink:#2B2309;--lcd-ghost:rgba(70,50,0,.09);
+html.night .lcd{--lcd-ink:#2B2309;--lcd-ghost:rgba(70,50,0,.09);
   background:radial-gradient(130% 160% at 50% 35%,#F6E08A 0%,#EBC95E 55%,#D9B04A 100%);
   box-shadow:inset 0 2px 5px rgba(90,60,0,.30),inset 0 0 0 1px rgba(90,60,0,.22),0 0 22px rgba(240,190,70,.35),0 1px 0 #fff}
+
+/* ---------- Night (the owner, 2026-10-02: references/braun_night-1.jpg, -2.webp) ----------
+   The moon by PROGRESS: graphite, raised dark keys, light type, the one
+   orange; the LCD lit warm yellow behind its glass. html.night is set by a
+   line in each page's head, before the page draws. */
+html.night{
+  --bg:#2A2C2F; --panel:#2F3134; --stage:#222426; --line:#3A3D41; --rule:#36393D; --ink:#D6D7D8; --mute:#8E9196;
+  --card:#2F3134; --well:#232528;
+  --key:linear-gradient(#393C40,#303236);
+  --key-on:linear-gradient(#222427,#2A2C2F);
+  --raise:0 0 0 1px rgba(0,0,0,.45),0 2px 5px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.07);
+  --press:inset 0 2px 4px rgba(0,0,0,.55),inset 0 0 0 1px rgba(0,0,0,.45);
+  --table:#1C1E20; --veil:rgba(28,30,32,.62);
+  color-scheme:dark;
+}
+html.night .panel{background:#26282B}
+html.night .sec{box-shadow:0 0 0 1px rgba(0,0,0,.45),0 6px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05)}
+html.night .grid4 input,html.night .math input,html.night .inline input,html.night .corner .off input,
+html.night .weight input,html.night .weight select,html.night .field select{background:#222427;color:var(--ink);border-color:var(--line)}
+html.night .tname:focus,html.night .tpig:focus{background:#222427}
+html.night .tchip{background:#36393D;box-shadow:0 0 0 1px rgba(0,0,0,.45)}
+html.night .pal{background:#303236}
+html.night .card .thumb{background:#1C1E20}
+html.night .ticks i{background:#55595E}
+html.night .ticks i.major{background:#72767B}
+html.night .inline.check input[type=checkbox]:checked{background:#46494D}
+html.night .layer:hover,html.night .trow:hover{background:rgba(255,255,255,.04)}
+html.night .menu{box-shadow:0 0 0 1px rgba(0,0,0,.5),0 8px 28px rgba(0,0,0,.55)}
+html.night .board{box-shadow:0 1px 0 rgba(0,0,0,.3),0 14px 40px rgba(0,0,0,.55)}
+html.night .btn:hover{color:#fff}
+html.night .tool:hover{background:#303236}

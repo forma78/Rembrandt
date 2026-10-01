@@ -11,7 +11,7 @@ import { jobSteps, jobLengths, jobTimeline, jobAt, jobFile, timeAtPercent, MODES
 import { canvasReport, jobToMachine, arcSpeed, reach, SPEED_MAX, CORNERS } from './machine.js';
 import './ui.js';
 import { segments, sticks } from './lcd.js';
-import { lampSwitch } from './lamp.js';
+import { lampSwitch, themeColor } from './lamp.js';
 lampSwitch(document.querySelector('#lamp'));
 
 const $ = s => document.querySelector(s);
@@ -226,9 +226,10 @@ function draw(at) {
   // The edge of the canvas, dashed, its corners named as on the Calibration
   // tab (the owner, 2026-09-29: to see where 60 × 80 ends).
   ctx.font = '10px "SF Mono", ui-monospace, Menlo, monospace';
-  ctx.strokeStyle = INK; ctx.globalAlpha = 0.6; ctx.lineWidth = 1; ctx.setLineDash([6, 4]);
+  const ink = themeColor('--ink', INK);   // on the table: light at night
+  ctx.strokeStyle = ink; ctx.globalAlpha = 0.6; ctx.lineWidth = 1; ctx.setLineDash([6, 4]);
   ctx.strokeRect(0, 0, dw * k, dh * k);
-  ctx.fillStyle = INK;
+  ctx.fillStyle = ink;
   for (const [t, x, y, ax, ay] of [['TL', 0, 0, 'right', 'bottom'], ['TR', dw * k, 0, 'left', 'bottom'], ['BR', dw * k, dh * k, 'left', 'top'], ['BL', 0, dh * k, 'right', 'top']]) {
     ctx.textAlign = ax; ctx.textBaseline = ay;
     ctx.fillText(t, x + (ax === 'left' ? 4 : -4), y + (ay === 'top' ? 4 : -4));
@@ -341,6 +342,7 @@ addEventListener('storage', e => { if (e.key === 'rubens.v01') { build(); syncMo
 // Back from the Calibration tab: the corners may have changed.
 addEventListener('focus', async () => { await loadCalibration(); machine(); });
 addEventListener('resize', () => render());
+addEventListener('rembrandt-night', () => render());
 
 async function saveJob() {
   if (!S.doc) return false;

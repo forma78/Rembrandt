@@ -400,6 +400,14 @@ this section disagree, this section wins: the owner corrected the sketch on
 the drops go on by eye from Create's drop map, and later the brush dips
 (§1).
 
+**Day and night** (the owner, 2026-10-02: "when I pick the moon, everything
+goes dark", `references/braun_night-1.jpg`, `braun_night-2.webp`): a sun and
+a moon by PROGRESS on Job and Test. Night turns every tab graphite — raised
+dark keys, light type, the one orange — and the LCD glows warm yellow behind
+its glass; the canvas and the board stay the colour they are. One switch for
+all tabs, kept in this browser. On Test, PROGRESS sits at the top of the
+panel, as on Job.
+
 ---
 
 ## 9. The first painting — the sheet

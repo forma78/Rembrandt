@@ -22,6 +22,7 @@ import { buildLanes, paintLanes, steepest, pathLength, pointAlong } from './band
 import { dropPlan } from './drops.js';
 import { readPaint } from './adjust.js';
 import { brushOutline } from './layers.js';
+import { themeColor } from './lamp.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -127,7 +128,7 @@ function drawRef(c) {
 function drawPaint(c, W, H) {
   scrT(c);
   c.clearRect(0, 0, W, H);
-  c.fillStyle = '#D9D4CA'; c.fillRect(0, 0, W, H);                      // the table
+  c.fillStyle = themeColor('--table', '#D9D4CA'); c.fillRect(0, 0, W, H);   // the table, dark by night
   const ia = mmR(0, 0, IA.w, IA.h), cr = canvasRect(), win = mmR(cr.x, cr.y, cr.w, cr.h);
   c.fillStyle = '#F2F0EB'; c.fillRect(...ia);                           // the canvas underneath, in the image area
   c.fillStyle = '#FCFBF8'; c.fillRect(...win);                          // the canvas
@@ -135,7 +136,7 @@ function drawPaint(c, W, H) {
   if (S.curve.segs.length && (S.view.lanes || S.view.drops) && !busy()) drawPlan(c);
   c.save();                                                             // past the canvas: a veil
   c.beginPath(); c.rect(...ia); c.rect(...win); c.clip('evenodd');
-  c.fillStyle = 'rgba(217,212,202,.55)'; c.fillRect(...ia);
+  c.fillStyle = themeColor('--veil', 'rgba(217,212,202,.55)'); c.fillRect(...ia);
   c.restore();
   c.save(); c.shadowColor = 'rgba(40,30,20,.18)'; c.shadowBlur = 10; c.shadowOffsetY = 2;
   c.strokeStyle = 'rgba(36,34,31,.85)'; c.lineWidth = 1; c.strokeRect(win[0] + .5, win[1] + .5, win[2] - 1, win[3] - 1);
@@ -903,5 +904,6 @@ syncTools(); syncView(); syncRef(); loadRef(); loadTubes();
 const opening = new URLSearchParams(location.search).get('open');   // from the Library tab
 if (opening) openFromLibrary(opening);
 new ResizeObserver(layout).observe(stage);
-addEventListener('focus', () => { loadCal(); PAINT = readPaint(localStorage); invalidate(); });   // back from Calibration or Adjustments
+addEventListener('focus', () => { loadCal(); PAINT = readPaint(localStorage); invalidate(); });
+addEventListener('rembrandt-night', () => invalidate());   // back from Calibration or Adjustments
 loadCal();

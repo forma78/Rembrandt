@@ -5,6 +5,7 @@
 // library/.deleted/ after asking (the owner, 2026-09-30).
 
 import { FORMATS } from './config.js';
+import './lamp.js';   // day or night, switched on another tab
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
