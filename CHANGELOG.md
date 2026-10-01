@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The owner's corrections of the UI sketch** (2026-10-01), in §8, which now
+  wins over the sketch: two rows as in RUBENS, the view toggles centred in
+  the second; formats 500 × 700 and 600 × 800 drawn on the image area as on
+  the Calibration tab; the RUBENS tools on the left; Add new reference; every
+  Curve number editable, the inner corner radius with no upper limit; [+] a
+  tube in each layer; the Job tab as in RUBENS, STOP and HARD STOP under
+  Pause; ⚠ only closer than the keep-out.
 - **Port 5164**, the owner's lucky number (2026-10-01), instead of 8767.
 - **The upper line is built by the program** (the owner, 2026-10-01); the
   blended lanes are fitted with lines and arcs within 0.1 mm, tangent
