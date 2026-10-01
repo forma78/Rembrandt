@@ -184,6 +184,15 @@ Everything else is in §11 (later).
 - Prefer single-pigment tubes: their mixes are easier to predict.
 - Recipes use only tubes in the inventory. A colour no tube reaches is
   reported, never invented.
+- **The inventory is large, not six tubes.** The owner has a Pebeo set of
+  50 tubes and a Liquitex set of 80. A gradient can be made of many real
+  shades — five greys, twenty yellows — laid side by side, not premixed.
+  The owner, 2026-10-01: "Paint makers have hundreds of shades. Don't get
+  stuck on six tubes."
+- **Two ways to mix on the canvas**: the tail (§1, home and tail) and
+  **optical mixing** — neighbouring lines of neighbouring shades, the eye
+  mixes them (Sonnet's layout, `adjustments/`, 2026-10-01). The test
+  canvases show which, where.
 
 ---
 
@@ -242,6 +251,17 @@ photo → muddy or not.
 
 Everything is saved in `adjustments.json`. A measured value replaces the
 est. one everywhere.
+
+**The tab starts from Sonnet's layout** (the owner, 2026-10-01: "make the
+tab from adjustments, keep the 13 colours"): `adjustments/`, four SVG layers
+on the 500 × 700 canvas, made by Claude Sonnet without our spec, on purpose
+— "a fresh look". 13 paints in four layers, lines 8 mm wide and 8 mm apart,
+the gradients mixed optically; above the dip, vertical copies of the curve
+instead of offsets. The tab shows the layers one by one and every paint with
+its colour — est. until the owner's photos of the real tubes replace it.
+**The lines are drawn as the brush leaves them**, thick at the home and
+thinning into the tail — not as round-ended sausages (the owner: "when the
+3DOF lifts, it will not end like that"; `references/IMG_9422_direction-2.png`).
 
 ---
 
@@ -323,8 +343,8 @@ One curve; a white sheet over a warm glow; black around.
 | layer | where | tube: home → tail | order |
 |---|---|---|---|
 | 1 Light | below the curve | Yellow: the right edge → left, into the red. Orange: the right edge, behind the yellow, between it and the red. Red: left of the middle → right, towards the yellow | Yellow, Orange, Red |
-| 2 Sheet | above the curve, blended to the upper line | White: the left edge → right, into the grey. Grey N5: the right edge → left, into the white | White, then Grey |
-| 3 Black | from the edges inward | Bottom: the left edge → right, into the red. Top: the top edge, along the U of the upper line, into the grey | — |
+| 2 Sheet | above the curve, blended to the upper line | White: the left edge → right, into the grey. Grey N5: the right edge → left, into the white. Black, top: along the U of the upper line, into the wet grey | White, Grey, Black |
+| 3 Black | from the edges inward | Bottom: the left edge → right, into the red | — |
 
 The sketches: `references/IMG_9422_direction.png` and `IMG_9422_direction-2.png`
 (the owner, 2026-10-01). Lanes, trips, drops, ml and machine time are computed
@@ -339,6 +359,10 @@ for 70 × 100 cm and are gone.
   orange: at the right edge, behind the yellow.
 - The grey is its own tube between the white and the black (the owner,
   2026-10-01).
+- **The black at the top goes into the wet grey**, in the sheet's session,
+  after the grey (the owner, 2026-10-01: "I like it better on the wet
+  grey"); it draws into the grey softly instead of leaving a stripe. The
+  black at the bottom, into the red, stays a layer of its own.
 - The top of the sheet is left for the black.
 - Keep-out yellow ↔ black: 40 mm. On the sketch the black's tails reach the
   middle of the lanes, near the end of the yellow's: expect a ⚠ there and

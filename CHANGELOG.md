@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The inventory is large** (the owner, 2026-10-01: a Pebeo set of 50 tubes,
+  a Liquitex set of 80): gradients of many real shades side by side —
+  **optical mixing**, Sonnet's way — next to the tail. **The top black goes
+  into the wet grey**, after it in the sheet's session; Create's layer 2 is
+  White, Grey, Black. The Adjustments tab starts from Sonnet's layout in
+  `adjustments/`, 13 paints, the lines drawn with tails.
 - **Rembrandt runs on its own** (the owner, 2026-10-01: "run everything in
   Rembrandt, so there is order from day one"): the pages say "start
   rembrandt.py" where they said rubens.py; nothing reads from `../Rubens`.

@@ -18,7 +18,7 @@ export const tubeOf = id => INVENTORY.find(t => t.id === id) || null;
 // Three layers in a fixed order (§1); the first painting's tubes (§9).
 export const defaultLayers = () => [
   { n: 1, name: 'Light', where: 'below the curve',       tubes: ['yellow', 'orange', 'red'] },
-  { n: 2, name: 'Sheet', where: 'above the curve',       tubes: ['white', 'grey'] },
+  { n: 2, name: 'Sheet', where: 'above the curve',       tubes: ['white', 'grey', 'black'] },   // the top black into the wet grey (the owner, 2026-10-01)
   { n: 3, name: 'Black', where: 'from the edges inward', tubes: ['black'] },
 ];
 

@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { INVENTORY, tubeOf, defaultLayers, runOrder, lightness } from '../src/tubes.js';
 
-test('inside a layer the lighter tube runs first: yellow, orange, red; white, grey', () => {
+test('inside a layer the lighter tube runs first: yellow, orange, red; white, grey, black', () => {
   const [light, sheet] = defaultLayers();
   assert.deepEqual(runOrder(light.tubes).map(t => t.id), ['yellow', 'orange', 'red']);
-  assert.deepEqual(runOrder(['grey', 'white']).map(t => t.id), ['white', 'grey']);
+  assert.deepEqual(runOrder(['grey', 'black', 'white']).map(t => t.id), ['white', 'grey', 'black']);
+  assert.deepEqual(runOrder(sheet.tubes).map(t => t.id), ['white', 'grey', 'black']);
 });
 
 test('the same tube twice keeps both places, in the order they were added', () => {
