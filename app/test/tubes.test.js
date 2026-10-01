@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { INVENTORY, tubeOf, defaultLayers, runOrder, lightness } from '../src/tubes.js';
 
-test('inside a layer the lighter tube runs first: yellow, orange, red; white, grey, black', () => {
-  const [light, sheet] = defaultLayers();
-  assert.deepEqual(runOrder(light.tubes).map(t => t.id), ['yellow', 'orange', 'red']);
-  assert.deepEqual(runOrder(['grey', 'black', 'white']).map(t => t.id), ['white', 'grey', 'black']);
-  assert.deepEqual(runOrder(sheet.tubes).map(t => t.id), ['white', 'grey', 'black']);
+test('inside a layer the lighter tube runs first: yellow → crimson; white → black', () => {
+  const [light, sheet, dark] = defaultLayers();
+  assert.deepEqual(runOrder(light.tubes).map(t => t.id), ['yellow', 'orange', 'red', 'crimson']);
+  assert.deepEqual(runOrder(sheet.tubes).map(t => t.id), ['white', 'cream', 'light-gray', 'grey', 'dark-gray', 'black']);
+  assert.deepEqual(runOrder(dark.tubes).map(t => t.id), ['oxblood', 'dark-red', 'maroon', 'black']);
 });
 
 test('the same tube twice keeps both places, in the order they were added', () => {
@@ -20,7 +20,8 @@ test('the inventory: every tube of the layers is in it, lightness from white to 
   assert.equal(new Set(INVENTORY.map(t => t.id)).size, INVENTORY.length);
 });
 
-test('the default layers are fresh copies', () => {
+test('the default layers are fresh copies, each on its side of the curve', () => {
   const a = defaultLayers(); a[0].tubes.push('white');
-  assert.deepEqual(defaultLayers()[0].tubes, ['yellow', 'orange', 'red']);
+  assert.deepEqual(defaultLayers()[0].tubes, ['yellow', 'orange', 'red', 'crimson']);
+  assert.deepEqual(defaultLayers().map(l => l.side), ['below', 'above', 'below']);
 });

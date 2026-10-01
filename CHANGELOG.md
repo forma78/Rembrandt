@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Lanes and Drops on the Create tab** (build order steps 1 and 2, first
+  cut): lines 8 mm wide and 8 mm apart over the whole image area — offsets
+  below the curve, vertical copies above it, Sonnet's way; each line's paint
+  read from the reference, neighbouring lines taking turns where it lies
+  between two tubes; every run from its home into its tail; the drops across
+  the lines at the homes, one tube at a time, the lighter first, with drops
+  and ml per tube, est. Tails or Round per layer; a layer click shows the
+  layers up to it. The paint numbers (line width, film, brush keeps, drop,
+  nozzle, tail) live on the Adjustments tab, est. The inventory is Sonnet's
+  13 shades with White; the layers as Sonnet laid them out. New modules
+  `bands.js`, `drops.js`, `adjust.js`, with tests.
 - **Adjustments: one row on top**, as on Job and Calibration (the owner): the
   layers 1–4 and Export PNG moved into the Layout block, the canvas rose.
 - **Adjustments: Tails or Round per layer** (the owner, 2026-10-01: the top is

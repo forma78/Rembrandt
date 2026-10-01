@@ -35,8 +35,8 @@
   </label>
   <div class="toggles">
     <button class="tog" data-view="reference" title="The reference under the canvas">Reference</button>
-    <button class="tog" data-view="lanes" disabled title="The lanes of the layers — the next step: the bands">Lanes</button>
-    <button class="tog" data-view="drops" disabled title="The drop plan — after the bands">Drops</button>
+    <button class="tog" data-view="lanes" title="The lines of the layers, painted from the reference">Lanes</button>
+    <button class="tog" data-view="drops" title="The drop plan: where each drop goes">Drops</button>
   </div>
   <div class="toggles">
     <button class="tog" data-view="reach" title="The image area: the machine's walls, and where the canvas lies past them">Reach</button>
@@ -111,9 +111,28 @@
     </section>
 
     <section class="sec">
-      <h3>Layers <span class="hint">fixed order</span></h3>
+      <h3>Lanes <span class="hint">Sonnet's way</span></h3>
+      <div class="math">
+        <table>
+          <tr><td>Width <span class="hint">Adjustments</span></td><td class="r" id="lnW"></td></tr>
+          <tr><td>Apart, centre to centre</td><td class="r"><input id="lnPitch" type="number" step="1" min="2"> mm</td></tr>
+          <tr><td>Below · above the curve</td><td class="r" id="lnCount"></td></tr>
+          <tr><td>Length · time</td><td class="r" id="lnLen"></td></tr>
+        </table>
+        <div id="lnNote"></div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h3>Layers <span class="hint">click: up to this one</span></h3>
       <div id="layers"></div>
       <p class="read">Light first, the sheet over it when dry, black last. Inside a layer the lighter tube runs first.</p>
+    </section>
+
+    <section class="sec">
+      <h3>Drops <span class="hint">est.</span></h3>
+      <div class="math" id="drops"></div>
+      <p class="read" id="dropNote"></p>
     </section>
 
     <section class="sec">

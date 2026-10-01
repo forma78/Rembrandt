@@ -153,6 +153,13 @@ Everything else is in §11 (later).
   default), clipped to the canvas and to the reach from Calibration.
 - **Band on the convex side**: exact offsets of the curve, lane pitch = lane
   width, no gaps.
+- **The lines in v0.1** (2026-10-01, from Sonnet's layout in `adjustments/`):
+  8 mm wide, 8 mm apart centre to centre, over the whole image area. Below
+  the curve: exact offsets. Above it: **vertical copies of the curve** — they
+  never fold and stay exact lines and arcs, so the firmware gets them as
+  they are; on a slope they lie closer than the pitch, and neighbours overlap
+  by 1 − cos(slope): 26 % on the 42° of IMG_9422's curve. *Claude's
+  decision.* The blend below is kept as the alternative.
 - **Band on the concave side**: plain offsets fold once the band is wider than
   the curve's radius there. Instead, lane *k* of *N* blends from the curve to
   the upper line at the same curve parameter:
@@ -213,10 +220,25 @@ Everything else is in §11 (later).
   the home in the air. A home at the edge of the image area starts past the
   edge of a smaller canvas, so that landing's swing mark lies on the canvas
   underneath.
+- **The paint of every line comes from the reference**, read every 4 mm:
+  the nearest tube of its side (OKLab), and what it missed by goes on to the
+  next line at the same place — so where the reference lies between two
+  tubes, neighbouring lines take turns: optical mixing (§4). Runs shorter
+  than 24 mm join a neighbour. The lines within 12 mm of the curve read the
+  reference 12 mm from it, so its edge, a few mm off a drawn curve, does not
+  colour them. *Claude's decision.*
+- **Home and tail of a run**: the end at the edge of the image area, or next
+  to a darker paint, is the home; the end next to a lighter paint is the
+  tail. Where a run reaches the edge of the image area it does not thin: the
+  brush goes out at full width and lifts past the canvas. *Claude's decision.*
+- **A drop feeds the neighbouring lines of one tube** whose homes lie within
+  40 mm, as many as it is long (100 mm: 12 lines at 8 mm). A group that needs
+  more than one drop gets them spaced along its shortest run.
 - **The colour preview** of a layer uses the tail model of
   `previous_research/rembrandt_spiral_passes_simulation.html` (`sim`): every
   mm the brush lays part of what it carries and the rest fades over the tail
-  length; colours mix by RUBENS `pigmentMix`. *Claude's decision.*
+  length; colours mix by RUBENS `pigmentMix`. *Claude's decision.* (Not yet:
+  v0.1 paints the lines in their tube's colour, thinning into the tail.)
 - **Order**: one tube at a time, light to dark; within a tube, nearest
   neighbour from the last drop.
 - Every ml stays **est.** until Adjustments has weighed that tube.
