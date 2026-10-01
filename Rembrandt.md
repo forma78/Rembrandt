@@ -113,6 +113,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **Within a layer the lighter tube runs first.** The owner, 2026-10-01: "At
   art school we were taught to start with the lights. If we start with the
   red, our yellow turns orange."
+- **Stage by stage, one tube at a time.** A stage is one tube: its drops
+  (pointer mode), then its runs; then the machine stops with the brush off
+  and the carriage out of the way, and the owner looks. **Again** runs the
+  same trips over that area once more; **Next** goes on to the next tube's
+  drops. The next tube's drops are not on the canvas yet, so nothing else
+  dries in the meantime. The owner, 2026-10-01: "I need time to understand
+  and to see with my own eyes that every stage suits me. If the run from the
+  yellow to the red is not good, I run the brush over that area again — so
+  the paint in the other areas does not dry."
 - **Muddy pairs go into different layers.** Where they still meet, one ⚠ —
   a hint, never a ban. No traffic lights (no ✅, no ⛔). (2026-09-30)
 - **No drying timers, no drying warnings.** The owner starts the next layer
@@ -291,8 +300,9 @@ this section disagree, this section wins: the owner corrected the sketch on
    the Progress panel** — not in the top bar as in the sketch; Job; Machine.
    Rembrandt adds the drops: an LCD counter (`05 / 19`), the current tube
    and drop, **Next drop** (Space or a USB foot pedal that sends Space),
-   Back, Skip; the bottles in order with progress; Do Job unlocks after the
-   last drop.
+   Back, Skip. The layer's tubes in run order, one stage each (§1): the
+   tube's drops, then ⚡️ Do Job runs that tube's trips; then the machine
+   waits, brush off, out of the way: **Again** or **Next tube**.
 
 **Pointer mode** (Job): the brush hovers over the start of the drop, then
 moves along its length slowly while the owner squeezes behind it.
@@ -312,7 +322,7 @@ One curve; a white sheet over a warm glow; black around.
 
 | layer | where | tube: home → tail | order |
 |---|---|---|---|
-| 1 Light | below the curve | Yellow: the right edge → left, into the red. Red: left of the middle → right, towards the yellow | Yellow, then Red |
+| 1 Light | below the curve | Yellow: the right edge → left, into the red. Orange: the right edge, behind the yellow, between it and the red. Red: left of the middle → right, towards the yellow | Yellow, Orange, Red |
 | 2 Sheet | above the curve, blended to the upper line | White: the left edge → right, into the grey. Grey N5: the right edge → left, into the white | White, then Grey |
 | 3 Black | from the edges inward | Bottom: the left edge → right, into the red. Top: the top edge, along the U of the upper line, into the grey | — |
 
@@ -324,8 +334,9 @@ for 70 × 100 cm and are gone.
 
 - Yellow lies next to the curve on the right; red on the left and outermost.
   Yellow needs the white ground under it.
-- **Orange: open.** The sketches give it no home; where the yellow's and the
-  red's tails meet, they make orange on the canvas.
+- **Orange is in by default** (the owner, 2026-10-01). The sketches give it
+  no home; the program takes it from the reference, where IMG_9422 has the
+  orange: at the right edge, behind the yellow.
 - The grey is its own tube between the white and the black (the owner,
   2026-10-01).
 - The top of the sheet is left for the black.
@@ -345,7 +356,8 @@ for 70 × 100 cm and are gone.
    table.
 3. **Job**: pointer mode, then Do Job per layer through RUBENS `jobToMachine`,
    with one-way runs: home → tail, brush off, back in the air (§5; the
-   owner's idea, 2026-10-01).
+   owner's idea, 2026-10-01); stage by stage, one tube at a time, Again or
+   Next (§1).
 4. **Adjustments**: drop dose, smear length, swatches, pairs.
 5. **Pair check** with measured numbers.
 
