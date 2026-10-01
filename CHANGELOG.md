@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Night: the whole page** (the owner, 2026-10-02, `references/braun_night-1.jpg`,
+  `-2.webp`): the moon by PROGRESS turns every tab graphite — panels, keys,
+  fields, the tables the canvases draw on — and the LCD glows warm yellow;
+  the canvas and the test board stay cream. A line in each page's head sets
+  it before the page draws, so no flash. On Test, PROGRESS moves to the top
+  of the panel, as on Job.
 - **Test: the PROGRESS LCD, as on Job** (the owner, 2026-10-02: "I came to
   love that screen"): the percent by painted length, LEFT, TOTAL, the
   sticks, the row in hand. **The lamp**: a sun and a moon by PROGRESS, on

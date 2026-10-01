@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rembrandt · Test</title>
 <link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
 </head>
 <body class="adjust arm3">
 <!-- Rembrandt · Test — the test bench: rows of hairpins on a 30 × 30 board,
@@ -34,6 +35,22 @@
   </section>
 
   <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <button class="btn wide" id="btnDoJob" title="Run the rows on the machine">⚡️ Do Test</button>
+      <div class="runkeys">
+        <button class="btn" id="btnPause">Pause</button>
+        <button class="btn" id="btnCont">Continue</button>
+      </div>
+      <div class="stops">
+        <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking">STOP</button>
+        <button class="btn danger" id="btnKill" title="Stop the carriage at once and the arm where it is">HARD STOP</button>
+      </div>
+      <p class="read">The first run in the air: the brush off, no board under it. Then the board, black only.</p>
+    </section>
+
     <div class="savebar">
       <button class="btn save" id="btnSave" title="Save this test in the Library, as a new one named by the date and time">💾 SAVE TEST</button>
       <span class="save-state" id="saveState">to the Library</span>
@@ -60,21 +77,6 @@
       <button class="btn wide" id="btnHere" title="Jog the carriage on the Calibration tab until the brush is over the board's centre; then press">Here: the brush is over the board's centre</button>
     </section>
 
-    <section class="sec">
-      <h3>Progress <span id="lamp"></span></h3>
-      <div class="lcd" id="lcd" aria-live="polite"></div>
-      <p class="runstate" id="runState"></p>
-      <button class="btn wide" id="btnDoJob" title="Run the rows on the machine">⚡️ Do Test</button>
-      <div class="runkeys">
-        <button class="btn" id="btnPause">Pause</button>
-        <button class="btn" id="btnCont">Continue</button>
-      </div>
-      <div class="stops">
-        <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking">STOP</button>
-        <button class="btn danger" id="btnKill" title="Stop the carriage at once and the arm where it is">HARD STOP</button>
-      </div>
-      <p class="read">The first run in the air: the brush off, no board under it. Then the board, black only.</p>
-    </section>
   </aside>
 </main>
 

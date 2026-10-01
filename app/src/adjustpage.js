@@ -7,6 +7,7 @@ import { parseLayer, paintLength, layerLength, runOrderOf, brushOutline, paintNa
 import { PAINT_EST, PAINT_FIELDS, readPaint } from './adjust.js';
 import { LAYERS, readEnds, writeEnds, tubeOf, setInventory } from './tubes.js';
 import './ui.js';
+import './lamp.js';   // day or night, switched on another tab
 
 const $ = s => document.querySelector(s);
 const SPEED = 40;   // mm/s, est. (§9: 13 lanes × 4 trips at 40 mm/s)

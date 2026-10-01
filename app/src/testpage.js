@@ -7,7 +7,7 @@ import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
 import { xyPlan, PATTERNS, DEFAULTS } from './strokes.js';
 import { segments, sticks } from './lcd.js';
-import { lampSwitch } from './lamp.js';
+import { lampSwitch, themeColor } from './lamp.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -51,7 +51,7 @@ function draw() { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); drawOn(ctx, k, cv.widt
 function drawOn(c, kk, W, H) {
   const sx = y => ((S.boardW + 40) / 2 + y) * kk, sy = x => ((S.boardH + 40) / 2 - x) * kk, k = kk;
   const hw = S.boardW / 2, hh = S.boardH / 2, m = S.margin;
-  c.fillStyle = '#E2DED6'; c.fillRect(0, 0, W, H);
+  c.fillStyle = themeColor('--stage', '#E2DED6'); c.fillRect(0, 0, W, H);   // the table, dark by night
   c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * k, S.boardH * k);
   c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-hw) + .5, sy(hh) + .5, S.boardW * k - 1, S.boardH * k - 1);
   c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-hw + m), sy(hh - m), (S.boardW - 2 * m) * k, (S.boardH - 2 * m) * k); c.setLineDash([]);
@@ -209,6 +209,7 @@ async function watch() {
   $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${st.message}</span>` : '';
 }
 lampSwitch($('#lamp'));
+addEventListener('rembrandt-night', () => draw());
 setInterval(watch, 500);
 new ResizeObserver(layout).observe(stage);
 update(); watch();
