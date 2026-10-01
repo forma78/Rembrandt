@@ -6,6 +6,8 @@
 import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
 import { xyPlan, PATTERNS, DEFAULTS } from './strokes.js';
+import { segments, sticks } from './lcd.js';
+import { lampSwitch } from './lamp.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -174,15 +176,39 @@ $('#btnStop').onclick = () => post('/run/stop');
 $('#btnKill').onclick = () => post('/run/kill');
 addEventListener('keydown', e => { if (e.key === 'Escape') post('/run/stop'); });   // Esc = STOP, as on Calibration
 
-async function watch() {
-  try {
-    const st = await (await fetch('/run', { cache: 'no-store' })).json();
-    const b = P.blocks[st.block], live = ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
-    $('#runState').innerHTML = `<b>${st.state.toUpperCase()}</b>` + (live && b ? ` · row ${Math.min(b.row, P.rows)} of ${P.rows} · step ${st.block + 1} of ${st.blocks}` : '')
-      + (st.message ? `<br><span class="${st.state === 'error' ? 'warn' : ''}">${st.message}</span>` : '');
-    $('#runHint').textContent = st.brush_on ? 'the brush on the board' : '';
-  } catch { $('#runState').textContent = 'no server: start rembrandt.py'; }
+// The LCD, as on the Job tab (the owner, 2026-10-02): the percent by painted
+// length, the time left and the total, the sticks, where it is.
+const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+let started = null;
+function lcd(st) {
+  const live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
+  const pct = st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
+  if (live && !started) started = st.started || Date.now() / 1000;
+  if (!live) started = null;
+  const total = P.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
+  const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
+  const b = st && P.blocks[st.block];
+  const now = live && b ? (P.snake ? `the snake · ${fmt(st.painted_mm / 10, 0)} of ${fmt(st.paint_mm / 10, 0)} cm` : `row ${Math.min(b.row, P.rows)} of ${P.rows}`) + (st.brush_on ? ' · brush on' : ' · brush off')
+    : `${P.rows} rows · pattern ${S.pattern}`;
+  $('#lcd').innerHTML = `
+    <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P.length / 1000, 2)} m`}</span></div>
+    <div class="lcd-mid">
+      <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
+      <div class="lcd-times">
+        <span class="k">left</span>${segments(mmss(left), 17)}
+        <span class="k">total</span>${segments(mmss(total), 17)}
+      </div>
+    </div>
+    ${sticks(pct / 100)}
+    <div class="lcd-now">${now}</div>`;
 }
+async function watch() {
+  let st = null;
+  try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+  lcd(st);
+  $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${st.message}</span>` : '';
+}
+lampSwitch($('#lamp'));
 setInterval(watch, 500);
 new ResizeObserver(layout).observe(stage);
 update(); watch();

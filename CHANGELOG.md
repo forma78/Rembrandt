@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the PROGRESS LCD, as on Job** (the owner, 2026-10-02: "I came to
+  love that screen"): the percent by painted length, LEFT, TOTAL, the
+  sticks, the row in hand. **The lamp**: a sun and a moon by PROGRESS, on
+  Job and Test, instead of "the plan, by painted length" — by night the
+  LCD's glass glows warm yellow, as a clock with its lamp on; one switch for
+  both tabs, kept in this browser.
 - **Test: Bow** (the owner, 2026-10-02, the snake's reference): a row can be
   an arc, its middle so many mm below its ends (above, when minus). The
   turns of a bowed row are a half circle and a short straight line, so the

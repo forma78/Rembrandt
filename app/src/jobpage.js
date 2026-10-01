@@ -11,6 +11,8 @@ import { jobSteps, jobLengths, jobTimeline, jobAt, jobFile, timeAtPercent, MODES
 import { canvasReport, jobToMachine, arcSpeed, reach, SPEED_MAX, CORNERS } from './machine.js';
 import './ui.js';
 import { segments, sticks } from './lcd.js';
+import { lampSwitch } from './lamp.js';
+lampSwitch(document.querySelector('#lamp'));
 
 const $ = s => document.querySelector(s);
 const INK = '#24221F', ORANGE = '#EB7A25';
@@ -392,9 +394,7 @@ function showRun() {
     $('#runState').innerHTML = `<b>Machine: ${st.state}</b> · ${fmt(st.percent || 0, 1)} % painted${blocks}`
       + (st.message ? `<br><span class="warn">${st.message}</span>` : '');
   }
-  const hint = $('#progHint'), paused = live && st.state === 'paused';
-  hint.textContent = !live ? 'the plan, by painted length' : paused ? 'the machine, paused' : 'the machine, live';
-  hint.classList.toggle('live', live);
+  const paused = live && st.state === 'paused';   // the LCD's top line says live or paused; by PROGRESS the lamp (2026-10-02)
   // One button: Pause while it runs, Continue once it waits. Only when the
   // label changes: Safari drops a click on a button whose text is replaced
   // between mouse down and up.
