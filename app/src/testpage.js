@@ -20,7 +20,8 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 // size stays two numbers.
 const SLIDERS = [
   ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 1, 4, 80],
-  ['length', 'Row length', 'mm', 5, 20, 800], ['speed', 'Brush on', 'mm/s', 1, 5, 120], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
+  ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
+  ['speed', 'Brush on', 'mm/s', 1, 5, 120], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
 ];
 const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
 $('#sliders').innerHTML = SLIDERS.map(([k, label, , step, min, max]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${k}"></span></span><input class="slider" type="range" data-k="${k}" min="${min}" max="${max}" step="${step}"></label>`).join('');
@@ -113,7 +114,7 @@ function walls() {
 function testLabel() { return `${S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
 function testSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
-  const settings = Object.fromEntries(['pattern', 'rows', 'turn', 'pitch', 'length', 'speed', 'travel', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+  const settings = Object.fromEntries(['pattern', 'rows', 'turn', 'pitch', 'length', 'bow', 'speed', 'travel', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
   const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rows = P.preview.map(line => `  <path d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
