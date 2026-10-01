@@ -59,11 +59,12 @@ blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 
 ```
 cd ~/Rembrandt/app
-python3 rembrandt.py        # http://localhost:8767
+python3 rembrandt.py        # http://localhost:5164
 node --test                 # the tests
 ```
 
-Only one program owns the USB board: close RUBENS (port 8766) first.
+Port 5164 — the owner's lucky number (2026-10-01). Only one program owns
+the USB board: close RUBENS (port 8766) first.
 
 ## Working rules
 
