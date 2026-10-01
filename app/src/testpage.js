@@ -1,4 +1,4 @@
-// Rembrandt · Test — rows of hairpins on a 30 × 30 board (strokes.js), run
+// Rembrandt · Test — rows of hairpins on a board (strokes.js), run
 // on the machine by rembrandt.py's runner: the plotter draws each row, the
 // wrist lifts the brush with its hook, a pause for paint. The page only plans
 // and watches; STOP and HARD STOP stop the carriage (and the arm).
@@ -13,11 +13,13 @@ const KEY = 'rembrandt.test.v01';
 const S = { ...DEFAULTS, pattern: 'A', here: null };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { }
 for (const k of ['sweep', 'reach', 'fast', 'turnSpeed']) delete S[k];   // the arm strokes' settings, dropped 2026-10-02
+if (S.board) { S.boardW = S.boardH = S.board; delete S.board; }          // one size for both before; width and height apart since 2026-10-02
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
 
 const FIELDS = [
   ['rows', 'Rows', '', 1], ['turn', 'Turn', 'mm', 1], ['pitch', 'Row to row', 'mm', 1], ['length', 'Row length', 'mm', 5],
-  ['speed', 'Brush on', 'mm/s', 1], ['travel', 'Between rows', 'mm/s', 5], ['board', 'Board', 'mm', 10],
+  ['speed', 'Brush on', 'mm/s', 1], ['travel', 'Between rows', 'mm/s', 5],
+  ['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10],
 ];
 $('#fields').innerHTML = FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; update(); });
@@ -28,29 +30,29 @@ $('#pause').onchange = e => { S.pause = e.target.checked; update(); };
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
 let P = xyPlan(S), k = 1, dpr = 1;
 function layout() {
-  const r = stage.getBoundingClientRect(), m = 36, side = S.board + 40;
-  k = Math.max(0.2, Math.min((r.width - 2 * m) / side, (r.height - 2 * m) / side));
+  const r = stage.getBoundingClientRect(), m = 36, sw = S.boardW + 40, sh = S.boardH + 40;
+  k = Math.max(0.2, Math.min((r.width - 2 * m) / sw, (r.height - 2 * m) / sh));
   dpr = window.devicePixelRatio || 1;
-  const w = Math.round(side * k);
-  board.style.width = board.style.height = w + 'px';
-  cv.style.width = cv.style.height = w + 'px'; cv.width = cv.height = Math.round(w * dpr);
+  const w = Math.round(sw * k), h = Math.round(sh * k);
+  board.style.width = w + 'px'; board.style.height = h + 'px';
+  cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
 }
 // screen: Y to the right, X up; the board's centre in the middle
-const sx = y => ((S.board + 40) / 2 + y) * k, sy = x => ((S.board + 40) / 2 - x) * k;
+const sx = y => ((S.boardW + 40) / 2 + y) * k, sy = x => ((S.boardH + 40) / 2 - x) * k;
 function draw() {
-  const c = ctx, h = S.board / 2, m = S.margin;
+  const c = ctx, hw = S.boardW / 2, hh = S.boardH / 2, m = S.margin;
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
   c.fillStyle = '#E2DED6'; c.fillRect(0, 0, cv.width, cv.height);
-  c.fillStyle = '#FCFBF8'; c.fillRect(sx(-h), sy(h), S.board * k, S.board * k);
-  c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-h) + .5, sy(h) + .5, S.board * k - 1, S.board * k - 1);
-  c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-h + m), sy(h - m), (S.board - 2 * m) * k, (S.board - 2 * m) * k); c.setLineDash([]);
+  c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * k, S.boardH * k);
+  c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-hw) + .5, sy(hh) + .5, S.boardW * k - 1, S.boardH * k - 1);
+  c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-hw + m), sy(hh - m), (S.boardW - 2 * m) * k, (S.boardH - 2 * m) * k); c.setLineDash([]);
   c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#1B1A19'; c.lineWidth = 10 * k;   // a round brush, about 10 mm (est.)
   for (const line of P.preview) { c.beginPath(); line.forEach((q, i) => i ? c.lineTo(sx(q.y), sy(q.x)) : c.moveTo(sx(q.y), sy(q.x))); c.stroke(); }
   c.strokeStyle = '#EB7A25'; c.lineWidth = 1.5;                                             // Here: the board's centre
   c.beginPath(); c.moveTo(sx(-8), sy(0)); c.lineTo(sx(8), sy(0)); c.moveTo(sx(0), sy(-8)); c.lineTo(sx(0), sy(8)); c.stroke();
   c.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono'); c.fillStyle = '#B3470C';
-  c.fillText(`board ${S.board} × ${S.board} mm · margin ${S.margin}`, sx(-h), sy(h) - 6);
+  c.fillText(`board ${S.boardW} × ${S.boardH} mm · margin ${S.margin}`, sx(-hw), sy(hh) - 6);
 }
 
 function update() {
@@ -64,7 +66,7 @@ function update() {
   $('#planRead').innerHTML = (P.snake
     ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down all the way, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
     : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
-    + (P.fits ? '' : ` <span class="hint">Past the ${P.room} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
+    + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern}`;
   showHere(); save(); layout();

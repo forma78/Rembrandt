@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the board's width and height apart** (the owner, 2026-10-02: 40 × 60
+  too); a size saved before reads as both.
 - **Test: pattern C, the snake** (the owner, 2026-10-02): one continuous line,
   12 rows 20 mm apart, a half circle at either end, the brush down all the
   way; no pause.
