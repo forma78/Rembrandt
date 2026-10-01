@@ -150,6 +150,13 @@ Everything else is in §11 (later).
   `P_k(t) = C(t) + (k/N) · (U(t) − C(t))`. Lanes then widen (for example
   20–24 mm); the trips spread across a wider lane as in RUBENS (lane width /
   trips apart).
+- **The upper line is built by the program** (the owner, 2026-10-01: "Yes,
+  all by the program"): lines and arcs, no bend tighter than the band is
+  wide, so no lane folds.
+- **A blended lane is neither a line nor an arc**, and the firmware runs only
+  `L` and `A`. Each one is fitted with lines and arcs, the tangent continuous
+  at every joint, within 0.1 mm: the board does not stop at smooth joints,
+  so a trip still runs without stops. *Claude's decision.*
 - **The edge**: the curve is the boundary of both bands. The sheet is painted
   second, over the dry light, with its lane 1 running along the curve — that
   is what makes the edge sharp.
