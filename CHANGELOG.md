@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Stage by stage, one tube at a time** (the owner, 2026-10-01): the tube's
+  drops, its runs, then the machine waits for the owner's look — Again or
+  Next. **Orange is in by default**, its home from the reference.
 - **The owner's corrections of the UI sketch** (2026-10-01), in §8, which now
   wins over the sketch: two rows as in RUBENS, the view toggles centred in
   the second; formats 500 × 700 and 600 × 800 drawn on the image area as on
