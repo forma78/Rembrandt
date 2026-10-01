@@ -26,7 +26,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
 | **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. |
 | **Library** | Saved paintings, as in RUBENS. |
-| **Reference** | An image attached on the Create tab. Shown under the canvas, traced, sampled for colours. Never painted as is. |
+| **Reference** | An image attached on the Create tab with **Add new reference**. Shown under the canvas, traced, sampled for colours. Never painted as is. |
 | **Curve** | The one master path of a painting. Lines and arcs only. Every band is built from it. |
 | **Band** | The part of a layer on one side of the curve, N lanes wide. |
 | **Upper line** | A calm curve that a band on the concave side blends towards, so its lanes never fold (§3). |
@@ -210,8 +210,9 @@ Everything else is in §11 (later).
 - Each tube's footprint = its drops + smear length along their lanes.
 - For every muddy pair the closest distance is measured, in the same layer
   or not: a thin black over a dry yellow still turns olive.
-- Closer than the keep-out → ⚠ on the canvas at the closest point, and a row
-  in the Pairs section. The job still runs.
+- Closer than the keep-out → ⚠ on the canvas at the closest point, and on
+  its row in the Pairs section. The job still runs. Farther → the row has no
+  mark: `Black ↔ Yellow · keep 40 · now 160 mm` (the owner, 2026-10-01).
 - A pair can be marked **intended** (black into red → dark bordeaux, as in
   the first painting). Intended pairs show no ⚠.
 
@@ -237,16 +238,40 @@ est. one everywhere.
 
 ## 8. UI
 
-The reference is `design/create-tab.html` (five screens). The top bar: the
-tabs **Create · Job · Adjustments · Calibration · Library**; toggles
-**Reference · Lanes · Drops · Reach · Grid**; Import SVG, Export PNG, and the
-green **Open Job**. Tools on the left as in RUBENS: Pen (P), Arc (A),
-Select (V), Undo, Redo, Delete. Status bar at the bottom, in mono.
+The first sketch is `design/create-tab.html` (five screens). Where it and
+this section disagree, this section wins: the owner corrected the sketch on
+2026-10-01.
+
+- **Two rows, as in RUBENS.** The top row: the tabs **Create · Job ·
+  Adjustments · Calibration · Library** and the green **Open Job**. The second
+  row, centred (the owner: "this can go in the centre of the second row"):
+  Format; the toggles **Reference · Lanes · Drops**, then **Reach · Grid**;
+  then Import SVG, Export PNG.
+- **Format** — the canvas laid on the image area: **500 × 700** (default)
+  and **600 × 800** mm; 700 × 1000 is out of reach and gone. Drawn as on the
+  RUBENS Calibration tab (`references/Screenshot 2026-09-30
+  calibration.png`): the canvas inside the image area, the walls dashed,
+  hatched where the machine does not reach (600 > 568.5 mm across). The
+  status bar names both: `Canvas 500 × 700 · image area 568.5 × 865 · …`.
+- **Tools on the left exactly as in RUBENS** (`references/Screenshot
+  2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
+  Undo, Redo, Delete, Open default, Clear.
+- Status bar at the bottom, in mono.
 
 1. **Create — reference and curve.** Reference under the canvas at 45 %,
-   Replace and an opacity slider; Trace curve, Sample colours. Panel: Curve
-   (segments, length, inner corner radius), Layers (three rows, fixed order),
-   Tubes in use.
+   **Add new reference** (📎; not "Replace", the owner) and an opacity slider;
+   Trace curve, Sample colours. Panel:
+   - **Curve — every number editable** (the owner: "maybe I want an inner
+     corner radius of 500 mm"). The inner corner radius in whole mm, from 0
+     with no upper limit; where the rounding does not fit between two kinks,
+     "!" as in RUBENS. A segment picked on the canvas shows its own numbers
+     to type, as in Illustrator: a line its length and angle, an arc its
+     radius and sweep. The segment count and the length follow.
+   - **Layers** — three rows, fixed order. Each lists its tubes in run order
+     (lighter first, §1) with their homes, and has **[+]** to add a tube from
+     the inventory: a second yellow, a second white, an orange — the same
+     tube twice gives it two homes. × takes one out. (The owner, 2026-10-01.)
+   - Tubes in use.
 2. **Create — layer 1, light.** Lanes below the curve and the drop plan.
    Panel: side of the curve (Below | Above), lanes, trips per lane (2 | 4 | 8),
    ground; Drops: film, brush keeps, nozzle, drop size, a row per tube
@@ -256,9 +281,15 @@ Select (V), Undo, Redo, Delete. Status bar at the bottom, in mono.
    right.
 4. **Create — layer 3, black.** Lanes from the edges inward, homes at the
    edges, tails into the red and the grey. (The design still shows the hand
-   version, hatched; to redo.) Pairs: the ⚠ row (black next to yellow, keep-out,
-   the measured distance), the intended row (black into red).
-5. **Job — squeeze the drops.** An LCD counter (`05 / 19`), the current tube
+   version, hatched; to redo: nothing is drawn by hand, the owner.) Pairs:
+   a row per muddy pair — tubes, keep-out, the measured distance; ⚠ only when
+   closer than the keep-out; the intended row (black into red).
+5. **Job — as in RUBENS** (`references/Screenshot 2026-09-30 JOB-1.png`,
+   `JOB-2.png`; the owner: "just carry it over"): the plan on the canvas with
+   TL TR BL BR and the walls; Save job.json and ⚡️ Do Job at the top right;
+   Progress with the LCD, Pause, and **• STOP · •• HARD STOP under Pause, in
+   the Progress panel** — not in the top bar as in the sketch; Job; Machine.
+   Rembrandt adds the drops: an LCD counter (`05 / 19`), the current tube
    and drop, **Next drop** (Space or a USB foot pedal that sends Space),
    Back, Skip; the bottles in order with progress; Do Job unlocks after the
    last drop.
