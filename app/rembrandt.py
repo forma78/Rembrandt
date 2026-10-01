@@ -962,12 +962,14 @@ def library_list(folder):
         if ext != ".svg" or not LIBRARY_NAME.match(base):
             continue
         info = {"file": base, "name": library_display(base), "format": None, "strokes": None,
-                "png": os.path.exists(os.path.join(folder, base + ".png"))}
+                "png": os.path.exists(os.path.join(folder, base + ".png")), "kind": "painting", "label": None}
         try:
             with open(os.path.join(folder, f), encoding="utf-8") as fh:
-                m = re.search(r'<metadata id="(?:rubens|rembrandt)-state">(.*?)</metadata>', fh.read(), re.S)
+                m = re.search(r'<metadata id="(rubens-state|rembrandt-state|rembrandt-test)">(.*?)</metadata>', fh.read(), re.S)
             if m:
-                st = json.loads(m.group(1).replace("- -", "--"))
+                st = json.loads(m.group(2).replace("- -", "--"))
+                if m.group(1) == "rembrandt-test":       # a test from the Test tab (2026-10-02): the Library's second shelf
+                    info["kind"], info["label"] = "test", st.get("label")
                 info["format"] = st.get("format")
                 info["strokes"] = len(st["paths"]) if isinstance(st.get("paths"), list) else None   # RUBENS's strokes; a Rembrandt painting has one curve
         except (OSError, ValueError):
@@ -981,7 +983,7 @@ def library_list(folder):
 def library_save(folder, svg, png, now=None):
     """Save a drawing under a new name from the time; returns the file name.
     ValueError when it is not a Rembrandt (or RUBENS) drawing."""
-    if not isinstance(svg, str) or "<svg" not in svg or not ('id="rembrandt-state"' in svg or 'id="rubens-state"' in svg):
+    if not isinstance(svg, str) or "<svg" not in svg or not any(f'id="{k}"' in svg for k in ("rembrandt-state", "rembrandt-test", "rubens-state")):
         raise ValueError("not a Rembrandt drawing")
     if not isinstance(png, str) or not png.startswith(PNG_DATA):
         raise ValueError("no preview")

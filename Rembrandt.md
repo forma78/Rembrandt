@@ -350,6 +350,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   the board's centre). The board's margins are a hint, not a limit ("too
   many limits — let it go past"); the machine's walls are, and the page
   says so before the run. It began as the arm-stroke bench "3DOF".
+  Sliders for the rows, as on Calibration; the board's width and height two
+  numbers. **💾 SAVE TEST** puts a test in the Library, on a second shelf
+  under a line — paintings above, tests below — and the Library opens it
+  on the Test tab (the owner, 2026-10-02).
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.
