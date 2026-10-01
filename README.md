@@ -25,6 +25,8 @@ Rembrandt/
   CHANGELOG.md       what changed, newest first
   design/
     create-tab.html  the UI design (downloaded from the design canvas)
+  adjustments/       Sonnet's four layers on 500 × 700, the Adjustments tab's start
+                     (app/adjustments links to it, so the server sees it)
   app/
     index.html       Create
     job.html         Job (from RUBENS, plus pointer mode)

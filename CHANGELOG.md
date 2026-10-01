@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The Adjustments tab, first cut**: Sonnet's layout read from
+  `adjustments/` — layers 1 to 4 one by one, 13 paints in the order they run,
+  each line drawn as the brush leaves it: full width at its home, thinning
+  into a tail (120 mm est., a slider), or round-ended as Sonnet drew them.
+  Each paint's home, left or right, can be switched. 46.5 m of line, ≈ 19 min
+  at 40 mm/s est. New module `layers.js`, tested against the real files.
 - **The inventory is large** (the owner, 2026-10-01: a Pebeo set of 50 tubes,
   a Liquitex set of 80): gradients of many real shades side by side —
   **optical mixing**, Sonnet's way — next to the tail. **The top black goes

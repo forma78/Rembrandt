@@ -6,9 +6,10 @@
 <title>Rembrandt · Adjustments</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<!-- Rembrandt · Adjustments — how each paint behaves (Rembrandt.md §7).
-     Build order step 4; for now only its place among the tabs. -->
+<body class="create adjust">
+<!-- Rembrandt · Adjustments — how each paint behaves (Rembrandt.md §7). It
+     starts from Sonnet's layout in adjustments/: four layers, 13 paints,
+     the gradients mixed optically; the lines drawn as the brush leaves them. -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -21,14 +22,52 @@
     </nav>
     <span class="ver">v0.1</span>
   </div>
+  <div class="top-mid"></div>
 </header>
-<main style="display:block;overflow:auto">
-  <section class="sec page-note">
-    <h3>Adjustments <span class="hint">build step 4</span></h3>
-    <p class="read">How each paint behaves, per tube: the drop dose (10 standard drops on foil, weighed, divided by 10), the smear length — the tail — from one drop, one lane, one run, and the swatches. Then the pairs: muddy or not, from one test canvas.</p>
-    <p class="read">Until a number is measured here, it is marked <b>est.</b> everywhere.</p>
+<div class="bar2 center">
+  <label class="field"><span>Layers</span></label>
+  <div class="toggles" id="upTo"></div>
+  <label class="field"><span>Ends</span></label>
+  <div class="toggles" id="ends">
+    <button class="tog" data-ends="tails" title="As the brush leaves them: thick at the home, thinning into the tail">Tails</button>
+    <button class="tog" data-ends="round" title="As Sonnet drew them: round ends">Round</button>
+  </div>
+  <div class="io">
+    <button class="btn" id="btnPng">Export PNG</button>
+  </div>
+</div>
+
+<main class="no-tools">
+  <section class="stage" id="stage">
+    <div class="board" id="board"><canvas id="paint"></canvas></div>
   </section>
+
+  <aside class="panel">
+    <section class="sec">
+      <h3>Layout <span class="hint">Claude Sonnet · 2026-10-01</span></h3>
+      <p class="read" id="layoutRead"></p>
+    </section>
+    <section class="sec">
+      <h3>Layers <span class="hint">click: up to this one</span></h3>
+      <div id="layers"></div>
+    </section>
+    <section class="sec">
+      <h3>Paints <span class="val" id="paintCount"></span></h3>
+      <div class="math" id="paints"></div>
+      <p class="read">Colours <b>est.</b>: Sonnet's guesses until the photos of the real tubes replace them. Home: the end where the brush starts with full paint.</p>
+    </section>
+    <section class="sec">
+      <h3>Tail <span class="val" id="tailVal"></span></h3>
+      <input id="tail" type="range" min="10" max="400" step="5" class="slider" aria-label="Tail length">
+      <p class="read">How far a line thins out before the wrist lifts the brush: the smear length, <b>est.</b> until measured here.</p>
+    </section>
+  </aside>
 </main>
-<footer class="status"></footer>
+
+<footer class="status">
+  <span id="hint">Adjustments — Sonnet's layout, painted as the brush would: every layer up to the one chosen.</span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/adjustpage.js"></script>
 </body>
 </html>
