@@ -906,10 +906,11 @@ def library_list(folder):
                 "png": os.path.exists(os.path.join(folder, base + ".png"))}
         try:
             with open(os.path.join(folder, f), encoding="utf-8") as fh:
-                m = re.search(r'<metadata id="rubens-state">(.*?)</metadata>', fh.read(), re.S)
+                m = re.search(r'<metadata id="(?:rubens|rembrandt)-state">(.*?)</metadata>', fh.read(), re.S)
             if m:
                 st = json.loads(m.group(1).replace("- -", "--"))
-                info["format"], info["strokes"] = st.get("format"), len(st.get("paths") or [])
+                info["format"] = st.get("format")
+                info["strokes"] = len(st["paths"]) if isinstance(st.get("paths"), list) else None   # RUBENS's strokes; a Rembrandt painting has one curve
         except (OSError, ValueError):
             pass
         out.append(info)
@@ -920,9 +921,9 @@ def library_list(folder):
 
 def library_save(folder, svg, png, now=None):
     """Save a drawing under a new name from the time; returns the file name.
-    ValueError when it is not a RUBENS drawing."""
-    if not isinstance(svg, str) or "<svg" not in svg or 'id="rubens-state"' not in svg:
-        raise ValueError("not a RUBENS drawing")
+    ValueError when it is not a Rembrandt (or RUBENS) drawing."""
+    if not isinstance(svg, str) or "<svg" not in svg or not ('id="rembrandt-state"' in svg or 'id="rubens-state"' in svg):
+        raise ValueError("not a Rembrandt drawing")
     if not isinstance(png, str) or not png.startswith(PNG_DATA):
         raise ValueError("no preview")
     image = base64.b64decode(png[len(PNG_DATA):], validate=True)

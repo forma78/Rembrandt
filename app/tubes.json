@@ -1,0 +1,88 @@
+{
+  "tubes": [
+    {
+      "id": "tube-c96dkp",
+      "name": "Lemon",
+      "pigment": "",
+      "hex": "#FFFC41"
+    },
+    {
+      "id": "yellow",
+      "name": "Yellow",
+      "pigment": "PY74",
+      "hex": "#E8A41C"
+    },
+    {
+      "id": "orange",
+      "name": "Orange",
+      "pigment": "PO73",
+      "hex": "#D65C16"
+    },
+    {
+      "id": "red",
+      "name": "Red",
+      "pigment": "PR254",
+      "hex": "#BE160E"
+    },
+    {
+      "id": "crimson",
+      "name": "Crimson",
+      "pigment": "",
+      "hex": "#9C0909"
+    },
+    {
+      "id": "oxblood",
+      "name": "Oxblood",
+      "pigment": "",
+      "hex": "#7A0808"
+    },
+    {
+      "id": "dark-red",
+      "name": "Dark red",
+      "pigment": "",
+      "hex": "#5C0808"
+    },
+    {
+      "id": "maroon",
+      "name": "Maroon",
+      "pigment": "",
+      "hex": "#300606"
+    },
+    {
+      "id": "black",
+      "name": "Black",
+      "pigment": "PBk11",
+      "hex": "#080606"
+    },
+    {
+      "id": "white",
+      "name": "White",
+      "pigment": "PW6",
+      "hex": "#FFFFFF"
+    },
+    {
+      "id": "cream",
+      "name": "Cream",
+      "pigment": "",
+      "hex": "#FFFFFF"
+    },
+    {
+      "id": "light-gray",
+      "name": "Light grey",
+      "pigment": "",
+      "hex": "#FFFFFF"
+    },
+    {
+      "id": "grey",
+      "name": "Grey N5",
+      "pigment": "PW6 + PBk11",
+      "hex": "#747983"
+    },
+    {
+      "id": "dark-gray",
+      "name": "Dark grey",
+      "pigment": "",
+      "hex": "#464A52"
+    }
+  ]
+}

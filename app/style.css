@@ -401,3 +401,5 @@ body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11p
 .btn.addtube{margin-top:10px;width:100%}
 .read .warn{color:#B3470C}
 .tpig::placeholder,.tname::placeholder{color:#C4BEB3}
+.bar2 .savebox{display:flex;align-items:center;gap:10px;min-width:0}
+.bar2 .savebox .save-state{max-width:200px}

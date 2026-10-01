@@ -10,7 +10,7 @@
 
 import { PT_MM, FORMATS, HOLD_MS } from './config.js';
 import { clamp, P, sub, add, len, dist, TAU, fmt } from './util.js';
-import { segStart, segEnd, segDirEnd, tangentArc, anchorsOf, applyAnchorMove } from './geometry.js';
+import { segStart, segEnd, segDirEnd, tangentArc, anchorsOf, applyAnchorMove, pathD } from './geometry.js';
 import { makeLine, snapArc, fitSegment, pushSeg } from './gesture.js';
 import { filleted } from './fillet.js';
 import { reach } from './machine.js';
@@ -760,14 +760,7 @@ function stamp() { const d = new Date(), z = n => String(n).padStart(2, '0'); re
 function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
 // The board as on screen, 4000 px on its long side.
 $('#btnPng').onclick = () => {
-  finishAll();
-  const cssW = V.w * kMm, cssH = V.h * kMm, s = 4000 / Math.max(cssW, cssH);
-  const cv = document.createElement('canvas'); cv.width = Math.round(cssW * s); cv.height = Math.round(cssH * s);
-  const c = cv.getContext('2d'), keep = dpr;
-  dpr = s; const sel = S.sel; S.sel = false;
-  drawPaint(c, cssW, cssH);
-  scrT(c); drawCurve(c);
-  dpr = keep; S.sel = sel;
+  const cv = boardCanvas(4000);
   cv.toBlob(b => download(b, `rembrandt-${stamp()}.png`), 'image/png');
 };
 // A foreign SVG: its longest path becomes the curve, fitted into the image
@@ -802,6 +795,81 @@ function importSVG(text) {
   S.sel = false; S.selSeg = null; invalidate();
 }
 
+// ---------- 💾 SAVE: the painting into the Library ----------
+// As in RUBENS (the owner, 2026-09-30): every save is a new painting named by
+// the date and time, never over an older one; rembrandt.py keeps it in
+// app/library/ on this Mac, not in git. The SVG is the image area in pt: the
+// canvas, the lines in their tubes' colours, the curve — and in its metadata
+// the whole painting, the reference included, so the Library opens it again.
+function paintingState() {
+  return { rembrandt: '0.1', format: S.format, segs: S.curve.segs, cornerR: S.cornerR, pitch: S.pitch, layers: S.layers, ends: S.ends, tubes: inventory(), refOpacity: S.refOpacity, ref: REF ? { name: REF.name, src: REF.img.src } : null };
+}
+function drawingText() {
+  const P_ = S.curve.segs.length ? plan() : null, cr = canvasRect();
+  const meta = JSON.stringify(paintingState()).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const lines = (P_?.runs || []).map(r => `  <path d="${pathD({ segs: r.segs })}" stroke="${tubeOf(r.tube)?.hex || '#808080'}" data-tube="${r.tube}" data-layer="${r.layer}" data-home="${r.home}"/>`).join('\n');
+  const curve = S.curve.segs.length ? `<path id="curve" d="${pathD(filleted(S.curve, S.cornerR))}" fill="none" stroke="#24221F" stroke-width="1"/>` : '';
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${fmt(IA.w, 1)}mm" height="${fmt(IA.h, 1)}mm" viewBox="0 0 ${fmt(pt(IA.w), 3)} ${fmt(pt(IA.h), 3)}">
+<!-- Rembrandt v0.1 · ${FORMATS[S.format].label} · the image area ${fmt(IA.w, 1)} × ${fmt(IA.h, 1)} mm; 1 unit = 1 pt = 25.4/72 mm -->
+<metadata id="rembrandt-state">${meta}</metadata>
+<rect id="canvas" x="${fmt(pt(cr.x), 3)}" y="${fmt(pt(cr.y), 3)}" width="${fmt(pt(cr.w), 3)}" height="${fmt(pt(cr.h), 3)}" fill="none" stroke="#24221F" stroke-width="1"/>
+<g id="lanes" fill="none" stroke-width="${fmt(pt(PAINT.line), 3)}" stroke-linecap="round" stroke-linejoin="round">
+${lines}
+</g>
+${curve}
+</svg>`;
+}
+// The board as on screen, long px on its long side.
+function boardCanvas(long) {
+  finishAll();
+  const cssW = V.w * kMm, cssH = V.h * kMm, s = long / Math.max(cssW, cssH);
+  const cv = document.createElement('canvas'); cv.width = Math.round(cssW * s); cv.height = Math.round(cssH * s);
+  const c = cv.getContext('2d'), keep = dpr, sel = S.sel;
+  dpr = s; S.sel = false;
+  drawPaint(c, cssW, cssH); scrT(c); drawCurve(c);
+  dpr = keep; S.sel = sel;
+  return cv;
+}
+const libraryName = file => file.slice(0, 13) + ':' + file.slice(14);   // '2026-10-01 21-15' → '… 21:15'
+async function saveToLibrary() {
+  const st = $('#saveState'), b = $('#btnSave');
+  if (!S.curve.segs.length) { st.textContent = 'nothing drawn yet'; return; }
+  b.disabled = true; st.textContent = 'saving…';
+  try {
+    const r = await fetch('/library', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ svg: drawingText(), png: boardCanvas(800).toDataURL('image/png') }) });
+    const o = await r.json();
+    st.textContent = o.ok ? `saved · ${o.name}` : `not saved · ${o.message}`;
+  } catch { st.textContent = 'not saved · start rembrandt.py'; }
+  b.disabled = false;
+}
+$('#btnSave').onclick = saveToLibrary;
+// Opened from the Library (library.html → index.html?open=<file>): the
+// painting takes the place of the one here; ⌘Z brings that one back.
+async function openFromLibrary(file) {
+  history.replaceState(null, '', location.pathname);
+  const st = $('#saveState');
+  try {
+    const r = await fetch('library/' + encodeURIComponent(file) + '.svg', { cache: 'no-store' });
+    if (!r.ok) throw new Error(r.status);
+    const doc = new DOMParser().parseFromString(await r.text(), 'image/svg+xml'), meta = doc.querySelector('metadata#rembrandt-state');
+    if (!meta) { st.textContent = 'a RUBENS drawing: open it in RUBENS'; return; }
+    const o = JSON.parse(meta.textContent.replace(/- -/g, '--'));
+    undoPush();
+    if (CREATE_FORMATS.includes(o.format)) { S.format = o.format; $('#format').value = S.format; }
+    S.curve.segs = o.segs || []; S.cornerR = o.cornerR ?? S.cornerR; S.pitch = o.pitch ?? S.pitch;
+    S.layers = layersFrom(o.layers);
+    if (o.ends) { S.ends = { ...S.ends, ...o.ends }; writeEnds(localStorage, S.ends); }
+    // the painting's tubes the inventory does not have go to its end; the others stay as they are now
+    const missing = (o.tubes || []).filter(t => !tubeOf(t.id));
+    if (missing.length) { setInventory([...inventory(), ...missing]); saveTubes(); }
+    if (Number.isFinite(o.refOpacity)) S.refOpacity = o.refOpacity;
+    if (o.ref?.src) setRef(o.ref.src, o.ref.name || 'reference', true);
+    S.sel = false; S.selSeg = null; saveNow(); layout(); syncRef();
+    st.textContent = `opened · ${libraryName(file)}`;
+  } catch { st.textContent = 'could not open it from the Library'; }
+}
+
 // ---------- kept in this browser ----------
 let saveT = 0;
 function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 300); }
@@ -832,6 +900,8 @@ function loadRef() {
 if (!load()) S.curve.segs = defaultCurve();
 $('#format').value = S.format;
 syncTools(); syncView(); syncRef(); loadRef(); loadTubes();
+const opening = new URLSearchParams(location.search).get('open');   // from the Library tab
+if (opening) openFromLibrary(opening);
 new ResizeObserver(layout).observe(stage);
 addEventListener('focus', () => { loadCal(); PAINT = readPaint(localStorage); invalidate(); });   // back from Calibration or Adjustments
 loadCal();
