@@ -84,8 +84,20 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **No machine-drawn outlines.** The pencil sits in the same spring holder as
   the MOLOTOW marker and drifts from run to run. **No projector.**
   (2026-10-01)
-- **Dosing by hand with standard drops**, the machine as the pointer.
-  (2026-10-01)
+- **Paint goes on by eye for now, and the way ahead is the brush dipping
+  into cups** at the edges of the frame (the owner, 2026-10-02). From the
+  tube onto the canvas where Create's drop map shows, for the first tests.
+  No pointer, no laser, no dosing syringe: they do not scale — "with ten
+  machines it is 1100 drops in half a day, and as many again; filling 130
+  cups with paint is still possible." The dip station moves from §11 into
+  the plan. (Replaces the standard drops under the machine's pointer of
+  2026-10-01.)
+- **The firmware is Rembrandt's** (the owner, 2026-10-02: "RUBENS is closed,
+  we make Rembrandt; we can change everything. Let's reflash the board!"):
+  `firmware/CNCDM-001/`. Flashed only together with the owner.
+- **The edge matters more than the fill** (Grok's review, the owner agreed,
+  2026-10-02): the painting holds by the sheet's edge along the curve and by
+  the places where the rule breaks, not by the fill.
 - **Four layers in a fixed order, the same on Create and Adjustments** (the
   owner, 2026-10-01: "they must be the same"), as Sonnet laid them out:
   1 Light and 2 Dark below the curve, on the white ground (yellow dies on
@@ -368,13 +380,9 @@ this section disagree, this section wins: the owner corrected the sketch on
    tube's drops, then ⚡️ Do Job runs that tube's trips; then the machine
    waits, brush off, out of the way: **Again** or **Next tube**.
 
-**Pointer mode** (Job): the brush hovers over the start of the drop, then
-moves along its length slowly while the owner squeezes behind it.
-
-**Open question — the hover pose.** Upright, the spring holder touches the
-canvas; brush off (−54°) swings the tip aside. Find on the Calibration tab a
-wrist angle where the tip clears the canvas by about 5 mm, and compensate the
-tip's sideways offset in X/Y. Fallback: a laser dot on the bracket.
+**Pointer mode and the hover pose are dropped** (the owner, 2026-10-02):
+the drops go on by eye from Create's drop map, and later the brush dips
+(§1).
 
 ---
 
@@ -450,8 +458,15 @@ Target: about three weeks from 2026-10-01 (the owner agreed on three weeks,
 - **Own dispersion**: seeded bundles of spectral lanes, offsets by Cauchy's
   law `n(λ) = A + B / λ²` (A = 1.5046, B = 0.00420 µm²); the seed goes on the
   certificate.
-- **Dip station**: cups with paint level flush with the canvas, a wire to
-  wipe on, water, a sponge.
+- **Dip station** — in the plan now (§1): cups with paint level flush with
+  the canvas, a wire to wipe on. (Water and a sponge clash with "no
+  washing station" in §1: to settle when it is designed.)
+- **Arm strokes** (the owner, 2026-10-02, the arm's drawings of 2026-09-13
+  and 09-14 in `previous_research/`): the shoulder and the elbow draw an
+  arc, the gantry steps on a little, the arc again — a comb of arcs, with a
+  hook where the wrist lifts. A stroke of its own, neither tails nor round
+  ends. It reverses "only X, Y and the wrist move during a job" (§1) for
+  these strokes; the firmware may change for it (§1).
 - **Shoulder and elbow effects**: turn a flat or fan brush by turning the arm
   while the gantry holds the tip still (width and twist). First test: a
   pencil must leave a dot, not a scribble.

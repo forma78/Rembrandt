@@ -27,6 +27,9 @@ Rembrandt/
     create-tab.html  the UI design (downloaded from the design canvas)
   adjustments/       Sonnet's four layers on 500 × 700, the Adjustments tab's start
                      (app/adjustments links to it, so the server sees it)
+  rembrandt.py       starts app/rembrandt.py from here
+  firmware/
+    CNCDM-001/       the board's firmware (from RUBENS, Rembrandt's since 2026-10-02)
   app/
     index.html       Create
     job.html         Job (from RUBENS, plus pointer mode)
@@ -49,8 +52,12 @@ upright, Reach on the Create tab): `calibration.js`, `machine.js`, `job.js`,
 tests. They import `config.js`, `cnc.js` and `paint.js`; the Pen and Arc tools
 need `gesture.js`, the Library tab `librarypage.js`, the tests
 `test/shapes.js` — copy those too, or nothing runs. Keep the tests passing
-after the copy. The firmware stays in the RUBENS repo (`firmware/CNCDM-001/`);
-Rembrandt never changes it.
+after the copy.
+
+**The firmware is Rembrandt's now**, `firmware/CNCDM-001/`, copied from RUBENS
+`a143fbc` on 2026-10-02. The owner: "RUBENS is closed, we make Rembrandt; we
+can change everything. Let's reflash the board!" It is flashed only together
+with the owner, after a host test (`test_host/`), and tried in the air first.
 
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
@@ -60,10 +67,12 @@ blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 ## Run
 
 ```
-cd ~/Rembrandt/app
-python3 rembrandt.py        # http://localhost:5164
-node --test                 # the tests
+cd ~/Rembrandt
+python3 rembrandt.py        # http://localhost:5164; Ctrl+C stops it
+cd app && node --test       # the tests
 ```
+
+`rembrandt.py` in the root only starts `app/rembrandt.py`; either works.
 
 Port 5164 — the owner's lucky number (2026-10-01). Only one program owns
 the USB board: close RUBENS (port 8766) first.
