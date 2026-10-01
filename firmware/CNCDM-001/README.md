@@ -24,7 +24,8 @@ board on USB from `../../rubens-preview/rubens.py`.
 | `test_host/path_test.cpp` | the planner's test, on the Mac, no board |
 | `test_host/joint_test.cpp` | the `J` command's test, on the Mac |
 
-This is the firmware on the board since 2026-09-27. Built from this folder
+This is the firmware on the board since 2026-10-02 (Rembrandt: `J` with a
+speed, `H`); before, RUBENS's of 2026-09-27. Built from this folder
 on 2026-09-30, its comments translated into English, it gives the same image
 as the build in the old repository: only the ELF's hash in the header and
 the image checksum differ (they hold the build paths); the code with the

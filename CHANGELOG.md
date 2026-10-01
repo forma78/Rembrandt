@@ -5,8 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
-- **Firmware: a slow arm, and STOP for it** (built, not yet flashed;
-  2026-10-02). `J <j> <deg> [<deg/s>]`: tenths of a degree, and a speed —
+- **Firmware: a slow arm, and STOP for it** (flashed 2026-10-02 with the
+  owner, the 12 V off; the board answers P, V and the new H). `J <j> <deg> [<deg/s>]`: tenths of a degree, and a speed —
   for the arm strokes, a slow arc of the brush instead of the fixed ~53°/s.
   `H`: the arm holds where it stands. The server passes the speed
   (`/arm?…&v=`), waits as long as a slow stroke takes, and STOP and HARD
