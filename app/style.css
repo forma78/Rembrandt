@@ -366,3 +366,7 @@ main.no-tools{grid-template-columns:1fr 340px}
 .adjust .layer .ltubes{margin-left:22px}
 .adjust .lhead .ends{margin-left:auto;display:inline-grid;grid-template-columns:auto auto;padding:2px}
 .adjust .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11px}
+.layoutbar{display:flex;align-items:center;gap:10px;margin:2px 0 4px}
+.layoutbar .btn{margin-left:auto}
+.adjust .status #hint{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adjust .status #stats{flex:none;white-space:nowrap;font-family:var(--mono)}
