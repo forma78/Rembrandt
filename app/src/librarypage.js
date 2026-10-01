@@ -17,7 +17,7 @@ async function load() {
     const r = await fetch('/library', { cache: 'no-store' });
     list = r.ok ? await r.json() : null;
   } catch { list = null; }
-  if (!list) { grid.innerHTML = '<p class="none">No server: start rubens.py.</p>'; $('#count').textContent = ''; return; }
+  if (!list) { grid.innerHTML = '<p class="none">No server: start rembrandt.py.</p>'; $('#count').textContent = ''; return; }
   $('#count').textContent = `${list.length} drawing${list.length === 1 ? '' : 's'}`;
   if (!list.length) { grid.innerHTML = '<p class="none">Nothing saved yet: 💾 SAVE on the Create tab.</p>'; return; }
   grid.innerHTML = list.map(d => {
@@ -38,7 +38,7 @@ $('#grid').addEventListener('click', async e => {
   if (e.target.closest('.del')) {
     if (!confirm(`Delete «${name}» from the Library?\n\nIt goes to library/.deleted/ on this Mac.`)) return;
     const r = await fetch(url(file, ''), { method: 'DELETE' }).catch(() => null);
-    if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rubens.py.');
+    if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();
   }
   location.href = 'index.html?open=' + encodeURIComponent(file);
