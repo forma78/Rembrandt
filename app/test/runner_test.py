@@ -407,6 +407,53 @@ class PauseTest(unittest.TestCase):
         self.assertEqual(piece_at((0, 0), path, (10, 0), first=1), 1)  # a joint: the later piece, if asked
 
 
+class ArmStrokeRunTest(unittest.TestCase):
+    """Rembrandt's arm strokes in a run (2026-10-02): a joint at its speed, a
+    pause for paint, STOP stopping the arm too."""
+
+    ZERO = {"shoulder": 2501, "elbow": 1759, "wrist": 1489}
+
+    def runner(self, b):
+        arm = Arm(b.send, zero=lambda: self.ZERO, sleep=b.sleep)
+        return Runner(b.send, sleep=b.sleep, swing_s=0, arm=arm), arm
+
+    def test_a_joint_block_is_checked_before_anything_moves(self):
+        r, _ = self.runner(FakeBoard())
+        self.assertFalse(r.start([{"kind": "joint", "joint": "shoulder", "deg": 60, "speed": 10}])[0])
+        self.assertFalse(r.start([{"kind": "joint", "joint": "wrist", "deg": 0, "speed": 10}])[0])
+        self.assertFalse(r.start([{"kind": "joint", "joint": "shoulder", "deg": 20, "speed": 500}])[0])
+
+    def test_the_stroke_goes_at_its_speed_and_the_pause_waits(self):
+        b = FakeBoard()
+        r, arm = self.runner(b)
+        blocks = [{"kind": "arm", "cmd": "J 3 0"},
+                  {"kind": "joint", "joint": "shoulder", "deg": 20, "speed": 10},
+                  {"kind": "arm", "cmd": f"J 3 {SWING_DEG}"},
+                  {"kind": "pause", "why": "paint for the brush"},
+                  {"kind": "joint", "joint": "shoulder", "deg": -20, "speed": 10}]
+        r.blocks, r.state = blocks, "running"
+        waited = []
+        def sleep(s):
+            if r.state == "paused" and not waited:
+                waited.append(r.message)
+                r.resume()
+        b.sleep = sleep
+        r.sleep = arm.sleep = sleep
+        r.run()
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(waited, ["paint for the brush"])
+        self.assertTrue(any(c.startswith("J 1") and c.endswith(" v10") for c in b.log), b.log)
+        self.assertLess(abs(arm.angles()[0]["shoulder"] + 20), 0.6)
+
+    def test_stop_stops_the_arm_too(self):
+        b = FakeBoard()
+        r, arm = self.runner(b)
+        r.state = "running"
+        r.stop()
+        self.assertIn("H", b.log)
+        self.assertTrue(arm.stopped.is_set())
+
+
 class ArmTest(unittest.TestCase):
     """The arm in RUBENS's degrees, whatever zero the board took (2026-09-28:
     twice the wrist took its zero at +90° and swung the brush to 180°)."""

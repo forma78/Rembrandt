@@ -338,6 +338,13 @@ this section disagree, this section wins: the owner corrected the sketch on
   calibration.png`): the canvas inside the image area, the walls dashed,
   hatched where the machine does not reach (600 > 568.5 mm across). The
   status bar names both: `Canvas 500 × 700 · image area 568.5 × 865 · …`.
+- **3DOF**, a tab between Job and Adjustments (2026-10-02): the arm-stroke
+  test bench — rows of hairpins on a small board, black only, the owner's
+  sketch `references/Screenshot 2026-10-02 3DOF.png`. The shoulder draws the
+  arc at its speed, the carriage turns it with the brush on, the shoulder
+  draws it back, the wrist lifts the brush with its hook; a pause after each
+  row for paint. Placed by "Here" (the brush over the board's centre).
+  First in the air, then on a board; Create gets the stroke after the photos.
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.

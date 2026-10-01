@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The 3DOF tab** (the owner, 2026-10-02): arm strokes on a 30 × 30 board —
+  pattern A (8 rows, tight) or B (5 rows, loose), every number editable, a
+  preview in mm, Here, ⚡️ Do 3DOF, Pause, Continue, STOP and HARD STOP that
+  stop the arm too. The runner in `rembrandt.py` learnt two blocks: a joint
+  at its speed, and a pause for paint. New module `strokes.js`, tested.
 - **Firmware: a slow arm, and STOP for it** (flashed 2026-10-02 with the
   owner, the 12 V off; the board answers P, V and the new H). `J <j> <deg> [<deg/s>]`: tenths of a degree, and a speed —
   for the arm strokes, a slow arc of the brush instead of the fixed ~53°/s.

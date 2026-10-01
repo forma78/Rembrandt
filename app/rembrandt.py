@@ -551,7 +551,11 @@ class Runner:
     section 6: the job is run here, not by the page).
 
     A block is either {"kind": "arm", "cmd": "J 3 <deg>"} — the wrist swings
-    the brush off or onto the canvas — or {"kind": "move", "cmds": [...]}: a
+    the brush off or onto the canvas — or, for Rembrandt's arm strokes
+    (2026-10-02), {"kind": "joint", "joint": "shoulder"|"elbow", "deg": d,
+    "speed": deg/s} — a joint turns at that speed, the brush on or off as it
+    is, the axes still — or {"kind": "pause", "why": "..."}: the brush off,
+    the run waits for Continue (paint for the brush); or {"kind": "move", "cmds": [...]}: a
     speed (F or T), path pieces (L, A, M) and G. Pieces go to the board until
     its queue is full; then G, and the rest follow as the queue empties. The
     block is over when the ping no longer says "путь". Every command and ping
@@ -592,6 +596,14 @@ class Runner:
             if b.get("kind") == "arm" and not lo <= int(b["cmd"].split()[2]) <= hi:
                 return False, (f"{b['cmd']}: the wrist may go {lo}…+{hi}° only, the camera is in the way. "
                                "This job.json is from before the camera: Save job.json again on the Job tab.")
+            if b.get("kind") == "joint":
+                j, d, v = b.get("joint"), b.get("deg"), b.get("speed")
+                if j not in ("shoulder", "elbow") or not isinstance(d, (int, float)) or not REACH[j][0] <= d <= REACH[j][1]:
+                    return False, f"a joint block out of reach: {j} {d}° (the shoulder and the elbow go {REACH['shoulder'][0]}…+{REACH['shoulder'][1]}°)"
+                if not isinstance(v, (int, float)) or not 0.5 <= v <= 100:
+                    return False, f"a joint block's speed must be 0.5…100°/s, not {v}"
+                if not self.arm:
+                    return False, "no arm"
         with self.lock:
             if self.state in LIVE:
                 return False, "already running"
@@ -611,7 +623,10 @@ class Runner:
             if self.state in LIVE:
                 self._stop = "K" if hard else "S"
                 self.state = "stopping"
-        return self.send("/cmd?a=K&n=0" if hard else "/cmd?a=S&n=0")
+        r = self.send("/cmd?a=K&n=0" if hard else "/cmd?a=S&n=0")
+        if self.arm:
+            self.arm.stop()      # an arm stroke under way stays where it is (2026-10-02)
+        return r
 
     def board_stopped(self, hard=False):
         # A STOP or HARD STOP sent to the board by a page, not through the
@@ -670,6 +685,15 @@ class Runner:
                     self.block = i
                 if b["kind"] == "arm":
                     self._arm(b["cmd"])
+                elif b["kind"] == "joint":
+                    self._joint(b)
+                elif b["kind"] == "pause":
+                    with self.lock:
+                        self._pause, self.message = True, b.get("why") or "paused"
+                    if not self._hold():
+                        break
+                    with self.lock:
+                        self.message = ""
                 else:
                     self._move(b)
             with self.lock:
@@ -721,6 +745,17 @@ class Runner:
             raise Abort(f"{cmd}: {in_english(r)}")
         self.brush_on = deg == 0
         self._wait(self.swing_s)
+
+    def _joint(self, b):
+        # An arm stroke (2026-10-02): the shoulder or the elbow turns at its
+        # speed; the axes stand. STOP stops it where it is (Arm.stop, H).
+        try:
+            self.arm.move_to(b["joint"], float(b["deg"]), float(b["speed"]))
+        except ArmError as e:
+            if self._stop:
+                return
+            raise Abort(f"{b['joint']} to {b['deg']}°: {e}")
+        self._ping()
 
     def _raw(self, cmd):
         return self.send("/raw?c=" + quote(cmd))

@@ -403,3 +403,9 @@ body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11p
 .tpig::placeholder,.tname::placeholder{color:#C4BEB3}
 .bar2 .savebox{display:flex;align-items:center;gap:10px;min-width:0}
 .bar2 .savebox .save-state{max-width:200px}
+
+/* ---------- Rembrandt · 3DOF (2026-10-02) ---------- */
+.btn.wide{width:100%;margin-top:8px}
+.runstate{margin:2px 0 4px;font:12px/1.5 var(--mono);color:var(--ink)}
+.runstate .warn{color:#B3470C}
+.runkeys,.arm3 .stops{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
