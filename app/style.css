@@ -359,3 +359,8 @@ body.create{grid-template-rows:56px auto 1fr 30px}
 .page-note{max-width:560px;margin:40px auto}
 body.create .status #hint{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.create .status #coords,body.create .status #stats{flex:none;white-space:nowrap;font-family:var(--mono)}
+
+/* ---------- Rembrandt · Adjustments (2026-10-01) ---------- */
+main.no-tools{grid-template-columns:1fr 340px}
+.read .mono,.math td.mono{font-family:var(--mono);font-size:11px;color:var(--mute)}
+.adjust .layer .ltubes{margin-left:22px}
