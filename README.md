@@ -39,11 +39,16 @@ Rembrandt/
 
 ## Reuse from RUBENS — copy, do not rewrite
 
-From `../Rubens/rubens-preview/`: `calibration.js`, `machine.js`, `job.js`,
+From `../Rubens/rubens-preview/` at commit `a143fbc` (GitHub `main`, eleven
+commits after the tag v0.1.3: the canvas by its four edges, the wrist's zero
+upright, Reach on the Create tab): `calibration.js`, `machine.js`, `job.js`,
 `jobpage.js`, `lcd.js`, `ui.js`, `color.js`, `geometry.js`, `fillet.js`,
 `util.js`, `svg.js`, `style.css`, `rubens.py` (→ `rembrandt.py`), and their
-tests. Keep the tests passing after the copy. The firmware stays in the RUBENS
-repo (`firmware/CNCDM-001/`); Rembrandt never changes it.
+tests. They import `config.js`, `cnc.js` and `paint.js`; the Pen and Arc tools
+need `gesture.js`, the Library tab `librarypage.js`, the tests
+`test/shapes.js` — copy those too, or nothing runs. Keep the tests passing
+after the copy. The firmware stays in the RUBENS repo (`firmware/CNCDM-001/`);
+Rembrandt never changes it.
 
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
@@ -71,5 +76,6 @@ Only one program owns the USB board: close RUBENS (port 8766) first.
   `rembrandt.py`, the contract with the firmware.
 - **Small commits**, one change each, with a line in `CHANGELOG.md`.
   An owner decision is recorded with its date and his words, in English.
-- The RUBENS repo is public. Decide whether Rembrandt is public before the
-  first push.
+- **Rembrandt is private.** The RUBENS repo is public; this one is not. The
+  owner, 2026-10-01: "Private on git: this is strategic development at the
+  Art Basel level." Nothing is pushed without the owner's word.
