@@ -332,8 +332,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   colours, the curve — with the whole painting, the reference included, in
   its metadata; a click in the Library opens it again. `app/library/`, on
   this Mac, not in git.
-- **Format** — the canvas laid on the image area: **500 × 700** (default)
-  and **600 × 800** mm; 700 × 1000 is out of reach and gone. Drawn as on the
+- **Format** — the canvas laid on the image area: **500 × 700** (default),
+  **600 × 800**, **400 × 600** and **400 × 300** mm (the last two the owner's,
+  2026-10-02); 700 × 1000 is out of reach and gone. Drawn as on the
   RUBENS Calibration tab (`references/Screenshot 2026-09-30
   calibration.png`): the canvas inside the image area, the walls dashed,
   hatched where the machine does not reach (600 > 568.5 mm across). The
