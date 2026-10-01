@@ -243,6 +243,10 @@ Everything else is in §11 (later).
   to a darker paint, is the home; the end next to a lighter paint is the
   tail. Where a run reaches the edge of the image area it does not thin: the
   brush goes out at full width and lifts past the canvas. *Claude's decision.*
+- **The paint of a run is reckoned on its real gap** to the neighbour line,
+  not on the line's width: on a slope above the curve the copies lie
+  pitch × cos(slope) apart, and a full ration there would lay a double film
+  (the outside review, 2026-10-01).
 - **A drop feeds the neighbouring lines of one tube** whose homes lie within
   40 mm, as many as it is long (100 mm: 12 lines at 8 mm). A group that needs
   more than one drop gets them spaced along its shortest run.

@@ -91,11 +91,11 @@ export function buildLanes(segs, { pitch, area }) {
   const lanes = [];
   for (let k = 1; k <= K; k++) {
     const pieces = clipSegs(offsetSegs(segs, down * (k - 0.5) * pitch), area);
-    if (pieces.length) lanes.push({ side: 'below', k, pieces, off: (k - 0.5) * pitch, down });
+    if (pieces.length) lanes.push({ side: 'below', k, pieces, off: (k - 0.5) * pitch, down, pitch });
   }
   for (let k = 1; k <= K; k++) {
     const pieces = clipSegs(segs.map(g => moveSegBy(g, P(0, -(k - 0.5) * pitch))), area);
-    if (pieces.length) lanes.push({ side: 'above', k, pieces, off: (k - 0.5) * pitch });
+    if (pieces.length) lanes.push({ side: 'above', k, pieces, off: (k - 0.5) * pitch, pitch });
   }
   return lanes;
 }
@@ -117,7 +117,11 @@ export function steepest(segs) {
 // lines nearer the curve than this read the reference at this distance from
 // it, so the edge of the reference — a few mm off a hand-drawn curve — does
 // not colour them.
-// Returns the runs: { side, k, piece, tube, s0, s1, len, home, tailAtEdge, segs }.
+// Returns the runs: { side, k, piece, tube, s0, s1, len, home, tailAtEdge,
+// segs, gap }. gap: how far the run lies from its neighbour line, on average
+// — the pitch below the curve; above it, where the vertical copies lie
+// closer on a slope, the pitch × cos(slope). The paint for a run is
+// reckoned on it (drops.js): overlapping lines would lay a double film.
 export function paintLanes(lanes, { sample, tubes, step, minRun, bucket, damp = 0.85, lightness, guard = 0 }) {
   const runs = [];
   for (const side of ['below', 'above']) {
@@ -159,7 +163,14 @@ export function paintLanes(lanes, { sample, tubes, step, minRun, bucket, damp = 
           const sStart = score(s0 < 1e-6, rs[i - 1]), sEnd = score(s1 > Lp - 1e-6, rs[i + 1]);
           const home = sEnd > sStart ? 'end' : 'start';
           const tailAtEdge = home === 'start' ? (s1 > Lp - 1e-6 || !rs[i + 1]?.id) : (s0 < 1e-6 || !rs[i - 1]?.id);
-          runs.push({ side, k: lane.k, piece: pi, tube: r.id, s0, s1, len: s1 - s0, home, tailAtEdge, segs: cutPath(piece, s0, s1) });
+          const segs = cutPath(piece, s0, s1);
+          let gap = lane.pitch ?? Infinity;
+          if (side === 'above' && Number.isFinite(gap)) {
+            const m = Math.max(2, Math.ceil((s1 - s0) / step)); let c = 0;
+            for (let j = 0; j < m; j++) c += Math.abs(pointAlong(segs, (s1 - s0) * (j + 0.5) / m).dx);
+            gap *= c / m;
+          }
+          runs.push({ side, k: lane.k, piece: pi, tube: r.id, s0, s1, len: s1 - s0, home, tailAtEdge, segs, gap });
         });
       });
     }
