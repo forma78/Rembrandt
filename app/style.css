@@ -420,3 +420,15 @@ body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11p
 .lib-split::before,.lib-split::after{content:"";flex:1;height:1px;background:var(--line)}
 .lib-split[hidden]{display:none}
 .slh .val{text-transform:none;letter-spacing:0}
+
+/* ---------- The LCD's lamp (the owner, 2026-10-02): a sun and a moon by PROGRESS ---------- */
+.lampsw{display:inline-grid;grid-template-columns:auto auto;padding:2px;text-transform:none;letter-spacing:0}
+.lampsw button{flex-direction:row;padding:3px 8px}
+.lampsw svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round}
+.lampsw button[data-l="night"] svg{fill:currentColor;stroke:none}
+.lampsw button.on::before{display:none}
+.lampsw button.on{color:var(--orange)}
+.lcd{transition:background .3s,box-shadow .3s}
+body.lamp .lcd{--lcd-ink:#2B2309;--lcd-ghost:rgba(70,50,0,.09);
+  background:radial-gradient(130% 160% at 50% 35%,#F6E08A 0%,#EBC95E 55%,#D9B04A 100%);
+  box-shadow:inset 0 2px 5px rgba(90,60,0,.30),inset 0 0 0 1px rgba(90,60,0,.22),0 0 22px rgba(240,190,70,.35),0 1px 0 #fff}
