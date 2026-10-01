@@ -10,8 +10,10 @@
 // Commands come over USB, one a line:
 //   X <n>     the X axis at level n, -20 to 20, zero stops it
 //   Y <n>     the same for Y, n from -9 to 9
-//   J <j> <g> joint j (1 shoulder, 2 elbow, 3 wrist) to g degrees from its zero
+//   J <j> <g> [<v>] joint j (1 shoulder, 2 elbow, 3 wrist) to g degrees from its zero,
+//             tenths count; v — degrees a second (Rembrandt, 2026-10-02), else about 53
 //   Z         the arm's zero here: the pose it stands in becomes zero, nothing moves
+//   H         the arm holds where it stands: a slow stroke stopped half way (2026-10-02)
 //   S         stop both axes, braking (the arm is left alone, it holds its pose)
 //   K         stop both axes at once, no braking
 //   O <X|Y> [n]  the axis zero here: the carriage stands, its place becomes zero.
@@ -52,6 +54,7 @@
 #include <Arduino.h>
 #include <FastAccelStepper.h>
 #include <SCServo.h>
+#include "joint.h"                               // the J command, tested on the Mac
 #include "path.h"
 
 static const int X_DIR = 27, X_STEP = 16;
@@ -90,7 +93,7 @@ static const uint32_t BUS_BAUD = 1000000;        // 1 Mbaud, or the servos are s
 static const int     JOINTS      = 3;
 static const uint8_t JOINT_ID[JOINTS] = { 1, 2, 3 };   // shoulder, elbow, wrist
 static const float   TICKS_PER_DEG = 4096.0f / 360.0f; // 11.378 ticks a degree
-static const uint16_t MOVE_SPEED = 600;          // ticks/s, about 53°/s
+static const uint16_t MOVE_SPEED = joint::SPEED_DEFAULT;   // ticks/s, about 53°/s, when J gives no speed
 static const uint8_t  MOVE_ACC   = 30;
 
 // Each joint has its own sign, limit and offset of zero.
@@ -155,7 +158,8 @@ static char     buf[64];   // "A cx cy x y ±1" is longer than 32
 static int      bufLen   = 0;
 
 static int32_t zeroTick[JOINTS] = { -1, -1, -1 };   // -1 — zero not taken yet
-static int16_t targetDeg[JOINTS] = { 0, 0, 0 };
+static float    targetDeg[JOINTS] = { 0, 0, 0 };
+static uint16_t jointSpeed[JOINTS] = { MOVE_SPEED, MOVE_SPEED, MOVE_SPEED };   // ticks/s, each joint its last J's
 
 static path::Planner planner(PATH_ACCEL);
 static bool     pathOn     = false;     // G given, the path runs
@@ -323,7 +327,7 @@ static void moveArm() {
 
     ids[n] = JOINT_ID[j];
     pos[n] = (s16)tick;
-    spd[n] = MOVE_SPEED;
+    spd[n] = jointSpeed[j];
     acc[n] = MOVE_ACC;
     n++;
   }
@@ -347,12 +351,31 @@ static void reZero() {
   Serial.printf("ok Z %d\n", done);
 }
 
+// H: every joint is read and told to stay where it is — a slow arc of the
+// brush stopped half way (Rembrandt, 2026-10-02). Nothing drops: a servo
+// holds the pose it is given. The axes are left alone.
+static void holdArm() {
+  int done = 0;
+  for (int j = 0; j < JOINTS; j++) {
+    if (zeroTick[j] < 0) continue;
+    const int raw = st.ReadPos(JOINT_ID[j]);
+    if (raw < 0) continue;
+    targetDeg[j]  = JOINT_SIGN[j] * (raw - zeroTick[j]) / TICKS_PER_DEG - JOINT_OFFSET[j];
+    jointSpeed[j] = MOVE_SPEED;
+    done++;
+  }
+  if (done) moveArm();
+  Serial.printf("ok H %d\n", done);
+}
+
 static void handleJoint(const char *line) {
-  int j = 0, deg = 0;
-  if (sscanf(line + 1, "%d %d", &j, &deg) != 2) { Serial.println("?"); return; }
+  joint::Cmd c;
+  if (!joint::parse(line + 1, c)) { Serial.println("?"); return; }
+  const int j = c.j;
   if (j < 1 || j > JOINTS) { Serial.println("? сустав"); return; }
 
-  const int16_t lim = JOINT_LIMIT[j - 1];
+  const float lim = JOINT_LIMIT[j - 1];
+  float deg = c.deg;
   if (deg >  lim) deg =  lim;
   if (deg < -lim) deg = -lim;
 
@@ -361,9 +384,10 @@ static void handleJoint(const char *line) {
 
   if (!takeZero(j - 1)) { Serial.printf("нет серво %d\n", j); return; }
 
-  targetDeg[j - 1] = deg;
+  targetDeg[j - 1]  = deg;
+  jointSpeed[j - 1] = c.speed;
   moveArm();
-  Serial.printf("ok J %d %d\n", j, deg);
+  Serial.printf("ok J %d %.1f\n", j, deg);
 }
 
 // The look, nothing moves. The servos run on the 12 V only, on USB they are
@@ -574,6 +598,7 @@ static void handle(const char *line) {
   if (pathOn && strchr("XxYyJjOo", c)) { Serial.println("? идёт путь, сначала S"); return; }
   if (c == 'J' || c == 'j') { handleJoint(line); return; }
   if (c == 'Z' || c == 'z') { reZero(); return; }
+  if (c == 'H' || c == 'h') { holdArm(); return; }
 
   if (c == 'X' || c == 'x' || c == 'Y' || c == 'y') {
     int level = atoi(line + 1);

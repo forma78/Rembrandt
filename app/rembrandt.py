@@ -51,7 +51,7 @@ PORT = 5164   # the owner's lucky number (2026-10-01); RUBENS is on 8766
 FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json"),
          "/tubes": os.path.join(HERE, "tubes.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
-PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y"}
+PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y", "/hold"}
 STEPS_PER_MM = (80.0, 3200.0 / 120.0)   # X, Y — the same as src/machine.js
 # The walls in mm (src/machine.js, the firmware). A carriage counted more
 # than RUNAWAY_MM past one means the board is sending steps it should not:
@@ -138,6 +138,8 @@ def board_line(path):
         raise ValueError("?")
     if p == "/zero":                 # the arm's zero where it stands: nothing moves
         return "Z", 0.25
+    if p == "/hold":                 # the arm stays where it stands: a slow stroke stopped half way (2026-10-02)
+        return "H", 0.5
     if p in ("/origin/x", "/origin/y"):   # the carriage's place becomes the axis zero, or ?at=<steps>
         try:
             at = int(q.get("at", ["0"])[0])
@@ -158,10 +160,19 @@ def board_line(path):
             raise ValueError("? joint")
         jid, _, lim = JOINTS[joint]   # the firmware's degrees: its sign is its own
         try:
-            deg = max(-lim, min(lim, int(q.get("d", ["0"])[0])))
+            deg = max(-lim, min(lim, round(float(q.get("d", ["0"])[0]), 1)))
         except ValueError:
             deg = 0
-        return f"J {jid} {deg}", 0.25
+        speed = ""                    # degrees a second (the firmware since 2026-10-02), else its 53°/s
+        if q.get("v"):
+            try:
+                v = float(q["v"][0])
+            except ValueError:
+                raise ValueError("? v")
+            if not 0.5 <= v <= 100:
+                raise ValueError("? v: 0.5 to 100 degrees a second")
+            speed = f" {v:g}"
+        return f"J {jid} {deg:g}{speed}", 0.25
     raise ValueError(f"? {p}")
 
 
@@ -321,6 +332,13 @@ class Arm:
     def __init__(self, send, zero=lambda: ARM_ZERO, sleep=time.sleep):
         self.send, self.zero, self.sleep = send, zero, sleep
         self.lock = threading.Lock()
+        self.stopped = threading.Event()   # set by stop(): a move under way gives up
+
+    def stop(self):
+        """STOP for the arm (2026-10-02): a slow stroke stays where it is.
+        Not under the lock — it must get through while a move waits."""
+        self.stopped.set()
+        return self.send("/hold")
 
     def angles(self):
         raw, z = parse_look(self.send("/look")), self.zero()
@@ -329,14 +347,19 @@ class Arm:
             out[k] = None if jid not in raw else round(TURN[k] * sign * (raw[jid] - z[k]) / TICKS_PER_DEG, 1)
         return out, raw
 
-    def move_to(self, joint, deg):
+    def move_to(self, joint, deg, speed=None):
+        """speed: degrees a second, for a slow stroke of the brush; None — the
+        firmware's own, about 53°/s."""
         jid, sign, lim = JOINTS[joint]
         lo, hi = REACH[joint]
         if not lo <= deg <= hi:
             raise ArmError(f"the {joint} may go {lo}…+{hi}° only, not {deg:+g}°"
                            + (": the camera is in the way past +10°" if joint == "wrist" else ""))
         with self.lock:
+            self.stopped.clear()
             for _ in range(6):
+                if self.stopped.is_set():
+                    raise ArmError(f"the {joint} stopped: STOP")
                 ang, raw = self.angles()
                 if ang[joint] is None:
                     raise ArmError(f"the {joint} does not answer: is the 12 V on?")
@@ -352,10 +375,10 @@ class Arm:
                 if not r.startswith("ok Z"):
                     raise ArmError(f"arm zero: {in_english(r)}")
                 fw = TURN[joint] * step                    # the firmware's degrees
-                r = self.send(f"/servo?j={joint}&d={fw}")
+                r = self.send(f"/servo?j={joint}&d={fw}" + (f"&v={speed:g}" if speed else ""))
                 if not r.startswith("ok J"):
                     raise ArmError(f"{joint}: {in_english(r)}")
-                self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG)
+                self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / speed + 2 if speed else 4.0)
             raise ArmError(f"the {joint} does not get to {deg}°")
 
     def hold(self):
@@ -370,10 +393,11 @@ class Arm:
             if not r.startswith("ok J"):
                 raise ArmError(f"wrist: {in_english(r)}")
 
-    def _settle(self, jid, target):
-        # until the servo is there, or stands still (held back by something)
+    def _settle(self, jid, target, longest=4.0):
+        # until the servo is there, or stands still (held back by something),
+        # or STOP; a slow stroke may take longer than 4 s
         last, t = None, 0.0
-        while t < 4.0:
+        while t < longest and not self.stopped.is_set():
             self.sleep(0.15)
             t += 0.15
             p = parse_look(self.send("/look")).get(jid)
@@ -1125,6 +1149,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.reply(200, str(e))
             RUNNER.brush_on = deg == 0
             return self.reply(200, f"ok J 3 {deg}")
+        if path == "/arm/hold":
+            # STOP for the arm (2026-10-02): a slow stroke stays where it is
+            return self.reply(200, ARM.stop())
         if path == "/arm":
             # the arm jog of the Calibration tab: a joint to an angle, in
             # RUBENS's degrees (class Arm); not while a job runs
@@ -1135,7 +1162,8 @@ class Handler(SimpleHTTPRequestHandler):
             if jn not in JOINTS:
                 return self.reply(400, "which joint?")
             try:
-                got = ARM.move_to(jn, float(q.get("d", ["0"])[0]))
+                v = float(q["v"][0]) if q.get("v") else None
+                got = ARM.move_to(jn, float(q.get("d", ["0"])[0]), v if v and v > 0 else None)
             except (ArmError, ValueError) as e:
                 return self.reply(200, json.dumps({"ok": False, "message": str(e)}), "application/json")
             if jn == "wrist":

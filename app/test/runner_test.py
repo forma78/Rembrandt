@@ -60,10 +60,13 @@ class FakeBoard:
                 self.zt[j] = self.raw[j] - round(self.SIGN[j] * self.OFF[j] * TICKS_PER_DEG)
                 self.tdeg[j] = 0
             return "ok Z 3"
+        if u.path == "/hold":
+            self.log.append("H")
+            return "ok H 3"
         if u.path == "/servo":
             jid = {"shoulder": 1, "elbow": 2, "wrist": 3}[q["j"][0]]
             d = max(-self.LIM[jid], min(self.LIM[jid], int(float(q["d"][0]))))
-            self.log.append(f"J {jid} {d}")
+            self.log.append(f"J {jid} {d}" + (f" v{q['v'][0]}" if "v" in q else ""))
             if self.zt[jid] < 0:
                 self.zt[jid] = self.raw[jid]            # takeZero: the pose at the first command
             self.tdeg[jid] = d
@@ -425,6 +428,17 @@ class ArmTest(unittest.TestCase):
         self.near(b.raw[3], 1489 + round(SWING_DEG * TICKS_PER_DEG))
         self.assertEqual((b.raw[1], b.raw[2]), (1742, 1678))   # the others only hold
 
+    def test_a_slow_stroke_carries_its_speed_and_stops_on_stop(self):
+        b = FakeBoard()
+        arm = self.arm(b)
+        arm.move_to("shoulder", 20, speed=5)                     # 2026-10-02: an arc of the brush, 5°/s
+        self.assertTrue(any(c.startswith("J 1") and c.endswith(" v5") for c in b.log), b.log)
+        self.assertLess(abs(arm.angles()[0]["shoulder"] - 20), 0.6)
+        arm = Arm(b.send, zero=lambda: self.ZERO, sleep=lambda s: arm.stop())   # STOP while the stroke goes
+        with self.assertRaises(ArmError):
+            arm.move_to("shoulder", -20, speed=5)
+        self.assertIn("H", b.log)
+
     def test_the_shoulder_comes_back_from_67_degrees_in_steps(self):
         b = FakeBoard()
         b.raw[1] = 1742
@@ -622,6 +636,11 @@ class BoardTest(unittest.TestCase):
 
     def test_the_addresses_become_the_board_lines_of_the_bridge(self):
         self.assertEqual(board_line("/ping"), ("P", 0.25))
+        self.assertEqual(board_line("/servo?j=shoulder&d=12.34&v=5"), ("J 1 12.3 5", 0.25))   # 2026-10-02
+        self.assertEqual(board_line("/servo?j=wrist&d=-54"), ("J 3 -54", 0.25))
+        self.assertEqual(board_line("/hold"), ("H", 0.5))
+        with self.assertRaises(ValueError):
+            board_line("/servo?j=shoulder&d=10&v=500")
         self.assertEqual(board_line("/look"), ("V", 2.0))
         self.assertEqual(board_line("/cmd?a=S&n=0")[0], "S")
         self.assertEqual(board_line("/cmd?a=K&n=0")[0], "K")

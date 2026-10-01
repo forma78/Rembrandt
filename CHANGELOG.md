@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Firmware: a slow arm, and STOP for it** (built, not yet flashed;
+  2026-10-02). `J <j> <deg> [<deg/s>]`: tenths of a degree, and a speed —
+  for the arm strokes, a slow arc of the brush instead of the fixed ~53°/s.
+  `H`: the arm holds where it stands. The server passes the speed
+  (`/arm?…&v=`), waits as long as a slow stroke takes, and STOP and HARD
+  STOP on the Calibration tab stop the arm too; an "Arm speed" field there.
+  The wrist's +10° stays the server's: in the firmware it would limit a
+  step, not the angle (the old note said otherwise).
 - **The owner's decisions after the outside review** (2026-10-02): paint by
   eye for now, the brush dipping into cups later — no pointer, no laser, no
   syringe; the firmware is Rembrandt's; the edge matters more than the fill;
