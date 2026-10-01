@@ -5,7 +5,10 @@
 // like an Illustrator artboard set to the real size.
 export const PT_MM = 25.4 / 72;                  // 0.35278 mm per point
 
+// c50x70: Rembrandt's experiments, laid on the 100 × 70 canvas (the owner,
+// 2026-10-01); Create offers it and 60 × 80, the others are out of reach.
 export const FORMATS = {
+  c50x70:   { label: 'Canvas 50 × 70 cm',  w: 500,  h: 700 },
   p60x80:   { label: 'Paper 60 × 80 cm',   w: 600,  h: 800 },
   p80x60:   { label: 'Paper 80 × 60 cm',   w: 800,  h: 600 },
   c70x100:  { label: 'Canvas 70 × 100 cm', w: 700,  h: 1000 },

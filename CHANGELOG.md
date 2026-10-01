@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The Create tab, first cut** (build order step 1, without the bands yet):
+  the image area 568.5 × 865 mm with the canvas in it, 50 × 70 or 60 × 80,
+  placed from Calibration or, until then, 50 mm under the top wall; the
+  reference covering the image area, with its opacity; one curve drawn with
+  RUBENS's Gesture, Pen and Select; every Curve number typed in place — a
+  segment's own numbers, the length (scales the curve), the inner corner
+  radius; the three layers with [+] and ×, the lighter tube first; the tubes
+  in use. The house opens the curve of IMG_9422. New modules `curve.js` and
+  `tubes.js`, with tests; Calibration offers 50 × 70 too. Adjustments has its
+  tab, empty until step 4.
 - **`rembrandt.py` on port 5164**, `rubens.py` renamed and nothing else changed
   in how it talks to the board; the tabs in the spec's order, Create · Job ·
   Adjustments · Calibration · Library, on every page.
