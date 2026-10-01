@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RUBENS server: serves this folder on http://localhost:8766 and talks to
+"""Rembrandt server (rubens.py of RUBENS a143fbc): serves this folder on http://localhost:5164 and talks to
 the machine on USB (Rubens_v2.md, section 6). One program, one address:
 since 2026-09-29 it owns the serial port itself (class Board); before, the
 bridge.py of the old machine repo held it on port 8765.
@@ -45,7 +45,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PORT = 8766
+PORT = 5164   # the owner's lucky number (2026-10-01); RUBENS is on 8766
 FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
 PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y"}
@@ -1212,7 +1212,7 @@ if __name__ == "__main__":
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)   # the port first: a second copy stops here
     BOARD = Board()
     BOARD.start()
-    print(f"RUBENS: http://localhost:{PORT}  (the board on USB, {PORT_GLOB})", flush=True)
+    print(f"Rembrandt: http://localhost:{PORT}  (the board on USB, {PORT_GLOB})", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

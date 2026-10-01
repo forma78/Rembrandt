@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **`rembrandt.py` on port 5164**, `rubens.py` renamed and nothing else changed
+  in how it talks to the board; the tabs in the spec's order, Create · Job ·
+  Adjustments · Calibration · Library, on every page.
 - **Stage by stage, one tube at a time** (the owner, 2026-10-01): the tube's
   drops, its runs, then the machine waits for the owner's look — Again or
   Next. **Orange is in by default**, its home from the reference.

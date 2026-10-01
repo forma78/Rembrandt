@@ -1,5 +1,5 @@
 #!/bin/bash
-# RUBENS — the pages on port 8766 and the board on USB, one program (rubens.py)
+# Rembrandt — the pages on port 5164 and the board on USB, one program (rembrandt.py)
 cd "$(dirname "$0")"
-(sleep 1; open http://localhost:8766) &
-exec python3 rubens.py
+(sleep 1; open http://localhost:5164) &
+exec python3 rembrandt.py

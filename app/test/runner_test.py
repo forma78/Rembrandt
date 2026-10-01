@@ -1,4 +1,4 @@
-"""The job runner in rubens.py, against a fake board — no USB, no machine.
+"""The job runner in rembrandt.py, against a fake board — no USB, no machine.
 
     cd rubens-preview && python3 -m unittest discover -s test -p '*_test.py'
 """
@@ -13,8 +13,8 @@ import unittest
 from urllib.parse import parse_qs, unquote, urlparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-import rubens  # noqa: E402
-from rubens import (REACH, STEPS_PER_MM, SWING_DEG, TICKS_PER_DEG, Arm, ArmError, Board, Park, Runner,  # noqa: E402
+import rembrandt as rubens  # noqa: E402  (rubens.py of RUBENS, renamed)
+from rembrandt import (REACH, STEPS_PER_MM, SWING_DEG, TICKS_PER_DEG, Arm, ArmError, Board, Park, Runner,  # noqa: E402
                     along_piece, block_end, board_get, board_line, in_english, library_delete, library_display,
                     library_list, library_save, painted_so_far, parse_look, parse_ping, path_pieces, piece_at,
                     rest_of)
