@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: Bow** (the owner, 2026-10-02, the snake's reference): a row can be
+  an arc, its middle so many mm below its ends (above, when minus). The
+  turns of a bowed row are a half circle and a short straight line, so the
+  path stays smooth — no kink for the board to stop at; tested at every
+  joint.
 - **Test: sliders and 💾 SAVE TEST** (the owner, 2026-10-02): the rows, the
   turn, the row to row, the length and the speeds on sliders as on
   Calibration, the board's size two numbers; SAVE TEST puts the test in the

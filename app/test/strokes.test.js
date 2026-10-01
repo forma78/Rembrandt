@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, PATTERNS } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS } from '../src/strokes.js';
 
 test('A and B fit the 30 × 30 board inside its margins', () => {
   for (const k of ['A', 'B']) {
@@ -66,4 +66,31 @@ test('the board: width and height apart — 400 × 600 holds a snake 26 rows lon
   assert.ok(tall.fits, `${tall.width} × ${tall.height} in ${tall.room.w} × ${tall.room.h}`);
   assert.ok(!xyPlan({ ...PATTERNS.C, rows: 26 }).fits);
   assert.deepEqual(xyPlan({ board: 400 }).room, { w: 340, h: 340 }, 'a size saved before still reads');
+});
+
+// the direction where a piece starts and where it ends
+const dirs = g => {
+  if (g.t === 'L') { const l = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y); const u = { x: (g.b.x - g.a.x) / l, y: (g.b.y - g.a.y) / l }; return [u, u]; }
+  const t = q => ({ x: -g.d * (q.y - g.c.y) / g.r, y: g.d * (q.x - g.c.x) / g.r });
+  return [t(g.a), t(g.b)];
+};
+test('a bowed row: an arc whose middle lies bow mm lower; the snake stays smooth at every joint, no kink to stop at', () => {
+  for (const o of [{ ...PATTERNS.C, bow: 25 }, { ...PATTERNS.C, bow: -25 }, { ...PATTERNS.A, bow: 30 }, { ...PATTERNS.C, bow: 0 }]) {
+    for (const p of plotPaths(o)) {
+      for (let i = 0; i < p.length; i++) {
+        const g = p[i];
+        if (g.t === 'A') for (const q of [g.a, g.b]) assert.ok(Math.abs(Math.hypot(q.x - g.c.x, q.y - g.c.y) - g.r) < 1e-6, 'an arc ends on its circle');
+        if (!i) continue;
+        const prev = p[i - 1], e = dirs(prev)[1], s = dirs(g)[0];
+        assert.ok(Math.hypot(prev.b.x - g.a.x, prev.b.y - g.a.y) < 1e-6, 'joined');
+        assert.ok(e.x * s.x + e.y * s.y > Math.cos(Math.PI / 180), `bow ${o.bow}: a kink of ${(Math.acos(Math.min(1, e.x * s.x + e.y * s.y)) * 180 / Math.PI).toFixed(1)}° at piece ${i}`);
+      }
+    }
+  }
+  const first = plotPaths({ ...PATTERNS.C, bow: 25 })[0][0];
+  assert.equal(first.t, 'A');
+  const lowest = first.c.x - first.r;                      // the bottom of its circle: the middle of the row
+  assert.ok(Math.abs(first.a.x - lowest - 25) < 1e-6, 'the middle 25 mm below the ends');
+  const plan = xyPlan({ ...PATTERNS.C, bow: 25, boardW: 400, boardH: 600 });
+  assert.ok(plan.fits && plan.height > xyPlan({ ...PATTERNS.C, boardW: 400, boardH: 600 }).height, 'a bow makes it taller');
 });
