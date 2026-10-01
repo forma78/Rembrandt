@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The upper line is built by the program** (the owner, 2026-10-01); the
+  blended lanes are fitted with lines and arcs within 0.1 mm, tangent
+  continuous, for the firmware's `L` and `A`.
 - **The machine paints everything, the black too** (the owner, 2026-10-01):
   from the edges inward, tails into the red and the grey; at the top along
   the U of the upper line, past the canvas by about 5 cm on purpose. The
