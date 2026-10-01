@@ -86,8 +86,13 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   (2026-10-01)
 - **Dosing by hand with standard drops**, the machine as the pointer.
   (2026-10-01)
-- **Layers in a fixed order**: light first, on the white ground (yellow dies
-  on black); the sheet over the dry light; black last. (2026-10-01)
+- **Four layers in a fixed order, the same on Create and Adjustments** (the
+  owner, 2026-10-01: "they must be the same"), as Sonnet laid them out:
+  1 Light and 2 Dark below the curve, on the white ground (yellow dies on
+  black); 3 Sheet over them when dry — its lane 1 along the curve makes the
+  edge sharp; 4 Black at the top last, into the wet grey. The dark at the
+  bottom now goes before the sheet, not last as on the morning of
+  2026-10-01.
 - **The machine paints everything, the black too**, from the edges inward,
   its tails into the red and the grey; the hand only corrects. The owner,
   2026-10-01: "Everything is done by the machine." At the top the black
@@ -196,6 +201,13 @@ Everything else is in §11 (later).
   shades — five greys, twenty yellows — laid side by side, not premixed.
   The owner, 2026-10-01: "Paint makers have hundreds of shades. Don't get
   stuck on six tubes."
+- **The tubes are edited on the Create tab** (Tubes in use; the owner,
+  2026-10-01): a click on the shade or the name changes it — for the real
+  tubes' names, "Primary Blue", "Ombre Brulée"; + adds a tube at the end of
+  the list; the grip drags it elsewhere ("Lemon at the bottom by default, and
+  I drag it up next to Yellow — I like order"). **Kept on this Mac**, in
+  `app/tubes.json`, through `rembrandt.py` (`/tubes`), and shared with the
+  Adjustments tab.
 - **Two ways to mix on the canvas**: the tail (§1, home and tail) and
   **optical mixing** — neighbouring lines of neighbouring shades, the eye
   mixes them (Sonnet's layout, `adjustments/`, 2026-10-01). The test
@@ -364,9 +376,10 @@ One curve; a white sheet over a warm glow; black around.
 
 | layer | where | tube: home → tail | order |
 |---|---|---|---|
-| 1 Light | below the curve | Yellow: the right edge → left, into the red. Orange: the right edge, behind the yellow, between it and the red. Red: left of the middle → right, towards the yellow | Yellow, Orange, Red |
-| 2 Sheet | above the curve, blended to the upper line | White: the left edge → right, into the grey. Grey N5: the right edge → left, into the white. Black, top: along the U of the upper line, into the wet grey | White, Grey, Black |
-| 3 Black | from the edges inward | Bottom: the left edge → right, into the red | — |
+| 1 Light | below the curve | Yellow: the right edge → left, into the red. Orange: the right edge, behind the yellow. Red, Crimson: from the left, towards the yellow | Yellow, Orange, Red, Crimson |
+| 2 Dark | below the curve | Oxblood, Dark red, Maroon, Black: the left edge → right, into the red | the lighter first |
+| 3 Sheet | above the curve | White, Cream: the left edge → right, into the greys. Light grey, Grey N5, Dark grey: the right edge → left, into the white | the lighter first |
+| 4 Black | above the curve, along the U | Black: into the wet grey | — |
 
 The sketches: `references/IMG_9422_direction.png` and `IMG_9422_direction-2.png`
 (the owner, 2026-10-01). Lanes, trips, drops, ml and machine time are computed

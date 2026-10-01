@@ -46,7 +46,10 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = 5164   # the owner's lucky number (2026-10-01); RUBENS is on 8766
-FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json")}
+# tubes.json: the owner's tubes — names, shades, pigments, their order — from
+# the Create tab, kept on this Mac (the owner, 2026-10-01). Moves nothing.
+FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json"),
+         "/tubes": os.path.join(HERE, "tubes.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
 PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y"}
 STEPS_PER_MM = (80.0, 3200.0 / 120.0)   # X, Y — the same as src/machine.js

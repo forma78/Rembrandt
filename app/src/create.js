@@ -16,7 +16,7 @@ import { filleted } from './fillet.js';
 import { reach } from './machine.js';
 import { simplify } from './svg.js';
 import { segNumbers, setSegNumbers, scaleCurve, curveInfo, nearestSeg, buildCurve, moveSegBy } from './curve.js';
-import { INVENTORY, tubeOf, defaultLayers, OLD_DEFAULTS, runOrder, labOf, oklab, lightness } from './tubes.js';
+import { inventory, setInventory, addTube, moveTube, removeTube, tubeOf, defaultLayers, layersFrom, runOrder, labOf, oklab, lightness, readEnds, writeEnds } from './tubes.js';
 import { toLin } from './color.js';
 import { buildLanes, paintLanes, steepest, pathLength, pointAlong } from './bands.js';
 import { dropPlan } from './drops.js';
@@ -59,13 +59,13 @@ const S = {
   curve: { id: 'curve', segs: [], style: { weight: 0 } },   // weight 0: filleted() rounds kinks with the inner radius alone
   cornerR: 10,
   layers: defaultLayers(),
-  layer: 3,      // the layers shown: up to this one
+  layer: 4,      // the layers shown: up to this one
   tool: 'gesture', penArc: false, angleSnap: 15,
   sel: false, selSeg: null, selAnchors: [],
   view: { reference: true, lanes: true, drops: true, reach: true, grid: false },
   refOpacity: 45,
   pitch: 8,       // mm between the lines' centres: 8, edge to edge with 8 mm lines (Sonnet, 2026-10-01)
-  ends: {},       // per layer: 'tails' (the default) or 'round'
+  ends: readEnds(localStorage),   // per layer, shared with the Adjustments tab: 'tails' or 'round'
 };
 let PAINT = readPaint(localStorage);   // est., from the Adjustments tab
 let REF = null;   // { img, name }
@@ -189,7 +189,7 @@ const layerOf = (side, id) => S.layers.find(l => l.side === side && l.tubes.incl
 const lightOf = id => lightness(tubeOf(id)?.hex || '#808080');
 let PLAN = null, planKey = '';
 function plan() {
-  const key = JSON.stringify([S.curve.segs, S.cornerR, S.pitch, S.layers.map(l => [l.side, l.tubes]), REF?.name, !!SAMPLER, PAINT]);
+  const key = JSON.stringify([S.curve.segs, S.cornerR, S.pitch, S.layers.map(l => [l.side, l.tubes]), REF?.name, !!SAMPLER, PAINT, inventory().map(t => t.hex)]);
   if (key === planKey && PLAN) return PLAN;
   planKey = key;
   const segs = S.curve.segs.length ? filleted(S.curve, S.cornerR).segs : [];
@@ -313,13 +313,14 @@ function evPt(e) { const r = wireCv.getBoundingClientRect(); return P(((e.client
 const tol = () => 5 / kPt();
 
 let undoStack = [], redoStack = [];
-const snapshot = () => JSON.stringify({ segs: S.curve.segs, cornerR: S.cornerR, layers: S.layers });
+const snapshot = () => JSON.stringify({ segs: S.curve.segs, cornerR: S.cornerR, layers: S.layers, tubes: inventory() });
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
 let lastSoft = 0;
 function undoPushSoft() { const t = performance.now(); if (t - lastSoft > 700) undoPush(); lastSoft = t; }
 function restore(js) {
   const o = JSON.parse(js);
   S.curve.segs = o.segs; S.cornerR = o.cornerR; S.layers = o.layers;
+  if (o.tubes && JSON.stringify(o.tubes) !== JSON.stringify(inventory())) { setInventory(o.tubes); saveTubes(); }
   if (S.selSeg !== null && S.selSeg >= S.curve.segs.length) S.selSeg = null;
   S.selAnchors = S.selAnchors.filter(i => i <= S.curve.segs.length);
   invalidate();
@@ -603,20 +604,21 @@ $('#cLen').onchange = e => {
 };
 $('#cR').onchange = e => { undoPush(); S.cornerR = Math.max(0, Math.round(+e.target.value || 0)); invalidate(); };
 
-// Layers: three, in a fixed order; [+] puts a tube into one (the owner,
-// 2026-10-01: a second yellow, a white, an orange), × takes it out.
+// Layers: four, the same as on the Adjustments tab, in a fixed order; [+]
+// puts a tube into one (the owner, 2026-10-01: a second yellow, a white, an
+// orange), × takes it out.
 function renderLayers() {
   $('#layers').innerHTML = S.layers.map(L => `
     <div class="layer ${L.n === S.layer ? 'on' : ''}" data-n="${L.n}">
       <div class="lhead"><span class="ln">${L.n}</span><span class="lname"><b>${L.name}</b><small>${L.where}</small></span>
         <span class="seg side ends">${['tails', 'round'].map(e => `<button data-ends="${L.n}" data-v="${e}" class="${endsOf(L.n) === e ? 'on' : ''}" title="${e === 'tails' ? 'Thick at the home, thinning into the tail' : 'Round ends: for solid paint'}">${e === 'tails' ? 'Tails' : 'Round'}</button>`).join('')}</span></div>
       <div class="ltubes">${runOrder(L.tubes).map(({ id, i }) => { const t = tubeOf(id); return t ? `
-        <span class="tchip" title="${t.name} · ${t.pigment}"><i style="background:${t.hex}"></i>${t.name}<button class="x" data-n="${L.n}" data-i="${i}" title="Take ${t.name} out of this layer">×</button></span>` : ''; }).join('')}
+        <span class="tchip" title="${esc(t.name)}${t.pigment ? ' · ' + esc(t.pigment) : ''}"><i style="background:${t.hex}"></i>${t.name}<button class="x" data-n="${L.n}" data-i="${i}" title="Take ${t.name} out of this layer">×</button></span>` : ''; }).join('')}
         <button class="plus" data-n="${L.n}" title="Add a tube to this layer">+</button>
       </div>
     </div>`).join('');
   document.querySelectorAll('.layer').forEach(el => el.onclick = e => { if (e.target.closest('button')) return; S.layer = +el.dataset.n; invalidate(); });
-  document.querySelectorAll('.layer [data-ends]').forEach(b => b.onclick = () => { S.ends[b.dataset.ends] = b.dataset.v; invalidate(); });
+  document.querySelectorAll('.layer [data-ends]').forEach(b => b.onclick = () => { S.ends[b.dataset.ends] = b.dataset.v; writeEnds(localStorage, S.ends); invalidate(); });
   document.querySelectorAll('.tchip .x').forEach(b => b.onclick = () => {
     const L = S.layers.find(l => l.n === +b.dataset.n); undoPush(); L.tubes.splice(+b.dataset.i, 1); invalidate();
   });
@@ -624,7 +626,7 @@ function renderLayers() {
 }
 const menu = $('#tubeMenu');
 function openMenu(btn, n) {
-  menu.innerHTML = `<p class="mhead">Add to layer ${n}</p>` + INVENTORY.map(t => `<button data-id="${t.id}"><i style="background:${t.hex}"></i>${t.name}<span>${t.pigment}</span></button>`).join('');
+  menu.innerHTML = `<p class="mhead">Add to layer ${n}</p>` + inventory().map(t => `<button data-id="${t.id}"><i style="background:${t.hex}"></i>${esc(t.name)}<span>${esc(t.pigment)}</span></button>`).join('');
   const r = btn.getBoundingClientRect();
   menu.hidden = false;
   menu.style.left = Math.min(r.left, innerWidth - menu.offsetWidth - 8) + 'px';
@@ -663,10 +665,88 @@ function renderDrops() {
   $('#dropNote').innerHTML = `Film ${num(PAINT.film, 2)} mm · brush keeps ${num(PAINT.keeps, 0)} % · a drop ${num(PAINT.dropMl, 1)} ml, ${num(PAINT.dropLen, 0)} mm long, across up to ${Math.floor(PAINT.dropLen / S.pitch)} lines. <b>Estimate</b>: Adjustments has not weighed these paints yet.`;
 }
 function usedTubes() { return [...new Set(S.layers.flatMap(l => l.tubes))].map(tubeOf).filter(Boolean); }
+// The tubes: a click on the shade or the name changes it, + adds a tube at
+// the end, the grip drags it elsewhere in the list (the owner, 2026-10-01:
+// "Lemon at the bottom by default, and I drag it up next to Yellow"; the
+// real tubes' names: "Primary Blue", "Ombre Brulée"). Kept on this Mac.
+const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+let tubesShown = '', dragId = null;
 function renderTubes() {
-  const used = usedTubes();
-  $('#tubeCount').textContent = `${used.length} / ${INVENTORY.length}`;
-  $('#tubes').innerHTML = '<table>' + used.map(t => `<tr><td><span class="chip" style="background:${t.hex}"></span>${t.name}</td><td class="r">${t.pigment || '—'}</td></tr>`).join('') + '</table>';
+  const usedIds = new Set(S.layers.flatMap(l => l.tubes)), inv = inventory(), box = $('#tubes');
+  $('#tubeCount').textContent = `${usedTubes().length} / ${inv.length}`;
+  const sig = JSON.stringify([inv, S.layers.map(l => l.tubes)]);
+  if (sig === tubesShown || box.contains(document.activeElement)) return;   // not from under the typing hand
+  tubesShown = sig;
+  const where = id => S.layers.filter(l => l.tubes.includes(id)).map(l => l.n).join(' · ');
+  box.innerHTML = inv.map(t => `
+    <div class="trow${usedIds.has(t.id) ? '' : ' unused'}" data-id="${t.id}">
+      <span class="grip" title="Drag it up or down the list">⋮⋮</span>
+      <label class="tsw" style="background:${t.hex}" title="The shade: ${t.hex}"><input type="color" value="${t.hex.toLowerCase()}"></label>
+      <input class="tname" value="${esc(t.name)}" spellcheck="false" title="The name on the tube">
+      <input class="tpig" value="${esc(t.pigment)}" placeholder="pigment" spellcheck="false" title="Pigment code(s)">
+      <span class="tuse" title="In these layers">${where(t.id) || '—'}</span>
+      ${usedIds.has(t.id) ? '<span class="x"></span>' : '<button class="x" title="Delete this tube">×</button>'}
+    </div>`).join('');
+  box.querySelectorAll('.trow').forEach(row => {
+    const t = tubeOf(row.dataset.id), sw = row.querySelector('.tsw'), col = sw.querySelector('input');
+    let picking = false;
+    col.oninput = () => { if (!picking) { undoPush(); picking = true; } t.hex = col.value.toUpperCase(); sw.style.background = t.hex; sw.title = 'The shade: ' + t.hex; invalidate(); };
+    col.onchange = () => { picking = false; saveTubes(); };
+    for (const [sel, key, empty] of [['.tname', 'name', 'Tube'], ['.tpig', 'pigment', '']]) {
+      const inp = row.querySelector(sel);
+      inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = t[key]; inp.blur(); } };
+      inp.onchange = () => { const v = inp.value.trim() || empty; if (v === t[key]) return; undoPush(); t[key] = v; inp.value = v; saveTubes(); invalidate(); };
+    }
+    const del = row.querySelector('button.x');
+    if (del) del.onclick = () => { undoPush(); removeTube(t.id); saveTubes(); invalidate(); };
+    const grip = row.querySelector('.grip');
+    grip.onpointerdown = () => { row.draggable = true; };
+    row.ondragstart = e => { dragId = t.id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', t.id); row.classList.add('dragging'); };
+    row.ondragend = () => { row.draggable = false; dragId = null; box.querySelectorAll('.trow').forEach(r => r.classList.remove('dragging', 'drop-before', 'drop-after')); };
+    row.ondragover = e => {
+      if (!dragId || dragId === t.id) return;
+      e.preventDefault();
+      const r = row.getBoundingClientRect(), before = e.clientY < r.top + r.height / 2;
+      box.querySelectorAll('.trow').forEach(x => x.classList.remove('drop-before', 'drop-after'));
+      row.classList.add(before ? 'drop-before' : 'drop-after');
+    };
+    row.ondrop = e => {
+      e.preventDefault(); if (!dragId || dragId === t.id) return;
+      const before = row.classList.contains('drop-before'), next = row.nextElementSibling?.dataset.id ?? null;
+      undoPush(); moveTube(dragId, before ? t.id : (next === dragId ? row.nextElementSibling.nextElementSibling?.dataset.id ?? null : next));
+      saveTubes(); invalidate();
+    };
+  });
+}
+$('#btnAddTube').onclick = () => {
+  undoPush(); const t = addTube(); saveTubes(); invalidate();
+  requestAnimationFrame(() => requestAnimationFrame(() => { const inp = document.querySelector(`.trow[data-id="${t.id}"] .tname`); if (inp) { inp.focus(); inp.select(); inp.scrollIntoView({ block: 'nearest' }); } }));
+};
+// On this Mac: app/tubes.json through rembrandt.py (/tubes); in this browser
+// too, so the page opens with them at once.
+let tubeSaveT = 0, tubeState = '';
+function showTubeState() {
+  $('#tubeSave').innerHTML = tubeState === 'saved' ? 'Kept on this Mac: <span class="mono">app/tubes.json</span>'
+    : tubeState === 'unsaved' ? '<span class="warn">Not saved on the Mac: start rembrandt.py.</span>' : '';
+}
+function saveTubes() {
+  try { localStorage.setItem('rembrandt.tubes.v01', JSON.stringify(inventory())); } catch { }
+  clearTimeout(tubeSaveT);
+  tubeSaveT = setTimeout(async () => {
+    try { const r = await fetch('/tubes', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tubes: inventory() }, null, 2) }); tubeState = r.ok ? 'saved' : 'unsaved'; }
+    catch { tubeState = 'unsaved'; }
+    showTubeState();
+  }, 400);
+}
+async function loadTubes() {
+  try { setInventory(JSON.parse(localStorage.getItem('rembrandt.tubes.v01') || 'null')); } catch { }
+  try {
+    const r = await fetch('/tubes', { cache: 'no-store' }), o = r.ok ? await r.json() : null;
+    if (o && setInventory(o.tubes)) tubeState = 'saved';
+    else if (r.ok) saveTubes();                   // no file yet: write the first one
+    else tubeState = 'unsaved';
+  } catch { tubeState = 'unsaved'; }
+  tubesShown = ''; showTubeState(); invalidate();
 }
 function stats() {
   const cr = canvasRect(), F = FORMATS[S.format], kind = F.label.split(' ')[0];
@@ -727,7 +807,7 @@ let saveT = 0;
 function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 300); }
 function saveNow() {
   clearTimeout(saveT);
-  try { localStorage.setItem('rembrandt.v01', JSON.stringify({ format: S.format, segs: S.curve.segs, cornerR: S.cornerR, layers: S.layers, layer: S.layer, view: S.view, refOpacity: S.refOpacity, angleSnap: S.angleSnap, pitch: S.pitch, ends: S.ends })); } catch { }
+  try { localStorage.setItem('rembrandt.v01', JSON.stringify({ format: S.format, segs: S.curve.segs, cornerR: S.cornerR, layers: S.layers, layer: S.layer, view: S.view, refOpacity: S.refOpacity, angleSnap: S.angleSnap, pitch: S.pitch })); } catch { }
 }
 function load() {
   try {
@@ -735,13 +815,9 @@ function load() {
     if (CREATE_FORMATS.includes(o.format)) S.format = o.format;
     if (Array.isArray(o.segs)) S.curve.segs = o.segs;
     if (Number.isFinite(o.cornerR)) S.cornerR = o.cornerR;
-    if (Array.isArray(o.layers) && o.layers.length === 3) {
-      const was = JSON.stringify(o.layers.map(l => l.tubes));
-      if (!OLD_DEFAULTS.some(d => JSON.stringify(d) === was)) S.layers = o.layers.map((l, i) => ({ ...defaultLayers()[i], ...l, side: l.side || defaultLayers()[i].side }));
-    }
+    S.layers = layersFrom(o.layers);
     if (Number.isFinite(o.pitch) && o.pitch > 0) S.pitch = o.pitch;
-    if (o.ends && typeof o.ends === 'object') S.ends = o.ends;
-    if (o.layer) S.layer = o.layer;
+    if (o.layer && o.layers?.length === 4) S.layer = o.layer;
     if (o.view) Object.assign(S.view, o.view, { lanes: o.view.lanes ?? true, drops: o.view.drops ?? true });
     if (Number.isFinite(o.refOpacity)) S.refOpacity = o.refOpacity;
     if (o.angleSnap !== undefined) S.angleSnap = o.angleSnap;
@@ -755,7 +831,7 @@ function loadRef() {
 // ---------- start ----------
 if (!load()) S.curve.segs = defaultCurve();
 $('#format').value = S.format;
-syncTools(); syncView(); syncRef(); loadRef();
+syncTools(); syncView(); syncRef(); loadRef(); loadTubes();
 new ResizeObserver(layout).observe(stage);
 addEventListener('focus', () => { loadCal(); PAINT = readPaint(localStorage); invalidate(); });   // back from Calibration or Adjustments
 loadCal();
