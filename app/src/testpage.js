@@ -57,8 +57,13 @@ function update() {
   P = xyPlan(S);
   document.querySelectorAll('#pat button').forEach(b => b.classList.toggle('on', b.dataset.p === S.pattern));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
-  $('#pause').checked = S.pause;
-  $('#planRead').innerHTML = `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`
+  $('#pause').checked = S.pause && !S.snake;
+  // C, the snake: the turn is the row to row, and a continuous line has no pause
+  $('#fields input[data-k="turn"]').disabled = !!S.snake;
+  $('#pause').disabled = !!S.snake; $('#pause').parentElement.classList.toggle('off', !!S.snake);
+  $('#planRead').innerHTML = (P.snake
+    ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down all the way, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
+    : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
     + (P.fits ? '' : ` <span class="hint">Past the ${P.room} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern}`;

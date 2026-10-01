@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: pattern C, the snake** (the owner, 2026-10-02): one continuous line,
+  12 rows 20 mm apart, a half circle at either end, the brush down all the
+  way; no pause.
 - **The arm strokes are dropped; the tab is Test** (the owner, 2026-10-02,
   after the run in the air): the same 30 × 30 board and patterns A and B,
   drawn by the plotter — a line, a half circle, a line back, the brush

@@ -343,7 +343,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line
   out, a half circle, a line back, the wrist lifting the brush with its
-  hook; a pause after each row for paint; placed by "Here" (the brush over
+  hook; a pause after each row for paint. Pattern C, the snake (the owner,
+  2026-10-02, `references/Screenshot 2026-10-02 snake.png`): one continuous
+  line, row after row, a half circle at either end, the brush down from the
+  first row to the last. Placed by "Here" (the brush over
   the board's centre). The board's margins are a hint, not a limit ("too
   many limits — let it go past"); the machine's walls are, and the page
   says so before the run. It began as the arm-stroke bench "3DOF".
