@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **`README-review.md`**: the project for an outside view (the owner shares it
+  with other AI models): the intent, the machine, the method, the dosing, the
+  constraints, and the questions we want answered.
 - **Four layers, the same on Create and Adjustments** (the owner,
   2026-10-01): Light, Dark below the curve; Sheet, Black above it, the black
   into the wet grey. A saved three-layer state goes over to the four. Tails
