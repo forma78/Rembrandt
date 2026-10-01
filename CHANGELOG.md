@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Home and tail** (the owner, 2026-10-01, untested): every tube starts at
+  its home with a full brush and dries out into its neighbour; the brush
+  lifts at the end of the tail and goes back in the air. Swing marks are an
+  ornament. Within a layer the lighter tube runs first. Drops lie at the
+  homes; the colour preview uses the tail model of the spiral research.
 - **The image area is the machine's reach** (the owner, 2026-10-01): one arm
   pose, 568.5 × 865 mm, a 50 × 70 canvas inside it on the 100 × 70 one; the
   paint past the small canvas is on purpose. The "57 → ~80 cm" of §1 was

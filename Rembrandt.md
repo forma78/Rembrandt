@@ -31,13 +31,13 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Band** | The part of a layer on one side of the curve, N lanes wide. |
 | **Upper line** | A calm curve that a band on the concave side blends towards, so its lanes never fold (§3). |
 | **Lane** | One brush width along a band, 20 mm by default. Same word as in RUBENS. |
-| **Trip** | One run of the brush along a lane. A lane is painted in 2, 4 or 8 trips (RUBENS Job tab). |
+| **Trip** | One run of the brush along a lane. A lane is painted in 2, 4 or 8 trips (RUBENS Job tab). In Rembrandt a trip runs one way, from a home to its tail; the brush lifts there and goes back in the air. |
 | **Layer** | Everything painted in one session over the dry layer below it: a band, its tubes, its drops. Not "pass" — in RUBENS a pass is a brush run inside a lane. |
 | **Hand layer** | A layer the owner paints by hand (the black). Rembrandt only shows where. |
 | **Ground** | What lies under the first layer: the white canvas. |
 | **Image area** | What the machine paints: its whole reach between the walls (Calibration), now 568.5 × 865 mm (Y × X), about 57 × 86 cm — nearly the 2 : 3 of IMG_9422. The canvas lies inside it; paint past the canvas lands on the canvas underneath, on purpose. |
 | **Tube** | One paint on the owner's shelf: name, pigment code, swatches. The **inventory** is the list of tubes. |
-| **Drop** | One squeeze of paint across the lanes before a layer runs. Florian Markus's method, made exact. |
+| **Drop** | One squeeze of paint across the lanes, at its tube's home, before a layer runs. Florian Markus's method, made exact. |
 | **Standard drop** | The unit of dosing: fixed nozzle, fixed length, fixed ml. The amount of paint is set by the number of drops, never by squeezing harder. |
 | **Drop plan** | Where each drop goes, from which tube, in what order, and the ml per tube. |
 | **Pointer** | The lifted brush in the Job tab, showing where the next drop goes. |
@@ -45,6 +45,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **⚠** | The only warning mark: a muddy pair comes closer than the keep-out. A hint. It never blocks a job. |
 | **Keep-out** | The minimum distance between the two tubes of a muddy pair on the canvas. 40 mm until measured. |
 | **Smear length** | How far one drop travels along a lane under the brush. Measured in Adjustments. |
+| **Home** | Where a tube's trips start, with a full brush. Its drops lie there. |
+| **Tail** | Where a trip runs dry in the neighbouring colour. Its length is the smear length; at its end the brush lifts. |
+| **Swing mark** | The hook the wrist leaves where the wet brush lifts or lands (RUBENS's word, `Rubens_v2.md` §4.5). In Rembrandt an ornament, kept on purpose. |
 | **Film · Brush keeps · Nozzle · Max drop** | The RUBENS paint fields, same meaning (`src/cnc.js`). |
 | **est.** | Marks any number not yet measured in Adjustments, in the UI and in the code. |
 
@@ -85,6 +88,26 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   (2026-10-01)
 - **Layers in a fixed order**: light first, on the white ground (yellow dies
   on black); the sheet over the dry light; black last, by hand. (2026-10-01)
+- **Home and tail.** Every tube starts at its home with a full brush, runs
+  towards its neighbour, dries out into a tail, and there the brush lifts and
+  goes back to the home in the air. Colours meet tail to tail; a full brush
+  never enters another colour. The owner, 2026-10-01: "The brush runs evenly
+  over the transparent yellow and over the darker red; if it gets into the
+  wet black — goodbye yellow, it turns grey. So the run can stop at the edge
+  of the yellow patch, lift the brush and take it back to the yellow. It may
+  catch a little red, but it will not stuff its cheeks." Sketches:
+  `references/IMG_9422_direction.png`, `IMG_9422_direction-2.png`.
+  **Untested** — the owner: "In theory. We have not tested it yet." This
+  reverses, on purpose, the RUBENS rule that in Brush the brush never leaves
+  the canvas within a stroke.
+- **Swing marks are an ornament**, not a defect (answers `Rubens_v2.md` §9,
+  question 1). The owner, 2026-10-01, on the RUBENS photo of 2026-09-29: "That
+  was an emergency stop: no light patch, and two marks look like an
+  accident. We will have a definite ornament." And: "We move further away
+  from Florian and strengthen the advantage of our 3DOF design."
+- **Within a layer the lighter tube runs first.** The owner, 2026-10-01: "At
+  art school we were taught to start with the lights. If we start with the
+  red, our yellow turns orange."
 - **Muddy pairs go into different layers.** Where they still meet, one ⚠ —
   a hint, never a ban. No traffic lights (no ✅, no ⛔). (2026-09-30)
 - **No drying timers, no drying warnings.** The owner starts the next layer
@@ -148,10 +171,20 @@ Everything else is in §11 (later).
 - **Standard drop** = RUBENS manual load: a fixed ml per drop,
   `drops = ceil(need / ml)`. Default: nozzle 6 mm, 100 mm long, ≈ 2.1 ml
   (est.).
-- **Drops lie across the lanes** (perpendicular), each feeding up to 5 lanes.
-  Along the band they are spaced by need. The colour of a band comes from
-  which tube each drop is: v0.1 samples the reference per lane group and
-  along the curve, picks the nearest tube, or "fade to ground".
+- **Drops lie across the lanes** (perpendicular), each feeding up to 5 lanes,
+  **at their tube's home** (§1): the brush picks them up there and drags them
+  into the tail. Where the homes lie comes from the reference: v0.1 samples
+  it along the lanes and picks the nearest tube, or "fade to ground".
+- **Runs.** A tube's trips run one way, home → tail. The tail is the smear
+  length (Adjustments; est. until measured — the spiral research used
+  60 mm). At its end the brush lifts (J3 to brush off) and travels back to
+  the home in the air. A home at the edge of the image area starts past the
+  edge of a smaller canvas, so that landing's swing mark lies on the canvas
+  underneath.
+- **The colour preview** of a layer uses the tail model of
+  `previous_research/rembrandt_spiral_passes_simulation.html` (`sim`): every
+  mm the brush lays part of what it carries and the rest fades over the tail
+  length; colours mix by RUBENS `pigmentMix`. *Claude's decision.*
 - **Order**: one tube at a time, light to dark; within a tube, nearest
   neighbour from the last drop.
 - Every ml stays **est.** until Adjustments has weighed that tube.
@@ -253,7 +286,9 @@ One curve; a white sheet over a warm glow; black around.
    offsets and blended lanes), the lanes preview.
 2. **Drop plan and inventory**: tubes entered by hand, the drop plan, the ml
    table.
-3. **Job**: pointer mode, then Do Job per layer through RUBENS `jobToMachine`.
+3. **Job**: pointer mode, then Do Job per layer through RUBENS `jobToMachine`,
+   with one-way runs: home → tail, brush off, back in the air (§5; the
+   owner's idea, 2026-10-01).
 4. **Adjustments**: drop dose, smear length, swatches, pairs.
 5. **Pair check** with measured numbers.
 
@@ -268,6 +303,10 @@ Target: about three weeks from 2026-10-01 (the owner agreed on three weeks,
   (core length = canvas height − width, 20 mm pitch); up to three tubes per
   layer; layers chosen as a graph colouring of the muddy pairs that touch —
   every grouping of the tubes is enumerated (877 for seven tubes).
+- **The order of runs, worked out by the program**: tubes grouped into
+  layers and runs from the muddy pairs, as the spiral research did (it put
+  the lightest first too). Not developed yet; v0.1 follows the art-school
+  rule of §1.
 - **Reference → direction field** (structure tensor), so the lanes follow
   the threads of the reference.
 - **Own dispersion**: seeded bundles of spectral lanes, offsets by Cauchy's
