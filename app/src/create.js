@@ -16,7 +16,12 @@ import { filleted } from './fillet.js';
 import { reach } from './machine.js';
 import { simplify } from './svg.js';
 import { segNumbers, setSegNumbers, scaleCurve, curveInfo, nearestSeg, buildCurve, moveSegBy } from './curve.js';
-import { INVENTORY, tubeOf, defaultLayers, runOrder } from './tubes.js';
+import { INVENTORY, tubeOf, defaultLayers, OLD_DEFAULTS, runOrder, labOf, oklab, lightness } from './tubes.js';
+import { toLin } from './color.js';
+import { buildLanes, paintLanes, steepest, pathLength, pointAlong } from './bands.js';
+import { dropPlan } from './drops.js';
+import { readPaint } from './adjust.js';
+import { brushOutline } from './layers.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -54,12 +59,15 @@ const S = {
   curve: { id: 'curve', segs: [], style: { weight: 0 } },   // weight 0: filleted() rounds kinks with the inner radius alone
   cornerR: 10,
   layers: defaultLayers(),
-  layer: 1,
+  layer: 3,      // the layers shown: up to this one
   tool: 'gesture', penArc: false, angleSnap: 15,
   sel: false, selSeg: null, selAnchors: [],
-  view: { reference: true, reach: true, grid: false },
+  view: { reference: true, lanes: true, drops: true, reach: true, grid: false },
   refOpacity: 45,
+  pitch: 8,       // mm between the lines' centres: 8, edge to edge with 8 mm lines (Sonnet, 2026-10-01)
+  ends: {},       // per layer: 'tails' (the default) or 'round'
 };
+let PAINT = readPaint(localStorage);   // est., from the Adjustments tab
 let REF = null;   // { img, name }
 
 // The curve of IMG_9422, measured on the picture laid over the image area:
@@ -116,14 +124,15 @@ function drawRef(c) {
   c.drawImage(img, ...mmR((IA.w - w) / 2, (IA.h - h) / 2, w, h));
   c.restore();
 }
-function drawPaint(c, W, H, forExport) {
-  scrT(c); if (forExport) c.setTransform(forExport, 0, 0, forExport, 0, 0);
+function drawPaint(c, W, H) {
+  scrT(c);
   c.clearRect(0, 0, W, H);
   c.fillStyle = '#D9D4CA'; c.fillRect(0, 0, W, H);                      // the table
   const ia = mmR(0, 0, IA.w, IA.h), cr = canvasRect(), win = mmR(cr.x, cr.y, cr.w, cr.h);
   c.fillStyle = '#F2F0EB'; c.fillRect(...ia);                           // the canvas underneath, in the image area
   c.fillStyle = '#FCFBF8'; c.fillRect(...win);                          // the canvas
   drawRef(c);
+  if (S.curve.segs.length && (S.view.lanes || S.view.drops) && !busy()) drawPlan(c);
   c.save();                                                             // past the canvas: a veil
   c.beginPath(); c.rect(...ia); c.rect(...win); c.clip('evenodd');
   c.fillStyle = 'rgba(217,212,202,.55)'; c.fillRect(...ia);
@@ -150,6 +159,90 @@ function drawGrid(c) {
   for (let i = 0, x = 0; x <= IA.w; i++, x += 10) { c.strokeStyle = i % 10 ? 'rgba(61,107,255,.08)' : 'rgba(61,107,255,.22)'; const X = Math.round((x - V.x) * kMm) + .5; c.beginPath(); c.moveTo(X, (0 - V.y) * kMm); c.lineTo(X, (IA.h - V.y) * kMm); c.stroke(); }
   for (let i = 0, y = 0; y <= IA.h; i++, y += 10) { c.strokeStyle = i % 10 ? 'rgba(61,107,255,.08)' : 'rgba(61,107,255,.22)'; const Y = Math.round((y - V.y) * kMm) + .5; c.beginPath(); c.moveTo((0 - V.x) * kMm, Y); c.lineTo((IA.w - V.x) * kMm, Y); c.stroke(); }
   c.restore();
+}
+
+// ---------- the lines and the drops (Rembrandt.md §3, §5) ----------
+// The reference read at 2 mm a pixel over the image area, in OKLab: the lines
+// take their paint from it (bands.js).
+let SAMPLER = null;
+function makeSampler() {
+  SAMPLER = null; if (!REF) return;
+  const img = REF.img, px = 2, w = Math.ceil(IA.w / px), h = Math.ceil(IA.h / px);
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  const c = cv.getContext('2d', { willReadFrequently: true });
+  const s = Math.max(IA.w / img.naturalWidth, IA.h / img.naturalHeight), iw = img.naturalWidth * s, ih = img.naturalHeight * s;
+  c.drawImage(img, (IA.w - iw) / 2 / px, (IA.h - ih) / 2 / px, iw / px, ih / px);
+  const d = c.getImageData(0, 0, w, h).data, lab = new Float32Array(w * h * 3);
+  for (let i = 0; i < w * h; i++) {
+    const o = oklab([toLin(d[4 * i] / 255), toLin(d[4 * i + 1] / 255), toLin(d[4 * i + 2] / 255)]);
+    lab[3 * i] = o[0]; lab[3 * i + 1] = o[1]; lab[3 * i + 2] = o[2];
+  }
+  SAMPLER = (x, y) => {
+    const X = Math.floor(x * PT_MM / px), Y = Math.floor(y * PT_MM / px);
+    if (X < 0 || Y < 0 || X >= w || Y >= h) return null;
+    const i = 3 * (Y * w + X); return [lab[i], lab[i + 1], lab[i + 2]];
+  };
+}
+// While a point or the curve is being dragged the plan waits for the release.
+const busy = () => !!(AD || DRAG || G || PEN);
+const layerOf = (side, id) => S.layers.find(l => l.side === side && l.tubes.includes(id))?.n ?? null;
+const lightOf = id => lightness(tubeOf(id)?.hex || '#808080');
+let PLAN = null, planKey = '';
+function plan() {
+  const key = JSON.stringify([S.curve.segs, S.cornerR, S.pitch, S.layers.map(l => [l.side, l.tubes]), REF?.name, !!SAMPLER, PAINT]);
+  if (key === planKey && PLAN) return PLAN;
+  planKey = key;
+  const segs = S.curve.segs.length ? filleted(S.curve, S.cornerR).segs : [];
+  const lanes = buildLanes(segs, { pitch: pt(S.pitch), area: { x0: 0, y0: 0, x1: pt(IA.w), y1: pt(IA.h) } });
+  let runs = [], drops = null;
+  if (SAMPLER && lanes.length) {
+    const tubes = {};
+    for (const side of ['below', 'above']) tubes[side] = [...new Set(S.layers.filter(l => l.side === side).flatMap(l => l.tubes))].map(tubeOf).filter(Boolean).map(t => ({ id: t.id, lab: labOf(t.hex) }));
+    runs = paintLanes(lanes, { sample: SAMPLER, tubes, step: pt(4), minRun: pt(24), bucket: pt(5), lightness: lightOf, guard: pt(12) });
+    for (const r of runs) { r.layer = layerOf(r.side, r.tube); r.pts = ptsOf(r.segs); }
+    runs.sort((a, b) => a.layer - b.layer || lightOf(b.tube) - lightOf(a.tube));   // layer by layer, the lighter first
+    drops = dropPlan(runs, PAINT, { pitch: pt(S.pitch), near: pt(40), lightness: lightOf });
+    for (const d of drops.drops) d.layer = layerOf(d.side, d.tube);
+  }
+  const length = lanes.reduce((a, l) => a + l.pieces.reduce((b, p) => b + pathLength(p), 0), 0) * PT_MM;   // mm
+  PLAN = { lanes, runs, drops, length, steep: segs.length ? steepest(segs) : 0 };
+  return PLAN;
+}
+function ptsOf(segs) {
+  const L = pathLength(segs), n = Math.max(2, Math.ceil(L * PT_MM / 2));
+  return Array.from({ length: n + 1 }, (_, i) => { const q = pointAlong(segs, L * i / n); return { x: q.x, y: q.y }; });
+}
+const endsOf = n => S.ends[n] || 'tails';
+// The lines as the brush leaves them: from the home, thinning into the tail
+// where the run meets another paint; at the edge of the image area the brush
+// goes out at full width (the lift is past the canvas). Up to the chosen layer.
+function drawPlan(c) {
+  const P_ = plan(), W = pt(PAINT.line), tail = pt(PAINT.tail);
+  if (S.view.lanes) {
+    if (!P_.runs.length) {
+      c.strokeStyle = 'rgba(36,34,31,.25)'; c.lineWidth = 0.8;
+      for (const l of P_.lanes) for (const p of l.pieces) { pathOf(c, p); c.stroke(); }
+    } else for (const r of P_.runs) {
+      if (r.layer === null || r.layer > S.layer) continue;
+      const hex = tubeOf(r.tube).hex;
+      if (endsOf(r.layer) === 'round') {
+        pathOf(c, r.segs); c.strokeStyle = hex; c.lineWidth = W * kPt(); c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke();
+      } else {
+        const o = brushOutline(r.pts, W, r.home, r.tailAtEdge ? 0 : tail);
+        c.beginPath(); c.save(); docT(c); o.forEach((q, i) => i ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y)); c.closePath(); c.restore();
+        c.fillStyle = hex; c.fill();
+      }
+    }
+  }
+  if (S.view.drops && P_.drops) {
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    for (const d of P_.drops.drops) {
+      if (d.layer > S.layer) continue;
+      c.beginPath(); c.save(); docT(c); c.moveTo(d.a.x, d.a.y); c.lineTo(d.b.x, d.b.y); c.restore();
+      c.strokeStyle = 'rgba(36,34,31,.85)'; c.lineWidth = PAINT.nozzle * kMm + 2.4; c.stroke();
+      c.strokeStyle = tubeOf(d.tube).hex; c.lineWidth = PAINT.nozzle * kMm; c.stroke();
+    }
+  }
 }
 
 // ---------- the wire layer: the curve, its points, the tools ----------
@@ -377,7 +470,7 @@ wireCv.addEventListener('pointermove', e => {
   else if (S.tool === 'pen') penMove(e, q);
   else if (S.tool === 'select') selMove(e, q);
 });
-wireCv.addEventListener('pointerup', () => { if (AD) { anchorUp(); return; } if (S.tool === 'gesture') gUp(); if (S.tool === 'select') selUp(); });
+wireCv.addEventListener('pointerup', () => { if (AD) { anchorUp(); invalidate(); return; } if (S.tool === 'gesture') gUp(); if (S.tool === 'select') selUp(); invalidate(); });
 wireCv.addEventListener('dblclick', () => { if (S.tool === 'pen') penFinish(); });
 wireCv.addEventListener('pointerleave', () => { $('#coords').textContent = ''; });
 
@@ -434,6 +527,7 @@ function setRef(src, name, store) {
   const img = new Image();
   img.onload = () => {
     REF = { img, name };
+    makeSampler();
     if (store) {
       const k = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
       const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
@@ -493,7 +587,7 @@ function updatePanel() {
   if (!g) delete box.dataset.seg;
   const f = segs.length ? filleted(S.curve, S.cornerR) : { warn: [] };
   $('#cWarn').innerHTML = f.warn.length ? `<p class="warn">${f.warn.length} kink${f.warn.length > 1 ? 's are' : ' is'} too tight for a ${S.cornerR} mm radius: marked ! on the canvas.</p>` : '';
-  renderLayers(); renderTubes(); stats();
+  renderLayers(); renderLanes(); renderDrops(); renderTubes(); stats();
 }
 const pt0 = (k, v) => (k === 'length' || k === 'radius') ? pt(Math.max(1, v)) : Math.max(1, Math.min(359, v));
 function editSeg(nums) {
@@ -514,13 +608,15 @@ $('#cR').onchange = e => { undoPush(); S.cornerR = Math.max(0, Math.round(+e.tar
 function renderLayers() {
   $('#layers').innerHTML = S.layers.map(L => `
     <div class="layer ${L.n === S.layer ? 'on' : ''}" data-n="${L.n}">
-      <div class="lhead"><span class="ln">${L.n}</span><span class="lname"><b>${L.name}</b><small>${L.where}</small></span></div>
+      <div class="lhead"><span class="ln">${L.n}</span><span class="lname"><b>${L.name}</b><small>${L.where}</small></span>
+        <span class="seg side ends">${['tails', 'round'].map(e => `<button data-ends="${L.n}" data-v="${e}" class="${endsOf(L.n) === e ? 'on' : ''}" title="${e === 'tails' ? 'Thick at the home, thinning into the tail' : 'Round ends: for solid paint'}">${e === 'tails' ? 'Tails' : 'Round'}</button>`).join('')}</span></div>
       <div class="ltubes">${runOrder(L.tubes).map(({ id, i }) => { const t = tubeOf(id); return t ? `
         <span class="tchip" title="${t.name} · ${t.pigment}"><i style="background:${t.hex}"></i>${t.name}<button class="x" data-n="${L.n}" data-i="${i}" title="Take ${t.name} out of this layer">×</button></span>` : ''; }).join('')}
         <button class="plus" data-n="${L.n}" title="Add a tube to this layer">+</button>
       </div>
     </div>`).join('');
-  document.querySelectorAll('.layer').forEach(el => el.onclick = e => { if (e.target.closest('button')) return; S.layer = +el.dataset.n; renderLayers(); });
+  document.querySelectorAll('.layer').forEach(el => el.onclick = e => { if (e.target.closest('button')) return; S.layer = +el.dataset.n; invalidate(); });
+  document.querySelectorAll('.layer [data-ends]').forEach(b => b.onclick = () => { S.ends[b.dataset.ends] = b.dataset.v; invalidate(); });
   document.querySelectorAll('.tchip .x').forEach(b => b.onclick = () => {
     const L = S.layers.find(l => l.n === +b.dataset.n); undoPush(); L.tubes.splice(+b.dataset.i, 1); invalidate();
   });
@@ -539,16 +635,44 @@ function openMenu(btn, n) {
 }
 addEventListener('pointerdown', e => { if (!menu.hidden && !e.target.closest('#tubeMenu')) menu.hidden = true; });
 
+const minsAt = mm => mm / 40 / 60;   // 40 mm/s, est. (§9)
+function renderLanes() {
+  const P_ = S.curve.segs.length ? plan() : { lanes: [], length: 0, steep: 0, runs: [] };
+  const n = side => P_.lanes.filter(l => l.side === side).length;
+  $('#lnW').textContent = `${num(PAINT.line, 1)} mm est.`;
+  setIf('#lnPitch', S.pitch);
+  $('#lnCount').textContent = P_.lanes.length ? `${n('below')} · ${n('above')}` : '—';
+  $('#lnLen').textContent = P_.lanes.length ? `${fmt(P_.length / 1000, 1)} m · ≈ ${fmt(minsAt(P_.length), 0)} min` : '—';
+  const over = Math.round((1 - S.pitch * Math.cos(P_.steep * Math.PI / 180) / PAINT.line) * 100);   // the copies lie pitch × cos(slope) apart
+  const notes = [];
+  if (P_.lanes.length) notes.push(`Below the curve: offsets. Above it: vertical copies of the curve; where it is steepest (${fmt(P_.steep, 0)}°) neighbours overlap by about ${Math.max(0, over)} %.`);
+  if (P_.lanes.length && !SAMPLER) notes.push('Add the reference: the lines take their paint from it.');
+  $('#lnNote').innerHTML = notes.map(t => `<p class="none">${t}</p>`).join('');
+}
+$('#lnPitch').onchange = e => { const v = Math.round(+e.target.value); if (v >= 2) { undoPush(); S.pitch = v; } invalidate(); };
+function renderDrops() {
+  const D = S.curve.segs.length && SAMPLER ? plan().drops : null;
+  if (!D) { $('#drops').innerHTML = `<p class="none">${SAMPLER ? 'Draw the curve first.' : 'The drops come with the lines\' paint: add the reference.'}</p>`; $('#dropNote').textContent = ''; return; }
+  $('#drops').innerHTML = S.layers.map(L => {
+    const rows = runOrder(L.tubes).map(({ id }) => id).filter((id, i, a) => a.indexOf(id) === i).map(id => {
+      const ds = D.drops.filter(d => d.tube === id && d.layer === L.n), t = tubeOf(id);
+      return ds.length ? `<tr><td><span class="chip" style="background:${t.hex}"></span>${t.name}</td><td class="r">${ds.length} drop${ds.length > 1 ? 's' : ''}</td><td class="r">${fmt(ds.length * PAINT.dropMl, 1)} ml</td></tr>` : '';
+    }).join('');
+    return rows ? `<h4>${L.n} · ${L.name}</h4><table>${rows}</table>` : '';
+  }).join('') + `<table class="total"><tr><td><b>Total</b></td><td class="r">${D.total.drops} drops</td><td class="r"><b>${fmt(D.total.ml, 0)} ml</b></td></tr></table>`;
+  $('#dropNote').innerHTML = `Film ${num(PAINT.film, 2)} mm · brush keeps ${num(PAINT.keeps, 0)} % · a drop ${num(PAINT.dropMl, 1)} ml, ${num(PAINT.dropLen, 0)} mm long, across up to ${Math.floor(PAINT.dropLen / S.pitch)} lines. <b>Estimate</b>: Adjustments has not weighed these paints yet.`;
+}
 function usedTubes() { return [...new Set(S.layers.flatMap(l => l.tubes))].map(tubeOf).filter(Boolean); }
 function renderTubes() {
   const used = usedTubes();
   $('#tubeCount').textContent = `${used.length} / ${INVENTORY.length}`;
-  $('#tubes').innerHTML = '<table>' + used.map(t => `<tr><td><span class="chip" style="background:${t.hex}"></span>${t.name}</td><td class="r">${t.pigment}</td></tr>`).join('') + '</table>';
+  $('#tubes').innerHTML = '<table>' + used.map(t => `<tr><td><span class="chip" style="background:${t.hex}"></span>${t.name}</td><td class="r">${t.pigment || '—'}</td></tr>`).join('') + '</table>';
 }
 function stats() {
   const cr = canvasRect(), F = FORMATS[S.format], kind = F.label.split(' ')[0];
   const nTubes = usedTubes().length;
-  $('#stats').textContent = `${kind} ${fmt(cr.w, 0)} × ${fmt(cr.h, 0)} mm${cr.cal ? '' : ' (placed by default)'} · image area ${fmt(IA.w, 1)} × ${fmt(IA.h, 0)} mm · ${S.curve.segs.length ? 1 : 0} curve · ${S.layers.length} layers · ${nTubes} tube${nTubes === 1 ? '' : 's'}`;
+  const P_ = S.curve.segs.length ? plan() : null, nd = P_?.drops?.total.drops;
+  $('#stats').textContent = `${kind} ${fmt(cr.w, 0)} × ${fmt(cr.h, 0)} mm${cr.cal ? '' : ' (placed by default)'} · image area ${fmt(IA.w, 1)} × ${fmt(IA.h, 0)} mm · ${S.layers.length} layers · ${nTubes} tubes` + (P_ ? ` · ${P_.lanes.length} lanes, ${fmt(P_.length / 1000, 1)} m` : '') + (nd ? ` · ${nd} drops` : '');
 }
 
 // ---------- export and import ----------
@@ -560,9 +684,9 @@ $('#btnPng').onclick = () => {
   const cssW = V.w * kMm, cssH = V.h * kMm, s = 4000 / Math.max(cssW, cssH);
   const cv = document.createElement('canvas'); cv.width = Math.round(cssW * s); cv.height = Math.round(cssH * s);
   const c = cv.getContext('2d'), keep = dpr;
-  drawPaint(c, cssW, cssH, s);
   dpr = s; const sel = S.sel; S.sel = false;
-  c.setTransform(s, 0, 0, s, 0, 0); drawCurve(c);
+  drawPaint(c, cssW, cssH);
+  scrT(c); drawCurve(c);
   dpr = keep; S.sel = sel;
   cv.toBlob(b => download(b, `rembrandt-${stamp()}.png`), 'image/png');
 };
@@ -603,7 +727,7 @@ let saveT = 0;
 function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 300); }
 function saveNow() {
   clearTimeout(saveT);
-  try { localStorage.setItem('rembrandt.v01', JSON.stringify({ format: S.format, segs: S.curve.segs, cornerR: S.cornerR, layers: S.layers, layer: S.layer, view: S.view, refOpacity: S.refOpacity, angleSnap: S.angleSnap })); } catch { }
+  try { localStorage.setItem('rembrandt.v01', JSON.stringify({ format: S.format, segs: S.curve.segs, cornerR: S.cornerR, layers: S.layers, layer: S.layer, view: S.view, refOpacity: S.refOpacity, angleSnap: S.angleSnap, pitch: S.pitch, ends: S.ends })); } catch { }
 }
 function load() {
   try {
@@ -611,9 +735,14 @@ function load() {
     if (CREATE_FORMATS.includes(o.format)) S.format = o.format;
     if (Array.isArray(o.segs)) S.curve.segs = o.segs;
     if (Number.isFinite(o.cornerR)) S.cornerR = o.cornerR;
-    if (Array.isArray(o.layers) && o.layers.length === 3) S.layers = o.layers;
+    if (Array.isArray(o.layers) && o.layers.length === 3) {
+      const was = JSON.stringify(o.layers.map(l => l.tubes));
+      if (!OLD_DEFAULTS.some(d => JSON.stringify(d) === was)) S.layers = o.layers.map((l, i) => ({ ...defaultLayers()[i], ...l, side: l.side || defaultLayers()[i].side }));
+    }
+    if (Number.isFinite(o.pitch) && o.pitch > 0) S.pitch = o.pitch;
+    if (o.ends && typeof o.ends === 'object') S.ends = o.ends;
     if (o.layer) S.layer = o.layer;
-    if (o.view) Object.assign(S.view, o.view);
+    if (o.view) Object.assign(S.view, o.view, { lanes: o.view.lanes ?? true, drops: o.view.drops ?? true });
     if (Number.isFinite(o.refOpacity)) S.refOpacity = o.refOpacity;
     if (o.angleSnap !== undefined) S.angleSnap = o.angleSnap;
     return true;
@@ -628,5 +757,5 @@ if (!load()) S.curve.segs = defaultCurve();
 $('#format').value = S.format;
 syncTools(); syncView(); syncRef(); loadRef();
 new ResizeObserver(layout).observe(stage);
-addEventListener('focus', loadCal);   // back from the Calibration tab: the canvas may lie elsewhere
+addEventListener('focus', () => { loadCal(); PAINT = readPaint(localStorage); invalidate(); });   // back from Calibration or Adjustments
 loadCal();

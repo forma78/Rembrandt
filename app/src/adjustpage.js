@@ -4,6 +4,7 @@
 
 import { fmt } from './util.js';
 import { parseLayer, paintLength, layerLength, runOrderOf, brushOutline } from './layers.js';
+import { PAINT_EST, PAINT_FIELDS, readPaint } from './adjust.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -18,7 +19,7 @@ const HOME = { yellow: 'end', orange: 'end', red: 'start', crimson: 'start', bla
 // Ends per layer (the owner, 2026-10-01): tails where a gradient fades out,
 // round where the paint is solid — the black U at the top.
 const ENDS = { 'layer-4-black': 'round' };
-const S = { layers: [], upTo: 0, tail: 120, home: {}, ends: {} };
+const S = { layers: [], upTo: 0, tail: PAINT_EST.tail, home: {}, ends: {}, paint: {} };
 const endsOf = L => S.ends[L.id] || ENDS[L.id] || 'tails';
 // A layer by its paints, lightest to darkest: "Yellow → Crimson".
 const layerName = L => { const o = runOrderOf(L.paints); return o.length > 1 ? `${o[0].name} → ${o[o.length - 1].name}` : o[0]?.name || L.label; };
@@ -120,8 +121,18 @@ $('#btnPng').onclick = () => {
 };
 
 // ---------- kept in this browser ----------
-function save() { try { localStorage.setItem('rembrandt.adjust.v01', JSON.stringify({ upTo: S.upTo, ends: S.ends, tail: S.tail, home: S.home })); } catch { } }
+function save() { try { localStorage.setItem('rembrandt.adjust.v01', JSON.stringify({ upTo: S.upTo, ends: S.ends, tail: S.tail, home: S.home, paint: S.paint })); } catch { } }
 try { const o = JSON.parse(localStorage.getItem('rembrandt.adjust.v01') || '{}'); if (typeof o.ends !== 'object') delete o.ends; Object.assign(S, o); } catch { }   // ends was one word for the whole page before
 
+// The paint, est.: Create reads these (adjust.js).
+{
+  const P = readPaint(localStorage);
+  $('#paintFields').innerHTML = PAINT_FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}" value="${P[k]}"><em>${unit}</em></label>`).join('');
+  $('#paintFields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
+    const v = +inp.value, k = inp.dataset.k;
+    if (v > 0) S.paint[k] = v; else { delete S.paint[k]; inp.value = PAINT_EST[k]; }
+    save();
+  });
+}
 new ResizeObserver(layout).observe(stage);
 loadLayers();

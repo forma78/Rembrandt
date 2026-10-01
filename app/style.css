@@ -370,3 +370,7 @@ main.no-tools{grid-template-columns:1fr 340px}
 .layoutbar .btn{margin-left:auto}
 .adjust .status #hint{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .adjust .status #stats{flex:none;white-space:nowrap;font-family:var(--mono)}
+body.create .lhead .ends{margin-left:auto;display:inline-grid;grid-template-columns:auto auto;padding:2px}
+body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11px}
+.math table.total{margin-top:8px}
+.math table.total td{border-bottom:0;border-top:1px solid var(--line)}
