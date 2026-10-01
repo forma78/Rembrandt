@@ -43,3 +43,20 @@ test('the box the brush covers, from Here: for the walls check', () => {
   const big = xyPlan({ rows: 11, pitch: 25 });
   assert.ok(!big.fits && big.blocks.length > 0, 'past the margins still makes a plan');
 });
+
+test('C, the snake: one path, the brush down once, the turns round on the right and on the left by turns', () => {
+  const p = xyPlan({ ...PATTERNS.C, here: { x: 400, y: 280 } });
+  assert.ok(p.fits, `${p.width} × ${p.height} in ${p.room}`);
+  assert.equal(p.blocks.filter(b => b.cmd === 'J 3 0').length, 1, 'the brush goes down once');
+  assert.equal(p.blocks.filter(b => b.kind === 'pause').length, 0, 'no pause in a continuous line');
+  const cmds = p.blocks.find(b => b.paintMM).cmds;
+  const arcs = cmds.filter(c => c.startsWith('A '));
+  assert.equal(arcs.length, PATTERNS.C.rows - 1);
+  assert.deepEqual(arcs.map(a => a.split(' ').at(-1)), arcs.map((_, i) => i % 2 ? '-1' : '1'));
+  const lines = cmds.filter(c => c.startsWith('L '));
+  assert.equal(lines.length, PATTERNS.C.rows);
+  assert.equal(lines[0].split(' ')[2], (280 + 110).toFixed(2), 'row 1 ends on the right');
+  assert.equal(lines[1].split(' ')[2], (280 - 110).toFixed(2), 'row 2 ends on the left');
+  assert.equal(p.blocks.find(b => b.paintMM).painted.length, 2 * PATTERNS.C.rows - 1);
+  for (const q of p.preview[0]) assert.ok(q.y >= p.box.y0 - 1e-9 && q.y <= p.box.y1 + 1e-9 && q.x >= p.box.x0 - 1e-9 && q.x <= p.box.x1 + 1e-9);
+});
