@@ -364,3 +364,5 @@ body.create .status #coords,body.create .status #stats{flex:none;white-space:now
 main.no-tools{grid-template-columns:1fr 340px}
 .read .mono,.math td.mono{font-family:var(--mono);font-size:11px;color:var(--mute)}
 .adjust .layer .ltubes{margin-left:22px}
+.adjust .lhead .ends{margin-left:auto;display:inline-grid;grid-template-columns:auto auto;padding:2px}
+.adjust .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11px}

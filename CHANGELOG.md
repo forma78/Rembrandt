@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Adjustments: Tails or Round per layer** (the owner, 2026-10-01: the top is
+  solid black), in each layer's card; the top row keeps the layers 1–4 and
+  Export PNG. The black U of layer 4 is Round by default, the rest Tails.
 - **The Adjustments tab, first cut**: Sonnet's layout read from
   `adjustments/` — layers 1 to 4 one by one, 13 paints in the order they run,
   each line drawn as the brush leaves it: full width at its home, thinning

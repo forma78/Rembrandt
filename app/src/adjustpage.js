@@ -15,7 +15,11 @@ const SPEED = 40;   // mm/s, est. (§9: 13 lanes × 4 trips at 40 mm/s)
 // the left, the greys from the right, the top black along the U from the left.
 const HOME = { yellow: 'end', orange: 'end', red: 'start', crimson: 'start', black: 'start', maroon: 'start', 'dark-red': 'start', oxblood: 'start', cream: 'start', 'light-gray': 'start', 'mid-gray': 'end', 'dark-gray': 'end' };
 
-const S = { layers: [], upTo: 0, ends: 'tails', tail: 120, home: {} };
+// Ends per layer (the owner, 2026-10-01): tails where a gradient fades out,
+// round where the paint is solid — the black U at the top.
+const ENDS = { 'layer-4-black': 'round' };
+const S = { layers: [], upTo: 0, tail: 120, home: {}, ends: {} };
+const endsOf = L => S.ends[L.id] || ENDS[L.id] || 'tails';
 // A layer by its paints, lightest to darkest: "Yellow → Crimson".
 const layerName = L => { const o = runOrderOf(L.paints); return o.length > 1 ? `${o[0].name} → ${o[o.length - 1].name}` : o[0]?.name || L.label; };
 const homeOf = (L, p) => S.home[`${L.id}/${p.key}`] || HOME[p.key] || 'start';
@@ -55,7 +59,7 @@ function draw(c, s) {
       c.fillStyle = p.hex; c.strokeStyle = p.hex;
       for (const pts of p.lines) {
         c.beginPath();
-        if (S.ends === 'round') {
+        if (endsOf(L) === 'round') {
           pts.forEach((q, i) => i ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y));
           c.lineWidth = L.width; c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke();
         } else {
@@ -83,17 +87,18 @@ function build() {
 }
 function sync() {
   $('#upTo').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.n === S.upTo));
-  $('#ends').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.ends === S.ends));
   $('#tail').value = S.tail; $('#tailVal').textContent = `${S.tail} mm est.`;
-  $('#tail').disabled = S.ends !== 'tails';
+  $('#tail').disabled = !S.layers.some(L => endsOf(L) === 'tails');
   $('#layers').innerHTML = S.layers.map((L, i) => {
     const len = layerLength(L);
     return `<div class="layer ${i + 1 === S.upTo ? 'on' : ''}" data-n="${i + 1}">
-      <div class="lhead"><span class="ln">${i + 1}</span><span class="lname"><b>${layerName(L)}</b><small>${fmt(len / 1000, 1)} m · ≈ ${fmt(mins(len), 0)} min est.${i === 3 ? ' · into the wet grey' : ''}</small></span></div>
+      <div class="lhead"><span class="ln">${i + 1}</span><span class="lname"><b>${layerName(L)}</b><small>${fmt(len / 1000, 1)} m · ≈ ${fmt(mins(len), 0)} min est.${i === 3 ? ' · into the wet grey' : ''}</small></span>
+        <span class="seg side ends">${['tails', 'round'].map(e => `<button data-ends="${L.id}" data-v="${e}" class="${endsOf(L) === e ? 'on' : ''}" title="${e === 'tails' ? 'As the brush leaves them: thick at the home, thinning into the tail' : 'Round ends, as Sonnet drew them: for solid paint'}">${e === 'tails' ? 'Tails' : 'Round'}</button>`).join('')}</span></div>
       <div class="ltubes">${runOrderOf(L.paints).map(p => `<span class="tchip"><i style="background:${p.hex}"></i>${p.name}</span>`).join('')}</div>
     </div>`;
   }).join('');
-  $('#layers').querySelectorAll('.layer').forEach(el => el.onclick = () => { S.upTo = +el.dataset.n; sync(); });
+  $('#layers').querySelectorAll('.layer').forEach(el => el.onclick = e => { if (e.target.closest('button')) return; S.upTo = +el.dataset.n; sync(); });
+  $('#layers').querySelectorAll('[data-ends]').forEach(b => b.onclick = () => { S.ends[b.dataset.ends] = b.dataset.v; sync(); });
   $('#paints').innerHTML = S.layers.map((L, i) => `<h4>${i + 1} · ${layerName(L)}</h4><table>` + runOrderOf(L.paints).map(p => {
     const h = homeOf(L, p), id = `${L.id}/${p.key}`;
     return `<tr><td><span class="chip" style="background:${p.hex}"></span>${p.name}</td>
@@ -104,7 +109,6 @@ function sync() {
   $('#paints').querySelectorAll('[data-home]').forEach(b => b.onclick = () => { S.home[b.dataset.home] = b.dataset.v; sync(); });
   draw(ctx, k * dpr); save();
 }
-$('#ends').querySelectorAll('button').forEach(b => b.onclick = () => { S.ends = b.dataset.ends; sync(); });
 $('#tail').oninput = e => { S.tail = +e.target.value; sync(); };
 
 // Export PNG: the layers shown, 4000 px on the long side.
@@ -117,7 +121,7 @@ $('#btnPng').onclick = () => {
 
 // ---------- kept in this browser ----------
 function save() { try { localStorage.setItem('rembrandt.adjust.v01', JSON.stringify({ upTo: S.upTo, ends: S.ends, tail: S.tail, home: S.home })); } catch { } }
-try { Object.assign(S, JSON.parse(localStorage.getItem('rembrandt.adjust.v01') || '{}')); } catch { }
+try { const o = JSON.parse(localStorage.getItem('rembrandt.adjust.v01') || '{}'); if (typeof o.ends !== 'object') delete o.ends; Object.assign(S, o); } catch { }   // ends was one word for the whole page before
 
 new ResizeObserver(layout).observe(stage);
 loadLayers();
