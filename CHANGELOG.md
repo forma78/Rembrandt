@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The owner's decisions after the outside review** (2026-10-02): paint by
+  eye for now, the brush dipping into cups later — no pointer, no laser, no
+  syringe; the firmware is Rembrandt's; the edge matters more than the fill;
+  arm strokes under study. Sonnet's layout stays in Adjustments, on hold.
+- **The firmware in Rembrandt**: `firmware/CNCDM-001/`, from RUBENS
+  `a143fbc`, unchanged.
+- **`python3 rembrandt.py` in the project's root** starts the server too.
 - **The paint is reckoned on the real gap between the lines** (Claude in the
   chat, in the outside review of 2026-10-01): above the curve the vertical
   copies lie closer on a slope, pitch × cos(slope), and a line there gets
