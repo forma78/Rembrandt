@@ -5,8 +5,8 @@ import { xyPlan, PATTERNS } from '../src/strokes.js';
 test('A and B fit the 30 × 30 board inside its margins', () => {
   for (const k of ['A', 'B']) {
     const p = xyPlan({ ...PATTERNS[k] });
-    assert.ok(p.fits, `${k}: ${p.width} × ${p.height} in ${p.room}`);
-    for (const line of p.preview) for (const q of line) assert.ok(Math.abs(q.x) <= p.room / 2 + 1e-6 && Math.abs(q.y) <= p.room / 2 + 1e-6, `${k}: ${q.x}, ${q.y}`);
+    assert.ok(p.fits, `${k}: ${p.width} × ${p.height} in ${p.room.w} × ${p.room.h}`);
+    for (const line of p.preview) for (const q of line) assert.ok(Math.abs(q.x) <= p.room.h / 2 + 1e-6 && Math.abs(q.y) <= p.room.w / 2 + 1e-6, `${k}: ${q.x}, ${q.y}`);
   }
 });
 
@@ -46,7 +46,7 @@ test('the box the brush covers, from Here: for the walls check', () => {
 
 test('C, the snake: one path, the brush down once, the turns round on the right and on the left by turns', () => {
   const p = xyPlan({ ...PATTERNS.C, here: { x: 400, y: 280 } });
-  assert.ok(p.fits, `${p.width} × ${p.height} in ${p.room}`);
+  assert.ok(p.fits, `${p.width} × ${p.height} in ${p.room.w} × ${p.room.h}`);
   assert.equal(p.blocks.filter(b => b.cmd === 'J 3 0').length, 1, 'the brush goes down once');
   assert.equal(p.blocks.filter(b => b.kind === 'pause').length, 0, 'no pause in a continuous line');
   const cmds = p.blocks.find(b => b.paintMM).cmds;
@@ -59,4 +59,11 @@ test('C, the snake: one path, the brush down once, the turns round on the right 
   assert.equal(lines[1].split(' ')[2], (280 - 110).toFixed(2), 'row 2 ends on the left');
   assert.equal(p.blocks.find(b => b.paintMM).painted.length, 2 * PATTERNS.C.rows - 1);
   for (const q of p.preview[0]) assert.ok(q.y >= p.box.y0 - 1e-9 && q.y <= p.box.y1 + 1e-9 && q.x >= p.box.x0 - 1e-9 && q.x <= p.box.x1 + 1e-9);
+});
+
+test('the board: width and height apart — 400 × 600 holds a snake 26 rows long, 300 × 300 does not', () => {
+  const tall = xyPlan({ ...PATTERNS.C, rows: 26, boardW: 400, boardH: 600 });
+  assert.ok(tall.fits, `${tall.width} × ${tall.height} in ${tall.room.w} × ${tall.room.h}`);
+  assert.ok(!xyPlan({ ...PATTERNS.C, rows: 26 }).fits);
+  assert.deepEqual(xyPlan({ board: 400 }).room, { w: 340, h: 340 }, 'a size saved before still reads');
 });

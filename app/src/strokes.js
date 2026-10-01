@@ -1,4 +1,5 @@
-// The test bench: rows of hairpins on a 30 × 30 board, drawn by the plotter
+// The test bench: rows of hairpins on a board, 30 × 30 cm by default (the
+// owner, 2026-10-02: width and height apart, 40 × 60 too), drawn by the plotter
 // — X and Y on their steppers, lines and arcs (the owner, 2026-10-02: the arm
 // strokes were tried in the air and dropped, "not Instagram-worthy"; the
 // patterns of references/Screenshot 2026-10-02 3DOF.png stay). A row: the
@@ -19,7 +20,8 @@ export const PATTERNS = {
   C: { rows: 12, pitch: 20, snake: true },
 };
 export const DEFAULTS = {
-  board: 300, margin: 30,     // mm: the 30 × 30 board
+  boardW: 300, boardH: 300,   // mm: the board across (Y) and up the picture (X)
+  margin: 30,
   length: 220,                // mm, the straight part of a row
   speed: 30,                  // mm/s with the brush on (est.)
   travel: 100,                // mm/s between rows, the brush off
@@ -30,10 +32,11 @@ export const DEFAULTS = {
 
 export function xyPlan(opts) {
   const o = { ...DEFAULTS, ...opts };
+  if (opts?.board && !opts.boardW) o.boardW = o.boardH = opts.board;   // one size for both, before 2026-10-02
   if (o.snake) return snakePlan(o);
   const r = o.turn / 2;
   const width = o.length + r, height = (o.rows - 1) * o.pitch + o.turn;
-  const room = o.board - 2 * o.margin, top = height / 2, left = -width / 2, right = left + o.length;
+  const room = { w: o.boardW - 2 * o.margin, h: o.boardH - 2 * o.margin }, top = height / 2, left = -width / 2, right = left + o.length;
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, vArc = arcSpeed(o.speed, r);
   const blocks = [{ kind: 'arm', cmd: `J 3 ${o.swing}`, row: 0 }];
@@ -61,7 +64,7 @@ export function xyPlan(opts) {
   const seconds = o.rows * ((2 * o.length + Math.PI * r) / o.speed + o.pitch / o.travel + 5);   // the rows, the moves, the wrist (est.)
   // where the brush goes, mm from Here: the rows and the round turns
   const box = { x0: top - height, x1: top, y0: left, y1: right + r };
-  return { blocks, preview, width, height, room, box, fits: width <= room + 1e-9 && height <= room + 1e-9, seconds, rows: o.rows, opts: o };
+  return { blocks, preview, width, height, room, box, fits: width <= room.w + 1e-9 && height <= room.h + 1e-9, seconds, rows: o.rows, opts: o };
 }
 
 // C: the snake. Row k runs left to right when k is even, back when it is odd;
@@ -70,7 +73,7 @@ export function xyPlan(opts) {
 // down, one hook at the end.
 function snakePlan(o) {
   const r = o.pitch / 2, width = o.length + 2 * r, height = (o.rows - 1) * o.pitch;
-  const room = o.board - 2 * o.margin, top = height / 2, left = -o.length / 2, right = o.length / 2;
+  const room = { w: o.boardW - 2 * o.margin, h: o.boardH - 2 * o.margin }, top = height / 2, left = -o.length / 2, right = o.length / 2;
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, vArc = arcSpeed(o.speed, r);
   const cmds = [`F ${o.speed}`], pts = [{ x: top, y: left }];
@@ -97,6 +100,6 @@ function snakePlan(o) {
     { kind: 'move', cmds: [`T ${o.travel}`, `M ${f(X0)} ${f(Y0)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows },
   ];
   const box = { x0: top - height, x1: top, y0: left - r, y1: right + r };
-  return { blocks, preview: [pts], width, height, room, box, fits: width <= room + 1e-9 && height <= room + 1e-9,
+  return { blocks, preview: [pts], width, height, room, box, fits: width <= room.w + 1e-9 && height <= room.h + 1e-9,
     seconds: len / o.speed + 10, rows: o.rows, length: len, snake: true, opts: o };
 }
