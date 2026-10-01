@@ -83,3 +83,13 @@ test('the drop plan: one drop feeds at most 100 mm of lines; ml in whole standar
   assert.ok(plan.total.ml >= need && Math.abs(plan.total.ml - plan.total.drops * 2.1) < 1e-9);
   const r0 = runs[0]; assert.ok(dist(fromHome(r0, 0), r0.home === 'start' ? segStart(r0.segs[0]) : segEnd(r0.segs[r0.segs.length - 1])) < 1e-6);
 });
+
+test('the paint is reckoned on the real gap: on a 60° slope the copies lie half a pitch apart, and get half the paint', () => {
+  const steep = [{ t: 'L', a: P(pt(100), pt(500)), b: P(pt(100) + pt(200) * Math.cos(Math.PI / 3), pt(500) - pt(200) * Math.sin(Math.PI / 3)) }];
+  const lanes = buildLanes(steep, { pitch: pt(8), area: AREA }).filter(l => l.side === 'above' && l.k <= 3);
+  const runs = paintLanes(lanes, { sample: () => [0.5, 0, 0], tubes: { above: [{ id: 'grey', lab: [0.5, 0, 0] }] }, step: pt(4), minRun: pt(24), bucket: pt(5), lightness: () => 0.5 });
+  for (const r of runs) assert.ok(Math.abs(r.gap * PT_MM - 4) < 0.01, `gap ${r.gap * PT_MM} mm`);
+  const full = mlFor(100, PAINT_EST), half = mlFor(100, PAINT_EST, 4);
+  assert.ok(Math.abs(half - full / 2) < 1e-12);
+  assert.equal(mlFor(100, PAINT_EST, 12), full, 'never more than the line is wide');
+});

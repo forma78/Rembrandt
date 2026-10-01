@@ -27,5 +27,6 @@ export function readPaint(storage) {
   } catch { return { ...PAINT_EST }; }
 }
 
-// ml of paint for a line L mm long (the RUBENS formula, cncPlan in cnc.js).
-export const mlFor = (L, p) => L * p.line * p.film * (1 + p.keeps / 100) / 1000;
+// ml of paint for a line L mm long (the RUBENS formula, cncPlan in cnc.js),
+// w mm wide: the line's width, or less where it overlaps its neighbour.
+export const mlFor = (L, p, w = p.line) => L * Math.min(w, p.line) * p.film * (1 + p.keeps / 100) / 1000;

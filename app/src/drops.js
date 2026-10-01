@@ -28,7 +28,7 @@ export function dropPlan(runs, paint, { pitch, near, lightness }) {
   }
   const drops = [];
   for (const g of groups) {
-    const need = g.runs.reduce((a, r) => a + mlFor(r.len * PT_MM, paint), 0);
+    const need = g.runs.reduce((a, r) => a + mlFor(r.len * PT_MM, paint, (r.gap ?? Infinity) * PT_MM), 0);   // by the real gap: no double film where lines overlap
     const n = Math.max(1, Math.ceil(need / paint.dropMl - 1e-9));
     const short = Math.min(...g.runs.map(r => r.len));
     for (let j = 0; j < n; j++) {

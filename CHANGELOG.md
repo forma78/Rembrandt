@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The paint is reckoned on the real gap between the lines** (Claude in the
+  chat, in the outside review of 2026-10-01): above the curve the vertical
+  copies lie closer on a slope, pitch × cos(slope), and a line there gets
+  paint for that gap only — no double film, no ridges. IMG_9422's default
+  curve: 195 → 189 drops, 409 → 397 ml (est.).
 - **💾 SAVE on the Create tab**, in the second row after Export PNG (the
   owner): every save a new painting in the Library, named by the time; a
   click there opens it again, the reference and the layers with it.
