@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Four layers, the same on Create and Adjustments** (the owner,
+  2026-10-01): Light, Dark below the curve; Sheet, Black above it, the black
+  into the wet grey. A saved three-layer state goes over to the four. Tails
+  or Round per layer is one setting for both tabs.
+- **Only the chosen layer is a key** (the owner): the others are flat.
+- **The tubes are the owner's**: on the Create tab a click on the shade or
+  the name changes it, + adds a tube at the end, ⋮⋮ drags it in the list,
+  × deletes one no layer uses; ⌘Z undoes it. **Kept on this Mac** in
+  `app/tubes.json` — `rembrandt.py` serves and saves it at `/tubes`, as it
+  does `calibration.json`; nothing else in it changed. Adjustments shows
+  Sonnet's paints in the owner's shades and names.
 - **Lanes and Drops on the Create tab** (build order steps 1 and 2, first
   cut): lines 8 mm wide and 8 mm apart over the whole image area — offsets
   below the curve, vertical copies above it, Sonnet's way; each line's paint

@@ -374,3 +374,30 @@ body.create .lhead .ends{margin-left:auto;display:inline-grid;grid-template-colu
 body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11px}
 .math table.total{margin-top:8px}
 .math table.total td{border-bottom:0;border-top:1px solid var(--line)}
+
+/* ---------- Layers: only the chosen one is a key (the owner, 2026-10-01) ---------- */
+.layer{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.layer:hover{background:rgba(255,255,255,.45)}
+.layer.on,.layer.on:hover{background:var(--key-on);box-shadow:var(--press)}
+
+/* ---------- Tubes: edit, add, drag ---------- */
+.tubes{display:flex;flex-direction:column;gap:2px}
+.trow{display:grid;grid-template-columns:12px 16px 1fr 70px 30px 14px;align-items:center;gap:6px;padding:3px 2px;border-radius:6px;border-top:2px solid transparent;border-bottom:2px solid transparent}
+.trow:hover{background:rgba(255,255,255,.5)}
+.trow.unused .tname,.trow.unused .tuse{color:var(--mute)}
+.trow.dragging{opacity:.4}
+.trow.drop-before{border-top-color:var(--orange)}
+.trow.drop-after{border-bottom-color:var(--orange)}
+.grip{cursor:grab;color:var(--mute);font-size:11px;letter-spacing:-2px;user-select:none;text-align:center}
+.tsw{width:16px;height:16px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.2);position:relative;overflow:hidden;cursor:pointer}
+.tsw input{position:absolute;inset:-6px;width:28px;height:28px;opacity:0;cursor:pointer;border:0;padding:0}
+.tname,.tpig{min-width:0;border:1px solid transparent;background:transparent;border-radius:4px;padding:3px 5px;font-size:12.5px}
+.tpig{font:11px var(--mono);color:var(--mute)}
+.tname:hover,.tpig:hover{border-color:var(--line)}
+.tname:focus,.tpig:focus{border-color:var(--orange);background:#fff;outline:none}
+.tuse{font:11px var(--mono);color:var(--mute);text-align:right}
+.trow .x{border:0;background:none;color:var(--mute);font-size:14px;line-height:1;padding:0;border-radius:6px}
+.trow button.x:hover{color:var(--ink);background:var(--well)}
+.btn.addtube{margin-top:10px;width:100%}
+.read .warn{color:#B3470C}
+.tpig::placeholder,.tname::placeholder{color:#C4BEB3}
