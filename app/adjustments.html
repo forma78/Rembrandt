@@ -6,7 +6,7 @@
 <title>Rembrandt · Adjustments</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body class="create adjust">
+<body class="adjust">
 <!-- Rembrandt · Adjustments — how each paint behaves (Rembrandt.md §7). It
      starts from Sonnet's layout in adjustments/: four layers, 13 paints,
      the gradients mixed optically; the lines drawn as the brush leaves them. -->
@@ -24,13 +24,6 @@
   </div>
   <div class="top-mid"></div>
 </header>
-<div class="bar2 center">
-  <label class="field"><span>Layers</span></label>
-  <div class="toggles" id="upTo"></div>
-  <div class="io">
-    <button class="btn" id="btnPng">Export PNG</button>
-  </div>
-</div>
 
 <main class="no-tools">
   <section class="stage" id="stage">
@@ -40,6 +33,11 @@
   <aside class="panel">
     <section class="sec">
       <h3>Layout <span class="hint">Claude Sonnet · 2026-10-01</span></h3>
+      <div class="layoutbar">
+        <span class="field"><span>Layers</span></span>
+        <div class="toggles" id="upTo"></div>
+        <button class="btn" id="btnPng">Export PNG</button>
+      </div>
       <p class="read" id="layoutRead"></p>
     </section>
     <section class="sec">

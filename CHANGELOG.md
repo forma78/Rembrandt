@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Adjustments: one row on top**, as on Job and Calibration (the owner): the
+  layers 1–4 and Export PNG moved into the Layout block, the canvas rose.
 - **Adjustments: Tails or Round per layer** (the owner, 2026-10-01: the top is
   solid black), in each layer's card; the top row keeps the layers 1–4 and
   Export PNG. The black U of layer 4 is Round by default, the rest Tails.
