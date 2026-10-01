@@ -3,20 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rembrandt · 3DOF</title>
+<title>Rembrandt · Test</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="adjust arm3">
-<!-- Rembrandt · 3DOF — the arm strokes on a small board, black only
-     (the owner, 2026-10-02: references/Screenshot 2026-10-02 3DOF.png).
-     A test bench: it moves the machine through rembrandt.py's runner. -->
+<!-- Rembrandt · Test — the test bench: rows of hairpins on a 30 × 30 board,
+     drawn by the plotter, X and Y, lines and arcs (the owner, 2026-10-02:
+     the arm strokes were dropped, the board and the patterns of
+     references/Screenshot 2026-10-02 3DOF.png stay). It moves the machine
+     through rembrandt.py's runner. -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
     <nav class="tabs" aria-label="Pages">
       <a href="index.html">Create</a>
       <a href="job.html">Job</a>
-      <a href="3dof.html" class="on">3DOF</a>
+      <a href="test.html" class="on">Test</a>
       <a href="adjustments.html">Adjustments</a>
       <a href="calibration.html">Calibration</a>
       <a href="library.html">Library</a>
@@ -33,7 +35,7 @@
 
   <aside class="panel">
     <section class="sec">
-      <h3>3DOF test <span class="hint">black on a 30 × 30 board</span></h3>
+      <h3>Test <span class="hint">black on a 30 × 30 board</span></h3>
       <div class="layoutbar">
         <span class="field"><span>Pattern</span></span>
         <div class="toggles" id="pat">
@@ -49,13 +51,13 @@
     <section class="sec">
       <h3>Here <span class="hint">the board's centre</span></h3>
       <p class="read" id="hereRead"></p>
-      <button class="btn wide" id="btnHere" title="Jog the carriage on the Calibration tab until the brush, shoulder at 0°, is over the board's centre; then press">Here: the brush is over the board's centre</button>
+      <button class="btn wide" id="btnHere" title="Jog the carriage on the Calibration tab until the brush is over the board's centre; then press">Here: the brush is over the board's centre</button>
     </section>
 
     <section class="sec">
       <h3>Run <span class="hint" id="runHint"></span></h3>
       <p class="runstate" id="runState">—</p>
-      <button class="btn wide" id="btnDoJob" title="Run the rows on the machine">⚡️ Do 3DOF</button>
+      <button class="btn wide" id="btnDoJob" title="Run the rows on the machine">⚡️ Do Test</button>
       <div class="runkeys">
         <button class="btn" id="btnPause">Pause</button>
         <button class="btn" id="btnCont">Continue</button>
@@ -70,9 +72,9 @@
 </main>
 
 <footer class="status">
-  <span id="hint">3DOF — the shoulder draws the arc, the carriage turns it, the wrist lifts the brush with its hook. The arm and the rail never move together.</span>
+  <span id="hint">Test — the plotter draws each row: a line out, a half circle, a line back; the wrist lifts the brush with its hook.</span>
   <span id="stats"></span>
 </footer>
-<script type="module" src="src/armpage.js"></script>
+<script type="module" src="src/testpage.js"></script>
 </body>
 </html>

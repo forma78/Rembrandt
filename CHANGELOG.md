@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The arm strokes are dropped; the tab is Test** (the owner, 2026-10-02,
+  after the run in the air): the same 30 × 30 board and patterns A and B,
+  drawn by the plotter — a line, a half circle, a line back, the brush
+  lifted with its hook. The board's margins are a hint now; the machine's
+  walls are checked on the page before a run.
 - **Formats 40 × 60 and 40 × 30 cm** on Create and Calibration (the owner,
   2026-10-02).
 - **The 3DOF tab** (the owner, 2026-10-02): arm strokes on a 30 × 30 board —
