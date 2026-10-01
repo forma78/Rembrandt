@@ -339,13 +339,14 @@ this section disagree, this section wins: the owner corrected the sketch on
   calibration.png`): the canvas inside the image area, the walls dashed,
   hatched where the machine does not reach (600 > 568.5 mm across). The
   status bar names both: `Canvas 500 × 700 · image area 568.5 × 865 · …`.
-- **3DOF**, a tab between Job and Adjustments (2026-10-02): the arm-stroke
-  test bench — rows of hairpins on a small board, black only, the owner's
-  sketch `references/Screenshot 2026-10-02 3DOF.png`. The shoulder draws the
-  arc at its speed, the carriage turns it with the brush on, the shoulder
-  draws it back, the wrist lifts the brush with its hook; a pause after each
-  row for paint. Placed by "Here" (the brush over the board's centre).
-  First in the air, then on a board; Create gets the stroke after the photos.
+- **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
+  a 30 × 30 board ("the ideal format for tests", the owner), black only;
+  rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line
+  out, a half circle, a line back, the wrist lifting the brush with its
+  hook; a pause after each row for paint; placed by "Here" (the brush over
+  the board's centre). The board's margins are a hint, not a limit ("too
+  many limits — let it go past"); the machine's walls are, and the page
+  says so before the run. It began as the arm-stroke bench "3DOF".
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.
@@ -469,12 +470,13 @@ Target: about three weeks from 2026-10-01 (the owner agreed on three weeks,
 - **Dip station** — in the plan now (§1): cups with paint level flush with
   the canvas, a wire to wipe on. (Water and a sponge clash with "no
   washing station" in §1: to settle when it is designed.)
-- **Arm strokes** (the owner, 2026-10-02, the arm's drawings of 2026-09-13
-  and 09-14 in `previous_research/`): the shoulder and the elbow draw an
-  arc, the gantry steps on a little, the arc again — a comb of arcs, with a
-  hook where the wrist lifts. A stroke of its own, neither tails nor round
-  ends. It reverses "only X, Y and the wrist move during a job" (§1) for
-  these strokes; the firmware may change for it (§1).
+- **Arm strokes — tried and dropped** (2026-10-02): the shoulder drawing an
+  arc, the gantry stepping on, the arc again (the arm's drawings of
+  2026-09-13 and 09-14 in `previous_research/`). Run in the air on the
+  3DOF bench the same night; the owner: "Not Instagram-worthy, even
+  unsettling. Let's not scatter: back to the main X Y method with the
+  steppers." The firmware keeps `J` with a speed and `H`; "only X, Y and
+  the wrist move during a job" (§1) stands.
 - **Shoulder and elbow effects**: turn a flat or fan brush by turning the arm
   while the gantry holds the tip still (width and twist). First test: a
   pencil must leave a dot, not a scribble.

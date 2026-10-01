@@ -1,23 +1,23 @@
-// Rembrandt · 3DOF — the arm strokes on a small board (strokes.js), run on
-// the machine by rembrandt.py's runner: joint blocks at their speed, the
-// carriage for the turns and the rows, the wrist for the hooks, a pause for
-// paint. The page only plans and watches; STOP and HARD STOP stop the
-// carriage and the arm.
+// Rembrandt · Test — rows of hairpins on a 30 × 30 board (strokes.js), run
+// on the machine by rembrandt.py's runner: the plotter draws each row, the
+// wrist lifts the brush with its hook, a pause for paint. The page only plans
+// and watches; STOP and HARD STOP stop the carriage (and the arm).
 
 import { fmt } from './util.js';
-import { parsePing, toMm } from './machine.js';
-import { armPlan, PATTERNS, DEFAULTS } from './strokes.js';
+import { parsePing, toMm, reach } from './machine.js';
+import { xyPlan, PATTERNS, DEFAULTS } from './strokes.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const KEY = 'rembrandt.3dof.v01';
+const KEY = 'rembrandt.test.v01';
 const S = { ...DEFAULTS, pattern: 'A', here: null };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { }
+for (const k of ['sweep', 'reach', 'fast', 'turnSpeed']) delete S[k];   // the arm strokes' settings, dropped 2026-10-02
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
 
 const FIELDS = [
-  ['rows', 'Rows', '', 1], ['turn', 'Turn', 'mm', 1], ['pitch', 'Row to row', 'mm', 1], ['sweep', 'Arc, each way', '°', 1],
-  ['speed', 'Brush on', '°/s', 1], ['fast', 'In the air', '°/s', 1], ['reach', 'Reach, est.', 'mm', 1], ['board', 'Board', 'mm', 10],
+  ['rows', 'Rows', '', 1], ['turn', 'Turn', 'mm', 1], ['pitch', 'Row to row', 'mm', 1], ['length', 'Row length', 'mm', 5],
+  ['speed', 'Brush on', 'mm/s', 1], ['travel', 'Between rows', 'mm/s', 5], ['board', 'Board', 'mm', 10],
 ];
 $('#fields').innerHTML = FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; update(); });
@@ -26,7 +26,7 @@ $('#pause').onchange = e => { S.pause = e.target.checked; update(); };
 
 // ---------- the plan, drawn on the board ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
-let P = armPlan(S), k = 1, dpr = 1;
+let P = xyPlan(S), k = 1, dpr = 1;
 function layout() {
   const r = stage.getBoundingClientRect(), m = 36, side = S.board + 40;
   k = Math.max(0.2, Math.min((r.width - 2 * m) / side, (r.height - 2 * m) / side));
@@ -47,20 +47,20 @@ function draw() {
   c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-h + m), sy(h - m), (S.board - 2 * m) * k, (S.board - 2 * m) * k); c.setLineDash([]);
   c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#1B1A19'; c.lineWidth = 10 * k;   // a round brush, about 10 mm (est.)
   for (const line of P.preview) { c.beginPath(); line.forEach((q, i) => i ? c.lineTo(sx(q.y), sy(q.x)) : c.moveTo(sx(q.y), sy(q.x))); c.stroke(); }
-  c.strokeStyle = '#EB7A25'; c.lineWidth = 1.5;                                             // Here: the shoulder at 0°
+  c.strokeStyle = '#EB7A25'; c.lineWidth = 1.5;                                             // Here: the board's centre
   c.beginPath(); c.moveTo(sx(-8), sy(0)); c.lineTo(sx(8), sy(0)); c.moveTo(sx(0), sy(-8)); c.lineTo(sx(0), sy(8)); c.stroke();
   c.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono'); c.fillStyle = '#B3470C';
   c.fillText(`board ${S.board} × ${S.board} mm · margin ${S.margin}`, sx(-h), sy(h) - 6);
 }
 
 function update() {
-  P = armPlan(S);
+  P = xyPlan(S);
   document.querySelectorAll('#pat button').forEach(b => b.classList.toggle('on', b.dataset.p === S.pattern));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
   $('#pause').checked = S.pause;
-  const mmps = S.reach * S.speed * Math.PI / 180;
-  $('#planRead').innerHTML = `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the ends ${fmt(P.sag, 0)} mm below the middle · the brush ≈ ${fmt(mmps, 0)} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`
-    + (P.fits ? '' : ` <span class="warn">Does not fit the ${P.room} mm inside the margins: fewer rows, a smaller arc or turn.</span>`);
+  $('#planRead').innerHTML = `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`
+    + (P.fits ? '' : ` <span class="hint">Past the ${P.room} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
+    + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern}`;
   showHere(); save(); layout();
 }
@@ -68,7 +68,7 @@ function update() {
 // ---------- Here ----------
 function showHere() {
   $('#hereRead').innerHTML = S.here ? `The board's centre: carriage <b>X ${fmt(S.here.x, 1)} · Y ${fmt(S.here.y, 1)} mm</b>. Jog there on Calibration and press again to change it.`
-    : 'Not set. On Calibration: the shoulder at 0°, jog the carriage until the brush is over the board\'s centre; then press here.';
+    : 'Not set. On Calibration jog the carriage until the brush is over the board\'s centre; then press here.';
 }
 $('#btnHere').onclick = async () => {
   let t = null;
@@ -80,12 +80,22 @@ $('#btnHere').onclick = async () => {
   update();
 };
 
+// The machine's walls are the one hard limit (the board refuses a piece past
+// one): said here before the run, not as "did not get there" after it.
+function walls() {
+  if (!S.here) return '';
+  const R = reach(), b = P.box, x0 = S.here.x + b.x0, x1 = S.here.x + b.x1, y0 = S.here.y + b.y0, y1 = S.here.y + b.y1;
+  const out = [x0 < R.x.min && `${fmt(R.x.min - x0, 0)} mm past the bottom wall`, x1 > R.x.max && `${fmt(x1 - R.x.max, 0)} mm past the top wall`,
+    y0 < R.y.min && `${fmt(R.y.min - y0, 0)} mm past the left wall`, y1 > R.y.max && `${fmt(y1 - R.y.max, 0)} mm past the right wall`].filter(Boolean);
+  return out.length ? `The brush would go ${out.join(', ')}: move Here or make the pattern smaller.` : '';
+}
+
 // ---------- the run ----------
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 $('#btnDoJob').onclick = async () => {
   if (!S.here) { $('#runState').innerHTML = '<span class="warn">Set Here first.</span>'; return; }
-  if (!P.fits) { $('#runState').innerHTML = '<span class="warn">The pattern does not fit the board.</span>'; return; }
-  if (!confirm(`Run ${P.rows} rows of pattern ${S.pattern} on the machine?\n\nThe first time: in the air — the brush off, no board under it.`)) return;
+  if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
+  if (!confirm(`Run ${P.rows} rows of pattern ${S.pattern} on the machine?` + (P.fits ? '' : '\nIt goes past the board\'s margins.') + `\n\nThe first time: in the air — the brush off, no board under it.`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks }) });
     $('#runState').textContent = await r.text();

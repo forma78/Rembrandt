@@ -1,33 +1,45 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { armPlan, tipAt, PATTERNS, DEFAULTS } from '../src/strokes.js';
+import { xyPlan, PATTERNS } from '../src/strokes.js';
 
-test('pattern A fits the 30 × 30 board: about 22 cm wide, the rows inside the margins', () => {
-  const p = armPlan({ ...PATTERNS.A });
-  assert.ok(p.fits, `${p.width} × ${p.height} in ${p.room}`);
-  assert.ok(Math.abs(p.width - 220.5) < 1, `width ${p.width}`);
-  assert.ok(Math.abs(p.sag - 31.6) < 0.2, `the ends lie ${p.sag} mm lower than the middle`);
-  for (const line of p.preview) for (const q of line) assert.ok(Math.abs(q.x) <= p.room / 2 + 1e-6 && Math.abs(q.y) <= p.room / 2 + 1e-6);
+test('A and B fit the 30 × 30 board inside its margins', () => {
+  for (const k of ['A', 'B']) {
+    const p = xyPlan({ ...PATTERNS[k] });
+    assert.ok(p.fits, `${k}: ${p.width} × ${p.height} in ${p.room}`);
+    for (const line of p.preview) for (const q of line) assert.ok(Math.abs(q.x) <= p.room / 2 + 1e-6 && Math.abs(q.y) <= p.room / 2 + 1e-6, `${k}: ${q.x}, ${q.y}`);
+  }
 });
 
-test('a row is a hairpin: out on the arc, down by the turn with the brush on, back, the brush off', () => {
-  const p = armPlan({ ...PATTERNS.B, here: { x: 400, y: 280 }, pause: false });
-  const row = p.blocks.filter(b => b.row === 1).map(b => b.kind === 'joint' ? `S${b.deg}@${b.speed}` : b.kind === 'arm' ? b.cmd : b.cmds[1]);
-  assert.deepEqual(row, ['S-32@53', `M ${(400 + p.height / 2).toFixed(1)} 280.0`, 'J 3 0', 'S32@10', `M ${(400 + p.height / 2 - 20).toFixed(1)} 280.0`, 'S-32@10', 'J 3 -54']);
-  assert.equal(p.blocks[0].cmd, 'J 3 -54', 'the brush off before anything');
-  assert.deepEqual(p.blocks.at(-1).cmds[1], 'M 400.0 280.0', 'back to Here at the end');
+test('a row is a hairpin of the plotter: a line out, a half circle round on the right, a line back', () => {
+  const p = xyPlan({ ...PATTERNS.B, here: { x: 400, y: 280 }, pause: false });
+  const row = p.blocks.filter(b => b.row === 1);
+  assert.deepEqual(row.map(b => b.kind === 'arm' ? b.cmd : b.cmds[1].split(' ')[0]), ['M', 'J 3 0', 'L', 'J 3 -54']);
+  const paint = row[2].cmds;
+  const x = 400 + p.height / 2, left = 280 - p.width / 2, right = left + 220;
+  assert.equal(paint[1], `L ${x.toFixed(2)} ${right.toFixed(2)}`);
+  const arc = paint.find(c => c.startsWith('A '));
+  assert.equal(arc, `A ${(x - 10).toFixed(2)} ${right.toFixed(2)} ${(x - 20).toFixed(2)} ${right.toFixed(2)} 1`, '+1: from +X to +Y, the turn bulges to the right');
+  assert.equal(paint.at(-2), `L ${(x - 20).toFixed(2)} ${left.toFixed(2)}`);
+  assert.ok(paint.every(c => /^[FLAG]/.test(c)), 'only speeds, lines, arcs and go: the runner sends them as they are');
+  assert.equal(p.blocks.at(-1).cmds[1], 'M 400.00 280.00', 'back to Here at the end');
 });
 
-test('a pause for paint after every row but the last', () => {
-  const p = armPlan({ ...PATTERNS.A });
-  assert.equal(p.blocks.filter(b => b.kind === 'pause').length, PATTERNS.A.rows - 1);
-  assert.equal(armPlan({ ...PATTERNS.A, pause: false }).blocks.filter(b => b.kind === 'pause').length, 0);
+test('the tight turn of A is slowed to what the arc allows, and back', () => {
+  const p = xyPlan({ ...PATTERNS.A, speed: 60 });
+  const cmds = p.blocks.find(b => b.row === 1 && b.paintMM).cmds;
+  const i = cmds.findIndex(c => c.startsWith('A '));
+  assert.ok(+cmds[i - 1].split(' ')[1] < 60 && cmds[i + 1] === 'F 60', cmds.join(' | '));
 });
 
-test('the shoulder takes the brush to the right; the ends lie lower than the middle', () => {
-  const o = { ...DEFAULTS };
-  const l = tipAt(o, 0, 0, -32), m = tipAt(o, 0, 0, 0), r = tipAt(o, 0, 0, 32);
-  assert.ok(l.y < 0 && r.y > 0 && Math.abs(m.y) < 1e-9);
-  assert.ok(l.x < m.x && Math.abs(l.x - r.x) < 1e-9);
-  assert.ok(!armPlan({ rows: 12, pitch: 25 }).fits, 'too many rows do not fit');
+test('a pause for paint after every row but the last; too many rows do not fit', () => {
+  assert.equal(xyPlan({ ...PATTERNS.A }).blocks.filter(b => b.kind === 'pause').length, PATTERNS.A.rows - 1);
+  assert.ok(!xyPlan({ rows: 12, pitch: 25 }).fits);
+});
+
+test('the box the brush covers, from Here: for the walls check', () => {
+  const p = xyPlan({ ...PATTERNS.A });
+  assert.ok(Math.abs(p.box.x1 - p.height / 2) < 1e-9 && Math.abs(p.box.x0 + p.height / 2) < 1e-9);
+  assert.ok(Math.abs(p.box.y0 + p.width / 2) < 1e-9 && Math.abs(p.box.y1 - p.width / 2) < 1e-9);
+  const big = xyPlan({ rows: 11, pitch: 25 });
+  assert.ok(!big.fits && big.blocks.length > 0, 'past the margins still makes a plan');
 });
