@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **💾 SAVE on the Create tab**, in the second row after Export PNG (the
+  owner): every save a new painting in the Library, named by the time; a
+  click there opens it again, the reference and the layers with it.
+  `rembrandt.py` takes Rembrandt's paintings into the Library as it took
+  RUBENS's drawings; nothing else in it changed.
+- **The owner's palette**, `app/tubes.json`, in git.
 - **`README-review.md`**: the project for an outside view (the owner shares it
   with other AI models): the intent, the machine, the method, the dosing, the
   constraints, and the questions we want answered.

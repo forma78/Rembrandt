@@ -309,7 +309,13 @@ this section disagree, this section wins: the owner corrected the sketch on
   Adjustments · Calibration · Library** and the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
   Format; the toggles **Reference · Lanes · Drops**, then **Reach · Grid**;
-  then Import SVG, Export PNG.
+  then Import SVG, Export PNG, and **💾 SAVE** (the owner, 2026-10-01: in
+  the second row, so the panel on the right stays as it is). SAVE puts a new
+  painting in the Library every time, named by the date and time, as in
+  RUBENS: an SVG of the image area — the canvas, the lines in their tubes'
+  colours, the curve — with the whole painting, the reference included, in
+  its metadata; a click in the Library opens it again. `app/library/`, on
+  this Mac, not in git.
 - **Format** — the canvas laid on the image area: **500 × 700** (default)
   and **600 × 800** mm; 700 × 1000 is out of reach and gone. Drawn as on the
   RUBENS Calibration tab (`references/Screenshot 2026-09-30

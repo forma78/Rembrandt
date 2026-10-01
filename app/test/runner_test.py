@@ -699,6 +699,13 @@ class LibraryTest(unittest.TestCase):
                 library_save(self.dir, svg, png, now=self.T)
         self.assertEqual(library_list(self.dir), [])
 
+    def test_a_rembrandt_painting_is_saved_and_listed_with_its_format(self):
+        svg = ('<svg xmlns="http://www.w3.org/2000/svg"><metadata id="rembrandt-state">'
+               '{"rembrandt": "0.1", "format": "c50x70", "segs": []}</metadata></svg>')
+        library_save(self.dir, svg, self.PNG, now=self.T)
+        lst = library_list(self.dir)
+        self.assertEqual((lst[0]["format"], lst[0]["strokes"], lst[0]["png"]), ("c50x70", None, True))
+
     def test_delete_moves_the_drawing_aside(self):
         base = library_save(self.dir, self.SVG, self.PNG, now=self.T)
         self.assertTrue(library_delete(self.dir, base))
