@@ -20,7 +20,9 @@ board on USB from `../../rubens-preview/rubens.py`.
 | `src/main.cpp` | axes, walls, the watchdog, the arm, the serial commands |
 | `src/path.h` | the path planner: pieces of path (lines, arcs, travel), a 20 ms tick |
 | `lib/SCServo/` | Feetech's servo library ([NOTICE](lib/SCServo/NOTICE.md)) |
+| `src/joint.h` | the `J` command read, speed included (2026-10-02) |
 | `test_host/path_test.cpp` | the planner's test, on the Mac, no board |
+| `test_host/joint_test.cpp` | the `J` command's test, on the Mac |
 
 This is the firmware on the board since 2026-09-27. Built from this folder
 on 2026-09-30, its comments translated into English, it gives the same image
@@ -62,7 +64,8 @@ One per line, 115200 baud. RUBENS sends them through `rubens.py`
 | `S` | stop both axes, braking; on a path it brakes along the line |
 | `K` | stop both axes at once, no braking |
 | `O <X\|Y> [n]` | the carriage's place becomes the axis zero, or the coordinate `n` in steps. The carriage does not move |
-| `J <1..3> <deg>` | a joint to so many degrees from its zero (whole degrees) |
+| `J <1..3> <deg> [<deg/s>]` | a joint to so many degrees from its zero, tenths count; the speed in degrees a second, 0.5…105, else about 53 (Rembrandt, 2026-10-02: a slow stroke of the brush) |
+| `H` | the arm holds where it stands: a slow stroke stopped half way; the axes are left alone (2026-10-02) |
 | `Z` | the arm's zero where it stands, all three joints. Nothing moves |
 | `F <mm/s>`, `T <mm/s>` | pass and travel speed for the path (20 and 100 by default, 1…200) |
 | `L <x> <y>` | a piece of path: a line to the point, machine mm |
@@ -83,6 +86,7 @@ FastAccelStepper pinned at 1.3.4 (why: `platformio.ini`).
     cd firmware/CNCDM-001
     pio run                     # build
     c++ -std=c++17 -O1 -o /tmp/path_test test_host/path_test.cpp && /tmp/path_test
+    c++ -std=c++17 -O1 -o /tmp/joint_test test_host/joint_test.cpp && /tmp/joint_test
 
 **Flash only together with the owner**, and so:
 
@@ -178,8 +182,10 @@ board's terminal.
   on the plus side (2026-09-30); the brush leaves the canvas at −54°
   (degrees from the brush upright, RUBENS's zero since 2026-09-30). The
   firmware's limit is still ±90°: RUBENS refuses the rest (`rubens.py`,
-  `REACH`). When the firmware is flashed next, its wrist limit goes to
-  −90…+10° too.
+  `REACH`). It stays so: the server sets the zero where the joint stands
+  (`Z`) and sends the difference, so the firmware's limit holds a step, not
+  the angle from upright — a +10° limit here would stop the brush coming
+  back from −54° (corrected 2026-10-02).
 - 777 on the bus is the family, not the model: an ST3215 and an ST3215-HS
   answer alike. The factory ids 16, 17, 13 were set to 1, 2, 3.
 - The shoulder is mounted face down. The firmware's −1 was meant to make

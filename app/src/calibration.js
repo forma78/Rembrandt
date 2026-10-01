@@ -121,9 +121,11 @@ function idle() {
   for (const [a, J] of Object.entries(JOG)) { J.level = 0; J.input.value = 0; J.out.textContent = 'IDLE'; setLive(a, false); }
 }
 const moving = () => JOG.x.level !== 0 || JOG.y.level !== 0;
-function stop() { idle(); machine('/cmd?a=S&n=0'); }
+// STOP and HARD STOP stop the arm too (2026-10-02): a slow stroke stays where it is
+const holdArm = () => fetch('/arm/hold', { method: 'POST' }).catch(() => null);
+function stop() { idle(); machine('/cmd?a=S&n=0'); holdArm(); }
 $('#btnStop').onclick = stop;
-$('#btnKill').onclick = () => { idle(); machine('/cmd?a=K&n=0'); };
+$('#btnKill').onclick = () => { idle(); machine('/cmd?a=K&n=0'); holdArm(); };
 addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
 // A hidden tab still pings once a second, enough for the watchdog, so the
 // axes would keep going unseen: stop them.
@@ -172,7 +174,7 @@ for (const [k, K, lo, hi] of ARM) {
     armBusy.add(k); ax.classList.add('busy'); $('#arm' + K + 'V').textContent = `→ ${signed(d)}`;
     let msg = '';
     try {
-      const r = await fetch(`/arm?j=${k}&d=${d}`, { method: 'POST' }), t = await r.text();
+      const v = +$('#armSpeed').value, r = await fetch(`/arm?j=${k}&d=${d}` + (v > 0 ? `&v=${v}` : ''), { method: 'POST' }), t = await r.text();
       let o; try { o = JSON.parse(t); } catch { o = { ok: false, message: t }; }
       if (!r.ok || !o.ok) msg = o.message || t;
     } catch { msg = 'start rembrandt.py'; }
