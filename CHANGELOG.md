@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Formats 40 × 60 and 40 × 30 cm** on Create and Calibration (the owner,
+  2026-10-02).
 - **The 3DOF tab** (the owner, 2026-10-02): arm strokes on a 30 × 30 board —
   pattern A (8 rows, tight) or B (5 rows, loose), every number editable, a
   preview in mm, Here, ⚡️ Do 3DOF, Pause, Continue, STOP and HARD STOP that

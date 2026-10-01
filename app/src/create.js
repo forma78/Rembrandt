@@ -34,7 +34,7 @@ const IA = { w: R.y.max - R.y.min, h: R.x.max - R.x.min };   // mm, 568.5 × 865
 // the middle, its top 50 mm under the top wall (the owner, 2026-10-01: the
 // brush runs past the top of the canvas by about 5 cm).
 const TOP_GAP = 50;
-const CREATE_FORMATS = ['c50x70', 'p60x80'];   // 70 × 100 is out of reach (the owner, 2026-10-01)
+const CREATE_FORMATS = ['c40x30', 'c40x60', 'c50x70', 'p60x80'];   // 70 × 100 is out of reach (the owner, 2026-10-01); 40 × 30 and 40 × 60 since 2026-10-02
 
 let CAL = null;
 async function loadCal() {

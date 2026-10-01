@@ -6,8 +6,11 @@
 export const PT_MM = 25.4 / 72;                  // 0.35278 mm per point
 
 // c50x70: Rembrandt's experiments, laid on the 100 × 70 canvas (the owner,
-// 2026-10-01); Create offers it and 60 × 80, the others are out of reach.
+// 2026-10-01); 40 × 60 and 40 × 30 too (2026-10-02). Create offers these
+// and 60 × 80; 70 × 100 and the others are out of reach.
 export const FORMATS = {
+  c40x30:   { label: 'Canvas 40 × 30 cm',  w: 400,  h: 300 },
+  c40x60:   { label: 'Canvas 40 × 60 cm',  w: 400,  h: 600 },
   c50x70:   { label: 'Canvas 50 × 70 cm',  w: 500,  h: 700 },
   p60x80:   { label: 'Paper 60 × 80 cm',   w: 600,  h: 800 },
   p80x60:   { label: 'Paper 80 × 60 cm',   w: 800,  h: 600 },
