@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The machine paints everything, the black too** (the owner, 2026-10-01):
+  from the edges inward, tails into the red and the grey; at the top along
+  the U of the upper line, past the canvas by about 5 cm on purpose. The
+  first painting's table now lists homes, tails and order; its numbers are
+  computed, the old ones for 70 × 100 are gone. Orange is open.
 - **Home and tail** (the owner, 2026-10-01, untested): every tube starts at
   its home with a full brush and dries out into its neighbour; the brush
   lifts at the end of the tail and goes back in the air. Swing marks are an

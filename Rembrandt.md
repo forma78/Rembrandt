@@ -4,11 +4,11 @@ Spec v0.1 · 2026-10-01 · owner: Yury Melnikau (Melnicomm) · machine: CNCDM-00
 
 Rembrandt is the successor of RUBENS. RUBENS turns one hand-drawn stroke into
 eight brush lanes. Rembrandt plans a whole painting: which tube, how much of
-it, where, and in which layer — so that the machine and the owner's hand
-together paint the picture.
+it, where, and in which layer — so that the machine paints the picture and
+the owner's hand squeezes the drops.
 
 The name: Rembrandt built light out of darkness. Here too: light against a
-dark surround, the darks left to the hand.
+dark surround.
 
 ---
 
@@ -33,7 +33,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Lane** | One brush width along a band, 20 mm by default. Same word as in RUBENS. |
 | **Trip** | One run of the brush along a lane. A lane is painted in 2, 4 or 8 trips (RUBENS Job tab). In Rembrandt a trip runs one way, from a home to its tail; the brush lifts there and goes back in the air. |
 | **Layer** | Everything painted in one session over the dry layer below it: a band, its tubes, its drops. Not "pass" — in RUBENS a pass is a brush run inside a lane. |
-| **Hand layer** | A layer the owner paints by hand (the black). Rembrandt only shows where. |
+| **Hand layer** | None since 2026-10-01: the machine paints every layer, the black too. The hand only corrects. |
 | **Ground** | What lies under the first layer: the white canvas. |
 | **Image area** | What the machine paints: its whole reach between the walls (Calibration), now 568.5 × 865 mm (Y × X), about 57 × 86 cm — nearly the 2 : 3 of IMG_9422. The canvas lies inside it; paint past the canvas lands on the canvas underneath, on purpose. |
 | **Tube** | One paint on the owner's shelf: name, pigment code, swatches. The **inventory** is the list of tubes. |
@@ -87,7 +87,12 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **Dosing by hand with standard drops**, the machine as the pointer.
   (2026-10-01)
 - **Layers in a fixed order**: light first, on the white ground (yellow dies
-  on black); the sheet over the dry light; black last, by hand. (2026-10-01)
+  on black); the sheet over the dry light; black last. (2026-10-01)
+- **The machine paints everything, the black too**, from the edges inward,
+  its tails into the red and the grey; the hand only corrects. The owner,
+  2026-10-01: "Everything is done by the machine." At the top the black
+  follows the U of the upper line, so the brush runs past the top of the
+  canvas by about 5 cm: "it is a feature, deliberately."
 - **Home and tail.** Every tube starts at its home with a full brush, runs
   towards its neighbour, dries out into a tail, and there the brush lifts and
   goes back to the home in the air. Colours meet tail to tail; a full brush
@@ -122,8 +127,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 ## 2. Scope of v0.1
 
 1. Attach a reference; draw one curve over it.
-2. Build the layers from the curve: Light (below), Sheet (above), Black (hand).
-3. For each machine layer: lanes, trips, tubes, the drop plan, ml per tube.
+2. Build the layers from the curve: Light (below), Sheet (above), Black (from
+   the edges inward).
+3. For each layer: lanes, trips, tubes, their homes and tails, the drop plan,
+   ml per tube.
 4. Check muddy pairs against the keep-out.
 5. Job: pointer mode for the drops, then Do Job for the lanes.
 
@@ -194,8 +201,8 @@ Everything else is in §11 (later).
 ## 6. Pair check
 
 - Each tube's footprint = its drops + smear length along their lanes.
-- For every muddy pair, and for every tube against the hand-black zone, the
-  closest distance is measured.
+- For every muddy pair the closest distance is measured, in the same layer
+  or not: a thin black over a dry yellow still turns olive.
 - Closer than the keep-out → ⚠ on the canvas at the closest point, and a row
   in the Pairs section. The job still runs.
 - A pair can be marked **intended** (black into red → dark bordeaux, as in
@@ -240,8 +247,9 @@ Select (V), Undo, Redo, Delete. Status bar at the bottom, in mono.
 3. **Create — layer 2, sheet.** Layer 1 shown dry, in colour. Blended lanes
    above the curve, the curve highlighted as lane 1. Drops: white left, grey
    right.
-4. **Create — layer 3, black by hand.** Hatched where the black goes, arrows
-   from the edges inward. Pairs: the ⚠ row (black next to yellow, keep-out,
+4. **Create — layer 3, black.** Lanes from the edges inward, homes at the
+   edges, tails into the red and the grey. (The design still shows the hand
+   version, hatched; to redo.) Pairs: the ⚠ row (black next to yellow, keep-out,
    the measured distance), the intended row (black into red).
 5. **Job — squeeze the drops.** An LCD counter (`05 / 19`), the current tube
    and drop, **Next drop** (Space or a USB foot pedal that sends Space),
@@ -264,17 +272,28 @@ Canvas 50 × 70 cm, portrait, white ground, laid on the 100 × 70 one. The
 reference covers the whole image area (§0), the canvas is a window in it.
 One curve; a white sheet over a warm glow; black around.
 
-| layer | how | lanes | tubes and drops | ml |
-|---|---|---|---|---|
-| 1 Light | machine, below the curve | 13 × 20 mm, 4 trips | Yellow × 3, Orange × 5, Red × 11 = 19 | ≈ 40 est. |
-| 2 Sheet | machine, above the curve, blended to the upper line | 15 × 20–24 mm, 4 trips | White × 13 (left), Grey N5 × 8 (right) = 21 | ≈ 44 est. |
-| 3 Black | by hand, edges inward | — | Black, into the red and the top of the sheet | as needed |
+| layer | where | tube: home → tail | order |
+|---|---|---|---|
+| 1 Light | below the curve | Yellow: the right edge → left, into the red. Red: left of the middle → right, towards the yellow | Yellow, then Red |
+| 2 Sheet | above the curve, blended to the upper line | White: the left edge → right, into the grey. Grey N5: the right edge → left, into the white | White, then Grey |
+| 3 Black | from the edges inward | Bottom: the left edge → right, into the red. Top: the top edge, along the U of the upper line, into the grey | — |
 
-- Yellow lies next to the curve on the right, orange behind it, red outermost
-  and on the left. Yellow needs the white ground under it.
+The sketches: `references/IMG_9422_direction.png` and `IMG_9422_direction-2.png`
+(the owner, 2026-10-01). Lanes, trips, drops, ml and machine time are computed
+by the program from the curve on the image area. The numbers of the first
+version of this table (13 and 15 lanes, 19 and 21 drops, ≈ 40 and 44 ml) were
+for 70 × 100 cm and are gone.
+
+- Yellow lies next to the curve on the right; red on the left and outermost.
+  Yellow needs the white ground under it.
+- **Orange: open.** The sketches give it no home; where the yellow's and the
+  red's tails meet, they make orange on the canvas.
+- The grey is its own tube between the white and the black (the owner,
+  2026-10-01).
 - The top of the sheet is left for the black.
-- Keep-out yellow ↔ black: 40 mm; the planned distance is 160 mm.
-- Machine time ≈ 20 min per layer (13 lanes × 4 trips at 40 mm/s, est.).
+- Keep-out yellow ↔ black: 40 mm. On the sketch the black's tails reach the
+  middle of the lanes, near the end of the yellow's: expect a ⚠ there and
+  decide where the black stops.
 - The tube names and pigment codes (PY74, PO73, PR254, PW6, PBk11, Grey N5 as
   a premix) are placeholders: replace them with the tubes on the shelf.
 
