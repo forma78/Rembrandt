@@ -229,7 +229,7 @@ const rad = d => d * Math.PI / 180;
 // a W 2 rides on every TAIL_STEP mm of a tail, the board turning it as the
 // carriage reaches the piece — whatever the speed, a brake, a pause. The
 // wrist stands at 0° all the while ("the broom again" otherwise).
-export const ELBOW_LIFT = 10, ELBOW_UP = 25;   // +15° from the first zero, which was raised 4.7° the same night ("it presses too hard")
+export const ELBOW_LIFT = 10, ELBOW_UP = 25;   // the lift-off measured +9.8° from the zero raised after midnight ("round it to +10"); ELBOW_UP est.
 const TAIL_STEP = 16;           // mm along a tail a W
 export const WRIST_MAX = 211;   // °/s, the firmware's fastest for W (2400 ticks/s; the servo makes about 250, est.)
 export const SPEED_MAX = 250;   // mm/s, the board's fastest path (firmware F, 1…250 since 2026-10-02)
