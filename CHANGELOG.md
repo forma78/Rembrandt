@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The wrist −120° at most** (the owner, 2026-10-02: "cut it to −120°
+  max, no need for −180"). `REACH` −120…+90°, the handle too.
 - **The elbow −5° at most** (the owner, 2026-10-02: "−5 max, or it tears
   the canvas or breaks the brush"). `REACH` −5…+45°, the handle too; a
   move past it is refused before anything is sent.
