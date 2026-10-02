@@ -6,7 +6,7 @@
 
 import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
-import { xyPlan, PATTERNS, PASSES, DEFAULTS, DRAG_MM } from './strokes.js';
+import { xyPlan, PATTERNS, PASSES, DEFAULTS, DRAG_MM, BRUSH_MM } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import './ui.js';
@@ -106,7 +106,7 @@ function drawOn(c, kk, W, H) {
   c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * k, S.boardH * k);
   c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-hw) + .5, sy(hh) + .5, S.boardW * k - 1, S.boardH * k - 1);
   c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-hw + m), sy(hh - m), (S.boardW - 2 * m) * k, (S.boardH - 2 * m) * k); c.setLineDash([]);
-  c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = 10 * k;   // a round brush, about 10 mm (est.)
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = BRUSH_MM * k;   // the brush's trace (est.)
   for (const line of P.preview) {   // black; D's passes in their paints
     c.strokeStyle = line.pass ? PASSES[line.pass].color : '#1B1A19';
     c.beginPath(); line.forEach((q, i) => i ? c.lineTo(sx(q.y), sy(q.x)) : c.moveTo(sx(q.y), sy(q.x))); c.stroke();
@@ -189,7 +189,7 @@ function testSvg() {
 <!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${DRAG_MM} mm either side of the board for the wrist's drags -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
-<g fill="none" stroke="#1B1A19" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+<g fill="none" stroke="#1B1A19" stroke-width="${BRUSH_MM}" stroke-linecap="round" stroke-linejoin="round">
 ${rows}
 </g>
 </svg>`;
