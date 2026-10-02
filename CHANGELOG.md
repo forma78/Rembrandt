@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The first painting of the new arm** (the owner, 2026-10-03, 01:11: "It!!!
+  Not for nothing we tested all day. Beauty"; `test_results/IMAGE
+  2026-10-03 01:11:11.jpg`). C, 13 rows, then D1, 14 rows, crossing in a
+  plaid of blue watercolour: 7 and 6.5 mm apart, 210 mm long, bow 20, wave
+  5, at 200 mm/s, Tail 80, Lift at the turns. Every row lands softly and
+  runs out in a fine point where the elbow eases off; no flag, no dark band,
+  no blot at a turn; the grooves between the rows hold. 38 and 41 s against
+  37 and 39 estimated (the run journal). The slow crawl and the odd Y of
+  the check before did not come back: it was most likely that check's own
+  look at the arm ten times a second.
 - **The elbow's zero raised 4.7°; −5…0° the reserve** (the owner,
   2026-10-03, after midnight: "I overdid it, +4.7° presses it too hard into
   the canvas — knock it down to zero"; "+4.7° is the fuel tank, remember?
