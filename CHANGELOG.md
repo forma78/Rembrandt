@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The wrist up to +45°; the brush leaves the canvas at ±45°** (the owner,
+  on Calibration, 2026-10-02: +15° was not enough, the brush stayed on the
+  canvas; it leaves at −45°, and "the camera lets it squeeze past to +45°
+  the other way; I was careful, there is room up to +45"). `REACH` and the
+  Wrist handle go −90…+45°; for the runner the brush is on the canvas short
+  of ±45° (`LIFT_DEG`), so a pause in a lifted turn waits for its end.
 - **Test: the landing shift dropped, the rows as they were** (the owner,
   2026-10-02, the second snake: `test_results/photo_2026-10-02 11.56.38.jpeg`,
   `2026-10-02 50mm.png` — "fix it as it was"). The blob was at the row's
