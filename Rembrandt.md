@@ -75,6 +75,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   servos; the shoulder's and the elbow's handles to the right are gone from
   Calibration. The rule below changes once the lift is measured: the elbow
   will move during a job.
+- **During a job X, Y and the elbow move** since the new arm (the owner,
+  2026-10-02: "on the move — the tail a smooth easing of the pressure, no
+  stops; let's work properly"): the elbow presses the brush (0°), eases it
+  off to +15° and lifts it to +25° through a turn, by `W` on the path; the
+  wrist stands at 0°, the shoulder holds. What follows was the rule before.
 - **During a job only X, Y and the wrist (J3) move.** Shoulder and elbow hold
   one static pose for the whole painting. Moving them during a job slows it
   down. (2026-10-01) One pose reaches 568.5 mm across, between the Y walls;
@@ -386,12 +391,15 @@ this section disagree, this section wins: the owner corrected the sketch on
   was tried and dropped the same day: the drag runs along Y only, a bowed
   row starts at a slant, and the row bent off its arc and left a gap — the
   owner: "fix it as it was". Open.
-  **On the move** (the owner, 2026-10-02: "(a) + (b)"): a pass is one
-  move, no stop at a turn. Over the first and the last **Tail** mm of a row
-  the wrist goes between upright and ±45° while the carriage moves the
-  other way along Y, so the tip keeps to the row; through a turn the brush
-  is in the air. The wrist goes by place: the board turns it as the
-  carriage reaches each piece (`W`). Up to 250 mm/s. No pause for paint
+  **On the move** (the owner, 2026-10-02): a pass is one move, no stop at
+  a turn. Over the first and the last **Tail** mm of a row the elbow eases
+  the brush from pressed (0°) to the lift-off (+15°) and back, on a half
+  cosine — "the tail a smooth easing of the pressure"; through a turn it is
+  up (+25°, est.). The elbow goes by place: the board turns it as the
+  carriage reaches each piece (`W 2`). **Lift at the turns**, a tick: off,
+  a snake's turns are painted too. (The same evening it was the wrist,
+  tilting to ±45° with the carriage stepping aside — "(a) + (b)" — until the
+  new arm made it the broom again.) Up to 250 mm/s. No pause for paint
   every few rows ("let's not overthink it"); between D's passes the carriage
   stays where it is — "a break, not the end of the working day" — and goes
   home only at 100 %. Turn is hidden on C and D.
