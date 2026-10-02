@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, plotPaths, PATTERNS, tipY, LIFT_DEG, DRAG_MM } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS, PASSES, waved, tipY, LIFT_DEG, DRAG_MM } from '../src/strokes.js';
 
 const PLOTTER = { tilt: 0 };   // the plotter's own path, the broom aside
 
@@ -175,4 +175,65 @@ test('the broom at 45°: a stroke a row, each 50 mm longer at either end — the
     assert.ok(near(k[0], rows[i].a.x + dx, rows[i].a.y + dy - 50 * s), `row ${i + 1}: lands 50 mm before its start`);
     assert.ok(near(k.at(-1), rows[i].b.x + dx, rows[i].b.y + dy + 50 * s), `row ${i + 1}: lifts 50 mm past its end`);
   });
+});
+
+// ---------- waves and pattern D (the owner, 2026-10-02) ----------
+const kinks = p => p.slice(1).map((g, i) => {
+  const e = dirs(p[i])[1], s0 = dirs(g)[0];
+  return { gap: Math.hypot(p[i].b.x - g.a.x, p[i].b.y - g.a.y), deg: Math.acos(Math.min(1, e.x * s0.x + e.y * s0.y)) * 180 / Math.PI };
+});
+test('a wave is lines and arcs, joined without a kink, its ends where the row\'s are, as far out as asked', () => {
+  for (const base of [{ t: 'L', a: { x: 0, y: -110 }, b: { x: 0, y: 110 } }, plotPaths({ ...PATTERNS.C, bow: 36, length: 255, wave: 0 })[0][0]]) {
+    const w = waved(base, 12, 100);
+    assert.ok(w.every(g => g.t === 'L' || g.t === 'A'));
+    for (const k of kinks(w)) assert.ok(k.gap < 1e-6 && k.deg < 0.5, `gap ${k.gap}, kink ${k.deg.toFixed(2)}°`);
+    assert.ok(Math.hypot(w[0].a.x - base.a.x, w[0].a.y - base.a.y) < 1e-9 && Math.hypot(w.at(-1).b.x - base.b.x, w.at(-1).b.y - base.b.y) < 1e-9);
+  }
+  // across a straight row: the sine itself, within a tenth of a mm, 12 mm out at its crests
+  const w = waved({ t: 'L', a: { x: 0, y: -110 }, b: { x: 0, y: 110 } }, 12, 100), m = Math.round(2 * 220 / 100);
+  let worst = 0, far = 0;
+  for (const g of w) for (const q of [g.a, g.b]) {
+    worst = Math.max(worst, Math.abs(-q.x - 12 * Math.sin(Math.PI * m * (q.y + 110) / 220)));
+    far = Math.max(far, Math.abs(q.x));
+  }
+  assert.ok(worst < 0.1, `off the sine by ${worst}`);
+  assert.ok(Math.abs(far - 12) < 0.5, `${far} out`);
+});
+
+test('a wavy snake stays smooth at every joint, the turns too', () => {
+  for (const o of [{ ...PATTERNS.C, wave: 10 }, { ...PATTERNS.C, wave: 20, bow: 30 }, { ...PATTERNS.A, wave: 8 }]) {
+    for (const p of plotPaths(o)) for (const k of kinks(p)) assert.ok(k.gap < 1e-6 && k.deg < 1, `wave ${o.wave}: a kink of ${k.deg.toFixed(2)}°`);
+  }
+  assert.deepEqual(xyPlan({ ...PATTERNS.C, wave: 0 }).blocks, xyPlan({ ...PATTERNS.C }).blocks, 'no wave: C exactly as before');
+});
+
+test('D: each pass is C\'s snake turned its own way; the passes on run in their order, a pause for the paint between', () => {
+  const o = { ...PATTERNS.C, pattern: 'D', snake: true, rows: 6, pitch: 15 };
+  const d1 = xyPlan({ ...o, passes: ['D1'], tilt: 0 });
+  const rows = d1.blocks.filter(b => b.paintMM).flatMap(b => b.cmds.filter(c => c[0] === 'L' || c[0] === 'A'));
+  const first = rows[0].split(' ');
+  assert.equal(first[0], 'L', 'C straight: a line');
+  const start = d1.blocks.find(b => b.cmds?.[1]?.startsWith('M ')).cmds[1].split(' ');
+  assert.equal(first[2], start[2], 'D1 turns C a quarter: its rows run up and down, Y the same at both ends');
+  assert.ok(Math.abs(+first[1] - +start[1]) > 100, 'and X changes the length of a row');
+  assert.deepEqual(d1.passes, ['D1']);
+  assert.ok(d1.preview.every(l => l.pass === 'D1'));
+
+  const all = xyPlan({ ...o, passes: ['D3', 'D1'] });
+  assert.deepEqual(all.passes, ['D1', 'D3'], 'in their order, not the clicks\'');
+  const pauses = all.blocks.filter(b => b.kind === 'pause');
+  assert.equal(pauses.length, 1);
+  assert.match(pauses[0].why, /D3, dark grey/);
+  assert.deepEqual([...new Set(all.preview.map(l => l.pass))], ['D1', 'D3']);
+  assert.equal(J(all).filter(c => c === 'J 3 0').length, 2 * (1 + (o.rows - 1)), 'each pass: down once, and back down after each lifted turn');
+
+  // the same sliders for every pass: the same rows and length, only turned
+  const len = p => p.blocks.filter(b => b.paintMM).reduce((a, b) => a + b.paintMM, 0);
+  const one = k => xyPlan({ ...o, passes: [k] });
+  assert.ok(Math.abs(len(one('D1')) - len(one('D2'))) < 1e-6 && Math.abs(len(one('D2')) - len(one('D3'))) < 1e-6);
+  assert.deepEqual(Object.keys(PASSES), ['D1', 'D2', 'D3']);
+});
+
+test('A, B and C are not turned, whatever passes D had', () => {
+  assert.deepEqual(xyPlan({ ...PATTERNS.C, pattern: 'C', passes: ['D2'] }).blocks, xyPlan({ ...PATTERNS.C }).blocks);
 });
