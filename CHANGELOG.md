@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Firmware `B` and `I`: the servo bus scanned, an id changed** (2026-10-02,
+  the new ST3235s: with the 12 V on only id 3 answered, 1 and 2 were silent).
+  `B` lists the ids that answer, 0…253, nothing moving; `I <from> <to>`
+  writes a servo's new id to its EEPROM, refused if `<to>` answers already.
+  `rembrandt.py`: `/machine/scan` and `/machine/servo-id?from=&to=`. Built
+  and host-tested, to be flashed with `W`.
+- **Calibration: the shoulder's and the elbow's handles gone** (the owner,
+  2026-10-02: new ST3235 servos, the elbow remounted to lift the brush up —
+  "they no longer exist, throw them out"). The wrist's stays; its zero is
+  the old servo's until the working pose is taken again.
 - **Test: the brush lands and lifts on the move — (a) + (b)** (the owner,
   2026-10-02, after D2 + D3: "the brush starts to lift while the carriage
   still runs out the row"; "a + b, let's test"). Before, the carriage stood

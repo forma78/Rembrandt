@@ -655,6 +655,39 @@ static void pathTick() {
   }
 }
 
+// B: who answers on the servo bus, 0…253 (2026-10-02: new ST3235 servos
+// came with their own ids). A short timeout while it asks, the usual after.
+// Nothing moves; refused on a path, the loop being held for about a second.
+static void scanBus() {
+  if (pathOn) { Serial.println("? идёт путь, сначала S"); return; }
+  char out[160];
+  int n = snprintf(out, sizeof(out), "ok B");
+  const unsigned long was = st.IOTimeOut;
+  st.IOTimeOut = 3;
+  for (int id = 0; id <= 253; id++) {
+    if (st.Ping(id) == id && n < (int)sizeof(out) - 5) n += snprintf(out + n, sizeof(out) - n, " %d", id);
+    lastRx = millis();                           // the watchdog: asking is talking
+  }
+  st.IOTimeOut = was;
+  Serial.println(out);
+}
+
+// I <from> <to>: a servo's id changed, kept in its EEPROM. One servo at that
+// id on the bus — two would both take it. Refused if <to> answers already.
+static void setServoId(const char *line) {
+  int from, to;
+  if (!joint::parseIds(line + 1, from, to)) { Serial.println("? I <0…253> <0…253>"); return; }
+  if (pathOn) { Serial.println("? идёт путь, сначала S"); return; }
+  if (st.Ping(to) == to) { Serial.printf("? занят %d\n", to); return; }
+  if (st.Ping(from) != from) { Serial.printf("? нет серво %d\n", from); return; }
+  st.unLockEprom(from);
+  st.writeByte(from, SMS_STS_ID, to);
+  st.LockEprom(to);
+  for (int j = 0; j < JOINTS; j++) if (JOINT_ID[j] == from || JOINT_ID[j] == to) zeroTick[j] = -1;   // a joint's zero is taken again
+  if (st.Ping(to) != to) { Serial.printf("? не отвечает %d\n", to); return; }
+  Serial.printf("ok I %d %d\n", from, to);
+}
+
 static void handle(const char *line) {
   lastRx = millis();
 
@@ -671,6 +704,8 @@ static void handle(const char *line) {
   if (c == 'J' || c == 'j') { handleJoint(line); return; }
   if (c == 'Z' || c == 'z') { reZero(); return; }
   if (c == 'H' || c == 'h') { holdArm(); return; }
+  if (c == 'B' || c == 'b') { scanBus(); return; }
+  if (c == 'I' || c == 'i') { setServoId(line); return; }
 
   if (c == 'X' || c == 'x' || c == 'Y' || c == 'y') {
     int level = atoi(line + 1);

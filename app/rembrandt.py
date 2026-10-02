@@ -52,7 +52,7 @@ FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path
          "/tubes": os.path.join(HERE, "tubes.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
 LOG_FILE = os.path.join(HERE, "logs", "runs.jsonl")   # run_log: the run journal, on this Mac, not in git
-PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y", "/hold"}
+PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y", "/hold", "/scan", "/servo-id"}
 STEPS_PER_MM = (80.0, 3200.0 / 120.0)   # X, Y — the same as src/machine.js
 # The walls in mm (src/machine.js, the firmware). A carriage counted more
 # than RUNAWAY_MM past one means the board is sending steps it should not:
@@ -80,6 +80,9 @@ BOARD_WORDS = [
     (re.compile(r"едет, сначала стоп"), "the carriage is moving: stop it first"),
     (re.compile(r"очередь полна"), "the path queue is full"),
     (re.compile(r"очередь пуста"), "nothing to run"),
+    (re.compile(r"занят (\d+)"), "that id answers on the bus already"),
+    (re.compile(r"нет серво"), "no servo answers at that id"),
+    (re.compile(r"не отвечает"), "the servo does not answer at its new id"),
     (re.compile(r"скорость"), "speed out of what the board takes: 1…250 mm/s (1…200 on the firmware before 2026-10-02)"),
 ]
 
@@ -141,6 +144,16 @@ def board_line(path):
         return "Z", 0.25
     if p == "/hold":                 # the arm stays where it stands: a slow stroke stopped half way (2026-10-02)
         return "H", 0.5
+    if p == "/scan":                 # who answers on the servo bus, 0…253: nothing moves (new ST3235s, 2026-10-02)
+        return "B", 3.0
+    if p == "/servo-id":             # a servo's id changed, ?from=&to= — one servo at that id on the bus
+        try:
+            a, b = int(q.get("from", [""])[0]), int(q.get("to", [""])[0])
+        except ValueError:
+            raise ValueError("? from, to")
+        if not (0 <= a <= 253 and 0 <= b <= 253) or a == b:
+            raise ValueError("? from, to: 0…253, not the same")
+        return f"I {a} {b}", 1.0
     if p in ("/origin/x", "/origin/y"):   # the carriage's place becomes the axis zero, or ?at=<steps>
         try:
             at = int(q.get("at", ["0"])[0])

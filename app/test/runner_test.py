@@ -337,6 +337,15 @@ class RunnerTest(unittest.TestCase):
         self.assertIn("restart the board", in_english("? путь: такт не берётся 0"))
         self.assertEqual(in_english("ok L 12"), "ok L 12")
 
+    def test_the_servo_bus_scan_and_an_id_change(self):
+        self.assertEqual(board_line("/scan")[0], "B")
+        self.assertEqual(board_line("/servo-id?from=1&to=2")[0], "I 1 2")
+        for bad in ("/servo-id?from=1&to=1", "/servo-id?from=1&to=254", "/servo-id?from=x&to=2", "/servo-id?to=2"):
+            with self.assertRaises(ValueError, msg=bad):
+                board_line(bad)
+        self.assertEqual(in_english("? занят 2"), "that id answers on the bus already")
+        self.assertEqual(in_english("? нет серво 1"), "no servo answers at that id")
+
     def test_block_end(self):
         self.assertEqual(block_end(["F 20", "L 1 2", "A 0 0 3.5 4 -1", "G"]), (3.5, 4.0))
         self.assertEqual(block_end(["T 100", "M 10 20", "G"]), (10.0, 20.0))
