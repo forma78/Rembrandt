@@ -26,9 +26,10 @@ board on USB from `../../rubens-preview/rubens.py`.
 
 This is the firmware on the board since 2026-10-02, flashed twice that day
 with the owner: `J` with a speed and `H`; then, at 13:47 (the 12 V off),
-`J 3` on a path, a path after a K, and K at once on a path. Next, built and
-host-tested the same evening, not yet flashed: `W` (the wrist on the move),
-the path speed to 250 mm/s, the wrist's step limit 150°. Before, RUBENS's
+`J 3` on a path, a path after a K, and K at once on a path. Then at 23:10 the
+same night (the 12 V off): `W` (then the wrist's alone), the path speed to
+250 mm/s, the wrist's step limit 150°, `B` and `I`. Next, built and
+host-tested, not yet flashed: `W <j>`, the elbow too. Before, RUBENS's
 of 2026-09-27. Built from this folder
 on 2026-09-30, its comments translated into English, it gives the same image
 as the build in the old repository: only the ELF's hash in the header and
@@ -88,7 +89,7 @@ One per line, 115200 baud. RUBENS sends them through `rubens.py`
 | `B` | who answers on the servo bus, ids 0…253: `ok B 1 3`. Nothing moves; about a second (2026-10-02) |
 | `I <from> <to>` | a servo's id changed, kept in its EEPROM; refused if `<to>` answers already. One servo at `<from>` on the bus — two would both take it (2026-10-02) |
 | `F <mm/s>`, `T <mm/s>` | pass and travel speed for the path (20 and 100 by default, 1…250; 200 until 2026-10-02) |
-| `W <deg> [<deg/s>]` | the wrist (as `J 3`) for the next piece of path queued: it turns when the carriage gets there, the path going on (2026-10-02). Up to about 211°/s (2400 ticks/s) and with the servo's acceleration at 150, not 30: on a tail it must keep up with the carriage (est.) |
+| `W <j> <deg> [<deg/s>]` | a joint — 2 the elbow, which lifts the brush on the new arm, or 3 the wrist; never the shoulder — as `J` takes it, for the next piece of path queued: it turns when the carriage gets there, the path going on (2026-10-02). One `W` a piece. Up to about 211°/s (2400 ticks/s) and with the servo's acceleration at 150, not 30: on a tail it must keep up with the carriage (est.) |
 | `L <x> <y>` | a piece of path: a line to the point, machine mm |
 | `A <cx> <cy> <x> <y> <±1>` | an arc round the centre to the angle of the point; +1 turns from +X to +Y |
 | `M <x> <y>` | travel in a straight line, stopping at both ends |

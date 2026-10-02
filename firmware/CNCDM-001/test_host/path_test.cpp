@@ -177,16 +177,16 @@ int main() {
     CHECK(cx == 24000 && cy == 5333, "ends at %ld %ld", cx, cy);
   }
 
-  // 8. W: a turn of the wrist rides on a piece and is given out once, as the
+  // 8. W: a turn of a joint rides on a piece and is given out once, as the
   //    point reaches that piece's start — with short pieces crossed in one
   //    tick too; a stop drops the turns on the pieces it cuts off.
   {
     Planner p(ACC); p.setHere(0, 0);
     Seg a = line(0, 0, 100, 0, 100), b = line(100, 0, 200, 0, 100), c = line(200, 0, 300, 0, 100);
-    b.wrist = true; b.wristDeg = 55; b.wristSpeed = 600;
+    b.arm = true; b.armJoint = 2; b.armDeg = 55; b.armSpeed = 600;
     p.push(a); p.push(b); p.push(c);
-    float x, y, d; uint16_t v; int given = 0; float xAt = -1;
-    while (p.step(DT, &x, &y)) if (p.takeWrist(&d, &v)) { given++; xAt = x; CHECK(d == 55 && v == 600, "W carries %.1f° at %u", d, v); }
+    float x, y, d; uint16_t v; uint8_t j; int given = 0; float xAt = -1;
+    while (p.step(DT, &x, &y)) if (p.takeArm(&j, &d, &v)) { given++; xAt = x; CHECK(d == 55 && v == 600, "W carries %.1f° at %u", d, v); }
     printf("W: given %d time(s), at x %.2f\n", given, xAt);
     CHECK(given == 1, "W given %d times", given);
     CHECK(xAt >= 100 && xAt < 100 + 100 * DT + 0.01f, "W given at x %.2f, not as the point reaches 100", xAt);
@@ -194,29 +194,29 @@ int main() {
   {
     Planner p(ACC); p.setHere(0, 0);
     Seg a = line(0, 0, 50, 0, 200);
-    a.wrist = true; a.wristDeg = 0; a.wristSpeed = 1200;
+    a.arm = true; a.armJoint = 2; a.armDeg = 0; a.armSpeed = 1200;
     p.push(a);
-    float x, y, d; uint16_t v;
+    float x, y, d; uint16_t v; uint8_t j;
     p.step(DT, &x, &y);
-    CHECK(p.takeWrist(&d, &v) && d == 0 && v == 1200, "W on the first piece: given at the first tick");
-    CHECK(!p.takeWrist(&d, &v), "and only once");
+    CHECK(p.takeArm(&j, &d, &v) && d == 0 && v == 1200, "W on the first piece: given at the first tick");
+    CHECK(!p.takeArm(&j, &d, &v), "and only once");
   }
   {
     Planner p(ACC); p.setHere(0, 0);
     p.push(line(0, 0, 100, 0, 200));
-    for (int i = 0; i < 10; i++) { Seg g = line(100 + i * 0.5f, 0, 100.5f + i * 0.5f, 0, 200); if (i == 4) { g.wrist = true; g.wristDeg = -54; g.wristSpeed = 600; } p.push(g); }
+    for (int i = 0; i < 10; i++) { Seg g = line(100 + i * 0.5f, 0, 100.5f + i * 0.5f, 0, 200); if (i == 4) { g.arm = true; g.armJoint = 2; g.armDeg = -54; g.armSpeed = 600; } p.push(g); }
     p.push(line(105, 0, 200, 0, 200));
-    float x, y, d; uint16_t v; int given = 0;
-    while (p.step(DT, &x, &y)) if (p.takeWrist(&d, &v)) { given++; CHECK(d == -54, "W on a short piece: %.1f", d); }
+    float x, y, d; uint16_t v; uint8_t j; int given = 0;
+    while (p.step(DT, &x, &y)) if (p.takeArm(&j, &d, &v)) { given++; CHECK(d == -54, "W on a short piece: %.1f", d); }
     CHECK(given == 1, "W on a short piece crossed within a tick: given %d times", given);
   }
   {
     Planner p(ACC); p.setHere(0, 0);
     p.push(line(0, 0, 200, 0, 50));
-    Seg b = line(200, 0, 400, 0, 50); b.wrist = true; b.wristDeg = 55; b.wristSpeed = 600;
+    Seg b = line(200, 0, 400, 0, 50); b.arm = true; b.armJoint = 2; b.armDeg = 55; b.armSpeed = 600;
     p.push(b);
-    float x, y, d; uint16_t v; int given = 0;
-    for (int i = 0; p.step(DT, &x, &y); i++) { if (i == 20) p.stopSoon(); if (p.takeWrist(&d, &v)) given++; }
+    float x, y, d; uint16_t v; uint8_t j; int given = 0;
+    for (int i = 0; p.step(DT, &x, &y); i++) { if (i == 20) p.stopSoon(); if (p.takeArm(&j, &d, &v)) given++; }
     CHECK(given == 0, "a stop well before the piece: its W must not be given (%d)", given);
     CHECK(x < 200, "stopped at %.1f", x);
   }
