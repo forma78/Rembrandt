@@ -337,7 +337,8 @@ REACH = {"shoulder": (-45, 45), "elbow": (-5, 45), "wrist": (-120, 90)}
 # measured 2026-10-02): the elbow at +15°, plus up; the wrist at +60° — "but
 # that is the broom again", so the brush is lifted by the elbow.
 # The elbow's +15° was from the first zero; its zero raised 4.7° after
-# midnight ("it presses too hard"), so +10° now.
+# midnight ("it presses too hard"), so +10° now — measured too, +9.8°: "better
+# round it to +10" (the owner).
 ELBOW_LIFT_DEG, WRIST_LIFT_DEG = 10, 60
 # The brush on and off by the elbow since the new arm: 0° pressed, put away
 # at +25° (est.: where the owner left it, 10° past the lift-off).
