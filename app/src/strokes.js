@@ -12,14 +12,19 @@
 // is a half circle and a short straight line: the path stays smooth, no
 // kink for the board to stop at.
 //
-// The wrist (the owner, 2026-10-02, test_results/, the 15-row snake): it
-// lays the brush down from −54°, minus to the left, so the brush touches
-// the board left of the point under it and drags there — a fat blob 50 mm
-// before the row (a ruler). The carriage stands `land` mm into the row as
-// the brush comes down: the blob is the row's start, the drag its first mm.
-// At a turn the bristles flipped over: the wrist tilts the brush `tilt`°
-// like a broom, plus at the right end, minus at the left, and stands it
-// upright again once the turn is done.
+// The broom (the owner, 2026-10-02, test_results/, the 15-row snake): at a
+// turn the bristles flipped over, so the wrist tilts the brush `tilt`°,
+// plus at the right end, minus at the left, and stands it upright again
+// once the turn is done.
+//
+// The landing stays as it is: coming down from −54° the brush touches the
+// board ~50 mm left of the row's start and drags there (a ruler). A carriage
+// standing 50 mm into the row (tried 2026-10-02) put the blob at the start,
+// but the drag runs along Y only, and a bowed row starts at a slant: the
+// row bent off its arc by up to 22 mm and left a gap — the owner: "fix it
+// as it was". Landing on the arc needs the carriage to move back while the
+// wrist comes down, and the firmware never moves the rail and the arm
+// together.
 //
 // Machine mm: X up the picture, Y to the right. "Here" is where the carriage
 // stands with the brush over the board's centre. No DOM.
@@ -42,7 +47,6 @@ export const DEFAULTS = {
   speed: 30,                  // mm/s with the brush on (est.)
   travel: 100,                // mm/s between rows, the brush off
   swing: -54,                 // the wrist's brush off
-  land: 50,                   // mm the wrist drags the brush along +Y as it lays it down (a ruler, 2026-10-02)
   tilt: 15,                   // degrees: the wrist through a turn, + at the right end, − at the left (est.)
   pause: true,                // after every row: paint for the brush
   ...PATTERNS.A,
@@ -96,20 +100,6 @@ function points(g, out) {
 }
 const shift = (g, v) => g.t === 'L' ? { ...g, a: add(g.a, v), b: add(g.b, v) } : { ...g, a: add(g.a, v), b: add(g.b, v), c: add(g.c, v) };
 
-// The landing: the wrist drags the brush s mm along +Y as it lays it down,
-// so the carriage stands s mm into the first row; the drag is a piece of its
-// own ({ land: true }: the wrist paints it, the board does not run it). The
-// row goes on from there to its own end as an arc that ends as the row did,
-// so the turn after it stays smooth; a straight row stays a line.
-function landed(p, s) {
-  if (!(s > 0)) return p;
-  const g = p[0], P = add(g.a, pt(0, 1), s), t = endDir(g), n = pt(-t.y, t.x);
-  const v = add(P, g.b, -1), w = dot(v, n), k = dot(v, v) / (2 * w);
-  const rest = Math.abs(w) < 1e-6 ? { t: 'L', a: P, b: g.b }
-    : { t: 'A', a: P, b: g.b, c: add(g.b, n, k), r: Math.abs(k), d: Math.sign(k) };
-  return [{ t: 'L', a: g.a, b: P, land: true, tilt: 0, row: g.row }, { ...rest, tilt: g.tilt, row: g.row }, ...p.slice(1)];
-}
-
 // The rows as pieces, a path per brush down (A, B: one a row; C: one in all).
 // Every piece carries its row and the wrist's angle: 0 along a row, ±tilt
 // through a turn.
@@ -134,7 +124,7 @@ function paths(o) {
       out.push([along(g, k + 1), ...round(g, pt(-o.turn, 0), k + 1), along(back, k + 1)]);
     }
   }
-  return out.map(p => landed(p, Math.min(o.land || 0, half)));
+  return out;
 }
 const tracePoints = p => { const q = [p[0].a]; p.forEach(g => points(g, q)); return q; };
 export const plotPaths = opts => paths({ ...DEFAULTS, ...opts });   // for the tests
@@ -171,17 +161,16 @@ export function xyPlan(opts) {
     return { kind: 'move', cmds, lengthMM: len, paintMM: len, painted: grp.map(() => 1), row: grp[0].row };
   };
   ps.forEach((p, i) => {
-    const run = p.filter(g => !g.land);                                                  // the landing is the wrist's
-    blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(run[0].a)}`, 'G'], lengthMM: null, paintMM: 0, row: run[0].row });
+    blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(p[0].a)}`, 'G'], lengthMM: null, paintMM: 0, row: p[0].row });
     // the brush down (J 3 0), then a move for every stretch at one angle of
     // the wrist: upright along the rows, tilted through the turns
-    for (let j = 0; j < run.length;) {
-      const grp = [run[j++]];
-      while (j < run.length && run[j].tilt === grp[0].tilt) grp.push(run[j++]);
+    for (let j = 0; j < p.length;) {
+      const grp = [p[j++]];
+      while (j < p.length && p[j].tilt === grp[0].tilt) grp.push(p[j++]);
       if (grp[0].tilt) turns++;
       blocks.push({ kind: 'arm', cmd: `J 3 ${grp[0].tilt}`, row: grp[0].row }, paint(grp));
     }
-    blocks.push({ kind: 'arm', cmd: `J 3 ${o.swing}`, row: run.at(-1).row });           // the brush off: the hook
+    blocks.push({ kind: 'arm', cmd: `J 3 ${o.swing}`, row: p.at(-1).row });             // the brush off: the hook
     if (!o.snake && o.pause && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
     preview.push(tracePoints(p));
   });
