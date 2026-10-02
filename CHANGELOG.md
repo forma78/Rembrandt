@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: PLAY, and one key for Pause and Continue** (the owner, 2026-10-02:
+  "put Continue in one row with Do Test, grey too; call Do Test PLAY; Pause
+  and Continue are one key with two states — when the machine has run its
+  part, Pause goes down by itself and says Continue; four keys in two rows,
+  not five in three"). PLAY · PAUSE, then • STOP · •• HARD STOP. The run
+  waiting — paused by hand, or by the plan between D's passes — the key is
+  down, dark, CONTINUE; idle, it is greyed.
 - **The run journal, and a pause you cannot miss** (the owner, 2026-10-02,
   after D2 + D3: `test_results/IMAGE 2026-10-02 17:12:*.jpg`). The run had
   painted D2 first — in black, the paint on the brush — and stood paused at

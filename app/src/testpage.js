@@ -237,8 +237,11 @@ $('#btnDoJob').onclick = async () => {
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 };
-$('#btnPause').onclick = () => post('/run/pause');
-$('#btnCont').onclick = () => post('/run/continue');
+// one key, two states (the owner, 2026-10-02): Pause while it runs; pressed
+// when the run waits — paused by hand or by the plan, for the paint — and
+// then it says Continue
+let paused = false;
+$('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
 $('#btnStop').onclick = () => post('/run/stop');
 $('#btnKill').onclick = () => post('/run/kill');
 addEventListener('keydown', e => { if (e.key === 'Escape') post('/run/stop'); });   // Esc = STOP, as on Calibration
@@ -255,9 +258,14 @@ function lcd(st) {
   const total = P.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b = st && P.blocks[st.block];
-  // paused for the paint: what to do, on the LCD itself, and Continue lit (2026-10-02: the D3 pause went unseen)
+  // paused for the paint: what to do, on the LCD itself, and the key down
+  // and lit, saying Continue (2026-10-02: the D3 pause went unseen)
   const waiting = st?.state === 'paused' && st.message;
-  $('#btnCont').classList.toggle('call', st?.state === 'paused');
+  paused = ['paused', 'pausing'].includes(st?.state);
+  const key = $('#btnPause');
+  key.textContent = paused ? 'CONTINUE' : 'PAUSE';
+  key.classList.toggle('call', paused);
+  key.disabled = !live;
   const now = waiting ? `❚❚ ${st.message}`
     : live && b ? (P.snake ? `the snake · ${fmt(st.painted_mm / 10, 0)} of ${fmt(st.paint_mm / 10, 0)} cm` : `row ${Math.min(b.row, P.rows)} of ${P.rows}`) + (st.brush_on ? ' · brush on' : ' · brush off')
     : `${P.rows} rows · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
