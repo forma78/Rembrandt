@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Firmware, not flashed yet: HARD STOP at once on a path too** (the owner,
+  2026-10-02: "yes, add it"). K called the library's `forceStop()`, which
+  stops only its ramp generator; a path does not use it, so the path's
+  queue ran on for up to 120 ms — 12 mm at 100 mm/s. Now
+  `forceStopAndNewPosition()` at the motor's own count: the pulses stop at
+  the end of the one in hand, the queue is emptied, the count a step off at
+  most.
 - **Firmware, not flashed yet: a path after a HARD STOP runs again, and the
   wrist may turn on a path** (2026-10-02). The Test tab stopped with "the
   carriage did not get there: X 332.8 Y 362.2 mm instead of X 321.4 Y

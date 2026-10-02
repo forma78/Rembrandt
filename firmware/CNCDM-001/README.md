@@ -26,7 +26,7 @@ board on USB from `../../rubens-preview/rubens.py`.
 
 This is the firmware on the board since 2026-10-02 (Rembrandt: `J` with a
 speed, `H`); before, RUBENS's of 2026-09-27. Not flashed yet: `J 3` on a
-path and a path after a K (2026-10-02, later). Built from this folder
+path, a path after a K, and K at once on a path (2026-10-02, later). Built from this folder
 on 2026-09-30, its comments translated into English, it gives the same image
 as the build in the old repository: only the ELF's hash in the header and
 the image checksum differ (they hold the build paths); the code with the
@@ -73,7 +73,7 @@ One per line, 115200 baud. RUBENS sends them through `rubens.py`
 | `V` | the look: who answers on the servo bus, their poses, the bus voltage. Moves nothing |
 | `X <-20..20>`, `Y <-9..9>` | jog an axis at a level, 0 stops it; a level is 10 mm/s |
 | `S` | stop both axes, braking; on a path it brakes along the line |
-| `K` | stop both axes at once, no braking |
+| `K` | stop both axes at once, no braking; on a path too, its queue emptied (2026-10-02) |
 | `O <X\|Y> [n]` | the carriage's place becomes the axis zero, or the coordinate `n` in steps. The carriage does not move |
 | `J <1..3> <deg> [<deg/s>]` | a joint to so many degrees from its zero, tenths count; the speed in degrees a second, 0.5…105, else about 53 (Rembrandt, 2026-10-02: a slow stroke of the brush). `J 3` is taken on a path too, and the path goes on (2026-10-02) |
 | `H` | the arm holds where it stands: a slow stroke stopped half way; the axes are left alone (2026-10-02) |
