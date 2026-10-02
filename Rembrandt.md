@@ -373,6 +373,15 @@ this section disagree, this section wins: the owner corrected the sketch on
   was tried and dropped the same day: the drag runs along Y only, a bowed
   row starts at a slant, and the row bent off its arc and left a gap — the
   owner: "fix it as it was". Open.
+  **On the move** (the owner, 2026-10-02: "(a) + (b)"): a pass is one
+  move, no stop at a turn. Over the first and the last **Tail** mm of a row
+  the wrist goes between upright and ±45° while the carriage moves the
+  other way along Y, so the tip keeps to the row; through a turn the brush
+  is in the air. The wrist goes by place: the board turns it as the
+  carriage reaches each piece (`W`). Up to 250 mm/s. No pause for paint
+  every few rows ("let's not overthink it"); between D's passes the carriage
+  stays where it is — "a break, not the end of the working day" — and goes
+  home only at 100 %. Turn is hidden on C and D.
   **Its keys** (the owner, 2026-10-02): four in two rows — **PLAY** (dark
   grey) and **PAUSE**, one key with two states: down and dark, saying
   CONTINUE, whenever the run waits, by hand or for the paint between D's

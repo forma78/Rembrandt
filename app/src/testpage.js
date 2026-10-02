@@ -6,7 +6,7 @@
 
 import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
-import { xyPlan, PATTERNS, PASSES, DEFAULTS, DRAG_MM, BRUSH_MM } from './strokes.js';
+import { xyPlan, PATTERNS, PASSES, DEFAULTS, DRAG_MM, BRUSH_MM, WRIST_MAX, SPEED_MAX } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import './ui.js';
@@ -23,15 +23,17 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 // size stays two numbers.
 // Row to row in half millimetres, 4…30, a scale under it (the owner,
 // 2026-10-02: "a scale in 0.5 mm steps, the range down from 80 mm to 30");
-// the brush to 200 mm/s, the board's most (firmware F, 1…200).
+// the brush to 250 mm/s, the board's most (firmware F, 1…250 since 2026-10-02; the owner: "at least 250").
 const SLIDERS = [
   ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 0.5, 4, 30, { label: 5 }],
   ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
   ['wave', 'Wave', 'mm', 1, 0, 30],   // 0: the row as it is; more: waves along it (the owner, 2026-10-02)
-  ['speed', 'Brush on', 'mm/s', 1, 5, 200], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
+  ['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX],
   // the wrist through a turn, + on the right, − on the left; the brush leaves the board at ±45°,
   // the rest is reserve (2026-10-02; rembrandt.py: +60° at most)
   ['tilt', 'Wrist at a turn', '±°', 1, 0, 60],
+  // along the first and the last of a row the brush lands and lifts on the move (2026-10-02); longer where the wrist needs it
+  ['tail', 'Tail', 'mm', 5, 20, 200],
 ];
 // a dot every step, a bigger one with its number every `label`, as on
 // Calibration; a scale across zero signs its numbers
@@ -84,7 +86,7 @@ $('#pause').onchange = e => { S.pause = e.target.checked; update(); };
 
 // ---------- the plan, drawn on the board ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
-// the table round the board, mm: wider across, where the wrist drags the brush past the rows' ends
+// the table round the board, mm: wider across, where rows may run past it
 const PAD_X = 20, PAD_Y = 20 + DRAG_MM, tableW = () => S.boardW + 2 * PAD_Y, tableH = () => S.boardH + 2 * PAD_X;
 let P = xyPlan(S), k = 1, dpr = 1;
 function layout() {
@@ -106,10 +108,13 @@ function drawOn(c, kk, W, H) {
   c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * k, S.boardH * k);
   c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-hw) + .5, sy(hh) + .5, S.boardW * k - 1, S.boardH * k - 1);
   c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-hw + m), sy(hh - m), (S.boardW - 2 * m) * k, (S.boardH - 2 * m) * k); c.setLineDash([]);
-  c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = BRUSH_MM * k;   // the brush's trace (est.)
-  for (const line of P.preview) {   // black; D's passes in their paints
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  for (const line of P.preview) {   // black; D's passes in their paints; the brush's trace (est.), thinner as it lifts in a tail
     c.strokeStyle = line.pass ? PASSES[line.pass].color : '#1B1A19';
-    c.beginPath(); line.forEach((q, i) => i ? c.lineTo(sx(q.y), sy(q.x)) : c.moveTo(sx(q.y), sy(q.x))); c.stroke();
+    for (let i = 1; i < line.length; i++) {
+      c.lineWidth = BRUSH_MM * k * Math.max(0.15, (line[i - 1].k + line[i].k) / 2);
+      c.beginPath(); c.moveTo(sx(line[i - 1].y), sy(line[i - 1].x)); c.lineTo(sx(line[i].y), sy(line[i].x)); c.stroke();
+    }
   }
   c.strokeStyle = '#EB7A25'; c.lineWidth = 1.5;                                             // Here: the board's centre
   c.beginPath(); c.moveTo(sx(-8), sy(0)); c.lineTo(sx(8), sy(0)); c.moveTo(sx(0), sy(-8)); c.lineTo(sx(0), sy(8)); c.stroke();
@@ -123,8 +128,9 @@ function update() {
   document.querySelectorAll('#patD button').forEach(b => b.classList.toggle('on', S.pattern === 'D' && (S.passes || []).includes(b.dataset.d)));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
   $('#pause').checked = S.pause && !S.snake;
-  // C, the snake: the turn is the row to row, and a continuous line has no pause
-  $('#sliders input[data-k="turn"]').disabled = !!S.snake;
+  // C, the snake: the turn is the row to row, and a continuous line has no pause; its Turn
+  // slider hidden, not greyed (the owner, 2026-10-02: "it only takes room")
+  $('#sliders input[data-k="turn"]').closest('label').hidden = !!S.snake;
   for (const [k, , unit] of SLIDERS) {
     const inp = $(`#sliders input[data-k="${k}"]`);
     if (document.activeElement !== inp) inp.value = S[k];
@@ -141,7 +147,8 @@ function update() {
     ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down${P.lifts ? '' : ' all the way'}, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
     : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
     + (P.turns ? ` · the wrist ±${S.tilt}° through ${P.turns} turns` + (P.lifts ? ', the brush off the board there' : '') : '')
-    + ` · drawn as the brush paints: the wrist drags it ${DRAG_MM} mm along the rows as it lands and lifts (est.)`
+    + ` · the brush lands and lifts on the move over ${S.tail} mm of each row's ends, the carriage stepping aside so the tip keeps to the row; the wrist up to ${fmt(P.need, 0)}°/s (est.)`
+    + (P.need > WRIST_MAX ? ` <span class="warn">The wrist goes ${WRIST_MAX}°/s at most: a longer Tail or a slower brush.</span>` : '')
     + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
@@ -167,7 +174,7 @@ $('#btnHere').onclick = async () => {
 // one): said here before the run, not as "did not get there" after it.
 function walls() {
   if (!S.here) return '';
-  const R = reach(), b = P.box, x0 = S.here.x + b.x0, x1 = S.here.x + b.x1, y0 = S.here.y + b.y0, y1 = S.here.y + b.y1;
+  const R = reach(), b = P.carriage, x0 = S.here.x + b.x0, x1 = S.here.x + b.x1, y0 = S.here.y + b.y0, y1 = S.here.y + b.y1;
   const out = [x0 < R.x.min && `${fmt(R.x.min - x0, 0)} mm past the bottom wall`, x1 > R.x.max && `${fmt(x1 - R.x.max, 0)} mm past the top wall`,
     y0 < R.y.min && `${fmt(R.y.min - y0, 0)} mm past the left wall`, y1 > R.y.max && `${fmt(y1 - R.y.max, 0)} mm past the right wall`].filter(Boolean);
   return out.length ? `The brush would go ${out.join(', ')}: move Here or make the pattern smaller.` : '';
@@ -177,19 +184,28 @@ function walls() {
 // (the owner, 2026-10-02). An SVG of the board in mm with the rows, the
 // settings in its metadata, and a PNG preview; the Library opens it here.
 // every setting of the test: SAVE TEST keeps them, and each run writes them to the journal
-const settingsNow = () => Object.fromEntries(['pattern', 'passes', 'shift', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+const settingsNow = () => Object.fromEntries(['pattern', 'passes', 'shift', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'tail', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
 function testLabel() { return `${S.pattern === 'D' ? (S.passes || []).join('+') : S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
 function testSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
   const settings = settingsNow();
   const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
-  const rows = P.preview.map(line => `  <path${line.pass ? ` stroke="${PASSES[line.pass].color}"` : ''} d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
+  // a path for every stretch of one width: the brush's weight, in tenths, thinner in the tails
+  const rows = P.preview.flatMap(line => {
+    const out = [], wd = i => Math.round(10 * Math.max(0.15, (line[i - 1].k + line[i].k) / 2)) / 10;
+    for (let i = 1; i < line.length;) {
+      const w = wd(i), pts = [line[i - 1]];
+      while (i < line.length && wd(i) === w) pts.push(line[i++]);
+      out.push(`  <path${line.pass ? ` stroke="${PASSES[line.pass].color}"` : ''} stroke-width="${f(BRUSH_MM * w)}" d="M${pts.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`);
+    }
+    return out;
+  }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W + 2 * DRAG_MM}mm" height="${H}mm" viewBox="${-DRAG_MM} 0 ${W + 2 * DRAG_MM} ${H}">
-<!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${DRAG_MM} mm either side of the board for the wrist's drags -->
+<!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${DRAG_MM} mm either side of the board, where rows may run past it -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
-<g fill="none" stroke="#1B1A19" stroke-width="${BRUSH_MM}" stroke-linecap="round" stroke-linejoin="round">
+<g fill="none" stroke="#1B1A19" stroke-linecap="round" stroke-linejoin="round">
 ${rows}
 </g>
 </svg>`;
