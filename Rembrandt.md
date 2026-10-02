@@ -86,6 +86,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **No machine-drawn outlines.** The pencil sits in the same spring holder as
   the MOLOTOW marker and drifts from run to run. **No projector.**
   (2026-10-01)
+- **No pencils any more: watercolour** (the owner, 2026-10-02, "first the
+  canon"). The machine lays a light trace of the line in watercolour before
+  the main run in thick acrylic. Drops are an alternative to a stroke, but
+  the brush itself follows the contour on the canvas more exactly. "The
+  more water, the better."
 - **Paint goes on by eye for now, and the way ahead is the brush dipping
   into cups** at the edges of the frame (the owner, 2026-10-02). From the
   tube onto the canvas where Create's drop map shows, for the first tests.
