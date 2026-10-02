@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Calibration: the shoulder's and the elbow's handles back** (the owner,
+  2026-10-02, the same night: "I only see WRIST — bring the sliders back, I
+  have nothing to turn them with"). Which way each plus goes is to be found
+  on the machine, 5° at a time. The new servos, ids 14 and 15 from the
+  factory, are 1 and 2 now (`I`), the wrist kept 3. The arm's zero in
+  `calibration.json` is, for now, where they stood after power-on — under
+  the old servos' zero the handles read +59° and +70°, and one pull could
+  have driven the elbow 100° into the canvas; the working pose is to be
+  taken.
 - **Firmware `B` and `I`: the servo bus scanned, an id changed** (2026-10-02,
   the new ST3235s: with the 12 V on only id 3 answered, 1 and 2 were silent).
   `B` lists the ids that answer, 0…253, nothing moving; `I <from> <to>`

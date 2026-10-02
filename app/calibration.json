@@ -49,10 +49,10 @@
     }
   },
   "arm": {
-    "shoulder": 2498,
-    "elbow": 2039,
-    "wrist": 1599,
-    "at": "2026-09-30T01:45:00+02:00",
-    "note": "the owner set the arm to the middle of the field with the handles (2026-09-28); the wrist zero set 2026-09-30 to the brush standing upright, raw 1599 read from the servo (it was 1492, 9.4 degrees off)"
+    "shoulder": 3173,
+    "elbow": 2834,
+    "wrist": 1651,
+    "at": "2026-10-02T23:12:20+02:00",
+    "note": "TEMPORARY, 2026-10-02 night: three new ST3235 servos (ids 14, 15, 3 from the factory; 14 and 15 set to 1 and 2), the elbow remounted to lift the brush. The zero is where they stood after power-on, so the handles move from there; the working pose is to be taken. The old servos' zero was shoulder 2498, elbow 2039, wrist 1599."
   }
 }
