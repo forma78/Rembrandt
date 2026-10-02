@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Calibration: the wrist to +180°** (the owner, 2026-10-02, the new arm:
+  "give me the WRIST slider more to the plus, to +180 — there is nowhere to
+  grip on the left to lower the brush, bristles to the canvas"). `REACH`
+  −90…+180°, the handle and its scale too; the handle itself had still
+  stopped at +10°, the camera's limit of 2026-09-30, while its scale read
+  +60. A move past the firmware's 150° step goes in two.
 - **The new arm's signs** (the owner, 2026-10-02, on Calibration: "you
   guessed the shoulder, even minus and plus"; "in the ELBOW swap minus and
   plus — at −19.8 it goes up"; "the WRIST says +9.4 — it lies, that is its

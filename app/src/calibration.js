@@ -144,7 +144,7 @@ addEventListener('pagehide', () => { if (moving()) fetch('/machine/cmd?a=S&n=0',
 // the working pose (rubens.py, class Arm): the servos say where they are, so
 // a handle moves its joint from where it really is, whatever zero the board
 // took at power-on. A joint moves when the handle is let go.
-const ARM = [['shoulder', 'Shoulder', -45, 45], ['elbow', 'Elbow', -45, 45], ['wrist', 'Wrist', -90, 60]];
+const ARM = [['shoulder', 'Shoulder', -45, 45], ['elbow', 'Elbow', -45, 45], ['wrist', 'Wrist', -90, 180]];   // the wrist to +180°: the new arm, 2026-10-02
 const armBusy = new Set();
 function servoTicks(el, lo, hi) {
   const every = Math.max(-lo, hi) / 3;   // a label every 15° on ±45°, every 30° on the wrist, and at both ends

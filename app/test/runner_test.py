@@ -595,7 +595,7 @@ class WristOnPathTest(unittest.TestCase):
     def test_a_w_past_the_reach_is_refused_before_anything_moves(self):
         b = FakeBoard()
         bad = self.blocks()
-        bad[2]["cmds"] = ["F 20", "W 61 88", "L 1.00 50.00", "G"]
+        bad[2]["cmds"] = ["F 20", "W 181 88", "L 1.00 50.00", "G"]
         ok, msg = self.runner(b).start(bad)
         self.assertFalse(ok)
         self.assertIn("camera", msg)
@@ -683,22 +683,23 @@ class ArmTest(unittest.TestCase):
 
     def test_the_brush_leaves_the_canvas_the_other_way_now(self):
         self.assertEqual(SWING_DEG, -54)
-        self.assertEqual(REACH["wrist"], (-90, 60))
+        self.assertEqual(REACH["wrist"], (-90, 180))                # the new arm, 2026-10-02
 
-    def test_the_wrist_past_plus_60_is_refused_and_nothing_moves(self):
-        for deg in (61, 75, 90):
+    def test_the_wrist_past_plus_180_is_refused_and_nothing_moves(self):
+        for deg in (181, 200, 270):
             b = FakeBoard()
             with self.assertRaises(ArmError, msg=deg):
                 self.arm(b).move_to("wrist", deg)
             self.assertEqual([c for c in b.log if c.startswith("J")], [], f"{deg}°: a J was sent")
 
-    def test_the_wrist_goes_to_plus_60_and_never_steps_past_it(self):
-        for start in (-45.6, -45.4, -90, 0, 59.4):
+    def test_the_wrist_goes_to_plus_180_and_never_steps_past_it(self):
+        for start in (-45.6, -45.4, -90, 0, 59.4, 179.4):
             b = FakeBoard()
             b.raw[3] = self.ZERO["wrist"] + round(start * TICKS_PER_DEG)
-            got = self.arm(b).move_to("wrist", 60)
-            self.assertLessEqual(self.wrist_deg(b), 60.05, f"from {start}°: {self.wrist_deg(b):.2f}°")
-            self.assertLessEqual(got, 60.05)
+            got = self.arm(b).move_to("wrist", 180)
+            self.assertLessEqual(self.wrist_deg(b), 180.05, f"from {start}°: {self.wrist_deg(b):.2f}°")
+            self.assertGreater(self.wrist_deg(b), 179.3, f"from {start}°: {self.wrist_deg(b):.2f}°: got there, in two steps if need be")
+            self.assertLessEqual(got, 180.05)
 
     def test_a_tilted_brush_is_still_on_the_canvas(self):
         b = FakeBoard()
@@ -720,10 +721,10 @@ class ArmTest(unittest.TestCase):
         self.assertFalse(r.brush_on)
         self.assertEqual(r.wrist, 0)                              # Continue would bring back the last on the canvas
 
-    def test_a_job_from_before_the_camera_does_not_start(self):
+    def test_a_wrist_past_the_reach_does_not_start(self):
         b = FakeBoard()
         r = Runner(b.send, sleep=b.sleep, swing_s=0.2, arm=self.arm(b))
-        old = {"kind": "arm", "cmd": "J 3 90", "off": True}
+        old = {"kind": "arm", "cmd": "J 3 190", "off": True}           # +90° before the camera; +180° the reach since the new arm
         ok, msg = r.start([old, travel(100, 20), arm(False), paint(3), old])
         self.assertFalse(ok)
         self.assertIn("camera", msg)
@@ -735,7 +736,7 @@ class ArmTest(unittest.TestCase):
         r = Runner(b.send, sleep=b.sleep, swing_s=0.2)
         r.blocks = []
         with self.assertRaises(Exception):
-            r._arm("J 3 90")
+            r._arm("J 3 190")
         self.assertEqual([c for c in b.log if c.startswith("J")], [])
 
     def test_a_job_makes_the_whole_arm_hold_before_anything_moves(self):
