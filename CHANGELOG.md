@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the turns at ±45°, and the preview draws what the brush paints**
+  (the owner, 2026-10-02: the brush leaves the board at ±45°, measured on
+  Calibration). The wrist is +45° at a right end and −45° at a left one by
+  default, and a turn runs in the air: its move counts no paint. The board
+  is drawn with the brush's own trace — the wrist moves the tip along Y
+  only, by 50 mm between touching the board and upright (a ruler), so the
+  landing and the lift drag 50 mm along the rows, and a tilted stretch
+  short of 45° is painted shifted along Y (18 mm at 15°). The table round
+  the board, and the test's SVG, are 50 mm wider either side for it.
 - **The wrist up to +45°; the brush leaves the canvas at ±45°** (the owner,
   on Calibration, 2026-10-02: +15° was not enough, the brush stayed on the
   canvas; it leaves at −45°, and "the camera lets it squeeze past to +45°

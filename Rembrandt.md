@@ -358,13 +358,17 @@ this section disagree, this section wins: the owner corrected the sketch on
   `test_results/`). At a turn the bristles flipped over: "+15° at the end
   of the right run, −15° at the end of the left one, so the bristles do not
   leave a fat mark and the brush is not spoilt"; upright again once the
-  turn is done (**Wrist at a turn**, ±°, est.). The wrist goes to +15° at
-  most now — the owner allowed it past the camera's +10°. Coming down from
-  −54° the brush touches the board ~50 mm before the row (a ruler) and
-  drags there. A carriage standing 50 mm into the row was tried and
-  dropped the same day: the drag runs along Y only, a bowed row starts at a
-  slant, and the row bent off its arc and left a gap — the owner: "fix it
-  as it was". Open.
+  turn is done (**Wrist at a turn**, ±°). ±15° left the brush on the
+  board; on Calibration it leaves at −45°, and the camera lets the wrist
+  past to +45° — so the turns go at ±45°, in the air, and the wrist goes
+  to +45° at most. Coming down from −54° the brush touches the board
+  ~50 mm before the row (a ruler) and drags there; lifting, it drags as
+  far the other way. The Test tab draws the brush's own trace by these two
+  numbers (a tip ≈ 71 mm from the wrist's axis, est.): the drags, and a
+  tilted stretch shifted along Y. A carriage standing 50 mm into the row
+  was tried and dropped the same day: the drag runs along Y only, a bowed
+  row starts at a slant, and the row bent off its arc and left a gap — the
+  owner: "fix it as it was". Open.
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.

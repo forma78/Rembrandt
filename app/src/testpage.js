@@ -6,7 +6,7 @@
 
 import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
-import { xyPlan, PATTERNS, DEFAULTS } from './strokes.js';
+import { xyPlan, PATTERNS, DEFAULTS, DRAG_MM } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import './ui.js';
@@ -25,8 +25,8 @@ const SLIDERS = [
   ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 1, 4, 80],
   ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
   ['speed', 'Brush on', 'mm/s', 1, 5, 120], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
-  // the wrist through a turn, + on the right, − on the left (2026-10-02; rembrandt.py: +15° at most)
-  ['tilt', 'Wrist at a turn', '±°', 1, 0, 15],
+  // the wrist through a turn, + on the right, − on the left; the brush leaves the board at ±45° (2026-10-02; rembrandt.py: +45° at most)
+  ['tilt', 'Wrist at a turn', '±°', 1, 0, 45],
 ];
 const shown = (k, unit) => unit === '±°' ? (S[k] ? `±${S[k]}°` : '0°') : `${S[k]}${unit ? ' ' + unit : ''}`;
 const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
@@ -39,9 +39,11 @@ $('#pause').onchange = e => { S.pause = e.target.checked; update(); };
 
 // ---------- the plan, drawn on the board ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
+// the table round the board, mm: wider across, where the wrist drags the brush past the rows' ends
+const PAD_X = 20, PAD_Y = 20 + DRAG_MM, tableW = () => S.boardW + 2 * PAD_Y, tableH = () => S.boardH + 2 * PAD_X;
 let P = xyPlan(S), k = 1, dpr = 1;
 function layout() {
-  const r = stage.getBoundingClientRect(), m = 36, sw = S.boardW + 40, sh = S.boardH + 40;
+  const r = stage.getBoundingClientRect(), m = 36, sw = tableW(), sh = tableH();
   k = Math.max(0.2, Math.min((r.width - 2 * m) / sw, (r.height - 2 * m) / sh));
   dpr = window.devicePixelRatio || 1;
   const w = Math.round(sw * k), h = Math.round(sh * k);
@@ -53,7 +55,7 @@ function layout() {
 function draw() { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); drawOn(ctx, k, cv.width, cv.height); }
 // The board and the rows on c, kk px a mm (the caller sets the transform).
 function drawOn(c, kk, W, H) {
-  const sx = y => ((S.boardW + 40) / 2 + y) * kk, sy = x => ((S.boardH + 40) / 2 - x) * kk, k = kk;
+  const sx = y => (tableW() / 2 + y) * kk, sy = x => (tableH() / 2 - x) * kk, k = kk;
   const hw = S.boardW / 2, hh = S.boardH / 2, m = S.margin;
   c.fillStyle = themeColor('--stage', '#E2DED6'); c.fillRect(0, 0, W, H);   // the table, dark by night
   c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * k, S.boardH * k);
@@ -81,9 +83,10 @@ function update() {
   }
   $('#pause').disabled = !!S.snake; $('#pause').parentElement.classList.toggle('off', !!S.snake);
   $('#planRead').innerHTML = (P.snake
-    ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down all the way, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
+    ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down${P.lifts ? '' : ' all the way'}, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
     : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
-    + (P.turns ? ` · the wrist ±${S.tilt}° through ${P.turns} turns (est.)` : '')
+    + (P.turns ? ` · the wrist ±${S.tilt}° through ${P.turns} turns` + (P.lifts ? ', the brush off the board there' : '') : '')
+    + ` · drawn as the brush paints: the wrist drags it ${DRAG_MM} mm along the rows as it lands and lifts (est.)`
     + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern}`;
@@ -125,8 +128,8 @@ function testSvg() {
   const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rows = P.preview.map(line => `  <path d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm -->
+<svg xmlns="http://www.w3.org/2000/svg" width="${W + 2 * DRAG_MM}mm" height="${H}mm" viewBox="${-DRAG_MM} 0 ${W + 2 * DRAG_MM} ${H}">
+<!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${DRAG_MM} mm either side of the board for the wrist's drags -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
 <g fill="none" stroke="#1B1A19" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
@@ -135,8 +138,8 @@ ${rows}
 </svg>`;
 }
 function testPng() {
-  const kk = 800 / Math.max(S.boardW + 40, S.boardH + 40), c2 = document.createElement('canvas');
-  c2.width = Math.round((S.boardW + 40) * kk); c2.height = Math.round((S.boardH + 40) * kk);
+  const kk = 800 / Math.max(tableW(), tableH()), c2 = document.createElement('canvas');
+  c2.width = Math.round(tableW() * kk); c2.height = Math.round(tableH() * kk);
   drawOn(c2.getContext('2d'), kk, c2.width, c2.height);
   return c2.toDataURL('image/png');
 }

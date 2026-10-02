@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, plotPaths, PATTERNS } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS, tipY, LIFT_DEG, DRAG_MM } from '../src/strokes.js';
 
 const PLOTTER = { tilt: 0 };   // the plotter's own path, the broom aside
 
@@ -8,7 +8,11 @@ test('A and B fit the 30 × 30 board inside its margins', () => {
   for (const k of ['A', 'B']) {
     const p = xyPlan({ ...PATTERNS[k] });
     assert.ok(p.fits, `${k}: ${p.width} × ${p.height} in ${p.room.w} × ${p.room.h}`);
-    for (const line of p.preview) for (const q of line) assert.ok(Math.abs(q.x) <= p.room.h / 2 + 1e-6 && Math.abs(q.y) <= p.room.w / 2 + 1e-6, `${k}: ${q.x}, ${q.y}`);
+    // the carriage's path; the wrist's drags reach past it (the preview draws them)
+    for (const c of p.blocks.filter(b => b.kind === 'move').flatMap(b => b.cmds).filter(c => /^[LAM]/.test(c))) {
+      const [x, y] = c.split(' ').slice(-2 - (c[0] === 'A')).map(Number);
+      assert.ok(Math.abs(x) <= p.room.h / 2 + 1e-6 && Math.abs(y) <= p.room.w / 2 + 1e-6, `${k}: ${c}`);
+    }
   }
 });
 
@@ -60,7 +64,8 @@ test('C, the snake: one path, the brush down once, the turns round on the right 
   assert.equal(lines[0].split(' ')[2], (280 + 110).toFixed(2), 'row 1 ends on the right');
   assert.equal(lines[1].split(' ')[2], (280 - 110).toFixed(2), 'row 2 ends on the left');
   assert.equal(p.blocks.find(b => b.paintMM).painted.length, 2 * PATTERNS.C.rows - 1);
-  for (const q of p.preview[0]) assert.ok(q.y >= p.box.y0 - 1e-9 && q.y <= p.box.y1 + 1e-9 && q.x >= p.box.x0 - 1e-9 && q.x <= p.box.x1 + 1e-9);
+  for (const q of p.preview[0]) assert.ok(q.y >= p.box.y0 - DRAG_MM - 1e-9 && q.y <= p.box.y1 + DRAG_MM + 1e-9 && q.x >= p.box.x0 - 1e-9 && q.x <= p.box.x1 + 1e-9,
+    'the brush within the box but for the wrist\'s drags along Y');
 });
 
 test('the board: width and height apart — 400 × 600 holds a snake 26 rows long, 300 × 300 does not', () => {
@@ -101,23 +106,24 @@ test('a bowed row: an arc whose middle lies bow mm lower; the snake stays smooth
 // ---------- the wrist (the owner, 2026-10-02, test_results/: the 15-row snake) ----------
 const J = p => p.blocks.filter(b => b.kind === 'arm').map(b => b.cmd);
 
-test('the broom: the wrist +15° through a turn on the right, −15° on the left, upright along the rows; the brush down once', () => {
+test('the broom: the wrist +45° through a turn on the right, −45° on the left, upright along the rows; down from −54° once', () => {
   const p = xyPlan({ ...PATTERNS.C, rows: 15, pitch: 10, length: 255, bow: 36 });
-  const turns = Array.from({ length: 14 }, (_, k) => [k % 2 ? 'J 3 -15' : 'J 3 15', 'J 3 0']).flat();
+  const turns = Array.from({ length: 14 }, (_, k) => [k % 2 ? 'J 3 -45' : 'J 3 45', 'J 3 0']).flat();
   assert.deepEqual(J(p), ['J 3 -54', 'J 3 0', ...turns, 'J 3 -54']);
   assert.equal(p.turns, 14);
-  const moves = p.blocks.filter(b => b.paintMM);
+  assert.equal(p.lifts, 14, 'at 45° the brush is off the board through every turn');
+  const moves = p.blocks.filter(b => b.kind === 'move' && b.lengthMM);
   assert.equal(moves.length, 29, '15 rows and 14 turns, a move each');
   for (const [i, b] of moves.entries()) {
     const pieces = b.cmds.filter(c => /^[LA]/.test(c));
-    assert.ok(i % 2 ? pieces.some(c => c[0] === 'A') : pieces.length === 1, `move ${i}: ${pieces.join(' | ')}`);
+    assert.ok(i % 2 ? pieces.some(c => c[0] === 'A') && b.paintMM === 0 : pieces.length === 1 && b.paintMM > 0, `move ${i}: ${pieces.join(' | ')}`);
   }
   assert.equal(p.blocks.filter(b => b.kind === 'pause').length, 0, 'no pause in a continuous line');
 });
 
-test('the broom in A and B: the hairpin\'s turn on the right at +15°, then the row back upright, then the hook', () => {
+test('the broom in A and B: the hairpin\'s turn on the right at +45°, then the row back upright, then the hook', () => {
   const p = xyPlan({ ...PATTERNS.B, pause: false });
-  assert.deepEqual(J(p), ['J 3 -54', ...Array.from({ length: PATTERNS.B.rows }, () => ['J 3 0', 'J 3 15', 'J 3 0', 'J 3 -54']).flat()]);
+  assert.deepEqual(J(p), ['J 3 -54', ...Array.from({ length: PATTERNS.B.rows }, () => ['J 3 0', 'J 3 45', 'J 3 0', 'J 3 -54']).flat()]);
 });
 
 test('tilt 0: no broom, the snake one move as before', () => {
@@ -126,9 +132,47 @@ test('tilt 0: no broom, the snake one move as before', () => {
   assert.equal(p.blocks.filter(b => b.paintMM).length, 1);
 });
 
-test('the wrist never past the reach of rembrandt.py: −90…+15°', () => {
+test('the wrist never past the reach of rembrandt.py: −90…+45°', () => {
   for (const k of ['A', 'B', 'C']) for (const c of J(xyPlan({ ...PATTERNS[k] }))) {
     const d = +c.split(' ')[2];
-    assert.ok(d >= -90 && d <= 15, c);
+    assert.ok(d >= -90 && d <= 45, c);
   }
+});
+
+// ---------- what the brush paints: the wrist drags it along Y (2026-10-02) ----------
+const near = (q, x, y, mm = 1e-6) => Math.hypot(q.x - x, q.y - y) < mm;
+test('the wrist\'s drag: 50 mm between touching the board at ±45° and upright, along Y, plus to the right', () => {
+  assert.equal(LIFT_DEG, 45);
+  assert.ok(Math.abs(tipY(45) - DRAG_MM) < 1e-9 && Math.abs(tipY(-45) + DRAG_MM) < 1e-9 && tipY(0) === 0);
+  assert.ok(Math.abs(tipY(15) - 18.3) < 0.05, `${tipY(15)}`);
+});
+
+test('the snake upright: one stroke, the landing drag 50 mm before the first row, the hook back over the last', () => {
+  const p = xyPlan({ ...PATTERNS.C, tilt: 0 }), row = plotPaths({ ...PATTERNS.C, tilt: 0 })[0], k = p.preview[0];
+  assert.equal(p.preview.length, 1);
+  const mid = { x: k[1].x - row[0].a.x, y: k[1].y - row[0].a.y };   // the plan centred on Here
+  assert.ok(near(k[0], row[0].a.x + mid.x, row[0].a.y + mid.y - 50), 'touches 50 mm left of the start');
+  assert.ok(near(k[1], row[0].a.x + mid.x, row[0].a.y + mid.y), 'and drags to it');
+  const end = row.at(-1).b;
+  assert.ok(near(k.at(-1), end.x + mid.x, end.y + mid.y - 50), 'the last row ends on the left: the hook 50 mm further left');
+});
+
+test('the broom at 15°: the brush stays on the board, the turn painted 18 mm out past the carriage\'s', () => {
+  const p = xyPlan({ ...PATTERNS.C, tilt: 15 });
+  assert.equal(p.preview.length, 1, 'never off the board');
+  assert.equal(p.lifts, 0);
+  const plain = xyPlan({ ...PATTERNS.C, tilt: 0 });
+  const far = l => Math.max(...l.map(q => q.y));
+  assert.ok(Math.abs(far(p.preview[0]) - far(plain.preview[0]) - tipY(15)) < 0.1);
+});
+
+test('the broom at 45°: a stroke a row, each 50 mm longer at either end — the lift and the landing drag along Y', () => {
+  const p = xyPlan({ ...PATTERNS.C, rows: 4 }), rows = plotPaths({ ...PATTERNS.C, rows: 4 })[0].filter(g => !g.tilt);
+  assert.equal(p.preview.length, 4);
+  const dy = p.preview[0][1].y - rows[0].a.y, dx = p.preview[0][1].x - rows[0].a.x;
+  p.preview.forEach((k, i) => {
+    const s = Math.sign(rows[i].b.y - rows[i].a.y);
+    assert.ok(near(k[0], rows[i].a.x + dx, rows[i].a.y + dy - 50 * s), `row ${i + 1}: lands 50 mm before its start`);
+    assert.ok(near(k.at(-1), rows[i].b.x + dx, rows[i].b.y + dy + 50 * s), `row ${i + 1}: lifts 50 mm past its end`);
+  });
 });
