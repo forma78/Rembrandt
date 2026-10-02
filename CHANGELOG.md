@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the landing and the broom** (the owner, 2026-10-02, the 15-row
+  snake, `test_results/`). The brush, laid down from −54°, touched the board
+  50 mm before the row and left a blob there (a ruler): the carriage now
+  stands 50 mm into the row as the wrist comes down, so the drag is the
+  row's first 50 mm; on a bowed row the rest goes on as an arc to the row's
+  end, leaving it as the row did. At a turn the bristles flipped over: the
+  wrist goes +15° at the end of a row to the right, −15° at the end of a row
+  to the left, and upright again once the turn is done (the owner: "back to
+  0° after the turn"). Two sliders, **Landing** (mm) and **Wrist at a turn**
+  (±°, est.); 0 gives the old continuous snake. SAVE TEST keeps both.
 - **The wrist up to +15°** (the owner, 2026-10-02, asked whether the camera
   on the holder clears it: "Allow up to +15°"): `REACH` in `rembrandt.py`
   and the Wrist handle on Calibration go −90…+15° (+10° since the camera,

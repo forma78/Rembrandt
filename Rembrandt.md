@@ -354,6 +354,15 @@ this section disagree, this section wins: the owner corrected the sketch on
   numbers. **💾 SAVE TEST** puts a test in the Library, on a second shelf
   under a line — paintings above, tests below — and the Library opens it
   on the Test tab (the owner, 2026-10-02).
+  **The wrist on the board** (the owner, 2026-10-02, the 15-row snake in
+  `test_results/`): coming down from −54° the brush touched the board
+  50 mm before the row (a ruler) and left a fat blob there, so the carriage
+  stands 50 mm into the row as the brush comes down — the drag is the
+  row's start (**Landing**, mm). At a turn the bristles flipped over: "+15°
+  at the end of the right run, −15° at the end of the left one, so the
+  bristles do not leave a fat mark and the brush is not spoilt"; upright
+  again once the turn is done (**Wrist at a turn**, ±°, est.). The wrist
+  goes to +15° at most now — the owner allowed it past the camera's +10°.
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.
