@@ -685,6 +685,13 @@ class ArmTest(unittest.TestCase):
         self.assertEqual(SWING_DEG, -54)
         self.assertEqual(REACH["wrist"], (-120, 90))                # the new arm, 2026-10-02: "+90, no further", "−120, not −180"
 
+    def test_the_camera_is_named_only_past_the_plus_end(self):
+        with self.assertRaisesRegex(ArmError, "camera"):
+            self.arm(FakeBoard()).move_to("wrist", 95)
+        with self.assertRaises(ArmError) as e:
+            self.arm(FakeBoard()).move_to("wrist", -130)
+        self.assertNotIn("camera", str(e.exception))
+
     def test_the_elbow_never_presses_past_minus_5(self):
         # the owner, 2026-10-02: "−5 max, or it tears the canvas or breaks the brush"
         self.assertEqual(REACH["elbow"], (-5, 45))

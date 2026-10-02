@@ -393,7 +393,7 @@ class Arm:
         lo, hi = REACH[joint]
         if not lo <= deg <= hi:
             raise ArmError(f"the {joint} may go {lo}…+{hi}° only, not {deg:+g}°"
-                           + (f": the camera is in the way past +{hi}°" if joint == "wrist" else ""))
+                           + (f": the camera is in the way past +{hi}°" if joint == "wrist" and deg > hi else ""))
         with self.lock:
             self.stopped.clear()
             for _ in range(6):
