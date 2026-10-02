@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The wrist to +90° at most; where the brush leaves the canvas** (the
+  owner, 2026-10-02, night: "cut the WRIST boldly to +90°, no further —
+  that is the limit"; "the angle for painting, when it lifts off, is +60°,
+  but mind that gives us the broom again"; "the elbow lifts off at +15°").
+  `REACH` −180…+90°, the handle too; `ELBOW_LIFT_DEG` 15 and
+  `WRIST_LIFT_DEG` 60 in `rembrandt.py`, measured.
 - **The new arm's working pose: zero is the active mode** (the owner,
   2026-10-02, night: "zero is the active mode, the brush pressed to the
   canvas", the arm perfectly straight, `machine/IMAGE 2026-10-02

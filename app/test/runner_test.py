@@ -683,23 +683,23 @@ class ArmTest(unittest.TestCase):
 
     def test_the_brush_leaves_the_canvas_the_other_way_now(self):
         self.assertEqual(SWING_DEG, -54)
-        self.assertEqual(REACH["wrist"], (-180, 130))               # the new arm, 2026-10-02: round the active pose
+        self.assertEqual(REACH["wrist"], (-180, 90))                # the new arm, 2026-10-02: "+90, no further"
 
-    def test_the_wrist_past_plus_130_is_refused_and_nothing_moves(self):
-        for deg in (131, 181, 270):
+    def test_the_wrist_past_plus_90_is_refused_and_nothing_moves(self):
+        for deg in (91, 131, 270):
             b = FakeBoard()
             with self.assertRaises(ArmError, msg=deg):
                 self.arm(b).move_to("wrist", deg)
             self.assertEqual([c for c in b.log if c.startswith("J")], [], f"{deg}°: a J was sent")
 
-    def test_the_wrist_goes_to_plus_130_and_never_steps_past_it(self):
-        for start in (-125.6, -45.4, -90, 0, 59.4, 129.4):
+    def test_the_wrist_goes_to_plus_90_and_never_steps_past_it(self):
+        for start in (-125.6, -45.4, -90, 0, 59.4, 89.4):
             b = FakeBoard()
             b.raw[3] = self.ZERO["wrist"] + round(start * TICKS_PER_DEG)
-            got = self.arm(b).move_to("wrist", 130)
-            self.assertLessEqual(self.wrist_deg(b), 130.05, f"from {start}°: {self.wrist_deg(b):.2f}°")
-            self.assertGreater(self.wrist_deg(b), 129.3, f"from {start}°: {self.wrist_deg(b):.2f}°: got there, in two steps if need be")
-            self.assertLessEqual(got, 130.05)
+            got = self.arm(b).move_to("wrist", 90)
+            self.assertLessEqual(self.wrist_deg(b), 90.05, f"from {start}°: {self.wrist_deg(b):.2f}°")
+            self.assertGreater(self.wrist_deg(b), 89.3, f"from {start}°: {self.wrist_deg(b):.2f}°: got there, in two steps if need be")
+            self.assertLessEqual(got, 90.05)
 
     def test_a_tilted_brush_is_still_on_the_canvas(self):
         b = FakeBoard()
