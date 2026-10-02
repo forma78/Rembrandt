@@ -626,7 +626,7 @@ class ArmTest(unittest.TestCase):
         b = FakeBoard()
         b.raw = {1: 1742, 2: 1678, 3: 3535}            # 2026-09-28: the brush upside down, the shoulder 67° off
         b.zt[3], b.tdeg[3] = 2511, 90                  # the zero the board took at +90°
-        self.assertEqual(self.arm(b).angles()[0], {"shoulder": -66.7, "elbow": -7.1, "wrist": 179.8})
+        self.assertEqual(self.arm(b).angles()[0], {"shoulder": -66.7, "elbow": 7.1, "wrist": 179.8})   # the elbow's plus up since 2026-10-02
         self.arm(b).move_to("wrist", SWING_DEG)
         self.near(b.raw[3], 1489 + round(SWING_DEG * TICKS_PER_DEG))
         self.assertEqual((b.raw[1], b.raw[2]), (1742, 1678))   # the others only hold
@@ -660,8 +660,8 @@ class ArmTest(unittest.TestCase):
         self.near(b.raw[1], 2501 + round(15 * TICKS_PER_DEG))      # where −15° of the firmware takes it
         self.assertTrue(all(c.startswith("J 1 -") for c in b.log if c.startswith("J 1")))
         self.assertEqual(self.arm(b).angles()[0]["shoulder"], 15)
-        self.arm(b).move_to("elbow", 15)
-        self.near(b.raw[2], 1759 + round(15 * TICKS_PER_DEG))
+        self.arm(b).move_to("elbow", 15)                          # the elbow lifts since 2026-10-02: plus is up, the firmware's minus
+        self.near(b.raw[2], 1759 - round(15 * TICKS_PER_DEG))
         self.arm(b).move_to("wrist", -45)
         self.near(b.raw[3], 1489 - round(45 * TICKS_PER_DEG))
 

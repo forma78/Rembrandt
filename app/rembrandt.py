@@ -303,7 +303,9 @@ JOINTS = {"shoulder": (1, -1, 45), "elbow": (2, +1, 45), "wrist": (3, +1, 150)}
 # pendant (images_CNC_drawing_machine/servo direction.png). RUBENS turns it
 # round; once the firmware is flashed with its sign put right, this is +1.
 # The wrist: minus left, plus right, as on the pendant.
-TURN = {"shoulder": -1, "elbow": +1, "wrist": +1}
+# The elbow, remounted to lift the brush (new ST3235s, 2026-10-02): plus is
+# up — the owner: "at −19.8 it goes up; swap minus and plus".
+TURN = {"shoulder": -1, "elbow": -1, "wrist": +1}
 # How far RUBENS lets each joint go, in its own degrees. The firmware's
 # JOINT_LIMIT is wider (the wrist ±90°) and is not trusted with this: every
 # joint move goes through Arm.move_to, and it refuses anything outside.
