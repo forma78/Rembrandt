@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The new arm's signs** (the owner, 2026-10-02, on Calibration: "you
+  guessed the shoulder, even minus and plus"; "in the ELBOW swap minus and
+  plus — at −19.8 it goes up"; "the WRIST says +9.4 — it lies, that is its
+  +60; keep the scale, knock the +9.4 off"). The elbow's plus is up now
+  (`TURN` in `rembrandt.py`, −1); the wrist's zero is set so that pose reads
+  +60°. The shoulder's handle: plus, the brush goes right.
 - **Calibration: the shoulder's and the elbow's handles back** (the owner,
   2026-10-02, the same night: "I only see WRIST — bring the sliders back, I
   have nothing to turn them with"). Which way each plus goes is to be found

@@ -51,8 +51,8 @@
   "arm": {
     "shoulder": 3173,
     "elbow": 2834,
-    "wrist": 1651,
-    "at": "2026-10-02T23:12:20+02:00",
-    "note": "TEMPORARY, 2026-10-02 night: three new ST3235 servos (ids 14, 15, 3 from the factory; 14 and 15 set to 1 and 2), the elbow remounted to lift the brush. The zero is where they stood after power-on, so the handles move from there; the working pose is to be taken. The old servos' zero was shoulder 2498, elbow 2039, wrist 1599."
+    "wrist": 1075,
+    "at": "2026-10-02T23:17:47+02:00",
+    "note": "2026-10-02 night: three new ST3235 servos (ids 14, 15, 3 from the factory; 14 and 15 set to 1 and 2), the elbow remounted to lift the brush, plus up. The shoulder and the elbow: zero where they stood after power-on, for now — the working pose is to be taken. The wrist: the owner, \"it says +9.4 — it lies, that is its +60\": raw 1758 is +60°. The old servos' zero was shoulder 2498, elbow 2039, wrist 1599."
   }
 }
