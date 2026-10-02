@@ -371,6 +371,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   was tried and dropped the same day: the drag runs along Y only, a bowed
   row starts at a slant, and the row bent off its arc and left a gap — the
   owner: "fix it as it was". Open.
+  **Its keys** (the owner, 2026-10-02): four in two rows — **PLAY** (dark
+  grey) and **PAUSE**, one key with two states: down and dark, saying
+  CONTINUE, whenever the run waits, by hand or for the paint between D's
+  passes; then • STOP and •• HARD STOP.
   **Pattern D** (the owner, 2026-10-02, `references/IMG_9455.JPG`,
   `PATTERN-D1…3.jpg`, `PATTERN-D all.jpg`): three passes, each the snake
   of C — "keep the geometry of C", the sketches are rough on purpose — turned

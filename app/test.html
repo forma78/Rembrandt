@@ -39,10 +39,11 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <button class="btn wide" id="btnDoJob" title="Run the rows on the machine">⚡️ Do Test</button>
+      <!-- four keys in two rows (the owner, 2026-10-02): PLAY and one key for
+           Pause and Continue, then STOP and HARD STOP -->
       <div class="runkeys">
-        <button class="btn" id="btnPause">Pause</button>
-        <button class="btn" id="btnCont">Continue</button>
+        <button class="btn" id="btnDoJob" title="Run the test on the machine">PLAY</button>
+        <button class="btn" id="btnPause" title="Pause the run; pressed, Continue goes on">PAUSE</button>
       </div>
       <div class="stops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking">STOP</button>
