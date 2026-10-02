@@ -44,6 +44,19 @@ function scale(step, min, max, label) {
 }
 const shown = (k, unit) => unit === '±°' ? (S[k] ? `±${S[k]}°` : '0°') : `${S[k]}${unit ? ' ' + unit : ''}`;
 const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
+// D: where each pass lies, moved off the board's centre (the owner,
+// 2026-10-02: "the rows, the length, the bow and the wave go to all three —
+// but where they lie I want to change"). A row of X, a row of Y, a slider a
+// pass; X up the board, Y to the right, as on Calibration.
+const SHIFT_AX = [['x', 'X ↑', 'up the board'], ['y', 'Y →', 'to the right']], SHIFT_MAX = 200;
+const shiftOf = (k, ax) => +(S.shift?.[k]?.[ax]) || 0;
+$('#shifts').innerHTML = SHIFT_AX.map(([ax, label, what]) => `<span class="ax" title="Shift ${what}, mm">${label}</span>` + Object.keys(PASSES).map(k =>
+  `<label class="sl"><span class="slh"><span>${k}</span><span class="val" data-sv="${k}${ax}"></span></span><input class="slider" type="range" data-pass="${k}" data-ax="${ax}" min="${-SHIFT_MAX}" max="${SHIFT_MAX}" step="1" title="${k}: moved ${what}, mm"></label>`).join('')).join('');
+$('#shifts').querySelectorAll('input').forEach(inp => inp.oninput = () => {
+  const k = inp.dataset.pass, ax = inp.dataset.ax;
+  S.shift = { ...S.shift, [k]: { ...S.shift?.[k], [ax]: +inp.value } };   // a new object: DEFAULTS.shift stays empty
+  update();
+});
 $('#sliders').innerHTML = SLIDERS.map(([k, label, , step, min, max, sc]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${k}"></span></span><input class="slider" type="range" data-k="${k}" min="${min}" max="${max}" step="${step}">${sc ? scale(step, min, max, sc.label) : ''}</label>`).join('');
 $('#sliders').querySelectorAll('input').forEach(inp => inp.oninput = () => { S[inp.dataset.k] = +inp.value; update(); });
 $('#fields').innerHTML = FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
@@ -108,6 +121,12 @@ function update() {
     $(`#sliders [data-v="${k}"]`).textContent = shown(k, unit);
   }
   $('#pause').disabled = !!S.snake; $('#pause').parentElement.classList.toggle('off', !!S.snake);
+  $('#shifts').querySelectorAll('input').forEach(inp => {
+    const k = inp.dataset.pass, ax = inp.dataset.ax, v = shiftOf(k, ax);
+    inp.disabled = S.pattern !== 'D' || !(S.passes || []).includes(k);   // only a pass that runs
+    if (document.activeElement !== inp) inp.value = v;
+    $(`#shifts [data-sv="${k}${ax}"]`).textContent = `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
+  });
   $('#planRead').innerHTML = (P.passes.length ? `${P.passes.join(' + ')}: ${P.passes.length > 1 ? `${P.passes.length} passes, a pause between them for the paint · ` : ''}` : '') + (P.snake
     ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down${P.lifts ? '' : ' all the way'}, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
     : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
@@ -150,7 +169,7 @@ function walls() {
 function testLabel() { return `${S.pattern === 'D' ? (S.passes || []).join('+') : S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
 function testSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
-  const settings = Object.fromEntries(['pattern', 'passes', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+  const settings = Object.fromEntries(['pattern', 'passes', 'shift', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
   const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rows = P.preview.map(line => `  <path${line.pass ? ` stroke="${PASSES[line.pass].color}"` : ''} d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>

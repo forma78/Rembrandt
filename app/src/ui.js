@@ -1,5 +1,6 @@
-// Shared look of the three pages. The sliders' orange fill, as on the
-// MELNICOMM pendant and the Braun references (the owner, 2026-09-28): from
+// Shared look of the three pages. The sliders' fill (orange as on the
+// MELNICOMM pendant and the Braun references, the owner, 2026-09-28; dark
+// grey since 2026-10-02): from
 // the slider's origin — 0 when its range crosses zero, else its minimum — to
 // the handle. style.css draws it from --f0 and --f1 (0…1). A frame loop,
 // because the pages also move handles from code (the jog back to idle, the

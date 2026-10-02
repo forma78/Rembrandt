@@ -73,6 +73,7 @@ export const DEFAULTS = {
   waveLen: 100,               // mm, about a wave along the row (est.)
   pause: true,                // after every row: paint for the brush
   passes: ['D1'],             // D: the passes on, in their order
+  shift: {},                  // D: { D1: { x, y } … } mm, a pass moved off Here — X up, Y to the right (the owner, 2026-10-02)
   ...PATTERNS.A,
 };
 
@@ -178,8 +179,8 @@ function paths(o, angle = 0) {
   const base = row(0, -half, half, bow);
   const shape = (o.wave > 0 ? waved(base, o.wave, o.waveLen) : [base]).map(g => turned(g, angle)), back = reverse(shape);
   const out = [], place = (p, v, row) => p.map(g => ({ ...shift(g, v), tilt: 0, row }));
-  const round = (g, D, row) => {   // the turn at the end of row g
-    const t = endDir(g), tilt = Math.sign(t.y) * (o.tilt || 0) || 0;
+  const round = (g, D, row) => {   // the turn at the end of row g; a row up or down the board turns to the plus side
+    const t = endDir(g), tilt = (t.y < -1e-9 ? -1 : 1) * (o.tilt || 0) || 0;
     return turn(g.b, t, D).map(q => ({ ...q, tilt, row }));
   };
   const step = k => turnPt(pt(-k, 0), angle);
@@ -252,11 +253,18 @@ export function xyPlan(opts) {
   const o = { ...DEFAULTS, ...opts };
   if (opts?.board && !opts.boardW) o.boardW = o.boardH = opts.board;   // one size for both, before 2026-10-02
   // the passes: D's that are on, in their order; A, B and C are one, unturned
+  // each moved by its own shift; the rows, the length, the bow and the wave are shared
   const keys = o.pattern === 'D' ? Object.keys(PASSES).filter(k => (o.passes || []).includes(k)) : [null];
-  const passes = keys.map(key => ({ key, ...centred(o, key ? PASSES[key].angle : 0) }));
-  const width = Math.max(0, ...passes.map(q => q.width)), height = Math.max(0, ...passes.map(q => q.height));
-  const box = { x0: -height / 2, x1: height / 2, y0: -width / 2, y1: width / 2 };
+  const passes = keys.map(key => {
+    const c = centred(o, key ? PASSES[key].angle : 0), v = pt(+(o.shift?.[key]?.x) || 0, +(o.shift?.[key]?.y) || 0);
+    return { key, ps: c.ps.map(p => p.map(g => shift(g, v))),
+      box: { x0: v.x - c.height / 2, x1: v.x + c.height / 2, y0: v.y - c.width / 2, y1: v.y + c.width / 2 } };
+  });
+  const box = { x0: Math.min(...passes.map(q => q.box.x0)), x1: Math.max(...passes.map(q => q.box.x1)),
+    y0: Math.min(...passes.map(q => q.box.y0)), y1: Math.max(...passes.map(q => q.box.y1)) };
+  const width = box.y1 - box.y0, height = box.x1 - box.x0;
   const room = { w: o.boardW - 2 * o.margin, h: o.boardH - 2 * o.margin };
+  const fits = box.x0 >= -room.h / 2 - 1e-9 && box.x1 <= room.h / 2 + 1e-9 && box.y0 >= -room.w / 2 - 1e-9 && box.y1 <= room.w / 2 + 1e-9;
 
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
@@ -300,6 +308,6 @@ export function xyPlan(opts) {
   blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${f(X0)} ${f(Y0)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows });
   // the painting, the moves, the wrist off and on, and twice at every turn (est.)
   const seconds = moved / o.speed + runs * (o.pitch / o.travel + 5) + turns * 2;
-  return { blocks, preview, width, height, room, box, length, fits: width <= room.w + 1e-9 && height <= room.h + 1e-9,
+  return { blocks, preview, width, height, room, box, length, fits,
     seconds, rows: o.rows, snake: !!o.snake, turns, lifts, passes: keys.filter(Boolean), opts: o };
 }
