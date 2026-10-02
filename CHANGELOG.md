@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The wrist up to +15°** (the owner, 2026-10-02, asked whether the camera
+  on the holder clears it: "Allow up to +15°"): `REACH` in `rembrandt.py`
+  and the Wrist handle on Calibration go −90…+15° (+10° since the camera,
+  2026-09-30). For the runner a brush tilted up to ±15° (`TILT_DEG`) is
+  still on the canvas: Pause lifts it, and Continue puts it back at its
+  tilt, not upright.
 - **Night: the whole page** (the owner, 2026-10-02, `references/braun_night-1.jpg`,
   `-2.webp`): the moon by PROGRESS turns every tab graphite — panels, keys,
   fields, the tables the canvases draw on — and the LCD glows warm yellow;

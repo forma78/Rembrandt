@@ -22,7 +22,7 @@ bridge.py of the old machine repo held it on port 8765.
   stood when the motors were shut down, put back after power-on (class Park).
 - /run: the runner (class Runner) — GET is its state; POST starts the machine
   blocks of job.json, or the blocks in its body (a calibration run); POST /run/stop brakes along the path, /run/kill stops at
-  once; /run/pause and /run/continue pause a run and go on from the same point. POST /brush/off and /brush/on swing the wrist to −54° or back to 0° (never past +10°: REACH)
+  once; /run/pause and /run/continue pause a run and go on from the same point. POST /brush/off and /brush/on swing the wrist to −54° or back to 0° (never past +15°: REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
   (../firmware/CNCDM-001) fails a start on the first path command, and
@@ -296,9 +296,15 @@ TURN = {"shoulder": -1, "elbow": +1, "wrist": +1}
 # +10°, clockwise — the owner: "the arm would break the camera". The brush
 # now leaves the canvas at −54°, the other way (SWING_DEG; it was +90°).
 # Degrees from the brush upright: the wrist's zero was set there the same
-# night (it had been 9.4° off), and +10° from upright is the owner's canon;
-# −54° is the brush-off pose he found safe (it read −45° on the old zero).
-REACH = {"shoulder": (-45, 45), "elbow": (-45, 45), "wrist": (-90, 10)}
+# night (it had been 9.4° off); −54° is the brush-off pose he found safe (it
+# read −45° on the old zero). +15° since 2026-10-02: the owner allowed it
+# for the broom at the turns of the Test tab (TILT_DEG).
+REACH = {"shoulder": (-45, 45), "elbow": (-45, 45), "wrist": (-90, 15)}
+# The brush is still on the canvas with the wrist tilted this far either
+# way: the broom at a turn (the owner, 2026-10-02: "+15 at the end of the
+# right run, −15 at the end of the left one, so the bristles do not leave a
+# fat mark and the brush is not spoilt").
+TILT_DEG = 15
 TICKS_PER_DEG = 4096 / 360
 # The working pose, raw servo poses (4096 a turn). calibration.json "arm" is
 # the one in use; this is its copy for when the file has none. 2026-09-28,
@@ -354,7 +360,7 @@ class Arm:
         lo, hi = REACH[joint]
         if not lo <= deg <= hi:
             raise ArmError(f"the {joint} may go {lo}…+{hi}° only, not {deg:+g}°"
-                           + (": the camera is in the way past +10°" if joint == "wrist" else ""))
+                           + (f": the camera is in the way past +{hi}°" if joint == "wrist" else ""))
         with self.lock:
             self.stopped.clear()
             for _ in range(6):
@@ -574,6 +580,7 @@ class Runner:
         self.pos = None                  # last ping: {"x", "y", "path"}
         self.started = None              # time.time() of the last start
         self.brush_on = False
+        self.wrist = 0                   # the wrist's last angle with the brush on: Continue puts it back
         self._stop = None                # None, "S" or "K"
         self._pause = False              # Pause asked for; Continue clears it
 
@@ -730,21 +737,27 @@ class Runner:
         deg = int(cmd.split()[2])
         lo, hi = REACH["wrist"]
         if not lo <= deg <= hi:                        # the camera (2026-09-30); Arm.move_to refuses it too
-            raise Abort(f"{cmd}: the wrist may go {lo}…+{hi}° only: the camera is in the way past +10°")
+            raise Abort(f"{cmd}: the wrist may go {lo}…+{hi}° only: the camera is in the way past +{hi}°")
         if self.arm:
             # in RUBENS's degrees, from where the wrist really is (class Arm)
             try:
                 self.arm.move_to("wrist", deg)
             except ArmError as e:
                 raise Abort(f"{cmd}: {e}")
-            self.brush_on = deg == 0
+            self._wrist_at(deg)
             self._ping()
             return
         r = self.send(f"/servo?j=wrist&d={deg}")
         if not r.startswith("ok J"):
             raise Abort(f"{cmd}: {in_english(r)}")
-        self.brush_on = deg == 0
+        self._wrist_at(deg)
         self._wait(self.swing_s)
+
+    def _wrist_at(self, deg):
+        # upright or tilted up to TILT_DEG either way: the brush is on the canvas
+        self.brush_on = abs(deg) <= TILT_DEG
+        if self.brush_on:
+            self.wrist = deg
 
     def _joint(self, b):
         # An arm stroke (2026-10-02): the shoulder or the elbow turns at its
@@ -851,8 +864,8 @@ class Runner:
 
     def _hold(self):
         # Paused: the brush off the canvas, the motors still, the watchdog fed
-        # by the pings. Continue puts the brush back as it was.
-        was_on = self.brush_on
+        # by the pings. Continue puts the brush back as it was, tilted too.
+        was_on, tilt = self.brush_on, self.wrist
         if was_on:
             self._arm(f"J 3 {SWING_DEG}")
         with self.lock:
@@ -864,7 +877,7 @@ class Runner:
         if self._stop:
             return False
         if was_on:
-            self._arm("J 3 0")
+            self._arm(f"J 3 {tilt}")
         return True
 
     def _arrived(self, b):
@@ -1184,7 +1197,7 @@ class Handler(SimpleHTTPRequestHandler):
                 ARM.move_to("wrist", deg)
             except ArmError as e:
                 return self.reply(200, str(e))
-            RUNNER.brush_on = deg == 0
+            RUNNER._wrist_at(deg)
             return self.reply(200, f"ok J 3 {deg}")
         if path == "/arm/hold":
             # STOP for the arm (2026-10-02): a slow stroke stays where it is
@@ -1204,7 +1217,7 @@ class Handler(SimpleHTTPRequestHandler):
             except (ArmError, ValueError) as e:
                 return self.reply(200, json.dumps({"ok": False, "message": str(e)}), "application/json")
             if jn == "wrist":
-                RUNNER.brush_on = abs(got) < 1
+                RUNNER._wrist_at(round(got))
             return self.reply(200, json.dumps({"ok": True, "angle": got}), "application/json")
         if path == "/run/stop":
             return self.reply(200, RUNNER.stop())
