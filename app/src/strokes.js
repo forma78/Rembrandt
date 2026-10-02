@@ -15,10 +15,17 @@
 // The broom (the owner, 2026-10-02, test_results/, the 15-row snake): at a
 // turn the bristles flipped over, so the wrist tilts the brush `tilt`°,
 // plus at the right end, minus at the left, and stands it upright again
-// once the turn is done.
+// once the turn is done. ±15° left the brush on the board; it leaves at
+// ±45° (Calibration), so a turn at 45° runs in the air.
 //
-// The landing stays as it is: coming down from −54° the brush touches the
-// board ~50 mm left of the row's start and drags there (a ruler). A carriage
+// The wrist moves the brush's tip along Y only (minus left, plus right),
+// and with the carriage standing it drags the tip while it is on the board:
+// coming down from −54° the brush touches the board at −45°, 50 mm left of
+// the point under it (a ruler), and drags there. That is a tip 50 / sin 45°
+// ≈ 71 mm from the wrist's axis (est.); the preview draws what the brush
+// paints by it: the drags, and a tilted stretch shifted along Y.
+//
+// The landing stays as it is. A carriage
 // standing 50 mm into the row (tried 2026-10-02) put the blob at the start,
 // but the drag runs along Y only, and a bowed row starts at a slant: the
 // row bent off its arc by up to 22 mm and left a gap — the owner: "fix it
@@ -47,7 +54,7 @@ export const DEFAULTS = {
   speed: 30,                  // mm/s with the brush on (est.)
   travel: 100,                // mm/s between rows, the brush off
   swing: -54,                 // the wrist's brush off
-  tilt: 15,                   // degrees: the wrist through a turn, + at the right end, − at the left (est.)
+  tilt: 45,                   // degrees: the wrist through a turn, + at the right end, − at the left; 45 lifts the brush
   pause: true,                // after every row: paint for the brush
   ...PATTERNS.A,
 };
@@ -129,6 +136,44 @@ function paths(o) {
 const tracePoints = p => { const q = [p[0].a]; p.forEach(g => points(g, q)); return q; };
 export const plotPaths = opts => paths({ ...DEFAULTS, ...opts });   // for the tests
 
+// The wrist on the board (2026-10-02): the brush leaves it at ±LIFT_DEG
+// (the owner, on Calibration) and drags DRAG_MM along Y between touching it
+// and standing upright (a ruler).
+export const LIFT_DEG = 45, DRAG_MM = 50;
+const rad = d => d * Math.PI / 180;
+export const tipY = deg => DRAG_MM / Math.sin(rad(LIFT_DEG)) * Math.sin(rad(deg));   // the tip along Y from upright (est.)
+const onBoard = deg => Math.abs(deg) < LIFT_DEG;
+
+// What the brush paints on path p, the wrist going from swing down to the
+// first stretch's angle, from stretch to stretch, and back to swing:
+// polylines, one a touch of the board.
+function brushTrace(p, swing) {
+  const out = [], at = (q, d) => pt(q.x, q.y + tipY(d));
+  let w = swing, cur = null;
+  // the wrist from w to d, the carriage standing at q: on the board it drags
+  const turnWrist = (q, d) => {
+    const lo = Math.max(Math.min(w, d), -LIFT_DEG), hi = Math.min(Math.max(w, d), LIFT_DEG);
+    if (lo < hi) {
+      const [from, to] = w < d ? [lo, hi] : [hi, lo];
+      if (!cur) out.push(cur = [at(q, from)]);
+      cur.push(at(q, to));
+    }
+    if (!onBoard(d)) cur = null;
+    w = d;
+  };
+  for (let j = 0; j < p.length;) {
+    const d = p[j].tilt;
+    turnWrist(p[j].a, d);
+    for (; j < p.length && p[j].tilt === d; j++) {
+      if (!cur) continue;                                   // in the air
+      const q = []; points(p[j], q);
+      cur.push(...q.map(v => at(v, d)));
+    }
+  }
+  turnWrist(p.at(-1).b, swing);
+  return out;
+}
+
 export function xyPlan(opts) {
   const o = { ...DEFAULTS, ...opts };
   if (opts?.board && !opts.boardW) o.boardW = o.boardH = opts.board;   // one size for both, before 2026-10-02
@@ -146,9 +191,9 @@ export function xyPlan(opts) {
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
   const blocks = [{ kind: 'arm', cmd: `J 3 ${o.swing}`, row: 0 }];
   const preview = [];
-  let length = 0, turns = 0;
-  const paint = grp => {           // one move with the brush on
-    const cmds = [`F ${o.speed}`];
+  let length = 0, moved = 0, turns = 0, lifts = 0;
+  const paint = grp => {           // one move with the brush on — or lifted, a turn at 45°
+    const cmds = [`F ${o.speed}`], on = onBoard(grp[0].tilt);
     let v = o.speed, len = 0;
     for (const g of grp) {
       const want = g.t === 'A' ? arcSpeed(o.speed, g.r) : o.speed;
@@ -157,8 +202,9 @@ export function xyPlan(opts) {
       len += pieceLen(g);
     }
     cmds.push('G');
-    length += len;
-    return { kind: 'move', cmds, lengthMM: len, paintMM: len, painted: grp.map(() => 1), row: grp[0].row };
+    moved += len;
+    if (on) length += len;
+    return { kind: 'move', cmds, lengthMM: len, paintMM: on ? len : 0, painted: grp.map(() => on ? 1 : 0), row: grp[0].row };
   };
   ps.forEach((p, i) => {
     blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(p[0].a)}`, 'G'], lengthMM: null, paintMM: 0, row: p[0].row });
@@ -167,16 +213,16 @@ export function xyPlan(opts) {
     for (let j = 0; j < p.length;) {
       const grp = [p[j++]];
       while (j < p.length && p[j].tilt === grp[0].tilt) grp.push(p[j++]);
-      if (grp[0].tilt) turns++;
+      if (grp[0].tilt) { turns++; if (!onBoard(grp[0].tilt)) lifts++; }
       blocks.push({ kind: 'arm', cmd: `J 3 ${grp[0].tilt}`, row: grp[0].row }, paint(grp));
     }
     blocks.push({ kind: 'arm', cmd: `J 3 ${o.swing}`, row: p.at(-1).row });             // the brush off: the hook
     if (!o.snake && o.pause && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
-    preview.push(tracePoints(p));
+    preview.push(...brushTrace(p, o.swing));
   });
   blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${f(X0)} ${f(Y0)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows });
   // the painting, the moves, the wrist off and on, and twice at every turn (est.)
-  const seconds = length / o.speed + ps.length * (o.pitch / o.travel + 5) + turns * 2;
+  const seconds = moved / o.speed + ps.length * (o.pitch / o.travel + 5) + turns * 2;
   return { blocks, preview, width, height, room, box, length, fits: width <= room.w + 1e-9 && height <= room.h + 1e-9,
-    seconds, rows: o.rows, snake: !!o.snake, turns, opts: o };
+    seconds, rows: o.rows, snake: !!o.snake, turns, lifts, opts: o };
 }
