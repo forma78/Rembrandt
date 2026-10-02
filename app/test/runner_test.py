@@ -17,19 +17,20 @@ import rembrandt as rubens  # noqa: E402  (rubens.py of RUBENS, renamed)
 from rembrandt import (REACH, STEPS_PER_MM, SWING_DEG, TICKS_PER_DEG, Arm, ArmError, Board, Park, Runner,  # noqa: E402
                     along_piece, block_end, board_get, board_line, in_english, library_delete, library_display,
                     library_list, library_save, painted_so_far, parse_look, parse_ping, path_pieces, piece_at,
-                    rest_of)
+                    rest_of, wrist_at_piece)
 
 
 class FakeBoard:
     """Answers like the draft firmware behind the bridge. Time passes only in
     sleep(): a running path eats `rate` pieces per 0.2 s."""
 
-    SIGN, OFF, LIM = {1: -1, 2: 1, 3: 1}, {1: 5, 2: 5, 3: 0}, {1: 45, 2: 45, 3: 90}
+    SIGN, OFF, LIM = {1: -1, 2: 1, 3: 1}, {1: 5, 2: 5, 3: 0}, {1: 45, 2: 45, 3: 150}
 
-    def __init__(self, zero=True, rate=3, edge_on=None, paths=True, stuck_x=False):
+    def __init__(self, zero=True, rate=3, edge_on=None, paths=True, stuck_x=False, knows_w=True):
         self.log, self.queue, self.running = [], [], False
         self.zero, self.rate, self.edge_on, self.paths = zero, rate, edge_on, paths
         self.stuck_x = stuck_x                 # X does not move: the path ends early
+        self.knows_w = knows_w                 # False: the firmware before 2026-10-02's W
         self.max_queue, self.on_sleep = 0, None
         self.x, self.y = 800, 267
         self.goal = None                       # where the queued pieces end, steps
@@ -38,6 +39,7 @@ class FakeBoard:
         self.raw = {1: 2501, 2: 1759, 3: 1489}
         self.zt = {1: -1, 2: -1, 3: -1}
         self.tdeg = {1: 0, 2: 0, 3: 0}
+        self.rides, self.wnext = [], None       # W: the wrist on each queued piece, and one waiting for its piece
 
     def send(self, path):
         u = urlparse(path)
@@ -69,10 +71,7 @@ class FakeBoard:
             self.log.append(f"J {jid} {d}" + (f" v{q['v'][0]}" if "v" in q else ""))
             if self.zt[jid] < 0:
                 self.zt[jid] = self.raw[jid]            # takeZero: the pose at the first command
-            self.tdeg[jid] = d
-            for j in (1, 2, 3):                          # moveArm: every zeroed joint, one packet
-                if self.zt[j] >= 0:
-                    self.raw[j] = max(0, min(4095, self.zt[j] + round(self.SIGN[j] * (self.tdeg[j] + self.OFF[j]) * TICKS_PER_DEG)))
+            self.turn(jid, d)
             return f"ok J {jid} {d}"
         if u.path == "/cmd":
             a = q["a"][0]
@@ -82,7 +81,7 @@ class FakeBoard:
                 end = block_end([self.queue[0]])
                 self.x = round((self.x + end[0] * STEPS_PER_MM[0]) / 2)
                 self.y = round((self.y + end[1] * STEPS_PER_MM[1]) / 2)
-            self.running, self.queue = False, []
+            self.running, self.queue, self.rides, self.wnext = False, [], [], None
             return f"ok {a}"
         if u.path == "/raw":
             if not self.paths:                 # the old bridge: no /raw at all
@@ -91,6 +90,12 @@ class FakeBoard:
             if c[0] in "FT":
                 self.log.append(c)
                 return f"ok {c[0]} {float(c.split()[1]):.1f}"
+            if c[0] == "W":
+                if not self.knows_w:
+                    return "?"
+                self.log.append(c)
+                self.wnext = float(c.split()[1])
+                return f"ok W {self.wnext:.1f}"
             if c == "G":
                 self.log.append("G")
                 if not self.queue:
@@ -102,6 +107,8 @@ class FakeBoard:
             if len(self.queue) >= 16:
                 return "? очередь полна"
             self.queue.append(c)
+            self.rides.append(self.wnext)
+            self.wnext = None
             self.log.append(c)
             end = block_end([c])
             self.goal = (round(end[0] * STEPS_PER_MM[0]), round(end[1] * STEPS_PER_MM[1]))
@@ -109,10 +116,24 @@ class FakeBoard:
             return f"ok {c[0]} {16 - len(self.queue)}"
         return "?"
 
+    def turn(self, jid, d):
+        self.tdeg[jid] = d
+        for j in (1, 2, 3):                              # moveArm: every zeroed joint, one packet
+            if self.zt[j] >= 0:
+                self.raw[j] = max(0, min(4095, self.zt[j] + round(self.SIGN[j] * (self.tdeg[j] + self.OFF[j]) * TICKS_PER_DEG)))
+
+    def wrist(self):
+        """The wrist in RUBENS's degrees (its zero: the brush upright)."""
+        return (self.raw[3] - rubens.ARM_ZERO["wrist"]) / TICKS_PER_DEG
+
     def sleep(self, dt):
         if self.on_sleep:
             self.on_sleep()
         if self.running:
+            for w in self.rides[:self.rate]:             # the board turns the wrist as it reaches the piece
+                if w is not None:
+                    self.turn(3, w)
+            self.rides = self.rides[self.rate:]
             done, self.queue = self.queue[:self.rate], self.queue[self.rate:]
             if self.stuck_x:                   # the board stops the path on the fault
                 self.queue = []
@@ -493,6 +514,91 @@ class ArmStrokeRunTest(unittest.TestCase):
         r.stop()
         self.assertIn("H", b.log)
         self.assertTrue(arm.stopped.is_set())
+
+
+class WristOnPathTest(unittest.TestCase):
+    """W (2026-10-02, (a) + (b)): the brush lands and lifts on the move, the
+    board turning the wrist as the carriage reaches each piece."""
+
+    ZERO = {"shoulder": 2501, "elbow": 1759, "wrist": 1489}
+    PASS = ["F 20", "W -30 211", "L 1.00 50.00", "W 0 88", "L 2.00 50.00", "L 3.00 50.00",
+            "L 4.00 50.00", "W -30 88", "L 5.00 50.00", "W -45 88", "L 6.00 50.00", "G"]
+
+    def runner(self, b):
+        b.raw[3] = 1489 + round(SWING_DEG * TICKS_PER_DEG)        # the brush put away
+        return Runner(b.send, sleep=b.sleep, swing_s=0.2, arm=Arm(b.send, zero=lambda: self.ZERO, sleep=b.sleep))
+
+    def blocks(self):
+        return [arm(True), travel(100, 20), {"kind": "move", "cmds": list(self.PASS), "paintMM": 60.0, "painted": [1] * 6}, arm(True)]
+
+    def wrist(self, b):
+        return (b.raw[3] - self.ZERO["wrist"]) / TICKS_PER_DEG
+
+    def test_w_goes_as_steps_from_a_zero_taken_where_the_wrist_stands_before_any_piece(self):
+        b = FakeBoard()
+        r = self.runner(b)
+        r.start(self.blocks())
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        ws = [c for c in b.log if c.startswith("W ")]
+        self.assertEqual(ws, ["W 24.0 211", "W 54.0 88", "W 24.0 88", "W 9.0 88"])   # from −54°: RUBENS's −30, 0, −30, −45
+        first = b.log.index(ws[0])
+        z = max(i for i, c in enumerate(b.log[:first]) if c == "Z")
+        self.assertFalse([c for c in b.log[z:first] if c[0] in "LAM"], "the wrist's zero before any piece is queued")
+        m = b.log.index("M 100 20")
+        self.assertFalse([c for c in b.log[m:first] if c.startswith("J")], "no landing with the carriage standing")
+        self.assertLess(abs(self.wrist(b) - SWING_DEG), 1, "put away at the end")
+        self.assertFalse(r.brush_on)
+
+    def test_a_pause_on_the_move_lifts_from_where_the_board_turned_the_wrist_and_goes_on_with_the_ws_still_to_come(self):
+        b = FakeBoard(rate=1)
+        r = self.runner(b)
+        ticks = {"n": 0}
+
+        def later():
+            if any(c.startswith("W ") for c in b.log) and b.running:    # the pass under way
+                ticks["n"] += 1
+                if ticks["n"] == 3:
+                    self.assertTrue(r.pause())
+            if r.state == "paused" and not ticks.get("seen"):
+                ticks["seen"] = (r.wrist, r.brush_on, round(self.wrist(b)))
+                r.resume()
+        b.on_sleep = later
+        r.start(self.blocks())
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(ticks["seen"], (0, False, SWING_DEG), "the board had landed it upright: lifted for the pause, upright to come back to")
+        after = b.log[b.log.index("S"):]
+        again = [c for c in after if c.startswith("W ")]
+        self.assertTrue(again and len(again) < 4, f"only the later ones again: {again}")
+        self.assertIn("L 6.00 50.00", after)
+        self.assertLess(abs(self.wrist(b) - SWING_DEG), 1)
+
+    def test_the_board_without_w_stops_it_before_a_piece_is_queued(self):
+        b = FakeBoard(knows_w=False)
+        r = self.runner(b)
+        r.start(self.blocks())
+        r.thread.join(10)
+        self.assertEqual(r.state, "error")
+        self.assertIn("flash the firmware", r.message)
+        self.assertNotIn("L 1.00 50.00", b.log)
+
+    def test_a_w_past_the_reach_is_refused_before_anything_moves(self):
+        b = FakeBoard()
+        bad = self.blocks()
+        bad[2]["cmds"] = ["F 20", "W 61 88", "L 1.00 50.00", "G"]
+        ok, msg = self.runner(b).start(bad)
+        self.assertFalse(ok)
+        self.assertIn("camera", msg)
+        self.assertEqual(b.log, [])
+
+    def test_rest_of_keeps_the_ws_of_the_pieces_still_to_come(self):
+        cmds = ["F 20", "W -30 211", "L 1 0", "W 0 88", "L 2 0", "F 10", "W 30 88", "A 2 5 2 10 1", "L 0 10", "G"]
+        self.assertEqual(rest_of(cmds, 0), ["F 20", "L 1 0", "W 0 88", "L 2 0", "F 10", "W 30 88", "A 2 5 2 10 1", "L 0 10", "G"])
+        self.assertEqual(rest_of(cmds, 1), ["F 20", "L 2 0", "F 10", "W 30 88", "A 2 5 2 10 1", "L 0 10", "G"])
+        self.assertEqual(rest_of(cmds, 2), ["F 10", "A 2 5 2 10 1", "L 0 10", "G"])
+        self.assertEqual([wrist_at_piece(cmds, j) for j in range(4)], [-30, 0, 30, 30])
+        self.assertIsNone(wrist_at_piece(["F 20", "L 1 0", "G"], 0))
 
 
 class ArmTest(unittest.TestCase):
