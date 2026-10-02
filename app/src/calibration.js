@@ -147,7 +147,9 @@ addEventListener('pagehide', () => { if (moving()) fetch('/machine/cmd?a=S&n=0',
 const ARM = [['shoulder', 'Shoulder', -45, 45], ['elbow', 'Elbow', -5, 45], ['wrist', 'Wrist', -120, 90]];   // the new arm, 2026-10-02: zero the active pose, the servo's ends round it
 const armBusy = new Set();
 function servoTicks(el, lo, hi) {
-  const every = Math.max(-lo, hi) / 3;   // a label every 15° on ±45°, every 30° on the wrist, and at both ends
+  // a label every 15° on the shoulder and the elbow, every 30° on the wrist — −90, −60, −30, 0, +30… (the owner,
+  // 2026-10-02: "+80 next to +90 — forgot it?"), and at both ends
+  const every = hi - lo > 120 ? 30 : 15;
   let h = '';
   for (let v = lo; v <= hi; v += 5) {
     const left = `calc(9px + (100% - 18px) * ${(v - lo) / (hi - lo)})`;

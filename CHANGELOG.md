@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Calibration: the wrist's scale every 30°** (the owner, 2026-10-02:
+  "why a +80 on its own next to +90 — forgot it? Let it be −90, −60, −30,
+  0, and the same to the plus"): −120 · −90 · … · +90; the shoulder and
+  the elbow keep 15°.
 - **The wrist −120° at most** (the owner, 2026-10-02: "cut it to −120°
   max, no need for −180"). `REACH` −120…+90°, the handle too.
 - **The elbow −5° at most** (the owner, 2026-10-02: "−5 max, or it tears
