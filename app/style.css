@@ -427,6 +427,11 @@ body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11p
 .lib-split::before,.lib-split::after{content:"";flex:1;height:1px;background:var(--line)}
 .lib-split[hidden]{display:none}
 .slh .val{text-transform:none;letter-spacing:0;color:var(--slide)}
+/* Test, pattern D: where each pass lies — a row of X, a row of Y, a slider a pass */
+.arm3 .layoutbar{flex-wrap:wrap;row-gap:6px}   /* A B C and D1 D2 D3: onto a second line rather than past the edge */
+.shifts{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0 10px;align-items:end;margin:4px 0 2px}
+.shifts .ax{font:11px var(--mono);color:var(--mute);padding-bottom:9px}
+.shifts .slider:disabled{opacity:.35}
 /* Do Test: dark grey, not the green of Do Job (the owner, 2026-10-02) */
 .arm3 #btnDoJob,.arm3 #btnDoJob:hover{color:#fff;background:linear-gradient(#57544F,#3F3C38);box-shadow:0 0 0 1px rgba(30,28,25,.6),0 1px 2px rgba(30,28,25,.3),0 3px 8px rgba(30,28,25,.18),inset 0 1px 0 rgba(255,255,255,.18)}
 .arm3 #btnDoJob:active{background:#3F3C38;box-shadow:inset 0 1px 3px rgba(0,0,0,.4),0 0 0 1px rgba(30,28,25,.6)}

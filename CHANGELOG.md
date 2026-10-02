@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: each D pass where you put it** (the owner, 2026-10-02: "the rows,
+  the length, the bow and the wave go to all three — fine, as planned; but
+  where they lie on the canvas I want to change"). Under the pattern keys,
+  above Rows: a row of X ↑ and a row of Y → sliders, one for D1, D2 and D3,
+  ±200 mm off the board's centre (machine axes, as on Calibration); a pass
+  that is off has its pair greyed. The walls check and the margins take the
+  passes where they lie. And every turn of a D pass lifts the brush now: a
+  row running straight up or down the board turned no side before, and its
+  turn stayed on the board.
 - **Test: pattern D and the Wave** (the owner, 2026-10-02: the key frame
   `references/IMG_9455.JPG` in three passes, `PATTERN-D1…3.jpg`; "keep the
   geometry of C"; "if you can make such waves, let their curvature be set,

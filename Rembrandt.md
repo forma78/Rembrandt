@@ -377,7 +377,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   its own way: D1 rows upright and bowed to the left (nested Cs, orange),
   D2 down to the lower right (red), D3 up to the upper right (dark grey);
   *Claude's reading*: 90°, 50° and 120°. The sliders are shared by all
-  three (the owner's choice). **D1 · D2 · D3** latch like Reference · Lanes
+  three (the owner's choice); where each pass lies is its own — **X ↑ and
+  Y →** for D1, D2 and D3, under the pattern keys (the owner: "the rows,
+  the length, the bow and the wave go to all three; where they lie I want
+  to change"). **D1 · D2 · D3** latch like Reference · Lanes
   · Drops: one, two or all three run, in their order, a pause between for
   the paint. **Wave** (all patterns): a row waves either side of its line or
   arc, 0 for none — "from a perfectly straight pass to waves"; laid as

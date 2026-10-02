@@ -237,3 +237,16 @@ test('D: each pass is C\'s snake turned its own way; the passes on run in their 
 test('A, B and C are not turned, whatever passes D had', () => {
   assert.deepEqual(xyPlan({ ...PATTERNS.C, pattern: 'C', passes: ['D2'] }).blocks, xyPlan({ ...PATTERNS.C }).blocks);
 });
+
+test('D: every turn lifts the brush, a row up and down the board too, and each pass lies where its shift puts it', () => {
+  const o = { pattern: 'D', snake: true, rows: 10, pitch: 15, bow: 0, boardW: 300, boardH: 400 };
+  for (const k of Object.keys(PASSES)) assert.equal(xyPlan({ ...o, passes: [k] }).lifts, 9, `${k}: 9 turns, 9 lifts`);
+  const at = xyPlan({ ...o, passes: ['D1'] }), moved = xyPlan({ ...o, passes: ['D1'], shift: { D1: { x: 40, y: -30 } } });
+  const ends = p => p.blocks.filter(b => b.kind === 'move').flatMap(b => b.cmds.filter(c => /^[LM]/.test(c))).map(c => c.split(' ').slice(1).map(Number));
+  const a = ends(at), b = ends(moved);
+  for (let i = 0; i < a.length - 1; i++) assert.ok(Math.abs(b[i][0] - a[i][0] - 40) < 0.011 && Math.abs(b[i][1] - a[i][1] + 30) < 0.011, `point ${i}`);
+  assert.ok(Math.abs(moved.box.x0 - at.box.x0 - 40) < 1e-9 && Math.abs(moved.box.y1 - at.box.y1 + 30) < 1e-9, 'the box moves with it');
+  assert.deepEqual(b.at(-1), a.at(-1), 'and the carriage goes back to Here all the same');
+  const two = xyPlan({ ...o, passes: ['D1', 'D3'], shift: { D1: { y: -60 }, D3: { y: 60 } } });
+  assert.ok(two.width > at.width + 100, 'two passes apart: the box holds both');
+});
