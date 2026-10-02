@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the landing shift dropped, the rows as they were** (the owner,
+  2026-10-02, the second snake: `test_results/photo_2026-10-02 11.56.38.jpeg`,
+  `2026-10-02 50mm.png` — "fix it as it was"). The blob was at the row's
+  start, but the drag runs along Y only and a bowed row starts at a slant:
+  the first row bent off its arc by up to 22 mm and left a gap. The path is
+  again exactly the one before, point for point; the broom at the turns
+  stays.
 - **Test: the landing and the broom** (the owner, 2026-10-02, the 15-row
   snake, `test_results/`). The brush, laid down from −54°, touched the board
   50 mm before the row and left a blob there (a ruler): the carriage now

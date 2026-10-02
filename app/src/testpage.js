@@ -1,7 +1,7 @@
 // Rembrandt · Test — rows of hairpins on a board (strokes.js), run
 // on the machine by rembrandt.py's runner: the plotter draws each row, the
-// wrist lands the brush, tilts it through the turns and lifts it with its
-// hook, a pause for paint. The page only plans
+// wrist tilts the brush through the turns and lifts it with its hook, a
+// pause for paint. The page only plans
 // and watches; STOP and HARD STOP stop the carriage (and the arm).
 
 import { fmt } from './util.js';
@@ -15,7 +15,7 @@ const $ = s => document.querySelector(s);
 const KEY = 'rembrandt.test.v01';
 const S = { ...DEFAULTS, pattern: 'A', here: null };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { }
-for (const k of ['sweep', 'reach', 'fast', 'turnSpeed']) delete S[k];   // the arm strokes' settings, dropped 2026-10-02
+for (const k of ['sweep', 'reach', 'fast', 'turnSpeed', 'land']) delete S[k];   // the arm strokes' settings, dropped 2026-10-02; the landing shift, tried and dropped the same day
 if (S.board) { S.boardW = S.boardH = S.board; delete S.board; }          // one size for both before; width and height apart since 2026-10-02
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
 
@@ -25,9 +25,8 @@ const SLIDERS = [
   ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 1, 4, 80],
   ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
   ['speed', 'Brush on', 'mm/s', 1, 5, 120], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
-  // the wrist (2026-10-02): how far it drags the brush as it lays it down;
-  // its tilt through a turn, + on the right, − on the left (rembrandt.py: +15° at most)
-  ['land', 'Landing', 'mm', 1, 0, 100], ['tilt', 'Wrist at a turn', '±°', 1, 0, 15],
+  // the wrist through a turn, + on the right, − on the left (2026-10-02; rembrandt.py: +15° at most)
+  ['tilt', 'Wrist at a turn', '±°', 1, 0, 15],
 ];
 const shown = (k, unit) => unit === '±°' ? (S[k] ? `±${S[k]}°` : '0°') : `${S[k]}${unit ? ' ' + unit : ''}`;
 const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
@@ -84,7 +83,7 @@ function update() {
   $('#planRead').innerHTML = (P.snake
     ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down all the way, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
     : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
-    + ` · the brush lands ${S.land} mm into the row` + (P.turns ? `, the wrist ±${S.tilt}° through ${P.turns} turns (est.)` : '')
+    + (P.turns ? ` · the wrist ±${S.tilt}° through ${P.turns} turns (est.)` : '')
     + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern}`;
@@ -122,7 +121,7 @@ function walls() {
 function testLabel() { return `${S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
 function testSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
-  const settings = Object.fromEntries(['pattern', 'rows', 'turn', 'pitch', 'length', 'bow', 'speed', 'travel', 'land', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+  const settings = Object.fromEntries(['pattern', 'rows', 'turn', 'pitch', 'length', 'bow', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
   const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rows = P.preview.map(line => `  <path d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
