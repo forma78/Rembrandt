@@ -33,12 +33,14 @@ const SLIDERS = [
   // the rest is reserve (2026-10-02; rembrandt.py: +60° at most)
   ['tilt', 'Wrist at a turn', '±°', 1, 0, 60],
 ];
-// a dot every step, a bigger one with its number every `label`, as on Calibration
+// a dot every step, a bigger one with its number every `label`, as on
+// Calibration; a scale across zero signs its numbers
+const signed = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
 function scale(step, min, max, label) {
   let h = '';
   for (let i = 0; min + i * step <= max + 1e-9; i++) {
     const v = min + i * step, lab = Math.abs(v / label - Math.round(v / label)) < 1e-9;
-    h += `<i class="${lab ? 'major' : ''}" style="left:calc(9px + (100% - 18px) * ${(v - min) / (max - min)})">${lab ? `<span>${v}</span>` : ''}</i>`;
+    h += `<i class="${lab ? 'major' : ''}" style="left:calc(9px + (100% - 18px) * ${(v - min) / (max - min)})">${lab ? `<span>${min < 0 ? signed(v) : v}</span>` : ''}</i>`;
   }
   return `<div class="ticks">${h}</div>`;
 }
@@ -47,11 +49,19 @@ const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 
 // D: where each pass lies, moved off the board's centre (the owner,
 // 2026-10-02: "the rows, the length, the bow and the wave go to all three —
 // but where they lie I want to change"). A row of X, a row of Y, a slider a
-// pass; X up the board, Y to the right, as on Calibration.
-const SHIFT_AX = [['x', 'X ↑', 'up the board'], ['y', 'Y →', 'to the right']], SHIFT_MAX = 200;
+// pass; X up the board, Y to the right, as on Calibration. Then a row that
+// turns each pass ±90° from its own angle, plus clockwise as the wrist,
+// with a scale (the owner, the same day).
+const SHIFT_AX = [
+  ['x', 'X ↑', 'moved up the board, mm', 200, ''],
+  ['y', 'Y →', 'moved to the right, mm', 200, ''],
+  ['a', '↻', 'turned, degrees, plus clockwise', 90, '°', { step: 15, label: 45 }],
+];
 const shiftOf = (k, ax) => +(S.shift?.[k]?.[ax]) || 0;
-$('#shifts').innerHTML = SHIFT_AX.map(([ax, label, what]) => `<span class="ax" title="Shift ${what}, mm">${label}</span>` + Object.keys(PASSES).map(k =>
-  `<label class="sl"><span class="slh"><span>${k}</span><span class="val" data-sv="${k}${ax}"></span></span><input class="slider" type="range" data-pass="${k}" data-ax="${ax}" min="${-SHIFT_MAX}" max="${SHIFT_MAX}" step="1" title="${k}: moved ${what}, mm"></label>`).join('')).join('');
+// the row's sign stands before D1, in the line of the names, so the sliders
+// keep the whole width (the owner, 2026-10-02)
+$('#shifts').innerHTML = SHIFT_AX.map(([ax, label, what, max, , sc]) => Object.keys(PASSES).map((k, i) =>
+  `<label class="sl"><span class="slh"><span>${i ? '' : `<span class="ax" title="${what}">${label}</span>`}${k}</span><span class="val" data-sv="${k}${ax}"></span></span><input class="slider" type="range" data-pass="${k}" data-ax="${ax}" min="${-max}" max="${max}" step="1" title="${k}: ${what}">${sc ? scale(sc.step, -max, max, sc.label) : ''}</label>`).join('')).join('');
 $('#shifts').querySelectorAll('input').forEach(inp => inp.oninput = () => {
   const k = inp.dataset.pass, ax = inp.dataset.ax;
   S.shift = { ...S.shift, [k]: { ...S.shift?.[k], [ax]: +inp.value } };   // a new object: DEFAULTS.shift stays empty
@@ -125,7 +135,7 @@ function update() {
     const k = inp.dataset.pass, ax = inp.dataset.ax, v = shiftOf(k, ax);
     inp.disabled = S.pattern !== 'D' || !(S.passes || []).includes(k);   // only a pass that runs
     if (document.activeElement !== inp) inp.value = v;
-    $(`#shifts [data-sv="${k}${ax}"]`).textContent = `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
+    $(`#shifts [data-sv="${k}${ax}"]`).textContent = signed(v) + SHIFT_AX.find(a => a[0] === ax)[4];
   });
   $('#planRead').innerHTML = (P.passes.length ? `${P.passes.join(' + ')}: ${P.passes.length > 1 ? `${P.passes.length} passes, a pause between them for the paint · ` : ''}` : '') + (P.snake
     ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down${P.lifts ? '' : ' all the way'}, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`

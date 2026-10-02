@@ -250,3 +250,13 @@ test('D: every turn lifts the brush, a row up and down the board too, and each p
   const two = xyPlan({ ...o, passes: ['D1', 'D3'], shift: { D1: { y: -60 }, D3: { y: 60 } } });
   assert.ok(two.width > at.width + 100, 'two passes apart: the box holds both');
 });
+
+test('D: a pass turned ±90° more from its own angle; D1 turned back −90° is C itself', () => {
+  const o = { ...PATTERNS.C, pitch: 15, rows: 6, bow: 20 };
+  const back = xyPlan({ ...o, pattern: 'D', passes: ['D1'], shift: { D1: { a: -90 } } });
+  assert.deepEqual(back.blocks, xyPlan({ ...o, pattern: 'C' }).blocks);
+  const d3 = xyPlan({ ...o, pattern: 'D', passes: ['D3'] }), more = xyPlan({ ...o, pattern: 'D', passes: ['D3'], shift: { D3: { a: 30 } } });
+  assert.notDeepEqual(d3.blocks, more.blocks);
+  const len = p => p.blocks.filter(b => b.paintMM).reduce((a, b) => a + b.paintMM, 0);
+  assert.ok(Math.abs(len(d3) - len(more)) < 1e-6, 'turned, not changed');
+});
