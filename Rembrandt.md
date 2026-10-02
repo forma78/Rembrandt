@@ -61,7 +61,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   `#E2DED6`, line `#D5CFC4`, ink `#24221F`, one accent, orange `#EB7A25`.
   Green `#4F7A28` only on Open Job and Do Job. Raised neutral keys; the chosen
   key is pressed and carries an orange dot. Helvetica Neue; SF Mono for
-  numbers.
+  numbers. **The sliders are dark grey**, their slot 4 px, no orange on them
+  — orange stays on the STOP dots; **Do Test is dark grey**, not green (the
+  owner, 2026-10-02).
 - **Paths are lines and arcs only.** No Béziers. The RUBENS rule.
 - **Calibration and Job come from RUBENS.** Rembrandt reuses them, it does
   not rewrite them.

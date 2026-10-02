@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Sliders dark grey and thin; Do Test dark grey; two phrases gone** (the
+  owner, 2026-10-02). On every tab the sliders lose their orange — the fill,
+  the knob's mark, the value — for dark grey (`--slide`, light grey by
+  night), and the slot is 4 px instead of 8; orange stays on the STOP dots.
+  Do Test is dark grey, not green (Do Job keeps its green). Test drops "The
+  first run in the air…" and "black on a board, 30 × 30 by default".
 - **Test: the panel after the run the owner liked** (2026-10-02,
   `test_results/IMAGE 2026-10-02 14:20:16.jpg`). Row to row in 0.5 mm
   steps, 4…30 mm (was 1 mm, up to 80), with a scale under it as on
