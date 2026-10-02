@@ -176,10 +176,12 @@ function walls() {
 // ---------- 💾 SAVE TEST: into the Library, its second shelf ----------
 // (the owner, 2026-10-02). An SVG of the board in mm with the rows, the
 // settings in its metadata, and a PNG preview; the Library opens it here.
+// every setting of the test: SAVE TEST keeps them, and each run writes them to the journal
+const settingsNow = () => Object.fromEntries(['pattern', 'passes', 'shift', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
 function testLabel() { return `${S.pattern === 'D' ? (S.passes || []).join('+') : S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
 function testSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
-  const settings = Object.fromEntries(['pattern', 'passes', 'shift', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+  const settings = settingsNow();
   const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rows = P.preview.map(line => `  <path${line.pass ? ` stroke="${PASSES[line.pass].color}"` : ''} d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -230,7 +232,8 @@ $('#btnDoJob').onclick = async () => {
   // one line, Cancel or OK (the owner, 2026-10-02: no more than that)
   if (!confirm(`${P.rows} rows of pattern ${S.pattern === 'D' ? P.passes.join(' + ') : S.pattern} will be run on the machine`)) return;
   try {
-    const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks }) });
+    const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks,
+      log: { page: 'test', label: testLabel(), settings: settingsNow(), here: S.here, estimate_s: Math.round(P.seconds) } }) });   // the run journal, rembrandt.py
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 };
@@ -252,7 +255,11 @@ function lcd(st) {
   const total = P.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b = st && P.blocks[st.block];
-  const now = live && b ? (P.snake ? `the snake · ${fmt(st.painted_mm / 10, 0)} of ${fmt(st.paint_mm / 10, 0)} cm` : `row ${Math.min(b.row, P.rows)} of ${P.rows}`) + (st.brush_on ? ' · brush on' : ' · brush off')
+  // paused for the paint: what to do, on the LCD itself, and Continue lit (2026-10-02: the D3 pause went unseen)
+  const waiting = st?.state === 'paused' && st.message;
+  $('#btnCont').classList.toggle('call', st?.state === 'paused');
+  const now = waiting ? `❚❚ ${st.message}`
+    : live && b ? (P.snake ? `the snake · ${fmt(st.painted_mm / 10, 0)} of ${fmt(st.paint_mm / 10, 0)} cm` : `row ${Math.min(b.row, P.rows)} of ${P.rows}`) + (st.brush_on ? ' · brush on' : ' · brush off')
     : `${P.rows} rows · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P.length / 1000, 2)} m`}</span></div>
@@ -264,7 +271,7 @@ function lcd(st) {
       </div>
     </div>
     ${sticks(pct / 100)}
-    <div class="lcd-now">${now}</div>`;
+    <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
 }
 async function watch() {
   let st = null;

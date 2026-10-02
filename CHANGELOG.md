@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The run journal, and a pause you cannot miss** (the owner, 2026-10-02,
+  after D2 + D3: `test_results/IMAGE 2026-10-02 17:12:*.jpg`). The run had
+  painted D2 first — in black, the paint on the brush — and stood paused at
+  50 %, "D3, dark grey: its paint on the brush, then Continue"; the pause
+  showed only in a small line. Now, paused, the LCD's last line says what
+  to do, whole, and Continue is lit dark until pressed. And "maybe keep
+  logs, a journal of the settings?": `rembrandt.py` appends a JSON line to
+  `app/logs/runs.jsonl` (on this Mac, not in git) at each start — every
+  setting of the Test tab, Here, the estimate —, each pause and Continue,
+  and the end: done, stopped or error, its message, the percent, the time.
 - **Test: Do Test asks in one line** (the owner, 2026-10-02): "8 rows of
   pattern D1 will be run on the machine", Cancel / OK — no margins note, no
   "in the air" note.

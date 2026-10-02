@@ -51,6 +51,7 @@ PORT = 5164   # the owner's lucky number (2026-10-01); RUBENS is on 8766
 FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json"),
          "/tubes": os.path.join(HERE, "tubes.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
+LOG_FILE = os.path.join(HERE, "logs", "runs.jsonl")   # run_log: the run journal, on this Mac, not in git
 PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y", "/hold"}
 STEPS_PER_MM = (80.0, 3200.0 / 120.0)   # X, Y — the same as src/machine.js
 # The walls in mm (src/machine.js, the firmware). A carriage counted more
@@ -553,6 +554,20 @@ def piece_at(start, path, here, first=0):
     return None
 
 
+def run_log(entry, path=None):
+    """The run journal (the owner, 2026-10-02: "maybe keep logs, a journal of
+    the settings?"): a JSON line for each start — with the settings the page
+    sent — pause, Continue and end, appended to logs/runs.jsonl. It never
+    fails a run."""
+    path = path or LOG_FILE
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"at": time.strftime("%Y-%m-%d %H:%M:%S"), **entry}, ensure_ascii=False) + "\n")
+    except (OSError, TypeError, ValueError):
+        pass
+
+
 class Runner:
     """Runs the machine blocks of job.json on the board (Rubens_v2.md,
     section 6: the job is run here, not by the page).
@@ -572,8 +587,9 @@ class Runner:
     fake board.
     """
 
-    def __init__(self, send, sleep=time.sleep, swing_s=1.8, arm=None):
+    def __init__(self, send, sleep=time.sleep, swing_s=1.8, arm=None, log=None):
         self.send, self.sleep, self.swing_s, self.arm = send, sleep, swing_s, arm
+        self.log = log or (lambda entry: None)     # run_log in the server
         self.lock = threading.Lock()
         self.state, self.message = "idle", ""
         self.blocks, self.block = [], 0
@@ -596,7 +612,7 @@ class Runner:
                     "x_mm": mm("x", 0), "y_mm": mm("y", 1), "brush_on": self.brush_on,
                     "started": self.started}
 
-    def start(self, blocks):
+    def start(self, blocks, note=None):
         # A job saved before the camera (2026-09-30) swings the brush off to
         # +90°: refuse the whole job before anything is sent.
         lo, hi = REACH["wrist"]
@@ -619,6 +635,8 @@ class Runner:
             self.paint_total = sum(b.get("paintMM") or 0 for b in blocks if b.get("kind") == "move")
             self.state, self.message, self._stop, self._pause = "running", "", None, False
             self.started = time.time()
+        self.log({"event": "start", "blocks": len(self.blocks), "paint_mm": round(self.paint_total, 1),
+                  **(note if isinstance(note, dict) else {})})
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
         return True, "started"
@@ -712,6 +730,11 @@ class Runner:
             self.send("/cmd?a=S&n=0")
             with self.lock:
                 self.state, self.message = "error", str(e)
+        with self.lock:
+            pct = 100.0 * self.painted / self.paint_total if self.paint_total else 0.0
+            end = {"event": self.state, "message": self.message, "block": self.block, "blocks": len(self.blocks),
+                   "percent": round(pct, 1), "seconds": round(time.time() - self.started) if self.started else None}
+        self.log(end)
 
     def _ping(self):
         p = parse_ping(self.send("/ping"))
@@ -872,11 +895,14 @@ class Runner:
         with self.lock:
             if self._pause and not self._stop:
                 self.state = "paused"
+            why = self.message or "Pause"
+        self.log({"event": "pause", "why": why, "block": self.block})
         while self._pause and not self._stop:
             self.sleep(0.2)
             self._ping()
         if self._stop:
             return False
+        self.log({"event": "continue", "block": self.block})
         if was_on:
             self._arm(f"J 3 {tilt}")
         return True
@@ -1113,7 +1139,7 @@ def arm_zero():
 
 
 ARM = Arm(board_get, arm_zero)
-RUNNER = Runner(board_get, arm=ARM)
+RUNNER = Runner(board_get, arm=ARM, log=run_log)
 PARK = Park(PARK_FILE, board_get)
 
 
@@ -1237,9 +1263,11 @@ class Handler(SimpleHTTPRequestHandler):
         # A body {"blocks": [...]} runs those blocks (a calibration run, such
         # a calibration run); no body runs the machine blocks of job.json.
         body = self.rfile.read(int(self.headers.get("Content-Length", 0) or 0))
+        note = None
         try:
             if body:
-                blocks = json.loads(body)["blocks"]
+                sent = json.loads(body)
+                blocks, note = sent["blocks"], sent.get("log")    # the page's settings, for the run journal
             else:
                 with open(FILES["/job"], encoding="utf-8") as f:
                     blocks = json.load(f)["machine"]["blocks"]
@@ -1247,7 +1275,7 @@ class Handler(SimpleHTTPRequestHandler):
                 raise ValueError
         except (OSError, ValueError, KeyError, TypeError):
             return self.reply(400, "no machine blocks: record the canvas corners, then Save job.json")
-        ok, msg = RUNNER.start(blocks)
+        ok, msg = RUNNER.start(blocks, note)
         if ok:
             PARK.forget()
         return self.reply(200 if ok else 409, msg)

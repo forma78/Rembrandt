@@ -327,6 +327,40 @@ class RunnerTest(unittest.TestCase):
         self.assertIsNone(parse_ping("нет платы"))
 
 
+class RunLogTest(unittest.TestCase):
+    """The run journal (the owner, 2026-10-02): the settings at the start, each
+    pause and Continue, the end."""
+
+    def test_a_run_writes_its_settings_its_pauses_and_its_end(self):
+        b, got = FakeBoard(), []
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2, log=got.append)
+        def later():
+            if r.state == "paused":
+                r.resume()
+        b.on_sleep = later
+        ok, _ = r.start([arm(True), travel(10, 20), arm(False), paint(3), arm(True),
+                         {"kind": "pause", "why": "D3, dark grey: its paint on the brush, then Continue"},
+                         travel(30, 20), arm(False), paint(3), arm(True)],
+                        {"page": "test", "settings": {"pattern": "D", "passes": ["D2", "D3"], "tilt": 10}})
+        self.assertTrue(ok)
+        r.thread.join(10)
+        events = [e["event"] for e in got]
+        self.assertEqual(events, ["start", "pause", "continue", "done"])
+        self.assertEqual(got[0]["settings"]["passes"], ["D2", "D3"])
+        self.assertEqual(got[1]["why"], "D3, dark grey: its paint on the brush, then Continue")
+        self.assertEqual(got[-1]["percent"], 100.0)
+
+    def test_the_journal_is_a_json_line_a_record_and_never_fails(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "logs", "runs.jsonl")
+            rubens.run_log({"event": "start", "settings": {"rows": 18}}, path)
+            rubens.run_log({"event": "done"}, path)
+            lines = open(path, encoding="utf-8").read().splitlines()
+            self.assertEqual([json.loads(x)["event"] for x in lines], ["start", "done"])
+            self.assertIn("at", json.loads(lines[0]))
+            rubens.run_log({"event": "x"}, os.path.join(d, "runs.jsonl", "no"))   # a file in the way: nothing raised
+
+
 class PauseTest(unittest.TestCase):
     """Pause and Continue (the owner, 2026-09-28: a blunt pencil, sharpened
     without starting the job over)."""
