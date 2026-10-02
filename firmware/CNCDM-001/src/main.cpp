@@ -31,7 +31,7 @@
 //   G         go along what is queued; more can be sent on the way
 // The reply to a piece is "ok L n", n being how many more fit the queue (16 pieces).
 // A piece past a wall is refused: "край". While a path runs, the ping adds
-// "путь n", and X, Y, J and O are refused. S brakes without leaving the
+// "путь n", and X, Y, O and J but for the wrist are refused. S brakes without leaving the
 // path; K stops at once; the watchdog brakes like S.
 //
 // Level n = n × 10 mm/s on both axes. X has a 20-tooth pulley, 80 steps a
@@ -45,7 +45,8 @@
 // ahead and stops at the edge, and goes no further towards it.
 //
 // The rail and the arm never move together: a command to the arm stops both
-// axes first. Travel, stop, sweep, stop.
+// axes first. Travel, stop, sweep, stop. One exception since 2026-10-02: the
+// wrist (J 3) may turn while a path runs, and the path goes on.
 //
 // Each joint's zero is the pose it stood in when the first command came,
 // plus its offset from JOINT_OFFSET. The limits come not from measurements
@@ -53,6 +54,7 @@
 
 #include <Arduino.h>
 #include <FastAccelStepper.h>
+#include <fas_queue/stepper_queue.h>             // StepperQueue: acceptCommands() below
 #include <SCServo.h>
 #include "joint.h"                               // the J command, tested on the Mac
 #include "path.h"
@@ -206,6 +208,19 @@ static bool drive(int a, int level) {
   else           s->runBackward();
   return true;
 }
+
+// FastAccelStepper 1.3.4: forceStop() (K, and every path fault) sets its
+// queue's ignore_commands, and only the library's ramp generator clears it
+// again — a jog does, moveTimed() never. After a K during a path every later
+// path was dropped tick by tick, each answered "ok": the carriage stood still
+// and the path "ended" (2026-10-02, the Test tab: X 332.8 Y 362.2 instead of
+// X 321.4 Y 243.8; RUBENS's "такт не берётся" after a HARD STOP, 2026-09-27).
+// So a path clears it before its first tick. The library names this class
+// its friend, for its own tests; here it reaches a stepper's queue, nothing else.
+class FastAccelStepperTest {
+ public:
+  static void acceptCommands(FastAccelStepper *s) { if (s) s->_queue()->ignore_commands = false; }
+};
 
 static void stopAll() {
   if (pathOn) {                                  // brake along the path, still sending ticks
@@ -379,8 +394,14 @@ static void handleJoint(const char *line) {
   if (deg >  lim) deg =  lim;
   if (deg < -lim) deg = -lim;
 
-  // The rail and the arm do not move together.
-  stopAll();
+  // The rail and the arm do not move together — but for the wrist on a path
+  // (2026-10-02): it turns while the carriage runs, so the brush lands and
+  // lifts in place. The shoulder and the elbow wait for S.
+  if (pathOn) {
+    if (!joint::turnsWithRail(j)) { Serial.println("? идёт путь, сначала S"); return; }
+  } else {
+    stopAll();
+  }
 
   if (!takeZero(j - 1)) { Serial.printf("нет серво %d\n", j); return; }
 
@@ -461,6 +482,8 @@ static void handlePath(char c, const char *line) {
   if (c == 'G') {
     if (!planner.running()) { Serial.println("? очередь пуста"); return; }
     if (!pathOn) {
+      FastAccelStepperTest::acceptCommands(sx);   // a K before must not swallow this path
+      FastAccelStepperTest::acceptCommands(sy);
       pathOn = true; pathFirst = true; pathStopping = false; pathDraining = false; stopped = false;
       slicePending[0] = slicePending[1] = false; dirPause[0] = dirPause[1] = 0;
       cmdSteps[0] = sx->getCurrentPosition(); cmdSteps[1] = sy->getCurrentPosition();
@@ -594,8 +617,8 @@ static void handle(const char *line) {
   if (c == 'O' || c == 'o') { zeroAxis(line); return; }
   if (c == 'V' || c == 'v') { report(); return; }
   if (strchr("FfTtLlAaMmGg", c)) { handlePath((char)toupper(c), line); return; }
-  // While a path runs: no jog, no arm, no zeros. S first.
-  if (pathOn && strchr("XxYyJjOo", c)) { Serial.println("? идёт путь, сначала S"); return; }
+  // While a path runs: no jog, no zeros, no shoulder or elbow (handleJoint). S first.
+  if (pathOn && strchr("XxYyOo", c)) { Serial.println("? идёт путь, сначала S"); return; }
   if (c == 'J' || c == 'j') { handleJoint(line); return; }
   if (c == 'Z' || c == 'z') { reZero(); return; }
   if (c == 'H' || c == 'h') { holdArm(); return; }

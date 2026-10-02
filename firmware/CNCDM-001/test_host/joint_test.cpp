@@ -18,6 +18,8 @@ int main() {
   CHECK(joint::parse(" 1 20 500", c) && c.speed == joint::SPEED_MAX, "too fast: the fastest");
   CHECK(!joint::parse(" 1 20 0", c) && !joint::parse(" 1 20 -5", c), "no speed of zero or below");
   CHECK(!joint::parse(" 1", c) && !joint::parse("", c) && !joint::parse(" x 3", c), "no angle: refused");
+  CHECK(joint::turnsWithRail(3) && !joint::turnsWithRail(1) && !joint::turnsWithRail(2),
+        "on a path only the wrist may turn");
   std::printf(fails ? "%d FAILED\n" : "all good\n", fails);
   return fails ? 1 : 0;
 }

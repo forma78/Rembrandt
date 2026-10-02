@@ -20,6 +20,12 @@ static const uint16_t SPEED_MAX     = 1200;                // ticks/s, about 105
 
 struct Cmd { int j; float deg; uint16_t speed; };
 
+// The one joint that may turn while the carriage runs a path (2026-10-02):
+// the wrist, so the brush lands and lifts where it stands while the
+// carriage moves back under it. The shoulder and the elbow never move with
+// the rail.
+static inline bool turnsWithRail(int j) { return j == 3; }
+
 // false when the line is not "J <j> <deg> [<deg/s>]"; the joint and the
 // limit are checked by the caller. strtol and strtof, as the path pieces
 // are read (main.cpp): float sscanf is not to be trusted on every libc.

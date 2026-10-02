@@ -25,7 +25,8 @@ board on USB from `../../rubens-preview/rubens.py`.
 | `test_host/joint_test.cpp` | the `J` command's test, on the Mac |
 
 This is the firmware on the board since 2026-10-02 (Rembrandt: `J` with a
-speed, `H`); before, RUBENS's of 2026-09-27. Built from this folder
+speed, `H`); before, RUBENS's of 2026-09-27. Not flashed yet: `J 3` on a
+path and a path after a K (2026-10-02, later). Built from this folder
 on 2026-09-30, its comments translated into English, it gives the same image
 as the build in the old repository: only the ELF's hash in the header and
 the image checksum differ (they hold the build paths); the code with the
@@ -43,8 +44,17 @@ flash and changing `rubens.py` and `src/machine.js` with it.
   through the ESP32's RMT and MCPWM. The servo bus is not touched by it.
 - **Servo bus:** SCServo, class `SMS_STS`, `Serial1` at 1 Mbaud, every move
   one `SyncWritePosEx` packet for all joints.
-- **The arm and the rail never move together.** `J` stops both axes first;
-  while a path runs, `X`, `Y`, `J` and `O` are refused.
+- **The arm and the rail never move together** — but the wrist on a path
+  (2026-10-02). `J` stops both axes first; while a path runs, `X`, `Y`, `O`
+  and `J` for the shoulder or the elbow are refused, and `J 3` turns the
+  wrist while the path goes on: the brush lands and lifts in place, the
+  carriage moving back under it.
+- **FastAccelStepper 1.3.4 swallows a path after a K** (found 2026-10-02):
+  `forceStop()` sets its queue's `ignore_commands`, and only the library's
+  ramp generator (a jog) clears it — `moveTimed()` never does, so every
+  tick of the next path was dropped with an "ok", the carriage stood, the
+  path "ended". `G` now clears it before a path's first tick
+  (`FastAccelStepperTest::acceptCommands`, the library's friend class).
 - **The watchdog** stops the axes after 1.5 s without a command or a ping.
   It never touches the arm: a servo holds its pose, and dropping it onto the
   canvas on a timeout is not allowed. STOP and HARD STOP stop X and Y only.
@@ -65,7 +75,7 @@ One per line, 115200 baud. RUBENS sends them through `rubens.py`
 | `S` | stop both axes, braking; on a path it brakes along the line |
 | `K` | stop both axes at once, no braking |
 | `O <X\|Y> [n]` | the carriage's place becomes the axis zero, or the coordinate `n` in steps. The carriage does not move |
-| `J <1..3> <deg> [<deg/s>]` | a joint to so many degrees from its zero, tenths count; the speed in degrees a second, 0.5…105, else about 53 (Rembrandt, 2026-10-02: a slow stroke of the brush) |
+| `J <1..3> <deg> [<deg/s>]` | a joint to so many degrees from its zero, tenths count; the speed in degrees a second, 0.5…105, else about 53 (Rembrandt, 2026-10-02: a slow stroke of the brush). `J 3` is taken on a path too, and the path goes on (2026-10-02) |
 | `H` | the arm holds where it stands: a slow stroke stopped half way; the axes are left alone (2026-10-02) |
 | `Z` | the arm's zero where it stands, all three joints. Nothing moves |
 | `F <mm/s>`, `T <mm/s>` | pass and travel speed for the path (20 and 100 by default, 1…200) |

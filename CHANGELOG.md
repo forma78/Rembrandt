@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Firmware, not flashed yet: a path after a HARD STOP runs again, and the
+  wrist may turn on a path** (2026-10-02). The Test tab stopped with "the
+  carriage did not get there: X 332.8 Y 362.2 mm instead of X 321.4 Y
+  243.8" — the carriage had not moved at all. FastAccelStepper 1.3.4's
+  `forceStop()` (a K, or any path fault) leaves its queue ignoring
+  commands, and in path mode nothing clears it: every tick of the next
+  path went nowhere with an "ok". `G` clears it now, so a restart of the
+  board is no longer needed; it is the "такт не берётся" of 2026-09-27 too.
+  And `J 3` is taken while a path runs, the path going on — the owner,
+  2026-10-02, "maybe we combine this with the firmware?": the ground for
+  landing and lifting the brush in place, the carriage moving back under
+  it as the wrist turns. Host tests pass, the build too.
 - **Test: the turns at ±45°, and the preview draws what the brush paints**
   (the owner, 2026-10-02: the brush leaves the board at ±45°, measured on
   Calibration). The wrist is +45° at a right end and −45° at a left one by
