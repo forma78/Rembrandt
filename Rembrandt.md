@@ -380,7 +380,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   three (the owner's choice); where each pass lies is its own — **X ↑ and
   Y →** for D1, D2 and D3, under the pattern keys (the owner: "the rows,
   the length, the bow and the wave go to all three; where they lie I want
-  to change"). **D1 · D2 · D3** latch like Reference · Lanes
+  to change"), and **↻**, each pass turned ±90° more from its own angle,
+  plus clockwise, a scale −90 · −45 · 0 · +45 · +90 under it. **D1 · D2 · D3** latch like Reference · Lanes
   · Drops: one, two or all three run, in their order, a pause between for
   the paint. **Wave** (all patterns): a row waves either side of its line or
   arc, 0 for none — "from a perfectly straight pass to waves"; laid as

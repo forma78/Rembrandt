@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: ↻ turns each D pass ±90°** (the owner, 2026-10-02: "another row
+  D1, D2, D3, the slider at the centre, −90 and +90 either way", a scale
+  −90 / −45 / 0 / +45 / +90 as on Row to row). It adds to the pass's own
+  angle, plus clockwise like the wrist; D1 turned −90° is C itself (tested).
+  The signs X ↑, Y →, ↻ now stand in the line of the names, before D1, so
+  the sliders keep the whole width (the owner); the scale's end numbers sit
+  out at the ends, so all five read in a third of the panel.
 - **Test: no "Pattern" word** before A B C · D1 D2 D3 (the owner,
   2026-10-02): the keys speak for themselves, and the two groups fit one line.
 - **Test: each D pass where you put it** (the owner, 2026-10-02: "the rows,

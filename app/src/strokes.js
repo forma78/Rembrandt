@@ -73,7 +73,7 @@ export const DEFAULTS = {
   waveLen: 100,               // mm, about a wave along the row (est.)
   pause: true,                // after every row: paint for the brush
   passes: ['D1'],             // D: the passes on, in their order
-  shift: {},                  // D: { D1: { x, y } … } mm, a pass moved off Here — X up, Y to the right (the owner, 2026-10-02)
+  shift: {},                  // D: { D1: { x, y, a } … }: a pass moved off Here, mm — X up, Y to the right — and turned a° more, plus clockwise (the owner, 2026-10-02)
   ...PATTERNS.A,
 };
 
@@ -256,7 +256,8 @@ export function xyPlan(opts) {
   // each moved by its own shift; the rows, the length, the bow and the wave are shared
   const keys = o.pattern === 'D' ? Object.keys(PASSES).filter(k => (o.passes || []).includes(k)) : [null];
   const passes = keys.map(key => {
-    const c = centred(o, key ? PASSES[key].angle : 0), v = pt(+(o.shift?.[key]?.x) || 0, +(o.shift?.[key]?.y) || 0);
+    const sh = (key && o.shift?.[key]) || {}, v = pt(+sh.x || 0, +sh.y || 0);
+    const c = centred(o, key ? PASSES[key].angle + (+sh.a || 0) : 0);
     return { key, ps: c.ps.map(p => p.map(g => shift(g, v))),
       box: { x0: v.x - c.height / 2, x1: v.x + c.height / 2, y0: v.y - c.width / 2, y1: v.y + c.width / 2 } };
   });
