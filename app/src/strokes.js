@@ -40,7 +40,7 @@ import { arcSpeed } from './machine.js';
 
 export const PATTERNS = {
   A: { rows: 8, turn: 10, pitch: 25, snake: false },   // tight, the owner's sketch A
-  B: { rows: 5, turn: 20, pitch: 40, snake: false },   // loose, sketch B
+  B: { rows: 5, turn: 20, pitch: 30, snake: false },   // loose, sketch B; 30 apart since the slider stops there (2026-10-02; was 40)
   // C, the snake (the owner, 2026-10-02: references/Screenshot 2026-10-02
   // snake.png): one continuous line, row after row, turning round at either
   // end; the brush stays down from the first row to the last

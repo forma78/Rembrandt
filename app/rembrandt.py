@@ -22,7 +22,7 @@ bridge.py of the old machine repo held it on port 8765.
   stood when the motors were shut down, put back after power-on (class Park).
 - /run: the runner (class Runner) — GET is its state; POST starts the machine
   blocks of job.json, or the blocks in its body (a calibration run); POST /run/stop brakes along the path, /run/kill stops at
-  once; /run/pause and /run/continue pause a run and go on from the same point. POST /brush/off and /brush/on swing the wrist to −54° or back to 0° (never past +45°: REACH)
+  once; /run/pause and /run/continue pause a run and go on from the same point. POST /brush/off and /brush/on swing the wrist to −54° or back to 0° (never past +60°: REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
   (../firmware/CNCDM-001) fails a start on the first path command, and
@@ -299,8 +299,9 @@ TURN = {"shoulder": -1, "elbow": +1, "wrist": +1}
 # night (it had been 9.4° off); −54° is the brush-off pose he found safe (it
 # read −45° on the old zero). +45° since 2026-10-02, for the broom at the
 # turns of the Test tab — the owner, on Calibration: "the camera lets it
-# squeeze past to +45° the other way; I was careful, there is room up to +45".
-REACH = {"shoulder": (-45, 45), "elbow": (-45, 45), "wrist": (-90, 45)}
+# squeeze past to +45° the other way; I was careful, there is room up to +45";
+# +60° the same afternoon: "add a reserve, ±60° — the camera will take it".
+REACH = {"shoulder": (-45, 45), "elbow": (-45, 45), "wrist": (-90, 60)}
 # The brush leaves the canvas with the wrist at ±45° (the owner, on
 # Calibration, 2026-10-02: +15° was not enough, it stayed on the canvas);
 # short of that it is still on it, tilted.

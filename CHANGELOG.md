@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the panel after the run the owner liked** (2026-10-02,
+  `test_results/IMAGE 2026-10-02 14:20:16.jpg`). Row to row in 0.5 mm
+  steps, 4…30 mm (was 1 mm, up to 80), with a scale under it as on
+  Calibration; pattern B's rows 30 mm apart (was 40) to stay on it. Brush
+  on up to 200 mm/s, the board's most. Wrist at a turn up to ±60°, and
+  `REACH` and the Wrist handle on Calibration to +60° — the owner: "add a
+  reserve, ±60°, the camera will take it"; 45° stays the default. Between
+  rows stays at 200 mm/s: the firmware takes no more, and X at 300 mm/s
+  would turn its motor past what 12 V drives well (est.).
 - **Firmware flashed with the owner** (2026-10-02, 13:47, the 12 V off, on
   USB alone): the two entries below. The board answered at once: no axis
   zero, 0 faults, 0 retries. The carriage's place before the flash (X −295,

@@ -360,8 +360,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   leave a fat mark and the brush is not spoilt"; upright again once the
   turn is done (**Wrist at a turn**, ±°). ±15° left the brush on the
   board; on Calibration it leaves at −45°, and the camera lets the wrist
-  past to +45° — so the turns go at ±45°, in the air, and the wrist goes
-  to +45° at most. Coming down from −54° the brush touches the board
+  past to +45° — so the turns go at ±45°, in the air; the wrist goes to
+  ±60° at most, a reserve ("the camera will take it"). Coming down from −54° the brush touches the board
   ~50 mm before the row (a ruler) and drags there; lifting, it drags as
   far the other way. The Test tab draws the brush's own trace by these two
   numbers (a tip ≈ 71 mm from the wrist's axis, est.): the drags, and a
