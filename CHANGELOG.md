@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the time from the run journal.** The two D2 + D3 runs of
+  2026-10-02 took 338 s and 602 s, the pauses aside, against 239 s and 338 s
+  estimated: a turn took 3.8 s at ±10° and 5.4 s at ±55°, not 2. A turn is
+  now 3.4 s plus the wrist out and back at 55°/s (est.); both runs come out
+  within 4 s — fitted on those two, so the next runs will tell.
 - **Test: the brush drawn 3.5 mm wide, not 10** (the owner, 2026-10-02,
   `test_results/IMAGE 2026-10-02 19:20:53.jpg`: "Row to row is 4.5 mm and
   everything ran together, though the photo of the real strokes has
