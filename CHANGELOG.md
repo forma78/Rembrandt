@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The elbow −5° at most** (the owner, 2026-10-02: "−5 max, or it tears
+  the canvas or breaks the brush"). `REACH` −5…+45°, the handle too; a
+  move past it is refused before anything is sent.
 - **The wrist to +90° at most; where the brush leaves the canvas** (the
   owner, 2026-10-02, night: "cut the WRIST boldly to +90°, no further —
   that is the limit"; "the angle for painting, when it lifts off, is +60°,

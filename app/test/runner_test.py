@@ -685,6 +685,15 @@ class ArmTest(unittest.TestCase):
         self.assertEqual(SWING_DEG, -54)
         self.assertEqual(REACH["wrist"], (-180, 90))                # the new arm, 2026-10-02: "+90, no further"
 
+    def test_the_elbow_never_presses_past_minus_5(self):
+        # the owner, 2026-10-02: "−5 max, or it tears the canvas or breaks the brush"
+        self.assertEqual(REACH["elbow"], (-5, 45))
+        for deg in (-6, -20, -45):
+            b = FakeBoard()
+            with self.assertRaises(ArmError, msg=deg):
+                self.arm(b).move_to("elbow", deg)
+            self.assertEqual([c for c in b.log if c.startswith("J")], [], f"{deg}°: a J was sent")
+
     def test_the_wrist_past_plus_90_is_refused_and_nothing_moves(self):
         for deg in (91, 131, 270):
             b = FakeBoard()

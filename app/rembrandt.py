@@ -326,7 +326,9 @@ TURN = {"shoulder": -1, "elbow": -1, "wrist": +1}
 # bristles pressed to the canvas, the wrist +129° from where it had been: from
 # there the servo's own 0…4095 is −224…+136°, so −180…+130; and +90 the
 # same night, the owner: "cut it boldly to +90°, no further — that is the limit".
-REACH = {"shoulder": (-45, 45), "elbow": (-45, 45), "wrist": (-180, 90)}
+# The elbow −5° at most below the active pose (the owner: "−5 max, or it tears
+# the canvas or breaks the brush").
+REACH = {"shoulder": (-45, 45), "elbow": (-5, 45), "wrist": (-180, 90)}
 # Where the brush leaves the canvas from the active pose (the owner,
 # measured 2026-10-02): the elbow at +15°, plus up; the wrist at +60° — "but
 # that is the broom again", so the brush is lifted by the elbow.
