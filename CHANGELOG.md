@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: no "Pattern" word** before A B C · D1 D2 D3 (the owner,
+  2026-10-02): the keys speak for themselves, and the two groups fit one line.
 - **Test: each D pass where you put it** (the owner, 2026-10-02: "the rows,
   the length, the bow and the wave go to all three — fine, as planned; but
   where they lie on the canvas I want to change"). Under the pattern keys,
