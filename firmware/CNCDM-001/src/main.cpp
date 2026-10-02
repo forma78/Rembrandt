@@ -108,15 +108,18 @@ static const uint8_t  MOVE_ACC   = 30;
 // The elbow is mounted face up, nothing to straighten.
 // The wrist reads like a clock face: minus is anticlockwise, plus clockwise.
 //
-// The wrist has the full ±90° here: it works as a broom, and a short sweep
-// does not spread paint over the canvas. Since 2026-09-30 a USB camera on
-// the holder takes the plus side past +10°; RUBENS refuses those moves
-// (rubens.py, REACH) — put this limit to −90…+10 at the next flash.
+// The wrist's limit is a step from its zero, not an angle from upright: the
+// server sets the zero where the joint stands (Z) and sends the difference.
+// Since 2026-09-30 a USB camera on the holder is in the way on the plus
+// side; the server refuses those angles (rembrandt.py, REACH: −90…+60°).
 //
 // The +5° offset of the shoulder and the elbow is a pose handy for
 // debugging. It goes right, the straightened way.
 static const int8_t  JOINT_SIGN[JOINTS]   = { -1, +1, +1 };
-static const int16_t JOINT_LIMIT[JOINTS]  = { 45, 45, 90 };
+// The wrist's 150: a step from the server's −90° to its +60° in one, as W
+// needs from a zero taken with the brush off (2026-10-02; it was 90). The
+// angles themselves are held by the server (rembrandt.py, REACH).
+static const int16_t JOINT_LIMIT[JOINTS]  = { 45, 45, 150 };
 static const int16_t JOINT_OFFSET[JOINTS] = { +5, +5,  0 };
 
 // The walls in steps from the axis zero. Index 0 is X (80 steps = 1 mm),
@@ -162,6 +165,7 @@ static int      bufLen   = 0;
 static int32_t zeroTick[JOINTS] = { -1, -1, -1 };   // -1 — zero not taken yet
 static float    targetDeg[JOINTS] = { 0, 0, 0 };
 static uint16_t jointSpeed[JOINTS] = { MOVE_SPEED, MOVE_SPEED, MOVE_SPEED };   // ticks/s, each joint its last J's
+static uint8_t  jointAcc[JOINTS]   = { MOVE_ACC, MOVE_ACC, MOVE_ACC };         // J: MOVE_ACC; the wrist by W: WRIST_ACC
 
 static path::Planner planner(PATH_ACCEL);
 static bool     pathOn     = false;     // G given, the path runs
@@ -171,6 +175,15 @@ static bool     pathDraining = false;   // the last tick is given, the motors ru
 static long     cmdSteps[2] = { 0, 0 }; // where they have been told to go, steps
 static int32_t  carry[2]    = { 0, 0 }; // time short in the last tick, ticks
 static float    paintMMs   = 20.0f;
+// W (2026-10-02): a turn of the wrist for the next piece queued, and the
+// turns given out by the planner, waiting for the motors to get there: the
+// planner runs SLICES_AHEAD ticks ahead of them.
+static bool     wristNext  = false;
+static joint::Cmd wristCmd = {};
+struct WristAt { uint32_t at; float deg; uint16_t speed; };
+static const uint8_t WRIST_Q = 16;             // a tail sends one every 16 mm or so: 120 ms ahead holds a few
+static WristAt  wristQ[WRIST_Q];
+static uint8_t  wristN     = 0;
 static float    travelMMs  = 100.0f;
 static uint32_t underruns  = 0;         // a motor's queue ran empty on the move
 static uint32_t pathFaults = 0;         // a path stopped by a queue fault or the runaway watchdog
@@ -223,6 +236,7 @@ class FastAccelStepperTest {
 };
 
 static void stopAll() {
+  wristNext = false;                             // a W not yet on a piece: the pieces after it are refused now
   if (pathOn) {                                  // brake along the path, still sending ticks
     if (!pathStopping) { planner.stopSoon(); pathStopping = true; stopAt = millis(); }
     return;
@@ -247,6 +261,7 @@ static void stopAll() {
 // one in hand and empties the queue; the count stays where the motor is
 // (a step off at most).
 static void killAll() {
+  wristNext = false; wristN = 0;                 // the wrist stays where it is
   if (sx) sx->forceStopAndNewPosition(sx->getCurrentPosition());
   if (sy) sy->forceStopAndNewPosition(sy->getCurrentPosition());
   if (pathOn || planner.running()) {
@@ -350,7 +365,7 @@ static void moveArm() {
     ids[n] = JOINT_ID[j];
     pos[n] = (s16)tick;
     spd[n] = jointSpeed[j];
-    acc[n] = MOVE_ACC;
+    acc[n] = jointAcc[j];
     n++;
   }
   if (n) st.SyncWritePosEx(ids, n, pos, spd, acc);
@@ -361,6 +376,7 @@ static void moveArm() {
 // taken off, or the joint would jerk by those degrees right after.
 static void reZero() {
   stopAll();
+  wristN = 0;                                    // their degrees were from the old zero
 
   int done = 0;
   for (int j = 0; j < JOINTS; j++) {
@@ -384,6 +400,7 @@ static void holdArm() {
     if (raw < 0) continue;
     targetDeg[j]  = JOINT_SIGN[j] * (raw - zeroTick[j]) / TICKS_PER_DEG - JOINT_OFFSET[j];
     jointSpeed[j] = MOVE_SPEED;
+    jointAcc[j]   = MOVE_ACC;
     done++;
   }
   if (done) moveArm();
@@ -408,12 +425,14 @@ static void handleJoint(const char *line) {
     if (!joint::turnsWithRail(j)) { Serial.println("? идёт путь, сначала S"); return; }
   } else {
     stopAll();
+    wristN = 0;                                  // no W left over to turn it back
   }
 
   if (!takeZero(j - 1)) { Serial.printf("нет серво %d\n", j); return; }
 
   targetDeg[j - 1]  = deg;
   jointSpeed[j - 1] = c.speed;
+  jointAcc[j - 1]   = MOVE_ACC;
   moveArm();
   Serial.printf("ok J %d %.1f\n", j, deg);
 }
@@ -481,9 +500,24 @@ static void handlePath(char c, const char *line) {
   const char *p = line + 1;
   if (c == 'F' || c == 'T') {
     float v = strtof(p, NULL);
-    if (!(v >= 1 && v <= 200)) { Serial.println("? скорость 1…200 мм/с"); return; }
+    // 250 since 2026-10-02 (the owner: "at least 250"; X at 12 V, tried in the air first)
+    if (!(v >= 1 && v <= 250)) { Serial.println("? скорость 1…250 мм/с"); return; }
     if (c == 'F') paintMMs = v; else travelMMs = v;
     Serial.printf("ok %c %.1f\n", c, v);
+    return;
+  }
+  if (c == 'W') {
+    // the wrist for the next piece: it turns as the carriage gets there
+    joint::Cmd w;
+    if (!joint::parseWrist(p, w)) { Serial.println("?"); return; }
+    if (!bothZero()) { Serial.println("? нет нуля осей"); return; }
+    if (pathStopping) { Serial.println("? тормозим"); return; }
+    if (!takeZero(2)) { Serial.println("нет серво 3"); return; }
+    const float lim = JOINT_LIMIT[2];
+    if (w.deg >  lim) w.deg =  lim;
+    if (w.deg < -lim) w.deg = -lim;
+    wristCmd = w; wristNext = true;
+    Serial.printf("ok W %.1f\n", w.deg);
     return;
   }
   if (c == 'G') {
@@ -516,9 +550,11 @@ static void handlePath(char c, const char *line) {
     g = path::arc(x0, y0, v[0], v[1], v[2], v[3], (int)v[4], paintMMs);
   else { Serial.println("?"); return; }
 
-  if (g.len < 0.001f) { Serial.printf("ok %c %d\n", c, planner.room()); return; }   // an empty piece
+  if (g.len < 0.001f) { Serial.printf("ok %c %d\n", c, planner.room()); return; }   // an empty piece; a W waits for the next
+  if (wristNext) { g.wrist = true; g.wristDeg = wristCmd.deg; g.wristSpeed = wristCmd.speed; }
   if (!insideSeg(g))   { Serial.printf("край %c\n", c); return; }
-  if (!planner.push(g)) { Serial.println("? очередь полна"); return; }
+  if (!planner.push(g)) { Serial.println("? очередь полна"); return; }   // the W stays for the same piece sent again
+  wristNext = false;
   Serial.printf("ok %c %d\n", c, planner.room());
 }
 
@@ -571,6 +607,12 @@ static void pathTick() {
           sx->queueEntries() >= QUEUE_ROOM || sy->queueEntries() >= QUEUE_ROOM) return;
       float x, y;
       sliceMore = planner.step(SLICE_MS / 1000.0f, &x, &y);
+      float wd; uint16_t ws;
+      if (planner.takeWrist(&wd, &ws)) {          // due when the motors get there: the ticks queued, and half this one
+        const uint32_t q = sx->ticksInQueue() > sy->ticksInQueue() ? sx->ticksInQueue() : sy->ticksInQueue();
+        const WristAt w = { millis() + q / (SLICE_TICKS / SLICE_MS) + SLICE_MS / 2, wd, ws };
+        if (wristN < WRIST_Q) wristQ[wristN++] = w; else wristQ[WRIST_Q - 1] = w;
+      }
       const long t[2] = { lroundf(x * STEPS_PER_MM[0]), lroundf(y * STEPS_PER_MM[1]) };
       for (int a = 0; a < 2; a++) {
         sliceSteps[a] = t[a] - cmdSteps[a];
@@ -623,7 +665,7 @@ static void handle(const char *line) {
   if (pathOn && (c == 'O' || c == 'o')) { Serial.println("? идёт путь, сначала S"); return; }
   if (c == 'O' || c == 'o') { zeroAxis(line); return; }
   if (c == 'V' || c == 'v') { report(); return; }
-  if (strchr("FfTtLlAaMmGg", c)) { handlePath((char)toupper(c), line); return; }
+  if (strchr("FfTtLlAaMmGgWw", c)) { handlePath((char)toupper(c), line); return; }
   // While a path runs: no jog, no zeros, no shoulder or elbow (handleJoint). S first.
   if (pathOn && strchr("XxYyOo", c)) { Serial.println("? идёт путь, сначала S"); return; }
   if (c == 'J' || c == 'j') { handleJoint(line); return; }
@@ -644,6 +686,18 @@ static void handle(const char *line) {
   }
 
   Serial.println("?");
+}
+
+// The turns of the wrist on a path, each when the motors reach its piece.
+static void wristOnTime() {
+  while (wristN && (int32_t)(millis() - wristQ[0].at) >= 0) {
+    targetDeg[2]  = wristQ[0].deg;
+    jointSpeed[2] = wristQ[0].speed;
+    jointAcc[2]   = joint::WRIST_ACC;
+    moveArm();
+    wristN--;
+    for (uint8_t i = 0; i < wristN; i++) wristQ[i] = wristQ[i + 1];
+  }
 }
 
 void setup() {
@@ -680,7 +734,7 @@ void setup() {
                   JOINT_ID[j], JOINT_SIGN[j], JOINT_LIMIT[j], JOINT_OFFSET[j]);
   }
   Serial.println("команды: X <-20..20>, Y <-9..9>, J <1..3> <град>, Z — ноль руки, O <X|Y> — ноль оси, S — стоп, K — резкий стоп");
-  Serial.println("проход: F/T <мм/с>, L x y, A cx cy x y ±1, M x y, G — поехали");
+  Serial.println("проход: F/T <мм/с>, L x y, A cx cy x y ±1, M x y, W <град> [<град/с>] — кисть на следующем куске, G — поехали");
 }
 
 void loop() {
@@ -698,6 +752,7 @@ void loop() {
   // arm alone: a servo holds its pose, and dropping it onto the canvas is
   // not allowed.
   pathTick();
+  wristOnTime();
   guardWalls();
 
   if (!stopped && !pathStopping && millis() - lastRx > WATCHDOG_MS) {

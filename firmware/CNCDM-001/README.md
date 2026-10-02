@@ -26,7 +26,9 @@ board on USB from `../../rubens-preview/rubens.py`.
 
 This is the firmware on the board since 2026-10-02, flashed twice that day
 with the owner: `J` with a speed and `H`; then, at 13:47 (the 12 V off),
-`J 3` on a path, a path after a K, and K at once on a path. Before, RUBENS's
+`J 3` on a path, a path after a K, and K at once on a path. Next, built and
+host-tested the same evening, not yet flashed: `W` (the wrist on the move),
+the path speed to 250 mm/s, the wrist's step limit 150°. Before, RUBENS's
 of 2026-09-27. Built from this folder
 on 2026-09-30, its comments translated into English, it gives the same image
 as the build in the old repository: only the ELF's hash in the header and
@@ -49,7 +51,11 @@ flash and changing `rubens.py` and `src/machine.js` with it.
   (2026-10-02). `J` stops both axes first; while a path runs, `X`, `Y`, `O`
   and `J` for the shoulder or the elbow are refused, and `J 3` turns the
   wrist while the path goes on: the brush lands and lifts in place, the
-  carriage moving back under it.
+  carriage moving back under it. **`W`** (2026-10-02) is the wrist bound to
+  a place on the path: it turns when the motors reach the next piece queued
+  — the planner runs 120 ms ahead of them, so the turn waits that long —
+  and the carriage never stops for it. A K drops the turns still waiting;
+  an S keeps those within the braking distance.
 - **FastAccelStepper 1.3.4 swallows a path after a K** (found 2026-10-02):
   `forceStop()` sets its queue's `ignore_commands`, and only the library's
   ramp generator (a jog) clears it — `moveTimed()` never does, so every
@@ -79,7 +85,8 @@ One per line, 115200 baud. RUBENS sends them through `rubens.py`
 | `J <1..3> <deg> [<deg/s>]` | a joint to so many degrees from its zero, tenths count; the speed in degrees a second, 0.5…105, else about 53 (Rembrandt, 2026-10-02: a slow stroke of the brush). `J 3` is taken on a path too, and the path goes on (2026-10-02) |
 | `H` | the arm holds where it stands: a slow stroke stopped half way; the axes are left alone (2026-10-02) |
 | `Z` | the arm's zero where it stands, all three joints. Nothing moves |
-| `F <mm/s>`, `T <mm/s>` | pass and travel speed for the path (20 and 100 by default, 1…200) |
+| `F <mm/s>`, `T <mm/s>` | pass and travel speed for the path (20 and 100 by default, 1…250; 200 until 2026-10-02) |
+| `W <deg> [<deg/s>]` | the wrist (as `J 3`) for the next piece of path queued: it turns when the carriage gets there, the path going on (2026-10-02). Up to about 211°/s (2400 ticks/s) and with the servo's acceleration at 150, not 30: on a tail it must keep up with the carriage (est.) |
 | `L <x> <y>` | a piece of path: a line to the point, machine mm |
 | `A <cx> <cy> <x> <y> <±1>` | an arc round the centre to the angle of the point; +1 turns from +X to +Y |
 | `M <x> <y>` | travel in a straight line, stopping at both ends |
@@ -188,16 +195,15 @@ board's terminal.
 |---|---|---|---|---|---|
 | 1 | shoulder | ST3215, 30 kg·cm | ±45° | +5° | −1 |
 | 2 | elbow | ST3215-HS, 20 kg·cm | ±45° | +5° | +1 |
-| 3 | wrist (J3) | ST3235, aluminium | ±90° (RUBENS: −90…+10°) | 0 | +1 |
+| 3 | wrist (J3) | ST3235, aluminium | ±150° a step (Rembrandt: −90…+60° from upright) | 0 | +1 |
 
-- **The wrist: never past +10°.** A USB camera on the holder is in the way
-  on the plus side (2026-09-30); the brush leaves the canvas at −54°
-  (degrees from the brush upright, RUBENS's zero since 2026-09-30). The
-  firmware's limit is still ±90°: RUBENS refuses the rest (`rubens.py`,
-  `REACH`). It stays so: the server sets the zero where the joint stands
-  (`Z`) and sends the difference, so the firmware's limit holds a step, not
-  the angle from upright — a +10° limit here would stop the brush coming
-  back from −54° (corrected 2026-10-02).
+- **The wrist: −90…+60° from upright**, held by the server
+  (`rembrandt.py`, `REACH`): a USB camera on the holder is in the way on
+  the plus side (2026-09-30: +10°; +45° and +60° on 2026-10-02, the owner
+  on Calibration). The brush leaves the canvas at ±45°, and is put away at
+  −54°. The firmware's limit holds a step, not the angle: the server sets
+  the zero where the joint stands (`Z`) and sends the difference — 150° so
+  that `W` can go from −90° to +60° in one (2026-10-02; it was 90°).
 - 777 on the bus is the family, not the model: an ST3215 and an ST3215-HS
   answer alike. The factory ids 16, 17, 13 were set to 1, 2, 3.
 - The shoulder is mounted face down. The firmware's −1 was meant to make

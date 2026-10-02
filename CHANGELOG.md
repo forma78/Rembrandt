@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Firmware: `W`, the wrist on the path; F and T to 250 mm/s** (2026-10-02,
+  built and host-tested, not yet flashed). `W <deg> [<deg/s>]` rides on the
+  next piece queued; the planner gives it out as the point reaches that
+  piece, and the board turns the wrist when the motors get there (the
+  planner runs 120 ms ahead). Up to 211°/s with the servo's acceleration at
+  150 (est.; `J` keeps 53°/s and 30). K drops the turns waiting, Z and a
+  `J` off a path too. The wrist's step limit 150°: from −90° to +60° in one.
 - **Test: the time from the run journal.** The two D2 + D3 runs of
   2026-10-02 took 338 s and 602 s, the pauses aside, against 239 s and 338 s
   estimated: a turn took 3.8 s at ±10° and 5.4 s at ±55°, not 2. A turn is

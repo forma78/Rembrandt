@@ -10,6 +10,7 @@
 #pragma once
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 namespace joint {
 
@@ -17,6 +18,10 @@ static const float    TICKS_PER_DEG = 4096.0f / 360.0f;   // 11.378 ticks a degr
 static const uint16_t SPEED_DEFAULT = 600;                 // ticks/s, about 53°/s
 static const uint16_t SPEED_MIN     = 6;                   // ticks/s, about 0.5°/s
 static const uint16_t SPEED_MAX     = 1200;                // ticks/s, about 105°/s
+// W, the wrist on the move (2026-10-02): it must keep up with the carriage
+// along a tail, so faster — the ST3235 makes about 250°/s at 12 V (est.)
+static const uint16_t WRIST_SPEED_MAX = 2400;              // ticks/s, about 211°/s
+static const uint8_t  WRIST_ACC       = 150;               // the servo's acceleration register for W (est.; 30 for J)
 
 struct Cmd { int j; float deg; uint16_t speed; };
 
@@ -29,7 +34,7 @@ static inline bool turnsWithRail(int j) { return j == 3; }
 // false when the line is not "J <j> <deg> [<deg/s>]"; the joint and the
 // limit are checked by the caller. strtol and strtof, as the path pieces
 // are read (main.cpp): float sscanf is not to be trusted on every libc.
-static inline bool parse(const char *args, Cmd &c) {
+static inline bool parse(const char *args, Cmd &c, uint16_t fastest = SPEED_MAX) {
   char *e;
   const long j = strtol(args, &e, 10);
   if (e == args) return false;
@@ -45,12 +50,20 @@ static inline bool parse(const char *args, Cmd &c) {
     if (!(dps > 0) || isinf(dps)) return false;
     float t = dps * TICKS_PER_DEG;
     if (t < SPEED_MIN) t = SPEED_MIN;
-    if (t > SPEED_MAX) t = SPEED_MAX;
+    if (t > fastest) t = fastest;
     c.speed = (uint16_t)lroundf(t);
   } else {
     c.speed = SPEED_DEFAULT;
   }
   return true;
+}
+
+// W <deg> [<deg/s>] (2026-10-02): the wrist, as J 3 takes it, but turned
+// when the carriage reaches the next piece of path (main.cpp, path.h).
+static inline bool parseWrist(const char *args, Cmd &c) {
+  char line[80];
+  snprintf(line, sizeof line, "3 %s", args);
+  return parse(line, c, WRIST_SPEED_MAX);
 }
 
 }  // namespace joint
