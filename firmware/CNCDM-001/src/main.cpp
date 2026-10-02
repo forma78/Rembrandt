@@ -209,7 +209,7 @@ static bool drive(int a, int level) {
   return true;
 }
 
-// FastAccelStepper 1.3.4: forceStop() (K, and every path fault) sets its
+// FastAccelStepper 1.3.4: a force stop (K, and every path fault) sets its
 // queue's ignore_commands, and only the library's ramp generator clears it
 // again — a jog does, moveTimed() never. After a K during a path every later
 // path was dropped tick by tick, each answered "ok": the carriage stood still
@@ -239,9 +239,16 @@ static void stopAll() {
 // Stop at once: no braking, the motor stands dead. The carriage may carry
 // on and turn the belt a tooth or two, and then the coordinate parts from
 // the iron. In doubt, take the zero again.
+//
+// At once on a path too (the owner, 2026-10-02, "yes, add it"): forceStop()
+// only stops the library's ramp generator, which a path does not use, so a
+// path's queue ran on — up to SLICES_AHEAD ticks, 120 ms, 12 mm at
+// 100 mm/s. forceStopAndNewPosition() stops the pulses at the end of the
+// one in hand and empties the queue; the count stays where the motor is
+// (a step off at most).
 static void killAll() {
-  if (sx) sx->forceStop();
-  if (sy) sy->forceStop();
+  if (sx) sx->forceStopAndNewPosition(sx->getCurrentPosition());
+  if (sy) sy->forceStopAndNewPosition(sy->getCurrentPosition());
   if (pathOn || planner.running()) {
     pathOn = false; pathStopping = false; pathDraining = false;
     slicePending[0] = slicePending[1] = false;
