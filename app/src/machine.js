@@ -199,6 +199,10 @@ export const SPEED_MAX = 200;
 export const TURN_ACCEL = 250;   // mm/s², the X axis's (the firmware's ACCEL and PATH_ACCEL)
 export const arcSpeed = (v, r) => Math.min(v, Math.max(1, Math.floor(Math.sqrt(TURN_ACCEL * r))));
 const EDGE_IN = 0.1;   // mm inside the walls: rounding to 0.01 mm must not land a point past one
+// Where a run ends, the brush off: the corner of the walls by the stops,
+// where home is set — the job below ends there, and the Test tab since
+// 2026-10-02.
+export const homeCorner = () => { const R = reach(); return { x: R.x.min + EDGE_IN, y: R.y.min + EDGE_IN }; };
 
 const f2 = v => (Math.round(v * 100) / 100).toFixed(2);
 const TAU = Math.PI * 2;

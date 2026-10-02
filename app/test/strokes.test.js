@@ -27,7 +27,8 @@ test('a row is a hairpin of the plotter: a line out, a half circle round on the 
   assert.equal(arc, `A ${(x - 10).toFixed(2)} ${right.toFixed(2)} ${(x - 20).toFixed(2)} ${right.toFixed(2)} 1`, '+1: from +X to +Y, the turn bulges to the right');
   assert.equal(paint.at(-2), `L ${(x - 20).toFixed(2)} ${left.toFixed(2)}`);
   assert.ok(paint.every(c => /^[FLAG]/.test(c)), 'only speeds, lines, arcs and go: the runner sends them as they are');
-  assert.equal(p.blocks.at(-1).cmds[1], 'M 400.00 280.00', 'back to Here at the end');
+  assert.equal(p.blocks.at(-1).cmds[1], 'M 0.10 0.10', 'home at the end, where home is set, as a job ends');
+  assert.ok(p.blocks.at(-1).home && p.blocks.at(-2).cmd === 'J 3 -54', 'the brush off before it goes');
 });
 
 test('the tight turn of A is slowed to what the arc allows, and back', () => {
@@ -246,7 +247,7 @@ test('D: every turn lifts the brush, a row up and down the board too, and each p
   const a = ends(at), b = ends(moved);
   for (let i = 0; i < a.length - 1; i++) assert.ok(Math.abs(b[i][0] - a[i][0] - 40) < 0.011 && Math.abs(b[i][1] - a[i][1] + 30) < 0.011, `point ${i}`);
   assert.ok(Math.abs(moved.box.x0 - at.box.x0 - 40) < 1e-9 && Math.abs(moved.box.y1 - at.box.y1 + 30) < 1e-9, 'the box moves with it');
-  assert.deepEqual(b.at(-1), a.at(-1), 'and the carriage goes back to Here all the same');
+  assert.deepEqual(b.at(-1), a.at(-1), 'and the carriage goes home all the same');
   const two = xyPlan({ ...o, passes: ['D1', 'D3'], shift: { D1: { y: -60 }, D3: { y: 60 } } });
   assert.ok(two.width > at.width + 100, 'two passes apart: the box holds both');
 });

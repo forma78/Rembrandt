@@ -36,7 +36,7 @@
 // Machine mm: X up the picture, Y to the right. "Here" is where the carriage
 // stands with the brush over the board's centre. No DOM.
 
-import { arcSpeed } from './machine.js';
+import { arcSpeed, homeCorner } from './machine.js';
 
 export const PATTERNS = {
   A: { rows: 8, turn: 10, pitch: 25, snake: false },   // tight, the owner's sketch A
@@ -306,7 +306,11 @@ export function xyPlan(opts) {
       for (const line of brushTrace(p, o.swing)) preview.push(Object.assign(line, { pass: key }));   // its paint, on the preview
     });
   });
-  blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${f(X0)} ${f(Y0)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows });
+  // at 100 % the carriage goes home, to the corner where home is set, as a
+  // job does: the end seen on the machine, not only on the screen (the
+  // owner, 2026-10-02; it stood over Here before)
+  const home = homeCorner();
+  blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${f(home.x)} ${f(home.y)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows, home: true });
   // the painting, the moves, the wrist off and on, and twice at every turn (est.)
   const seconds = moved / o.speed + runs * (o.pitch / o.travel + 5) + turns * 2;
   return { blocks, preview, width, height, room, box, length, fits,
