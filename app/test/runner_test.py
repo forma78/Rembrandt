@@ -528,28 +528,28 @@ class ArmTest(unittest.TestCase):
         self.assertFalse(r.brush_on)
 
     # ---- the camera on the holder, 2026-09-30: the wrist never past +10°;
-    # +45° since 2026-10-02, the owner's word, for the broom at the turns ----
+    # +60° since 2026-10-02, the owner's word, for the broom at the turns ----
     def wrist_deg(self, b):
         return (b.raw[3] - self.ZERO["wrist"]) / TICKS_PER_DEG
 
     def test_the_brush_leaves_the_canvas_the_other_way_now(self):
         self.assertEqual(SWING_DEG, -54)
-        self.assertEqual(REACH["wrist"], (-90, 45))
+        self.assertEqual(REACH["wrist"], (-90, 60))
 
-    def test_the_wrist_past_plus_45_is_refused_and_nothing_moves(self):
-        for deg in (46, 60, 90):
+    def test_the_wrist_past_plus_60_is_refused_and_nothing_moves(self):
+        for deg in (61, 75, 90):
             b = FakeBoard()
             with self.assertRaises(ArmError, msg=deg):
                 self.arm(b).move_to("wrist", deg)
             self.assertEqual([c for c in b.log if c.startswith("J")], [], f"{deg}°: a J was sent")
 
-    def test_the_wrist_goes_to_plus_45_and_never_steps_past_it(self):
-        for start in (-45.6, -45.4, -90, 0, 44.4):
+    def test_the_wrist_goes_to_plus_60_and_never_steps_past_it(self):
+        for start in (-45.6, -45.4, -90, 0, 59.4):
             b = FakeBoard()
             b.raw[3] = self.ZERO["wrist"] + round(start * TICKS_PER_DEG)
-            got = self.arm(b).move_to("wrist", 45)
-            self.assertLessEqual(self.wrist_deg(b), 45.05, f"from {start}°: {self.wrist_deg(b):.2f}°")
-            self.assertLessEqual(got, 45.05)
+            got = self.arm(b).move_to("wrist", 60)
+            self.assertLessEqual(self.wrist_deg(b), 60.05, f"from {start}°: {self.wrist_deg(b):.2f}°")
+            self.assertLessEqual(got, 60.05)
 
     def test_a_tilted_brush_is_still_on_the_canvas(self):
         b = FakeBoard()

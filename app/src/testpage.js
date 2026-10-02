@@ -21,16 +21,29 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 
 // Sliders, as on the Calibration tab (the owner, 2026-10-02); the board's
 // size stays two numbers.
+// Row to row in half millimetres, 4…30, a scale under it (the owner,
+// 2026-10-02: "a scale in 0.5 mm steps, the range down from 80 mm to 30");
+// the brush to 200 mm/s, the board's most (firmware F, 1…200).
 const SLIDERS = [
-  ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 1, 4, 80],
+  ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 0.5, 4, 30, { label: 5 }],
   ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
-  ['speed', 'Brush on', 'mm/s', 1, 5, 120], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
-  // the wrist through a turn, + on the right, − on the left; the brush leaves the board at ±45° (2026-10-02; rembrandt.py: +45° at most)
-  ['tilt', 'Wrist at a turn', '±°', 1, 0, 45],
+  ['speed', 'Brush on', 'mm/s', 1, 5, 200], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
+  // the wrist through a turn, + on the right, − on the left; the brush leaves the board at ±45°,
+  // the rest is reserve (2026-10-02; rembrandt.py: +60° at most)
+  ['tilt', 'Wrist at a turn', '±°', 1, 0, 60],
 ];
+// a dot every step, a bigger one with its number every `label`, as on Calibration
+function scale(step, min, max, label) {
+  let h = '';
+  for (let i = 0; min + i * step <= max + 1e-9; i++) {
+    const v = min + i * step, lab = Math.abs(v / label - Math.round(v / label)) < 1e-9;
+    h += `<i class="${lab ? 'major' : ''}" style="left:calc(9px + (100% - 18px) * ${(v - min) / (max - min)})">${lab ? `<span>${v}</span>` : ''}</i>`;
+  }
+  return `<div class="ticks">${h}</div>`;
+}
 const shown = (k, unit) => unit === '±°' ? (S[k] ? `±${S[k]}°` : '0°') : `${S[k]}${unit ? ' ' + unit : ''}`;
 const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
-$('#sliders').innerHTML = SLIDERS.map(([k, label, , step, min, max]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${k}"></span></span><input class="slider" type="range" data-k="${k}" min="${min}" max="${max}" step="${step}"></label>`).join('');
+$('#sliders').innerHTML = SLIDERS.map(([k, label, , step, min, max, sc]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${k}"></span></span><input class="slider" type="range" data-k="${k}" min="${min}" max="${max}" step="${step}">${sc ? scale(step, min, max, sc.label) : ''}</label>`).join('');
 $('#sliders').querySelectorAll('input').forEach(inp => inp.oninput = () => { S[inp.dataset.k] = +inp.value; update(); });
 $('#fields').innerHTML = FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; update(); });

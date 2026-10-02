@@ -184,7 +184,7 @@ export function reach() {
 // The brush off the canvas: the wrist (J3) to −54°, degrees from the brush
 // upright. It was +90° until 2026-09-30, when a USB camera on the holder took
 // the plus side: past +10° the arm would break it (rembrandt.py, REACH, refuses
-// any such move; +45° since 2026-10-02, the owner's word, for the broom at
+// any such move; +60° since 2026-10-02, the owner's word, for the broom at
 // the turns of the Test tab). −54° is the pose the owner found safe (−45° on
 // the wrist's old zero, 9.4° off upright).
 export const SWING_DEG = -54;
