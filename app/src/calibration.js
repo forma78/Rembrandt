@@ -134,16 +134,16 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && mov
 addEventListener('pagehide', () => { if (moving()) fetch('/machine/cmd?a=S&n=0', { keepalive: true }); });
 
 // ---------- the arm ----------
-// Three handles, as on the MELNICOMM pendant: shoulder and elbow ±45°, the
-// wrist −90…+60° (a USB camera on the holder: +10° on 2026-09-30, +60° since
-// 2026-10-02, the owner, for the broom at the turns; rembrandt.py, REACH,
-// refuses more), 5° a step. Plus is the brush
-// to the right for the shoulder too, unlike the pendant (rubens.py, TURN).
-// Degrees are RUBENS's own, from
+// The wrist's handle, −90…+60° (a USB camera on the holder: +10° on
+// 2026-09-30, +60° since 2026-10-02, the owner, for the broom at the turns;
+// rembrandt.py, REACH, refuses more), 5° a step. The shoulder's and the
+// elbow's, the brush to the right, are gone (the owner, 2026-10-02: new
+// ST3235 servos, the elbow remounted to lift the brush up — "they no longer
+// exist"). Degrees are RUBENS's own, from
 // the working pose (rubens.py, class Arm): the servos say where they are, so
 // a handle moves its joint from where it really is, whatever zero the board
 // took at power-on. A joint moves when the handle is let go.
-const ARM = [['shoulder', 'Shoulder', -45, 45], ['elbow', 'Elbow', -45, 45], ['wrist', 'Wrist', -90, 60]];
+const ARM = [['wrist', 'Wrist', -90, 60]];
 const armBusy = new Set();
 function servoTicks(el, lo, hi) {
   const every = Math.max(-lo, hi) / 3;   // a label every 15° on ±45°, every 30° on the wrist, and at both ends
