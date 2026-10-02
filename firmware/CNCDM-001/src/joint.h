@@ -10,7 +10,6 @@
 #pragma once
 #include <stdlib.h>
 #include <math.h>
-#include <stdio.h>
 
 namespace joint {
 
@@ -18,10 +17,10 @@ static const float    TICKS_PER_DEG = 4096.0f / 360.0f;   // 11.378 ticks a degr
 static const uint16_t SPEED_DEFAULT = 600;                 // ticks/s, about 53°/s
 static const uint16_t SPEED_MIN     = 6;                   // ticks/s, about 0.5°/s
 static const uint16_t SPEED_MAX     = 1200;                // ticks/s, about 105°/s
-// W, the wrist on the move (2026-10-02): it must keep up with the carriage
+// W, a joint on the move (2026-10-02): it must keep up with the carriage
 // along a tail, so faster — the ST3235 makes about 250°/s at 12 V (est.)
-static const uint16_t WRIST_SPEED_MAX = 2400;              // ticks/s, about 211°/s
-static const uint8_t  WRIST_ACC       = 150;               // the servo's acceleration register for W (est.; 30 for J)
+static const uint16_t ON_PATH_SPEED_MAX = 2400;            // ticks/s, about 211°/s
+static const uint8_t  ON_PATH_ACC       = 150;             // the servo's acceleration register for W (est.; 30 for J)
 
 struct Cmd { int j; float deg; uint16_t speed; };
 
@@ -58,12 +57,14 @@ static inline bool parse(const char *args, Cmd &c, uint16_t fastest = SPEED_MAX)
   return true;
 }
 
-// W <deg> [<deg/s>] (2026-10-02): the wrist, as J 3 takes it, but turned
-// when the carriage reaches the next piece of path (main.cpp, path.h).
-static inline bool parseWrist(const char *args, Cmd &c) {
-  char line[80];
-  snprintf(line, sizeof line, "3 %s", args);
-  return parse(line, c, WRIST_SPEED_MAX);
+// The joints W may turn on a path: the elbow, which lifts the brush since
+// the new arm (2026-10-02), and the wrist. Never the shoulder.
+static inline bool turnsOnPath(int j) { return j == 2 || j == 3; }
+
+// W <j> <deg> [<deg/s>] (2026-10-02): a joint as J takes it, but turned when
+// the carriage reaches the next piece of path (main.cpp, path.h).
+static inline bool parseOnPath(const char *args, Cmd &c) {
+  return parse(args, c, ON_PATH_SPEED_MAX) && turnsOnPath(c.j);
 }
 
 // I <from> <to> (2026-10-02, new ST3235 servos): a servo's id on the bus,

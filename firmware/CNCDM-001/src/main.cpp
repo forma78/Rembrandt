@@ -165,7 +165,7 @@ static int      bufLen   = 0;
 static int32_t zeroTick[JOINTS] = { -1, -1, -1 };   // -1 — zero not taken yet
 static float    targetDeg[JOINTS] = { 0, 0, 0 };
 static uint16_t jointSpeed[JOINTS] = { MOVE_SPEED, MOVE_SPEED, MOVE_SPEED };   // ticks/s, each joint its last J's
-static uint8_t  jointAcc[JOINTS]   = { MOVE_ACC, MOVE_ACC, MOVE_ACC };         // J: MOVE_ACC; the wrist by W: WRIST_ACC
+static uint8_t  jointAcc[JOINTS]   = { MOVE_ACC, MOVE_ACC, MOVE_ACC };         // J: MOVE_ACC; by W on a path: ON_PATH_ACC
 
 static path::Planner planner(PATH_ACCEL);
 static bool     pathOn     = false;     // G given, the path runs
@@ -175,15 +175,16 @@ static bool     pathDraining = false;   // the last tick is given, the motors ru
 static long     cmdSteps[2] = { 0, 0 }; // where they have been told to go, steps
 static int32_t  carry[2]    = { 0, 0 }; // time short in the last tick, ticks
 static float    paintMMs   = 20.0f;
-// W (2026-10-02): a turn of the wrist for the next piece queued, and the
-// turns given out by the planner, waiting for the motors to get there: the
-// planner runs SLICES_AHEAD ticks ahead of them.
-static bool     wristNext  = false;
-static joint::Cmd wristCmd = {};
-struct WristAt { uint32_t at; float deg; uint16_t speed; };
-static const uint8_t WRIST_Q = 16;             // a tail sends one every 16 mm or so: 120 ms ahead holds a few
-static WristAt  wristQ[WRIST_Q];
-static uint8_t  wristN     = 0;
+// W (2026-10-02): a turn of a joint for the next piece queued — the elbow
+// lifting the brush, or the wrist — and the turns given out by the planner,
+// waiting for the motors to get there: the planner runs SLICES_AHEAD ticks
+// ahead of them.
+static bool     armNext  = false;
+static joint::Cmd armCmd = {};
+struct ArmAt { uint32_t at; uint8_t joint; float deg; uint16_t speed; };
+static const uint8_t ARM_Q = 16;               // a tail sends one every 16 mm or so: 120 ms ahead holds a few
+static ArmAt    armQ[ARM_Q];
+static uint8_t  armN     = 0;
 static float    travelMMs  = 100.0f;
 static uint32_t underruns  = 0;         // a motor's queue ran empty on the move
 static uint32_t pathFaults = 0;         // a path stopped by a queue fault or the runaway watchdog
@@ -236,7 +237,7 @@ class FastAccelStepperTest {
 };
 
 static void stopAll() {
-  wristNext = false;                             // a W not yet on a piece: the pieces after it are refused now
+  armNext = false;                               // a W not yet on a piece: the pieces after it are refused now
   if (pathOn) {                                  // brake along the path, still sending ticks
     if (!pathStopping) { planner.stopSoon(); pathStopping = true; stopAt = millis(); }
     return;
@@ -261,7 +262,7 @@ static void stopAll() {
 // one in hand and empties the queue; the count stays where the motor is
 // (a step off at most).
 static void killAll() {
-  wristNext = false; wristN = 0;                 // the wrist stays where it is
+  armNext = false; armN = 0;                     // the joints stay where they are
   if (sx) sx->forceStopAndNewPosition(sx->getCurrentPosition());
   if (sy) sy->forceStopAndNewPosition(sy->getCurrentPosition());
   if (pathOn || planner.running()) {
@@ -376,7 +377,7 @@ static void moveArm() {
 // taken off, or the joint would jerk by those degrees right after.
 static void reZero() {
   stopAll();
-  wristN = 0;                                    // their degrees were from the old zero
+  armN = 0;                                      // their degrees were from the old zero
 
   int done = 0;
   for (int j = 0; j < JOINTS; j++) {
@@ -425,7 +426,7 @@ static void handleJoint(const char *line) {
     if (!joint::turnsWithRail(j)) { Serial.println("? идёт путь, сначала S"); return; }
   } else {
     stopAll();
-    wristN = 0;                                  // no W left over to turn it back
+    armN = 0;                                    // no W left over to turn it back
   }
 
   if (!takeZero(j - 1)) { Serial.printf("нет серво %d\n", j); return; }
@@ -507,17 +508,17 @@ static void handlePath(char c, const char *line) {
     return;
   }
   if (c == 'W') {
-    // the wrist for the next piece: it turns as the carriage gets there
+    // a joint for the next piece: it turns as the carriage gets there
     joint::Cmd w;
-    if (!joint::parseWrist(p, w)) { Serial.println("?"); return; }
+    if (!joint::parseOnPath(p, w)) { Serial.println("? W <2|3> <град> [<град/с>]"); return; }
     if (!bothZero()) { Serial.println("? нет нуля осей"); return; }
     if (pathStopping) { Serial.println("? тормозим"); return; }
-    if (!takeZero(2)) { Serial.println("нет серво 3"); return; }
-    const float lim = JOINT_LIMIT[2];
+    if (!takeZero(w.j - 1)) { Serial.printf("нет серво %d\n", w.j); return; }
+    const float lim = JOINT_LIMIT[w.j - 1];
     if (w.deg >  lim) w.deg =  lim;
     if (w.deg < -lim) w.deg = -lim;
-    wristCmd = w; wristNext = true;
-    Serial.printf("ok W %.1f\n", w.deg);
+    armCmd = w; armNext = true;
+    Serial.printf("ok W %d %.1f\n", w.j, w.deg);
     return;
   }
   if (c == 'G') {
@@ -551,10 +552,10 @@ static void handlePath(char c, const char *line) {
   else { Serial.println("?"); return; }
 
   if (g.len < 0.001f) { Serial.printf("ok %c %d\n", c, planner.room()); return; }   // an empty piece; a W waits for the next
-  if (wristNext) { g.wrist = true; g.wristDeg = wristCmd.deg; g.wristSpeed = wristCmd.speed; }
+  if (armNext) { g.arm = true; g.armJoint = (uint8_t)armCmd.j; g.armDeg = armCmd.deg; g.armSpeed = armCmd.speed; }
   if (!insideSeg(g))   { Serial.printf("край %c\n", c); return; }
   if (!planner.push(g)) { Serial.println("? очередь полна"); return; }   // the W stays for the same piece sent again
-  wristNext = false;
+  armNext = false;
   Serial.printf("ok %c %d\n", c, planner.room());
 }
 
@@ -607,11 +608,11 @@ static void pathTick() {
           sx->queueEntries() >= QUEUE_ROOM || sy->queueEntries() >= QUEUE_ROOM) return;
       float x, y;
       sliceMore = planner.step(SLICE_MS / 1000.0f, &x, &y);
-      float wd; uint16_t ws;
-      if (planner.takeWrist(&wd, &ws)) {          // due when the motors get there: the ticks queued, and half this one
+      uint8_t aj; float ad; uint16_t as;
+      if (planner.takeArm(&aj, &ad, &as)) {       // due when the motors get there: the ticks queued, and half this one
         const uint32_t q = sx->ticksInQueue() > sy->ticksInQueue() ? sx->ticksInQueue() : sy->ticksInQueue();
-        const WristAt w = { millis() + q / (SLICE_TICKS / SLICE_MS) + SLICE_MS / 2, wd, ws };
-        if (wristN < WRIST_Q) wristQ[wristN++] = w; else wristQ[WRIST_Q - 1] = w;
+        const ArmAt w = { millis() + q / (SLICE_TICKS / SLICE_MS) + SLICE_MS / 2, aj, ad, as };
+        if (armN < ARM_Q) armQ[armN++] = w; else armQ[ARM_Q - 1] = w;
       }
       const long t[2] = { lroundf(x * STEPS_PER_MM[0]), lroundf(y * STEPS_PER_MM[1]) };
       for (int a = 0; a < 2; a++) {
@@ -723,15 +724,16 @@ static void handle(const char *line) {
   Serial.println("?");
 }
 
-// The turns of the wrist on a path, each when the motors reach its piece.
-static void wristOnTime() {
-  while (wristN && (int32_t)(millis() - wristQ[0].at) >= 0) {
-    targetDeg[2]  = wristQ[0].deg;
-    jointSpeed[2] = wristQ[0].speed;
-    jointAcc[2]   = joint::WRIST_ACC;
+// The turns of the joints on a path, each when the motors reach its piece.
+static void armOnTime() {
+  while (armN && (int32_t)(millis() - armQ[0].at) >= 0) {
+    const int j = armQ[0].joint - 1;
+    targetDeg[j]  = armQ[0].deg;
+    jointSpeed[j] = armQ[0].speed;
+    jointAcc[j]   = joint::ON_PATH_ACC;
     moveArm();
-    wristN--;
-    for (uint8_t i = 0; i < wristN; i++) wristQ[i] = wristQ[i + 1];
+    armN--;
+    for (uint8_t i = 0; i < armN; i++) armQ[i] = armQ[i + 1];
   }
 }
 
@@ -769,7 +771,7 @@ void setup() {
                   JOINT_ID[j], JOINT_SIGN[j], JOINT_LIMIT[j], JOINT_OFFSET[j]);
   }
   Serial.println("команды: X <-20..20>, Y <-9..9>, J <1..3> <град>, Z — ноль руки, O <X|Y> — ноль оси, S — стоп, K — резкий стоп");
-  Serial.println("проход: F/T <мм/с>, L x y, A cx cy x y ±1, M x y, W <град> [<град/с>] — кисть на следующем куске, G — поехали");
+  Serial.println("проход: F/T <мм/с>, L x y, A cx cy x y ±1, M x y, W <2|3> <град> [<град/с>] — локоть или кисть на следующем куске, G — поехали");
 }
 
 void loop() {
@@ -787,7 +789,7 @@ void loop() {
   // arm alone: a servo holds its pose, and dropping it onto the canvas is
   // not allowed.
   pathTick();
-  wristOnTime();
+  armOnTime();
   guardWalls();
 
   if (!stopped && !pathStopping && millis() - lastRx > WATCHDOG_MS) {
