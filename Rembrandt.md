@@ -67,6 +67,14 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **Paths are lines and arcs only.** No Béziers. The RUBENS rule.
 - **Calibration and Job come from RUBENS.** Rembrandt reuses them, it does
   not rewrite them.
+- **The elbow lifts the brush, as a hand does** (the owner, 2026-10-02:
+  "the shoulder and the elbow are useless as they are — and the flags and
+  the broom are a real problem; I swap the elbow from useless arcs left and
+  right to a proper lift. People do not move the brush aside, they lift it
+  off the canvas, the human way. The 3DOF stays."). Three new ST3235
+  servos; the shoulder's and the elbow's handles to the right are gone from
+  Calibration. The rule below changes once the lift is measured: the elbow
+  will move during a job.
 - **During a job only X, Y and the wrist (J3) move.** Shoulder and elbow hold
   one static pose for the whole painting. Moving them during a job slows it
   down. (2026-10-01) One pose reaches 568.5 mm across, between the Y walls;

@@ -85,6 +85,8 @@ One per line, 115200 baud. RUBENS sends them through `rubens.py`
 | `J <1..3> <deg> [<deg/s>]` | a joint to so many degrees from its zero, tenths count; the speed in degrees a second, 0.5…105, else about 53 (Rembrandt, 2026-10-02: a slow stroke of the brush). `J 3` is taken on a path too, and the path goes on (2026-10-02) |
 | `H` | the arm holds where it stands: a slow stroke stopped half way; the axes are left alone (2026-10-02) |
 | `Z` | the arm's zero where it stands, all three joints. Nothing moves |
+| `B` | who answers on the servo bus, ids 0…253: `ok B 1 3`. Nothing moves; about a second (2026-10-02) |
+| `I <from> <to>` | a servo's id changed, kept in its EEPROM; refused if `<to>` answers already. One servo at `<from>` on the bus — two would both take it (2026-10-02) |
 | `F <mm/s>`, `T <mm/s>` | pass and travel speed for the path (20 and 100 by default, 1…250; 200 until 2026-10-02) |
 | `W <deg> [<deg/s>]` | the wrist (as `J 3`) for the next piece of path queued: it turns when the carriage gets there, the path going on (2026-10-02). Up to about 211°/s (2400 ticks/s) and with the servo's acceleration at 150, not 30: on a tail it must keep up with the carriage (est.) |
 | `L <x> <y>` | a piece of path: a line to the point, machine mm |
@@ -193,9 +195,15 @@ board's terminal.
 
 | id | joint | servo | limit | offset of zero | sign in the firmware |
 |---|---|---|---|---|---|
-| 1 | shoulder | ST3215, 30 kg·cm | ±45° | +5° | −1 |
-| 2 | elbow | ST3215-HS, 20 kg·cm | ±45° | +5° | +1 |
+| 1 | shoulder | ST3235 (ST3215 until 2026-10-02) | ±45° | +5° | −1 |
+| 2 | elbow, remounted 2026-10-02 to lift the brush up | ST3235 (ST3215-HS until then) | ±45° | +5° | +1 |
 | 3 | wrist (J3) | ST3235, aluminium | ±150° a step (Rembrandt: −90…+60° from upright) | 0 | +1 |
+
+**New servos, 2026-10-02**: all three ST3235, the elbow turned to lift the
+brush off the canvas instead of swinging it sideways. The new servos came
+with their own ids: `B` finds them, `I` sets 1, 2, 3. Their raw poses are
+new, so the working pose (`calibration.json`, "arm") is taken again before
+anything moves the arm.
 
 - **The wrist: −90…+60° from upright**, held by the server
   (`rembrandt.py`, `REACH`): a USB camera on the holder is in the way on

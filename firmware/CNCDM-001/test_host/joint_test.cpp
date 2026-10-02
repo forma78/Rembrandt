@@ -27,6 +27,10 @@ int main() {
   CHECK(joint::parseWrist(" 10 900", c) && c.speed == joint::WRIST_SPEED_MAX && joint::parse(" 3 10 900", c) && c.speed == joint::SPEED_MAX,
         "each its own fastest");
   CHECK(!joint::parseWrist("", c) && !joint::parseWrist(" x", c), "W without an angle: refused");
+  int f = -1, t = -1;
+  CHECK(joint::parseIds(" 1 3", f, t) && f == 1 && t == 3, "I 1 3");
+  CHECK(!joint::parseIds(" 1 1", f, t) && !joint::parseIds(" 1 254", f, t) && !joint::parseIds(" 1", f, t) && !joint::parseIds(" -1 2", f, t),
+        "I: the same, past 253, one id, below zero — refused");
   std::printf(fails ? "%d FAILED\n" : "all good\n", fails);
   return fails ? 1 : 0;
 }

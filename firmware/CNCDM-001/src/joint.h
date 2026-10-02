@@ -66,4 +66,17 @@ static inline bool parseWrist(const char *args, Cmd &c) {
   return parse(line, c, WRIST_SPEED_MAX);
 }
 
+// I <from> <to> (2026-10-02, new ST3235 servos): a servo's id on the bus,
+// 0…253 each, not the same; false otherwise.
+static inline bool parseIds(const char *args, int &from, int &to) {
+  char *e;
+  const long a = strtol(args, &e, 10);
+  if (e == args) return false;
+  const char *p = e;
+  const long b = strtol(p, &e, 10);
+  if (e == p || a < 0 || a > 253 || b < 0 || b > 253 || a == b) return false;
+  from = (int)a; to = (int)b;
+  return true;
+}
+
 }  // namespace joint
