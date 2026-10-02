@@ -57,11 +57,23 @@
         <input id="jogY" class="jog-slider" type="range" min="-9" max="9" step="1" value="0" aria-label="Y level">
         <div class="ticks" id="tickY"></div>
       </div>
-      <!-- SHOULDER and ELBOW, the brush to the right, gone (the owner, 2026-10-02: new
-           ST3235 servos, the elbow now lifts the brush up, "they no longer exist") -->
+      <!-- the new arm (2026-10-02): three ST3235, the elbow lifts the brush; which way
+           each plus goes is found on the machine, 5° at a time -->
+      <div class="axis servo" id="axShoulder">
+        <div class="axis-head"><span class="k">SHOULDER</span><span class="pos" id="posShoulder">—</span><span class="speed" id="armShoulderV"></span></div>
+        <div class="dir">which way plus goes: to be found, 5° at a time</div>
+        <input id="armShoulder" class="jog-slider" type="range" min="-45" max="45" step="5" value="0" aria-label="Shoulder, degrees">
+        <div class="ticks" id="tickShoulder"></div>
+      </div>
+      <div class="axis servo" id="axElbow">
+        <div class="axis-head"><span class="k">ELBOW</span><span class="pos" id="posElbow">—</span><span class="speed" id="armElbowV"></span></div>
+        <div class="dir">lifts the brush · up or down for plus: to be found, 5° at a time</div>
+        <input id="armElbow" class="jog-slider" type="range" min="-45" max="45" step="5" value="0" aria-label="Elbow, degrees">
+        <div class="ticks" id="tickElbow"></div>
+      </div>
       <div class="axis servo" id="axWrist">
         <div class="axis-head"><span class="k">WRIST</span><span class="pos" id="posWrist">—</span><span class="speed" id="armWristV"></span></div>
-        <div class="dir">minus: the brush swings left · 0°: upright on the canvas, −54°: off · plus stops at +60°: the camera · the brush leaves the canvas at ±45°</div>
+        <div class="dir">0° for now: where it stood at power-on · which way plus goes: to be found · the camera: mind it on the plus side</div>
         <input id="armWrist" class="jog-slider" type="range" min="-90" max="10" step="5" value="0" aria-label="Wrist, degrees">
         <div class="ticks" id="tickWrist"></div>
       </div>
