@@ -349,7 +349,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   2026-10-02, `references/Screenshot 2026-10-02 snake.png`): one continuous
   line, row after row, a half circle at either end, the brush down from the
   first row to the last. Placed by "Here" (the brush over
-  the board's centre). The board's margins are a hint, not a limit ("too
+  the board's centre); at 100 % the carriage goes home, to the corner where
+  home is set, as a job does (the owner, 2026-10-02: the end seen "not only
+  on the screen but in the real world"). The board's margins are a hint, not a limit ("too
   many limits — let it go past"); the machine's walls are, and the page
   says so before the run. It began as the arm-stroke bench "3DOF".
   Sliders for the rows, as on Calibration; the board's width and height two

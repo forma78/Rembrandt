@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: at 100 % the carriage goes home** (the owner, 2026-10-02, after
+  D2 + D3 stopped over the board's centre:
+  `test_results/photo_2026-10-02 D2+D3 final.jpeg` — "when the operations
+  are over, 100 % done, let it drive off to the corner where home is set;
+  then Play / Pause have their match not only on the screen but in the real
+  world"). The last move, the brush off, goes to the corner of the walls by
+  the home stops, 0.1 mm inside, as a job ends (`homeCorner` in
+  `machine.js`); before, it went back to Here. The LCD says so meanwhile.
 - **Test: PLAY, and one key for Pause and Continue** (the owner, 2026-10-02:
   "put Continue in one row with Do Test, grey too; call Do Test PLAY; Pause
   and Continue are one key with two states — when the machine has run its

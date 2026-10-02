@@ -267,6 +267,7 @@ function lcd(st) {
   key.classList.toggle('call', paused);
   key.disabled = !live;
   const now = waiting ? `❚❚ ${st.message}`
+    : live && b?.home ? 'done · the carriage goes home, the brush off'
     : live && b ? (P.snake ? `the snake · ${fmt(st.painted_mm / 10, 0)} of ${fmt(st.paint_mm / 10, 0)} cm` : `row ${Math.min(b.row, P.rows)} of ${P.rows}`) + (st.brush_on ? ' · brush on' : ' · brush off')
     : `${P.rows} rows · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
   $('#lcd').innerHTML = `
