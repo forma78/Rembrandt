@@ -5,6 +5,25 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the elbow lands and lifts the brush on the move** (the owner,
+  2026-10-02, night: "on the move — the tail a smooth easing of the
+  pressure, no stops"; "let's work properly"). Over the first and the last
+  Tail mm of a row the elbow goes from the lift-off (+15°) to pressed (0°)
+  and back on a half cosine, a `W 2` every 16 mm; through a turn it goes up
+  to +25° (est.) and down to the lift-off by its end. No carriage aside,
+  no wrist: the wrist stands at 0° (a `J 3 0` before the first row, in the
+  air). **Lift at the turns** replaces Wrist at a turn: off, a snake's turns
+  are painted too; a test saved with the wrist at ±45° or more opens with
+  it on. The last D2 + D3 would take about 4.3 min (est.).
+- **rembrandt.py: the brush on and off by the elbow** (the new arm). A run's
+  `J` and `W` name their joint, 2 the elbow or 3 the wrist, each checked
+  against its reach; the brush is on the canvas below the elbow's +15°;
+  Pause lifts it to +25° and Continue puts the elbow back where a `W` had
+  left it; `/brush/off` and `/brush/on` turn the elbow. A job that puts the
+  brush away with the wrist (−54°, the Job tab as it is) is refused: it
+  would only turn the brush on the canvas now.
+- **Firmware: `W <j> <deg> [<deg/s>]`** — the elbow on the path too, not
+  only the wrist (2026-10-02, built and host-tested, to be flashed).
 - **Calibration: the wrist's scale every 30°** (the owner, 2026-10-02:
   "why a +80 on its own next to +90 — forgot it? Let it be −90, −60, −30,
   0, and the same to the plus"): −120 · −90 · … · +90; the shoulder and

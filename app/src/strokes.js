@@ -33,6 +33,9 @@
 // wrist comes down, and the firmware never moves the rail and the arm
 // together.
 //
+// The new arm (2026-10-02, below): the elbow lifts the brush off the canvas,
+// as a hand does; the broom and the wrist's drags above are history.
+//
 // Machine mm: X up the picture, Y to the right. "Here" is where the carriage
 // stands with the brush over the board's centre. No DOM.
 
@@ -67,8 +70,8 @@ export const DEFAULTS = {
   bow: 0,                     // mm: how far the middle of a row lies below its ends; 0 — straight
   speed: 30,                  // mm/s with the brush on (est.)
   travel: 100,                // mm/s between rows, the brush off
-  swing: -54,                 // the wrist's brush off
-  tilt: 45,                   // degrees: the wrist through a turn, + at the right end, − at the left; 45 lifts the brush
+  tilt: 45,                   // the turns' mark in the rows' pieces, before the new arm the wrist's angle there
+  lift: true,                 // the brush up through every turn (the elbow); off: a snake's turns painted too
   tail: 100,                  // mm: along the first and the last of every row the brush lands and lifts, on the move (est.)
   wave: 0,                    // mm: a row waves this far either side of its line or arc; 0 — none
   waveLen: 100,               // mm, about a wave along the row (est.)
@@ -182,7 +185,7 @@ function paths(o, angle = 0) {
   const out = [], place = (p, v, row) => p.map(g => ({ ...shift(g, v), tilt: 0, row }));
   const round = (g, D, row) => {   // the turn at the end of row g; a row up or down the board turns to the plus side
     const t = endDir(g), tilt = (t.y < -1e-9 ? -1 : 1) * (o.tilt || 0) || 0;
-    return turn(g.b, t, D).map(q => ({ ...q, tilt, row }));
+    return turn(g.b, t, D).map(q => ({ ...q, tilt, row, turn: true }));
   };
   const step = k => turnPt(pt(-k, 0), angle);
   if (o.snake) {
@@ -204,34 +207,30 @@ function paths(o, angle = 0) {
 const tracePoints = p => { const q = [p[0].a]; p.forEach(g => points(g, q)); return q; };
 export const plotPaths = (opts, angle) => paths({ ...DEFAULTS, ...opts }, angle);   // for the tests
 
-// The wrist on the board (2026-10-02): it moves the brush's tip along Y
-// only, minus left, plus right; the brush leaves the board at ±LIFT_DEG
-// (the owner, on Calibration), DRAG_MM to the side of the point under the
-// carriage (a ruler): a tip 50 / sin 45° ≈ 71 mm from the wrist's axis (est.).
-export const LIFT_DEG = 45, DRAG_MM = 50;
+// The table round the board, either side across, where rows may run past it, mm.
+export const TABLE_MM = 50;
 // The brush's trace across a row, for the preview (est.): rows 4.5 mm apart
 // left grooves between them on the canvas, about 1 mm each
 // (test_results/IMAGE 2026-10-02 17:12:24.jpg, photo_2026-10-02 D2+D3.jpeg);
 // drawn 10 mm wide before, they ran together (the owner, 2026-10-02).
 export const BRUSH_MM = 3.5;
-const rad = d => d * Math.PI / 180;
-export const tipY = deg => DRAG_MM / Math.sin(rad(LIFT_DEG)) * Math.sin(rad(deg));   // the tip along Y from upright (est.)
-const tipY1 = deg => DRAG_MM / Math.sin(rad(LIFT_DEG)) * Math.cos(rad(deg)) * Math.PI / 180;   // its change, mm a degree
-const onBoard = deg => Math.abs(deg) < LIFT_DEG;
 const round1 = v => Math.round(v * 10) / 10;
+const rad = d => d * Math.PI / 180;
 
-// ---------- the brush lands and lifts on the move: (a) + (b) ----------
-// The owner, 2026-10-02, after D2 + D3: the carriage stood at every turn
-// while the wrist lifted and landed the brush, 5.4 s a turn, and the tip
-// dragged 50 mm across the rows' ends — the flags, the dark band. Now over
-// the first and the last `tail` mm of a row the wrist goes between upright
-// and ±45°, and the carriage moves the other way along Y as it does, so the
-// tip keeps to the row: a tail along it, the brush lightening, no drag
-// across, no stop. The wrist goes by place, not by time: a W rides on every
-// TAIL_STEP mm of a tail, and the board turns the wrist as the carriage
-// reaches it — whatever the speed, a brake, a pause. Through a turn the
-// brush is in the air (the wrist at ±tilt), the carriage still aside.
-const TAIL_STEP = 16;           // mm along a tail a W; the pieces not much shorter, or the board's queue of 16 runs thin
+// ---------- the brush lands and lifts on the move, by the elbow ----------
+// The new arm (the owner, 2026-10-02: "people do not move the brush aside,
+// they lift it off the canvas, the human way"; "on the move: the tail a
+// smooth easing of the pressure, no stops"). The elbow lifts the brush up:
+// 0° pressed, the active pose; off the canvas at ELBOW_LIFT (measured); up
+// at ELBOW_UP (est.). Over the first and the last `tail` mm of a row the
+// elbow goes between pressed and the lift-off on a half cosine — the
+// pressure easing in and out — and through a turn the brush is up. The tip
+// keeps to the row, the carriage runs it as it is. The elbow goes by place:
+// a W 2 rides on every TAIL_STEP mm of a tail, the board turning it as the
+// carriage reaches the piece — whatever the speed, a brake, a pause. The
+// wrist stands at 0° all the while ("the broom again" otherwise).
+export const ELBOW_LIFT = 15, ELBOW_UP = 25;
+const TAIL_STEP = 16;           // mm along a tail a W
 export const WRIST_MAX = 211;   // °/s, the firmware's fastest for W (2400 ticks/s; the servo makes about 250, est.)
 export const SPEED_MAX = 250;   // mm/s, the board's fastest path (firmware F, 1…250 since 2026-10-02)
 
@@ -246,89 +245,57 @@ function cutPiece(g, u, w) {
   return g.t === 'L' ? { t: 'L', a, b } : { t: 'A', a, b, c: g.c, r: g.r, d: g.d };
 }
 const cutTrack = (tr, a, b) => tr.filter(e => e.s1 > a + 1e-6 && e.s0 < b - 1e-6).map(e => cutPiece(e.g, Math.max(a, e.s0) - e.s0, Math.min(b, e.s1) - e.s0));
-// The wrist along a row Lr long: from `from` to upright over its first zi
-// mm, upright, then to `to` over its last zo — a half cosine each, level at
-// both ends, so the carriage's path bends in and out without a kink.
-function rowWrist(Lr, from, to, zi, zo) {
-  const th = s => s < zi ? from * (1 + Math.cos(Math.PI * s / zi)) / 2 : s > Lr - zo ? to * (1 - Math.cos(Math.PI * (s - Lr + zo) / zo)) / 2 : 0;
-  const dth = s => s < zi ? -from * Math.PI / zi * Math.sin(Math.PI * s / zi) / 2 : s > Lr - zo ? to * Math.PI / zo * Math.sin(Math.PI * (s - Lr + zo) / zo) / 2 : 0;
-  return { zi, zo, th, dth };
+// The elbow along a row Lr long: from `from` to pressed over its first zi
+// mm, pressed, then to `to` over its last zo — a half cosine each, level at
+// both ends.
+function rowLift(Lr, from, to, zi, zo) {
+  return s => s < zi ? from * (1 + Math.cos(Math.PI * s / zi)) / 2 : s > Lr - zo ? to * (1 - Math.cos(Math.PI * (s - Lr + zo) / zo)) / 2 : 0;
 }
 
-// One brush-down path (pieces with their tilt) as the carriage runs it:
-// pieces { g, v, on, row, w?, ws? } — g its line or arc, v the speed it may
-// go there, on: the tip on the board, w and ws a W riding on it (degrees,
-// °/s) — and the tip's trace for the preview, points { x, y, k }, k the
-// brush's weight: 1 upright, 0 at ±45°.
+// One brush-down path (pieces marked as rows or turns) as the carriage runs
+// it: pieces { g, v, on, row, w?, ws? } — g its line or arc, v the speed it
+// may go there, on: the brush on the canvas, w and ws a W 2 riding on it
+// (degrees, °/s) — and the tip's trace for the preview, points { x, y, k },
+// k the brush's weight: 1 pressed, 0 at the lift-off.
 function onTheMove(p, o) {
-  const swing = Math.sign(o.swing) * LIFT_DEG;          // the side the brush leaves to, at a path's ends
-  const phi = t => Math.sign(t) * Math.min(Math.abs(t), LIFT_DEG);   // the wrist at a turn, as far as the tip is followed
-  const groups = [];
+  const groups = [];                                    // rows, and the turns the brush goes up through
   for (const g of p) {
-    const last = groups.at(-1);
-    if (last && last.tilt === g.tilt) last.p.push(g); else groups.push({ tilt: g.tilt, p: [g], row: g.row });
+    const up = !!(o.lift && g.turn), last = groups.at(-1);
+    if (last && last.up === up) last.p.push(g); else groups.push({ up, p: [g], row: g.row });
   }
   const out = [], trace = [];
-  let line = null, turns = 0, lifts = 0, need = 0;
+  let line = null, turns = 0, need = 0;
   const touch = (q, k) => { if (k <= 1e-9) { line = null; return; } if (!line) trace.push(line = []); line.push({ x: q.x, y: q.y, k }); };
-  const put = (g, on, row, w, v = o.speed) => out.push({ g, on, row, v: g.t === 'A' ? arcSpeed(v, g.r) : v, ...w });
-  groups.forEach((G, i) => {
-    if (G.tilt) {                                        // a turn at one tilt: the carriage aside by the tip
+  const put = (g, on, row, w) => out.push({ g, on, row, v: g.t === 'A' ? arcSpeed(o.speed, g.r) : o.speed, ...w });
+  const fast = deg => ({ w: deg, ws: WRIST_MAX });
+  groups.forEach(G => {
+    if (G.up) {                                         // a turn in the air: up at its start, down to the lift-off by its end
       turns++;
-      const off = pt(0, -tipY(phi(G.tilt))), on = onBoard(G.tilt), k = 1 - Math.abs(G.tilt) / LIFT_DEG;
-      if (!on) lifts++;
-      G.p.forEach((g, j) => {
-        put(shift(g, off), on ? 1 : 0, G.row, j === 0 && !on && Math.abs(G.tilt) > LIFT_DEG ? { w: G.tilt, ws: WRIST_MAX } : {});
-        if (on) { const q = [g.a]; points(g, q); q.forEach(v => touch(v, k)); }
-      });
-      if (!on) line = null;
+      const tr = trackOf(G.p), L = tr.at(-1).s1;
+      cutTrack(tr, 0, L / 2).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_UP)));
+      cutTrack(tr, L / 2, L).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_LIFT)));
+      line = null;
       return;
     }
-    const tr = trackOf(G.p), Lr = tr.at(-1).s1;
-    const from = i ? phi(groups[i - 1].tilt) : swing, to = i < groups.length - 1 ? phi(groups[i + 1].tilt) : swing;
-    const car = (W, s) => {                              // the carriage under the tip at s: aside by the tip's offset
-      const q = atTrack(tr, s), th = W.th(s);
-      return { p: pt(q.p.x, q.p.y - tipY(th)), t: unit(pt(q.t.x, q.t.y - tipY1(th) * W.dth(s))), th };
-    };
-    // the steps of a tail: the tip keeps the brush's speed along the row, so
-    // the carriage goes as much faster or slower as its way there is longer
-    // or shorter than the tip's — longer aside of a row along X, shorter
-    // along a row along Y, where the wrist carries the tip on with it
-    const steps = (W, a, b) => {
-      const n = Math.max(1, Math.ceil((b - a) / TAIL_STEP)), ds = (b - a) / n, out = [];
-      let c0 = car(W, a);
-      for (let j = 1; j <= n; j++) {
-        const c1 = car(W, a + ds * j), dc = Math.hypot(c1.p.x - c0.p.x, c1.p.y - c0.p.y);
-        out.push({ c0, c1, rate: Math.abs(c1.th - c0.th) * o.speed / ds, v: Math.max(1, Math.min(SPEED_MAX, Math.round(o.speed * dc / ds))) });
-        c0 = c1;
-      }
-      return out;
-    };
-    // a tail o.tail long, longer where the wrist would not keep up (the owner's Tail is the least)
-    const fit = (lift, ang) => {
-      if (!ang) return 0;
-      for (let z = Math.min(o.tail, Lr / 2); ; z = Math.min(Lr / 2, z * 1.15)) {
-        const W = lift ? rowWrist(Lr, 0, ang, 0, z) : rowWrist(Lr, ang, 0, z, 0);
-        if (z >= Lr / 2 - 1e-9 || Math.max(...steps(W, lift ? Lr - z : 0, lift ? Lr : z).map(q => q.rate)) <= WRIST_MAX) return z;
-      }
-    };
-    const W = rowWrist(Lr, from, to, fit(false, from), fit(true, to));
-    const zone = (a, b) => {                             // a tail: biarcs through the carriage's points, a W on each
-      steps(W, a, b).forEach(({ c0, c1, rate, v }, j) => {
+    const tr = trackOf(G.p), Lr = tr.at(-1).s1, z = Math.min(o.tail, Lr / 2), th = rowLift(Lr, ELBOW_LIFT, ELBOW_LIFT, z, z);
+    const zone = (a, b) => {                            // a tail: the row cut every TAIL_STEP mm, a W 2 on each step
+      const n = Math.max(1, Math.ceil((b - a) / TAIL_STEP)), ds = (b - a) / n;
+      for (let j = 0; j < n; j++) {
+        const s0 = a + ds * j, s1 = s0 + ds, rate = Math.abs(th(s1) - th(s0)) * o.speed / ds;
         need = Math.max(need, rate);
-        const ws = j === 0 && !a ? WRIST_MAX : rate;     // the first of a landing comes down from the air too: as fast as it goes
-        biarc(c0.p, c0.t, c1.p, c1.t).forEach((g, m) => put(g, 1, G.row, m ? {} : { w: round1(c1.th), ws: Math.max(1, Math.min(WRIST_MAX, Math.ceil(ws))) }, v));
-      });
+        const ws = j === 0 && !a ? WRIST_MAX : rate;    // the first of a landing comes down from the air too: as fast as it goes
+        cutTrack(tr, s0, s1).forEach((g, m) => put(g, 1, G.row, m ? {} : { w: round1(th(s1)), ws: Math.max(1, Math.min(WRIST_MAX, Math.ceil(ws))) }));
+      }
     };
-    if (W.zi) zone(0, W.zi);
-    for (const g of cutTrack(tr, W.zi, Lr - W.zo)) put(g, 1, G.row, {});
-    if (W.zo) zone(Lr - W.zo, Lr);
-    for (let s = 0; ; s = Math.min(Lr, s + 2)) {          // the tip: the row itself, light in its tails
-      touch(atTrack(tr, s).p, 1 - Math.abs(W.th(s)) / LIFT_DEG);
+    zone(0, z);
+    for (const g of cutTrack(tr, z, Lr - z)) put(g, 1, G.row, {});
+    zone(Lr - z, Lr);
+    for (let s = 0; ; s = Math.min(Lr, s + 2)) {         // the tip: the row itself, light in its tails
+      touch(atTrack(tr, s).p, 1 - th(s) / ELBOW_LIFT);
       if (s >= Lr) break;
     }
   });
-  return { pieces: out, trace, turns, lifts, need };
+  return { pieces: out, trace, turns, lifts: turns, need };
 }
 
 // ---------- the time: the board's planner (firmware path.h), run here ----------
@@ -384,7 +351,8 @@ export function xyPlan(opts) {
 
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
-  const blocks = [{ kind: 'arm', cmd: `J 3 ${o.swing}`, row: 0 }];
+  // the brush up (the elbow), then the wrist to the active pose, in the air
+  const blocks = [{ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
   const preview = [], car = [];
   let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = pt(0, 0);
   passes.forEach(({ key, ps }, n) => {
@@ -398,7 +366,7 @@ export function xyPlan(opts) {
       const cmds = [`F ${o.speed}`];
       let v = o.speed, len = 0, paint = 0;
       for (const q of m.pieces) {
-        if (q.w !== undefined) cmds.push(`W ${q.w} ${q.ws}`);
+        if (q.w !== undefined) cmds.push(`W 2 ${q.w} ${q.ws}`);
         if (q.v !== v) { cmds.push(`F ${q.v}`); v = q.v; }
         cmds.push(q.g.t === 'L' ? `L ${M(q.g.b)}` : `A ${M(q.g.c)} ${M(q.g.b)} ${q.g.d}`);
         const L = pieceLen(q.g);
@@ -408,7 +376,7 @@ export function xyPlan(opts) {
       cmds.push('G');
       length += paint;
       blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: m.pieces.map(q => q.on), row: p[0].row });
-      blocks.push({ kind: 'arm', cmd: `J 3 ${o.swing}`, row: p.at(-1).row });   // in the air already: the brush put away
+      blocks.push({ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: p.at(-1).row });   // at the lift-off already: the brush up
       if (!o.snake && o.pause && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
       for (const l of m.trace) preview.push(Object.assign(l, { pass: key }));   // its paint, on the preview
       seconds += travelTime(Math.hypot(first.x - at0.x, first.y - at0.y), o.travel) + pathTime(m.pieces) + PATH_S;

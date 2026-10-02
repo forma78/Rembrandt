@@ -1,12 +1,12 @@
 // Rembrandt · Test — rows of hairpins on a board (strokes.js), run
 // on the machine by rembrandt.py's runner: the plotter draws each row, the
-// wrist tilts the brush through the turns and lifts it with its hook, a
+// elbow lands and lifts the brush on the move (the new arm, 2026-10-02), a
 // pause for paint. The page only plans
 // and watches; STOP and HARD STOP stop the carriage (and the arm).
 
 import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
-import { xyPlan, PATTERNS, PASSES, DEFAULTS, DRAG_MM, BRUSH_MM, WRIST_MAX, SPEED_MAX } from './strokes.js';
+import { xyPlan, PATTERNS, PASSES, DEFAULTS, TABLE_MM, BRUSH_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import './ui.js';
@@ -16,7 +16,8 @@ const KEY = 'rembrandt.test.v01';
 const S = { ...DEFAULTS, pattern: 'A', here: null };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { }
 for (const k of ['sweep', 'reach', 'fast', 'turnSpeed', 'land']) delete S[k];   // the arm strokes' settings, dropped 2026-10-02; the landing shift, tried and dropped the same day
-if (S.board) { S.boardW = S.boardH = S.board; delete S.board; }          // one size for both before; width and height apart since 2026-10-02
+if (S.board) { S.boardW = S.boardH = S.board; delete S.board; }
+if (S.lift === undefined && S.tilt !== undefined) S.lift = S.tilt >= 45;   // the wrist off the board at a turn, before the new arm: the brush up there now          // one size for both before; width and height apart since 2026-10-02
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
 
 // Sliders, as on the Calibration tab (the owner, 2026-10-02); the board's
@@ -29,10 +30,8 @@ const SLIDERS = [
   ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
   ['wave', 'Wave', 'mm', 1, 0, 30],   // 0: the row as it is; more: waves along it (the owner, 2026-10-02)
   ['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX],
-  // the wrist through a turn, + on the right, − on the left; the brush leaves the board at ±45°,
-  // the rest is reserve (2026-10-02; rembrandt.py: +60° at most)
-  ['tilt', 'Wrist at a turn', '±°', 1, 0, 60],
-  // along the first and the last of a row the brush lands and lifts on the move (2026-10-02); longer where the wrist needs it
+  // along the first and the last of a row the elbow eases the brush on and off on the move (2026-10-02);
+  // "Wrist at a turn" went with the new arm: the wrist lifting the brush was the broom
   ['tail', 'Tail', 'mm', 5, 20, 200],
 ];
 // a dot every step, a bigger one with its number every `label`, as on
@@ -83,11 +82,12 @@ $('#patD').querySelectorAll('button').forEach(b => b.onclick = () => {
   update();
 });
 $('#pause').onchange = e => { S.pause = e.target.checked; update(); };
+$('#lift').onchange = e => { S.lift = e.target.checked; update(); };
 
 // ---------- the plan, drawn on the board ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
 // the table round the board, mm: wider across, where rows may run past it
-const PAD_X = 20, PAD_Y = 20 + DRAG_MM, tableW = () => S.boardW + 2 * PAD_Y, tableH = () => S.boardH + 2 * PAD_X;
+const PAD_X = 20, PAD_Y = 20 + TABLE_MM, tableW = () => S.boardW + 2 * PAD_Y, tableH = () => S.boardH + 2 * PAD_X;
 let P = xyPlan(S), k = 1, dpr = 1;
 function layout() {
   const r = stage.getBoundingClientRect(), m = 36, sw = tableW(), sh = tableH();
@@ -128,6 +128,7 @@ function update() {
   document.querySelectorAll('#patD button').forEach(b => b.classList.toggle('on', S.pattern === 'D' && (S.passes || []).includes(b.dataset.d)));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
   $('#pause').checked = S.pause && !S.snake;
+  $('#lift').checked = !!S.lift;
   // C, the snake: the turn is the row to row, and a continuous line has no pause; its Turn
   // slider hidden, not greyed (the owner, 2026-10-02: "it only takes room")
   $('#sliders input[data-k="turn"]').closest('label').hidden = !!S.snake;
@@ -144,11 +145,11 @@ function update() {
     $(`#shifts [data-sv="${k}${ax}"]`).textContent = signed(v) + SHIFT_AX.find(a => a[0] === ax)[4];
   });
   $('#planRead').innerHTML = (P.passes.length ? `${P.passes.join(' + ')}: ${P.passes.length > 1 ? `${P.passes.length} passes, a pause between them for the paint · ` : ''}` : '') + (P.snake
-    ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down${P.lifts ? '' : ' all the way'}, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
+    ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down${P.turns ? '' : ' all the way'}, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
     : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
-    + (P.turns ? ` · the wrist ±${S.tilt}° through ${P.turns} turns` + (P.lifts ? ', the brush off the board there' : '') : '')
-    + ` · the brush lands and lifts on the move over ${S.tail} mm of each row's ends, the carriage stepping aside so the tip keeps to the row; the wrist up to ${fmt(P.need, 0)}°/s (est.)`
-    + (P.need > WRIST_MAX ? ` <span class="warn">The wrist goes ${WRIST_MAX}°/s at most: a longer Tail or a slower brush.</span>` : '')
+    + (P.turns ? ` · the brush up through ${P.turns} turns` : '')
+    + ` · the elbow eases the brush on and off over ${S.tail} mm of each row's ends, on the move, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P.need, 0)}°/s (est.)`
+    + (P.need > WRIST_MAX ? ` <span class="warn">The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.</span>` : '')
     + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
@@ -184,7 +185,7 @@ function walls() {
 // (the owner, 2026-10-02). An SVG of the board in mm with the rows, the
 // settings in its metadata, and a PNG preview; the Library opens it here.
 // every setting of the test: SAVE TEST keeps them, and each run writes them to the journal
-const settingsNow = () => Object.fromEntries(['pattern', 'passes', 'shift', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'tail', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+const settingsNow = () => Object.fromEntries(['pattern', 'passes', 'shift', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'lift', 'tail', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
 function testLabel() { return `${S.pattern === 'D' ? (S.passes || []).join('+') : S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
 function testSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
@@ -201,8 +202,8 @@ function testSvg() {
     return out;
   }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${W + 2 * DRAG_MM}mm" height="${H}mm" viewBox="${-DRAG_MM} 0 ${W + 2 * DRAG_MM} ${H}">
-<!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${DRAG_MM} mm either side of the board, where rows may run past it -->
+<svg xmlns="http://www.w3.org/2000/svg" width="${W + 2 * TABLE_MM}mm" height="${H}mm" viewBox="${-TABLE_MM} 0 ${W + 2 * TABLE_MM} ${H}">
+<!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${TABLE_MM} mm either side of the board, where rows may run past it -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
 <g fill="none" stroke="#1B1A19" stroke-linecap="round" stroke-linejoin="round">
