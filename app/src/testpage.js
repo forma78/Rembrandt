@@ -6,7 +6,7 @@
 
 import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
-import { xyPlan, PATTERNS, DEFAULTS, DRAG_MM } from './strokes.js';
+import { xyPlan, PATTERNS, PASSES, DEFAULTS, DRAG_MM } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import './ui.js';
@@ -27,6 +27,7 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 const SLIDERS = [
   ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 0.5, 4, 30, { label: 5 }],
   ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
+  ['wave', 'Wave', 'mm', 1, 0, 30],   // 0: the row as it is; more: waves along it (the owner, 2026-10-02)
   ['speed', 'Brush on', 'mm/s', 1, 5, 200], ['travel', 'Between rows', 'mm/s', 5, 20, 200],
   // the wrist through a turn, + on the right, − on the left; the brush leaves the board at ±45°,
   // the rest is reserve (2026-10-02; rembrandt.py: +60° at most)
@@ -48,6 +49,14 @@ $('#sliders').querySelectorAll('input').forEach(inp => inp.oninput = () => { S[i
 $('#fields').innerHTML = FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; update(); });
 $('#pat').querySelectorAll('button').forEach(b => b.onclick = () => { S.pattern = b.dataset.p; Object.assign(S, PATTERNS[S.pattern]); update(); });
+// D1, D2, D3 latch like Reference · Lanes · Drops on Create: one, two or all
+// three, run in their order (the owner, 2026-10-02); the last one stays on.
+$('#patD').querySelectorAll('button').forEach(b => b.onclick = () => {
+  const k = b.dataset.d, on = S.pattern === 'D' ? (S.passes || []) : [];
+  if (S.pattern !== 'D') { S.pattern = 'D'; Object.assign(S, PATTERNS.D); }
+  S.passes = on.includes(k) ? (on.length > 1 ? on.filter(x => x !== k) : on) : [...on, k];
+  update();
+});
 $('#pause').onchange = e => { S.pause = e.target.checked; update(); };
 
 // ---------- the plan, drawn on the board ----------
@@ -74,8 +83,11 @@ function drawOn(c, kk, W, H) {
   c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * k, S.boardH * k);
   c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-hw) + .5, sy(hh) + .5, S.boardW * k - 1, S.boardH * k - 1);
   c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-hw + m), sy(hh - m), (S.boardW - 2 * m) * k, (S.boardH - 2 * m) * k); c.setLineDash([]);
-  c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = '#1B1A19'; c.lineWidth = 10 * k;   // a round brush, about 10 mm (est.)
-  for (const line of P.preview) { c.beginPath(); line.forEach((q, i) => i ? c.lineTo(sx(q.y), sy(q.x)) : c.moveTo(sx(q.y), sy(q.x))); c.stroke(); }
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = 10 * k;   // a round brush, about 10 mm (est.)
+  for (const line of P.preview) {   // black; D's passes in their paints
+    c.strokeStyle = line.pass ? PASSES[line.pass].color : '#1B1A19';
+    c.beginPath(); line.forEach((q, i) => i ? c.lineTo(sx(q.y), sy(q.x)) : c.moveTo(sx(q.y), sy(q.x))); c.stroke();
+  }
   c.strokeStyle = '#EB7A25'; c.lineWidth = 1.5;                                             // Here: the board's centre
   c.beginPath(); c.moveTo(sx(-8), sy(0)); c.lineTo(sx(8), sy(0)); c.moveTo(sx(0), sy(-8)); c.lineTo(sx(0), sy(8)); c.stroke();
   c.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono'); c.fillStyle = '#B3470C';
@@ -85,6 +97,7 @@ function drawOn(c, kk, W, H) {
 function update() {
   P = xyPlan(S);
   document.querySelectorAll('#pat button').forEach(b => b.classList.toggle('on', b.dataset.p === S.pattern));
+  document.querySelectorAll('#patD button').forEach(b => b.classList.toggle('on', S.pattern === 'D' && (S.passes || []).includes(b.dataset.d)));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
   $('#pause').checked = S.pause && !S.snake;
   // C, the snake: the turn is the row to row, and a continuous line has no pause
@@ -95,14 +108,14 @@ function update() {
     $(`#sliders [data-v="${k}"]`).textContent = shown(k, unit);
   }
   $('#pause').disabled = !!S.snake; $('#pause').parentElement.classList.toggle('off', !!S.snake);
-  $('#planRead').innerHTML = (P.snake
+  $('#planRead').innerHTML = (P.passes.length ? `${P.passes.join(' + ')}: ${P.passes.length > 1 ? `${P.passes.length} passes, a pause between them for the paint · ` : ''}` : '') + (P.snake
     ? `${P.rows} rows in one line · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · ${fmt(P.length / 1000, 2)} m with the brush down${P.lifts ? '' : ' all the way'}, at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min (est.)`
     : `${P.rows} rows · <b>${fmt(P.width / 10, 1)} × ${fmt(P.height / 10, 1)} cm</b> · the brush at ${S.speed} mm/s · ≈ ${fmt(P.seconds / 60, 1)} min without the pauses (est.)`)
     + (P.turns ? ` · the wrist ±${S.tilt}° through ${P.turns} turns` + (P.lifts ? ', the brush off the board there' : '') : '')
     + ` · drawn as the brush paints: the wrist drags it ${DRAG_MM} mm along the rows as it lands and lifts (est.)`
     + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
-  $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern}`;
+  $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
   showHere(); save(); layout();
 }
 
@@ -134,12 +147,12 @@ function walls() {
 // ---------- 💾 SAVE TEST: into the Library, its second shelf ----------
 // (the owner, 2026-10-02). An SVG of the board in mm with the rows, the
 // settings in its metadata, and a PNG preview; the Library opens it here.
-function testLabel() { return `${S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
+function testLabel() { return `${S.pattern === 'D' ? (S.passes || []).join('+') : S.pattern} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows`; }
 function testSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
-  const settings = Object.fromEntries(['pattern', 'rows', 'turn', 'pitch', 'length', 'bow', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
+  const settings = Object.fromEntries(['pattern', 'passes', 'rows', 'turn', 'pitch', 'length', 'bow', 'wave', 'speed', 'travel', 'tilt', 'boardW', 'boardH', 'margin', 'pause', 'snake'].map(k => [k, S[k]]));
   const meta = JSON.stringify({ rembrandt: '0.1', label: testLabel(), settings }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
-  const rows = P.preview.map(line => `  <path d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
+  const rows = P.preview.map(line => `  <path${line.pass ? ` stroke="${PASSES[line.pass].color}"` : ''} d="M${line.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W + 2 * DRAG_MM}mm" height="${H}mm" viewBox="${-DRAG_MM} 0 ${W + 2 * DRAG_MM} ${H}">
 <!-- Rembrandt v0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${DRAG_MM} mm either side of the board for the wrist's drags -->
@@ -185,7 +198,7 @@ const post = async path => { try { const r = await fetch(path, { method: 'POST' 
 $('#btnDoJob').onclick = async () => {
   if (!S.here) { $('#runState').innerHTML = '<span class="warn">Set Here first.</span>'; return; }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
-  if (!confirm(`Run ${P.rows} rows of pattern ${S.pattern} on the machine?` + (P.fits ? '' : '\nIt goes past the board\'s margins.') + `\n\nThe first time: in the air — the brush off, no board under it.`)) return;
+  if (!confirm(`Run ${P.rows} rows of pattern ${S.pattern === 'D' ? P.passes.join(' + ') : S.pattern} on the machine?` + (P.fits ? '' : '\nIt goes past the board\'s margins.') + `\n\nThe first time: in the air — the brush off, no board under it.`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks }) });
     $('#runState').textContent = await r.text();
@@ -210,7 +223,7 @@ function lcd(st) {
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b = st && P.blocks[st.block];
   const now = live && b ? (P.snake ? `the snake · ${fmt(st.painted_mm / 10, 0)} of ${fmt(st.paint_mm / 10, 0)} cm` : `row ${Math.min(b.row, P.rows)} of ${P.rows}`) + (st.brush_on ? ' · brush on' : ' · brush off')
-    : `${P.rows} rows · pattern ${S.pattern}`;
+    : `${P.rows} rows · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P.length / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">

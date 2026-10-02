@@ -371,6 +371,17 @@ this section disagree, this section wins: the owner corrected the sketch on
   was tried and dropped the same day: the drag runs along Y only, a bowed
   row starts at a slant, and the row bent off its arc and left a gap — the
   owner: "fix it as it was". Open.
+  **Pattern D** (the owner, 2026-10-02, `references/IMG_9455.JPG`,
+  `PATTERN-D1…3.jpg`, `PATTERN-D all.jpg`): three passes, each the snake
+  of C — "keep the geometry of C", the sketches are rough on purpose — turned
+  its own way: D1 rows upright and bowed to the left (nested Cs, orange),
+  D2 down to the lower right (red), D3 up to the upper right (dark grey);
+  *Claude's reading*: 90°, 50° and 120°. The sliders are shared by all
+  three (the owner's choice). **D1 · D2 · D3** latch like Reference · Lanes
+  · Drops: one, two or all three run, in their order, a pause between for
+  the paint. **Wave** (all patterns): a row waves either side of its line or
+  arc, 0 for none — "from a perfectly straight pass to waves"; laid as
+  biarcs, the tangent continuous, about 100 mm a wave (est.).
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.

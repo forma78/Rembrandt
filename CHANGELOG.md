@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: pattern D and the Wave** (the owner, 2026-10-02: the key frame
+  `references/IMG_9455.JPG` in three passes, `PATTERN-D1…3.jpg`; "keep the
+  geometry of C"; "if you can make such waves, let their curvature be set,
+  from a perfectly straight pass to waves"). D1 · D2 · D3 latch like
+  Reference · Lanes · Drops; each is C's snake turned 90°, 50° or 120°
+  (Claude's reading of the sketches), the sliders shared; the passes on run
+  in their order with a pause for the paint between, and the preview draws
+  them orange, red and dark grey. Wave, 0…30 mm, on every pattern: a sine
+  along the row, a whole number of half waves so the ends stay put, laid as
+  biarcs — lines and arcs only, no kink. With no wave A, B and C are what
+  they were, block for block (tested).
 - **Sliders dark grey and thin; Do Test dark grey; two phrases gone** (the
   owner, 2026-10-02). On every tab the sliders lose their orange — the fill,
   the knob's mark, the value — for dark grey (`--slide`, light grey by
