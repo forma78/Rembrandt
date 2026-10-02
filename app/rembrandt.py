@@ -328,7 +328,8 @@ TURN = {"shoulder": -1, "elbow": -1, "wrist": +1}
 # same night, the owner: "cut it boldly to +90°, no further — that is the limit".
 # The elbow −5° at most below the active pose (the owner: "−5 max, or it tears
 # the canvas or breaks the brush").
-REACH = {"shoulder": (-45, 45), "elbow": (-5, 45), "wrist": (-180, 90)}
+# The wrist −120° at most the other way ("not −180").
+REACH = {"shoulder": (-45, 45), "elbow": (-5, 45), "wrist": (-120, 90)}
 # Where the brush leaves the canvas from the active pose (the owner,
 # measured 2026-10-02): the elbow at +15°, plus up; the wrist at +60° — "but
 # that is the broom again", so the brush is lifted by the elbow.

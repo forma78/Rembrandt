@@ -683,7 +683,7 @@ class ArmTest(unittest.TestCase):
 
     def test_the_brush_leaves_the_canvas_the_other_way_now(self):
         self.assertEqual(SWING_DEG, -54)
-        self.assertEqual(REACH["wrist"], (-180, 90))                # the new arm, 2026-10-02: "+90, no further"
+        self.assertEqual(REACH["wrist"], (-120, 90))                # the new arm, 2026-10-02: "+90, no further", "−120, not −180"
 
     def test_the_elbow_never_presses_past_minus_5(self):
         # the owner, 2026-10-02: "−5 max, or it tears the canvas or breaks the brush"
