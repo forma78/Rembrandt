@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The new arm's working pose: zero is the active mode** (the owner,
+  2026-10-02, night: "zero is the active mode, the brush pressed to the
+  canvas", the arm perfectly straight, `machine/IMAGE 2026-10-02
+  machine-active mode.jpg`). All three joints read 0° there
+  (`calibration.json`, "arm": 3119 · 3062 · 2546). The wrist's reach is
+  now −180…+130° round it, the servo's own ends: +180° from the old zero
+  was +309° past this one. The elbow: 0° pressed, plus up, minus harder
+  into the canvas.
 - **Calibration: the wrist to +180°** (the owner, 2026-10-02, the new arm:
   "give me the WRIST slider more to the plus, to +180 — there is nowhere to
   grip on the left to lower the brush, bristles to the canvas"). `REACH`
