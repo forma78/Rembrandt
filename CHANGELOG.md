@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **rembrandt.py: `W` through the runner** (the owner, 2026-10-02: "I allow
+  changing the runner"). A move with `W` lines takes the wrist's zero where
+  it stands (`Z`, before any piece is queued) and sends RUBENS's degrees as
+  steps from it; a pause or a stop in a tail finds the wrist as the last `W`
+  on a piece the carriage reached left it, lifts from there, and Continue
+  goes on with the `W`s still to come; a `W` past the reach is refused
+  before anything moves. The wrist's step limit 150° (was 90), as the
+  firmware's. A wrist angle in tenths no longer breaks Continue.
 - **Firmware: `W`, the wrist on the path; F and T to 250 mm/s** (2026-10-02,
   built and host-tested, not yet flashed). `W <deg> [<deg/s>]` rides on the
   next piece queued; the planner gives it out as the point reaches that
