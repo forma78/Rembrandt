@@ -183,9 +183,10 @@ export function reach() {
 // (Rubens_v2.md, section 4.5).
 // The brush off the canvas: the wrist (J3) to −54°, degrees from the brush
 // upright. It was +90° until 2026-09-30, when a USB camera on the holder took
-// the plus side: past +10° the arm would break it (rubens.py, REACH, refuses
-// any such move). −54° is the pose the owner found safe (−45° on the wrist's
-// old zero, 9.4° off upright).
+// the plus side: past +10° the arm would break it (rembrandt.py, REACH, refuses
+// any such move; +15° since 2026-10-02, the owner's word, for the broom at
+// the turns of the Test tab). −54° is the pose the owner found safe (−45° on
+// the wrist's old zero, 9.4° off upright).
 export const SWING_DEG = -54;
 // Pass speed. The board takes 1…200 mm/s. Its planner limits the
 // acceleration along the path (PATH_ACCEL, 250 mm/s²), not across it, so a
