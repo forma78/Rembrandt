@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: Do Test asks in one line** (the owner, 2026-10-02): "8 rows of
+  pattern D1 will be run on the machine", Cancel / OK — no margins note, no
+  "in the air" note.
 - **Test: ↻ turns each D pass ±90°** (the owner, 2026-10-02: "another row
   D1, D2, D3, the slider at the centre, −90 and +90 either way", a scale
   −90 / −45 / 0 / +45 / +90 as on Row to row). It adds to the pass's own
