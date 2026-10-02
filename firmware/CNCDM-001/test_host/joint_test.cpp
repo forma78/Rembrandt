@@ -20,6 +20,13 @@ int main() {
   CHECK(!joint::parse(" 1", c) && !joint::parse("", c) && !joint::parse(" x 3", c), "no angle: refused");
   CHECK(joint::turnsWithRail(3) && !joint::turnsWithRail(1) && !joint::turnsWithRail(2),
         "on a path only the wrist may turn");
+  CHECK(joint::parseWrist("55", c) && c.j == 3 && c.deg == 55.0f && c.speed == joint::SPEED_DEFAULT,
+        "W 55: the wrist, the speed of always");
+  CHECK(joint::parseWrist(" -54 105", c) && c.j == 3 && c.deg == -54.0f && c.speed == 1195, "W -54 105: 105 deg/s");
+  CHECK(joint::parseWrist(" 10 180", c) && c.speed == 2048, "W goes faster than J: 180 deg/s");
+  CHECK(joint::parseWrist(" 10 900", c) && c.speed == joint::WRIST_SPEED_MAX && joint::parse(" 3 10 900", c) && c.speed == joint::SPEED_MAX,
+        "each its own fastest");
+  CHECK(!joint::parseWrist("", c) && !joint::parseWrist(" x", c), "W without an angle: refused");
   std::printf(fails ? "%d FAILED\n" : "all good\n", fails);
   return fails ? 1 : 0;
 }

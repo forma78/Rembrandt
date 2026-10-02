@@ -11,6 +11,10 @@
 // One rule: at any moment it can stop at the end of what is already queued.
 // At a smooth joint the speed does not drop; at a kink over MAX_TURN_DEG and
 // at both ends of a travel (M) it is zero.
+//
+// A piece may carry a turn of the wrist (W, 2026-10-02): it is given out
+// once, as the point reaches the piece's start, so the brush lands and
+// lifts on the move, where the path says, not with the carriage standing.
 
 #pragma once
 #include <math.h>
@@ -27,6 +31,9 @@ struct Seg {
   float a0, sweep;      // arc: start angle and signed sweep, rad
   float len;            // length, mm
   float v;              // the speed limit on this piece, mm/s
+  bool  wrist;          // a turn of the wrist rides on this piece (W): given out at its start
+  float wristDeg;       //   degrees from the wrist's zero, as J 3 takes them
+  uint16_t wristSpeed;  //   ticks/s
 };
 
 inline Seg line(float x0, float y0, float x1, float y1, float v, char kind = 'L') {
@@ -105,6 +112,13 @@ class Planner {
 
   int  count() const { return count_; }
   int  room() const { return N - count_; }
+  // The turn of the wrist whose piece the point has just reached, once; with
+  // several pieces crossed in one tick, the last one's.
+  bool takeWrist(float *deg, uint16_t *speed) {
+    if (!wristDue_) return false;
+    wristDue_ = false; *deg = wristDeg_; *speed = wristSpeed_;
+    return true;
+  }
   bool running() const { return count_ > 0; }
   float speed() const { return v_; }
 
@@ -132,12 +146,13 @@ class Planner {
   }
 
   // Drop everything: the carriage stands (a hard stop), the path is empty.
-  void clear(float x, float y) { count_ = 0; s_ = 0; v_ = 0; limit_ = -1; endX_ = x; endY_ = y; }
+  void clear(float x, float y) { count_ = 0; s_ = 0; v_ = 0; limit_ = -1; endX_ = x; endY_ = y; wristDue_ = false; }
 
   // One tick of length dt: the path's new point into (*x, *y). False — the
   // path has ended, the speed is zero, the point is the path's end.
   bool step(float dt, float *x, float *y) {
     if (!count_) { v_ = 0; limit_ = -1; *x = endX_; *y = endY_; return false; }
+    giveWrist(q_[head_]);                    // the first piece's, as the point sets off on it
 
     // How fast it may go now: the piece's limit and every joint ahead, up to
     // the end of the queue — each one it can still brake for.
@@ -169,6 +184,7 @@ class Planner {
       s_ -= q_[head_].len;
       head_ = (head_ + 1) % N;
       count_--;
+      if (count_) giveWrist(q_[head_]);
     }
     // the path's end: nearer than 0.01 mm — arrived
     float left = 0;
@@ -189,6 +205,12 @@ class Planner {
   }
 
  private:
+  void giveWrist(Seg &g) {
+    if (!g.wrist) return;
+    g.wrist = false;
+    wristDue_ = true; wristDeg_ = g.wristDeg; wristSpeed_ = g.wristSpeed;
+  }
+
   Seg   q_[N];
   int   head_ = 0, count_ = 0;
   float s_ = 0;         // gone along the first piece, mm
@@ -196,6 +218,9 @@ class Planner {
   float accel_;         // acceleration and braking, mm/s²
   float limit_ = -1;    // a stop by S: how far still to go, mm; -1 — none
   float endX_ = 0, endY_ = 0;
+  bool  wristDue_ = false;
+  float wristDeg_ = 0;
+  uint16_t wristSpeed_ = 0;
 };
 
 }  // namespace path
