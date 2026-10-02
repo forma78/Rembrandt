@@ -207,6 +207,11 @@ export const plotPaths = (opts, angle) => paths({ ...DEFAULTS, ...opts }, angle)
 // (the owner, on Calibration) and drags DRAG_MM along Y between touching it
 // and standing upright (a ruler).
 export const LIFT_DEG = 45, DRAG_MM = 50;
+// The brush's trace across a row, for the preview (est.): rows 4.5 mm apart
+// left grooves between them on the canvas, about 1 mm each
+// (test_results/IMAGE 2026-10-02 17:12:24.jpg, photo_2026-10-02 D2+D3.jpeg);
+// drawn 10 mm wide before, they ran together (the owner, 2026-10-02).
+export const BRUSH_MM = 3.5;
 const rad = d => d * Math.PI / 180;
 export const tipY = deg => DRAG_MM / Math.sin(rad(LIFT_DEG)) * Math.sin(rad(deg));   // the tip along Y from upright (est.)
 const onBoard = deg => Math.abs(deg) < LIFT_DEG;

@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the brush drawn 3.5 mm wide, not 10** (the owner, 2026-10-02,
+  `test_results/IMAGE 2026-10-02 19:20:53.jpg`: "Row to row is 4.5 mm and
+  everything ran together, though the photo of the real strokes has
+  grooves. I would make it thinner"). On the canvas rows 4.5 mm apart left
+  grooves of about 1 mm (`IMAGE 2026-10-02 17:12:24.jpg`,
+  `photo_2026-10-02 D2+D3.jpeg`), so the trace is about 3.5 mm (est.,
+  `BRUSH_MM` in `strokes.js`); the preview and the test's SVG draw it so.
 - **Test: at 100 % the carriage goes home** (the owner, 2026-10-02, after
   D2 + D3 stopped over the board's centre:
   `test_results/photo_2026-10-02 D2+D3 final.jpeg` — "when the operations
