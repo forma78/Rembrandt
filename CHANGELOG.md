@@ -5,6 +5,30 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the brush lands and lifts on the move — (a) + (b)** (the owner,
+  2026-10-02, after D2 + D3: "the brush starts to lift while the carriage
+  still runs out the row"; "a + b, let's test"). Before, the carriage stood
+  at every turn while the wrist lifted and landed the brush — 5.4 s a turn,
+  and the tip dragged 50 mm across the rows' ends: the flags, the dark band
+  in `test_results/photo_2026-10-02 D2+D3 final.jpeg`. Now a pass is one
+  move. Over the first and the last **Tail** mm of a row (100 by default, a
+  new slider) the wrist goes between upright and ±45° on a half cosine, and
+  the carriage moves the other way along Y as it does, so the tip keeps to
+  the row — a tail along it, the brush lightening; through a turn the brush
+  is in the air, the carriage 50 mm aside. The wrist goes by place: a `W`
+  rides on every 16 mm of a tail, and the board turns it as the carriage
+  gets there, whatever the speed or a pause. The tip keeps the brush's
+  speed in a tail, the carriage faster or slower as its way there is longer
+  or shorter; a tail grows where the wrist would not keep up (211°/s at
+  most). The preview draws the tip, thinner in the tails; the walls check
+  takes the carriage's way. The time comes from the board's planner run on
+  the page: about 5 min for the last D2 + D3, which took 10. Until the
+  flash, the board answers `W` with "?" and nothing moves.
+- **Test: Brush on and Between rows to 250 mm/s** (the owner, 2026-10-02:
+  "at least 250 — we are testing"), the firmware's new most. On a wavy row
+  the board's queue of 16 short pieces holds it nearer 170 mm/s.
+- **Test: Turn hidden on C and D** (the owner, 2026-10-02: "it only takes
+  room"): there the turn is the row to row.
 - **rembrandt.py: `W` through the runner** (the owner, 2026-10-02: "I allow
   changing the runner"). A move with `W` lines takes the wrist's zero where
   it stands (`Z`, before any piece is queued) and sends RUBENS's degrees as

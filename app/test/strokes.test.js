@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, plotPaths, PATTERNS, PASSES, waved, tipY, LIFT_DEG, DRAG_MM } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS, PASSES, waved, tipY, LIFT_DEG, DRAG_MM, WRIST_MAX } from '../src/strokes.js';
 
 const PLOTTER = { tilt: 0 };   // the plotter's own path, the broom aside
 
@@ -16,17 +16,16 @@ test('A and B fit the 30 × 30 board inside its margins', () => {
   }
 });
 
-test('a row is a hairpin of the plotter: a line out, a half circle round on the right, a line back', () => {
+test('a row is a hairpin of the plotter: a line out, a half circle round on the right, a line back — one move, the brush landing and lifting on it', () => {
   const p = xyPlan({ ...PATTERNS.B, here: { x: 400, y: 280 }, pause: false, ...PLOTTER });
   const row = p.blocks.filter(b => b.row === 1);
-  assert.deepEqual(row.map(b => b.kind === 'arm' ? b.cmd : b.cmds[1].split(' ')[0]), ['M', 'J 3 0', 'L', 'J 3 -54']);
-  const paint = row[2].cmds;
+  assert.deepEqual(row.map(b => b.kind === 'arm' ? b.cmd : b.cmds[1].split(' ')[0]), ['M', 'W', 'J 3 -54'], 'travel, one move that starts with the wrist, the brush put away');
+  const paint = row[1].cmds;
   const x = 400 + p.height / 2, left = 280 - p.width / 2, right = left + 220;
-  assert.equal(paint[1], `L ${x.toFixed(2)} ${right.toFixed(2)}`);
-  const arc = paint.find(c => c.startsWith('A '));
-  assert.equal(arc, `A ${(x - 10).toFixed(2)} ${right.toFixed(2)} ${(x - 20).toFixed(2)} ${right.toFixed(2)} 1`, '+1: from +X to +Y, the turn bulges to the right');
-  assert.equal(paint.at(-2), `L ${(x - 20).toFixed(2)} ${left.toFixed(2)}`);
-  assert.ok(paint.every(c => /^[FLAG]/.test(c)), 'only speeds, lines, arcs and go: the runner sends them as they are');
+  assert.ok(paint.includes(`L ${x.toFixed(2)} ${right.toFixed(2)}`), 'the line out, upright to its end');
+  assert.ok(paint.includes(`A ${(x - 10).toFixed(2)} ${right.toFixed(2)} ${(x - 20).toFixed(2)} ${right.toFixed(2)} 1`), '+1: from +X to +Y, the turn bulges to the right');
+  assert.ok(paint.every(c => /^[FLAGW]/.test(c)), 'only speeds, the wrist, lines, arcs and go: the runner sends them as they are');
+  assert.equal(row[1].painted.length, paint.filter(c => /^[LA]/.test(c)).length, 'a mark for every piece');
   assert.equal(p.blocks.at(-1).cmds[1], 'M 0.10 0.10', 'home at the end, where home is set, as a job ends');
   assert.ok(p.blocks.at(-1).home && p.blocks.at(-2).cmd === 'J 3 -54', 'the brush off before it goes');
 });
@@ -51,22 +50,24 @@ test('the box the brush covers, from Here: for the walls check', () => {
   assert.ok(!big.fits && big.blocks.length > 0, 'past the margins still makes a plan');
 });
 
-test('C, the snake: one path, the brush down once, the turns round on the right and on the left by turns', () => {
+const radius = c => { const q = c.split(' ').slice(1).map(Number); return Math.hypot(q[2] - q[0], q[3] - q[1]); };
+test('C, the snake: one move, the brush landing once on it, the turns round on the right and on the left by turns', () => {
   const p = xyPlan({ ...PATTERNS.C, here: { x: 400, y: 280 }, ...PLOTTER });
   assert.ok(p.fits, `${p.width} × ${p.height} in ${p.room.w} × ${p.room.h}`);
-  assert.equal(p.blocks.filter(b => b.cmd === 'J 3 0').length, 1, 'the brush goes down once');
+  const moves = p.blocks.filter(b => b.paintMM);
+  assert.equal(moves.length, 1, 'one move: the carriage never stops');
+  assert.deepEqual(J(p), ['J 3 -54', 'J 3 -54'], 'no J 3 0: the brush lands on the move, by W');
   assert.equal(p.blocks.filter(b => b.kind === 'pause').length, 0, 'no pause in a continuous line');
-  const cmds = p.blocks.find(b => b.paintMM).cmds;
-  const arcs = cmds.filter(c => c.startsWith('A '));
-  assert.equal(arcs.length, PATTERNS.C.rows - 1);
-  assert.deepEqual(arcs.map(a => a.split(' ').at(-1)), arcs.map((_, i) => i % 2 ? '-1' : '1'));
-  const lines = cmds.filter(c => c.startsWith('L '));
-  assert.equal(lines.length, PATTERNS.C.rows);
-  assert.equal(lines[0].split(' ')[2], (280 + 110).toFixed(2), 'row 1 ends on the right');
-  assert.equal(lines[1].split(' ')[2], (280 - 110).toFixed(2), 'row 2 ends on the left');
-  assert.equal(p.blocks.find(b => b.paintMM).painted.length, 2 * PATTERNS.C.rows - 1);
-  for (const q of p.preview[0]) assert.ok(q.y >= p.box.y0 - DRAG_MM - 1e-9 && q.y <= p.box.y1 + DRAG_MM + 1e-9 && q.x >= p.box.x0 - 1e-9 && q.x <= p.box.x1 + 1e-9,
-    'the brush within the box but for the wrist\'s drags along Y');
+  const cmds = moves[0].cmds;
+  const turns = cmds.filter(c => c.startsWith('A ') && Math.abs(radius(c) - PATTERNS.C.pitch / 2) < 0.01);
+  assert.equal(turns.length, PATTERNS.C.rows - 1);
+  assert.deepEqual(turns.map(a => a.split(' ').at(-1)), turns.map((_, i) => i % 2 ? '-1' : '1'));
+  const x = 400 + p.height / 2;
+  assert.ok(cmds.includes(`L ${x.toFixed(2)} ${(280 + 110).toFixed(2)}`), 'row 1 ends on the right');
+  assert.ok(cmds.includes(`L ${(x - 20).toFixed(2)} ${(280 - 110).toFixed(2)}`), 'row 2 ends on the left');
+  assert.equal(moves[0].painted.length, cmds.filter(c => /^[LA]/.test(c)).length);
+  for (const q of p.preview[0]) assert.ok(q.y >= p.box.y0 - 0.01 && q.y <= p.box.y1 + 0.01 && q.x >= p.box.x0 - 0.01 && q.x <= p.box.x1 + 0.01,
+    'the tip keeps to the path: nothing painted past it');
 });
 
 test('the board: width and height apart — 400 × 600 holds a snake 26 rows long, 300 × 300 does not', () => {
@@ -107,30 +108,36 @@ test('a bowed row: an arc whose middle lies bow mm lower; the snake stays smooth
 // ---------- the wrist (the owner, 2026-10-02, test_results/: the 15-row snake) ----------
 const J = p => p.blocks.filter(b => b.kind === 'arm').map(b => b.cmd);
 
-test('the broom: the wrist +45° through a turn on the right, −45° on the left, upright along the rows; down from −54° once', () => {
+const Ws = b => b.cmds.filter(c => c[0] === 'W').map(c => +c.split(' ')[1]);
+test('the wrist on the move: up to +45° into a turn on the right, −45° on the left, upright along the rows; the brush put away at the end', () => {
   const p = xyPlan({ ...PATTERNS.C, rows: 15, pitch: 10, length: 255, bow: 36 });
-  const turns = Array.from({ length: 14 }, (_, k) => [k % 2 ? 'J 3 -45' : 'J 3 45', 'J 3 0']).flat();
-  assert.deepEqual(J(p), ['J 3 -54', 'J 3 0', ...turns, 'J 3 -54']);
+  assert.deepEqual(J(p), ['J 3 -54', 'J 3 -54']);
   assert.equal(p.turns, 14);
   assert.equal(p.lifts, 14, 'at 45° the brush is off the board through every turn');
-  const moves = p.blocks.filter(b => b.kind === 'move' && b.lengthMM);
-  assert.equal(moves.length, 29, '15 rows and 14 turns, a move each');
-  for (const [i, b] of moves.entries()) {
-    const pieces = b.cmds.filter(c => /^[LA]/.test(c));
-    assert.ok(i % 2 ? pieces.some(c => c[0] === 'A') && b.paintMM === 0 : pieces.length === 1 && b.paintMM > 0, `move ${i}: ${pieces.join(' | ')}`);
-  }
+  const w = Ws(p.blocks.find(b => b.paintMM));
+  const peaks = w.filter(d => Math.abs(d) === 45);
+  assert.deepEqual(peaks, [...Array.from({ length: 14 }, (_, k) => k % 2 ? -45 : 45), -45], 'the turns by turns, and the last lift to the side the brush is put away');
+  const at45 = w.flatMap((d, i) => Math.abs(d) === 45 ? [i] : []);
+  for (let k = 1; k < at45.length; k++) assert.ok(w.slice(at45[k - 1], at45[k]).includes(0), `upright between turns ${k} and ${k + 1}: a row painted with the brush standing`);
+  assert.ok(w.every(d => d >= -45 && d <= 45), 'never past ±45° at a 45° turn');
   assert.equal(p.blocks.filter(b => b.kind === 'pause').length, 0, 'no pause in a continuous line');
 });
 
-test('the broom in A and B: the hairpin\'s turn on the right at +45°, then the row back upright, then the hook', () => {
+test('A and B on the move: each hairpin lands, lifts into its turn on the right at +45°, lands again and lifts at its end', () => {
   const p = xyPlan({ ...PATTERNS.B, pause: false });
-  assert.deepEqual(J(p), ['J 3 -54', ...Array.from({ length: PATTERNS.B.rows }, () => ['J 3 0', 'J 3 45', 'J 3 0', 'J 3 -54']).flat()]);
+  assert.deepEqual(J(p), Array(PATTERNS.B.rows + 1).fill('J 3 -54'));
+  const moves = p.blocks.filter(b => b.paintMM);
+  assert.equal(moves.length, PATTERNS.B.rows);
+  for (const b of moves) assert.deepEqual(Ws(b).filter(d => Math.abs(d) === 45), [45, -45]);
 });
 
-test('tilt 0: no broom, the snake one move as before', () => {
+test('tilt 0: no broom — the snake lands at its start, lifts at its end, the brush down at every turn', () => {
   const p = xyPlan({ ...PATTERNS.C, tilt: 0 });
-  assert.deepEqual(J(p), ['J 3 -54', 'J 3 0', 'J 3 -54']);
+  assert.deepEqual(J(p), ['J 3 -54', 'J 3 -54']);
   assert.equal(p.blocks.filter(b => b.paintMM).length, 1);
+  assert.equal(p.turns, 0);
+  const w = Ws(p.blocks.find(b => b.paintMM));
+  assert.ok(w[0] > -45 && w.includes(0) && w.at(-1) === -45 && w.every(d => d <= 0), w.join(' '));
 });
 
 test('the wrist never past the reach of rembrandt.py: −90…+45°', () => {
@@ -148,34 +155,43 @@ test('the wrist\'s drag: 50 mm between touching the board at ±45° and upright,
   assert.ok(Math.abs(tipY(15) - 18.3) < 0.05, `${tipY(15)}`);
 });
 
-test('the snake upright: one stroke, the landing drag 50 mm before the first row, the hook back over the last', () => {
-  const p = xyPlan({ ...PATTERNS.C, tilt: 0 }), row = plotPaths({ ...PATTERNS.C, tilt: 0 })[0], k = p.preview[0];
+const lengthOf = l => l.slice(1).reduce((a, q, i) => a + Math.hypot(q.x - l[i].x, q.y - l[i].y), 0);
+test('the tip keeps to the row: the snake upright is one stroke, light at both ends, its whole length', () => {
+  const p = xyPlan({ ...PATTERNS.C, tilt: 0 }), k = p.preview[0];
   assert.equal(p.preview.length, 1);
-  const mid = { x: k[1].x - row[0].a.x, y: k[1].y - row[0].a.y };   // the plan centred on Here
-  assert.ok(near(k[0], row[0].a.x + mid.x, row[0].a.y + mid.y - 50), 'touches 50 mm left of the start');
-  assert.ok(near(k[1], row[0].a.x + mid.x, row[0].a.y + mid.y), 'and drags to it');
-  const end = row.at(-1).b;
-  assert.ok(near(k.at(-1), end.x + mid.x, end.y + mid.y - 50), 'the last row ends on the left: the hook 50 mm further left');
+  assert.ok(k[0].k < 0.05 && k.at(-1).k < 0.05 && Math.max(...k.map(q => q.k)) === 1, 'light where it lands and lifts, full between');
+  const rows = PATTERNS.C.rows, full = rows * 220 + (rows - 1) * Math.PI * PATTERNS.C.pitch / 2;
+  assert.ok(Math.abs(lengthOf(k) - full) < 5, `${lengthOf(k)} of ${full} mm: no drag past the ends`);
 });
 
-test('the broom at 15°: the brush stays on the board, the turn painted 18 mm out past the carriage\'s', () => {
+test('the broom at 15°: the brush stays on the board, two thirds of its weight through a turn, the carriage 18 mm aside there', () => {
   const p = xyPlan({ ...PATTERNS.C, tilt: 15 });
   assert.equal(p.preview.length, 1, 'never off the board');
   assert.equal(p.lifts, 0);
-  const plain = xyPlan({ ...PATTERNS.C, tilt: 0 });
-  const far = l => Math.max(...l.map(q => q.y));
-  assert.ok(Math.abs(far(p.preview[0]) - far(plain.preview[0]) - tipY(15)) < 0.1);
+  assert.ok(Math.abs(Math.min(...p.preview[0].slice(60, -60).map(q => q.k)) - 2 / 3) < 0.01);
+  assert.ok(Math.abs(p.box.y1 - p.carriage.y1 - tipY(15)) < 0.1 && Math.abs(p.carriage.y0 - p.box.y0 - tipY(15)) < 0.1,
+    `${p.box.y1 - p.carriage.y1}: the carriage the other way of the tip`);
 });
 
-test('the broom at 45°: a stroke a row, each 50 mm longer at either end — the lift and the landing drag along Y', () => {
-  const p = xyPlan({ ...PATTERNS.C, rows: 4 }), rows = plotPaths({ ...PATTERNS.C, rows: 4 })[0].filter(g => !g.tilt);
+test('the turns at 45°: a stroke a row, from its start to its end, no drag past them; the carriage 50 mm aside at the turns', () => {
+  const p = xyPlan({ ...PATTERNS.C, rows: 4 });
   assert.equal(p.preview.length, 4);
-  const dy = p.preview[0][1].y - rows[0].a.y, dx = p.preview[0][1].x - rows[0].a.x;
   p.preview.forEach((k, i) => {
-    const s = Math.sign(rows[i].b.y - rows[i].a.y);
-    assert.ok(near(k[0], rows[i].a.x + dx, rows[i].a.y + dy - 50 * s), `row ${i + 1}: lands 50 mm before its start`);
-    assert.ok(near(k.at(-1), rows[i].b.x + dx, rows[i].b.y + dy + 50 * s), `row ${i + 1}: lifts 50 mm past its end`);
+    assert.ok(k.every(q => Math.abs(q.x - k[0].x) < 1e-6), `row ${i + 1}: straight along Y`);
+    const s = i % 2 ? -1 : 1;
+    assert.ok(Math.abs(k[0].y + s * 110) <= 2 + 1e-6 && Math.abs(k.at(-1).y - s * 110) <= 2 + 1e-6, `row ${i + 1}: ${k[0].y} → ${k.at(-1).y}`);
   });
+  assert.ok(Math.abs(p.box.y1 - p.carriage.y1 - DRAG_MM) < 0.1, 'the carriage turns 50 mm in from the tip');
+});
+
+test('a tail the wrist keeps up with: as long as asked, longer where it would not, never past WRIST_MAX', () => {
+  const slow = xyPlan({ ...PATTERNS.C, speed: 30, tail: 100 }), fast = xyPlan({ ...PATTERNS.C, speed: 250, tail: 40 });
+  assert.ok(slow.need < WRIST_MAX && fast.need <= WRIST_MAX + 1e-6, `${slow.need} · ${fast.need}`);
+  for (const p of [slow, fast]) for (const c of p.blocks.find(b => b.paintMM).cmds.filter(c => c[0] === 'W')) {
+    const v = +c.split(' ')[2];
+    assert.ok(v >= 1 && v <= WRIST_MAX, c);
+  }
+  for (const c of fast.blocks.find(b => b.paintMM).cmds.filter(c => c[0] === 'F')) assert.ok(+c.split(' ')[1] <= 250, c);
 });
 
 // ---------- waves and pattern D (the owner, 2026-10-02) ----------
@@ -211,12 +227,9 @@ test('a wavy snake stays smooth at every joint, the turns too', () => {
 test('D: each pass is C\'s snake turned its own way; the passes on run in their order, a pause for the paint between', () => {
   const o = { ...PATTERNS.C, pattern: 'D', snake: true, rows: 6, pitch: 15 };
   const d1 = xyPlan({ ...o, passes: ['D1'], tilt: 0 });
-  const rows = d1.blocks.filter(b => b.paintMM).flatMap(b => b.cmds.filter(c => c[0] === 'L' || c[0] === 'A'));
-  const first = rows[0].split(' ');
-  assert.equal(first[0], 'L', 'C straight: a line');
-  const start = d1.blocks.find(b => b.cmds?.[1]?.startsWith('M ')).cmds[1].split(' ');
-  assert.equal(first[2], start[2], 'D1 turns C a quarter: its rows run up and down, Y the same at both ends');
-  assert.ok(Math.abs(+first[1] - +start[1]) > 100, 'and X changes the length of a row');
+  const k = d1.preview[0].slice(0, 50);
+  assert.ok(k.every(q => Math.abs(q.y - k[0].y) < 1e-6), 'D1 turns C a quarter: its rows run up and down, Y the same along them');
+  assert.ok(Math.abs(k.at(-1).x - k[0].x) > 90, 'and X changes the length of a row');
   assert.deepEqual(d1.passes, ['D1']);
   assert.ok(d1.preview.every(l => l.pass === 'D1'));
 
@@ -226,12 +239,14 @@ test('D: each pass is C\'s snake turned its own way; the passes on run in their 
   assert.equal(pauses.length, 1);
   assert.match(pauses[0].why, /D3, dark grey/);
   assert.deepEqual([...new Set(all.preview.map(l => l.pass))], ['D1', 'D3']);
-  assert.equal(J(all).filter(c => c === 'J 3 0').length, 2 * (1 + (o.rows - 1)), 'each pass: down once, and back down after each lifted turn');
+  assert.deepEqual(J(all), ['J 3 -54', 'J 3 -54', 'J 3 -54'], 'each pass one move: the brush lands and lifts on it');
+  assert.equal(all.blocks.filter(b => b.paintMM).length, 2);
+  assert.equal(all.lifts, 2 * (o.rows - 1), 'every turn in the air');
 
-  // the same sliders for every pass: the same rows and length, only turned
-  const len = p => p.blocks.filter(b => b.paintMM).reduce((a, b) => a + b.paintMM, 0);
+  // the same sliders for every pass: the same rows and length, only turned — what the tip paints
+  const len = p => p.preview.reduce((a, l) => a + lengthOf(l), 0);
   const one = k => xyPlan({ ...o, passes: [k] });
-  assert.ok(Math.abs(len(one('D1')) - len(one('D2'))) < 1e-6 && Math.abs(len(one('D2')) - len(one('D3'))) < 1e-6);
+  assert.ok(Math.abs(len(one('D1')) - len(one('D2'))) < 1 && Math.abs(len(one('D2')) - len(one('D3'))) < 1, `${len(one('D1'))} ${len(one('D2'))} ${len(one('D3'))}`);
   assert.deepEqual(Object.keys(PASSES), ['D1', 'D2', 'D3']);
 });
 
@@ -255,9 +270,9 @@ test('D: every turn lifts the brush, a row up and down the board too, and each p
 test('D: a pass turned ±90° more from its own angle; D1 turned back −90° is C itself', () => {
   const o = { ...PATTERNS.C, pitch: 15, rows: 6, bow: 20 };
   const back = xyPlan({ ...o, pattern: 'D', passes: ['D1'], shift: { D1: { a: -90 } } });
-  assert.deepEqual(back.blocks, xyPlan({ ...o, pattern: 'C' }).blocks);
+  assert.deepEqual(back.blocks.map(b => b.cmds ?? b.cmd), xyPlan({ ...o, pattern: 'C' }).blocks.map(b => b.cmds ?? b.cmd));
   const d3 = xyPlan({ ...o, pattern: 'D', passes: ['D3'] }), more = xyPlan({ ...o, pattern: 'D', passes: ['D3'], shift: { D3: { a: 30 } } });
   assert.notDeepEqual(d3.blocks, more.blocks);
-  const len = p => p.blocks.filter(b => b.paintMM).reduce((a, b) => a + b.paintMM, 0);
-  assert.ok(Math.abs(len(d3) - len(more)) < 1e-6, 'turned, not changed');
+  const len = p => p.preview.reduce((a, l) => a + lengthOf(l), 0);
+  assert.ok(Math.abs(len(d3) - len(more)) < 1, 'turned, not changed: the tip paints as long');
 });
