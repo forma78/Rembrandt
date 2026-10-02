@@ -17,12 +17,13 @@ bridge.py of the old machine repo held it on port 8765.
   DELETE /library/<name> moves it to library/.deleted/.
 - /arm: GET the arm in RUBENS's degrees (0° = the working pose); POST
   /arm?j=<joint>&d=<deg> moves one joint there (class Arm). /brush/off and
-  /brush/on go through it too.
+  /brush/on go through it too: the elbow up to +25° or down to 0° since the
+  new arm (2026-10-02).
 - /park (GET), POST /shutdown and /restore: the place where the carriage
   stood when the motors were shut down, put back after power-on (class Park).
 - /run: the runner (class Runner) — GET is its state; POST starts the machine
   blocks of job.json, or the blocks in its body (a calibration run); POST /run/stop brakes along the path, /run/kill stops at
-  once; /run/pause and /run/continue pause a run and go on from the same point. POST /brush/off and /brush/on swing the wrist to −54° or back to 0° (within REACH)
+  once; /run/pause and /run/continue pause a run and go on from the same point. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
   (../firmware/CNCDM-001) fails a start on the first path command, and
@@ -334,6 +335,11 @@ REACH = {"shoulder": (-45, 45), "elbow": (-5, 45), "wrist": (-120, 90)}
 # measured 2026-10-02): the elbow at +15°, plus up; the wrist at +60° — "but
 # that is the broom again", so the brush is lifted by the elbow.
 ELBOW_LIFT_DEG, WRIST_LIFT_DEG = 15, 60
+# The brush on and off by the elbow since the new arm: 0° pressed, put away
+# at +25° (est.: where the owner left it, 10° past the lift-off).
+BRUSH_UP_DEG = 25
+# The joints a run turns, by J <j> in an arm block and W <j> on a path.
+ARM_JOINT = {2: "elbow", 3: "wrist"}
 # The brush leaves the canvas with the wrist at ±45° (the owner, on
 # Calibration, 2026-10-02: +15° was not enough, it stayed on the canvas);
 # short of that it is still on it, tilted.
@@ -574,13 +580,16 @@ def rest_of(cmds, j):
     return ([speed] if speed else []) + rest + ["G"]
 
 
-def wrist_at_piece(cmds, j):
-    """The wrist's angle in force on piece j of a move block, in RUBENS's
-    degrees: the last W riding on a piece up to j. None — no W so far."""
+def arm_at_piece(cmds, j, joint=2):
+    """A joint's angle in force on piece j of a move block, in RUBENS's
+    degrees: the last W <joint> riding on a piece up to j — the elbow by
+    default, which lifts the brush. None — no W for it so far."""
     deg, k, wait = None, -1, None
     for c in cmds:
         if c[0] == "W":
-            wait = float(c.split()[1])
+            p = c.split()
+            if int(p[1]) == joint:
+                wait = float(p[2])
         elif c[0] in "LAM":
             k += 1
             if k > j:
@@ -588,6 +597,22 @@ def wrist_at_piece(cmds, j):
             if wait is not None:
                 deg, wait = wait, None
     return deg
+
+
+def arm_check(cmd):
+    """Why a run's J or W is refused, or None: a joint a run does not turn,
+    an angle past REACH."""
+    p = cmd.split()
+    try:
+        name, deg = ARM_JOINT.get(int(p[1])), float(p[2])
+    except (IndexError, ValueError):
+        return f"{cmd}: J or W <2|3> <degrees>"
+    if name is None:
+        return f"{cmd}: a run turns the elbow (2) or the wrist (3), nothing else"
+    lo, hi = REACH[name]
+    if not lo <= deg <= hi:
+        return f"{cmd}: the {name} may go {lo}…+{hi}° only" + (f", the camera is in the way past +{hi}°" if name == "wrist" and deg > hi else "")
+    return None
 
 
 def piece_at(start, path, here, first=0):
@@ -652,7 +677,7 @@ class Runner:
         self.pos = None                  # last ping: {"x", "y", "path"}
         self.started = None              # time.time() of the last start
         self.brush_on = False
-        self.wrist = 0                   # the wrist's last angle with the brush on: Continue puts it back
+        self.lift = 0                    # the elbow's last angle with the brush on: Continue puts it back
         self._stop = None                # None, "S" or "K"
         self._pause = False              # Pause asked for; Continue clears it
 
@@ -668,16 +693,19 @@ class Runner:
                     "started": self.started}
 
     def start(self, blocks, note=None):
-        # A job saved before the camera (2026-09-30) swings the brush off to
-        # +90°: refuse the whole job before anything is sent.
-        lo, hi = REACH["wrist"]
+        # Every J and W within reach, before anything is sent. A job that puts
+        # the brush away with the wrist (−54°, before the new arm of
+        # 2026-10-02) would only turn it on the canvas now: refused too.
         for b in blocks:
             for c in (b.get("cmds") or []) if b.get("kind") == "move" else []:
-                if c[0] == "W" and not lo <= float(c.split()[1]) <= hi:
-                    return False, f"{c}: the wrist may go {lo}…+{hi}° only, the camera is in the way past +{hi}°."
-            if b.get("kind") == "arm" and not lo <= float(b["cmd"].split()[2]) <= hi:
-                return False, (f"{b['cmd']}: the wrist may go {lo}…+{hi}° only, the camera is in the way. "
-                               "This job.json is from before the camera: Save job.json again on the Job tab.")
+                if c[0] == "W" and arm_check(c):
+                    return False, arm_check(c)
+            if b.get("kind") == "arm":
+                if arm_check(b["cmd"]):
+                    return False, arm_check(b["cmd"])
+                if b["cmd"].split()[1] == "3" and float(b["cmd"].split()[2]) == SWING_DEG:
+                    return False, (f"{b['cmd']}: this job puts the brush away with the wrist, as before the new arm; "
+                                   "the elbow lifts it now (2026-10-02) — the Job tab is not made for it yet.")
             if b.get("kind") == "joint":
                 j, d, v = b.get("joint"), b.get("deg"), b.get("speed")
                 if j not in ("shoulder", "elbow") or not isinstance(d, (int, float)) or not REACH[j][0] <= d <= REACH[j][1]:
@@ -816,30 +844,36 @@ class Runner:
             self._ping()
 
     def _arm(self, cmd):
-        deg = float(cmd.split()[2])                    # tenths too: a pause in a tail puts the wrist back as a W left it
-        lo, hi = REACH["wrist"]
-        if not lo <= deg <= hi:                        # the camera (2026-09-30); Arm.move_to refuses it too
-            raise Abort(f"{cmd}: the wrist may go {lo}…+{hi}° only: the camera is in the way past +{hi}°")
+        # J 2 <deg>, the elbow — the brush down or up — or J 3 <deg>, the
+        # wrist; tenths too: a pause in a tail puts the elbow back as a W left it
+        why = arm_check(cmd)
+        if why:
+            raise Abort(why)
+        p = cmd.split()
+        name, deg = ARM_JOINT[int(p[1])], float(p[2])
         if self.arm:
-            # in RUBENS's degrees, from where the wrist really is (class Arm)
+            # in RUBENS's degrees, from where the joint really is (class Arm)
             try:
-                self.arm.move_to("wrist", deg)
+                self.arm.move_to(name, deg)
             except ArmError as e:
                 raise Abort(f"{cmd}: {e}")
-            self._wrist_at(deg)
+            if name == "elbow":
+                self._brush_at(deg)
             self._ping()
             return
-        r = self.send(f"/servo?j=wrist&d={deg}")
+        r = self.send(f"/servo?j={name}&d={deg:g}")
         if not r.startswith("ok J"):
             raise Abort(f"{cmd}: {in_english(r)}")
-        self._wrist_at(deg)
+        if name == "elbow":
+            self._brush_at(deg)
         self._wait(self.swing_s)
 
-    def _wrist_at(self, deg):
-        # upright, or tilted short of LIFT_DEG either way: the brush is on the canvas
-        self.brush_on = abs(deg) < LIFT_DEG
+    def _brush_at(self, deg):
+        # the elbow (the new arm, 2026-10-02): short of ELBOW_LIFT_DEG the brush
+        # is on the canvas, 0° pressed
+        self.brush_on = deg < ELBOW_LIFT_DEG
         if self.brush_on:
-            self.wrist = deg
+            self.lift = deg
 
     def _joint(self, b):
         # An arm stroke (2026-10-02): the shoulder or the elbow turns at its
@@ -868,14 +902,14 @@ class Runner:
     def _move(self, b):
         pieces = [c for c in b["cmds"] if c != "G"]
         base, share = self.painted, b.get("paintMM") or 0
-        # The wrist on the path (W, 2026-10-02): the brush lands and lifts as
-        # the carriage runs, the board turning it where the plan says.
+        # A joint on the path (W, 2026-10-02): the elbow lands and lifts the
+        # brush as the carriage runs, the board turning it where the plan says.
         wrists = [c for c in pieces if c[0] == "W"]
         # A pass (brush on, or landing on the way) can be paused on its line; a travel ends first.
         pausable = (self.brush_on or bool(wrists)) and any(c[0] == "F" for c in pieces)
         start = self._here() if pausable or share else None
         if wrists:
-            pieces = self._wrist_steps(pieces)
+            pieces = self._arm_steps(pieces)
         # The percent goes by painted length (job.json marks each piece
         # painted or a turn; without the marks every piece counts).
         track = None
@@ -891,7 +925,7 @@ class Runner:
                 if self._stop:
                     self._finish(started)
                     if wrists:
-                        self._wrist_where(b, start)
+                        self._brush_where(b, start)
                     return
                 if pausable and started and self._pause:
                     return self._brake(b, start, sent, base)
@@ -918,23 +952,26 @@ class Runner:
             return self._brake(b, start, sent, base)
         if self._stop:
             if wrists:
-                self._wrist_where(b, start)
+                self._brush_where(b, start)
             return
         self._arrived(b)
-        if wrists:
-            self._wrist_at(float(wrists[-1].split()[1]))
+        last = arm_at_piece(b["cmds"], len(b["cmds"]))
+        if last is not None:
+            self._brush_at(last)
 
-    def _wrist_steps(self, pieces):
-        # W turns the wrist from the firmware's zero: take it where the wrist
-        # stands (Z moves nothing; it comes before the pieces, for it drops
+    def _arm_steps(self, pieces):
+        # W turns a joint from the firmware's zero: take it where the joints
+        # stand (Z moves nothing; it comes before the pieces, for it drops
         # any queued without a G) and send RUBENS's degrees as steps from it.
         # Without an arm the degrees go as they are, like /servo.
-        a = 0.0
+        names = {ARM_JOINT[int(c.split()[1])] for c in pieces if c[0] == "W"}
+        a = {k: 0.0 for k in names}
         if self.arm:
             ang, _ = self.arm.angles()
-            if ang.get("wrist") is None:
-                raise Abort("W: the wrist does not answer: is the 12 V on?")
-            a = ang["wrist"]
+            for k in names:
+                if ang.get(k) is None:
+                    raise Abort(f"W: the {k} does not answer: is the 12 V on?")
+                a[k] = ang[k]
             r = self.send("/zero")
             if not r.startswith("ok Z"):
                 raise Abort(f"arm zero: {in_english(r)}")
@@ -942,13 +979,15 @@ class Runner:
         for c in pieces:
             if c[0] == "W":
                 p = c.split()
-                out.append(f"W {TURN['wrist'] * (float(p[1]) - a):.1f}" + (f" {p[2]}" if len(p) > 2 else ""))
+                k = ARM_JOINT[int(p[1])]
+                fw = (TURN[k] * (float(p[2]) - a[k])) if self.arm else float(p[2])
+                out.append(f"W {p[1]} {fw:.1f}" + (f" {p[3]}" if len(p) > 3 else ""))
             else:
                 out.append(c)
         return out
 
-    def _wrist_where(self, b, start):
-        # A block with W stopped on its way: the wrist is as the last W on a
+    def _brush_where(self, b, start):
+        # A block with W stopped on its way: the elbow is as the last W on a
         # piece the carriage has reached left it.
         if start is None:
             return
@@ -957,9 +996,9 @@ class Runner:
             return
         here = (p["x"] / STEPS_PER_MM[0], p["y"] / STEPS_PER_MM[1])
         j = piece_at(start, [c for c in b["cmds"] if c[0] in "LAM"], here)
-        deg = None if j is None else wrist_at_piece(b["cmds"], j)
+        deg = None if j is None else arm_at_piece(b["cmds"], j)
         if deg is not None:
-            self._wrist_at(deg)
+            self._brush_at(deg)
 
     def _here(self):
         p = self._ping()
@@ -990,9 +1029,9 @@ class Runner:
         if j is None:
             self.send("/cmd?a=K&n=0")
             raise Abort(f"paused off the path, at X {here[0]:.1f} Y {here[1]:.1f}: HARD STOP sent")
-        deg = wrist_at_piece(b["cmds"], j)               # the board turned the wrist on the way (W)
+        deg = arm_at_piece(b["cmds"], j)                 # the board turned the elbow on the way (W)
         if deg is not None:
-            self._wrist_at(deg)
+            self._brush_at(deg)
         if not self._hold():
             return
         left = max(0.0, (b.get("paintMM") or 0) - (self.painted - base))
@@ -1002,9 +1041,9 @@ class Runner:
     def _hold(self):
         # Paused: the brush off the canvas, the motors still, the watchdog fed
         # by the pings. Continue puts the brush back as it was, tilted too.
-        was_on, tilt = self.brush_on, self.wrist
+        was_on, lift = self.brush_on, self.lift
         if was_on:
-            self._arm(f"J 3 {SWING_DEG}")
+            self._arm(f"J 2 {BRUSH_UP_DEG}")
         with self.lock:
             if self._pause and not self._stop:
                 self.state = "paused"
@@ -1017,7 +1056,7 @@ class Runner:
             return False
         self.log({"event": "continue", "block": self.block})
         if was_on:
-            self._arm(f"J 3 {tilt:g}")
+            self._arm(f"J 2 {lift:g}")
         return True
 
     def _arrived(self, b):
@@ -1332,13 +1371,13 @@ class Handler(SimpleHTTPRequestHandler):
         if path in ("/brush/off", "/brush/on"):
             if RUNNER.state in LIVE:
                 return self.reply(409, "a job is running")
-            deg = SWING_DEG if path == "/brush/off" else 0
+            deg = BRUSH_UP_DEG if path == "/brush/off" else 0     # the elbow, the new arm
             try:
-                ARM.move_to("wrist", deg)
+                ARM.move_to("elbow", deg)
             except ArmError as e:
                 return self.reply(200, str(e))
-            RUNNER._wrist_at(deg)
-            return self.reply(200, f"ok J 3 {deg}")
+            RUNNER._brush_at(deg)
+            return self.reply(200, f"ok J 2 {deg}")
         if path == "/arm/hold":
             # STOP for the arm (2026-10-02): a slow stroke stays where it is
             return self.reply(200, ARM.stop())
@@ -1356,8 +1395,8 @@ class Handler(SimpleHTTPRequestHandler):
                 got = ARM.move_to(jn, float(q.get("d", ["0"])[0]), v if v and v > 0 else None)
             except (ArmError, ValueError) as e:
                 return self.reply(200, json.dumps({"ok": False, "message": str(e)}), "application/json")
-            if jn == "wrist":
-                RUNNER._wrist_at(round(got))
+            if jn == "elbow":
+                RUNNER._brush_at(round(got))
             return self.reply(200, json.dumps({"ok": True, "angle": got}), "application/json")
         if path == "/run/stop":
             return self.reply(200, RUNNER.stop())

@@ -14,10 +14,10 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 import rembrandt as rubens  # noqa: E402  (rubens.py of RUBENS, renamed)
-from rembrandt import (REACH, STEPS_PER_MM, SWING_DEG, TICKS_PER_DEG, Arm, ArmError, Board, Park, Runner,  # noqa: E402
+from rembrandt import (BRUSH_UP_DEG, REACH, STEPS_PER_MM, SWING_DEG, TICKS_PER_DEG, Arm, ArmError, Board, Park, Runner,  # noqa: E402
                     along_piece, block_end, board_get, board_line, in_english, library_delete, library_display,
                     library_list, library_save, painted_so_far, parse_look, parse_ping, path_pieces, piece_at,
-                    rest_of, wrist_at_piece)
+                    rest_of, arm_at_piece)
 
 
 class FakeBoard:
@@ -94,8 +94,9 @@ class FakeBoard:
                 if not self.knows_w:
                     return "?"
                 self.log.append(c)
-                self.wnext = float(c.split()[1])
-                return f"ok W {self.wnext:.1f}"
+                p = c.split()
+                self.wnext = (int(p[1]), float(p[2]))
+                return f"ok W {p[1]} {float(p[2]):.1f}"
             if c == "G":
                 self.log.append("G")
                 if not self.queue:
@@ -122,17 +123,14 @@ class FakeBoard:
             if self.zt[j] >= 0:
                 self.raw[j] = max(0, min(4095, self.zt[j] + round(self.SIGN[j] * (self.tdeg[j] + self.OFF[j]) * TICKS_PER_DEG)))
 
-    def wrist(self):
-        """The wrist in RUBENS's degrees (its zero: the brush upright)."""
-        return (self.raw[3] - rubens.ARM_ZERO["wrist"]) / TICKS_PER_DEG
 
     def sleep(self, dt):
         if self.on_sleep:
             self.on_sleep()
         if self.running:
-            for w in self.rides[:self.rate]:             # the board turns the wrist as it reaches the piece
+            for w in self.rides[:self.rate]:             # the board turns the joint as it reaches the piece
                 if w is not None:
-                    self.turn(3, w)
+                    self.turn(*w)
             self.rides = self.rides[self.rate:]
             done, self.queue = self.queue[:self.rate], self.queue[self.rate:]
             if self.stuck_x:                   # the board stops the path on the fault
@@ -153,11 +151,12 @@ def run(board, blocks, **kw):
     return r
 
 
-OFF = f"J 3 {SWING_DEG}"   # the brush off the canvas
+OFF = f"J 2 {BRUSH_UP_DEG}"   # the brush off the canvas: the elbow up (the new arm, 2026-10-02)
+ON = "J 2 0"                  # pressed to it
 
 
 def arm(off):
-    return {"kind": "arm", "cmd": OFF if off else "J 3 0", "off": off}
+    return {"kind": "arm", "cmd": OFF if off else ON, "off": off}
 
 
 def travel(x, y):
@@ -173,7 +172,7 @@ class RunnerTest(unittest.TestCase):
         b = FakeBoard()
         r = run(b, [arm(True), travel(10, 20), arm(False), paint(5), arm(True)])
         self.assertEqual(r.state, "done", r.message)
-        self.assertEqual(b.log, ["T 100", OFF, "T 100", "M 10 20", "G", "J 3 0", "F 20"]
+        self.assertEqual(b.log, ["T 100", OFF, "T 100", "M 10 20", "G", ON, "F 20"]
                          + [f"L {i}.00 50.00" for i in range(1, 6)] + ["G", OFF])
         self.assertEqual(r.status()["percent"], 100.0)
         self.assertFalse(r.brush_on)
@@ -329,7 +328,7 @@ class RunnerTest(unittest.TestCase):
         r = run(b, [arm(True), travel(100, 20), arm(False), paint(5)])
         self.assertEqual(r.state, "error")
         self.assertIn("did not get there", r.message)
-        self.assertNotIn("J 3 0", b.log)       # the brush never went down
+        self.assertNotIn(ON, b.log)            # the brush never went down
         self.assertIn("K", b.log)
 
     def test_board_words_in_english(self):
@@ -418,7 +417,7 @@ class PauseTest(unittest.TestCase):
         r, b = self.paused_run([arm(False), paint(12)], when=4)
         self.assertEqual(r.state, "done", r.message)
         i = b.log.index("S")
-        self.assertEqual(b.log[i + 1:i + 3], [OFF, "J 3 0"])           # off the canvas, and back
+        self.assertEqual(b.log[i + 1:i + 3], [OFF, ON])                # off the canvas, and back
         after = [c for c in b.log[i:] if c.startswith("L")]
         before = [c for c in b.log[:i] if c.startswith("L")]
         self.assertEqual(after[-1], "L 12.00 50.00")                    # the pass is finished
@@ -430,24 +429,24 @@ class PauseTest(unittest.TestCase):
         self.assertEqual(r.status()["percent"], 100.0)
 
     def test_continue_puts_the_brush_back_tilted_as_it_was(self):
-        tilt = {"kind": "arm", "cmd": "J 3 15"}
+        tilt = {"kind": "arm", "cmd": "J 2 10"}                        # pressed lighter, still on it
         r, b = self.paused_run([arm(False), tilt, paint(12)], when=4)
         self.assertEqual(r.state, "done", r.message)
         i = b.log.index("S")
-        self.assertEqual(b.log[i + 1:i + 3], [OFF, "J 3 15"])          # off, and back to the broom's tilt
+        self.assertEqual(b.log[i + 1:i + 3], [OFF, "J 2 10"])          # off, and back to as light as it was
 
     def test_a_travel_ends_first_then_the_pause(self):
         r, b = self.paused_run([arm(True), travel(100, 20), arm(False), paint(3)], when=2)
         self.assertEqual(r.state, "done", r.message)
         self.assertNotIn("S", b.log)                                    # the travel was not braked
-        self.assertLess(b.log.index("M 100 20"), b.log.index("J 3 0"))
+        self.assertLess(b.log.index("M 100 20"), b.log.index(ON))
 
     def test_stop_while_paused_ends_the_job(self):
         r, b = self.paused_run([arm(False), paint(12), arm(True), travel(10, 20)], when=4,
                                then=lambda r, b: r.stop())
         self.assertEqual(r.state, "stopped")
         self.assertNotIn("M 10 20", b.log)
-        self.assertEqual(b.log.count("J 3 0"), 1)                       # the brush stays off
+        self.assertEqual(b.log.count(ON), 1)                            # the brush stays off
 
     def test_hard_stop_while_paused_reaches_the_board(self):
         r, b = self.paused_run([arm(False), paint(12)], when=4, then=lambda r, b: r.stop(hard=True))
@@ -497,9 +496,9 @@ class ArmStrokeRunTest(unittest.TestCase):
     def test_the_stroke_goes_at_its_speed_and_the_pause_waits(self):
         b = FakeBoard()
         r, arm = self.runner(b)
-        blocks = [{"kind": "arm", "cmd": "J 3 0"},
+        blocks = [{"kind": "arm", "cmd": ON},
                   {"kind": "joint", "joint": "shoulder", "deg": 20, "speed": 10},
-                  {"kind": "arm", "cmd": f"J 3 {SWING_DEG}"},
+                  {"kind": "arm", "cmd": OFF},
                   {"kind": "pause", "why": "paint for the brush"},
                   {"kind": "joint", "joint": "shoulder", "deg": -20, "speed": 10}]
         r.blocks, r.state = blocks, "running"
@@ -525,41 +524,42 @@ class ArmStrokeRunTest(unittest.TestCase):
         self.assertTrue(arm.stopped.is_set())
 
 
-class WristOnPathTest(unittest.TestCase):
-    """W (2026-10-02, (a) + (b)): the brush lands and lifts on the move, the
-    board turning the wrist as the carriage reaches each piece."""
+class ElbowOnPathTest(unittest.TestCase):
+    """W (2026-10-02, the new arm): the elbow lands and lifts the brush on the
+    move, the board turning it as the carriage reaches each piece."""
 
     ZERO = {"shoulder": 2501, "elbow": 1759, "wrist": 1489}
-    PASS = ["F 20", "W -30 211", "L 1.00 50.00", "W 0 88", "L 2.00 50.00", "L 3.00 50.00",
-            "L 4.00 50.00", "W -30 88", "L 5.00 50.00", "W -45 88", "L 6.00 50.00", "G"]
+    # a row: landing from the lift-off (15°) to pressed (0°), pressed, and up again to the lift-off
+    PASS = ["F 20", "W 2 10 211", "L 1.00 50.00", "W 2 0 88", "L 2.00 50.00", "L 3.00 50.00",
+            "L 4.00 50.00", "W 2 10 88", "L 5.00 50.00", "W 2 15 88", "L 6.00 50.00", "G"]
 
     def runner(self, b):
-        b.raw[3] = 1489 + round(SWING_DEG * TICKS_PER_DEG)        # the brush put away
+        b.raw[2] = 1759 - round(BRUSH_UP_DEG * TICKS_PER_DEG)        # the brush up: the elbow's plus is the firmware's minus
         return Runner(b.send, sleep=b.sleep, swing_s=0.2, arm=Arm(b.send, zero=lambda: self.ZERO, sleep=b.sleep))
 
     def blocks(self):
         return [arm(True), travel(100, 20), {"kind": "move", "cmds": list(self.PASS), "paintMM": 60.0, "painted": [1] * 6}, arm(True)]
 
-    def wrist(self, b):
-        return (b.raw[3] - self.ZERO["wrist"]) / TICKS_PER_DEG
+    def elbow(self, b):
+        return -(b.raw[2] - self.ZERO["elbow"]) / TICKS_PER_DEG
 
-    def test_w_goes_as_steps_from_a_zero_taken_where_the_wrist_stands_before_any_piece(self):
+    def test_w_goes_as_steps_from_a_zero_taken_where_the_elbow_stands_before_any_piece(self):
         b = FakeBoard()
         r = self.runner(b)
         r.start(self.blocks())
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
         ws = [c for c in b.log if c.startswith("W ")]
-        self.assertEqual(ws, ["W 24.0 211", "W 54.0 88", "W 24.0 88", "W 9.0 88"])   # from −54°: RUBENS's −30, 0, −30, −45
+        self.assertEqual(ws, ["W 2 15.0 211", "W 2 25.0 88", "W 2 15.0 88", "W 2 10.0 88"])   # from +25°, the plus the firmware's minus: 10, 0, 10, 15
         first = b.log.index(ws[0])
         z = max(i for i, c in enumerate(b.log[:first]) if c == "Z")
-        self.assertFalse([c for c in b.log[z:first] if c[0] in "LAM"], "the wrist's zero before any piece is queued")
+        self.assertFalse([c for c in b.log[z:first] if c[0] in "LAM"], "the zero before any piece is queued")
         m = b.log.index("M 100 20")
         self.assertFalse([c for c in b.log[m:first] if c.startswith("J")], "no landing with the carriage standing")
-        self.assertLess(abs(self.wrist(b) - SWING_DEG), 1, "put away at the end")
+        self.assertLess(abs(self.elbow(b) - BRUSH_UP_DEG), 1, "up at the end")
         self.assertFalse(r.brush_on)
 
-    def test_a_pause_on_the_move_lifts_from_where_the_board_turned_the_wrist_and_goes_on_with_the_ws_still_to_come(self):
+    def test_a_pause_on_the_move_lifts_from_where_the_board_turned_the_elbow_and_goes_on_with_the_ws_still_to_come(self):
         b = FakeBoard(rate=1)
         r = self.runner(b)
         ticks = {"n": 0}
@@ -570,18 +570,18 @@ class WristOnPathTest(unittest.TestCase):
                 if ticks["n"] == 3:
                     self.assertTrue(r.pause())
             if r.state == "paused" and not ticks.get("seen"):
-                ticks["seen"] = (r.wrist, r.brush_on, round(self.wrist(b)))
+                ticks["seen"] = (r.lift, r.brush_on, round(self.elbow(b)))
                 r.resume()
         b.on_sleep = later
         r.start(self.blocks())
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
-        self.assertEqual(ticks["seen"], (0, False, SWING_DEG), "the board had landed it upright: lifted for the pause, upright to come back to")
+        self.assertEqual(ticks["seen"], (0, False, BRUSH_UP_DEG), "the board had pressed it: up for the pause, pressed to come back to")
         after = b.log[b.log.index("S"):]
         again = [c for c in after if c.startswith("W ")]
         self.assertTrue(again and len(again) < 4, f"only the later ones again: {again}")
         self.assertIn("L 6.00 50.00", after)
-        self.assertLess(abs(self.wrist(b) - SWING_DEG), 1)
+        self.assertLess(abs(self.elbow(b) - BRUSH_UP_DEG), 1)
 
     def test_the_board_without_w_stops_it_before_a_piece_is_queued(self):
         b = FakeBoard(knows_w=False)
@@ -592,22 +592,31 @@ class WristOnPathTest(unittest.TestCase):
         self.assertIn("flash the firmware", r.message)
         self.assertNotIn("L 1.00 50.00", b.log)
 
-    def test_a_w_past_the_reach_is_refused_before_anything_moves(self):
+    def test_a_w_past_the_reach_or_on_the_shoulder_is_refused_before_anything_moves(self):
+        for w, why in (("W 2 46 88", "elbow may go"), ("W 2 -6 88", "elbow may go"), ("W 1 10 88", "elbow (2) or the wrist (3)")):
+            b = FakeBoard()
+            bad = self.blocks()
+            bad[2]["cmds"] = ["F 20", w, "L 1.00 50.00", "G"]
+            ok, msg = self.runner(b).start(bad)
+            self.assertFalse(ok, w)
+            self.assertIn(why, msg)
+            self.assertEqual(b.log, [])
+
+    def test_a_job_that_puts_the_brush_away_with_the_wrist_is_refused(self):
         b = FakeBoard()
-        bad = self.blocks()
-        bad[2]["cmds"] = ["F 20", "W 181 88", "L 1.00 50.00", "G"]
-        ok, msg = self.runner(b).start(bad)
+        ok, msg = self.runner(b).start([{"kind": "arm", "cmd": f"J 3 {SWING_DEG}"}, travel(10, 20)])
         self.assertFalse(ok)
-        self.assertIn("camera", msg)
+        self.assertIn("Job tab", msg)
         self.assertEqual(b.log, [])
 
     def test_rest_of_keeps_the_ws_of_the_pieces_still_to_come(self):
-        cmds = ["F 20", "W -30 211", "L 1 0", "W 0 88", "L 2 0", "F 10", "W 30 88", "A 2 5 2 10 1", "L 0 10", "G"]
-        self.assertEqual(rest_of(cmds, 0), ["F 20", "L 1 0", "W 0 88", "L 2 0", "F 10", "W 30 88", "A 2 5 2 10 1", "L 0 10", "G"])
-        self.assertEqual(rest_of(cmds, 1), ["F 20", "L 2 0", "F 10", "W 30 88", "A 2 5 2 10 1", "L 0 10", "G"])
+        cmds = ["F 20", "W 2 10 211", "L 1 0", "W 2 0 88", "L 2 0", "F 10", "W 2 12 88", "A 2 5 2 10 1", "L 0 10", "G"]
+        self.assertEqual(rest_of(cmds, 0), ["F 20", "L 1 0", "W 2 0 88", "L 2 0", "F 10", "W 2 12 88", "A 2 5 2 10 1", "L 0 10", "G"])
+        self.assertEqual(rest_of(cmds, 1), ["F 20", "L 2 0", "F 10", "W 2 12 88", "A 2 5 2 10 1", "L 0 10", "G"])
         self.assertEqual(rest_of(cmds, 2), ["F 10", "A 2 5 2 10 1", "L 0 10", "G"])
-        self.assertEqual([wrist_at_piece(cmds, j) for j in range(4)], [-30, 0, 30, 30])
-        self.assertIsNone(wrist_at_piece(["F 20", "L 1 0", "G"], 0))
+        self.assertEqual([arm_at_piece(cmds, j) for j in range(4)], [10, 0, 12, 12])
+        self.assertIsNone(arm_at_piece(["F 20", "L 1 0", "G"], 0))
+        self.assertIsNone(arm_at_piece(["W 3 10 50", "L 1 0", "G"], 0), "the wrist's W is not the elbow's")
 
 
 class ArmTest(unittest.TestCase):
@@ -717,25 +726,25 @@ class ArmTest(unittest.TestCase):
             self.assertGreater(self.wrist_deg(b), 89.3, f"from {start}°: {self.wrist_deg(b):.2f}°: got there, in two steps if need be")
             self.assertLessEqual(got, 90.05)
 
-    def test_a_tilted_brush_is_still_on_the_canvas(self):
+    # ---- the new arm, 2026-10-02: the elbow lifts the brush; off the canvas from +15° ----
+    def test_a_lighter_brush_is_still_on_the_canvas(self):
         b = FakeBoard()
         r = Runner(b.send, sleep=b.sleep, swing_s=0.2, arm=self.arm(b))
-        r.start([arm(True), travel(100, 20), arm(False), {"kind": "arm", "cmd": "J 3 15"}, paint(3),
-                 {"kind": "arm", "cmd": "J 3 -15"}])
+        r.start([arm(True), travel(100, 20), arm(False), {"kind": "arm", "cmd": "J 2 10"}, paint(3)])
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
         self.assertTrue(r.brush_on)
-        self.assertEqual(r.wrist, -15)
-        self.assertLess(abs(self.wrist_deg(b) + 15), 0.6)
+        self.assertEqual(r.lift, 10)
+        self.assertLess(abs(-(b.raw[2] - self.ZERO["elbow"]) / TICKS_PER_DEG - 10), 0.6)
 
-    def test_at_45_the_brush_is_off_the_canvas(self):
+    def test_at_15_the_brush_is_off_the_canvas(self):
         b = FakeBoard()
         r = Runner(b.send, sleep=b.sleep, swing_s=0.2, arm=self.arm(b))
-        r.start([arm(True), travel(100, 20), arm(False), paint(3), {"kind": "arm", "cmd": "J 3 45"}])
+        r.start([arm(True), travel(100, 20), arm(False), paint(3), {"kind": "arm", "cmd": "J 2 15"}])
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
         self.assertFalse(r.brush_on)
-        self.assertEqual(r.wrist, 0)                              # Continue would bring back the last on the canvas
+        self.assertEqual(r.lift, 0)                               # Continue would bring back the last on the canvas
 
     def test_a_wrist_past_the_reach_does_not_start(self):
         b = FakeBoard()
@@ -763,7 +772,7 @@ class ArmTest(unittest.TestCase):
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
         self.assertTrue(all(b.zt[j] >= 0 for j in (1, 2, 3)), "all three joints were commanded")
-        self.assertEqual((b.raw[1], b.raw[2]), (before[1], before[2]))   # and did not move
+        self.assertEqual((b.raw[1], b.raw[3]), (before[1], before[3]))   # the shoulder and the wrist did not move; the elbow put the brush up
 
     def test_parse_look(self):
         self.assertEqual(parse_look("ok V | X MCPWM_PCNT | 1: поза 2499, 11,3 В, 31 °C | 2: поза 1757, 11,3 В | 3: молчит"),
