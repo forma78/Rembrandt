@@ -212,6 +212,12 @@ export const LIFT_DEG = 45, DRAG_MM = 50;
 // (test_results/IMAGE 2026-10-02 17:12:24.jpg, photo_2026-10-02 D2+D3.jpeg);
 // drawn 10 mm wide before, they ran together (the owner, 2026-10-02).
 export const BRUSH_MM = 3.5;
+// A turn's time, from the run journal (app/logs/runs.jsonl, 2026-10-02, D2 +
+// D3, 420 mm rows at 200 mm/s, the pauses aside): 3.8 s at ±10°, 5.4 s at
+// ±55° — the wrist out and back at the firmware's ~55°/s, waiting for it to
+// settle, and the carriage stopping and starting a row (est.; 2 s before,
+// and the run took 1.8 times its estimate).
+const TURN_S = 3.4, WRIST_DEG_S = 55;
 const rad = d => d * Math.PI / 180;
 export const tipY = deg => DRAG_MM / Math.sin(rad(LIFT_DEG)) * Math.sin(rad(deg));   // the tip along Y from upright (est.)
 const onBoard = deg => Math.abs(deg) < LIFT_DEG;
@@ -316,8 +322,8 @@ export function xyPlan(opts) {
   // owner, 2026-10-02; it stood over Here before)
   const home = homeCorner();
   blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${f(home.x)} ${f(home.y)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows, home: true });
-  // the painting, the moves, the wrist off and on, and twice at every turn (est.)
-  const seconds = moved / o.speed + runs * (o.pitch / o.travel + 5) + turns * 2;
+  // the painting, the moves, the wrist off and on, and the turns (est.)
+  const seconds = moved / o.speed + runs * (o.pitch / o.travel + 5) + turns * (TURN_S + 2 * Math.abs(o.tilt || 0) / WRIST_DEG_S);
   return { blocks, preview, width, height, room, box, length, fits,
     seconds, rows: o.rows, snake: !!o.snake, turns, lifts, passes: keys.filter(Boolean), opts: o };
 }
