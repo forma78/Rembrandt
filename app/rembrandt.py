@@ -328,13 +328,17 @@ TURN = {"shoulder": -1, "elbow": -1, "wrist": +1}
 # there the servo's own 0…4095 is −224…+136°, so −180…+130; and +90 the
 # same night, the owner: "cut it boldly to +90°, no further — that is the limit".
 # The elbow −5° at most below the active pose (the owner: "−5 max, or it tears
-# the canvas or breaks the brush").
+# the canvas or breaks the brush"). With its zero raised 4.7° after midnight,
+# −5…0° is the reserve — "the fuel tank, remember? You may, but better not",
+# as at the walls: the old zero, −4.7°, lies in it.
 # The wrist −120° at most the other way ("not −180").
 REACH = {"shoulder": (-45, 45), "elbow": (-5, 45), "wrist": (-120, 90)}
 # Where the brush leaves the canvas from the active pose (the owner,
 # measured 2026-10-02): the elbow at +15°, plus up; the wrist at +60° — "but
 # that is the broom again", so the brush is lifted by the elbow.
-ELBOW_LIFT_DEG, WRIST_LIFT_DEG = 15, 60
+# The elbow's +15° was from the first zero; its zero raised 4.7° after
+# midnight ("it presses too hard"), so +10° now.
+ELBOW_LIFT_DEG, WRIST_LIFT_DEG = 10, 60
 # The brush on and off by the elbow since the new arm: 0° pressed, put away
 # at +25° (est.: where the owner left it, 10° past the lift-off).
 BRUSH_UP_DEG = 25

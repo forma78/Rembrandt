@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The elbow's zero raised 4.7°; −5…0° the reserve** (the owner,
+  2026-10-03, after midnight: "I overdid it, +4.7° presses it too hard into
+  the canvas — knock it down to zero"; "+4.7° is the fuel tank, remember?
+  The reserve you may use, but better not"). `calibration.json` elbow 3008;
+  the lift-off, +15° from the first zero, is +10° now (`ELBOW_LIFT_DEG`,
+  `ELBOW_LIFT`); the old zero lies in the reserve, at −4.7°.
 - **Test: the elbow lands and lifts the brush on the move** (the owner,
   2026-10-02, night: "on the move — the tail a smooth easing of the
   pressure, no stops"; "let's work properly"). Over the first and the last

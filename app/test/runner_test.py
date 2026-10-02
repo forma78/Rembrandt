@@ -429,11 +429,11 @@ class PauseTest(unittest.TestCase):
         self.assertEqual(r.status()["percent"], 100.0)
 
     def test_continue_puts_the_brush_back_tilted_as_it_was(self):
-        tilt = {"kind": "arm", "cmd": "J 2 10"}                        # pressed lighter, still on it
+        tilt = {"kind": "arm", "cmd": "J 2 5"}                         # pressed lighter, still on it
         r, b = self.paused_run([arm(False), tilt, paint(12)], when=4)
         self.assertEqual(r.state, "done", r.message)
         i = b.log.index("S")
-        self.assertEqual(b.log[i + 1:i + 3], [OFF, "J 2 10"])          # off, and back to as light as it was
+        self.assertEqual(b.log[i + 1:i + 3], [OFF, "J 2 5"])           # off, and back to as light as it was
 
     def test_a_travel_ends_first_then_the_pause(self):
         r, b = self.paused_run([arm(True), travel(100, 20), arm(False), paint(3)], when=2)
@@ -529,9 +529,9 @@ class ElbowOnPathTest(unittest.TestCase):
     move, the board turning it as the carriage reaches each piece."""
 
     ZERO = {"shoulder": 2501, "elbow": 1759, "wrist": 1489}
-    # a row: landing from the lift-off (15°) to pressed (0°), pressed, and up again to the lift-off
-    PASS = ["F 20", "W 2 10 211", "L 1.00 50.00", "W 2 0 88", "L 2.00 50.00", "L 3.00 50.00",
-            "L 4.00 50.00", "W 2 10 88", "L 5.00 50.00", "W 2 15 88", "L 6.00 50.00", "G"]
+    # a row: landing from the lift-off (10°) to pressed (0°), pressed, and up again to the lift-off
+    PASS = ["F 20", "W 2 5 211", "L 1.00 50.00", "W 2 0 88", "L 2.00 50.00", "L 3.00 50.00",
+            "L 4.00 50.00", "W 2 5 88", "L 5.00 50.00", "W 2 10 88", "L 6.00 50.00", "G"]
 
     def runner(self, b):
         b.raw[2] = 1759 - round(BRUSH_UP_DEG * TICKS_PER_DEG)        # the brush up: the elbow's plus is the firmware's minus
@@ -550,7 +550,7 @@ class ElbowOnPathTest(unittest.TestCase):
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
         ws = [c for c in b.log if c.startswith("W ")]
-        self.assertEqual(ws, ["W 2 15.0 211", "W 2 25.0 88", "W 2 15.0 88", "W 2 10.0 88"])   # from +25°, the plus the firmware's minus: 10, 0, 10, 15
+        self.assertEqual(ws, ["W 2 20.0 211", "W 2 25.0 88", "W 2 20.0 88", "W 2 15.0 88"])   # from +25°, the plus the firmware's minus: 5, 0, 5, 10
         first = b.log.index(ws[0])
         z = max(i for i, c in enumerate(b.log[:first]) if c == "Z")
         self.assertFalse([c for c in b.log[z:first] if c[0] in "LAM"], "the zero before any piece is queued")
@@ -730,12 +730,12 @@ class ArmTest(unittest.TestCase):
     def test_a_lighter_brush_is_still_on_the_canvas(self):
         b = FakeBoard()
         r = Runner(b.send, sleep=b.sleep, swing_s=0.2, arm=self.arm(b))
-        r.start([arm(True), travel(100, 20), arm(False), {"kind": "arm", "cmd": "J 2 10"}, paint(3)])
+        r.start([arm(True), travel(100, 20), arm(False), {"kind": "arm", "cmd": "J 2 5"}, paint(3)])
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
         self.assertTrue(r.brush_on)
-        self.assertEqual(r.lift, 10)
-        self.assertLess(abs(-(b.raw[2] - self.ZERO["elbow"]) / TICKS_PER_DEG - 10), 0.6)
+        self.assertEqual(r.lift, 5)
+        self.assertLess(abs(-(b.raw[2] - self.ZERO["elbow"]) / TICKS_PER_DEG - 5), 0.6)
 
     def test_at_15_the_brush_is_off_the_canvas(self):
         b = FakeBoard()
