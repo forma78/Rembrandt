@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CUP, cupOf, cupProblem } from '../src/ink.js';
+import { CUP, cupOf, cupProblem, canvasFrom } from '../src/ink.js';
 
 test('a cup not set yet: the owner\'s ⌀50 × 20, the elbow est., no centre — and it says so', () => {
   const c = cupOf({});
@@ -25,4 +25,11 @@ test('the elbow is checked: over the rim well off the canvas, in the cup below i
   assert.match(cupProblem(cupOf({ cup: { ...at, dip: -6 } })), /In the cup/);
   assert.match(cupProblem(cupOf({ cup: { ...at, dwell: 12 } })), /In the paint/);
   assert.equal(cupProblem(cupOf({ cup: { ...at, dip: -5 } })), '', 'the reserve is allowed, as on Calibration');
+});
+
+test('the canvas from the cup: its left edge to the right, its bottom below — the centre half the canvas on from them', () => {
+  const ink = { cup: { x: 400, y: 20 }, canvas: { left: 40, bottom: 500 } };
+  assert.deepEqual(canvasFrom(ink, 500, 700), { x: 400 - 500 + 350, y: 20 + 40 + 250, left: 40, bottom: 500 });
+  assert.equal(canvasFrom({ cup: { x: 400, y: 20 }, canvas: { left: 40 } }, 500, 700), null, 'one number is not enough');
+  assert.equal(canvasFrom({ canvas: { left: 40, bottom: 500 } }, 500, 700), null, 'nor without the cup');
 });

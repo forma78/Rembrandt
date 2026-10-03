@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The canvas from the cup: Here found, not aimed at** (the owner,
+  2026-10-03: "I do not see where the centre of 500 × 700 is, there is no
+  laser"; "a great solution, much handier"). On the Ink tab two ruler
+  numbers from the cup's centre: the canvas's left edge, mm to the right,
+  and its bottom edge, mm down. The Test tab lays its board from them and
+  takes its centre for Here; its Here key shows only until both are
+  typed. The Ink tab draws the canvas there too.
 - **Test: INK ON — a dip in the cup before every row** (the owner,
   2026-10-03: "PLAY: the machine goes to the cup first, dips the brush
   right in the centre, then paints D1. 14 passes, so the brush dips 14

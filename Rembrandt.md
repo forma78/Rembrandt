@@ -447,7 +447,16 @@ this section disagree, this section wins: the owner corrected the sketch on
   measured with Calibration's elbow handle; **in the paint** 1 s ("1
   second is perfect"). The machine from above, as on Calibration, with the
   cup, home and the Test board. Kept in `app/ink.json` through
-  `rembrandt.py` (`/ink`). The page moves nothing. Not Calibration, which
+  `rembrandt.py` (`/ink`). **The canvas from the cup** (the owner,
+  2026-10-03: "I do not see where the centre of 500 × 700 is, there is no
+  laser"; every point found by hand adds its own error): the cup is the one
+  point found on the machine, and two ruler numbers place the canvas from
+  its centre — its left edge so many mm to the right, its bottom edge so
+  many mm down ("the bottom is easier"). With the board's size the Test tab
+  finds the centre itself and uses it as Here ("a great solution, much
+  handier"); its Here key stays only until the two numbers are typed. The
+  jog of Calibration is on the tab, and the cup is drawn as a red scope to
+  aim the brush at. Not Calibration, which
   is the machine's and never the paint's, and not Test: the cups will be
   many, each with its place, its height and its paint.
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
