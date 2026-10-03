@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN.md: a line changes tube along the ribbon** (the owner,
+  2026-10-04), as the strands of IMG_9424 and Florian Markus's drops
+  (`references/preview.webp`): a drop at the start of every stretch, the
+  brush dragging each into the next; Palette shows the drop map. Hence the
+  full trace — "definitely the full trace in watercolour".
 - **NOLAN.md: the Watercolour run traces all the lines** (the owner,
   2026-10-04: "I need all the lines, or I will get lost"). Edges stays on
   the switch as the faster trace.

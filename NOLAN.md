@@ -78,7 +78,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | **Bundle** | The lines of one ribbon, running along its centre path. Every ribbon is its own bundle; there is no grid over the whole canvas. |
 | **N1, N2, N3** | The ribbons by their painting order; N4, N5 later. Each is a layer of its own. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
 | **Geometry** (NOLAN mode) | Black and white: white canvas, dark lines, the centre dashed, the anchors as squares to drag. No colour. |
-| **Palette** (NOLAN mode) | The preview: the lines in their tubes, anchors hidden; **Black ground** and **Hand** live here (the owner, 2026-10-04). |
+| **Palette** (NOLAN mode) | The preview: the lines in their tubes and the drop map, anchors hidden; **Black ground** and **Hand** live here (the owner, 2026-10-04). |
 | **Watercolour run** | NOLAN's first run of a layer, what used to be the pencil: the brush dips in a thin wash from the Ink cup and traces the ribbon, so the owner sees where to squeeze the paint. |
 | **Paint run** | NOLAN's main run: the paint squeezed onto the canvas by hand, the brush drags it along the lines. No cup. |
 | **One way · Snake** | The two ways of the Paint run: each line top to bottom with the return in the air; or down, a turn in the air, up the next line on the canvas. |
@@ -100,8 +100,8 @@ lie and which paints are needed").
   — every line dark grey, a narrow groove between neighbours so the 8 mm
   lines read one by one, the centre dashed orange, the anchors as squares;
   the picked anchor filled orange. All shape editing happens here.
-- **Palette**: the same lines in their tubes; anchors hidden, nothing to
-  drag. Two toggles here only: **Black ground** (everything outside the
+- **Palette**: the same lines in their tubes, and the drop map (§4);
+  anchors hidden, nothing to drag. Two toggles here only: **Black ground** (everything outside the
   ribbons black, as after his hand) and **Hand** (phase 2, §6: the G and A
   zones).
 
@@ -163,8 +163,16 @@ The reference sits under both modes, as on Create. The steps:
 - **Sample** uses `paintLanes` of `bands.js` along every line of the
   ribbon: read every 4 mm, nearest tube of the inventory (OKLab), what it
   missed by goes to the next line — optical mixing, as on Create.
-- **One tube per line** in v1 — the tube most of the line took. *Claude's
-  decision, to confirm* (§8).
+- **A line changes tube along the ribbon** (the owner, 2026-10-04), as the
+  strands of IMG_9424 do — orange → white → blue → lilac — and as Florian
+  Markus's drops do (`references/preview.webp`, `preview-1 copy.jpg`). A
+  line is stretches, each with its tube and a drop at its start in the
+  brush's direction; the brush runs through the drops and drags each into
+  the next. The stretches are the runs of `paintLanes`, with their home and
+  tail. How one colour flows into the next — the blue into the lilac — is
+  est. until tested on Test.
+- **The drop map**: Palette shows where every drop goes, its tube and its
+  length, so the owner squeezes them on the trace by it.
 - **Within a ribbon the lighter tube runs first** (Rembrandt.md §1).
 - **Muddy pairs**: neighbouring lines of one ribbon are wet together. A
   muddy pair side by side gets one **⚠** between them — a hint, never a
@@ -202,7 +210,9 @@ sees exactly where to squeeze the paint.
   and lifting on the move.
 - **Which lines it traces**: **All lines** by default (the owner,
   2026-10-04: "I need all the lines, or I will get lost … I am ready to
-  wait to get the full picture"). **Edges**, the two outer lines of the
+  wait to get the full picture"). The colour changes along every line
+  (§4), so every line needs its trace to lay its drops on — "definitely
+  the full trace in watercolour". **Edges**, the two outer lines of the
   ribbon, stays on the switch as the faster trace.
 - **Long lines**: a line longer than the dip run is split into runs; each
   starts with a fresh dip and lands where the last one's tail began.
@@ -267,7 +277,8 @@ No machine moves. Not in phase 1.
 - Geometry ↔ Palette switches at once; anchors only in Geometry.
 - A width step adds or removes one line; the readout says mm and lines.
 - A moved anchor, a width or a tube updates the preview at once.
-- Sample fills the lines; a muddy neighbour shows one ⚠.
+- Sample fills the lines, a line changing tube along the ribbon; the drop
+  map shows every drop; a muddy neighbour shows one ⚠.
 - Black ground preview works.
 - N1 · N2 · N3 latch as D1 · D2 · D3 on Test, a pause between passes.
 - Each layer runs as Watercolour, then Paint; Paint runs One way and Snake,
@@ -281,13 +292,20 @@ No machine moves. Not in phase 1.
 
 ## 8. Ask the owner, do not guess
 
-1. One tube per line (v1), or may a line change tube along the ribbon?
+1. ~~One tube per line (v1), or may a line change tube along the ribbon?~~
+   It changes, a drop at the start of every stretch (the owner, 2026-10-04;
+   §4).
 2. The dip run: until Adjustments measures it, what length to use? (est.)
 3. ~~The Watercolour run traces the Edges by default, or All lines?~~
    All lines (the owner, 2026-10-04; §5.1).
 4. Where the canvas lies on the machine: from the cup and two ruler numbers
    (the Ink tab), as the Test board — or by Calibration's canvas corners,
    as on Create? *Claude's proposal: from the cup.*
-5. Snake in the Paint run: every second line runs bottom to top, so its
-   paint should lie at the bottom. Where does the owner squeeze it — at the
-   start of each line, at both ends, along the whole trace?
+5. ~~Snake in the Paint run: where does the owner squeeze the paint of a
+   line that runs bottom to top?~~ Where the drop map says: at the start
+   of each stretch in the brush's direction — on Snake's upward lines, at
+   the bottom of the stretch (follows from 1).
+6. The Paint run with drops as in `references/preview.webp`: all the drops
+   of a layer on the canvas before PLAY, and the brush line by line
+   through them all — or tube by tube, a pause between tubes, as §5.2 says
+   now?
