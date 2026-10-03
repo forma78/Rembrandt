@@ -345,6 +345,9 @@ ELBOW_LIFT_DEG, WRIST_LIFT_DEG = 10, 60
 # The brush on and off by the elbow since the new arm: 0° pressed, put away
 # at +25° (est.: where the owner left it, 10° past the lift-off).
 BRUSH_UP_DEG = 25
+# A wait block's longest: the brush in the cup's paint for a second (the
+# owner, 2026-10-03: "1 second is perfect"); ten at most.
+WAIT_MAX_S = 10
 # The joints a run turns, by J <j> in an arm block and W <j> on a path.
 ARM_JOINT = {2: "elbow", 3: "wrist"}
 # The brush leaves the canvas with the wrist at ±45° (the owner, on
@@ -664,7 +667,9 @@ class Runner:
     (2026-10-02), {"kind": "joint", "joint": "shoulder"|"elbow", "deg": d,
     "speed": deg/s} — a joint turns at that speed, the brush on or off as it
     is, the axes still — or {"kind": "pause", "why": "..."}: the brush off,
-    the run waits for Continue (paint for the brush); or {"kind": "move", "cmds": [...]}: a
+    the run waits for Continue (paint for the brush); or {"kind": "wait", "s": 1}:
+    everything stands that long — the brush in the cup's paint (INK ON on the
+    Test tab, 2026-10-03); or {"kind": "move", "cmds": [...]}: a
     speed (F or T), path pieces (L, A, M) and G. Pieces go to the board until
     its queue is full; then G, and the rest follow as the queue empties. The
     block is over when the ping no longer says "путь". Every command and ping
@@ -713,6 +718,10 @@ class Runner:
                 if b["cmd"].split()[1] == "3" and float(b["cmd"].split()[2]) == SWING_DEG:
                     return False, (f"{b['cmd']}: this job puts the brush away with the wrist, as before the new arm; "
                                    "the elbow lifts it now (2026-10-02) — the Job tab is not made for it yet.")
+            if b.get("kind") == "wait":
+                w = b.get("s")
+                if isinstance(w, bool) or not isinstance(w, (int, float)) or not 0 <= w <= WAIT_MAX_S:
+                    return False, f"a wait must be 0…{WAIT_MAX_S} s, not {w}"
             if b.get("kind") == "joint":
                 j, d, v = b.get("joint"), b.get("deg"), b.get("speed")
                 if j not in ("shoulder", "elbow") or not isinstance(d, (int, float)) or not REACH[j][0] <= d <= REACH[j][1]:
@@ -806,6 +815,8 @@ class Runner:
                     self._arm(b["cmd"])
                 elif b["kind"] == "joint":
                     self._joint(b)
+                elif b["kind"] == "wait":
+                    self._wait(float(b["s"]))     # the axes still, the arm where it is; pinging, so STOP still gets through
                 elif b["kind"] == "pause":
                     with self.lock:
                         self._pause, self.message = True, b.get("why") or "paused"

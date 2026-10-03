@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **rembrandt.py: a wait block** (2026-10-03, for INK ON on Test; the owner:
+  "1 second is perfect"). `{"kind": "wait", "s": 1}`: everything stands that
+  long, the brush in the cup's paint; the runner pings meanwhile, so STOP
+  gets through. 0…10 s, checked before anything moves.
 - **Ink, a new tab between Test and Adjustments** (the owner, 2026-10-03:
   "maybe one more tab, INK"; "just INK, it is clear anyway"). Where the
   brush takes its paint: one cup, ⌀50 and 20 mm high, by the left edge of
