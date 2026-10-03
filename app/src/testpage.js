@@ -41,8 +41,9 @@ const plan = () => xyPlan({ ...S, here: hereNow(), cup: dipCup() });
 // Row to row in half millimetres, 4…30, a scale under it (the owner,
 // 2026-10-02: "a scale in 0.5 mm steps, the range down from 80 mm to 30");
 // the brush to 250 mm/s, the board's most (firmware F, 1…250 since 2026-10-02; the owner: "at least 250").
+// Rows to 200 (the owner, 2026-10-03: 40 was the most; for 500 × 700 and 700 × 1000).
 const SLIDERS = [
-  ['rows', 'Rows', '', 1, 1, 40], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 0.5, 4, 30, { label: 5 }],
+  ['rows', 'Rows', '', 1, 1, 200], ['turn', 'Turn', 'mm', 1, 2, 60], ['pitch', 'Row to row', 'mm', 0.5, 4, 30, { label: 5 }],
   ['length', 'Row length', 'mm', 5, 20, 800], ['bow', 'Bow', 'mm', 1, -100, 100],   // the middle of a row below its ends (2026-10-02)
   ['wave', 'Wave', 'mm', 1, 0, 30],   // 0: the row as it is; more: waves along it (the owner, 2026-10-02)
   ['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX],
@@ -82,10 +83,13 @@ $('#shifts').innerHTML = SHIFT_AX.map(([ax, label, what, max, , sc]) => Object.k
 $('#shifts').querySelectorAll('input').forEach(inp => inp.oninput = () => {
   const k = inp.dataset.pass, ax = inp.dataset.ax;
   S.shift = { ...S.shift, [k]: { ...S.shift?.[k], [ax]: +inp.value } };   // a new object: DEFAULTS.shift stays empty
-  update();
+  updateSoon();
 });
 $('#sliders').innerHTML = SLIDERS.map(([k, label, , step, min, max, sc]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${k}"></span></span><input class="slider" type="range" data-k="${k}" min="${min}" max="${max}" step="${step}">${sc ? scale(step, min, max, sc.label) : ''}</label>`).join('');
-$('#sliders').querySelectorAll('input').forEach(inp => inp.oninput = () => { S[inp.dataset.k] = +inp.value; update(); });
+// a slider's ticks come faster than 200 rows are planned: one plan a frame
+let soon = 0;
+const updateSoon = () => { if (!soon) soon = requestAnimationFrame(() => { soon = 0; update(); }); };
+$('#sliders').querySelectorAll('input').forEach(inp => inp.oninput = () => { S[inp.dataset.k] = +inp.value; updateSoon(); });
 $('#fields').innerHTML = FIELDS.map(([k, label, unit, step]) => `<label>${label} <input data-k="${k}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; update(); });
 $('#pat').querySelectorAll('button').forEach(b => b.onclick = () => { S.pattern = b.dataset.p; Object.assign(S, PATTERNS[S.pattern]); update(); });
@@ -147,9 +151,14 @@ function drawOn(c, kk, W, H) {
   }
   for (const line of P.preview) {   // black; D's passes in their paints; the brush's trace (est.), thinner as it lifts in a tail
     c.strokeStyle = line.pass ? PASSES[line.pass].color : '#1B1A19';
-    for (let i = 1; i < line.length; i++) {
-      c.lineWidth = BRUSH_MM * k * Math.max(0.15, (line[i - 1].k + line[i].k) / 2);
-      c.beginPath(); c.moveTo(sx(line[i - 1].y), sy(line[i - 1].x)); c.lineTo(sx(line[i].y), sy(line[i].x)); c.stroke();
+    // a stroke for every stretch of one width, in tenths, as SAVE TEST does: a stroke a step was too slow for 200 rows
+    const wd = i => Math.round(10 * Math.max(0.15, (line[i - 1].k + line[i].k) / 2)) / 10;
+    for (let i = 1; i < line.length;) {
+      const w = wd(i);
+      c.lineWidth = BRUSH_MM * k * w;
+      c.beginPath(); c.moveTo(sx(line[i - 1].y), sy(line[i - 1].x));
+      while (i < line.length && wd(i) === w) { c.lineTo(sx(line[i].y), sy(line[i].x)); i++; }
+      c.stroke();
     }
   }
   c.strokeStyle = '#EB7A25'; c.lineWidth = 1.5;                                             // Here: the board's centre

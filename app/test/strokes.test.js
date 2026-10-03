@@ -77,6 +77,14 @@ test('the board: width and height apart — 400 × 600 holds a snake 26 rows lon
   assert.deepEqual(xyPlan({ board: 400 }).room, { w: 340, h: 340 }, 'a size saved before still reads');
 });
 
+test('200 rows, on 700 × 1000: planned, not out of stack (the owner, 2026-10-03)', () => {
+  const o = { rows: 200, pitch: 4, length: 600, wave: 8, bow: 100, boardW: 700, boardH: 1000 };
+  for (const p of [xyPlan({ ...PATTERNS.A, ...o }), xyPlan({ pattern: 'D', ...PATTERNS.D, passes: ['D1', 'D2', 'D3'], ...o })]) {
+    assert.ok(p.blocks.length > 1 && p.height > 0 && p.width > 0);
+    assert.ok(Number.isFinite(p.carriage.x0) && Number.isFinite(p.carriage.y1));
+  }
+});
+
 // the direction where a piece starts and where it ends
 const dirs = g => {
   if (g.t === 'L') { const l = Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y); const u = { x: (g.b.x - g.a.x) / l, y: (g.b.y - g.a.y) / l }; return [u, u]; }

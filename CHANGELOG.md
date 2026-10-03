@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: Rows to 200** (the owner, 2026-10-03, `machine/2026-10-03
+  rows.png`: "now 40, I want 200 — in case the format is 500 × 700, or
+  700 × 1000"). The plan's boxes were `Math.min(...points)`, out of stack
+  past about 100 rows of 600 mm: a loop now. The board draws a stretch of
+  one width as one stroke, and a slider plans once a frame, so 200 rows
+  still move under the hand.
 - **Test: INK named as the sliders, OFF · switch · ON** (the owner,
   2026-10-03: the green INK ON "stuck to the A B D row"). The switch lower,
   named INK in the sliders' small capitals, as Rows and Row to row; OFF to

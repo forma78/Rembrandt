@@ -217,6 +217,13 @@ function paths(o, angle = 0) {
   return out;
 }
 const tracePoints = p => { const q = [p[0].a]; p.forEach(g => points(g, q)); return q; };
+// The box round points, by a loop: Math.min(...) runs out of stack on a long
+// path (200 rows, the owner, 2026-10-03)
+function boxOf(qs) {
+  const b = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
+  for (const q of qs) { if (q.x < b.x0) b.x0 = q.x; if (q.x > b.x1) b.x1 = q.x; if (q.y < b.y0) b.y0 = q.y; if (q.y > b.y1) b.y1 = q.y; }
+  return b;
+}
 export const plotPaths = (opts, angle) => paths({ ...DEFAULTS, ...opts }, angle);   // for the tests
 
 // The table round the board, either side across, where rows may run past it, mm.
@@ -389,7 +396,7 @@ function pressed(pieces, B) {
 // A pass's paths, centred on Here by the box the carriage covers.
 function centred(o, angle) {
   const ps = paths(o, angle), all = ps.flatMap(tracePoints);
-  const bx = { x0: Math.min(...all.map(q => q.x)), x1: Math.max(...all.map(q => q.x)), y0: Math.min(...all.map(q => q.y)), y1: Math.max(...all.map(q => q.y)) };
+  const bx = boxOf(all);
   const mid = pt(-(bx.x0 + bx.x1) / 2, -(bx.y0 + bx.y1) / 2);
   return { ps: ps.map(p => p.map(g => shift(g, mid))), width: bx.y1 - bx.y0, height: bx.x1 - bx.x0 };
 }
@@ -478,7 +485,7 @@ export function xyPlan(opts) {
   seconds += travelTime(Math.hypot(X0 + at0.x - home.x, Y0 + at0.y - home.y), o.travel);
   // where the carriage goes, from Here: the paint's box aside by the tails (the walls check)
   const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; }).concat(cupAt ? [cupAt] : []);
-  const carriage = { x0: Math.min(...cp.map(q => q.x)), x1: Math.max(...cp.map(q => q.x)), y0: Math.min(...cp.map(q => q.y)), y1: Math.max(...cp.map(q => q.y)) };
+  const carriage = boxOf(cp);
   return { blocks, preview, width, height, room, box, carriage, length, fits,
     seconds, rows: o.rows, snake: !!o.snake, turns, lifts, need, passes: keys.filter(Boolean), opts: o,
     ink: !!o.ink, cupAt, air, homeAt, dips, pastWall, gone };
