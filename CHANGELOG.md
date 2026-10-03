@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: INK ON — a dip in the cup before every row** (the owner,
+  2026-10-03: "PLAY: the machine goes to the cup first, dips the brush
+  right in the centre, then paints D1. 14 passes, so the brush dips 14
+  times, each before a line top to bottom. Then not up but back to the
+  cup; at the end home"). A green switch under the pattern keys; OFF is
+  every test as it was. ON: to the cup over its rim, `J 2` into the
+  paint, a `wait` of 1 s, up; to the row, down to +25° in the air, the row
+  as before; back over the rim. C's and D's rows one way each, top to bottom
+  on D1, no turns, no pause. The board draws the cup's red scope, the way
+  in the air dashed, home, and the carriage's trail during a run. PLAY
+  refuses without the cup's centre. D1 at 14 rows: ≈ 3.4 min (est.).
 - **Ink: the jog of Calibration, and a scope for the cup** (the owner,
   2026-10-03: "what do I move the machine with? add me the sliders from
   Calibration"; "and a target for the cup, I will aim there"). X and Y as a
