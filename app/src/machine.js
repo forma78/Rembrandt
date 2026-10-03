@@ -212,9 +212,9 @@ const clampBox = (q, B) => ({ x: Math.min(B.x1, Math.max(B.x0, q.x)), y: Math.mi
 const sorted = cuts => [...new Set(cuts)].sort((a, b) => a - b);
 
 // Where a line crosses the lines of the walls, as fractions of it, 0 and 1
-// included. Between two cuts each coordinate stays inside or past one wall,
+// included (the Test tab presses its rows with these too, 2026-10-03). Between two cuts each coordinate stays inside or past one wall,
 // so the line pressed into the box is a straight line there too.
-function lineCuts(p, q, B) {
+export function lineCuts(p, q, B) {
   const cuts = [0, 1];
   for (const [k, v] of [['x', B.x0], ['x', B.x1], ['y', B.y0], ['y', B.y1]]) {
     const d = q[k] - p[k];
@@ -228,7 +228,7 @@ function lineCuts(p, q, B) {
 // fractions of the sweep: where it crosses the lines of the walls, and where
 // it turns back along x or y (0°, 90°, 180°, 270°). Between two cuts the arc
 // is inside the box, or past a wall and pressed into it a straight line.
-function arcCuts(c, r, a0, s, B) {
+export function arcCuts(c, r, a0, s, B) {
   const cuts = [0, 1];
   const at = th => {                              // the fraction of the sweep at angle th
     let t = ((th - a0) % TAU + TAU) % TAU;

@@ -371,8 +371,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   the board's centre); at 100 % the carriage goes home, to the corner where
   home is set, as a job does (the owner, 2026-10-02: the end seen "not only
   on the screen but in the real world"). The board's margins are a hint, not a limit ("too
-  many limits — let it go past"); the machine's walls are, and the page
-  says so before the run. It began as the arm-stroke bench "3DOF".
+  many limits — let it go past"); nor are the machine's walls since
+  2026-10-03 ("remove this restriction", D1 2 mm past the bottom wall): the
+  path is pressed into them as on the Job tab, what lies past one running
+  along it, and the page says how many mm. It began as the arm-stroke bench "3DOF".
   Sliders for the rows, as on Calibration; the board's width and height two
   numbers. **💾 SAVE TEST** puts a test in the Library, on a second shelf
   under a line — paintings above, tests below — and the Library opens it

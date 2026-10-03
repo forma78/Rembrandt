@@ -311,3 +311,34 @@ test('D2 after D1 with INK ON: the pause asks for the paint in the cup', () => {
   assert.deepEqual(p.blocks.filter(b => b.kind === 'pause').map(b => b.why), ['D2, red: its paint in the cup, then Continue']);
   assert.equal(p.dips, 6);
 });
+
+// ---------- the walls press the path (the owner, 2026-10-03: "remove this restriction") ----------
+const allPoints = p => p.blocks.filter(b => b.kind === 'move').flatMap(b => b.cmds.filter(c => /^[LMA]/.test(c)).map(endOf));
+test('D1 2 mm past the bottom wall: pressed along it, every elbow command kept, nothing past the walls', () => {
+  const o = { ...D1, rows: 14 }, at = xyPlan({ ...o, here: { x: 300, y: 300 } });
+  const here = { x: 300 - (300 + at.carriage.x0) - 2, y: 300 };   // the lowest point 2 mm under the bottom wall
+  const p = xyPlan({ ...o, here });
+  assert.ok(p.pastWall > 0 && p.pastWall < 100, `${p.pastWall} mm pressed: a few mm of every row's tail and turn, the rows steep to the wall`);
+  assert.ok(allPoints(p).every(q => q.x >= 0 && q.y >= 0), 'the board gets nothing past a wall');
+  const W = q => q.blocks.flatMap(b => b.cmds || []).filter(c => c[0] === 'W');
+  assert.deepEqual(W(p), W(at), 'the elbow lands and lifts as before');
+  assert.ok(Math.abs(p.length - at.length) < 5, `${p.length} against ${at.length}: the same paint, nearly`);
+  assert.equal(p.gone, 0);
+});
+
+test('INK ON past the bottom wall too: the dips stay, the rows pressed', () => {
+  const at = xyPlan({ ...D1, here: { x: 300, y: 300 } });
+  const p = xyPlan({ ...D1, here: { x: 300 - (300 + at.carriage.x0) - 2, y: 300 }, ink: true, cup: CUPAT });
+  assert.equal(p.dips, 14);
+  assert.ok(allPoints(p).every(q => q.x >= 0 && q.y >= 0));
+});
+
+test('rows wholly past the bottom wall, across it, are pressed into points and left out; along a wall they run along it', () => {
+  const o = { pattern: 'D', ...PATTERNS.D, passes: ['D1'], rows: 3, pitch: 10, length: 100, bow: 0, ink: true };
+  const under = xyPlan({ ...o, here: { x: -200, y: 300 } });
+  assert.equal(under.gone, 3, 'upright rows under the bottom wall');
+  assert.equal(under.blocks.filter(b => b.paintMM).length, 0);
+  const left = xyPlan({ ...o, here: { x: 300, y: -40 } });
+  assert.equal(left.gone, 0, 'upright rows past the left wall lie along it');
+  assert.ok(allPoints(left).every(q => q.y >= 0));
+});

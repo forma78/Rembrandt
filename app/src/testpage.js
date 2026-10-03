@@ -216,7 +216,9 @@ function update() {
     + (P.turns ? ` · the brush up through ${P.turns} turns` : '')
     + ` · the elbow eases the brush on and off over ${S.tail} mm of each row's ends, on the move, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P.need, 0)}°/s (est.)`
     + (P.need > WRIST_MAX ? ` <span class="warn">The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.</span>` : '')
-    + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02); only the machine's walls stop it.</span>`)
+    + (P.fits ? '' : ` <span class="hint">Past the ${P.room.w} × ${P.room.h} mm inside the margins — allowed (the owner, 2026-10-02).</span>`)
+    // the walls press the path, as on the Job tab (the owner, 2026-10-03: "remove this restriction")
+    + (P.pastWall > 0.05 ? ` <span class="hint">${fmt(P.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab${P.gone ? `; ${P.gone} row${P.gone > 1 ? 's' : ''} wholly past, left out` : ''}.</span>` : '')
     + (walls() ? ` <span class="warn">${walls()}</span>` : '');
   $('#stats').textContent = `${P.blocks.length} steps · pattern ${S.pattern === 'D' ? P.passes.join('+') : S.pattern}`;
   showHere(); save(); layout();
@@ -243,8 +245,9 @@ $('#btnHere').onclick = async () => {
   update();
 };
 
-// The machine's walls are the one hard limit (the board refuses a piece past
-// one): said here before the run, not as "did not get there" after it.
+// The machine's walls: the board refuses a piece past one. The plan presses
+// the path into them (strokes.js, since 2026-10-03), so this is only the
+// last guard, before the run rather than "did not get there" after it.
 function walls() {
   const h = hereNow();
   if (!h) return '';
