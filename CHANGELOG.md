@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Photos: the first wash from the cup** (2026-10-03, added by the owner
+  on 2026-10-04): `machine/photo_2026-10-04 01.29.23–25.jpeg`, the run of
+  13:30 in the journal — D1, 14 rows of 330 mm, INK ON, 14 dips, a red
+  wash. Every row reaches its end on one dip, paler into the tail. And
+  `machine/2026-10-03 rows.png`, which the Rows to 200 line names.
 - **NOLAN in Create's place; v0.2 after the name** (the owner, 2026-10-04:
   "I would hide Create for now"). The top row of every page reads
   REMBRANDT v0.2, then NOLAN · Job · Test · Ink · Adjustments ·
