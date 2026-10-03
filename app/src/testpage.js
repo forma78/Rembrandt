@@ -9,7 +9,7 @@ import { parsePing, toMm, reach } from './machine.js';
 import { xyPlan, PATTERNS, PASSES, DEFAULTS, TABLE_MM, BRUSH_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
-import { cupOf, cupProblem, drawCup } from './ink.js';
+import { cupOf, cupProblem, drawCup, canvasFrom } from './ink.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -27,7 +27,12 @@ const cup = () => cupOf(INK);
 async function loadInk() {
   try { const r = await fetch('/ink', { cache: 'no-store' }); INK = r.ok ? await r.json() : {}; } catch { INK = {}; }
 }
-const plan = () => xyPlan({ ...S, cup: cup() });
+// Here: the canvas's centre from the cup, once the Ink tab has the canvas
+// measured from it with a ruler (the owner, 2026-10-03: "I do not see where
+// the centre of 500 × 700 is, there is no laser"); else the Here taken by hand
+const fromCup = () => canvasFrom(INK, S.boardW, S.boardH);
+const hereNow = () => fromCup() || S.here;
+const plan = () => xyPlan({ ...S, here: hereNow(), cup: cup() });
 
 // Sliders, as on the Calibration tab (the owner, 2026-10-02); the board's
 // size stays two numbers.
@@ -101,7 +106,7 @@ const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('
 const PAD_X = 20, PAD_Y = 20 + TABLE_MM;
 function view() {
   const v = { x0: -S.boardH / 2 - PAD_X, x1: S.boardH / 2 + PAD_X, y0: -S.boardW / 2 - PAD_Y, y1: S.boardW / 2 + PAD_Y };
-  if (P.ink && S.here) {
+  if (P.ink && hereNow()) {
     const e = cup().diameter / 2 * 1.7 + 6, home = 24;
     const at = [...(P.cupAt ? [[P.cupAt, e]] : []), [P.homeAt, home]];
     for (const [q, m] of at) { v.x0 = Math.min(v.x0, q.x - m); v.x1 = Math.max(v.x1, q.x + m); v.y0 = Math.min(v.y0, q.y - m); v.y1 = Math.max(v.y1, q.y + m); }
@@ -131,7 +136,7 @@ function drawOn(c, kk, W, H) {
   c.setLineDash([4, 4]); c.strokeStyle = 'rgba(179,71,12,.6)'; c.strokeRect(sx(-hw + m), sy(hh - m), (S.boardW - 2 * m) * k, (S.boardH - 2 * m) * k); c.setLineDash([]);
   c.lineCap = 'round'; c.lineJoin = 'round';
   // INK ON: the brush's way in the air, dashed — to the cup, to the row, back to the cup, home at the end
-  if (P.ink && S.here) {
+  if (P.ink && hereNow()) {
     c.save(); c.setLineDash([3, 4]); c.strokeStyle = themeColor('--mute', '#7D776D'); c.lineWidth = 1;
     for (const [a, b] of P.air) { c.beginPath(); c.moveTo(sx(a.y), sy(a.x)); c.lineTo(sx(b.y), sy(b.x)); c.stroke(); }
     c.restore();
@@ -147,7 +152,7 @@ function drawOn(c, kk, W, H) {
   c.beginPath(); c.moveTo(sx(-8), sy(0)); c.lineTo(sx(8), sy(0)); c.moveTo(sx(0), sy(-8)); c.lineTo(sx(0), sy(8)); c.stroke();
   c.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono'); c.fillStyle = '#B3470C';
   c.fillText(`board ${S.boardW} × ${S.boardH} mm · margin ${S.margin}`, sx(-hw), sy(hh) - 6);
-  if (P.ink && S.here) {                                                                   // the cup, the red scope of the Ink tab; home
+  if (P.ink && hereNow()) {                                                                 // the cup, the red scope of the Ink tab; home
     const ink = themeColor('--ink', '#24221F');
     if (P.cupAt) {
       const X = sx(P.cupAt.y), Y = sy(P.cupAt.x), r = cup().diameter / 2 * k;
@@ -164,7 +169,7 @@ function drawOn(c, kk, W, H) {
 // it is now. On the screen only, not in a saved test.
 let trail = [], trailOf = null;
 function drawTrail(c, kk) {
-  if (!S.here || !trail.length) return;
+  if (!hereNow() || !trail.length) return;
   const V = view(), sx = y => (y - V.y0) * kk, sy = x => (V.x1 - x) * kk, last = trail.at(-1);
   c.save(); c.strokeStyle = '#EB7A25'; c.lineWidth = 1.2; c.lineJoin = 'round';
   c.beginPath(); trail.forEach((q, i) => (i ? c.lineTo : c.moveTo).call(c, sx(q.y), sy(q.x))); c.stroke();
@@ -217,7 +222,13 @@ function update() {
 
 // ---------- Here ----------
 function showHere() {
-  $('#hereRead').innerHTML = S.here ? `The board's centre: carriage <b>X ${fmt(S.here.x, 1)} · Y ${fmt(S.here.y, 1)} mm</b>. Jog there on Calibration and press again to change it.`
+  const c = fromCup();
+  $('#btnHere').hidden = !!c;                     // found from the cup: nothing to find by hand
+  if (c) {
+    $('#hereRead').innerHTML = `The canvas's centre, from the cup: carriage <b>X ${fmt(c.x, 1)} · Y ${fmt(c.y, 1)} mm</b> — the canvas's left edge ${c.left} mm to the right of the cup's centre, its bottom ${c.bottom} mm below it, half the ${S.boardW} × ${S.boardH} board on (the Ink tab).`;
+    return;
+  }
+  $('#hereRead').innerHTML = S.here ? `The board's centre: carriage <b>X ${fmt(S.here.x, 1)} · Y ${fmt(S.here.y, 1)} mm</b>. Jog there on Calibration and press again to change it; or measure the canvas from the cup on the Ink tab.`
     : 'Not set. On Calibration jog the carriage until the brush is over the board\'s centre; then press here.';
 }
 $('#btnHere').onclick = async () => {
@@ -233,8 +244,9 @@ $('#btnHere').onclick = async () => {
 // The machine's walls are the one hard limit (the board refuses a piece past
 // one): said here before the run, not as "did not get there" after it.
 function walls() {
-  if (!S.here) return '';
-  const R = reach(), b = P.carriage, x0 = S.here.x + b.x0, x1 = S.here.x + b.x1, y0 = S.here.y + b.y0, y1 = S.here.y + b.y1;
+  const h = hereNow();
+  if (!h) return '';
+  const R = reach(), b = P.carriage, x0 = h.x + b.x0, x1 = h.x + b.x1, y0 = h.y + b.y0, y1 = h.y + b.y1;
   const out = [x0 < R.x.min && `${fmt(R.x.min - x0, 0)} mm past the bottom wall`, x1 > R.x.max && `${fmt(x1 - R.x.max, 0)} mm past the top wall`,
     y0 < R.y.min && `${fmt(R.y.min - y0, 0)} mm past the left wall`, y1 > R.y.max && `${fmt(y1 - R.y.max, 0)} mm past the right wall`].filter(Boolean);
   return out.length ? `The brush would go ${out.join(', ')}: move Here or make the pattern smaller.` : '';
@@ -303,7 +315,7 @@ async function openFromLibrary(file) {
 // ---------- the run ----------
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 $('#btnDoJob').onclick = async () => {
-  if (!S.here) { $('#runState').innerHTML = '<span class="warn">Set Here first.</span>'; return; }
+  if (!hereNow()) { $('#runState').innerHTML = '<span class="warn">Set Here first, or the canvas from the cup on the Ink tab.</span>'; return; }
   if (S.ink) {                                    // the cup as the Ink tab has it now
     await loadInk(); update();
     if (cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
@@ -313,7 +325,7 @@ $('#btnDoJob').onclick = async () => {
   if (!confirm(`${P.rows} rows of pattern ${S.pattern === 'D' ? P.passes.join(' + ') : S.pattern} will be run on the machine${S.ink ? `, a dip in the cup before each: ${P.dips} dips` : ''}`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks,
-      log: { page: 'test', label: testLabel(), settings: settingsNow(), here: S.here, ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P.seconds) } }) });   // the run journal, rembrandt.py
+      log: { page: 'test', label: testLabel(), settings: settingsNow(), here: hereNow(), ...(fromCup() ? { fromCup: INK.canvas } : {}), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P.seconds) } }) });   // the run journal, rembrandt.py
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 };
@@ -370,8 +382,9 @@ async function watch() {
   // the trail: a new one at every PLAY; kept when the run is over, until the next
   const live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
   if (live && st.started !== trailOf) { trailOf = st.started; trail = []; }
-  if (S.here && st && trailOf && st.started === trailOf && st.x_mm !== null && st.y_mm !== null) {
-    const q = { x: st.x_mm - S.here.x, y: st.y_mm - S.here.y, live }, l = trail.at(-1);
+  const h = hereNow();
+  if (h && st && trailOf && st.started === trailOf && st.x_mm !== null && st.y_mm !== null) {
+    const q = { x: st.x_mm - h.x, y: st.y_mm - h.y, live }, l = trail.at(-1);
     if (!l || Math.hypot(q.x - l.x, q.y - l.y) > 0.5 || l.live !== live) { trail.push(q); draw(); }
   }
   $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${st.message}</span>` : '';

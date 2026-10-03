@@ -53,6 +53,20 @@ export function cupOf(ink) {
   return out;
 }
 
+// The canvas from the cup (the owner, 2026-10-03: "I do not see where the
+// centre of 500 × 700 is, there is no laser"; every point found by hand
+// adds its own error). The cup is the one point found on the machine; the
+// canvas lies from it by two ruler numbers — its left edge `left` mm to the
+// right of the cup's centre, its bottom edge `bottom` mm below it ("the
+// bottom is easier to measure"). With the canvas's size, its centre: Here
+// for the Test tab. null until all is known.
+export function canvasFrom(ink, w, h) {
+  const c = cupOf(ink), e = ink?.canvas || {}, left = num(e.left), bottom = num(e.bottom);
+  if (c.x === null || left === null || bottom === null || !(w > 0) || !(h > 0)) return null;
+  const r = v => Math.round(v * 100) / 100;
+  return { x: r(c.x - bottom + h / 2), y: r(c.y + left + w / 2), left, bottom };
+}
+
 // Why the brush cannot dip into this cup, or ''.
 export function cupProblem(c) {
   if (!c || c.x === null || c.y === null) return 'The cup is not set: on the Ink tab, the brush over its centre, press Here.';

@@ -10,7 +10,7 @@
 import { fmt } from './util.js';
 import { parsePing, toMm, reach, homeCorner } from './machine.js';
 import { mountJog } from './jog.js';
-import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup } from './ink.js';
+import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup, canvasFrom } from './ink.js';
 import { isNight, themeColor } from './lamp.js';
 import './ui.js';
 
@@ -34,31 +34,39 @@ async function save(what) {
 // [key, label, unit, step, min, max]; the elbow's two est. until typed
 const SIZE = [['diameter', 'Diameter', 'mm', 1, 10, 200], ['height', 'Height', 'mm', 1, 1, 100]];
 const DIP = [['rim', 'Over the rim', '°', 1, RIM_MIN, ELBOW_MAX], ['dip', 'In the cup', '°', 1, ELBOW_MIN, ELBOW_MAX - 5], ['dwell', 'In the paint', 's', 0.1, 0, DWELL_MAX]];
-function fields(el, list) {
+// the canvas from the cup's centre, with a ruler: no defaults, measured or nothing
+const CANVAS = [['left', 'Left edge →', 'mm', 1, -1000, 1000], ['bottom', 'Bottom edge ↓', 'mm', 1, -1000, 1000]];
+// part: where in ink.json — the cup's numbers, or the canvas's
+function fields(el, list, part = 'cup') {
   el.innerHTML = list.map(([k, label, unit, step, min, max]) =>
-    `<label><span>${label}${EST.includes(k) ? ` <span class="est" data-est="${k}">est.</span>` : ''}</span><input data-k="${k}" type="number" step="${step}" min="${min}" max="${max}" placeholder="${CUP[k]}"><em>${unit}</em></label>`).join('');
+    `<label><span>${label}${EST.includes(k) ? ` <span class="est" data-est="${k}">est.</span>` : ''}</span><input data-part="${part}" data-k="${k}" type="number" step="${step}" min="${min}" max="${max}" placeholder="${part === 'cup' ? CUP[k] : '—'}"><em>${unit}</em></label>`).join('');
   el.querySelectorAll('input').forEach(inp => inp.onchange = () => {
     const k = inp.dataset.k, [, label, unit, , min, max] = list.find(f => f[0] === k);
-    const c = { ...S.ink.cup };
+    const c = { ...S.ink[part] };
     if (inp.value === '') delete c[k];                     // back to the default, est. again
     else c[k] = Math.max(min, Math.min(max, +inp.value));
-    S.ink = { ...S.ink, cup: c };
+    S.ink = { ...S.ink, [part]: c };
     show(); draw();
-    save(`${label} ${c[k] ?? CUP[k]} ${unit}`);
+    save(`${part === 'canvas' ? 'the canvas: ' : ''}${label} ${c[k] ?? CUP[k] ?? '—'} ${unit}`);
   });
 }
 fields($('#size'), SIZE);
+fields($('#canvas'), CANVAS, 'canvas');
 fields($('#dip'), DIP);
 
 function show() {
-  const c = cup(), typed = S.ink.cup || {};
+  const c = cup();
   $('#cupRead').innerHTML = c.x !== null
-    ? `The cup's centre: carriage <b>X ${fmt(c.x, 1)} · Y ${fmt(c.y, 1)} mm</b> · ⌀${c.diameter}, ${c.height} mm high. Jog there on Calibration and press again to change it.`
+    ? `The cup's centre: carriage <b>X ${fmt(c.x, 1)} · Y ${fmt(c.y, 1)} mm</b> · ⌀${c.diameter}, ${c.height} mm high. Jog there and press again to change it.`
     : 'Not set. The elbow up over the rim first (+35° or more), or the brush knocks the cup over; jog the brush over the red scope, the cup\'s centre; lower it into the paint to check; then press here.';
   for (const inp of document.querySelectorAll('.grid4 input')) {
-    const k = inp.dataset.k;
+    const k = inp.dataset.k, typed = S.ink[inp.dataset.part] || {};
     if (document.activeElement !== inp) inp.value = typed[k] ?? '';
   }
+  const B = testBoard(), at = B?.fromCup;
+  $('#canvasRead').innerHTML = at
+    ? `With a ruler from the cup's centre: the canvas's left edge <b>${at.left} mm</b> to the right, its bottom edge <b>${at.bottom} mm</b> down. The Test tab lays its ${B.w} × ${B.h} board from here; its centre, the Test tab's Here: <b>X ${fmt(at.x, 1)} · Y ${fmt(at.y, 1)}</b>.`
+    : 'The canvas from the cup: measure with a ruler from the cup\'s centre to the canvas\'s left edge and to its bottom edge. Then the Test tab lays its board from the cup and finds its centre itself; until then it uses its own Here.';
   document.querySelectorAll('[data-est]').forEach(el => { el.hidden = !c.est[el.dataset.est]; });
   const why = cupProblem({ ...c, x: 0, y: 0 });   // the numbers only: the centre has its own line above
   $('#dipRead').innerHTML = `Over the rim: the brush flies to the cup and away from it this high, the elbow at <b>+${c.rim}°</b>${c.est.rim ? ' (est.)' : ''}. `
@@ -100,11 +108,14 @@ const JOG = mountJog($('#jog'), { link: $('#linkState'), onPing: st => { S.pos =
 
 // The Test tab's board, where its Here put it (this browser's settings of
 // the Test tab): drawn round the cup, so the two are seen together.
+// From the cup when the canvas is measured from it, else where the Test
+// tab's own Here put it.
 function testBoard() {
-  try {
-    const t = JSON.parse(localStorage.getItem('rembrandt.test.v01') || '{}');
-    return t.here && t.boardW && t.boardH ? { x: t.here.x, y: t.here.y, w: t.boardW, h: t.boardH } : null;
-  } catch { return null; }
+  let t = {};
+  try { t = JSON.parse(localStorage.getItem('rembrandt.test.v01') || '{}'); } catch { }
+  const w = t.boardW || 300, h = t.boardH || 300, at = canvasFrom(S.ink, w, h);
+  if (at) return { x: at.x, y: at.y, w, h, fromCup: at };
+  return t.here ? { x: t.here.x, y: t.here.y, w, h } : null;
 }
 
 // ---------- the view from above ----------
@@ -151,7 +162,7 @@ function draw() {
     ctx.fillStyle = PAPER; ctx.fillRect(sx(B.y - B.w / 2), sy(B.x + B.h / 2), B.w * k, B.h * k);
     ctx.strokeStyle = 'rgba(36,34,31,.8)'; ctx.lineWidth = 1; ctx.strokeRect(sx(B.y - B.w / 2), sy(B.x + B.h / 2), B.w * k, B.h * k);
     ctx.fillStyle = '#B3470C'; ctx.textAlign = 'left';
-    ctx.fillText(`Test board ${B.w} × ${B.h} mm`, sx(B.y - B.w / 2), sy(B.x + B.h / 2) - 6);
+    ctx.fillText(`${B.fromCup ? 'the canvas, from the cup' : 'Test board, its Here'} · ${B.w} × ${B.h} mm`, sx(B.y - B.w / 2), sy(B.x + B.h / 2) - 6);
   }
   // home, where every run ends
   ctx.strokeStyle = ink; ctx.lineWidth = 1.2;
