@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN.md: the task for the NOLAN tab, and its pictures** (written
+  with the owner in chat on 2026-10-03, corrected in VS Code on
+  2026-10-04). `nolan-images/`: `IMG_9424.jpg`, the ribbon render NOLAN is
+  made for, the owner's N1 · N2 · N3 paths over it, his AI tries, and
+  `Untitled-7`/`-8`, the style of Test's pattern D ("Untitled-7 is
+  directly tied to Test, D1 / D2 / D3"). The corrections: a ribbon is
+  8 mm strokes one way, one width for the whole ribbon, no twist and no
+  pinch; the ribbons N1 · N2 · N3, so as not to be taken for Test's D;
+  the modes Geometry · Palette; the Watercolour run traces all three
+  first. In git since the repo went private again (the owner, 2026-10-04).
 - **Test: Rows to 200** (the owner, 2026-10-03, `machine/2026-10-03
   rows.png`: "now 40, I want 200 — in case the format is 500 × 700, or
   700 × 1000"). The plan's boxes were `Math.min(...points)`, out of stack
