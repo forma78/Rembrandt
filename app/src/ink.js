@@ -1,0 +1,44 @@
+// The ink: where the brush takes its paint (the owner, 2026-10-03: "maybe
+// one more tab, INK"). One cup for now, by the left edge of the canvas;
+// later the dip station's cups at the edges of the frame (Rembrandt.md §1).
+// Kept in app/ink.json through rembrandt.py (/ink); the Ink tab sets it,
+// INK ON on the Test tab dips into it. No DOM.
+//
+// The cup's centre is where the carriage stands with the brush over it, as
+// Here on the Test tab: machine mm, X up, Y to the right.
+
+import { ELBOW_LIFT } from './strokes.js';
+
+// The cup, ⌀50 and 20 mm high (the owner, 2026-10-03); a second in the
+// paint ("1 second is perfect"). The elbow over the rim and in the cup is
+// est. until typed on the Ink tab: 0° presses the brush to the canvas, it
+// leaves at +10°, +45° at most (Calibration).
+export const CUP = { diameter: 50, height: 20, rim: 35, dip: 5, dwell: 1 };
+export const EST = ['rim', 'dip'];
+export const ELBOW_MIN = -5, ELBOW_MAX = 45;
+export const RIM_MIN = ELBOW_LIFT + 5;   // over the rim the brush is well off the canvas
+export const DWELL_MAX = 10;
+
+const num = v => (v === null || v === undefined || v === '' || !Number.isFinite(+v) ? null : +v);
+
+// The cup as the plan takes it: its numbers, the defaults where none was
+// typed, and which of them are still est.
+export function cupOf(ink) {
+  const c = ink?.cup || {}, set = num(c.x) !== null && num(c.y) !== null;
+  const out = { x: set ? +c.x : null, y: set ? +c.y : null, at: c.at || null, est: {} };
+  for (const k of Object.keys(CUP)) {
+    const v = num(c[k]);
+    out[k] = v ?? CUP[k];
+    if (v === null && EST.includes(k)) out.est[k] = true;
+  }
+  return out;
+}
+
+// Why the brush cannot dip into this cup, or ''.
+export function cupProblem(c) {
+  if (!c || c.x === null || c.y === null) return 'The cup is not set: on the Ink tab, the brush over its centre, press Here.';
+  if (c.rim < RIM_MIN || c.rim > ELBOW_MAX) return `Over the rim ${c.rim}°: the elbow goes +${RIM_MIN}…+${ELBOW_MAX}° there.`;
+  if (c.dip < ELBOW_MIN || c.dip > c.rim - 5) return `In the cup ${c.dip}°: the elbow goes ${ELBOW_MIN}…+${c.rim - 5}° there, below Over the rim.`;
+  if (c.dwell < 0 || c.dwell > DWELL_MAX) return `In the paint ${c.dwell} s: 0…${DWELL_MAX} s.`;
+  return '';
+}

@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Ink, a new tab between Test and Adjustments** (the owner, 2026-10-03:
+  "maybe one more tab, INK"; "just INK, it is clear anyway"). Where the
+  brush takes its paint: one cup, ⌀50 and 20 mm high, by the left edge of
+  the canvas. **Here: the brush is over the cup's centre** takes the
+  carriage's place, as Here on Test; the elbow over the rim (+35°) and in
+  the cup (+5°) est. until typed, 1 s in the paint. The machine from above
+  with the cup, home and the Test board; `app/ink.json` through
+  `rembrandt.py` (`/ink`, as `/tubes`). The page moves nothing.
 - **The first painting of the new arm** (the owner, 2026-10-03, 01:11: "It!!!
   Not for nothing we tested all day. Beauty"; `test_results/IMAGE
   2026-10-03 01:11:11.jpg`). C, 13 rows, then D1, 14 rows, crossing in a

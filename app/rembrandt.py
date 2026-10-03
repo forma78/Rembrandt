@@ -11,6 +11,7 @@ bridge.py of the old machine repo held it on port 8765.
   look, the axes, and the axis zero. The arm is not among them.
 - /calibration and /job: GET returns calibration.json / job.json, PUT saves
   it. The Job tab writes job.json — the job in mm, in the order it runs.
+  /tubes and /ink the same: the tubes of the Create tab, the cup of the Ink tab.
 - /library: the Library tab's drawings (library/, on this Mac only). GET is
   the list, newest first; POST {svg, png} saves a new drawing named by the
   time (💾 SAVE on the Create tab); GET /library/<name>.svg|.png gives one;
@@ -48,9 +49,10 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = 5164   # the owner's lucky number (2026-10-01); RUBENS is on 8766
 # tubes.json: the owner's tubes — names, shades, pigments, their order — from
-# the Create tab, kept on this Mac (the owner, 2026-10-01). Moves nothing.
+# the Create tab, kept on this Mac (the owner, 2026-10-01). ink.json: the cup
+# the brush dips into, from the Ink tab (2026-10-03). Neither moves anything.
 FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json"),
-         "/tubes": os.path.join(HERE, "tubes.json")}
+         "/tubes": os.path.join(HERE, "tubes.json"), "/ink": os.path.join(HERE, "ink.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
 LOG_FILE = os.path.join(HERE, "logs", "runs.jsonl")   # run_log: the run journal, on this Mac, not in git
 PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y", "/hold", "/scan", "/servo-id"}
