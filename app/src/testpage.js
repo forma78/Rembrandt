@@ -100,6 +100,8 @@ $('#patD').querySelectorAll('button').forEach(b => b.onclick = () => {
 $('#pause').onchange = e => { S.pause = e.target.checked; update(); };
 $('#lift').onchange = e => { S.lift = e.target.checked; update(); };
 $('#ink').onchange = e => { S.ink = e.target.checked; update(); };
+$('#inkOff').onclick = () => { S.ink = false; update(); };   // OFF and ON either side of the switch press it too
+$('#inkOn').onclick = () => { S.ink = true; update(); };
 
 // ---------- the plan, drawn on the board ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
@@ -188,8 +190,7 @@ function update() {
   $('#pause').checked = S.pause && !S.snake && !S.ink;
   $('#lift').checked = !!S.lift;
   $('#ink').checked = !!S.ink;
-  $('#inkWord').textContent = S.ink ? 'Ink ON' : 'Ink OFF';
-  $('#inkWhat').textContent = S.ink ? ': a dip in the cup before every row' : '';
+  $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', !!S.ink);
   $('#lift').disabled = !!(S.ink && S.snake); $('#lift').parentElement.classList.toggle('off', !!(S.ink && S.snake));
   // C, the snake: the turn is the row to row, and a continuous line has no pause; its Turn
   // slider hidden, not greyed (the owner, 2026-10-02: "it only takes room")

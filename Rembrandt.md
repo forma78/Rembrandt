@@ -427,7 +427,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   biarcs, the tangent continuous, about 100 mm a wave (est.).
   **INK** (the owner, 2026-10-03, `machine/IMAGE 2026-10-03 ink bow*.jpg`):
   a switch in a row of its own under the pattern keys, as Lift at the
-  turns, green. OFF: every test as it was ("then the tests need no
+  turns, green; named INK as the sliders are (Rows, Row to row), a gap
+  under the keys, OFF left of the switch and ON right of it (the owner,
+  2026-10-03). OFF: every test as it was ("then the tests need no
   rewriting"). ON: the brush takes its paint from the cup of the Ink tab.
   Before every row it goes there, the elbow over the rim, dips — down into
   the paint, 1 s, up — goes to the row, comes down to +25° in the air and

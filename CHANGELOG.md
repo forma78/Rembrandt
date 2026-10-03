@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: INK named as the sliders, OFF · switch · ON** (the owner,
+  2026-10-03: the green INK ON "stuck to the A B D row"). The switch lower,
+  named INK in the sliders' small capitals, as Rows and Row to row; OFF to
+  its left, ON to its right, the one in force in ink, either pressable.
+  "A dip in the cup before every row" gone from beside it.
 - **The first runs with the cup** (the owner, 2026-10-03: "tested, all
   fine"; "everything works great, thanks"). The cup taped down by the left
   wall, taken at X 390.18 · Y −0.37 (`app/ink.json`), the elbow +34° over
