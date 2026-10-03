@@ -10,8 +10,8 @@
 <body>
 <!-- Rembrandt · Ink — where the brush takes its paint (the owner,
      2026-10-03): one cup for now, later the dip station's cups. INK ON on
-     the Test tab dips into it. The page moves nothing; it reads where the
-     carriage is. -->
+     the Test tab dips into it. The jog of Calibration moves the carriage and
+     the elbow here, by hand: "what do I move the machine with?" -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -39,15 +39,24 @@
 
   <aside class="panel">
     <section class="sec">
+      <h3>Jog <span class="hint">as on Calibration · Esc = STOP</span></h3>
+      <div id="jog"></div>
+    </section>
+
+    <section class="sec">
       <h3>Cup <span class="hint">the first of the dip station</span></h3>
       <p class="read" id="cupRead"></p>
-      <button class="btn wide" id="btnCup" title="Jog the carriage on the Calibration tab until the brush, down in the cup, is over its centre; then press">Here: the brush is over the cup's centre</button>
+      <button class="btn wide" id="btnCup" title="Jog the carriage until the brush, down in the cup, is over its centre; then press">Here: the brush is over the cup's centre</button>
       <div class="grid4" id="size"></div>
     </section>
 
     <section class="sec">
       <h3>The dip <span class="hint">the elbow</span></h3>
       <div class="grid4" id="dip"></div>
+      <div class="grid4 keys">
+        <button class="btn" id="btnRim" title="Over the rim becomes the elbow's angle now: up until the brush clears the rim, with room">Over the rim ← elbow</button>
+        <button class="btn" id="btnDip" title="In the cup becomes the elbow's angle now: down until the bristles are in the paint">In the cup ← elbow</button>
+      </div>
       <p class="read" id="dipRead"></p>
     </section>
   </aside>

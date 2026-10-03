@@ -1,20 +1,22 @@
 // Rembrandt · Ink — where the brush takes its paint (the owner, 2026-10-03:
 // "maybe one more tab, INK" — "just INK, it is clear anyway"), between Test
 // and Adjustments. One cup for now: its centre, taken as Here on the Test
-// tab — the carriage jogged on Calibration until the brush is over it — its
-// size, and how the elbow dips into it. Kept in app/ink.json (rembrandt.py,
-// /ink); INK ON on the Test tab reads it. The page moves nothing: it only
-// asks the board where the carriage is.
+// tab — the carriage jogged until the brush is over it — its size, and how
+// the elbow dips into it, the elbow's angle taken where it stands. Kept in
+// app/ink.json (rembrandt.py, /ink); INK ON on the Test tab reads it. The
+// jog of Calibration is here too (src/jog.js; the owner: "what do I move
+// the machine with? add me the sliders from Calibration").
 
 import { fmt } from './util.js';
 import { parsePing, toMm, reach, homeCorner } from './machine.js';
-import { CUP, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem } from './ink.js';
+import { mountJog } from './jog.js';
+import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup } from './ink.js';
 import { isNight, themeColor } from './lamp.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
 const INK_ = '#24221F', MUTE = '#7D776D', ORANGE = '#EB7A25', PAPER = '#FCFBF8';
-const S = { ink: {}, pos: { x: null, y: null }, link: 'wait' };
+const S = { ink: {}, pos: { x: null, y: null } };
 const cup = () => cupOf(S.ink);
 
 // ---------- ink.json ----------
@@ -52,7 +54,7 @@ function show() {
   const c = cup(), typed = S.ink.cup || {};
   $('#cupRead').innerHTML = c.x !== null
     ? `The cup's centre: carriage <b>X ${fmt(c.x, 1)} · Y ${fmt(c.y, 1)} mm</b> · ⌀${c.diameter}, ${c.height} mm high. Jog there on Calibration and press again to change it.`
-    : 'Not set. On Calibration jog the carriage until the brush, down in the cup, is over its centre; then press here.';
+    : 'Not set. The elbow up over the rim first (+35° or more), or the brush knocks the cup over; jog the brush over the red scope, the cup\'s centre; lower it into the paint to check; then press here.';
   for (const inp of document.querySelectorAll('.grid4 input')) {
     const k = inp.dataset.k;
     if (document.activeElement !== inp) inp.value = typed[k] ?? '';
@@ -61,7 +63,7 @@ function show() {
   const why = cupProblem({ ...c, x: 0, y: 0 });   // the numbers only: the centre has its own line above
   $('#dipRead').innerHTML = `Over the rim: the brush flies to the cup and away from it this high, the elbow at <b>+${c.rim}°</b>${c.est.rim ? ' (est.)' : ''}. `
     + `In the cup: down into the paint at <b>${c.dip > 0 ? '+' : ''}${c.dip}°</b>${c.est.dip ? ' (est.)' : ''}, <b>${c.dwell} s</b> there, then up again. `
-    + `The elbow: 0° presses the brush to the canvas, off it at +10°, +${ELBOW_MAX}° at most. Measure both on Calibration with the elbow's handle, the brush over the cup; empty — the default.`
+    + `The elbow: 0° presses the brush to the canvas, off it at +10°, +${ELBOW_MAX}° at most. Measure both with the elbow's handle above, the brush over the cup, and take them with ← elbow; empty — the default.`
     + (why ? ` <span class="warn">${why}</span>` : '');
 }
 
@@ -78,22 +80,23 @@ $('#btnCup').onclick = async () => {
   save(`the cup at X ${fmt(x, 1)} · Y ${fmt(y, 1)}`);
 };
 
-// ---------- where the carriage is ----------
-// Twice a second while the page is seen; the ping feeds the board's
-// watchdog too, as on Calibration.
-async function ping() {
-  if (document.hidden) return;
-  try {
-    const r = await fetch('/machine/ping', { cache: 'no-store' });
-    S.link = r.status === 404 ? 'server' : r.headers.get('X-Board') === 'lost' || !r.ok ? 'lost' : 'ok';
-    const p = parsePing(r.ok ? await r.text() : null);
-    S.pos = p && p.x !== null && p.y !== null ? { x: toMm('x', p.x), y: toMm('y', p.y) } : { x: null, y: null };
-  } catch { S.link = 'server'; S.pos = { x: null, y: null }; }
-  const el = $('#linkState');
-  el.textContent = { ok: '● MACHINE', lost: 'NO BOARD · USB and 12 V?', server: 'NO SERVER · start rembrandt.py', wait: '…' }[S.link];
-  el.className = 'link-state ' + (S.link === 'ok' ? 'ok' : 'bad');
-  draw();
+// ---------- the elbow's angle, taken where it stands ----------
+// Down until the bristles are in the paint: In the cup; up until the brush
+// clears the rim, with room: Over the rim.
+async function takeElbow(k, label) {
+  const d = await JOG.look();
+  if (d === null) { $('#dipRead').innerHTML = '<span class="warn">The elbow does not answer: rembrandt.py, the board, the 12 V?</span>'; return; }
+  const [, , , , min, max] = DIP.find(f => f[0] === k), v = Math.round(d);
+  if (v < min || v > max) { $('#dipRead').innerHTML = `<span class="warn">${label} ${v}°: it goes ${min}…+${max}° there.</span>`; return; }
+  S.ink = { ...S.ink, cup: { ...S.ink.cup, [k]: v } };
+  show(); draw();
+  save(`${label} ${v > 0 ? '+' : ''}${v}°`);
 }
+$('#btnRim').onclick = () => takeElbow('rim', 'Over the rim');
+$('#btnDip').onclick = () => takeElbow('dip', 'In the cup');
+
+// ---------- the jog, and where the carriage is ----------
+const JOG = mountJog($('#jog'), { link: $('#linkState'), onPing: st => { S.pos = st.pos; draw(); } });
 
 // The Test tab's board, where its Here put it (this browser's settings of
 // the Test tab): drawn round the cup, so the two are seen together.
@@ -118,7 +121,8 @@ function draw() {
   const R = reach(), c = cup(), B = testBoard(), home = homeCorner();
   const pts = [{ x: R.x.min, y: R.y.min }, { x: R.x.max, y: R.y.max }];
   if (B) pts.push({ x: B.x - B.h / 2, y: B.y - B.w / 2 }, { x: B.x + B.h / 2, y: B.y + B.w / 2 });
-  if (c.x !== null) pts.push({ x: c.x - c.diameter / 2, y: c.y - c.diameter / 2 }, { x: c.x + c.diameter / 2, y: c.y + c.diameter / 2 });
+  const at = c.x !== null ? c : CUP_AIM, aimed = c.x === null, e = c.diameter / 2 * 1.7;   // the cup, or the scope where it is aimed at
+  pts.push({ x: at.x - e, y: at.y - e }, { x: at.x + e, y: at.y + e });
   const x0 = Math.min(...pts.map(p => p.x)) - 25, x1 = Math.max(...pts.map(p => p.x)) + 25;
   const y0 = Math.min(...pts.map(p => p.y)) - 25, y1 = Math.max(...pts.map(p => p.y)) + 25;
   const pad = 44, k = Math.min((W - 2 * pad) / (y1 - y0), (H - 2 * pad) / (x1 - x0));
@@ -154,23 +158,20 @@ function draw() {
   ctx.strokeRect(sx(home.y) - 4, sy(home.x) - 4, 8, 8);
   ctx.fillStyle = ink; ctx.textAlign = 'left'; ctx.fillText('home', sx(home.y) + 9, sy(home.x) - 6);
 
-  // the cup: its rim, its centre
-  if (c.x !== null) {
-    const X = sx(c.y), Y = sy(c.x), r = c.diameter / 2 * k;
-    ctx.fillStyle = PAPER; ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = INK_; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.strokeStyle = ORANGE; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(X - 6, Y); ctx.lineTo(X + 6, Y); ctx.moveTo(X, Y - 6); ctx.lineTo(X, Y + 6); ctx.stroke();
+  // the cup as a scope: where it was taken, or dashed where it is aimed at
+  {
+    const X = sx(at.y), Y = sy(at.x), r = c.diameter / 2 * k;
+    drawCup(ctx, X, Y, r, aimed);
     ctx.fillStyle = ink; ctx.textAlign = 'left';
-    ctx.fillText(`cup ⌀${c.diameter} · X ${fmt(c.x)} · Y ${fmt(c.y)}`, X + r + 6, Y + 3);
+    ctx.fillText(aimed ? `the cup? X ${CUP_AIM.x} · Y ${CUP_AIM.y} (est.) · aim here, then Here` : `cup ⌀${c.diameter} · X ${fmt(c.x)} · Y ${fmt(c.y)}`, X + r * 1.7 + 6, Y + 3);
   }
-  // the carriage
+  // the carriage, and how far the brush is from the scope's centre
   if (S.pos.x !== null) {
-    const X = sx(S.pos.y), Y = sy(S.pos.x);
+    const X = sx(S.pos.y), Y = sy(S.pos.x), off = Math.hypot(S.pos.x - at.x, S.pos.y - at.y);
     ctx.fillStyle = ORANGE; ctx.beginPath(); ctx.arc(X, Y, 4, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = ORANGE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(X, Y, 9, 0, Math.PI * 2); ctx.stroke();
     ctx.fillStyle = ink; ctx.textAlign = 'right';
-    ctx.fillText(`X ${fmt(S.pos.x)} · Y ${fmt(S.pos.y)}`, X - 13, Y - 10);
+    ctx.fillText(`X ${fmt(S.pos.x)} · Y ${fmt(S.pos.y)} · ${fmt(off, 0)} mm to the ${aimed ? 'scope' : 'cup'}`, X - 13, Y - 10);
   }
   ctx.fillStyle = mute; ctx.textAlign = 'left';
   ctx.fillText('↑ top of the picture · X+', 10, 16);
@@ -182,5 +183,3 @@ addEventListener('storage', e => { if (e.key === 'rembrandt.test.v01') draw(); }
 
 await load();
 show(); draw();
-ping();
-setInterval(ping, 500);
