@@ -139,8 +139,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   black around them by hand at the end, the dark glazes, and the glow with
   an airbrush. The glazes go in glazing medium, not water (the owner
   agreed): water-thinned acrylic loses its binder and goes patchy; the
-  medium keeps the lines showing through the shadow. The rule above stands
-  on every other tab; nothing of the exception leaks into them.
+  medium keeps the lines showing through the shadow. Nor does NOLAN go
+  stage by stage, lighter tube first: all the drops of a layer go on
+  before the run, and the brush goes line by line through them (the owner,
+  2026-10-04). The rules stand on every other tab; nothing of the
+  exception leaks into them.
 - **Home and tail.** Every tube starts at its home with a full brush, runs
   towards its neighbour, dries out into a tail, and there the brush lifts and
   goes back to the home in the air. Colours meet tail to tail; a full brush

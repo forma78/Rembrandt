@@ -168,12 +168,16 @@ The reference sits under both modes, as on Create. The steps:
   Markus's drops do (`references/preview.webp`, `preview-1 copy.jpg`). A
   line is stretches, each with its tube and a drop at its start in the
   brush's direction; the brush runs through the drops and drags each into
-  the next. The stretches are the runs of `paintLanes`, with their home and
-  tail. How one colour flows into the next — the blue into the lilac — is
-  est. until tested on Test.
+  the next. The stretches are the runs of `paintLanes`; a stretch's home
+  is its start in the brush's direction, not set by lightness. How one
+  colour flows into the next — the blue into the lilac — is est. until
+  tested on Test.
 - **The drop map**: Palette shows where every drop goes, its tube and its
   length, so the owner squeezes them on the trace by it.
-- **Within a ribbon the lighter tube runs first** (Rembrandt.md §1).
+- **Not tube by tube**: all the drops of a layer lie on the canvas before
+  PLAY and the brush goes line by line through them (§5.2), so the
+  lighter-first and stage-by-stage rules of Rembrandt.md §1 do not hold on
+  NOLAN.
 - **Muddy pairs**: neighbouring lines of one ribbon are wet together. A
   muddy pair side by side gets one **⚠** between them — a hint, never a
   block; an *intended* pair shows none (Rembrandt.md §6). In the reference
@@ -226,15 +230,15 @@ sees exactly where to squeeze the paint.
 ### 5.2 Paint — the main run
 
 The owner squeezes the paint onto the canvas by eye, on the trace, as
-Florian Markus does; **no cup in this run**. The machine drags the brush
-through it along the lines, tube by tube, light to dark (Rembrandt.md §1),
-a pause between tubes for the next paint. Two ways, a switch **ONE WAY ·
-SNAKE**:
+Florian Markus does, by the drop map; **no cup in this run**. **All the
+drops of the layer go on before PLAY** (the owner, 2026-10-04: "yes, all
+correct"), as in `references/preview.webp`; the machine drags the brush
+through them line by line, with no pause between tubes. Two ways, a switch
+**ONE WAY · SNAKE**:
 
 - **ONE WAY**: every line top to bottom — from the ribbon's first anchor to
   its last — on the canvas; at the end the brush lifts and goes back to the
-  top in the air for the next line. Home and tail of Rembrandt.md §1, as
-  they are.
+  top in the air for the next line.
 - **SNAKE**: down one line on the canvas, a turn **in the air** at the end —
   the elbow lifts, the carriage steps to the next line, the brush lands on
   the move — then up that line on the canvas, and so on. No half circle on
@@ -305,7 +309,6 @@ No machine moves. Not in phase 1.
    line that runs bottom to top?~~ Where the drop map says: at the start
    of each stretch in the brush's direction — on Snake's upward lines, at
    the bottom of the stretch (follows from 1).
-6. The Paint run with drops as in `references/preview.webp`: all the drops
-   of a layer on the canvas before PLAY, and the brush line by line
-   through them all — or tube by tube, a pause between tubes, as §5.2 says
-   now?
+6. ~~The Paint run: all the drops of a layer before PLAY, or tube by
+   tube?~~ All the drops before PLAY, the brush line by line through them,
+   no pause between tubes (the owner, 2026-10-04; §5.2).
