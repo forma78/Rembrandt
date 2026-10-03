@@ -341,8 +341,8 @@ The first sketch is `design/create-tab.html` (five screens). Where it and
 this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
-- **Two rows, as in RUBENS.** The top row: the tabs **Create · Job ·
-  Adjustments · Calibration · Library** and the green **Open Job**. The second
+- **Two rows, as in RUBENS.** The top row: the tabs **Create · Job · Test ·
+  Ink · Adjustments · Calibration · Library** and the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
   Format; the toggles **Reference · Lanes · Drops**, then **Reach · Grid**;
   then Import SVG, Export PNG, and **💾 SAVE** (the owner, 2026-10-01: in
@@ -422,6 +422,19 @@ this section disagree, this section wins: the owner corrected the sketch on
   the paint. **Wave** (all patterns): a row waves either side of its line or
   arc, 0 for none — "from a perfectly straight pass to waves"; laid as
   biarcs, the tangent continuous, about 100 mm a wave (est.).
+- **Ink**, a tab between Test and Adjustments (the owner, 2026-10-03: "maybe
+  one more tab, INK"; "just INK, it is clear anyway"): where the brush takes
+  its paint. One cup for now, ⌀50 and 20 mm high, by the left edge of the
+  canvas — the first of the dip station (§1). Its centre is taken as Here
+  on Test: the carriage jogged on Calibration until the brush, down in the
+  cup, is over it, then **Here: the brush is over the cup's centre**. The
+  elbow **over the rim** (+35°, est.) and **in the cup** (+5°, est.) until
+  measured with Calibration's elbow handle; **in the paint** 1 s ("1
+  second is perfect"). The machine from above, as on Calibration, with the
+  cup, home and the Test board. Kept in `app/ink.json` through
+  `rembrandt.py` (`/ink`). The page moves nothing. Not Calibration, which
+  is the machine's and never the paint's, and not Test: the cups will be
+  many, each with its place, its height and its paint.
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.

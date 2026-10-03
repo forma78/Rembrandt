@@ -33,6 +33,8 @@ Rembrandt/
   app/
     index.html       Create
     job.html         Job (from RUBENS, plus pointer mode)
+    test.html        Test, the test bench (new)
+    ink.html         Ink: the cup the brush dips into (new)
     adjustments.html Adjustments (new)
     calibration.html Calibration (from RUBENS)
     library.html     Library (from RUBENS)
