@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN.md: the dip run 720 mm (est.), the canvas from the cup** (the
+  owner, 2026-10-04: "I think all 720 mm will go easily; the photo shows
+  well it is not the limit" — 330 mm measured with paint to spare). The
+  canvas lies by the Ink tab's two ruler numbers, as the Test board. Every
+  question of NOLAN.md §8 is answered.
 - **NOLAN: all the drops of a layer before PLAY** (the owner, 2026-10-04:
   "yes, all correct"). The brush goes line by line through them, no pause
   between tubes, as in `references/preview.webp`; stage by stage and the
