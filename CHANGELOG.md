@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: Geometry, the first step** (NOLAN.md §2, §3; the owner,
+  2026-10-04: "yes, start!"). The ribbons' centres drawn with Pen and Arc
+  as the curve on Create — a click on a ribbon's end goes on with it,
+  elsewhere starts the next N; Select drags a ribbon or its squares. The
+  width a count of 8 mm lines for the whole ribbon (`96 mm · 12 lines`,
+  [ and ]); the lines dark grey on the white canvas, a 1.5 mm groove
+  between them, the centre dashed orange. Every kink is rounded for the
+  whole width (`filleted`, the inner line on the inner corner radius) and
+  the lines are `offsetSegs` of it (`src/ribbon.js`, its tests); a bend
+  still too tight is marked "!". N1 · N2 · N3 in the panel, dragged into
+  a new order. The reference fits whole inside the canvas, kept apart from
+  Create's. Palette is the next step.
 - **NOLAN.md: the dip run 720 mm (est.), the canvas from the cup** (the
   owner, 2026-10-04: "I think all 720 mm will go easily; the photo shows
   well it is not the limit" — 330 mm measured with paint to spare). The
