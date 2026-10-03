@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN in Create's place; v0.2 after the name** (the owner, 2026-10-04:
+  "I would hide Create for now"). The top row of every page reads
+  REMBRANDT v0.2, then NOLAN · Job · Test · Ink · Adjustments ·
+  Calibration · Library. `nolan.html` says the tab is being built;
+  `start.command` opens it. Create's page stays, and the Library still
+  opens a painting on it. A saved SVG says v0.2.
 - **The owner's decisions for NOLAN, in the spec** (`NOLAN.md` §0). The
   ribbon collection comes first; NOLAN is the one tab where the hand
   paints too — the black around the ribbons, the glazes in glazing medium,

@@ -33,7 +33,8 @@ Rembrandt/
   firmware/
     CNCDM-001/       the board's firmware (from RUBENS, Rembrandt's since 2026-10-02)
   app/
-    index.html       Create
+    nolan.html       NOLAN, the ribbons (new; NOLAN.md)
+    index.html       Create (hidden from the top row since 2026-10-04)
     job.html         Job (from RUBENS, plus pointer mode)
     test.html        Test, the test bench (new)
     ink.html         Ink: the cup the brush dips into (new)
