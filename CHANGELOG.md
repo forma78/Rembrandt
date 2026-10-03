@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The first runs with the cup** (the owner, 2026-10-03: "tested, all
+  fine"; "everything works great, thanks"). The cup taped down by the left
+  wall, taken at X 390.18 · Y −0.37 (`app/ink.json`), the elbow +34° over
+  the rim and −3° in the cup — in the reserve: the paint lies lower than
+  the canvas, until the cup sits level with it. D1 with INK ON, 14 rows:
+  14 dips, every row top to bottom, back to the cup, home; 218 s against
+  209 estimated. Then D1, 20 rows, INK ON: 334 s against 317; D2, 20 rows:
+  95 against 93; D1, 23 rows, pressed 2 mm into the bottom wall: 84 against
+  78 (the run journal).
 - **Test: the walls press the path, no more refusal** (the owner,
   2026-10-03, D1 without the cup: "remove this restriction — The brush
   would go 2 mm past the bottom wall"; D2 fitted). The board takes no piece
