@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: the walls press the path, no more refusal** (the owner,
+  2026-10-03, D1 without the cup: "remove this restriction — The brush
+  would go 2 mm past the bottom wall"; D2 fitted). The board takes no piece
+  past a wall, so dropping the page's check alone would have stopped the
+  run mid-row. The rows are pressed into the walls as the Job tab presses
+  a job: what lies past one runs along it, a straight line, the elbow's
+  `W` kept; a row wholly past one across it is left out. The page says how
+  many mm, as a hint. `lineCuts` and `arcCuts` exported from `machine.js`.
 - **The cup a hair past the wall: the brush dips just inside it.** The
   owner's first cup, taken at 13:13, X 390.18 · Y −0.37, lies 0.37 mm past
   the left wall, and the board takes no path past one: the first dip would

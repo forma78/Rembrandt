@@ -46,7 +46,7 @@
 // Machine mm: X up the picture, Y to the right. "Here" is where the carriage
 // stands with the brush over the board's centre. No DOM.
 
-import { arcSpeed, homeCorner } from './machine.js';
+import { arcSpeed, homeCorner, reach, lineCuts, arcCuts } from './machine.js';
 
 export const PATTERNS = {
   A: { rows: 8, turn: 10, pitch: 25, snake: false },   // tight, the owner's sketch A
@@ -337,6 +337,55 @@ const PATH_S = 2;
 // an elbow move in the air, the carriage standing: the runner turns it and waits till it is there (est.)
 const ARM_S = 1;
 
+// ---------- the walls press the path, as on the Job tab ----------
+// The board takes no piece past a wall, and a run stopped there stops with
+// the brush on the board. The page refused such a run before; the owner,
+// 2026-10-03, D1 2 mm past the bottom wall: "remove this restriction". So
+// the path is pressed into the walls as the Job tab presses a job
+// (machine.js, jobToMachine): what lies past one runs along it, a straight
+// line; a part that presses into a point is dropped, its W kept for the
+// next. B: the reach from Here, mm; past: how many mm were pressed.
+const EDGE_IN = 0.1;   // inside the walls, as the Job (machine.js)
+const inB = (q, B) => q.x >= B.x0 && q.x <= B.x1 && q.y >= B.y0 && q.y <= B.y1;
+const intoB = (q, B) => pt(Math.min(B.x1, Math.max(B.x0, q.x)), Math.min(B.y1, Math.max(B.y0, q.y)));
+function pressed(pieces, B) {
+  const out = [];
+  let past = 0, carry = null;                                // a W whose piece was pressed into a point
+  for (const q of pieces) {
+    const g = q.g, own = q.w !== undefined ? { w: q.w, ws: q.ws } : null;
+    let first = true;
+    const add = g2 => {
+      const w = first ? own || carry : null;
+      out.push({ g: g2, v: q.v, on: q.on, row: q.row, ...(w || {}) });
+      if (w) carry = null;
+      first = false;
+    };
+    const press = (a, b, L) => { past += L; const A = intoB(a, B), Z = intoB(b, B); if (Math.hypot(Z.x - A.x, Z.y - A.y) >= 1e-6) add({ t: 'L', a: A, b: Z }); };
+    if (g.t === 'L') {
+      const cuts = lineCuts(g.a, g.b, B), P = t => t >= 1 ? g.b : t <= 0 ? g.a : pt(g.a.x + (g.b.x - g.a.x) * t, g.a.y + (g.b.y - g.a.y) * t);
+      const mids = cuts.slice(1).map((c, k) => inB(P((cuts[k] + c) / 2), B));
+      if (mids.every(Boolean)) add(g);                       // inside: the piece as it is
+      else for (let k = 1; k < cuts.length; k++) {
+        const a = P(cuts[k - 1]), b = P(cuts[k]);
+        if (mids[k - 1]) add({ t: 'L', a, b }); else press(a, b, Math.hypot(b.x - a.x, b.y - a.y));
+      }
+    } else {
+      const a0 = Math.atan2(g.a.y - g.c.y, g.a.x - g.c.x), sw = g.d * sweepOf(g);
+      const P = t => t >= 1 ? g.b : t <= 0 ? g.a : pt(g.c.x + g.r * Math.cos(a0 + sw * t), g.c.y + g.r * Math.sin(a0 + sw * t));
+      const cuts = arcCuts(g.c, g.r, a0, sw, B), mids = cuts.slice(1).map((c, k) => inB(P((cuts[k] + c) / 2), B));
+      if (mids.every(Boolean)) add(g);
+      else for (let k = 1, t0 = 0; k < cuts.length; k++) {   // neighbouring parts inside are one arc
+        if (!mids[k - 1]) { press(P(cuts[k - 1]), P(cuts[k]), Math.abs(sw) * g.r * (cuts[k] - cuts[k - 1])); t0 = cuts[k]; continue; }
+        if (k < mids.length && mids[k]) continue;
+        if (Math.abs(sw) * g.r * (cuts[k] - t0) >= 1e-6) add({ t: 'A', a: P(t0), b: P(cuts[k]), c: g.c, r: g.r, d: g.d });
+        t0 = cuts[k];
+      }
+    }
+    if (first && own) carry = own;                         // nothing left of this piece: its W rides on the next
+  }
+  return { pieces: out, past };
+}
+
 // A pass's paths, centred on Here by the box the carriage covers.
 function centred(o, angle) {
   const ps = paths(o, angle), all = ps.flatMap(tracePoints);
@@ -370,6 +419,9 @@ export function xyPlan(opts) {
   const cupAt = cup ? pt(cup.x - X0, cup.y - Y0) : null;
   const up = o.ink && Number.isFinite(o.cup?.rim) ? o.cup.rim : ELBOW_UP;
   const home = homeCorner(), homeAt = pt(home.x - X0, home.y - Y0);
+  // the walls, from Here: the path is pressed into them (pressed, above); without Here nothing is
+  const R = reach(), B = o.here ? { x0: R.x.min + EDGE_IN - X0, x1: R.x.max - EDGE_IN - X0, y0: R.y.min + EDGE_IN - Y0, y1: R.y.max - EDGE_IN - Y0 } : null;
+  let pastWall = 0, gone = 0;
   // the brush up (the elbow), then the wrist to the active pose, in the air
   const blocks = [{ kind: 'arm', cmd: `J 2 ${up}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
   const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
@@ -379,7 +431,10 @@ export function xyPlan(opts) {
     // between D's passes, always: another paint; the carriage stays where it is (the owner, 2026-10-02: "a break, not the end of the day")
     if (n) blocks.push({ kind: 'pause', why: `${key}, ${PASSES[key].paint}: its paint ${o.ink ? 'in the cup' : 'on the brush'}, then Continue`, row: 0 });
     ps.forEach((p, i) => {
-      const m = onTheMove(p, o), first = m.pieces[0].g.a, row = p[0].row;
+      const m = onTheMove(p, o), row = p[0].row;
+      if (B) { const pr = pressed(m.pieces, B); m.pieces = pr.pieces; pastWall += pr.past; }
+      if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint
+      const first = m.pieces[0].g.a;
       turns += m.turns; lifts += m.lifts; need = Math.max(need, m.need);
       if (cupAt) {
         // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again
@@ -426,5 +481,5 @@ export function xyPlan(opts) {
   const carriage = { x0: Math.min(...cp.map(q => q.x)), x1: Math.max(...cp.map(q => q.x)), y0: Math.min(...cp.map(q => q.y)), y1: Math.max(...cp.map(q => q.y)) };
   return { blocks, preview, width, height, room, box, carriage, length, fits,
     seconds, rows: o.rows, snake: !!o.snake, turns, lifts, need, passes: keys.filter(Boolean), opts: o,
-    ink: !!o.ink, cupAt, air, homeAt, dips };
+    ink: !!o.ink, cupAt, air, homeAt, dips, pastWall, gone };
 }
