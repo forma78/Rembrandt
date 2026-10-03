@@ -161,8 +161,12 @@ main{display:grid;grid-template-columns:60px 1fr 340px;min-height:0}
 .grid4 em{position:absolute;right:6px;bottom:6px;font-style:normal;font-size:10px;text-transform:none}
 .grid4 .est{color:#B3470C;text-transform:none;letter-spacing:0}   /* Ink: a number not yet measured */
 /* INK on the Test tab: a switch as Lift at the turns, green when on, not orange (the owner, 2026-10-03) */
-.inline.check.ink{margin-top:2px;color:var(--ink)}
-.inline.check.ink b{font-weight:600;letter-spacing:.06em}
+/* its name as the sliders' (Rows, Row to row), a gap under the pattern keys; OFF and ON either side of the switch, the one in force in ink */
+.inkrow{margin:12px 0 6px}
+.inkrow .slh{margin-top:0}
+.inline.check.ink{margin-top:6px;gap:8px}
+.inline.check.ink .side{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);cursor:pointer;user-select:none}
+.inline.check.ink .side.on{color:var(--ink)}
 .inline.check.ink input[type=checkbox]:checked,html.night .inline.check.ink input[type=checkbox]:checked{background:#4F7A28}
 .inline.check.ink input[type=checkbox]:checked::before{background:radial-gradient(circle,#4F7A28 0 3px,transparent 3.5px) center/6px 6px no-repeat,linear-gradient(#fff,#ECEBE8)}
 .grid4.keys{margin-top:8px}
