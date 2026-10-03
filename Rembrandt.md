@@ -21,7 +21,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Rembrandt** | This program. |
 | **RUBENS** | The previous program, repo `Forma78/Rubens`, frozen at v0.1.3. Source of the Calibration and Job code. |
 | **Machine** | CNCDM-001: 2020 frame, two NEMA17 belt axes (X, Y), the arm on the carriage (shoulder J1, elbow J2, wrist J3), spring-mounted tool holder, camera on the bracket. |
-| **Create** | The tab where a painting is planned. Never touches the hardware. |
+| **Create** | The tab where a painting is planned. Never touches the hardware. Hidden from the top row since 2026-10-04, NOLAN in its place (§1); the page stays, and the Library still opens a painting on it. |
+| **NOLAN** | The tab that paints ribbons, in Create's place since 2026-10-04. Its task: `NOLAN.md`. The only tab where the hand works too (§1). |
 | **Job** | The tab that runs one layer on the machine. Writes `job.json`; ⚡️ Do Job runs it. |
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
 | **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. |
@@ -33,7 +34,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Lane** | One brush width along a band, 20 mm by default. Same word as in RUBENS. |
 | **Trip** | One run of the brush along a lane. A lane is painted in 2, 4 or 8 trips (RUBENS Job tab). In Rembrandt a trip runs one way, from a home to its tail; the brush lifts there and goes back in the air. |
 | **Layer** | Everything painted in one session over the dry layer below it: a band, its tubes, its drops. Not "pass" — in RUBENS a pass is a brush run inside a lane. |
-| **Hand layer** | None since 2026-10-01: the machine paints every layer, the black too. The hand only corrects. |
+| **Hand layer** | None since 2026-10-01: the machine paints every layer, the black too. The hand only corrects. **Except on NOLAN** (2026-10-03, §1): there the owner paints the black around the ribbons, the dark glazes and the airbrush glow. |
 | **Ground** | What lies under the first layer: the white canvas. |
 | **Image area** | What the machine paints: its whole reach between the walls (Calibration), now 568.5 × 865 mm (Y × X), about 57 × 86 cm — nearly the 2 : 3 of IMG_9422. The canvas lies inside it; paint past the canvas lands on the canvas underneath, on purpose. |
 | **Tube** | One paint on the owner's shelf: name, pigment code, swatches. The **inventory** is the list of tubes. |
@@ -131,6 +132,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   2026-10-01: "Everything is done by the machine." At the top the black
   follows the U of the upper line, so the brush runs past the top of the
   canvas by about 5 cm: "it is a feature, deliberately."
+- **NOLAN is the one exception** (the owner, 2026-10-03: "Who said the
+  machine has to do everything?" and "I am not Florian, not an architect —
+  I am not afraid to move a brush over the canvas"). On the NOLAN tab the
+  machine paints the ribbons on the white ground; the owner paints the
+  black around them by hand at the end, the dark glazes, and the glow with
+  an airbrush. The glazes go in glazing medium, not water (the owner
+  agreed): water-thinned acrylic loses its binder and goes patchy; the
+  medium keeps the lines showing through the shadow. The rule above stands
+  on every other tab; nothing of the exception leaks into them.
 - **Home and tail.** Every tube starts at its home with a full brush, runs
   towards its neighbour, dries out into a tail, and there the brush lifts and
   goes back to the home in the air. Colours meet tail to tail; a full brush
@@ -168,6 +178,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   The RUBENS rule.
 - **The first painting is the minimalist sheet** (§9). Practise without
   paint-dipping first. Priority: sales and Instagram growth. (2026-10-01)
+  Since 2026-10-03 the ribbon collection comes before it (below).
+- **The ribbon collection comes first** (the owner, 2026-10-03): ordinary
+  canvas, Florian Markus's way, on a black background, after a glowing
+  render of ribbons (`nolan-images/IMG_9424.jpg`) whose geometry and
+  colours the owner changes: "I just need to change the colours and the
+  geometry." Painted on the NOLAN tab, by `NOLAN.md`.
+- **Create is hidden, NOLAN takes its place** (the owner, 2026-10-04: "I
+  would hide Create for now. It just isn't working — a pile-up of
+  colours"). The version, **v0.2**, moves next to the name.
 
 ---
 
@@ -342,8 +361,10 @@ The first sketch is `design/create-tab.html` (five screens). Where it and
 this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
-- **Two rows, as in RUBENS.** The top row: the tabs **Create · Job · Test ·
-  Ink · Adjustments · Calibration · Library** and the green **Open Job**. The second
+- **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
+  **v0.2**, then the tabs **NOLAN · Job · Test · Ink · Adjustments ·
+  Calibration · Library** (Create hidden since 2026-10-04, §1), and on
+  Create the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
   Format; the toggles **Reference · Lanes · Drops**, then **Reach · Grid**;
   then Import SVG, Export PNG, and **💾 SAVE** (the owner, 2026-10-01: in
@@ -360,6 +381,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   calibration.png`): the canvas inside the image area, the walls dashed,
   hatched where the machine does not reach (600 > 568.5 mm across). The
   status bar names both: `Canvas 500 × 700 · image area 568.5 × 865 · …`.
+- **NOLAN**, the first tab, in Create's place (2026-10-04): ribbons of
+  8 mm strokes after `nolan-images/IMG_9424.jpg`, the ribbons N1 · N2 · N3,
+  a Watercolour run and a Paint run. Its task, its terms and the owner's
+  words are in `NOLAN.md`.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line
@@ -411,7 +436,11 @@ this section disagree, this section wins: the owner corrected the sketch on
   CONTINUE, whenever the run waits, by hand or for the paint between D's
   passes; then • STOP and •• HARD STOP.
   **Pattern D** (the owner, 2026-10-02, `references/IMG_9455.JPG`,
-  `PATTERN-D1…3.jpg`, `PATTERN-D all.jpg`): three passes, each the snake
+  `PATTERN-D1…3.jpg`, `PATTERN-D all.jpg`) is for the style of
+  `nolan-images/Untitled-7.png` and `Untitled-8.png`, bands of strokes
+  nested and pinched into one another (the owner, 2026-10-04: "Untitled-7
+  is directly tied to Test, D1 / D2 / D3"; a 16 mm pinch is of that style,
+  not NOLAN's). Three passes, each the snake
   of C — "keep the geometry of C", the sketches are rough on purpose — turned
   its own way: D1 rows upright and bowed to the left (nested Cs, orange),
   D2 down to the lower right (red), D3 up to the upper right (dark grey);

@@ -22,7 +22,9 @@ Rembrandt/
   README.md          this file
   CLAUDE.md          points Claude here
   Rembrandt.md       the spec
+  NOLAN.md           the NOLAN tab's task (2026-10-03)
   CHANGELOG.md       what changed, newest first
+  nolan-images/      the pictures NOLAN is made for
   design/
     create-tab.html  the UI design (downloaded from the design canvas)
   adjustments/       Sonnet's four layers on 500 × 700, the Adjustments tab's start
