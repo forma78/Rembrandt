@@ -256,3 +256,58 @@ test('D: a pass turned ±90° more from its own angle; D1 turned back −90° is
   const len = p => p.preview.reduce((a, l) => a + lengthOf(l), 0);
   assert.ok(Math.abs(len(d3) - len(more)) < 1, 'turned, not changed: the tip paints as long');
 });
+
+// ---------- INK ON (the owner, 2026-10-03): a dip in the cup before every row ----------
+const D1 = { pattern: 'D', ...PATTERNS.D, passes: ['D1'], rows: 14, pitch: 6.5, length: 330, bow: 20, wave: 5, speed: 200, travel: 225, tail: 80, lift: true, boardW: 500, boardH: 700 };
+const HERE = { x: 450, y: 330 }, CUPAT = { x: 400, y: 20, rim: 35, dip: 5, dwell: 1 };
+const endOf = c => { const q = c.split(' ').map(Number); return c[0] === 'A' ? { x: q[3], y: q[4] } : { x: q[1], y: q[2] }; };   // where an L or an A ends
+
+test('INK ON, D1: fourteen dips, each before its row — to the cup, down into the paint, a second, up — then the row top to bottom, then back to the cup; home at the end', () => {
+  const p = xyPlan({ ...D1, here: HERE, ink: true, cup: CUPAT });
+  assert.equal(p.dips, 14);
+  assert.equal(p.turns, 0, 'no snake: every row on its own');
+  assert.equal(p.blocks.filter(b => b.kind === 'pause').length, 0);
+  assert.deepEqual(J(p).slice(0, 2), ['J 2 35', 'J 3 0'], 'the brush over the rim before anything moves');
+  const say = b => b.kind === 'move' ? (b.home ? 'home' : b.paintMM ? 'row' : b.cmds[1] === 'M 400.00 20.00' ? 'to the cup' : 'to the row') : b.kind === 'wait' ? `wait ${b.s}` : b.cmd;
+  const row = ['to the cup', 'J 2 5', 'wait 1', 'J 2 35', 'to the row', 'J 2 25', 'row', 'J 2 35'];
+  assert.deepEqual(p.blocks.slice(2).map(say), [...Array(14).fill(row).flat(), 'home']);
+  for (const b of p.blocks.filter(q => q.paintMM)) {
+    const pts = b.cmds.filter(c => /^[LA]/.test(c));
+    assert.ok(endOf(pts.at(-1)).x < endOf(pts[0]).x - 250, `row ${b.row}: top to bottom`);
+  }
+  assert.deepEqual(p.blocks.filter(b => b.dip).map(b => b.row).filter((r, i, a) => a.indexOf(r) === i), [...Array(14)].map((_, i) => i + 1));
+  assert.ok(p.carriage.y0 <= CUPAT.y - HERE.y, 'the walls check takes the cup in');
+  assert.equal(p.air.length, 14 * 2 + 1, 'drawn: to the cup and to the row, fourteen times, and home');
+});
+
+test('INK ON keeps D1\'s rows where the snake had them, only all one way', () => {
+  const snake = xyPlan({ ...D1, here: HERE }), ink = xyPlan({ ...D1, here: HERE, ink: true, cup: CUPAT });
+  const tops = q => q.blocks.filter(b => b.paintMM).flatMap(b => b.cmds.filter(c => /^[LA]/.test(c)).map(c => endOf(c).y));
+  const ys = a => [Math.min(...a), Math.max(...a)].map(v => Math.round(v));
+  assert.deepEqual(ys(tops(ink)), ys(tops(snake)), 'the same width across');
+  assert.ok(Math.abs(ink.length - snake.length) < 0.02 * snake.length, `${ink.length} against ${snake.length}: the same rows, the turns gone`);
+});
+
+test('INK OFF is the plan as it was, the cup or not', () => {
+  for (const o of [D1, { ...PATTERNS.A }, { ...PATTERNS.C }]) {
+    assert.deepEqual(xyPlan({ ...o, here: HERE, ink: false, cup: CUPAT }).blocks, xyPlan({ ...o, here: HERE }).blocks);
+  }
+});
+
+test('INK ON without the cup taken: the rows one way, no dips — the page refuses PLAY', () => {
+  const p = xyPlan({ ...D1, here: HERE, ink: true, cup: { ...CUPAT, x: null, y: null } });
+  assert.equal(p.dips, 0);
+  assert.equal(p.blocks.filter(b => b.kind === 'wait').length, 0);
+});
+
+test('INK ON, A: a dip before every hairpin, no pause for paint', () => {
+  const p = xyPlan({ ...PATTERNS.A, here: HERE, ink: true, cup: CUPAT });
+  assert.equal(p.dips, PATTERNS.A.rows);
+  assert.equal(p.blocks.filter(b => b.kind === 'pause').length, 0);
+});
+
+test('D2 after D1 with INK ON: the pause asks for the paint in the cup', () => {
+  const p = xyPlan({ ...D1, rows: 3, passes: ['D1', 'D2'], here: HERE, ink: true, cup: CUPAT });
+  assert.deepEqual(p.blocks.filter(b => b.kind === 'pause').map(b => b.why), ['D2, red: its paint in the cup, then Continue']);
+  assert.equal(p.dips, 6);
+});

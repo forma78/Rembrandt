@@ -59,7 +59,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   The RUBENS rule, confirmed by the owner 2026-10-01.
 - **Braun style from RUBENS**: cream `#EDEAE4`, panel `#F5F3EF`, stage
   `#E2DED6`, line `#D5CFC4`, ink `#24221F`, one accent, orange `#EB7A25`.
-  Green `#4F7A28` only on Open Job and Do Job. Raised neutral keys; the chosen
+  Green `#4F7A28` only on Open Job, Do Job and the INK switch on Test (the
+  owner, 2026-10-03: "the button green, not orange"). Raised neutral keys; the chosen
   key is pressed and carries an orange dot. Helvetica Neue; SF Mono for
   numbers. **The sliders are dark grey**, their slot 4 px, no orange on them
   — orange stays on the STOP dots; **Do Test is dark grey**, not green (the
@@ -422,6 +423,20 @@ this section disagree, this section wins: the owner corrected the sketch on
   the paint. **Wave** (all patterns): a row waves either side of its line or
   arc, 0 for none — "from a perfectly straight pass to waves"; laid as
   biarcs, the tangent continuous, about 100 mm a wave (est.).
+  **INK** (the owner, 2026-10-03, `machine/IMAGE 2026-10-03 ink bow*.jpg`):
+  a switch in a row of its own under the pattern keys, as Lift at the
+  turns, green. OFF: every test as it was ("then the tests need no
+  rewriting"). ON: the brush takes its paint from the cup of the Ink tab.
+  Before every row it goes there, the elbow over the rim, dips — down into
+  the paint, 1 s, up — goes to the row, comes down to +25° in the air and
+  lands on the move as always; after the row it goes back to the cup, "not
+  up, back to the cup", and home at the end: D1 at 14 rows is 14 dips. C's
+  and D's rows run one way each, as the snake's first row — top to bottom
+  on D1; no turns, no pause for paint, the cup gives it; between D's passes
+  the pause asks for the next paint in the cup. PLAY waits until the cup's
+  centre is taken. The board draws the cup as the Ink tab's red scope, the
+  brush's way in the air dashed, home, and during a run the carriage's
+  trail ("so I follow the trajectory").
 - **Ink**, a tab between Test and Adjustments (the owner, 2026-10-03: "maybe
   one more tab, INK"; "just INK, it is clear anyway"): where the brush takes
   its paint. One cup for now, ⌀50 and 20 mm high, by the left edge of the

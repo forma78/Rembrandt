@@ -36,6 +36,13 @@
 // The new arm (2026-10-02, below): the elbow lifts the brush off the canvas,
 // as a hand does; the broom and the wrist's drags above are history.
 //
+// INK ON (the owner, 2026-10-03): the brush takes its paint from the cup of
+// the Ink tab. Before every row it goes there over the cup's rim, dips —
+// down into the paint, a second, up — and goes to the row; after the row it
+// goes back to the cup, not on to the next row; home at the end. C's and
+// D's rows run one way each, as the snake's first row runs: top to bottom
+// on D1. INK OFF is everything as it was.
+//
 // Machine mm: X up the picture, Y to the right. "Here" is where the carriage
 // stands with the brush over the board's centre. No DOM.
 
@@ -76,6 +83,7 @@ export const DEFAULTS = {
   wave: 0,                    // mm: a row waves this far either side of its line or arc; 0 — none
   waveLen: 100,               // mm, about a wave along the row (est.)
   pause: true,                // after every row: paint for the brush
+  ink: false,                 // INK ON: a dip in the cup of the Ink tab before every row, the rows one way (the owner, 2026-10-03)
   passes: ['D1'],             // D: the passes on, in their order
   shift: {},                  // D: { D1: { x, y, a } … }: a pass moved off Here, mm — X up, Y to the right — and turned a° more, plus clockwise (the owner, 2026-10-02)
   ...PATTERNS.A,
@@ -188,7 +196,11 @@ function paths(o, angle = 0) {
     return turn(g.b, t, D).map(q => ({ ...q, tilt, row, turn: true }));
   };
   const step = k => turnPt(pt(-k, 0), angle);
-  if (o.snake) {
+  if (o.snake && o.ink) {
+    // INK ON: every row on its own, one way, as the snake's first row runs —
+    // the brush dips in the cup before each (2026-10-03)
+    for (let k = 0; k < o.rows; k++) out.push(place(shape, step(k * o.pitch), k + 1));
+  } else if (o.snake) {
     const p = [];
     for (let k = 0; k < o.rows; k++) {
       const r = place(k % 2 === 0 ? shape : back, step(k * o.pitch), k + 1);
@@ -322,6 +334,8 @@ function pathTime(ps) {
 const travelTime = (L, v) => L > v * v / ACCEL ? L / v + v / ACCEL : 2 * Math.sqrt(L / ACCEL);
 // each brush-down path besides its pieces: the wrist's zero, the brush off at its end, the runner's waits (est.)
 const PATH_S = 2;
+// an elbow move in the air, the carriage standing: the runner turns it and waits till it is there (est.)
+const ARM_S = 1;
 
 // A pass's paths, centred on Here by the box the carriage covers.
 function centred(o, angle) {
@@ -351,17 +365,35 @@ export function xyPlan(opts) {
 
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
+  // INK ON: the cup of the Ink tab (carriage mm, its elbow angles), from Here; the brush up over its rim between rows
+  const cup = o.ink && o.here && Number.isFinite(o.cup?.x) && Number.isFinite(o.cup?.y) ? o.cup : null;
+  const cupAt = cup ? pt(cup.x - X0, cup.y - Y0) : null;
+  const up = o.ink && Number.isFinite(o.cup?.rim) ? o.cup.rim : ELBOW_UP;
+  const home = homeCorner(), homeAt = pt(home.x - X0, home.y - Y0);
   // the brush up (the elbow), then the wrist to the active pose, in the air
-  const blocks = [{ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
-  const preview = [], car = [];
-  let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = pt(0, 0);
+  const blocks = [{ kind: 'arm', cmd: `J 2 ${up}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
+  const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
+  let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0;
+  const away = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   passes.forEach(({ key, ps }, n) => {
     // between D's passes, always: another paint; the carriage stays where it is (the owner, 2026-10-02: "a break, not the end of the day")
-    if (n) blocks.push({ kind: 'pause', why: `${key}, ${PASSES[key].paint}: its paint on the brush, then Continue`, row: 0 });
+    if (n) blocks.push({ kind: 'pause', why: `${key}, ${PASSES[key].paint}: its paint ${o.ink ? 'in the cup' : 'on the brush'}, then Continue`, row: 0 });
     ps.forEach((p, i) => {
-      const m = onTheMove(p, o), first = m.pieces[0].g.a;
+      const m = onTheMove(p, o), first = m.pieces[0].g.a, row = p[0].row;
       turns += m.turns; lifts += m.lifts; need = Math.max(need, m.need);
-      blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(first)}`, 'G'], lengthMM: null, paintMM: 0, row: p[0].row });
+      if (cupAt) {
+        // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again
+        blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(cupAt)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true },
+          { kind: 'arm', cmd: `J 2 ${cup.dip}`, row, dip: true }, { kind: 'wait', s: cup.dwell, row, dip: true },
+          { kind: 'arm', cmd: `J 2 ${cup.rim}`, row, dip: true });
+        air.push([at0, cupAt]);
+        seconds += travelTime(away(at0, cupAt), o.travel) + 2 * ARM_S + cup.dwell;
+        at0 = cupAt; dips++;
+      }
+      if (o.ink) air.push([at0, first]);
+      blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(first)}`, 'G'], lengthMM: null, paintMM: 0, row });
+      // from over the rim down to where the brush always lands from, in the air over the row's start: it lands as it did without the cup
+      if (up !== ELBOW_UP) { blocks.push({ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row }); seconds += ARM_S; }
       // one move, the brush landing at its start, lifting at its end and at every turn, on the way
       const cmds = [`F ${o.speed}`];
       let v = o.speed, len = 0, paint = 0;
@@ -376,8 +408,8 @@ export function xyPlan(opts) {
       cmds.push('G');
       length += paint;
       blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: m.pieces.map(q => q.on), row: p[0].row });
-      blocks.push({ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: p.at(-1).row });   // at the lift-off already: the brush up
-      if (!o.snake && o.pause && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
+      blocks.push({ kind: 'arm', cmd: `J 2 ${up}`, row: p.at(-1).row });   // at the lift-off already: the brush up, over the cup's rim with INK ON
+      if (!o.snake && o.pause && !o.ink && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
       for (const l of m.trace) preview.push(Object.assign(l, { pass: key }));   // its paint, on the preview
       seconds += travelTime(Math.hypot(first.x - at0.x, first.y - at0.y), o.travel) + pathTime(m.pieces) + PATH_S;
       at0 = m.pieces.at(-1).g.b;
@@ -386,12 +418,13 @@ export function xyPlan(opts) {
   // at 100 % the carriage goes home, to the corner where home is set, as a
   // job does: the end seen on the machine, not only on the screen (the
   // owner, 2026-10-02; it stood over Here before)
-  const home = homeCorner();
+  if (o.ink) air.push([at0, homeAt]);
   blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${f(home.x)} ${f(home.y)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows, home: true });
   seconds += travelTime(Math.hypot(X0 + at0.x - home.x, Y0 + at0.y - home.y), o.travel);
   // where the carriage goes, from Here: the paint's box aside by the tails (the walls check)
-  const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; });
+  const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; }).concat(cupAt ? [cupAt] : []);
   const carriage = { x0: Math.min(...cp.map(q => q.x)), x1: Math.max(...cp.map(q => q.x)), y0: Math.min(...cp.map(q => q.y)), y1: Math.max(...cp.map(q => q.y)) };
   return { blocks, preview, width, height, room, box, carriage, length, fits,
-    seconds, rows: o.rows, snake: !!o.snake, turns, lifts, need, passes: keys.filter(Boolean), opts: o };
+    seconds, rows: o.rows, snake: !!o.snake, turns, lifts, need, passes: keys.filter(Boolean), opts: o,
+    ink: !!o.ink, cupAt, air, homeAt, dips };
 }
