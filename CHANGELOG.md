@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN.md: the Watercolour run traces all the lines** (the owner,
+  2026-10-04: "I need all the lines, or I will get lost"). Edges stays on
+  the switch as the faster trace.
 - **Photos: the first wash from the cup** (2026-10-03, added by the owner
   on 2026-10-04): `machine/photo_2026-10-04 01.29.23–25.jpeg`, the run of
   13:30 in the journal — D1, 14 rows of 330 mm, INK ON, 14 dips, a red
