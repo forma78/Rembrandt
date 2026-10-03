@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: all the drops of a layer before PLAY** (the owner, 2026-10-04:
+  "yes, all correct"). The brush goes line by line through them, no pause
+  between tubes, as in `references/preview.webp`; stage by stage and the
+  lighter tube first stay the rules of the other tabs (Rembrandt.md §1).
 - **NOLAN.md: a line changes tube along the ribbon** (the owner,
   2026-10-04), as the strands of IMG_9424 and Florian Markus's drops
   (`references/preview.webp`): a drop at the start of every stretch, the
