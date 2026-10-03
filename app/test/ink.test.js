@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CUP, cupOf, cupProblem, canvasFrom } from '../src/ink.js';
+import { CUP, cupOf, cupProblem, canvasFrom, dipAt } from '../src/ink.js';
 
 test('a cup not set yet: the owner\'s ⌀50 × 20, the elbow est., no centre — and it says so', () => {
   const c = cupOf({});
@@ -32,4 +32,14 @@ test('the canvas from the cup: its left edge to the right, its bottom below — 
   assert.deepEqual(canvasFrom(ink, 500, 700), { x: 400 - 500 + 350, y: 20 + 40 + 250, left: 40, bottom: 500 });
   assert.equal(canvasFrom({ cup: { x: 400, y: 20 }, canvas: { left: 40 } }, 500, 700), null, 'one number is not enough');
   assert.equal(canvasFrom({ canvas: { left: 40, bottom: 500 } }, 500, 700), null, 'nor without the cup');
+});
+
+test('a cup a hair past the left wall: the brush dips just inside it; far past: refused', () => {
+  const first = cupOf({ cup: { x: 390.18, y: -0.37 } });   // the owner's first cup, 2026-10-03
+  const d = dipAt(first);
+  assert.deepEqual([d.x, d.y], [390.18, 0.1]);
+  assert.ok(Math.abs(d.off - 0.47) < 1e-9);
+  assert.equal(cupProblem(first), '');
+  assert.deepEqual(dipAt(cupOf({ cup: { x: 400, y: 20 } })), { x: 400, y: 20, off: 0 }, 'inside: the centre itself');
+  assert.match(cupProblem(cupOf({ cup: { x: 400, y: -15 } })), /past the machine's walls/);
 });

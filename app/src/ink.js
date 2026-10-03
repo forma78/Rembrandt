@@ -9,6 +9,7 @@
 // Here on the Test tab: machine mm, X up, Y to the right.
 
 import { ELBOW_LIFT } from './strokes.js';
+import { reach } from './machine.js';
 
 // The cup, ⌀50 and 20 mm high (the owner, 2026-10-03); a second in the
 // paint ("1 second is perfect"). The elbow over the rim and in the cup is
@@ -67,9 +68,25 @@ export function canvasFrom(ink, w, h) {
   return { x: r(c.x - bottom + h / 2), y: r(c.y + left + w / 2), left, bottom };
 }
 
+// Where the brush dips: the cup's centre, or, when that lies past a wall —
+// the owner's first cup, 0.37 mm past the left one (2026-10-03) — the
+// nearest point inside the walls: the board takes no path past them. off:
+// how far that is from the centre, mm. null until the cup is set.
+const EDGE_IN = 0.1;   // inside the walls, as home (machine.js)
+export function dipAt(c) {
+  if (!c || c.x === null || c.y === null) return null;
+  const R = reach(), into = (v, lo, hi) => Math.min(hi - EDGE_IN, Math.max(lo + EDGE_IN, v));
+  const x = c.x >= R.x.min && c.x <= R.x.max ? c.x : into(c.x, R.x.min, R.x.max);
+  const y = c.y >= R.y.min && c.y <= R.y.max ? c.y : into(c.y, R.y.min, R.y.max);
+  const r = v => Math.round(v * 100) / 100;
+  return { x: r(x), y: r(y), off: Math.hypot(x - c.x, y - c.y) };
+}
+
 // Why the brush cannot dip into this cup, or ''.
 export function cupProblem(c) {
   if (!c || c.x === null || c.y === null) return 'The cup is not set: on the Ink tab, the brush over its centre, press Here.';
+  const off = dipAt(c).off;
+  if (off > c.diameter / 4) return `The cup's centre lies ${off.toFixed(1)} mm past the machine's walls: the brush would dip too near its rim. Move the cup in and take it again.`;
   if (c.rim < RIM_MIN || c.rim > ELBOW_MAX) return `Over the rim ${c.rim}°: the elbow goes +${RIM_MIN}…+${ELBOW_MAX}° there.`;
   if (c.dip < ELBOW_MIN || c.dip > c.rim - 5) return `In the cup ${c.dip}°: the elbow goes ${ELBOW_MIN}…+${c.rim - 5}° there, below Over the rim.`;
   if (c.dwell < 0 || c.dwell > DWELL_MAX) return `In the paint ${c.dwell} s: 0…${DWELL_MAX} s.`;
