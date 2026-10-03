@@ -10,7 +10,7 @@
 import { fmt } from './util.js';
 import { parsePing, toMm, reach, homeCorner } from './machine.js';
 import { mountJog } from './jog.js';
-import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup, canvasFrom } from './ink.js';
+import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
 import { isNight, themeColor } from './lamp.js';
 import './ui.js';
 
@@ -58,6 +58,7 @@ function show() {
   const c = cup();
   $('#cupRead').innerHTML = c.x !== null
     ? `The cup's centre: carriage <b>X ${fmt(c.x, 1)} · Y ${fmt(c.y, 1)} mm</b> · ⌀${c.diameter}, ${c.height} mm high. Jog there and press again to change it.`
+      + (dipAt(c).off > 0 ? ` <span class="warn">It lies ${fmt(dipAt(c).off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them${dipAt(c).off > c.diameter / 4 ? ' — too near the rim: move the cup in' : ', well within the cup'}.</span>` : '')
     : 'Not set. The elbow up over the rim first (+35° or more), or the brush knocks the cup over; jog the brush over the red scope, the cup\'s centre; lower it into the paint to check; then press here.';
   for (const inp of document.querySelectorAll('.grid4 input')) {
     const k = inp.dataset.k, typed = S.ink[inp.dataset.part] || {};

@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The cup a hair past the wall: the brush dips just inside it.** The
+  owner's first cup, taken at 13:13, X 390.18 · Y −0.37, lies 0.37 mm past
+  the left wall, and the board takes no path past one: the first dip would
+  have stopped the run. The brush dips at the nearest point 0.1 mm inside
+  the walls, 0.47 mm from the centre; a cup more than a quarter of its
+  ⌀ past them is refused, and the Ink tab says so.
 - **The canvas from the cup: Here found, not aimed at** (the owner,
   2026-10-03: "I do not see where the centre of 500 × 700 is, there is no
   laser"; "a great solution, much handier"). On the Ink tab two ruler

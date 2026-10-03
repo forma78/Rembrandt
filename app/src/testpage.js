@@ -9,7 +9,7 @@ import { parsePing, toMm, reach } from './machine.js';
 import { xyPlan, PATTERNS, PASSES, DEFAULTS, TABLE_MM, BRUSH_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
-import { cupOf, cupProblem, drawCup, canvasFrom } from './ink.js';
+import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -32,7 +32,9 @@ async function loadInk() {
 // the centre of 500 × 700 is, there is no laser"); else the Here taken by hand
 const fromCup = () => canvasFrom(INK, S.boardW, S.boardH);
 const hereNow = () => fromCup() || S.here;
-const plan = () => xyPlan({ ...S, here: hereNow(), cup: cup() });
+// the cup as the plan dips into it: inside the walls (ink.js, dipAt)
+const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
+const plan = () => xyPlan({ ...S, here: hereNow(), cup: dipCup() });
 
 // Sliders, as on the Calibration tab (the owner, 2026-10-02); the board's
 // size stays two numbers.
