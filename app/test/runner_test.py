@@ -477,6 +477,38 @@ class PauseTest(unittest.TestCase):
         self.assertEqual(piece_at((0, 0), path, (10, 0), first=1), 1)  # a joint: the later piece, if asked
 
 
+class WaitTest(unittest.TestCase):
+    """A wait block (2026-10-03, INK ON on the Test tab): the brush stands in
+    the cup's paint a second, everything still."""
+
+    def slept(self, blocks):
+        b, total = FakeBoard(), [0.0]
+        def sleep(dt):
+            total[0] += dt
+            b.sleep(dt)
+        r = Runner(b.send, sleep=sleep, swing_s=0.4)
+        ok, msg = r.start(blocks)
+        self.assertTrue(ok, msg)
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        return total[0], b
+
+    def test_the_brush_stands_in_the_paint_that_long(self):
+        dip = [travel(400, 90), {"kind": "arm", "cmd": "J 2 5"}]
+        out = [{"kind": "arm", "cmd": "J 2 35"}]
+        without, _ = self.slept(dip + out)
+        with_it, b = self.slept(dip + [{"kind": "wait", "s": 1}] + out)
+        self.assertAlmostEqual(with_it - without, 1.0, delta=0.21)
+        self.assertEqual([c for c in b.log if c[0] in "MJ"], ["M 400 90", "J 2 5", "J 2 35"], "the wait adds no move")
+
+    def test_a_wait_out_of_range_is_refused_before_anything_moves(self):
+        for w in (11, -1, True, None, "1"):
+            r = Runner(FakeBoard().send, sleep=lambda dt: None)
+            ok, msg = r.start([{"kind": "wait", "s": w}])
+            self.assertFalse(ok, w)
+            self.assertIn("wait", msg)
+
+
 class ArmStrokeRunTest(unittest.TestCase):
     """Rembrandt's arm strokes in a run (2026-10-02): a joint at its speed, a
     pause for paint, STOP stopping the arm too."""
