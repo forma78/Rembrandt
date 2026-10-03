@@ -39,9 +39,9 @@ written "Rembrandt.md §".
 
 ---
 
-## 0. Owner decisions — record them first
+## 0. Owner decisions
 
-One commit to `Rembrandt.md`, before any code. Dates and his words, in English.
+Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 
 1. **The ribbon collection** comes first: ordinary canvas, Florian Markus's
    way, on a black background. The reference is the glowing ribbon render

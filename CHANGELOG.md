@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The owner's decisions for NOLAN, in the spec** (`NOLAN.md` §0). The
+  ribbon collection comes first; NOLAN is the one tab where the hand
+  paints too — the black around the ribbons, the glazes in glazing medium,
+  the airbrush glow (the owner, 2026-10-03: "Who said the machine has to
+  do everything?"); Create hidden and NOLAN in its place, v0.2 next to the
+  name (2026-10-04: "It just isn't working — a pile-up of colours");
+  Test's pattern D is for the style of `nolan-images/Untitled-7.png`.
 - **NOLAN.md: the task for the NOLAN tab, and its pictures** (written
   with the owner in chat on 2026-10-03, corrected in VS Code on
   2026-10-04). `nolan-images/`: `IMG_9424.jpg`, the ribbon render NOLAN is
