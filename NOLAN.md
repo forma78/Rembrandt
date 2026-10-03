@@ -200,9 +200,10 @@ sees exactly where to squeeze the paint.
   run, back to the cup after it, home at the end.
 - **One way per line, home → tail** (Rembrandt.md §1), the elbow landing
   and lifting on the move.
-- **Which lines it traces**: **Edges** (the two outer lines of the ribbon)
-  or **All lines** — a switch, Edges by default. *Claude's decision, to
-  confirm* (§8).
+- **Which lines it traces**: **All lines** by default (the owner,
+  2026-10-04: "I need all the lines, or I will get lost … I am ready to
+  wait to get the full picture"). **Edges**, the two outer lines of the
+  ribbon, stays on the switch as the faster trace.
 - **Long lines**: a line longer than the dip run is split into runs; each
   starts with a fresh dip and lands where the last one's tail began.
   Neighbouring lines split half a dip run apart, so the tails never line up.
@@ -282,7 +283,8 @@ No machine moves. Not in phase 1.
 
 1. One tube per line (v1), or may a line change tube along the ribbon?
 2. The dip run: until Adjustments measures it, what length to use? (est.)
-3. The Watercolour run traces the Edges by default, or All lines?
+3. ~~The Watercolour run traces the Edges by default, or All lines?~~
+   All lines (the owner, 2026-10-04; §5.1).
 4. Where the canvas lies on the machine: from the cup and two ruler numbers
    (the Ink tab), as the Test board — or by Calibration's canvas corners,
    as on Create? *Claude's proposal: from the cup.*
