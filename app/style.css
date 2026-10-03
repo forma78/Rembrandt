@@ -160,6 +160,8 @@ main{display:grid;grid-template-columns:60px 1fr 340px;min-height:0}
 .grid4 input{border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 22px 5px 6px;font:12px var(--mono);width:100%}
 .grid4 em{position:absolute;right:6px;bottom:6px;font-style:normal;font-size:10px;text-transform:none}
 .grid4 .est{color:#B3470C;text-transform:none;letter-spacing:0}   /* Ink: a number not yet measured */
+.grid4.keys{margin-top:8px}
+.grid4.keys .btn{padding:7px 6px;font-size:11px}
 .loadmode{display:flex;flex-direction:column;gap:5px;margin:10px 0 8px;font-size:12px}
 .loadmode input[type=number]{width:62px;border:1px solid var(--line);border-radius:4px;padding:3px 5px;font:12px var(--mono)}
 .loadmode input[type=radio]{accent-color:var(--orange)}

@@ -2,7 +2,8 @@
 // one more tab, INK"). One cup for now, by the left edge of the canvas;
 // later the dip station's cups at the edges of the frame (Rembrandt.md §1).
 // Kept in app/ink.json through rembrandt.py (/ink); the Ink tab sets it,
-// INK ON on the Test tab dips into it. No DOM.
+// INK ON on the Test tab dips into it. No DOM; drawCup draws on a canvas
+// it is given.
 //
 // The cup's centre is where the carriage stands with the brush over it, as
 // Here on the Test tab: machine mm, X up, Y to the right.
@@ -18,6 +19,24 @@ export const EST = ['rim', 'dip'];
 export const ELBOW_MIN = -5, ELBOW_MAX = 45;
 export const RIM_MIN = ELBOW_LIFT + 5;   // over the rim the brush is well off the canvas
 export const DWELL_MAX = 10;
+// Where the cup stands until its centre is taken: 400 mm up from the bottom
+// left corner, at the left wall (the owner, 2026-10-03, a red scope drawn
+// there on the Ink tab: "I will aim there"). est.
+export const CUP_AIM = { x: 400, y: 0 };
+const SCOPE = '#E2321B';   // the owner's red scope
+
+// The cup as a scope, its centre at X, Y px, its rim r px: a red ring and a
+// cross through it, past the rim (the owner: "a target for the cup, I will
+// aim there"); dashed while only aimed at, not yet taken.
+export function drawCup(ctx, X, Y, r, aimed = false) {
+  ctx.save();
+  ctx.strokeStyle = SCOPE; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  if (aimed) { ctx.setLineDash([5, 4]); ctx.globalAlpha = 0.8; }
+  ctx.beginPath(); ctx.arc(X, Y, r, 0, Math.PI * 2); ctx.stroke();
+  const e = r * 1.7;
+  ctx.beginPath(); ctx.moveTo(X - e, Y); ctx.lineTo(X + e, Y); ctx.moveTo(X, Y - e); ctx.lineTo(X, Y + e); ctx.stroke();
+  ctx.restore();
+}
 
 const num = v => (v === null || v === undefined || v === '' || !Number.isFinite(+v) ? null : +v);
 

@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Ink: the jog of Calibration, and a scope for the cup** (the owner,
+  2026-10-03: "what do I move the machine with? add me the sliders from
+  Calibration"; "and a target for the cup, I will aim there"). X and Y as a
+  throttle, the elbow 1° a step, STOP and HARD STOP, Esc (`src/jog.js`, a
+  copy of Calibration's jog, which keeps its own). The cup drawn as a red
+  scope, ⌀ to scale; until its centre is taken, dashed at X 400 · Y 0, est.
+  — the owner's sketch — and the carriage says how far it is from it.
+  **Over the rim ← elbow** and **In the cup ← elbow** take the elbow's angle
+  where it stands.
 - **rembrandt.py: a wait block** (2026-10-03, for INK ON on Test; the owner:
   "1 second is perfect"). `{"kind": "wait", "s": 1}`: everything stands that
   long, the brush in the cup's paint; the runner pings meanwhile, so STOP
