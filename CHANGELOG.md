@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **previous_research: the chat's NOLAN prototype** (2026-10-03, added by
+  the owner on 2026-10-04: "primitive"). Kept as history: its look — dark
+  lines with a groove, the centre dashed orange, squares to drag — went
+  into the Geometry step; its Catmull-Rom curves, widths per anchor and
+  twist did not.
 - **NOLAN: Geometry, the first step** (NOLAN.md §2, §3; the owner,
   2026-10-04: "yes, start!"). The ribbons' centres drawn with Pen and Arc
   as the curve on Create — a click on a ribbon's end goes on with it,
