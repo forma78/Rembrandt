@@ -82,7 +82,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | **Watercolour run** | NOLAN's first run of a layer, what used to be the pencil: the brush dips in a thin wash from the Ink cup and traces the ribbon, so the owner sees where to squeeze the paint. |
 | **Paint run** | NOLAN's main run: the paint squeezed onto the canvas by hand, the brush drags it along the lines. No cup. |
 | **One way · Snake** | The two ways of the Paint run: each line top to bottom with the return in the air; or down, a turn in the air, up the next line on the canvas. |
-| **Dip run** | The length one dip in the cup paints along a line before the brush goes back for more (Watercolour run only). est. until Adjustments measures it. |
+| **Dip run** | The length one dip in the cup paints along a line before the brush goes back for more (Watercolour run only). 720 mm, est. (§5.1). |
 
 ---
 
@@ -155,6 +155,10 @@ The reference sits under both modes, as on Create. The steps:
   get in the way.
 - **Past the walls** — pressed into them as on Job and Test; the page says
   by how many mm.
+- **The canvas on the machine** lies from the cup: the two ruler numbers
+  of the Ink tab, its left edge and its bottom edge from the cup's centre
+  (`canvasFrom` of `ink.js`), as the Test board does (the owner,
+  2026-10-04). Not Calibration's canvas corners.
 
 ---
 
@@ -218,6 +222,12 @@ sees exactly where to squeeze the paint.
   (§4), so every line needs its trace to lay its drops on — "definitely
   the full trace in watercolour". **Edges**, the two outer lines of the
   ribbon, stays on the switch as the faster trace.
+- **The dip run: 720 mm, est.** (the owner, 2026-10-04: "I think all
+  720 mm will go easily; the photo shows well it is not the limit"). On
+  2026-10-03 one dip carried a 330 mm row of the wash with paint to spare
+  (`machine/photo_2026-10-04 01.29.23.jpeg`), and later rows of 430 and
+  520 mm ran on one dip each (the run journal). The 720 mm stays est.
+  until a line that long is run.
 - **Long lines**: a line longer than the dip run is split into runs; each
   starts with a fresh dip and lands where the last one's tail began.
   Neighbouring lines split half a dip run apart, so the tails never line up.
@@ -299,12 +309,12 @@ No machine moves. Not in phase 1.
 1. ~~One tube per line (v1), or may a line change tube along the ribbon?~~
    It changes, a drop at the start of every stretch (the owner, 2026-10-04;
    §4).
-2. The dip run: until Adjustments measures it, what length to use? (est.)
+2. ~~The dip run: what length to use?~~ 720 mm, est. (the owner,
+   2026-10-04; §5.1).
 3. ~~The Watercolour run traces the Edges by default, or All lines?~~
    All lines (the owner, 2026-10-04; §5.1).
-4. Where the canvas lies on the machine: from the cup and two ruler numbers
-   (the Ink tab), as the Test board — or by Calibration's canvas corners,
-   as on Create? *Claude's proposal: from the cup.*
+4. ~~Where the canvas lies on the machine?~~ From the cup and the two
+   ruler numbers, as the Test board (the owner, 2026-10-04; §3).
 5. ~~Snake in the Paint run: where does the owner squeeze the paint of a
    line that runs bottom to top?~~ Where the drop map says: at the start
    of each stretch in the brush's direction — on Snake's upward lines, at
