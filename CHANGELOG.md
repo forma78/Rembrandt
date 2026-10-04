@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: one Roll on the panel — the band's lever is Squeeze** (the owner,
+  2026-10-04: "why do we need a glossary, if the panel has two Rolls? That
+  is unprofessional, it does not happen"; "the second one — Squeeze?"). Roll
+  is a point's alone. Squeeze presses the whole band towards edge-on (+,
+  the bundles close up) or flat (−, they open): tan(roll) over (1 −
+  Squeeze), so a slanted place moves most, a flat one stays flat, and
+  nothing jumps where the roll passes flat — a first try towards "the
+  nearest edge-on" left a step there. The band's Roll kept from before goes
+  into every point, so the ribbon keeps its shape; the prototype's "Roll,
+  all" too, when a shape is pasted. Glossary and tests.
 - **NOLAN: the Roll sliders move again** (the owner, 2026-10-04: "the ROLL
   slider does not move"). Roll is the band's and a point's both, and the
   panel found every slider by its name in the whole page: the band's Roll

@@ -92,12 +92,29 @@ export function centreOf(anchors, step = 1.5) {
   return out;
 }
 
+// ---------- Squeeze: the whole band's lever ----------
+// The owner, 2026-10-04 ("why a glossary, if the panel has two Rolls — the
+// second one, Squeeze?"): Roll is a point's; Squeeze presses the whole band
+// towards edge-on (+, the bundles close up) or towards flat (−, they open).
+// It squeezes the band's part across the canvas — tan(roll) divided by
+// (1 − Squeeze); for −, its part towards you: a slanted place closes or
+// opens most, a flat one stays flat, an edge-on one edge-on, and nothing
+// jumps along the ribbon (towards "the nearest edge-on" flipped where the
+// roll crossed flat). ±98 % at most: the band still passes flat smoothly.
+// Degrees in, degrees out, in the same turn as the roll given.
+export function squeezed(deg, pct) {
+  if (!pct) return deg;
+  const k = Math.max(-0.98, Math.min(0.98, pct / 100)), t = rad(deg);
+  const f = (k > 0 ? Math.atan2(Math.sin(t), (1 - k) * Math.cos(t)) : Math.atan2((1 + k) * Math.sin(t), Math.cos(t))) * 180 / Math.PI;
+  return f + 360 * Math.round((deg - f) / 360);
+}
+
 // ---------- the band ----------
 // Across the curve at every point: B in the canvas's plane, N towards the
 // viewer; the band D = cos(roll) B + sin(roll) N, twist adding half turns
 // along it. The rows on it `pitch` apart, and a little apart in depth too
 // (`stack`): a deck of cards, so a band edge-on fans out at a fold, as in
-// IMG_9424. o: { rows, pitch, width, stack, twist, roll, step } and the view
+// IMG_9424. o: { rows, pitch, width, stack, twist, squeeze, step } and the view
 // { tilt, swing, spin, zoom, dx, dy, lens }.
 export function bandOf(anchors, o) {
   const step = o.step || 1.5, C = centreOf(anchors, step);
@@ -110,7 +127,7 @@ export function bandOf(anchors, o) {
     const T = nrm([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
     let N = [-T[2] * T[0], -T[2] * T[1], 1 - T[2] * T[2]];
     N = Math.hypot(N[0], N[1], N[2]) < 1e-6 ? [1, 0, 0] : nrm(N);
-    const B = crs(T, N), th = rad(c.roll + (o.roll || 0)) + Math.PI * (o.twist || 0) * c.s / L;
+    const B = crs(T, N), th = rad(squeezed(c.roll + 180 * (o.twist || 0) * c.s / L, o.squeeze || 0));
     const D = [0, 1, 2].map(j => Math.cos(th) * B[j] + Math.sin(th) * N[j]), F = crs(D, T);   // F: the band's face, towards you at roll 0
     const on = (v, w) => imp([0, 1, 2].map(j => c.p[j] + v * D[j] + w * F[j]));
     const row = [];

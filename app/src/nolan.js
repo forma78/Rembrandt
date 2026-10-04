@@ -28,14 +28,14 @@ const DRAG_STEP = 4, STEP = 1.5;   // mm between the centre's points: coarse whi
 // ---------- state ----------
 const S = {
   anchors: SKETCH.map(a => ({ ...a })),
-  rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, roll: 0,                      // the band
+  rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0,                   // the band; Roll is a point's (band.js, squeezed)
   tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
   speed: 150, travel: 180, tail: 70, ink: false,                                  // the brush, as on Test (est.)
   boardW: 500, boardH: 700,
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
 let pick = 8;
-const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'roll', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'boardW', 'boardH', 'refOpacity'];
+const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'squeeze', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'boardW', 'boardH', 'refOpacity'];
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
@@ -44,11 +44,14 @@ function load() {
     for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen']]]) if (ok.includes(o[k])) S[k] = o[k];
     const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
     if (A.length >= 2) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
+    // the whole band's Roll of before 2026-10-04 (two Rolls on the panel, the owner: "unprofessional"):
+    // its angle goes into every point, so the ribbon keeps its shape
+    if (Number.isFinite(o.roll) && o.roll) S.anchors.forEach(a => { a.roll += o.roll; });
   } catch { }
   pick = Math.min(pick, S.anchors.length - 1);
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
-const bandOpts = step => ({ rows: S.rows, pitch: S.pitch, width: S.width, stack: S.stack, twist: S.twist, roll: S.roll, tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens, step });
+const bandOpts = step => ({ rows: S.rows, pitch: S.pitch, width: S.width, stack: S.stack, twist: S.twist, squeeze: S.squeeze, tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens, step });
 const view3 = () => ({ tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens });
 
 // ---------- the cup, and the canvas from it (Test's) ----------
@@ -295,8 +298,9 @@ $('#btnPaste').onclick = () => {
     const o = JSON.parse(text), A = (o.points || []).filter(a => ['x', 'y', 'z', 'roll'].every(k2 => Number.isFinite(a?.[k2])));
     if (A.length < 2) throw new Error('no points');
     undoPush();
-    S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
-    const g = o.settings || {}, map = { lines: 'rows', pitch: 'pitch', brush: 'width', stack: 'stack', twist: 'twist', rollAll: 'roll', tilt: 'tilt', turn: 'swing', spin: 'spin', zoom: 'zoom', dx: 'dx', dy: 'dy', lens: 'lens' };
+    const g = o.settings || {}, all = Number.isFinite(g.rollAll) ? g.rollAll : 0;   // the prototype's "Roll, all": into every point
+    S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll + all }));
+    const map = { lines: 'rows', pitch: 'pitch', brush: 'width', stack: 'stack', twist: 'twist', tilt: 'tilt', turn: 'swing', spin: 'spin', zoom: 'zoom', dx: 'dx', dy: 'dy', lens: 'lens' };
     for (const [from, to] of Object.entries(map)) if (Number.isFinite(g[from])) S[to] = g[from];
     pick = Math.min(pick, S.anchors.length - 1); settle();
   } catch { alert('That is not a shape from the prototype.'); }
@@ -315,7 +319,7 @@ addEventListener('keydown', e => {
 // ---------- the panel: Test's sliders and words ----------
 const signed = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
 const BAND_SL = [['rows', 'Rows', '', 1, 2, ROWS_MAX], ['pitch', 'Row to row', 'mm', 0.5, 2, 16, { label: 2 }], ['width', 'Row width', 'mm', 0.5, 1, 12],
-  ['stack', 'Stack', 'mm', 1, 0, 30], ['twist', 'Twist', 'half turns', 0.25, -4, 4], ['roll', 'Roll', '°', 1, -180, 180]];
+  ['stack', 'Stack', 'mm', 1, 0, 30], ['twist', 'Twist', 'half turns', 0.25, -4, 4], ['squeeze', 'Squeeze', '%', 1, -100, 100]];
 const VIEW_SL = [['tilt', 'Rotate X', '°', 1, -180, 180], ['swing', 'Rotate Y', '°', 1, -180, 180], ['spin', '↻', '°', 1, -180, 180],
   ['zoom', 'Size', '×', 0.01, 0.4, 2], ['dy', 'X ↑', 'mm', 1, -250, 250, null, -1], ['dx', 'Y →', 'mm', 1, -250, 250], ['lens', 'Lens', '', 1, 0, 100]];
 const POINT_SL = [['z', 'Depth', 'mm', 1, -250, 250], ['roll', 'Roll', '°', 1, -180, 360]];
@@ -356,7 +360,7 @@ function showSliders() {
   for (const [list, box, objOf] of [[BAND_SL, '#slBand', () => S], [VIEW_SL, '#slView', () => S], [POINT_SL, '#slPoint', () => S.anchors[pick]], [RUN_SL, '#slRun', () => S]]) for (const [key, , unit, , , , , sign = 1] of list) {
     const obj = objOf(), inp = $(`${box} input[data-k="${key}"]`), v = obj[key] * sign;
     if (document.activeElement !== inp) inp.value = v;
-    const shown = key === 'rows' ? `${S.rows} · ${fmt((S.rows - 1) * S.pitch + S.width, 0)} mm` : key === 'zoom' ? fmt(v, 2) : ['dx', 'dy', 'roll', 'twist'].includes(key) ? signed(Math.round(v * 100) / 100) : Math.round(v * 100) / 100;
+    const shown = key === 'rows' ? `${S.rows} · ${fmt((S.rows - 1) * S.pitch + S.width, 0)} mm` : key === 'zoom' ? fmt(v, 2) : ['dx', 'dy', 'roll', 'twist', 'squeeze'].includes(key) ? signed(Math.round(v * 100) / 100) : Math.round(v * 100) / 100;
     $(`${box} [data-v="${key}"]`).textContent = `${shown}${unit && key !== 'rows' ? ' ' + unit : ''}`;
   }
   $('#ptHead').textContent = `Point ${pick + 1} of ${S.anchors.length}`;
