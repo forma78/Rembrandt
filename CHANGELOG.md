@@ -5,6 +5,25 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the rows run through a pinch — the band no longer hides its own
+  rows there** (the owner, 2026-10-04, the trace of 18:11,
+  `machine/photo_2026-10-04 21.43.54.jpeg`: "on the right the bundles did
+  not come together into lines as in the drawing — the main flaw"; and "the
+  intent was to print in four passes, but not to break the lines"). Where
+  the ribbon twists, turns over or is seen end-on, its projection is a bow
+  tie, and `imprintOf` took one side of it for a part lying over the other:
+  at the pinches of 18:11 only 4 rows of 17 stayed in sight, 0 ran through.
+  Now a piece of band nearer along the ribbon than the band is wide, with
+  the band narrowed to 0.4 of its width between (`NECK`, est.), hides
+  nothing; a part that went away and came back, or a fold facing you, hides
+  as before. With the cuts off the pinches, rows through each: 18:11, 17
+  and 17 of 17 (9 and 11 before); the save of 18:37 (26 rows), 25 and 23 of
+  26 (8 and 11 before). A twisted band of 17 rows: 17 pieces, 43 before. The first
+  run's ribbon keeps its four layers. Not yet: the suggested cuts still lie
+  on the pinches (22 % and 77 % of 18:37) — every row ends there, the next
+  layer lands there with a fresh dip, the puddles of the photo; until they
+  are moved, the Cut tool drags them off. Tests.
+
 - **NOLAN: the run's trace red on the paper, light blue in the air** (the
   owner, 2026-10-04, `machine/2026-10-04 orange.png`: "the orange way
   merges with Layers. I could set Geometry, but better make the way on the

@@ -151,7 +151,7 @@ export function bandOf(anchors, o) {
   for (let i = 0; i < C.length - 1; i++) quads.push({ i, z: (M[i][2] + M[i + 1][2]) / 2, poly: [E0[i], E0[i + 1], E1[i + 1], E1[i]] });
   quads.sort((p, q) => p.z - q.z);                            // far first: the painter's order
   quads.forEach((q, j) => { q.o = j; });
-  return { S, E0, E1, M, pitch, back, s: C.map(c => c.s), n: C.length, step, quads, L, rows: n, across: 2 * edge };
+  return { S, E0, E1, M, pitch, back, s: C.map(c => c.s), n: C.length, step, quads, L, rows: n, across: 2 * edge, zoom };
 }
 
 // ---------- what lies over what ----------
@@ -320,15 +320,27 @@ export function foldsOf(band, runs) {
 
 // ---------- the imprint: only the visible pieces of the rows ----------
 // A point of a row is hidden when a piece of band nearer than it covers it,
-// that piece's brush's half width included. A visible run breaks where its
-// layer changes (layers null: one). o.width: the row's width — closer than
-// that on the canvas, the rows lie on one another ("red"). covers: pairs of
-// the piece hiding a point and the point, along the band; vis: the rows in
-// sight at each place.
+// that piece's brush's half width included — but not by its own pinch:
+// nearer along the ribbon than the band is wide, and narrowed between to
+// NECK of its width on the canvas, the band only turns there — a twist, a
+// turn over, seen end-on — and its rows cross, nothing lies over them.
+// Another part lies over them when the ribbon has gone away and come back,
+// or folds over itself facing you. Hidden by their own turn, every row broke
+// at a pinch and the bundle never closed up into its lines (the owner,
+// 2026-10-04, the trace of 18:11, machine/photo_2026-10-04 21.43.54.jpeg:
+// "on the right the bundles did not come together into lines as in the
+// drawing — the main flaw"). A visible run breaks where its layer changes
+// (layers null: one). o.width: the row's width — closer than that on the
+// canvas, the rows lie on one another ("red"). covers: pairs of the piece
+// hiding a point and the point, along the band; vis: the rows in sight at
+// each place.
+const NECK = 0.4;   // est.: the pinches of 18:11 narrowed to 0.09–0.12 of the band's width on the canvas, of 18:37 to 0.25–0.34
 export function imprintOf(band, layers, o) {
   const grid = gridOf(band.quads), order = new Array(band.n - 1);
   for (const q of band.quads) order[q.i] = q.o;
-  const runs = [], covers = [], vis = new Array(band.n).fill(0);
+  const runs = [], covers = [], vis = new Array(band.n).fill(0), self = Math.max(1, Math.round(band.across / band.step));   // 17 rows of 18:11 hid their own from under 20 mm along, 26 of 18:37 from up to 150
+  const narrow = band.E0.map((a, i) => Math.hypot(a[0] - band.E1[i][0], a[1] - band.E1[i][1]) < NECK * band.across * band.zoom);
+  const pinch = (a, b) => { if (Math.abs(a - b) > self) return false; for (let j = Math.min(a, b); j <= Math.max(a, b); j++) if (narrow[j]) return true; return false; };
   let red = 0, all = 0;
   for (let k = 0; k < band.rows; k++) {
     let run = null;
@@ -337,7 +349,7 @@ export function imprintOf(band, layers, o) {
       let hidden = false;
       for (const q of near(grid, p)) {
         if (q.o <= mine || Math.abs(q.i - i) <= 1) continue;
-        if (pip(p, q.poly)) { hidden = true; covers.push(q.i, i); break; }
+        if (pip(p, q.poly) && !pinch(q.i, i)) { hidden = true; covers.push(q.i, i); break; }
       }
       if (!hidden) vis[i]++;
       if (hidden || (run && run.layer !== layer)) { if (run) runs.push(run); run = null; if (hidden) continue; }
