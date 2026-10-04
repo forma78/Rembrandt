@@ -385,10 +385,12 @@ export const WASH_MERGE = 1;    // mm of white between two wet rows that the was
 const MERGE_CELL = 3;           // mm, the grid the merging places are looked up in
 // preview: plotRun's trace, the tip's points { x, y, k } in machine mm from
 // Here, a line a stroke, `dip` on the first after a dip; band, runs: the
-// imprint's, for the white between the rows; width: the row's. → the strokes
-// in canvas mm: [{ dip, pts: [{ p, w, load }] }] — w the line's width there,
-// load 1 fresh from the cup, fading along the dip run.
-export function washOf(preview, band, runs, width) {
+// imprint's, for the white between the rows; width: the row's; box: the
+// walls in machine mm from Here, the trace pressed along them as the run is
+// (plotRun) — a canvas past a wall left a flat stripe there (22:17). → the
+// strokes in canvas mm: [{ dip, pts: [{ p, w, load }] }] — w the line's width
+// there, load 1 fresh from the cup, fading along the dip run.
+export function washOf(preview, band, runs, width, box = null) {
   const painted = new Set();
   for (const r of runs) for (let j = 0; j < r.pts.length; j++) painted.add((r.i0 + j) * 64 + r.k);
   // where the white beside a row is under WASH_MERGE: there its line widens to its neighbour's
@@ -421,7 +423,8 @@ export function washOf(preview, band, runs, width) {
     if (line.dip) since = 0;
     const pts = [];
     line.forEach((t, j) => {
-      const p = [t.y, -t.x];                       // machine mm → canvas mm (toMachine, the other way)
+      const x = box ? Math.max(box.x0, Math.min(box.x1, t.x)) : t.x, y = box ? Math.max(box.y0, Math.min(box.y1, t.y)) : t.y;
+      const p = [y, -x];                           // machine mm → canvas mm (toMachine, the other way)
       if (j) since += Math.hypot(t.x - line[j - 1].x, t.y - line[j - 1].y);
       pts.push({ p, w: (width + extraAt(p)) * t.k, load: dips ? Math.exp(-since / WASH_FADE) : 1 });
     });

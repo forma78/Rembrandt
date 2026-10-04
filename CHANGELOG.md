@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the image area on the board, as on Calibration** (the owner,
+  2026-10-04, `machine/2026-10-04 nolan on paper.jpg`: "at the bottom there
+  is no edge of the canvas; I do not see the image area. But it is on
+  Calibration — can you carry it over, please"). The walls dashed orange
+  and named, the canvas past them hatched; the board widens to take them
+  in. The canvas of 22:17, centred on the Test tab's Here (X 226), lay
+  124 mm past the bottom wall and 15 mm past the right one: the rows there
+  ran along the bottom wall, the flat dark stripe of the photo. The wash of
+  Imprint is pressed into the walls as the run is, and shows that stripe.
+  Tried in the browser.
+
 - **NOLAN: Imprint with INK ON — the watercolour as it lies on the paper**
   (the owner, 2026-10-04: "I would like to see on the screen a more exact
   drawing of what I paint with the brush on paper and canvas"; the photos
