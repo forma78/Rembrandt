@@ -70,11 +70,13 @@ function show() {
     : 'The canvas from the cup: measure with a ruler from the cup\'s centre to the canvas\'s left edge and to its bottom edge. Then the Test tab lays its board from the cup and finds its centre itself; until then it uses its own Here.';
   document.querySelectorAll('[data-est]').forEach(el => { el.hidden = !c.est[el.dataset.est]; });
   const why = cupProblem({ ...c, x: 0, y: 0 });   // the numbers only: the centre has its own line above
-  $('#dipRead').innerHTML = `Over the rim: the brush flies to the cup and away from it this high, the elbow at <b>+${c.rim}°</b>${c.est.rim ? ' (est.)' : ''}. `
+  // The explanation under the ⓘ, the warning always (the owner, 2026-10-04: "it makes noise, I know it").
+  $('#dipHelp').innerHTML = `Over the rim: the brush flies to the cup and away from it this high, the elbow at <b>+${c.rim}°</b>${c.est.rim ? ' (est.)' : ''}. `
     + `In the cup: down into the paint at <b>${c.dip > 0 ? '+' : ''}${c.dip}°</b>${c.est.dip ? ' (est.)' : ''}, <b>${c.dwell} s</b> there, then up again. `
-    + `The elbow: 0° presses the brush to the canvas, off it at +10°, +${ELBOW_MAX}° at most. Measure both with the elbow's handle above, the brush over the cup, and take them with ← elbow; empty — the default.`
-    + (why ? ` <span class="warn">${why}</span>` : '');
+    + `The elbow: 0° presses the brush to the canvas, off it at +10°, +${ELBOW_MAX}° at most. Measure both with the elbow's handle below, the brush over the cup, and take them with ← elbow; empty — the default.`;
+  $('#dipRead').innerHTML = why ? `<span class="warn">${why}</span>` : '';
 }
+$('#dipInfo').onclick = () => { $('#dipHelp').hidden = !$('#dipHelp').hidden; $('#dipInfo').classList.toggle('on', !$('#dipHelp').hidden); };
 
 // ---------- Here: the brush over the cup's centre ----------
 $('#btnCup').onclick = async () => {

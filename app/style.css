@@ -172,6 +172,8 @@ main{display:grid;grid-template-columns:60px 1fr 340px;min-height:0}
 .inline.check.ink input[type=checkbox]:checked::before{background:radial-gradient(circle,#4F7A28 0 3px,transparent 3.5px) center/6px 6px no-repeat,linear-gradient(#fff,#ECEBE8)}
 .grid4.keys{margin-top:8px}
 .sec h3.sub{margin:14px 0 8px;font-size:11px;color:var(--ink)}   /* Ink: the canvas from the cup, under the cup */
+.info{width:16px;height:16px;margin-left:6px;padding:0;border:1px solid var(--mute);border-radius:50%;background:none;color:var(--mute);font:italic 600 10px/14px Georgia,serif;text-transform:none;cursor:pointer;vertical-align:1px}   /* ⓘ: the explanation behind it */
+.info:hover,.info.on{border-color:var(--ink);color:var(--ink)}
 .grid4.keys .btn{padding:7px 6px;font-size:11px}
 .loadmode{display:flex;flex-direction:column;gap:5px;margin:10px 0 8px;font-size:12px}
 .loadmode input[type=number]{width:62px;border:1px solid var(--line);border-radius:4px;padding:3px 5px;font:12px var(--mono)}

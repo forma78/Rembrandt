@@ -39,6 +39,17 @@
 
   <aside class="panel">
     <section class="sec">
+      <h3>The dip <span class="hint">the elbow <button class="info" id="dipInfo" title="What the numbers mean">i</button></span></h3>
+      <div class="grid4" id="dip"></div>
+      <div class="grid4 keys">
+        <button class="btn" id="btnRim" title="Over the rim becomes the elbow's angle now: up until the brush clears the rim, with room">Over the rim ← elbow</button>
+        <button class="btn" id="btnDip" title="In the cup becomes the elbow's angle now: down until the bristles are in the paint">In the cup ← elbow</button>
+      </div>
+      <p class="read" id="dipHelp" hidden></p>
+      <p class="read" id="dipRead"></p>
+    </section>
+
+    <section class="sec">
       <h3>Jog <span class="hint">as on Calibration · Esc = STOP</span></h3>
       <div id="jog"></div>
     </section>
@@ -51,16 +62,6 @@
       <h3 class="sub">The canvas from the cup <span class="hint">a ruler from its centre</span></h3>
       <div class="grid4" id="canvas"></div>
       <p class="read" id="canvasRead"></p>
-    </section>
-
-    <section class="sec">
-      <h3>The dip <span class="hint">the elbow</span></h3>
-      <div class="grid4" id="dip"></div>
-      <div class="grid4 keys">
-        <button class="btn" id="btnRim" title="Over the rim becomes the elbow's angle now: up until the brush clears the rim, with room">Over the rim ← elbow</button>
-        <button class="btn" id="btnDip" title="In the cup becomes the elbow's angle now: down until the bristles are in the paint">In the cup ← elbow</button>
-      </div>
-      <p class="read" id="dipRead"></p>
     </section>
   </aside>
 </main>

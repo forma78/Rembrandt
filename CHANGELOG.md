@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Calibration: Home at the top; Ink: The dip at the top, its text under
+  ⓘ** (the owner, 2026-10-04: "put the HOME button at the top — it is
+  awkward to scroll down every time"; on Ink, of the dip's explanation: "it
+  makes noise, it is hard enough to work as it is — I know it anyway"). The
+  dip's numbers stay in their fields; its warnings stay in sight.
 - **NOLAN: the elbow's 211°/s, as it is** (the owner, 2026-10-04: "we leave
   it as it is and do the first test"). Of the 92 visible pieces 33 are
   shorter than 40 mm, the shortest 4.6 mm; at 150 mm/s the elbow lands and
