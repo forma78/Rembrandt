@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: TEST before PLAY — a dot at each corner of the drawing** (the
+  owner, 2026-10-04: "before pressing PLAY I would like to do a test. The
+  brush in the bottom left corner; I press TEST and it dips in the paint and
+  puts dots at the farthest corners, TL TR / BL BR. A TEST key next to PLAY,
+  three in a row: TEST / PLAY / PAUSE"). One dip in the cup, INK ON or OFF;
+  a dot, a stroke `DOT_MM` 6 mm (est.) from each corner of the box round
+  what PLAY paints — the layers that are on — into it, from home: BL, TL,
+  TR, BR; then home. The other three dots, shorter than `NO_DIP`, go on what
+  the brush holds. `cornerDots` in `band.js`, then Test's run (`plotRun`)
+  to `/run`, as PLAY: no new kind of block. The confirm names the corners
+  in machine mm and any past a wall — its dot goes on the wall. The LCD
+  reads TEST · BL … and the test's own time. 22:17: BL and BR at X −45,
+  45 mm past the bottom wall; one dip, ≈ 35 s. Not run on the machine from
+  here: planned in node, the keys seen in the browser. A test.
+
 - **NOLAN: the grid every 100 mm, as on Calibration** (the owner,
   2026-10-04: "I see the image area, but there is no scale — add X 800 /
   Y 500, please"). Machine mm: X on the left, Y along the bottom, faint on

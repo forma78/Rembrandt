@@ -13,7 +13,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, ELBOW_HOVER, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
@@ -351,7 +351,7 @@ function drawWash(P_) {
 // pieces, home (the owner, 2026-10-04: "everything is orange; I would leave
 // grey what went through the air"; then, the orange lost in Layers: "red on
 // the paper, light blue in the air"). Each point says how the way to it went.
-let trail = [], trailOf = null, RUN = null;   // RUN: the blocks PLAY sent
+let trail = [], trailOf = null, RUN = null, RUN_INFO = null;   // RUN: the blocks PLAY or TEST sent; RUN_INFO: their seconds and rows, for the LCD
 const AIR = '#4FC3F7', PAPER = '#E5203A';   // light blue in the air, red on the paper: the orange was lost in Layers' N2 (the owner, 2026-10-04)
 function drawTrail() {
   if (!hereNow() || trail.length < 1) return;
@@ -764,9 +764,36 @@ $('#btnDoJob').onclick = async () => {
   if (!confirm(`${P_.passes.join(' + ')}: ${P_.pieces} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`
     + (P_.pastWall > PAST_MANY ? `\n\n${fmt(P_.pastWall / 1000, 1)} m of them lie past the machine's walls and will be pressed along them.` : ''))) return;
   try {
-    RUN = P_.blocks;
+    RUN = P_.blocks; RUN_INFO = { seconds: P_.seconds, rows: P_.rows };
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P_.blocks,
       log: { page: 'nolan', label: nolanLabel(), settings: S, here: hereNow(), fromCup: INK.canvas, ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) } }) });   // the run journal, rembrandt.py
+    $('#runState').textContent = await r.text();
+  } catch { $('#runState').textContent = 'start rembrandt.py'; }
+};
+// TEST, before PLAY (the owner, 2026-10-04: "before PLAY I would like a test.
+// The brush in the bottom left corner; I press TEST and it dips in the paint
+// and puts dots at the farthest corners, TL TR / BL BR"): one dip in the cup,
+// with INK ON or OFF, a dot at each corner of the box round what PLAY paints
+// — the layers that are on — and home. Test's run, as PLAY's.
+function testRun() {
+  const P_ = plan(), T = cornerDots(P_.preview || []);
+  return T.dots.length ? { ...plotRun({ ...P_.opts, ink: true, cup: dipCup(), noDipUnder: NO_DIP, rows: T.dots.length }, T.passes), dots: T.dots } : null;
+}
+$('#btnTest').onclick = async () => {
+  await loadInk(); settle();
+  const here = hereNow(), T = testRun();
+  if (!here) { $('#runState').innerHTML = '<span class="warn">Where the canvas lies: measure it from the cup on the Ink tab first.</span>'; return; }
+  if (!T) { $('#runState').innerHTML = '<span class="warn">Nothing to paint: no corners.</span>'; return; }
+  if (cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TEST dips in the cup: ${cupProblem(cup())}</span>`; return; }
+  if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the test is wrong — ${T.fault}.</span>`; return; }
+  const R = reach(), past = d => { const x = here.x + d.at.x, y = here.y + d.at.y; return [x < R.x.min && `${fmt(R.x.min - x, 0)} mm past the bottom wall`, x > R.x.max && `${fmt(x - R.x.max, 0)} mm past the top wall`, y < R.y.min && `${fmt(R.y.min - y, 0)} mm past the left wall`, y > R.y.max && `${fmt(y - R.y.max, 0)} mm past the right wall`].filter(Boolean).join(', '); };
+  const out = T.dots.filter(d => past(d));
+  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of what PLAY paints — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
+    + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
+  try {
+    RUN = T.blocks; RUN_INFO = { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) };
+    const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: T.blocks,
+      log: { page: 'nolan', label: 'NOLAN · TEST · the corners', here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), cup: cup(), estimate_s: Math.round(T.seconds) } }) });
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 };
@@ -784,17 +811,19 @@ function lcd(st) {
   const pct = st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
   if (live && !started) started = st.started || Date.now() / 1000;
   if (!live) started = null;
-  const total = P_.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
+  const R_ = live && RUN_INFO ? RUN_INFO : P_;                                      // what runs: PLAY's plan, or TEST's corners
+  const total = R_.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
-  const b2 = st && (RUN || P_.blocks)[st.block], row = b2 && P_.rows[b2.row - 1];   // the blocks PLAY sent: N1 · N2 may be switched since
+  const b2 = st && (RUN || P_.blocks)[st.block], row = b2 && R_.rows[b2.row - 1];   // the blocks PLAY sent: N1 · N2 may be switched since
+  const what = row && (row.label ?? `${row.name} · row ${row.row} of ${S.rows}`);
   const waiting = st?.state === 'paused' && st.message;
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
   keyEl.textContent = paused ? 'CONTINUE' : 'PAUSE'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
   const now = waiting ? `❚❚ ${st.message}`
     : live && b2?.home ? 'done · the carriage goes home, the brush off'
-    : live && row && b2?.dip ? `${row.name} · row ${row.row} of ${S.rows} · the dip in the cup`
-    : live && row ? `${row.name} · row ${row.row} of ${S.rows}` + (st.brush_on ? ' · brush on' : ' · brush off')
+    : live && row && b2?.dip ? `${what} · the dip in the cup`
+    : live && row ? what + (st.brush_on ? ' · brush on' : ' · brush off')
     : `${P_.pieces || 0} pieces · ${P_.passes.join('+') || 'nothing to paint'}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>

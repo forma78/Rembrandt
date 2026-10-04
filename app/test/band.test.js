@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen, ELBOW_HOVER } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, cornerDots, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE, DOT_MM } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -353,4 +353,27 @@ test('the wash on the paper: fresh after a dip and paler along it; rows under WA
   }
   for (const st of apart) assert.ok(close(st.pts[st.pts.length >> 1].w, 4, 0.01), 'apart: the brush\'s 4 mm');
   assert.ok(washFor(8, null).every(st => !st.dip && st.pts.every(t => t.load === 1)), 'no canvas placed, no dips known: the wash as fresh');
+});
+
+// The owner, 2026-10-04: "before PLAY a test: the brush dips in the paint and
+// puts dots at the farthest corners, TL TR / BL BR".
+test('TEST: one dip, a dot at each corner of the box round the drawing, from home BL TL TR BR', () => {
+  const cup = { x: 390.18, y: 0.1, est: {}, diameter: 50, height: 20, rim: 30, dip: -3, dwell: 1 };
+  const o = { ...DEFAULTS, ink: true, snake: true, pause: false, lift: false, tail: 3, here: { x: 400, y: 280 }, cup, noDipUnder: NO_DIP, hover: ELBOW_HOVER };
+  const b = bandOf(line(), { rows: 5, pitch: 8, width: 4, stack: 0, twist: 0, squeeze: 0 }), L = layeredOf(b, { width: 4, cuts: [] });
+  const run = plotRun(o, bandPasses(L.imp.runs, { ink: true, tail: 3 }).passes);
+  const T = cornerDots(run.preview);
+  assert.deepEqual(T.dots.map(d => d.name), ['BL', 'TL', 'TR', 'BR']);
+  const xs = run.preview.flat().map(t => t.x), ys = run.preview.flat().map(t => t.y);
+  assert.ok(close(T.box.x0, Math.min(...xs)) && close(T.box.x1, Math.max(...xs)) && close(T.box.y0, Math.min(...ys)) && close(T.box.y1, Math.max(...ys)));
+  for (const d of T.dots) {
+    assert.ok(close(Math.hypot(d.to.x - d.at.x, d.to.y - d.at.y), DOT_MM), `${d.name}: ${DOT_MM} mm`);
+    assert.ok(d.to.x >= T.box.x0 && d.to.x <= T.box.x1 && d.to.y >= T.box.y0 && d.to.y <= T.box.y1, `${d.name}: into the box`);
+  }
+  const t = plotRun({ ...o, rows: 4 }, T.passes);
+  assert.equal(t.dips, 1, 'one dip, before the first dot');
+  assert.deepEqual(t.blocks.filter(x => x.kind === 'move' && x.paintMM > 0).map(x => x.row), [1, 2, 3, 4]);
+  assert.ok(t.blocks.at(-1).home, 'home at the end');
+  assert.equal(t.fault, '');
+  assert.deepEqual(cornerDots([]).dots, [], 'nothing to paint: no dots');
 });
