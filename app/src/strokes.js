@@ -122,7 +122,7 @@ export function turn(E, t, D) {
   if (q < -1e-6) out.push({ t: 'L', a: f, b: add(f, t, q) });
   return out;
 }
-function sweepOf(g) {
+export function sweepOf(g) {
   const a0 = Math.atan2(g.a.y - g.c.y, g.a.x - g.c.x), a1 = Math.atan2(g.b.y - g.c.y, g.b.x - g.c.x);
   let s = (a1 - a0) * g.d;
   while (s <= 1e-9) s += 2 * Math.PI;
@@ -150,7 +150,7 @@ const turned = (g, deg) => g.t === 'L' ? { ...g, a: turnPt(g.a, deg), b: turnPt(
 const rot90 = p => pt(-p.y, p.x);
 const unit = p => { const l = Math.hypot(p.x, p.y) || 1; return pt(p.x / l, p.y / l); };
 // the point s mm along a line or an arc, and its direction there
-function at(g, s) {
+export function at(g, s) {
   if (g.t === 'L') { const t = unit(add(g.b, g.a, -1)); return { p: add(g.a, t, s), t }; }
   const th = Math.atan2(g.a.y - g.c.y, g.a.x - g.c.x) + g.d * s / g.r;
   return { p: pt(g.c.x + g.r * Math.cos(th), g.c.y + g.r * Math.sin(th)), t: pt(-g.d * Math.sin(th), g.d * Math.cos(th)) };
@@ -164,7 +164,7 @@ function arcTo(p, t, q) {
 }
 // two arcs from p0 (leaving along t0) to p1 (arriving along t1), as long
 // each way to the joint, which they share with its tangent
-function biarc(p0, t0, p1, t1) {
+export function biarc(p0, t0, p1, t1) {
   const v = add(p1, p0, -1), vt = dot(v, add(t0, t1)), c = 2 * (1 - dot(t0, t1)), vv = dot(v, v);
   const d = c < 1e-9 ? vv / (2 * vt) : (-vt + Math.sqrt(vt * vt + c * vv)) / c;
   const q0 = add(p0, t0, d), q1 = add(p1, t1, -d), j = pt((q0.x + q1.x) / 2, (q0.y + q1.y) / 2);
@@ -473,6 +473,11 @@ export function plotRun(o, passes) {
       let v = o.speed, len = 0, paint = 0;
       for (const q of m.pieces) {
         if (q.w !== undefined) cmds.push(`W 2 ${q.w} ${q.ws}`);
+        // o.minPiece (NOLAN, 2026-10-04): a sliver of a tail's cut, its ends
+        // closer than that, is not sent — the board takes an arc ending where
+        // it starts for a full circle (firmware path.h, arc); a W before it
+        // rides on the next piece. Off unless asked: Test as it was.
+        if (o.minPiece && Math.hypot(q.g.b.x - q.g.a.x, q.g.b.y - q.g.a.y) < o.minPiece) continue;
         if (q.v !== v) { cmds.push(`F ${q.v}`); v = q.v; }
         cmds.push(q.g.t === 'L' ? `L ${M(q.g.b)}` : `A ${M(q.g.c)} ${M(q.g.b)} ${q.g.d}`);
         const L = pieceLen(q.g);

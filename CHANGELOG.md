@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **strokes.js: no slivers for NOLAN.** A tail's cut can leave a piece a
+  thousandth of a mm long, and the firmware takes an arc ending where it
+  starts for a full circle (`path.h`). `plotRun` leaves such pieces out when
+  asked (`minPiece`, 0.05 mm), a W before one riding on the next; NOLAN asks.
+  Test's plans byte for byte as before, until the owner's word: its journal
+  holds one such arc (D1, 2026-10-03 14:49, pressed into the bottom wall).
 - **NOLAN in 3D: one ribbon, imprinted — a prototype and the decision**
   (the owner, 2026-10-04: the parallel lines "stand like idols, a rake";
   "let's make one construction that turns, something like IMG_9424").
