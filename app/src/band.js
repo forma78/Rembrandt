@@ -147,7 +147,7 @@ export function bandOf(anchors, o) {
   for (let i = 0; i < C.length - 1; i++) quads.push({ i, z: (M[i][2] + M[i + 1][2]) / 2, poly: [E0[i], E0[i + 1], E1[i + 1], E1[i]] });
   quads.sort((p, q) => p.z - q.z);                            // far first: the painter's order
   quads.forEach((q, j) => { q.o = j; });
-  return { S, E0, E1, M, pitch, back, n: C.length, step, quads, L, rows: n, across: 2 * edge };
+  return { S, E0, E1, M, pitch, back, s: C.map(c => c.s), n: C.length, step, quads, L, rows: n, across: 2 * edge };
 }
 
 // ---------- what lies over what ----------
@@ -174,44 +174,98 @@ function gridOf(quads) {
   return grid;
 }
 const near = (grid, p) => grid.get(ckey(Math.floor(p[0] / CELL), Math.floor(p[1] / CELL))) || [];
-// The layers: far to near, a piece of the band takes one more than the
-// highest layer of the pieces under it — those farther along the band than
-// its own width; under nothing, layer 1. A part lying over another is
-// painted after it, once that is dry: N1, N2, N3 from depth.
-export function layersOf(band) {
-  const grid = gridOf(band.quads), skip = Math.ceil((band.across + 30) / band.step);
-  const lay = new Array(band.n - 1).fill(1);
-  for (const q of band.quads) {
-    const pts = [...q.poly, [(q.poly[0][0] + q.poly[2][0]) / 2, (q.poly[0][1] + q.poly[2][1]) / 2]];
-    let top = 0;
-    for (const p of pts) for (const r of near(grid, p)) {
-      if (r.o >= q.o || Math.abs(r.i - q.i) <= skip) continue;
-      if (pip(p, r.poly)) top = Math.max(top, lay[r.i]);
-    }
-    lay[q.i] = top + 1;
+// ---------- the layers: stretches of the ribbon, cut along it ----------
+// A layer is a whole bundle: a stretch of the ribbon between two cuts along
+// its length (the owner, 2026-10-04, machine/layers selected.png and
+// layers how to cut.png: "continuous bundles, where the line goes
+// naturally"). Before it was the depth — a piece one layer up from what it
+// covers — and the second layer came out in patches, "very strange to the
+// eye". Cut where the ribbon hides behind itself, turns over or edge-on, and
+// a layer's edge is the line where it goes under: its rows end there anyway.
+// The cuts are s, mm along the centre; the owner moves them on the tab.
+const CUT_SEE = 0.25;   // a place with no more than this share of its rows in sight is hidden (Claude's choice)
+const CUT_GAP = 60;     // mm along the ribbon: places closer than this are one
+const CUT_END = 60;     // mm: no cut nearer an end of the ribbon
+const EDGE_ON = 15;     // mm across on the canvas: the band nearly edge-on
+const across = (band, i) => Math.hypot(band.E0[i][0] - band.E1[i][0], band.E0[i][1] - band.E1[i][1]);
+// Where to cut, suggested: the least seen place of every stretch that is
+// hidden, turns over (its back to you) or edge-on.
+export function cutsOf(band, imp) {
+  const { n, s, rows } = band, vis = imp.vis, places = [];
+  for (let i = 1; i < n - 1; i++) {
+    const w = across(band, i);
+    if (vis[i] <= CUT_SEE * rows || band.back[i] !== band.back[i - 1] || (w < EDGE_ON && w <= across(band, i - 1) && w <= across(band, i + 1))) places.push(i);
   }
-  return lay;
+  const groups = [];
+  for (const i of places) { const G = groups.at(-1); if (G && s[i] - s[G.at(-1)] <= CUT_GAP) G.push(i); else groups.push([i]); }
+  return groups.map(G => { const mid = (G[0] + G.at(-1)) / 2; return G.reduce((a, i) => vis[i] * 1e4 + Math.abs(i - mid) < vis[a] * 1e4 + Math.abs(a - mid) ? i : a); })
+    .map(i => s[i]).filter(v => v > CUT_END && v < s[n - 1] - CUT_END);
+}
+// The stretches between the cuts and the order they are painted in: a
+// stretch after every one it lies over (where it hides more of that one than
+// that one of it), each once the one under it is dry; free to choose, or in
+// a ring, the farthest first. lay: the layer of every piece of the band,
+// numbered in that order — N1 first.
+export function stretchesOf(band, cuts, imp) {
+  const { n, s, M } = band, at = cuts.filter(Number.isFinite).slice().sort((a, b) => a - b), m = at.length + 1;
+  const st = new Array(n);
+  for (let i = 0, j = 0; i < n; i++) { while (j < at.length && s[i] >= at[j]) j++; st[i] = j; }
+  const W = Array.from({ length: m }, () => new Array(m).fill(0)), depth = new Array(m).fill(0), cnt = new Array(m).fill(0);
+  for (let c = 0; c < imp.covers.length; c += 2) { const a = st[imp.covers[c]], b = st[imp.covers[c + 1]]; if (a !== b) W[a][b]++; }
+  for (let i = 0; i < n; i++) { depth[st[i]] += M[i][2]; cnt[st[i]]++; }
+  for (let a = 0; a < m; a++) depth[a] /= cnt[a] || 1;
+  const order = [], left = new Set(depth.keys());
+  while (left.size) {
+    const free = [...left].filter(a => [...left].every(b => b === a || !(W[a][b] > W[b][a])));
+    const a = (free.length ? free : [...left]).reduce((x, y) => depth[y] < depth[x] ? y : x);
+    order.push(a); left.delete(a);
+  }
+  const num = new Array(m);
+  order.forEach((a, j) => { num[a] = j + 1; });
+  const lay = new Array(n - 1);
+  for (let i = 0; i < n - 1; i++) lay[i] = num[st[i]];
+  const stretches = [];
+  for (let a = 0; a < m; a++) { const i0 = st.indexOf(a), i1 = st.lastIndexOf(a); if (i0 >= 0) stretches.push({ layer: num[a], i0, i1, s0: s[i0], s1: s[i1] }); }
+  return { lay, stretches, cuts: at };
+}
+// The imprint in its layers: o.cuts, or the cuts suggested when there are none.
+export function layeredOf(band, o) {
+  const imp0 = imprintOf(band, null, o), cuts = Array.isArray(o.cuts) ? o.cuts : cutsOf(band, imp0);
+  const st = stretchesOf(band, cuts, imp0), runs = [];
+  for (const r of imp0.runs) {                     // a run breaks where its layer changes
+    let cur = null;
+    r.pts.forEach((p, j) => {
+      const i = r.i0 + j, layer = st.lay[Math.min(i, band.n - 2)];
+      if (!cur || cur.layer !== layer) { if (cur) runs.push(cur); cur = { k: r.k, layer, i0: i, pts: [] }; }
+      cur.pts.push(p);
+    });
+    if (cur) runs.push(cur);
+  }
+  return { imp: { ...finished(runs), red: imp0.red, vis: imp0.vis }, lay: st.lay, cuts: st.cuts, stretches: st.stretches, auto: !Array.isArray(o.cuts) };
 }
 
 // ---------- the imprint: only the visible pieces of the rows ----------
 // A point of a row is hidden when a piece of band nearer than it covers it,
 // that piece's brush's half width included. A visible run breaks where its
-// layer changes. o.width: the row's width — closer than that on the canvas,
-// the rows lie on one another ("red").
+// layer changes (layers null: one). o.width: the row's width — closer than
+// that on the canvas, the rows lie on one another ("red"). covers: pairs of
+// the piece hiding a point and the point, along the band; vis: the rows in
+// sight at each place.
 export function imprintOf(band, layers, o) {
   const grid = gridOf(band.quads), order = new Array(band.n - 1);
   for (const q of band.quads) order[q.i] = q.o;
-  const runs = [];
+  const runs = [], covers = [], vis = new Array(band.n).fill(0);
   let red = 0, all = 0;
   for (let k = 0; k < band.rows; k++) {
     let run = null;
     for (let i = 0; i < band.n; i++) {
-      const p = band.S[i][k], mine = Math.max(order[i - 1] ?? -1, order[i] ?? -1), layer = layers[Math.min(i, band.n - 2)];
+      const p = band.S[i][k], mine = Math.max(order[i - 1] ?? -1, order[i] ?? -1), layer = layers ? layers[Math.min(i, band.n - 2)] : 1;
       let hidden = false;
       for (const q of near(grid, p)) {
         if (q.o <= mine || Math.abs(q.i - i) <= 1) continue;
-        if (pip(p, q.poly)) { hidden = true; break; }
+        if (pip(p, q.poly)) { hidden = true; covers.push(q.i, i); break; }
       }
+      if (!hidden) vis[i]++;
       if (hidden || (run && run.layer !== layer)) { if (run) runs.push(run); run = null; if (hidden) continue; }
       if (!run) run = { k, layer, i0: i, pts: [] };
       run.pts.push([p[0], p[1]]); all++;
@@ -219,10 +273,14 @@ export function imprintOf(band, layers, o) {
     }
     if (run) runs.push(run);
   }
+  return { ...finished(runs), red: all ? red / all : 0, covers, vis };
+}
+// the runs worth a stroke, and the length of each layer
+function finished(runs) {
   const kept = runs.filter(r => r.pts.length > 1 && lengthOf(r.pts) >= 4);
   const byLayer = {};
   for (const r of kept) byLayer[r.layer] = (byLayer[r.layer] || 0) + lengthOf(r.pts);
-  return { runs: kept, total: kept.reduce((a, r) => a + lengthOf(r.pts), 0), byLayer, red: all ? red / all : 0 };
+  return { runs: kept, total: kept.reduce((a, r) => a + lengthOf(r.pts), 0), byLayer };
 }
 export const lengthOf = pts => pts.reduce((a, p, i) => i ? a + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0);
 

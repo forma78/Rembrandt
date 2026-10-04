@@ -80,7 +80,8 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | **Squeeze** | The whole band's lever, beside each point's Roll: it presses the band towards edge-on (+, the bundles close up) or towards flat (−, they open); a slanted place moves most, a flat one stays flat (the owner, 2026-10-04: "why a glossary, if the panel has two Rolls? That is unprofessional — the second one, Squeeze?"). |
 | **Imprint** | «Слепок», the owner's word: the ribbon in space projected onto the canvas, its hidden parts left out — what the machine paints (§3.0). |
 | **Bundle** | The lines of one ribbon, running along its centre path. Every ribbon is its own bundle; there is no grid over the whole canvas. |
-| **N1, N2, N3** | The layers by depth: a part of the ribbon lying over another part is painted after it, once that is dry (§3.0); N4, N5 if it piles higher. First the ribbons by their painting order. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
+| **N1, N2, N3** | The layers: whole bundles, stretches of the ribbon between **cuts** along its length, painted in order — a stretch after every one it lies over, once that is dry (§3.0, 2026-10-04); N4, N5 as many as the cuts make. By depth before, in patches. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
+| **Cut** | Where the ribbon is parted into layers, a place along it (mm from its start). Suggested where it hides behind itself, turns over or edge-on — there its rows end anyway, so the cut shows no edge of its own; the owner drags it, adds, takes it out (§3.0). |
 | **Geometry · Palette** | The two modes of the first draft (2026-10-03), gone with its second row when the tab was built on Test (2026-10-04, §2). The board draws the lines dark on the white canvas; the colour preview and the drop map come back with the colours (§4). |
 | **Watercolour run** | NOLAN's first run of a layer, what used to be the pencil: the brush dips in a thin wash from the Ink cup and traces the ribbon, so the owner sees where to squeeze the paint. |
 | **Paint run** | NOLAN's main run: the paint squeezed onto the canvas by hand, the brush drags it along the lines. No cup. |
@@ -109,6 +110,7 @@ The panel, top to bottom:
    Test's D1 · D2 · D3: one, two or all, run in their order, a pause
    between them; the last one stays on; a layer off is faint on Imprint
    and Layers (the owner, 2026-10-04: "I do not see the keys as on TEST").
+   **✂** at the end of the row: the cuts as suggested again (§3.0).
    **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
    run (§5.1).
 4. **Geometry · Colour · Layers · Imprint**, **White · Black**: the rows dark,
@@ -139,9 +141,13 @@ On the board:
    elsewhere the ribbon turns — Shift moves it, Alt spins it, the wheel sizes
    it. **Pen** adds a point at the ribbon's end; ⌫ takes the picked one out;
    ⌘Z undoes; Esc is STOP, as on Test.
-3. **N1, N2, N3** are the layers by depth: the run paints N1, pauses —
-   CONTINUE when it is dry — then N2, and on. In a layer row by row, each
-   piece one way, the way the ribbon runs. No timers.
+3. **N1, N2, N3** are the layers, stretches between the cuts: the run
+   paints N1, pauses — CONTINUE when it is dry — then N2, and on. In a
+   layer row by row, each piece one way, the way the ribbon runs. No timers.
+4. **The cuts**, on *Layers* with Select: each a dashed line across the
+   ribbon and a circle on its centre; the circle drags along the ribbon,
+   a click on the ribbon adds one, ⌫ takes the picked one out, ⌘Z undoes;
+   each stretch named N1 … where it lies.
 
 Later, and where on the tab to settle with the owner: **Sample** (a tube
 for every stretch of every row from the reference, §4), the drop map, the
@@ -173,9 +179,24 @@ and Claude in VS Code (`previous_research/nolan_3d_prototype.html`):
   (**Stack**): at a fold they fan like a deck of cards, as in IMG_9424.
 - **The whole construction turns, moves and zooms** — the composition. The
   canvas is its **imprint**: orthographic, a lens for perspective.
-- **Depth decides what lies on top**: hidden parts are not painted; a part
-  lying over another is painted after it, once that is dry — the layers N1,
-  N2, N3 come from depth, not from a list.
+- **Depth decides what lies on top**: hidden parts are not painted.
+- **The layers are stretches of the ribbon, cut along it** (the owner,
+  2026-10-04: `machine/layers selected.png` — "continuous bundles, where the
+  line goes naturally and a human understands it; pleasant to the eye" —
+  and `layers how to cut.png`). By depth before (a part one layer up from
+  what it covers), the second layer came in patches, "very strange to the
+  eye". A cut where the ribbon hides behind itself, turns over (its back
+  to you) or edge-on shows no edge: its rows end there anyway, at the line
+  where it goes under. `band.js`: `cutsOf` suggests them — the least seen
+  place of each such stretch, 60 mm apart at least and from the ends —
+  `stretchesOf` orders the stretches: one after every stretch it lies over
+  (hides more of than it is hidden by), each once that is dry; free to
+  choose, or in a ring, the farthest first. The owner's cuts, kept with the
+  ribbon, replace the suggestion; ✂ brings it back. On the first run's
+  ribbon the suggestion cuts at 20, 54 and 75 % of its 2.2 m — the owner's
+  four bundles, the first cut 8 % lower than his, at the pinch below the
+  fold; painted: the loop at the end, the left side, the fan, the middle
+  band over them all.
 - **The band's back** is where the hand glazes go (zone G, §6).
 - **Red**: lines on the canvas closer than the brush. The owner's choice
   there: merge the bundle, or keep the overlap as a light rim.
