@@ -420,7 +420,7 @@ cv.addEventListener('wheel', e => {
 const HINTS = {
   select: 'Select — drag a square to move a point; drag elsewhere to turn the ribbon, Shift to move it, Alt to spin it; the wheel sizes it.',
   pen: 'Pen — click to add a point at the ribbon\'s end, at the depth of the last one; drag a square to move a point.',
-  cut: 'Cut — click the ribbon to cut it; drag a circle along it; ⌫ takes the picked cut out; Auto: the cuts as suggested.',
+  cut: 'Cut — click the ribbon to cut it; drag a circle along it; ⌫ takes the picked cut out; Auto: the cuts as suggested; Uncut: none.',
 };
 const hintNow = () => HINTS[S.tool];
 function setTool(t) { S.tool = t; if (t !== 'cut') pickCut = -1; syncTools(); save(); kick(); }
@@ -523,18 +523,25 @@ function showPanel() {
 }
 // N1 · N2 · N3: a key for each layer the imprint has, latching as D1 · D2 ·
 // D3 on Test — one, two or all, run in their order; the last one stays on
-// (the owner, 2026-10-04: "I do not see the keys as on TEST").
+// (the owner, 2026-10-04: "I do not see the keys as on TEST"); then Auto and
+// Uncut.
 const layersNow = () => PLAN?.imp ? Object.keys(PLAN.imp.byLayer).map(Number).sort((a, b2) => a - b2) : [];
+// Uncut: no cuts at all, the ribbon one layer (the owner, 2026-10-04: "what if
+// we add an option Uncut and do not cut at all?") — the suggested cuts lay on
+// the pinches, and every row ended there.
+const uncut = () => Array.isArray(S.cuts) && !S.cuts.length;
 function showLayers() {
   const lays = layersNow(), runs = l => (PLAN?.passes || []).includes(`N${l}`);
   const html = lays.map(l => `<button class="tog${runs(l) ? ' on' : ''}" data-layer="${l}" title="N${l}: ${fmt(PLAN.imp.byLayer[l] / 1000, 1)} m, painted ${l > 1 ? `after N${l - 1}` : 'first'} — on or off; the layers on run in their order, a pause between them">N${l}</button>`).join('')
-    + (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts ? ' — yours are set by hand now' : ''}; the Cut tool on the left moves them">Auto</button>` : '');
+    + (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts?.length ? ' — yours are set by hand now' : ''}; the Cut tool on the left moves them">Auto</button>`
+      + `<button class="tog cutkey${uncut() ? ' on' : ''}" data-uncut title="No cuts: the ribbon in one layer, every row whole from end to end, broken only where another part lies over it — one pass, no pause for the dry; the Cut tool cuts it again">Uncut</button>` : '');
   const el = $('#layerKeys');
   if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
   el.hidden = !lays.length;
 }
 $('#layerKeys').onclick = e => {
   if (e.target.closest('[data-cuts]')) { if (S.cuts) { undoPush(); S.cuts = null; S.off = []; pickCut = -1; settle(); } return; }
+  if (e.target.closest('[data-uncut]')) { if (!uncut()) { undoPush(); S.cuts = []; S.off = []; pickCut = -1; settle(); } return; }
   const b2 = e.target.closest('[data-layer]');
   if (!b2) return;
   const l = +b2.dataset.layer, on = layersNow().filter(x => (PLAN?.passes || []).includes(`N${x}`));

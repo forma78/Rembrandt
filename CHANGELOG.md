@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: Uncut — no cuts, the ribbon one layer** (the owner, 2026-10-04:
+  "what if we add an option Uncut and do not cut at all?"). A key after
+  Auto in the N row: every row whole from end to end, broken only where
+  another part lies over it; one pass, no pause for the dry. The suggested
+  cuts of 18:37 lay on both pinches — every row ended there and the next
+  layer landed there with a fresh dip. Uncut on 18:37: 88 pieces of 140,
+  23–26 of 26 rows through each pinch (0 cut); the watercolour 83 dips,
+  ≈ 24 min (113, ≈ 31 min); the paint with no pause. Kept as `cuts: []`
+  with the ribbon; Auto brings the suggestion back, the Cut tool cuts it
+  again. Tried in the browser: Uncut, N1 alone, Auto again, Imprint.
+  Overlap is within a layer, so with Uncut a row goes on under every part
+  over it — on the Paint run that part may still be wet. A test.
+
 - **NOLAN: the rows run through a pinch — the band no longer hides its own
   rows there** (the owner, 2026-10-04, the trace of 18:11,
   `machine/photo_2026-10-04 21.43.54.jpeg`: "on the right the bundles did

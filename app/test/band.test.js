@@ -301,6 +301,22 @@ test('a fold: where the ribbon turns in its own plane tighter than half its widt
   assert.deepEqual(foldsOf(b, []), [], 'nothing painted: nothing to warn of');
 });
 
+// The owner, 2026-10-04: "what if we add an option Uncut and do not cut at
+// all?" — no cuts: one layer, one pass, the rows whole but where another part
+// lies over them.
+test('Uncut: the ribbon in one layer, one pass, no pause, fewer pieces than cut', () => {
+  const b = bandOf(RUN_1258.anchors, RUN_1258.band), cut = layeredOf(b, { width: RUN_1258.band.width }), L = layeredOf(b, { width: RUN_1258.band.width, cuts: [] });
+  assert.deepEqual(L.cuts, []);
+  assert.equal(L.stretches.length, 1);
+  assert.ok(L.imp.runs.every(r => r.layer === 1));
+  assert.ok(L.imp.runs.length < cut.imp.runs.length, `${L.imp.runs.length} pieces, ${cut.imp.runs.length} cut`);
+  assert.ok(Math.abs(L.imp.total - cut.imp.total) / cut.imp.total < 0.02, 'the same rows painted');
+  const { passes } = bandPasses(L.imp.runs, { ink: false, tail: 3 });
+  const run = plotRun({ ...DEFAULTS, snake: true, pause: false, lift: false, tail: 3, here: RUN_1258.here }, passes);
+  assert.equal(passes.length, 1);
+  assert.equal(run.blocks.filter(x => x.kind === 'pause').length, 0);
+});
+
 // The owner, 2026-10-04, the trace of 18:11 (machine/photo_2026-10-04
 // 21.43.54.jpeg): "on the right the bundles did not come together into lines
 // as in the drawing — the main flaw". The band hid its own rows at a pinch.

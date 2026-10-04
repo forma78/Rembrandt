@@ -81,7 +81,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | **Imprint** | «Слепок», the owner's word: the ribbon in space projected onto the canvas, its hidden parts left out — what the machine paints (§3.0). |
 | **Bundle** | The lines of one ribbon, running along its centre path. Every ribbon is its own bundle; there is no grid over the whole canvas. |
 | **N1, N2, N3** | The layers: whole bundles, stretches of the ribbon between **cuts** along its length, painted in order — a stretch after every one it lies over, once that is dry (§3.0, 2026-10-04); N4, N5 as many as the cuts make. By depth before, in patches. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
-| **Cut** | Where the ribbon is parted into layers, a place along it (mm from its start). Suggested where it hides behind itself, turns over or edge-on — there its rows end anyway, so the cut shows no edge of its own; the owner drags it, adds, takes it out (§3.0). |
+| **Cut** | Where the ribbon is parted into layers, a place along it (mm from its start). Suggested where it hides behind itself, turns over or edge-on — there its rows end anyway, so the cut shows no edge of its own; the owner drags it, adds, takes it out (§3.0). **Uncut**: none, the ribbon one layer (2026-10-04). |
 | **Geometry · Palette** | The two modes of the first draft (2026-10-03), gone with its second row when the tab was built on Test (2026-10-04, §2). The board draws the lines dark on the white canvas; the colour preview and the drop map come back with the colours (§4). |
 | **Watercolour run** | NOLAN's first run of a layer, what used to be the pencil: the brush dips in a thin wash from the Ink cup and traces the ribbon, so the owner sees where to squeeze the paint. |
 | **Paint run** | NOLAN's main run: the paint squeezed onto the canvas by hand, the brush drags it along the lines. No cup. |
@@ -110,7 +110,11 @@ The panel, top to bottom:
    Test's D1 · D2 · D3: one, two or all, run in their order, a pause
    between them; the last one stays on; a layer off is faint on Imprint
    and Layers (the owner, 2026-10-04: "I do not see the keys as on TEST").
-   **Auto** at the end of the row: the cuts as suggested again (§3.0).
+   **Auto** at the end of the row: the cuts as suggested again (§3.0);
+   **Uncut**: no cuts, the ribbon one layer, one pass — every row whole,
+   broken only where another part lies over it (the owner, 2026-10-04:
+   "what if we add an option Uncut and do not cut at all?"; the suggested
+   cuts lay on the pinches, and every row ended there).
    **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
    run (§5.1).
 4. **Geometry · Colour · Layers · Imprint**, **White · Black**: the rows dark,
