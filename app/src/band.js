@@ -287,7 +287,35 @@ export function layeredOf(band, o) {
     for (let i = r.i0 + r.pts.length; same(i) && d < lap; i++) { const p = at(i), q = r.pts.at(-1); d += Math.hypot(p[0] - q[0], p[1] - q[1]); r.pts.push(p); }
     if (before.length) { r.pts.unshift(...before); r.i0 -= before.length; }
   }
-  return { imp: { ...finished(runs), red: imp0.red, vis: imp0.vis }, lay: st.lay, cuts: st.cuts, stretches: st.stretches, auto: !Array.isArray(o.cuts) };
+  const fin = finished(runs);
+  return { imp: { ...fin, red: imp0.red, vis: imp0.vis }, lay: st.lay, cuts: st.cuts, stretches: st.stretches, auto: !Array.isArray(o.cuts), folds: foldsOf(band, fin.runs) };
+}
+// Where the rows fold on the canvas: painted, they run back against the
+// centre — the ribbon turns there in its own plane tighter than half its
+// width, and the imprint has a corner and a gap (the owner, 2026-10-04: "turn
+// the construction and there is a gap; the imprint must be smooth — I killed
+// one point"; and of the red "!" of NOLAN.md §3: "a great idea"). Each place
+// where FOLD_ROWS or more rows run back, the ribbon painted there — a fold
+// hides its own rows, and the gap it leaves is what shows: s, mm along the
+// ribbon, and how many.
+const FOLD_ROWS = 2;
+export function foldsOf(band, runs) {
+  const seen = new Array(band.n).fill(false);
+  for (const r of runs) for (let j = 0; j < r.pts.length; j++) for (let d = -3; d <= 3; d++) seen[Math.max(0, Math.min(band.n - 1, r.i0 + j + d))] = true;
+  const places = [];
+  for (let i = 0; i < band.n - 1; i++) {
+    if (!seen[i]) continue;
+    const mx = band.M[i + 1][0] - band.M[i][0], my = band.M[i + 1][1] - band.M[i][1];
+    let back = 0;
+    for (let k = 0; k < band.rows; k++) {
+      const a = band.S[i][k], c = band.S[i + 1][k];
+      if ((c[0] - a[0]) * mx + (c[1] - a[1]) * my < 0) back++;
+    }
+    if (back) places.push({ i, back });
+  }
+  const groups = [];
+  for (const p of places) { const g = groups.at(-1); if (g && p.i - g.at(-1).i <= 3) g.push(p); else groups.push([p]); }
+  return groups.map(g => g.reduce((a, p) => p.back > a.back ? p : a)).filter(p => p.back >= FOLD_ROWS).map(p => ({ s: band.s[p.i], rows: p.back }));
 }
 
 // ---------- the imprint: only the visible pieces of the rows ----------
