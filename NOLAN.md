@@ -220,7 +220,8 @@ to send such noise to the board"): its journal held one such arc, the D1 of
   happened.) The blend of Rembrandt.md §3 stays the alternative if folds
   get in the way.
 - **Past the walls** — pressed into them as on Job and Test; the page says
-  by how many mm.
+  by how many mm. Kept so, not left out (the owner, 2026-10-04:
+  "as now, pressed to the wall").
 - **The canvas on the machine** lies from the cup: the two ruler numbers
   of the Ink tab, its left edge and its bottom edge from the cup's centre
   (`canvasFrom` of `ink.js`), as the Test board does (the owner,
