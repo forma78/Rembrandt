@@ -5,6 +5,23 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN built on Test** (the owner, 2026-10-04: "Stop. We are copying
+  CREATE, which did not work for us. Let's go back to TEST as the base.").
+  Test's board — the canvas from the cup, the table round it, the run's
+  trail — PROGRESS with the LCD and the sun and the moon, PLAY · PAUSE ·
+  STOP · HARD STOP; 💾 SAVE NOLAN (with the tests in the Library, which
+  opens it on NOLAN); INK OFF · ON under it — OFF the Paint run, each
+  ribbon a snake, the brush up through the turns; ON the Watercolour run,
+  a dip in the cup before every line, one way. Test's sliders: Rows (the
+  lines across a ribbon), Row to row, Wave, Brush on, Between rows, Tail;
+  Board width · height; Lift at the turns. Test's pattern keys not drawn
+  yet ("do not draw the buttons for now"). From Create the Tools on the
+  left, the three ribbons by default, the house; the second row gone. The
+  run is Test's own (`plotRun`): the elbow lands and lifts on the move,
+  the walls press the path, home at the end; N1, N2, N3 a pause between.
+  The ribbons now keep to the canvas's centre, so they stay put when the
+  board's size changes; the drawings of the first draft are not carried
+  over.
 - **strokes.js: the run of the paths apart from Test's patterns**
   (`plotRun`), for NOLAN to run its ribbons the same way (the owner,
   2026-10-04: "let's go back to TEST as the base"). Test's plans come out

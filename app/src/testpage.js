@@ -321,7 +321,9 @@ async function openFromLibrary(file) {
     if (!r.ok) throw new Error(r.status);
     const meta = new DOMParser().parseFromString(await r.text(), 'image/svg+xml').querySelector('metadata#rembrandt-test');
     if (!meta) { $('#saveState').textContent = 'not a test: open it on Create'; return; }
-    Object.assign(S, JSON.parse(meta.textContent.replace(/- -/g, '--')).settings || {});
+    const o = JSON.parse(meta.textContent.replace(/- -/g, '--'));
+    if (o.nolan) { location.href = 'nolan.html?open=' + encodeURIComponent(file); return; }   // a NOLAN save shares the tests' shelf
+    Object.assign(S, o.settings || {});
     update();
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
   } catch { $('#saveState').textContent = 'could not open it from the Library'; }

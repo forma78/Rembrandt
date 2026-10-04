@@ -77,8 +77,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | **Ribbon** | One traced band of the reference: a centre path (lines and arcs, Create's tools), a width as a count of lines — the same along the whole ribbon — and its lines, each with its tube. A painting has several. |
 | **Bundle** | The lines of one ribbon, running along its centre path. Every ribbon is its own bundle; there is no grid over the whole canvas. |
 | **N1, N2, N3** | The ribbons by their painting order; N4, N5 later. Each is a layer of its own. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
-| **Geometry** (NOLAN mode) | Black and white: white canvas, dark lines, the centre dashed, the anchors as squares to drag. No colour. |
-| **Palette** (NOLAN mode) | The preview: the lines in their tubes and the drop map, anchors hidden; **Black ground** and **Hand** live here (the owner, 2026-10-04). |
+| **Geometry · Palette** | The two modes of the first draft (2026-10-03), gone with its second row when the tab was built on Test (2026-10-04, §2). The board draws the lines dark on the white canvas; the colour preview and the drop map come back with the colours (§4). |
 | **Watercolour run** | NOLAN's first run of a layer, what used to be the pencil: the brush dips in a thin wash from the Ink cup and traces the ribbon, so the owner sees where to squeeze the paint. |
 | **Paint run** | NOLAN's main run: the paint squeezed onto the canvas by hand, the brush drags it along the lines. No cup. |
 | **One way · Snake** | The two ways of the Paint run: each line top to bottom with the return in the air; or down, a turn in the air, up the next line on the canvas. |
@@ -88,48 +87,55 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 
 ## 2. What the owner does on the tab
 
-**NOLAN** sits in the top row where Create was (§0.4), same two rows, same
-Braun look, same left tools (Pen, Arc, Select…). Keep it this simple.
+**The tab is built on Test** (the owner, 2026-10-04: "Stop. We are copying
+CREATE, which did not work for us. Let's go back to TEST as the base."):
+Test's board, the canvas placed from the cup (§3); Test's PROGRESS, keys,
+INK and sliders; Test's run. From Create only **the Tools on the left**
+("from CREATE we take the vertical menu on the left, the drawing icons").
+No second row: the first draft's format, modes and toggles are gone, the
+board's size is two numbers in the panel, as on Test ("Test solved it
+well, at the bottom of the panel on the right").
 
-**Two modes, one switch in the second row: Geometry | Palette** (the owner,
-2026-10-03: "geometry is better built in black and white — drag the
-squares, play with the form; colour is for the preview: how the colour will
-lie and which paints are needed").
+The panel, top to bottom:
 
-- **Geometry**: white canvas — the owner: "on white the geometry is easier"
-  — every line dark grey, a narrow groove between neighbours so the 8 mm
-  lines read one by one, the centre dashed orange, the anchors as squares;
-  the picked anchor filled orange. All shape editing happens here.
-- **Palette**: the same lines in their tubes, and the drop map (§4);
-  anchors hidden, nothing to drag. Two toggles here only: **Black ground** (everything outside the
-  ribbons black, as after his hand) and **Hand** (phase 2, §6: the G and A
-  zones).
+1. **PROGRESS**: the LCD, the sun and the moon; **PLAY · PAUSE / CONTINUE ·
+   • STOP · •• HARD STOP**, as on Test.
+2. **💾 SAVE NOLAN** — to the Library. It sits on the tests' shelf for now
+   (`rembrandt.py` knows paintings and tests); the Library opens it on NOLAN.
+3. **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
+   run (§5.1).
+4. Test's sliders, shared by all the ribbons as Test's go to all its
+   passes: **Rows** — the lines across a ribbon (`12 · 96 mm`); **Row to
+   row** — their pitch, 8 mm; **Wave**; **Brush on**; **Between rows**;
+   **Tail**; then **Board width · Board height** and **Lift at the turns**.
+   Test's Row length and Bow are not here: a ribbon's length and bends are
+   its drawn centre.
+5. **Reference**: under the canvas, the whole of it inside, at 45 %; the
+   round × on its picture takes it away (the owner, 2026-10-04).
 
-The reference sits under both modes, as on Create. The steps:
+Test's pattern keys (A B C, D1 D2 D3) and its X ↑ · Y → · ↻ rows are not
+drawn ("do not draw the buttons for now").
 
-1. **📎 Add new reference**, at 45 %, opacity slider — as on Create.
-2. **Draw a ribbon**: its centre with Pen and Arc, as the curve on Create.
-   The owner's paths (`nolan-images/IMG_9424-N1_N2_N3_paths.webp`): three
-   ribbons of 4–5 anchors — the upper arc, the middle one running to the
-   left loop, the lower loop. Every square or triangle on it is an anchor,
-   drawn by finger the Illustrator way (the owner, 2026-10-03).
-3. **Per ribbon** (Geometry): **Width**, one for the whole ribbon (the
-   owner, 2026-10-04), stepping by 8 mm — one line at a time; the readout
-   says both (`96 mm · 12 lines`).
-4. **Colours**: **Sample** fills every line of the ribbon with a tube from
-   the reference (§4); a click on a line changes its tube from *Tubes in
-   use*.
-5. **N1, N2, N3**: the ribbons are named by painting order and each is a
-   layer (the owner, 2026-10-03: "three arcs as three layers"). N1 is the
-   upper arc, N2 the lower loop, N3 the middle ribbon lying on top of both.
-   Dragging a ribbon in the list renames them in the new order. Their keys
-   latch as D1 · D2 · D3 on Test (the owner, 2026-10-04): one, two or all,
-   run in their order, **a pause between passes**. The owner presses
-   CONTINUE: in the Paint run once the layer below is dry, in the
-   Watercolour run at once. No timers.
-6. **Preview** in Palette (above).
-7. **💾 SAVE**, as on Create. The run starts from the tab itself, as on
-   Test (§5).
+On the board:
+
+1. **The owner's three ribbons** open by default (the owner, 2026-10-04: "I
+   would start these three ribbons by default"): his paths of
+   `nolan-images/IMG_9424-N1_N2_N3_paths.webp` — N1 the upper arc, N2 the
+   lower loop, N3 the middle ribbon lying over both. The house brings them
+   back.
+2. **Pen** and **Arc** draw a ribbon's centre, as the curve on Create; a
+   click on a ribbon's end goes on with it, elsewhere starts the next N.
+   **Select** drags a ribbon or its squares. ⌘Z undoes; Esc is STOP, as on
+   Test.
+3. **N1, N2, N3** are the ribbons by painting order, each a layer (the
+   owner, 2026-10-03: "three arcs as three layers"). They run in their
+   order, **a pause between them**: the owner presses CONTINUE — in the
+   Paint run once the layer below is dry, in the Watercolour run at once.
+   No timers. Keys to pick them, as D1 · D2 · D3 on Test, come later.
+
+Later, and where on the tab to settle with the owner: **Sample** (a tube
+for every stretch of every line from the reference, §4), the drop map, the
+colour preview with **Black ground** and **Hand** (§6).
 
 ---
 
@@ -176,7 +182,7 @@ The reference sits under both modes, as on Create. The steps:
   is its start in the brush's direction, not set by lightness. How one
   colour flows into the next — the blue into the lilac — is est. until
   tested on Test.
-- **The drop map**: Palette shows where every drop goes, its tube and its
+- **The drop map**: the colour preview shows where every drop goes, its tube and its
   length, so the owner squeezes them on the trace by it.
 - **Not tube by tube**: all the drops of a layer lie on the canvas before
   PLAY and the brush goes line by line through them (§5.2), so the
@@ -194,10 +200,9 @@ The reference sits under both modes, as on Create. The steps:
 
 Every layer (N1, N2, N3) is painted in two runs, Watercolour first, then
 Paint (the owner, 2026-10-03; the watercolour canon of Rembrandt.md §1,
-which replaced the pencil). A switch **WATERCOLOUR · PAINT** sits under the
-N keys, as INK sits on Test; the owner picks the run and the layers, then
-PLAY. The keys and PROGRESS as on Test: PLAY, PAUSE / CONTINUE, • STOP,
-•• HARD STOP.
+which replaced the pencil). The switch is **INK**, as on Test (the owner,
+2026-10-04): ON the Watercolour run, OFF the Paint run; then PLAY. The keys
+and PROGRESS as on Test: PLAY, PAUSE / CONTINUE, • STOP, •• HARD STOP.
 
 The Watercolour run only lays in the form, so **all three ribbons are
 traced together, first**, before any paint (the owner, 2026-10-04: "if the
@@ -244,7 +249,7 @@ Florian Markus does, by the drop map; **no cup in this run**. **All the
 drops of the layer go on before PLAY** (the owner, 2026-10-04: "yes, all
 correct"), as in `references/preview.webp`; the machine drags the brush
 through them line by line, with no pause between tubes. Two ways, a switch
-**ONE WAY · SNAKE**:
+**ONE WAY · SNAKE** — SNAKE for now, the switch with the keys later:
 
 - **ONE WAY**: every line top to bottom — from the ribbon's first anchor to
   its last — on the canvas; at the end the brush lifts and goes back to the
@@ -270,7 +275,7 @@ before writing it.
 
 ## 6. Phase 2, after the first ribbon painting: the hand map
 
-The **Hand** toggle of Palette shows these zones over the preview. The map
+A **Hand** toggle of the colour preview shows these zones over it. The map
 itself is a black-and-white sheet of the canvas, printable 1 : 1 in tiles or shown on a
 screen by the easel: closed zones the owner draws, each with a letter.
 
@@ -286,11 +291,10 @@ No machine moves. Not in phase 1.
 
 ## 7. Done when
 
-- The reference opens and the owner traces his three ribbons in under ten
-  minutes, in Geometry, by dragging squares.
-- Geometry ↔ Palette switches at once; anchors only in Geometry.
-- A width step adds or removes one line; the readout says mm and lines.
-- A moved anchor, a width or a tube updates the preview at once.
+- The tab opens with the three ribbons; the owner fits them to the
+  reference in under ten minutes, by dragging squares.
+- A Rows step adds or removes one line; the readout says mm and lines.
+- A moved square, a slider or a tube updates the board at once.
 - Sample fills the lines, a line changing tube along the ribbon; the drop
   map shows every drop; a muddy neighbour shows one ⚠.
 - Black ground preview works.

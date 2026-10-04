@@ -7,11 +7,12 @@
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
 </head>
-<body class="create nolan">
-<!-- Rembrandt · NOLAN — the ribbons, after nolan-images/IMG_9424.jpg, in
-     Create's place in the top row (the owner, 2026-10-04). Its task is
-     NOLAN.md. The first step: Geometry — the ribbons' centres with Pen and
-     Arc, their widths in 8 mm lines. Never touches the hardware yet. -->
+<body class="adjust arm3 nolan">
+<!-- Rembrandt · NOLAN — the ribbons, after nolan-images/IMG_9424.jpg (NOLAN.md),
+     in Create's place in the top row. Built on the Test tab (the owner,
+     2026-10-04: "we are copying CREATE, which did not work for us — let's go
+     back to TEST as the base"): its board on the canvas from the cup, its
+     PROGRESS, keys and sliders; from Create only the Tools on the left. -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -28,22 +29,6 @@
   </div>
   <div class="top-mid"></div>
 </header>
-<!-- The second row, centred as on Create: the format, the two modes, the
-     view toggles. -->
-<div class="bar2 center">
-  <label class="field">
-    <span>Format</span>
-    <select id="format"></select>
-  </label>
-  <div class="toggles" role="group" aria-label="Mode">
-    <button class="tog mode" data-mode="geometry" title="Black and white: drag the squares, play with the form">Geometry</button>
-    <button class="tog mode" data-mode="palette" title="The lines in their tubes and the drop map — the next step" disabled>Palette</button>
-  </div>
-  <div class="toggles">
-    <button class="tog" data-view="reference" title="The reference under the canvas">Reference</button>
-    <button class="tog" data-view="grid" title="Grid 10 mm">Grid</button>
-  </div>
-</div>
 
 <main>
   <nav class="tools" aria-label="Tools">
@@ -67,14 +52,45 @@
     <button class="tool" id="btnDefault" title="Open the owner's three ribbons: N1, N2, N3 of the sketch"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg></button>
   </nav>
 
-  <section class="stage" id="stage">
-    <div class="board" id="board">
-      <canvas id="paint"></canvas>
-      <canvas id="wire"></canvas>
-    </div>
+  <section class="stage t-pen" id="stage">
+    <div class="board" id="board"><canvas id="cv"></canvas></div>
   </section>
 
   <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <!-- the keys of Test: PLAY and one key for Pause and Continue, then STOP and HARD STOP -->
+      <div class="runkeys">
+        <button class="btn" id="btnDoJob" title="Run the ribbons on the machine">PLAY</button>
+        <button class="btn" id="btnPause" title="Pause the run; pressed, Continue goes on">PAUSE</button>
+      </div>
+      <div class="stops">
+        <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking">STOP</button>
+        <button class="btn danger" id="btnKill" title="Stop the carriage at once and the arm where it is">HARD STOP</button>
+      </div>
+    </section>
+
+    <div class="savebar">
+      <button class="btn save" id="btnSave" title="Save the ribbons in the Library, as a new one named by the date and time">💾 SAVE NOLAN</button>
+      <span class="save-state" id="saveState">to the Library</span>
+    </div>
+    <section class="sec">
+      <h3>Nolan</h3>
+      <!-- INK as on Test (the owner, 2026-10-04): ON, the Watercolour run — a dip in
+           the cup of the Ink tab before every line, the lines one way; OFF, the
+           Paint run — the paint on the canvas, each ribbon a snake -->
+      <div class="inkrow" title="ON: the brush dips in the cup of the Ink tab before every line, the lines one way, back to the cup after each, home at the end">
+        <span class="slh"><span>Ink</span></span>
+        <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
+      </div>
+      <div class="sliders" id="sliders"></div>
+      <div class="grid4" id="fields"></div>
+      <label class="inline check"><input id="lift" type="checkbox"> Lift at the turns: the brush up through every turn</label>
+      <p class="read" id="planRead"></p>
+    </section>
+
     <section class="sec">
       <h3>Reference <span class="hint">never painted as is</span></h3>
       <div class="refrow">
@@ -87,39 +103,13 @@
       </div>
       <input type="file" id="refIn" accept="image/*" hidden>
     </section>
-
-    <section class="sec">
-      <h3>Ribbons <span class="hint">by painting order</span></h3>
-      <div class="ribbons" id="ribbons"></div>
-      <p class="read">Draw a ribbon's centre with Pen (P); click its end to go on with it. Drag ⋮⋮ to change the order — the names follow it. The house opens the three of the sketch again.</p>
-    </section>
-
-    <section class="sec">
-      <h3>Ribbon <span class="val" id="rName"></span></h3>
-      <div class="math" id="ribbonBox"></div>
-    </section>
-
-    <section class="sec">
-      <h3>Lines <span class="hint">est.</span></h3>
-      <div class="math">
-        <table>
-          <tr><td>Width · apart</td><td class="r">8 mm · 8 mm</td></tr>
-          <tr><td>Inner corner radius</td><td class="r"><input id="cR" type="number" step="1" min="0" title="Every kink is rounded for the whole width; the inner line turns on this radius"> mm</td></tr>
-          <tr><td>All the ribbons</td><td class="r" id="allLines"></td></tr>
-        </table>
-        <div id="warn"></div>
-      </div>
-      <p class="read">Each line one stroke, one way (NOLAN.md §3). The width is a count of lines, the same along the whole ribbon.</p>
-    </section>
   </aside>
 </main>
 
 <footer class="status">
   <span id="hint"></span>
-  <span id="coords"></span>
   <span id="stats"></span>
 </footer>
-
 <script type="module" src="src/nolan.js"></script>
 </body>
 </html>

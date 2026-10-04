@@ -386,8 +386,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   status bar names both: `Canvas 500 × 700 · image area 568.5 × 865 · …`.
 - **NOLAN**, the first tab, in Create's place (2026-10-04): ribbons of
   8 mm strokes after `nolan-images/IMG_9424.jpg`, the ribbons N1 · N2 · N3,
-  a Watercolour run and a Paint run. Its task, its terms and the owner's
-  words are in `NOLAN.md`.
+  a Watercolour run and a Paint run. Built on Test — its board, PROGRESS,
+  keys, INK and sliders — with Create's Tools on the left (the owner,
+  2026-10-04: "let's go back to TEST as the base"). Its task, its terms and
+  the owner's words are in `NOLAN.md`.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

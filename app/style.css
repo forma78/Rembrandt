@@ -507,21 +507,9 @@ html.night .btn:hover{color:#fff}
 html.night .tool:hover{background:#303236}
 
 /* ---------- Rembrandt · NOLAN (2026-10-04) ----------
-   The ribbons by painting order as raised keys, the picked one pressed; the
-   grip drags one up or down and the names N1, N2, N3 follow. */
-.rrow{display:flex;align-items:center;gap:9px;margin:0 0 5px;padding:7px 9px;border-radius:9px;background:var(--key);box-shadow:var(--raise);cursor:pointer;font-size:12px}
-.rrow.on{background:var(--key-on);box-shadow:var(--press)}
-.rrow .grip{cursor:grab;color:var(--mute);letter-spacing:-2px;user-select:none}
-.rrow .rn{font:600 12px var(--mono);color:var(--orange);width:24px}
-.rrow .rw{flex:1;font:11.5px var(--mono);color:var(--ink)}
-.rrow .rl{font:11px var(--mono);color:var(--mute)}
-.rrow .x{border:0;background:none;color:var(--mute);font-size:14px;line-height:1;padding:0 4px;border-radius:8px}
-.rrow .x:hover{color:var(--ink);background:var(--well)}
-.rrow.dragging{opacity:.4}
-.rrow.drop-before{box-shadow:var(--raise),0 -2px 0 var(--orange)}
-.rrow.drop-after{box-shadow:var(--raise),0 2px 0 var(--orange)}
-.ribbons .none{margin:0;font-size:12px;color:var(--mute)}
-.wstep{display:inline-flex;align-items:center;gap:8px}
+   Test's page (body.adjust.arm3) with Create's Tools on the left; the pen's
+   cross on the board; a round × on the reference's picture. */
+.nolan .stage.t-pen #cv{cursor:crosshair}
 .nolan .refthumb{position:relative}
 .refdel{position:absolute;top:4px;right:4px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(36,34,31,.72);color:#fff;font-size:14px;line-height:20px;text-align:center;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
 .refdel:hover{background:#24221F}

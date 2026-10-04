@@ -112,7 +112,7 @@ function endDir(g) {
 }
 // A turn from E, going in direction t, to E + D: a half circle across, and
 // a straight line along t before it or back along it after, as D needs.
-function turn(E, t, D) {
+export function turn(E, t, D) {
   const n = dot(D, pt(-t.y, t.x)) > 0 ? pt(-t.y, t.x) : pt(t.y, -t.x);
   const r = dot(D, n) / 2, q = dot(D, t), out = [];
   let p = E;
@@ -129,14 +129,14 @@ function sweepOf(g) {
   while (s > 2 * Math.PI + 1e-9) s -= 2 * Math.PI;
   return s;
 }
-const pieceLen = g => g.t === 'L' ? Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) : g.r * sweepOf(g);
+export const pieceLen = g => g.t === 'L' ? Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) : g.r * sweepOf(g);
 function points(g, out) {
   if (g.t === 'L') { out.push(g.b); return; }
   const a0 = Math.atan2(g.a.y - g.c.y, g.a.x - g.c.x), s = sweepOf(g), n = Math.max(4, Math.ceil(s / 0.05));
   for (let i = 1; i <= n; i++) { const a = a0 + g.d * s * i / n; out.push(pt(g.c.x + g.r * Math.cos(a), g.c.y + g.r * Math.sin(a))); }
 }
 const shift = (g, v) => g.t === 'L' ? { ...g, a: add(g.a, v), b: add(g.b, v) } : { ...g, a: add(g.a, v), b: add(g.b, v), c: add(g.c, v) };
-const reverse = p => p.slice().reverse().map(g => g.t === 'L' ? { ...g, a: g.b, b: g.a } : { ...g, a: g.b, b: g.a, d: -g.d });
+export const reverse = p => p.slice().reverse().map(g => g.t === 'L' ? { ...g, a: g.b, b: g.a } : { ...g, a: g.b, b: g.a, d: -g.d });
 // turned by deg about Here; an arc keeps its way round
 const turnPt = (q, deg) => { const c = Math.cos(deg * Math.PI / 180), s = Math.sin(deg * Math.PI / 180); return pt(q.x * c - q.y * s, q.x * s + q.y * c); };
 const turned = (g, deg) => g.t === 'L' ? { ...g, a: turnPt(g.a, deg), b: turnPt(g.b, deg) } : { ...g, a: turnPt(g.a, deg), b: turnPt(g.b, deg), c: turnPt(g.c, deg) };
