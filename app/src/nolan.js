@@ -262,22 +262,23 @@ function drawImprint() {
   g.globalAlpha = 1;
 }
 // The run as it goes (Test's): where the carriage has been since PLAY —
-// orange where the brush paints, grey in the air: to the cup, between the
+// red where the brush paints, light blue in the air: to the cup, between the
 // pieces, home (the owner, 2026-10-04: "everything is orange; I would leave
-// grey what went through the air"). Each point says how the way to it went.
+// grey what went through the air"; then, the orange lost in Layers: "red on
+// the paper, light blue in the air"). Each point says how the way to it went.
 let trail = [], trailOf = null, RUN = null;   // RUN: the blocks PLAY sent
-const AIR = '#8E9196';
+const AIR = '#4FC3F7', PAPER = '#E5203A';   // light blue in the air, red on the paper: the orange was lost in Layers' N2 (the owner, 2026-10-04)
 function drawTrail() {
   if (!hereNow() || trail.length < 1) return;
   const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, last = trail.at(-1);
   g.save(); g.lineWidth = 1.2;
   for (let i = 1; i < trail.length;) {
     const air = trail[i].air;
-    g.strokeStyle = air ? AIR : '#EB7A25'; g.beginPath(); g.moveTo(msx(trail[i - 1]), msy(trail[i - 1]));
+    g.strokeStyle = air ? AIR : PAPER; g.beginPath(); g.moveTo(msx(trail[i - 1]), msy(trail[i - 1]));
     for (; i < trail.length && trail[i].air === air; i++) g.lineTo(msx(trail[i]), msy(trail[i]));
     g.stroke();
   }
-  if (last.live) { g.fillStyle = last.air ? AIR : '#EB7A25'; g.beginPath(); g.arc(msx(last), msy(last), 4, 0, Math.PI * 2); g.fill(); }
+  if (last.live) { g.fillStyle = last.air ? AIR : PAPER; g.beginPath(); g.arc(msx(last), msy(last), 4, 0, Math.PI * 2); g.fill(); }
   g.restore();
 }
 // A block of the run paints, or goes through the air (a travel, the dip, an arm, a wait, home).

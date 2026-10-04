@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the run's trace red on the paper, light blue in the air** (the
+  owner, 2026-10-04, `machine/2026-10-04 orange.png`: "the orange way
+  merges with Layers. I could set Geometry, but better make the way on the
+  paper red, and light blue in the air"). Orange and grey before.
 - **NOLAN: a red ! where the rows fold** (the owner, 2026-10-04: "turn the
   construction and there is a gap; on the 2D it must not be — the imprint
   must be smooth. I killed one point"; of the red "!" of NOLAN.md §3:
