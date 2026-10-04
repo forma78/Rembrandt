@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: INK shows the cup, as on Test** (the owner, 2026-10-04: "the INK
+  switch does not work — it must be as on TEST, so the target shows where the
+  cup of paint is"). The canvas lay only from the cup's two ruler numbers,
+  and `ink.json` has none yet: no Here, no scope, no dips. Now, as the Test
+  and Ink tabs do, the Test tab's own Here until the canvas is measured from
+  the cup; the cup's red scope, home and the brush's way in the air drawn
+  whenever INK is on. With that Here the 500 × 700 canvas reaches 124 mm
+  past the bottom wall: 16.2 m of the rows would be pressed along it. More
+  than 50 mm past the walls is said in red now, and PLAY asks.
 - **NOLAN: one Roll on the panel — the band's lever is Squeeze** (the owner,
   2026-10-04: "why do we need a glossary, if the panel has two Rolls? That
   is unprofessional, it does not happen"; "the second one — Squeeze?"). Roll
