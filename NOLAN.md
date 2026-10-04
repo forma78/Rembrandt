@@ -74,9 +74,11 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | term | meaning |
 |---|---|
 | **NOLAN** | The tab that paints ribbons (this file), in Create's place. The only tab where the hand works too (§0). |
-| **Ribbon** | One traced band of the reference: a centre path (lines and arcs, Create's tools), a width as a count of lines — the same along the whole ribbon — and its lines, each with its tube. A painting has several. |
+| **Ribbon** | One flat band in space along one centre curve, its lines parallel on it, each with its tube; the painting is one ribbon turned as a whole (§3.0, 2026-10-04). Before: a band traced flat on the canvas, a painting of several. |
+| **Roll** | The band's angle about its centre curve at a point: 0° flat, facing you — the lines open; 90° edge-on — they close up. The lever of the bundles (§3.0). |
+| **Imprint** | «Слепок», the owner's word: the ribbon in space projected onto the canvas, its hidden parts left out — what the machine paints (§3.0). |
 | **Bundle** | The lines of one ribbon, running along its centre path. Every ribbon is its own bundle; there is no grid over the whole canvas. |
-| **N1, N2, N3** | The ribbons by their painting order; N4, N5 later. Each is a layer of its own. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
+| **N1, N2, N3** | The layers by depth: a part of the ribbon lying over another part is painted after it, once that is dry (§3.0); N4, N5 if it piles higher. First the ribbons by their painting order. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
 | **Geometry · Palette** | The two modes of the first draft (2026-10-03), gone with its second row when the tab was built on Test (2026-10-04, §2). The board draws the lines dark on the white canvas; the colour preview and the drop map come back with the colours (§4). |
 | **Watercolour run** | NOLAN's first run of a layer, what used to be the pencil: the brush dips in a thin wash from the Ink cup and traces the ribbon, so the owner sees where to squeeze the paint. |
 | **Paint run** | NOLAN's main run: the paint squeezed onto the canvas by hand, the brush drags it along the lines. No cup. |
@@ -140,6 +142,41 @@ colour preview with **Black ground** and **Hand** (§6).
 ---
 
 ## 3. Geometry
+
+### 3.0 The ribbon in 3D (2026-10-04) — the look; §3's flat offsets below are the first draft
+
+On the Test-based tab the owner: the parallel lines "stand like idols, a
+rake; they do not gather into bundles", and a slider of "sausages" "does
+not reach international standards". He proposed 3D and an imprint of it,
+«слепок»: "the natural shape of bundles of lines that converge in one place
+and part in another". Then: "I was wrong about three independent donuts —
+let's make one construction that turns, something like IMG_9424 in shape."
+The model, from Claude in chat (`nolan-images/nolan-band-prototype.html`)
+and Claude in VS Code (`previous_research/nolan_3d_prototype.html`):
+
+- **One flat band along one centre curve in space** — a ribbon, not a tube.
+  The centre from anchors `{ x, y, z, roll }`: x, y on the canvas as the
+  owner draws them now, z the depth, roll the band's angle there; in plan
+  biarcs through them, lines and arcs as Pen and Arc draw; z and roll ease
+  between them.
+- **Roll is the lever**: flat (0°) the lines open, edge-on (90°) they close
+  up into a bundle. Twist adds half turns along the whole ribbon.
+- The lines lie on the band a pitch apart, and a little apart in depth too
+  (**Stack**): at a fold they fan like a deck of cards, as in IMG_9424.
+- **The whole construction turns, moves and zooms** — the composition. The
+  canvas is its **imprint**: orthographic, a lens for perspective.
+- **Depth decides what lies on top**: hidden parts are not painted; a part
+  lying over another is painted after it, once that is dry — the layers N1,
+  N2, N3 come from depth, not from a list.
+- **The band's back** is where the hand glazes go (zone G, §6).
+- **Red**: lines on the canvas closer than the brush. The owner's choice
+  there: merge the bundle, or keep the overlap as a light rim.
+- A ring — the first try's "donut" — can stay **a blank of the centre line**
+  the band is stretched on (Claude in chat).
+
+**The machine still gets flat lines and arcs: 3D lives only in the
+drawing.** Each visible piece of a line is fitted into lines and arcs
+(≤ 0.1 mm, Rembrandt.md §3), then Test's run (`plotRun`), as now.
 
 - **Bundles, not a grid** (the owner, 2026-10-03: "bundles, in
   principle"). Each ribbon's lines run along its own centre path, so the
