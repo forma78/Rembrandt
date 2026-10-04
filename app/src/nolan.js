@@ -23,7 +23,10 @@ const $ = s => document.querySelector(s);
 const KEY = 'rembrandt.nolan.v03', REF_KEY = 'rembrandt.nolan.ref';
 const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0', '#3D63D8', '#46A6EA', '#A6E3F8', '#EDE7F5'];   // IMG_9424's stripes, est. by eye
 const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#24221F'];
-const DRAG_STEP = 4, STEP = 1.5;   // mm between the centre's points: coarse while the mouse turns it
+const DRAG_STEP = 4, STEP = 1.5;
+// More than this past the walls is no longer a hair (Test's 2 mm of 2026-10-03):
+// the canvas lies partly out of reach, said in red and before PLAY.
+const PAST_MANY = 50;   // mm between the centre's points: coarse while the mouse turns it
 
 // ---------- state ----------
 const S = {
@@ -57,10 +60,19 @@ const view3 = () => ({ tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom,
 // ---------- the cup, and the canvas from it (Test's) ----------
 let INK = {};
 const cup = () => cupOf(INK);
+// The Test tab's own Here (this browser's settings of the Test tab), until
+// the canvas is measured from the cup — as the Test and Ink tabs do (the
+// owner, 2026-10-04: INK "as on TEST, so the target shows where the cup is").
+let TEST_HERE = null;
+function readTestHere() {
+  try { const t = JSON.parse(localStorage.getItem('rembrandt.test.v01') || '{}'); TEST_HERE = Number.isFinite(t.here?.x) && Number.isFinite(t.here?.y) ? { x: t.here.x, y: t.here.y } : null; } catch { TEST_HERE = null; }
+}
 async function loadInk() {
+  readTestHere();
   try { const r = await fetch('/ink', { cache: 'no-store' }); INK = r.ok ? await r.json() : {}; } catch { INK = {}; }
 }
-const hereNow = () => canvasFrom(INK, S.boardW, S.boardH);
+const fromCup = () => canvasFrom(INK, S.boardW, S.boardH);
+const hereNow = () => fromCup() || TEST_HERE;
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
 
 // ---------- the band, and the plan of its run ----------
@@ -143,13 +155,19 @@ function draw() {
   g.font = font(10); g.fillStyle = '#B3470C'; g.textAlign = 'left';
   g.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx([-hw]), sy([0, -hh]) - 6);
   const h = hereNow();
-  if (S.ink && h && PLAN && !busy) {                                                   // INK ON: the way in the air, the cup, home
+  if (S.ink && h) {                                                                    // INK ON, as on Test: the cup's red scope, home, the way in the air
     const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
-    g.save(); g.setLineDash([3, 4]); g.strokeStyle = themeColor('--mute', '#7D776D'); g.lineWidth = 1;
-    for (const [a, c] of PLAN.air) { g.beginPath(); g.moveTo(msx(a), msy(a)); g.lineTo(msx(c), msy(c)); g.stroke(); }
-    g.restore();
-    if (PLAN.cupAt) { const r = cup().diameter / 2 * k; drawCup(g, msx(PLAN.cupAt), msy(PLAN.cupAt), r); g.fillStyle = ink; g.fillText(`cup ⌀${cup().diameter}`, msx(PLAN.cupAt) + r * 1.7 + 4, msy(PLAN.cupAt) + 3); }
-    const hX = msx(PLAN.homeAt), hY = msy(PLAN.homeAt);
+    if (PLAN && !busy) {
+      g.save(); g.setLineDash([3, 4]); g.strokeStyle = themeColor('--mute', '#7D776D'); g.lineWidth = 1;
+      for (const [a, c] of PLAN.air) { g.beginPath(); g.moveTo(msx(a), msy(a)); g.lineTo(msx(c), msy(c)); g.stroke(); }
+      g.restore();
+    }
+    const c = dipCup();
+    if (Number.isFinite(c.x) && Number.isFinite(c.y)) {
+      const at = { x: c.x - h.x, y: c.y - h.y }, r = (cup().diameter || 50) / 2 * k;
+      drawCup(g, msx(at), msy(at), r); g.fillStyle = ink; g.textAlign = 'left'; g.fillText(`cup ⌀${cup().diameter || 50}`, msx(at) + r * 1.7 + 4, msy(at) + 3);
+    }
+    const hc = homeCorner(), home = { x: hc.x - h.x, y: hc.y - h.y }, hX = msx(home), hY = msy(home);
     g.strokeStyle = ink; g.lineWidth = 1.2; g.strokeRect(hX - 4, hY - 4, 8, 8); g.fillStyle = ink; g.fillText('home', hX + 8, hY - 6);
   }
   if (showPoints()) {                                                                  // the points: squares where they lie now
@@ -386,9 +404,10 @@ function settle() {
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
     + (inkWhy ? ` <span class="warn">${inkWhy}</span>` : '')
     + (P_.need > WRIST_MAX ? ` <span class="warn">The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.</span>` : '')
-    + (P_.pastWall > 0.05 ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
+    + (P_.pastWall > PAST_MANY ? ` <span class="warn">${fmt(P_.pastWall / 1000, 1)} m of the rows lie past the machine's walls and would be pressed along them: the canvas lies partly out of reach — measure it from the cup on the Ink tab, or move the ribbon.</span>`
+      : P_.pastWall > 0.05 ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
     + (walls() ? ` <span class="warn">${walls()}</span>` : '')
-    + (here ? ` · The canvas's centre, from the cup: carriage <b>X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)} mm</b>.`
+    + (here ? ` · The canvas's centre, ${fromCup() ? 'from the cup' : 'the Test tab\'s Here — until the canvas is measured from the cup on the Ink tab'}: carriage <b>X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)} mm</b>.`
       : ' <span class="warn">Where the canvas lies: measure it from the cup on the Ink tab — its left edge and its bottom edge, two ruler numbers.</span>');
   $('#stats').textContent = `${P_.blocks.length} steps · ${P_.passes.join(' + ') || 'nothing to paint'} · ${S.anchors.length} points`;
   showPanel(); save(); layout(); lastLcd && lcd(lastLcd);
@@ -491,7 +510,8 @@ $('#btnDoJob').onclick = async () => {
   if (!P_.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to paint.</span>'; return; }
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
-  if (!confirm(`${P_.passes.join(' + ')}: ${P_.rows.length} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`)) return;
+  if (!confirm(`${P_.passes.join(' + ')}: ${P_.rows.length} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`
+    + (P_.pastWall > PAST_MANY ? `\n\n${fmt(P_.pastWall / 1000, 1)} m of them lie past the machine's walls and will be pressed along them.` : ''))) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P_.blocks,
       log: { page: 'nolan', label: nolanLabel(), settings: S, here: hereNow(), fromCup: INK.canvas, ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) } }) });   // the run journal, rembrandt.py
