@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The repo is public** (the owner, 2026-10-04: "I opened it for Claude in
+  chat. You may push, I allow it, and leave it public"). README's working
+  rule and NOLAN.md say so; nothing is pushed without his word still.
 - **NOLAN: the run's trace grey in the air, orange on the canvas** (the
   owner, 2026-10-04: "the trajectories are unclear — the lines from the cup
   through the air and those the brush painted are all orange; I would leave

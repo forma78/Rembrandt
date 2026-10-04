@@ -93,6 +93,8 @@ the USB board: close RUBENS (port 8766) first.
   `rembrandt.py`, the contract with the firmware.
 - **Small commits**, one change each, with a line in `CHANGELOG.md`.
   An owner decision is recorded with its date and his words, in English.
-- **Rembrandt is private.** The RUBENS repo is public; this one is not. The
-  owner, 2026-10-01: "Private on git: this is strategic development at the
-  Art Basel level." Nothing is pushed without the owner's word.
+- **Rembrandt is public on GitHub**, as RUBENS is, since 2026-10-04 (the
+  owner: "I opened it for Claude in chat. You may push, I allow it, and
+  leave it public"). Private before (2026-10-01: "Private on git: this is
+  strategic development at the Art Basel level"). Nothing is pushed without
+  the owner's word.
