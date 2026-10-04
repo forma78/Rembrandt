@@ -76,6 +76,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | **NOLAN** | The tab that paints ribbons (this file), in Create's place. The only tab where the hand works too (§0). |
 | **Ribbon** | One flat band in space along one centre curve, its lines parallel on it, each with its tube; the painting is one ribbon turned as a whole (§3.0, 2026-10-04). Before: a band traced flat on the canvas, a painting of several. |
 | **Roll** | The band's angle about its centre curve at a point: 0° flat, facing you — the lines open; 90° edge-on — they close up. The lever of the bundles (§3.0). |
+| **Squeeze** | The whole band's lever, beside each point's Roll: it presses the band towards edge-on (+, the bundles close up) or towards flat (−, they open); a slanted place moves most, a flat one stays flat (the owner, 2026-10-04: "why a glossary, if the panel has two Rolls? That is unprofessional — the second one, Squeeze?"). |
 | **Imprint** | «Слепок», the owner's word: the ribbon in space projected onto the canvas, its hidden parts left out — what the machine paints (§3.0). |
 | **Bundle** | The lines of one ribbon, running along its centre path. Every ribbon is its own bundle; there is no grid over the whole canvas. |
 | **N1, N2, N3** | The layers by depth: a part of the ribbon lying over another part is painted after it, once that is dry (§3.0); N4, N5 if it piles higher. First the ribbons by their painting order. Named N so as not to be taken for the D passes of the Test tab (the owner, 2026-10-04). |
@@ -110,7 +111,7 @@ The panel, top to bottom:
    band's back darker for the glazes; what lies over what; what the machine
    paints — the visible pieces, their tails thinning.
 5. The band: **Rows** (first), **Row to row**, **Row width**, **Stack**,
-   **Twist**, **Roll** (all of it).
+   **Twist**, **Squeeze** — Roll is a point's alone (glossary).
 6. The ribbon in space: **Rotate X**, **Rotate Y**, **↻**, **Size**, **X ↑**,
    **Y →**, **Lens**; *Face the canvas*; *Paste a shape* (from the
    prototype's *Copy the shape*).

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layersOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, DIP_RUN } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layersOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
-const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, roll: 0 };
+const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
 const line = (z = 0, roll = 0) => [{ x: -150, y: 0, z, roll }, { x: 0, y: 0, z, roll }, { x: 150, y: 0, z, roll }];
 
 test('the centre runs through its anchors, depth and roll there as set', () => {
@@ -85,7 +85,7 @@ test('the Watercolour run: a dip every dip run, the next landing where the tail 
 });
 
 test("the owner's ribbon runs: layers in order, a pause between, no gaps in the paint", () => {
-  const o = { rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, roll: 0 };
+  const o = { rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0 };
   const b = bandOf(SKETCH, o), lay = layersOf(b), imp = imprintOf(b, lay, o);
   assert.ok(Math.max(...lay) >= 2, 'the big band lies over the loop');
   assert.ok(imp.red < 0.5);
@@ -106,4 +106,23 @@ test("the owner's ribbon runs: layers in order, a pause between, no gaps in the 
   assert.ok(Math.abs(run.length - imp.total) / imp.total < 0.01, `painted ${run.length} of ${imp.total} mm`);
   assert.equal(rows.length, passes.reduce((a, p) => a + p.ps.length, 0));
   assert.equal(ringBlank().length, 13);
+});
+
+test('Squeeze: the whole band towards edge-on (+) or flat (−), nothing jumping along it', () => {
+  assert.equal(squeezed(30, 0), 30);
+  assert.ok(squeezed(30, 100) > 85 && squeezed(30, 100) < 90, 'nearly edge-on');
+  assert.ok(Math.abs(squeezed(30, 50) - 49.1) < 0.1, 'tan 30° doubled');
+  assert.ok(squeezed(170, 100) > 90 && squeezed(170, 100) < 100, 'its back closes the other way round');
+  assert.ok(squeezed(200, 100) > 265 && squeezed(200, 100) < 270, 'in the same turn');
+  assert.ok(Math.abs(squeezed(30, -100)) < 1 && Math.abs(squeezed(120, -100) - 180) < 2, 'opened flat');
+  assert.ok(Math.abs(squeezed(0, 80)) < 1e-9, 'flat stays flat');
+  assert.ok(Math.abs(squeezed(90, -80) - 90) < 1e-9, 'edge-on stays edge-on');
+  for (const pct of [-90, -40, 40, 90]) for (let d = -360; d < 360; d += 0.5) {
+    assert.ok(Math.abs(squeezed(d + 0.5, pct) - squeezed(d, pct)) < 40, `a jump at ${d}° with ${pct} %`);
+  }
+  const o = { rows: 6, pitch: 8, width: 5, stack: 0, twist: 0 };
+  assert.ok(Math.max(...bandOf(line(0, 30), { ...o, squeeze: 100 }).pitch) < 0.5, 'a level band nearly edge-on: the bundle closed');
+  // a band climbing in depth cannot stand quite edge-on to you: it closes as far as it can
+  const apart = q => bandOf(SKETCH, { ...o, squeeze: q }).pitch.reduce((a, v) => a + v, 0);
+  assert.ok(apart(100) < apart(50) && apart(50) < apart(0) && apart(0) < apart(-50) && apart(-50) < apart(-100), 'the more Squeeze, the closer the rows');
 });
