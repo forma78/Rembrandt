@@ -37,6 +37,7 @@ const S = {
   speed: 150, travel: 180, tail: 15, overlap: 4, ink: false,                      // the brush, as on Test (est.); overlap: under another part, mm (est.)
   off: [],                                                                        // the layers switched off: N1 · N2 · N3 latch as D1 · D2 · D3 on Test
   cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
+  through: false,                                                                 // Pass through: the rows run whole over and under the other parts
   boardW: 500, boardH: 700,
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
@@ -48,6 +49,7 @@ function load() {
     for (const k of NUM) if (Number.isFinite(o[k])) S[k] = o[k];
     S.tail = tailIn(S.tail);                                                       // a save from before, Tail up to 200 (strokes.js)
     if (typeof o.ink === 'boolean') S.ink = o.ink;
+    S.through = o.through === true;
     if (Array.isArray(o.off)) S.off = o.off.filter(Number.isInteger);
     S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
     for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
@@ -94,12 +96,12 @@ let PLAN = null, planKey = '', busy = false;
 const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], folds: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 function plan() {
   if (busy && PLAN) return PLAN;
-  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off, S.cuts, S.overlap]);
+  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off, S.cuts, S.overlap, S.through]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
   const b = band(STEP);
   if (!b) { PLAN = EMPTY; return PLAN; }
-  const L = layeredOf(b, { width: S.width, cuts: S.cuts, overlap: S.overlap }), lay = L.lay, imp = L.imp;   // the layers: stretches between the cuts
+  const L = layeredOf(b, { width: S.width, cuts: S.cuts, overlap: S.overlap, through: S.through }), lay = L.lay, imp = L.imp;   // the layers: stretches between the cuts
   const all = bandPasses(imp.runs, { ink: S.ink, tail: S.tail }), rows = all.rows;
   // the layers that run: those not switched off — all of them, if the ribbon changed and left none on
   const on = all.passes.filter(p => !S.off.includes(+p.key.slice(1))), passes = on.length ? on : all.passes;
@@ -600,13 +602,16 @@ function showPanel() {
 const layersNow = () => PLAN?.imp ? Object.keys(PLAN.imp.byLayer).map(Number).sort((a, b2) => a - b2) : [];
 // Uncut: no cuts at all, the ribbon one layer (the owner, 2026-10-04: "what if
 // we add an option Uncut and do not cut at all?") — the suggested cuts lay on
-// the pinches, and every row ended there.
+// the pinches, and every row ended there. Pass through, after it, latches on
+// its own: nothing hides (the owner, the same night: "maybe let it run
+// straight through? Let's add a key after Uncut, Pass through").
 const uncut = () => Array.isArray(S.cuts) && !S.cuts.length;
 function showLayers() {
   const lays = layersNow(), runs = l => (PLAN?.passes || []).includes(`N${l}`);
   const html = lays.map(l => `<button class="tog${runs(l) ? ' on' : ''}" data-layer="${l}" title="N${l}: ${fmt(PLAN.imp.byLayer[l] / 1000, 1)} m, painted ${l > 1 ? `after N${l - 1}` : 'first'} — on or off; the layers on run in their order, a pause between them">N${l}</button>`).join('')
     + (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts?.length ? ' — yours are set by hand now' : ''}; the Cut tool on the left moves them">Auto</button>`
-      + `<button class="tog cutkey${uncut() ? ' on' : ''}" data-uncut title="No cuts: the ribbon in one layer, every row whole from end to end, broken only where another part lies over it — one pass, no pause for the dry; the Cut tool cuts it again">Uncut</button>` : '');
+      + `<button class="tog cutkey${uncut() ? ' on' : ''}" data-uncut title="No cuts: the ribbon in one layer, every row whole from end to end, broken only where another part lies over it — one pass, no pause for the dry; the Cut tool cuts it again">Uncut</button>`
+      + `<button class="tog cutkey through${S.through ? ' on' : ''}" data-through title="Pass through, on or off: nothing hides — every row runs whole over and under the other parts of the ribbon, as through glass">Pass through</button>` : '');
   const el = $('#layerKeys');
   if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
   el.hidden = !lays.length;
@@ -614,6 +619,7 @@ function showLayers() {
 $('#layerKeys').onclick = e => {
   if (e.target.closest('[data-cuts]')) { if (S.cuts) { undoPush(); S.cuts = null; S.off = []; pickCut = -1; settle(); } return; }
   if (e.target.closest('[data-uncut]')) { if (!uncut()) { undoPush(); S.cuts = []; S.off = []; pickCut = -1; settle(); } return; }
+  if (e.target.closest('[data-through]')) { S.through = !S.through; settle(); return; }
   const b2 = e.target.closest('[data-layer]');
   if (!b2) return;
   const l = +b2.dataset.layer, on = layersNow().filter(x => (PLAN?.passes || []).includes(`N${x}`));

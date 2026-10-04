@@ -328,6 +328,8 @@ test('a twist hides none of its own rows: each row runs through it in one piece'
   // another part lying over still hides: the ribbon crossing itself
   const cross = [{ x: -150, y: 0, z: 0, roll: 0 }, { x: 150, y: 0, z: 0, roll: 0 }, { x: 150, y: 150, z: 10, roll: 0 }, { x: 0, y: 150, z: 20, roll: 0 }, { x: 0, y: -150, z: 40, roll: 0 }];
   assert.ok(layeredOf(bandOf(cross, { ...o, twist: 0, tilt: 0, swing: 0 }), { width: 4, cuts: [] }).imp.runs.length > 17, 'the crossing parts the rows under it');
+  // Pass through (the owner, 2026-10-04: "maybe let it run straight through?"): nothing hides
+  assert.equal(layeredOf(bandOf(cross, { ...o, twist: 0, tilt: 0, swing: 0 }), { width: 4, cuts: [], through: true }).imp.runs.length, 17, 'Pass through: every row whole');
 });
 
 // The owner, 2026-10-04: "I want to see on the screen more exactly what I paint
