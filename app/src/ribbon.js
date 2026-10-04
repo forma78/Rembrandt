@@ -7,8 +7,10 @@
 // Units as everywhere: pt, 1 pt = 25.4/72 mm. No DOM here.
 
 import { PT_MM } from './config.js';
+import { P } from './util.js';
 import { filleted, offsetSegs } from './fillet.js';
 import { pathLength } from './bands.js';
+import { buildCurve } from './curve.js';
 
 export const PITCH_MM = 8;      // the lines' centres apart, and their width (Rembrandt.md §3)
 export const MIN_LINES = 1;
@@ -46,3 +48,22 @@ export const linesLength = L => L.lines.reduce((a, l) => a + pathLength(l.segs),
 
 // The ribbons by painting order: N1, N2, N3 … (NOLAN.md §1).
 export const ribbonName = i => `N${i + 1}`;
+
+// The owner's three ribbons, the tab's default (the owner, 2026-10-04: "I
+// would start these three ribbons by default"): his green paths of
+// nolan-images/IMG_9424-N1_N2_N3_paths.webp — IMG_9424 at 0.7475, 238 px
+// down — in mm on the 500 × 700 canvas, IMG_9424 fitted whole inside it.
+// Lines and arcs as turtle steps (curve.js): start, heading (degrees,
+// clockwise), then ['L', mm] or ['R' | 'T', radius mm, degrees]. N1 the
+// upper arc, its hook wider than the sketch's so 96 mm of lines turn
+// without folding and stay on the canvas; N2 the lower loop; N3 the middle
+// ribbon lying over both.
+const SKETCH = [
+  { n: 12, at: [107, 318], dir: -88, ops: [['L', 30], ['R', 115, 88], ['L', 25], ['R', 95, 80], ['L', 50], ['T', 50, 230]] },
+  { n: 12, at: [377, 368], dir: 100, ops: [['L', 80], ['R', 70, 100], ['L', 40], ['R', 60, 45]] },
+  { n: 14, at: [62, 342], dir: 95, ops: [['L', 10], ['T', 60, 95], ['L', 40], ['T', 80, 65], ['L', 95]] },
+];
+export const sketchRibbons = () => SKETCH.map(s => ({
+  n: s.n,
+  segs: buildCurve(P(pt(s.at[0]), pt(s.at[1])), s.dir, s.ops.map(([op, a, b]) => [op, pt(a), b])),
+}));

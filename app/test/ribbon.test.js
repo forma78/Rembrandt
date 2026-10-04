@@ -4,7 +4,7 @@ import { PT_MM } from '../src/config.js';
 import { P, dist } from '../src/util.js';
 import { segStart, segEnd } from '../src/geometry.js';
 import { buildCurve } from '../src/curve.js';
-import { ribbonLines, lineOffset, widthLabel, clampLines, ribbonWidth, linesLength, ribbonName, MAX_LINES } from '../src/ribbon.js';
+import { ribbonLines, lineOffset, widthLabel, clampLines, ribbonWidth, linesLength, ribbonName, sketchRibbons, MAX_LINES } from '../src/ribbon.js';
 
 const pt = mm => mm / PT_MM;
 const mm = v => v * PT_MM;
@@ -64,4 +64,18 @@ test('an arc drawn tighter than half the ribbon is marked', () => {
 
 test('no centre, no lines', () => {
   assert.deepEqual(ribbonLines(ribbon([], 12), 10), { centre: [], warn: [], lines: [] });
+});
+
+test("the owner's three ribbons: on the 500 × 700 canvas, no bend too tight", () => {
+  const rs = sketchRibbons();
+  assert.deepEqual(rs.map(r => r.n), [12, 12, 14]);
+  for (const [i, r] of rs.entries()) {
+    const L = ribbonLines({ id: 'sketch' + i, ...r }, 10);
+    assert.equal(L.warn.length, 0, `${ribbonName(i)} has a bend too tight`);
+    joined(L.centre);
+    for (const l of L.lines) for (const g of l.segs) {
+      const pts = g.t === 'L' ? [g.a, g.b] : Array.from({ length: 33 }, (_, j) => P(g.c.x + g.r * Math.cos(g.a0 + g.s * j / 32), g.c.y + g.r * Math.sin(g.a0 + g.s * j / 32)));
+      for (const q of pts) assert.ok(mm(q.x) > 0 && mm(q.x) < 500 && mm(q.y) > 0 && mm(q.y) < 700, `${ribbonName(i)} runs off the canvas at ${mm(q.x).toFixed(0)}, ${mm(q.y).toFixed(0)} mm`);
+    }
+  }
 });
