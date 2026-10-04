@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layersOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -45,15 +45,22 @@ const loop = [
   { x: -160, y: 40, z: -40, roll: 0 }, { x: 60, y: 40, z: -30, roll: 0 }, { x: 120, y: -60, z: 0, roll: 0 },
   { x: 20, y: -140, z: 20, roll: 0 }, { x: -40, y: -60, z: 40, roll: 0 }, { x: -20, y: 120, z: 60, roll: 0 },
 ];
-test('where the band crosses itself, the near part is a layer up and covers the far one', () => {
-  const b = bandOf(loop, { ...flat, rows: 4 }), lay = layersOf(b);
-  assert.equal(Math.max(...lay), 2);
-  const near = lay.findIndex(l => l === 2);
-  assert.ok(b.M[near][2] > 0, 'the part lying over is the near one');
-  const imp = imprintOf(b, lay, { width: 5 });
-  assert.ok(imp.byLayer[1] > 0 && imp.byLayer[2] > 0);
-  // the far part has a gap where the near one crosses it: more runs than rows
-  assert.ok(imp.runs.length > 4);
+test('where the band crosses itself it is cut there, along it; the stretch lying over is painted after', () => {
+  const b = bandOf(loop, { ...flat, rows: 4 }), L = layeredOf(b, { width: 5 });
+  assert.equal(L.cuts.length, 1, 'one cut, where the far part goes under');
+  assert.ok(L.auto);
+  const [a, z] = L.stretches.sort((p, q) => p.s0 - q.s0);
+  assert.ok(Math.abs(a.s1 - L.cuts[0]) < 2 && z.s0 >= L.cuts[0], 'two stretches, one each side of the cut');
+  // each stretch one layer, the far one first: a stretch's own depth decides
+  const depth = st => { let d = 0; for (let i = st.i0; i <= st.i1; i++) d += b.M[i][2]; return d / (st.i1 - st.i0 + 1); };
+  const [far, near] = depth(a) < depth(z) ? [a, z] : [z, a];
+  assert.equal(far.layer, 1); assert.equal(near.layer, 2);
+  for (let i = 0; i < b.n - 1; i++) assert.equal(L.lay[i], b.s[i] < L.cuts[0] ? a.layer : z.layer);
+  assert.ok(L.imp.byLayer[1] > 0 && L.imp.byLayer[2] > 0);
+  assert.ok(L.imp.runs.length > 4, 'the far part has a gap where the near one crosses it');
+  // the owner's own cut: kept as given
+  const own = layeredOf(b, { width: 5, cuts: [100] });
+  assert.deepEqual(own.cuts, [100]); assert.equal(own.auto, false);
 });
 
 test('a run fitted into lines and arcs: within 0.1 mm, joined, the tangent continuous', () => {
@@ -86,11 +93,11 @@ test('the Watercolour run: a dip every dip run, the next landing where the tail 
 
 test("the owner's ribbon runs: layers in order, a pause between, no gaps in the paint", () => {
   const o = { rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0 };
-  const b = bandOf(SKETCH, o), lay = layersOf(b), imp = imprintOf(b, lay, o);
-  assert.ok(Math.max(...lay) >= 2, 'the big band lies over the loop');
+  const b = bandOf(SKETCH, o), L = layeredOf(b, o), imp = L.imp;
+  assert.ok(L.cuts.length >= 1, 'the big band lies over the loop: cut');
   assert.ok(imp.red < 0.5);
   const { passes, rows } = bandPasses(imp.runs, { tail: 70 });
-  assert.deepEqual(passes.map(p => p.key), ['N1', 'N2']);
+  assert.deepEqual(passes.map(p => p.key), L.stretches.map((_, j) => `N${j + 1}`), 'a pass a layer, in their order');
   assert.match(passes[1].why, /N2.*over N1.*dry/);
   const run = plotRun({ ...DEFAULTS, snake: true, pause: false, lift: false, tail: 70, speed: 150, travel: 180 }, passes);
   // no arc ends where it starts: the board would run it as a full circle
@@ -101,7 +108,7 @@ test("the owner's ribbon runs: layers in order, a pause between, no gaps in the 
     if (t[0] === 'A') { const q = [+t[3], +t[4]]; if (pos && Math.hypot(q[0] - pos[0], q[1] - pos[1]) < 0.02) circles++; pos = q; }
   }
   assert.equal(circles, 0);
-  assert.equal(run.blocks.filter(x => x.kind === 'pause').length, 1);
+  assert.equal(run.blocks.filter(x => x.kind === 'pause').length, passes.length - 1, 'a pause between the layers');
   assert.ok(run.blocks.every(x => !(x.cmds || []).some(c => /NaN|undefined|Infinity/.test(c))));
   assert.ok(Math.abs(run.length - imp.total) / imp.total < 0.01, `painted ${run.length} of ${imp.total} mm`);
   assert.equal(rows.length, passes.reduce((a, p) => a + p.ps.length, 0));
@@ -139,7 +146,7 @@ const RUN_1258 = {
   cup: { x: 390.18, y: 0.1, est: {}, diameter: 50, height: 20, rim: 30, dip: -3, dwell: 1 },
 };
 const planOf = (R, extra = {}) => {
-  const b = bandOf(R.anchors, R.band), lay = layersOf(b), imp = imprintOf(b, lay, { width: R.band.width });
+  const b = bandOf(R.anchors, R.band), imp = layeredOf(b, { width: R.band.width, cuts: extra.cuts }).imp;
   const { passes } = bandPasses(imp.runs, { ink: true, tail: 155 });
   return { passes, run: plotRun({ ...DEFAULTS, speed: 137, travel: 180, tail: 155, lift: false, ink: true, snake: true, pause: false, here: R.here, cup: R.cup, ...extra }, passes) };
 };
@@ -201,7 +208,29 @@ test('INK ON: no dip before a piece under NO_DIP mm; a layer starts on its first
       if (!want) short++;
     });
   });
-  assert.ok(short > 100, `${short} pieces without a dip`);
+  assert.ok(short > 40, `${short} pieces without a dip`);   // 110 under 50 mm when the depth broke the rows into patches
   assert.equal(run.dips, drawn.size - short);
   assert.equal(planOf(RUN_1258).run.dips, drawn.size, 'without the rule a dip before every piece');
+});
+
+// The owner, 2026-10-04 (machine/layers selected.png, layers how to cut.png):
+// the layers are whole bundles, stretches of the ribbon cut along it — four
+// on the first run's ribbon, cut where it turns over at the top left, at the
+// pinch and at the right tip.
+test('the layers of the first run\'s ribbon: four stretches, cut as the owner drew them', () => {
+  const b = bandOf(RUN_1258.anchors, RUN_1258.band), L = layeredOf(b, { width: RUN_1258.band.width });
+  const at = L.cuts.map(v => v / b.L * 100);
+  assert.equal(at.length, 3);
+  for (const [got, want] of at.map((v, j) => [v, [20, 54, 75][j]])) assert.ok(Math.abs(got - want) < 2.5, `a cut at ${got.toFixed(1)} %, ${want} % wanted`);
+  // painted under first: the loop at the end, the left side, the fan at the start, the middle band over them all
+  const byPlace = L.stretches.slice().sort((p, q) => p.s0 - q.s0).map(st => st.layer);
+  assert.deepEqual(byPlace, [3, 2, 4, 1]);
+  // a run keeps to its stretch: it never crosses a cut
+  for (const r of L.imp.runs) {
+    const s0 = b.s[r.i0], s1 = b.s[r.i0 + r.pts.length - 1];
+    assert.ok(L.cuts.every(c => !(s0 < c && s1 > c)), `row ${r.k + 1} crosses a cut`);
+  }
+  for (const l of [1, 2, 3, 4]) assert.ok(L.imp.byLayer[l] > 5000, `N${l}: ${Math.round(L.imp.byLayer[l])} mm`);
+  // the suggestion alone, from the imprint
+  assert.deepEqual(cutsOf(b, imprintOf(b, null, { width: RUN_1258.band.width })), L.cuts);
 });

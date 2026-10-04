@@ -13,7 +13,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layersOf, imprintOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
@@ -22,7 +22,7 @@ import './ui.js';
 const $ = s => document.querySelector(s);
 const KEY = 'rembrandt.nolan.v03', REF_KEY = 'rembrandt.nolan.ref';
 const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0', '#3D63D8', '#46A6EA', '#A6E3F8', '#EDE7F5'];   // IMG_9424's stripes, est. by eye
-const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#24221F'];
+const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#3FA7A0', '#B04FC4'];   // N1 … N5 on Layers
 const DRAG_STEP = 4, STEP = 1.5;
 const OFF_ALPHA = 0.18, OFF_HEX = '2E';   // a layer switched off, on the board: faint
 // More than this past the walls is no longer a hair (Test's 2 mm of 2026-10-03):
@@ -36,6 +36,7 @@ const S = {
   tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
   speed: 150, travel: 180, tail: 70, ink: false,                                  // the brush, as on Test (est.)
   off: [],                                                                        // the layers switched off: N1 · N2 · N3 latch as D1 · D2 · D3 on Test
+  cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
   boardW: 500, boardH: 700,
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
@@ -47,6 +48,7 @@ function load() {
     for (const k of NUM) if (Number.isFinite(o[k])) S[k] = o[k];
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (Array.isArray(o.off)) S.off = o.off.filter(Number.isInteger);
+    S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
     for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen']]]) if (ok.includes(o[k])) S[k] = o[k];
     const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
     if (A.length >= 2) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
@@ -88,21 +90,21 @@ function band(step) {
 // The slow part — what lies over what, the imprint, its fitting, Test's run —
 // waits while the mouse turns the ribbon or a slider moves.
 let PLAN = null, planKey = '', busy = false;
-const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
+const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 function plan() {
   if (busy && PLAN) return PLAN;
-  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off]);
+  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off, S.cuts]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
   const b = band(STEP);
   if (!b) { PLAN = EMPTY; return PLAN; }
-  const lay = layersOf(b), imp = imprintOf(b, lay, { width: S.width });
+  const L = layeredOf(b, { width: S.width, cuts: S.cuts }), lay = L.lay, imp = L.imp;   // the layers: stretches between the cuts
   const all = bandPasses(imp.runs, { ink: S.ink, tail: S.tail }), rows = all.rows;
   // the layers that run: those not switched off — all of them, if the ribbon changed and left none on
   const on = all.passes.filter(p => !S.off.includes(+p.key.slice(1))), passes = on.length ? on : all.passes;
   const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), noDipUnder: NO_DIP };
   // rows: every piece of every layer, by its number (the LCD finds a block's there); pieces: those that run
-  PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, opts: o };
+  PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, cuts: L.cuts, stretches: L.stretches, opts: o };
   return PLAN;
 }
 
@@ -146,10 +148,11 @@ function draw() {
   g.fillStyle = themeColor('--stage', '#E2DED6'); g.fillRect(0, 0, W, H);   // the table
   g.fillStyle = ground; g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k);
   g.lineCap = 'round'; g.lineJoin = 'round';
-  const b = band(busy ? DRAG_STEP : STEP);
+  const b = band(busy && drag?.mode !== 'cut' ? DRAG_STEP : STEP);                // a cut dragged: the ribbon as it is
   if (b) {
     if (S.look === 'imprint' && !busy) drawImprint();
     else drawBand(b, black, ground);
+    if (S.look === 'layers') drawCuts(b, black);
   }
   if (REF && S.refOpacity > 0) {                                                       // the reference as tracing paper
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
@@ -189,7 +192,7 @@ function draw() {
 // Geometry, Colour, Layers: the band far to near, each piece covering what
 // lies behind it, then its rows.
 function drawBand(b, black, ground) {
-  const lay = S.look === 'layers' ? (busy ? null : plan().lay) : null;
+  const lay = S.look === 'layers' ? (busy ? (drag?.mode === 'cut' ? PLAN?.lay : null) : plan().lay) : null;
   for (const q of b.quads) {
     const i = q.i;
     g.beginPath(); q.poly.forEach((p, j) => j ? g.lineTo(sx(p), sy(p)) : g.moveTo(sx(p), sy(p))); g.closePath();
@@ -202,6 +205,29 @@ function drawBand(b, black, ground) {
       g.beginPath(); g.moveTo(sx(b.S[i][kk]), sy(b.S[i][kk])); g.lineTo(sx(b.S[i + 1][kk]), sy(b.S[i + 1][kk])); g.stroke();
     }
   }
+}
+// Layers: each stretch's name, and the cuts between them — a line across the
+// ribbon, a handle on its centre to drag it along.
+const cutsNow = () => S.cuts ?? PLAN?.cuts ?? [];
+const indexAt = (b, v) => { let lo = 0, hi = b.n - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (b.s[m] < v) lo = m + 1; else hi = m; } return lo; };
+function drawCuts(b, black) {
+  const ink = black ? '#F2EEE6' : '#24221F';
+  g.save(); g.font = font(11, 600); g.textAlign = 'center'; g.textBaseline = 'middle';
+  if (!busy) for (const st of PLAN?.stretches || []) {                                 // N1 … at the middle of its stretch
+    const p = b.M[indexAt(b, (st.s0 + st.s1) / 2)], X = sx(p), Y = sy(p), on = PLAN.passes.includes(`N${st.layer}`);
+    g.globalAlpha = on ? 1 : 0.5;
+    g.fillStyle = LAYER[Math.min(LAYER.length - 1, st.layer - 1)]; g.beginPath(); g.roundRect(X - 15, Y - 9, 30, 18, 9); g.fill();
+    g.fillStyle = '#fff'; g.fillText(`N${st.layer}`, X, Y + 0.5);
+  }
+  g.globalAlpha = 1;
+  cutsNow().forEach((v, c) => {
+    const i = indexAt(b, v), a = b.E0[i], z = b.E1[i], m = b.M[i], picked = c === pickCut;
+    g.setLineDash([5, 4]); g.strokeStyle = picked ? '#EB7A25' : ink; g.lineWidth = picked ? 2 : 1.4;
+    g.beginPath(); g.moveTo(sx(a), sy(a)); g.lineTo(sx(z), sy(z)); g.stroke(); g.setLineDash([]);
+    g.fillStyle = picked ? '#EB7A25' : black ? '#0B0B0D' : '#fff'; g.strokeStyle = picked ? '#EB7A25' : ink; g.lineWidth = 1.5;
+    g.beginPath(); g.arc(sx(m), sy(m), 5.5, 0, Math.PI * 2); g.fill(); g.stroke();
+  });
+  g.restore();
 }
 // Imprint: what the machine paints — the visible pieces, their ends thinning
 // over Tail as the elbow lands and lifts the brush (strokes.js, rowLift).
@@ -259,7 +285,7 @@ function startOf(B, i) {
 
 // ---------- undo ----------
 let undoStack = [], redoStack = [];
-const SHAPE = ['anchors', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy'];
+const SHAPE = ['anchors', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'cuts'];
 const snapshot = () => JSON.stringify(Object.fromEntries(SHAPE.map(k2 => [k2, S[k2]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
 function restore(js) { Object.assign(S, JSON.parse(js)); pick = Math.min(pick, S.anchors.length - 1); settle(); }
@@ -267,7 +293,41 @@ function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); res
 function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); }
 
 // ---------- the mouse: turn the ribbon, move its points ----------
-let drag = null;
+let drag = null, pickCut = -1;
+const cutting = () => S.look === 'layers' && S.tool === 'select';
+// a cut's handle under the mouse, or −1
+function cutHit(p) {
+  if (!cutting()) return -1;
+  const b = band(STEP);
+  let best = -1, bd = 9 / k;
+  cutsNow().forEach((v, c) => { const m = b.M[indexAt(b, v)], d = Math.hypot(m[0] - p[0], m[1] - p[1]); if (d < bd) { bd = d; best = c; } });
+  return best;
+}
+// The place along the ribbon under the mouse: the nearest piece of band
+// covering it, or within a few px of the centre; near: only within ±near mm
+// of s0 (a dragged cut keeps to its own part of the ribbon).
+function ribbonAt(p, s0 = null, near = 150) {
+  const b = band(STEP);
+  let best = null, bo = -1;
+  for (const q of b.quads) {
+    if (s0 !== null && Math.abs(b.s[q.i] - s0) > near) continue;
+    const P = q.poly, xs = P.map(v => v[0]), ys = P.map(v => v[1]);
+    if (p[0] < Math.min(...xs) || p[0] > Math.max(...xs) || p[1] < Math.min(...ys) || p[1] > Math.max(...ys)) continue;
+    let ins = false;
+    for (let a = 0, j = 3; a < 4; j = a++) if ((P[a][1] > p[1]) !== (P[j][1] > p[1]) && p[0] < (P[j][0] - P[a][0]) * (p[1] - P[a][1]) / (P[j][1] - P[a][1]) + P[a][0]) ins = !ins;
+    if (ins && q.o > bo) { bo = q.o; best = q.i; }
+  }
+  if (best === null) {
+    let bd = (s0 === null ? 8 : 40) / k;
+    b.M.forEach((m, i) => { if (s0 !== null && Math.abs(b.s[i] - s0) > near) return; const d = Math.hypot(m[0] - p[0], m[1] - p[1]); if (d < bd) { bd = d; best = i; } });
+  }
+  return best === null ? null : b.s[best];
+}
+const CUT_MIN = 20;   // mm along the ribbon between two cuts, at least
+function setCuts(list, picked) {
+  S.cuts = list.slice().sort((a, b2) => a - b2); pickCut = picked === undefined ? -1 : S.cuts.indexOf(picked);
+  S.off = [];                                      // new stretches: every layer on
+}
 const wrap = v => ((v + 180) % 360 + 360) % 360 - 180;
 function pointHit(p) {
   if (!showPoints()) return -1;
@@ -286,17 +346,34 @@ function addPoint(p) {
 }
 cv.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
-  const p = toCanvas(e), hit = pointHit(p);
+  const p = toCanvas(e), cut = cutHit(p);
+  if (cut >= 0) {                                                                      // a cut: picked, dragged along the ribbon
+    undoPush(); pickCut = cut;
+    drag = { x: e.clientX, y: e.clientY, moved: false, mode: 'cut' };
+    cv.setPointerCapture(e.pointerId); stage.classList.add('drag'); kick(); return;
+  }
+  const hit = pointHit(p);
+  if (pickCut >= 0) { pickCut = -1; kick(); }
   if (hit < 0 && S.tool === 'pen') { addPoint(p); return; }
   undoPush();
-  drag = { x: e.clientX, y: e.clientY, moved: false, mode: hit >= 0 ? 'point' : e.shiftKey ? 'move' : e.altKey ? 'spin' : 'turn' };
+  drag = { x: e.clientX, y: e.clientY, p, moved: false, mode: hit >= 0 ? 'point' : e.shiftKey ? 'move' : e.altKey ? 'spin' : 'turn' };
   if (hit >= 0) { pick = hit; showPanel(); }
   cv.setPointerCapture(e.pointerId); stage.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
-  if (!drag) { cv.style.cursor = pointHit(toCanvas(e)) >= 0 ? 'move' : ''; return; }
+  if (!drag) { const p = toCanvas(e); cv.style.cursor = cutHit(p) >= 0 ? 'grab' : pointHit(p) >= 0 ? 'move' : ''; return; }
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   if (!drag.moved && Math.hypot(dx, dy) < 2) return;
+  if (drag.mode === 'cut') {                                                           // along the ribbon, between its neighbours
+    if (!drag.moved && !S.cuts) setCuts(cutsNow(), cutsNow()[pickCut]);                // the suggested ones become the owner's
+    drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true;
+    const v = ribbonAt(toCanvas(e), S.cuts[pickCut]);
+    if (v !== null) {
+      const L = band(STEP).L, lo = (S.cuts[pickCut - 1] ?? 0) + CUT_MIN, hi = (S.cuts[pickCut + 1] ?? L) - CUT_MIN;
+      S.cuts[pickCut] = Math.max(lo, Math.min(hi, v)); kick();
+    }
+    return;
+  }
   drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true;
   if (drag.mode === 'point') {                                                         // in the screen's plane, the depth along
     const d = apply(transpose(rotation(S.tilt, S.swing, S.spin)), [dx / k / S.zoom, dy / k / S.zoom, 0]), a = S.anchors[pick];
@@ -308,6 +385,11 @@ cv.addEventListener('pointermove', e => {
 });
 cv.addEventListener('pointerup', () => {
   if (!drag) return;
+  if (drag.mode === 'cut') { if (!drag.moved) undoStack.pop(); drag = null; stage.classList.remove('drag'); settle(); return; }
+  if (!drag.moved && drag.mode === 'turn' && cutting()) {                              // a click on the ribbon: a cut there
+    const v = ribbonAt(drag.p), L = band(STEP).L;
+    if (v !== null && v > CUT_MIN && v < L - CUT_MIN && cutsNow().every(c => Math.abs(c - v) >= CUT_MIN)) { setCuts([...cutsNow(), v], v); drag = null; stage.classList.remove('drag'); settle(); return; }
+  }
   if (!drag.moved) undoStack.pop();
   else { const a = S.anchors[pick]; if (drag.mode === 'point') { a.x = Math.round(a.x); a.y = Math.round(a.y); a.z = Math.round(a.z); } }
   drag = null; stage.classList.remove('drag'); settle();
@@ -325,15 +407,18 @@ cv.addEventListener('wheel', e => {
 const HINTS = {
   select: 'Select — drag a square to move a point; drag elsewhere to turn the ribbon, Shift to move it, Alt to spin it; the wheel sizes it.',
   pen: 'Pen — click to add a point at the ribbon\'s end, at the depth of the last one; drag a square to move a point.',
+  cuts: 'Layers — click the ribbon to cut it there; drag a cut\'s circle along it; ⌫ takes the picked cut out; ✂ the cuts as suggested. Drag elsewhere to turn the ribbon.',
 };
+const hintNow = () => HINTS[cutting() ? 'cuts' : S.tool];
 function setTool(t) { S.tool = t; syncTools(); save(); kick(); }
 function syncTools() {
   document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.classList.toggle('on', b2.dataset.tool === S.tool));
   stage.className = 'stage t-' + S.tool;
-  $('#hint').textContent = HINTS[S.tool];
+  $('#hint').textContent = hintNow();
 }
 document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.onclick = () => setTool(b2.dataset.tool));
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
+function deleteCut() { const v = cutsNow()[pickCut]; if (v === undefined) return; undoPush(); setCuts(cutsNow().filter(c => c !== v)); settle(); }
 function deletePoint() { if (S.anchors.length <= 2) return; undoPush(); S.anchors.splice(pick, 1); pick = Math.min(pick, S.anchors.length - 1); settle(); }
 $('#btnDel').onclick = deletePoint;
 const blank = A => { undoPush(); S.anchors = A.map(a => ({ ...a })); pick = Math.min(pick, S.anchors.length - 1); settle(); };
@@ -362,7 +447,7 @@ addEventListener('keydown', e => {
   if (cmd) return;
   if (e.key.toLowerCase() === 'v') setTool('select');
   else if (e.key.toLowerCase() === 'p') setTool('pen');
-  else if (e.key === 'Backspace' || e.key === 'Delete') deletePoint();
+  else if (e.key === 'Backspace' || e.key === 'Delete') pickCut >= 0 && cutting() ? deleteCut() : deletePoint();
 });
 
 // ---------- the panel: Test's sliders and words ----------
@@ -400,7 +485,7 @@ $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { con
 $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
-document.querySelectorAll('[data-look]').forEach(b2 => b2.onclick = () => { S.look = b2.dataset.look; showPanel(); save(); kick(); });
+document.querySelectorAll('[data-look]').forEach(b2 => b2.onclick = () => { S.look = b2.dataset.look; $('#hint').textContent = hintNow(); showPanel(); save(); kick(); });
 document.querySelectorAll('[data-ground]').forEach(b2 => b2.onclick = () => { S.ground = b2.dataset.ground; showPanel(); save(); kick(); });
 // Each slider looked for in its own box: Roll is the band's and a point's
 // both (the owner, 2026-10-04: "the ROLL slider does not move" — the band's
@@ -428,12 +513,14 @@ function showPanel() {
 const layersNow = () => PLAN?.imp ? Object.keys(PLAN.imp.byLayer).map(Number).sort((a, b2) => a - b2) : [];
 function showLayers() {
   const lays = layersNow(), runs = l => (PLAN?.passes || []).includes(`N${l}`);
-  const html = lays.map(l => `<button class="tog${runs(l) ? ' on' : ''}" data-layer="${l}" title="N${l}: ${fmt(PLAN.imp.byLayer[l] / 1000, 1)} m${l > 1 ? `, over N${l - 1}` : ', the first'} — on or off; the layers on run in their order, a pause between them">N${l}</button>`).join('');
+  const html = lays.map(l => `<button class="tog${runs(l) ? ' on' : ''}" data-layer="${l}" title="N${l}: ${fmt(PLAN.imp.byLayer[l] / 1000, 1)} m, painted ${l > 1 ? `after N${l - 1}` : 'first'} — on or off; the layers on run in their order, a pause between them">N${l}</button>`).join('')
+    + (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts ? ' — yours are set by hand now' : ''}">✂</button>` : '');
   const el = $('#layerKeys');
   if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
   el.hidden = !lays.length;
 }
 $('#layerKeys').onclick = e => {
+  if (e.target.closest('[data-cuts]')) { if (S.cuts) { undoPush(); S.cuts = null; S.off = []; pickCut = -1; settle(); } return; }
   const b2 = e.target.closest('[data-layer]');
   if (!b2) return;
   const l = +b2.dataset.layer, on = layersNow().filter(x => (PLAN?.passes || []).includes(`N${x}`));

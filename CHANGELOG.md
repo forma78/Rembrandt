@@ -5,6 +5,23 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the layers are stretches of the ribbon, cut along it** (the
+  owner, 2026-10-04, `machine/layers selected.png`, `layers how to
+  cut.png`: "continuous bundles, where the line goes naturally … I do not
+  know how to cut it in code — can we?"; Claude in chat agreed). Not by
+  depth any more: N2 came in patches where the ribbon lies over itself.
+  `band.js`: `cutsOf` suggests the cuts — where the ribbon hides behind
+  itself, turns over or edge-on, so a layer's edge is the line where it goes
+  under; `stretchesOf` paints a stretch after every one it lies over;
+  `layeredOf` gives the imprint in its layers; `imprintOf` says what hides
+  what and how many rows show at each place; `layersOf` is gone. The tab:
+  on Layers, each cut a dashed line and a circle — dragged along the
+  ribbon, a click on the ribbon adds one, ⌫ takes it out, ⌘Z; each stretch
+  named where it lies; ✂ by the N keys brings the suggestion back; the
+  cuts kept with the ribbon. Layers N4, N5 coloured. The first run's
+  ribbon: cuts at 20, 54, 75 % — the owner's four bundles, ≈ 7 m each.
+  Tried in the browser: dragged, added, taken out, undone, ✂. Test's plans
+  as before (18). Tests.
 - **NOLAN: N1 · N2 · N3 keys, as D1 · D2 · D3 on Test** (the owner,
   2026-10-04: "let's take N1 and N2 now. I do not see the keys as on TEST";
   earlier, of PLAY's question: "it says N1 and N2 — how to part them?").
