@@ -25,6 +25,11 @@ const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0
 const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#3FA7A0', '#B04FC4'];   // N1 … N5 on Layers
 const DRAG_STEP = 4, STEP = 1.5;
 const OFF_ALPHA = 0.18, OFF_HEX = '2E';   // a layer switched off, on the board: faint
+// Tail, 10 … 20 mm: at 155 mm the brush was fully pressed on 30 % of the ribbon,
+// the pieces' ends never painted (machine/2026-10-04-test_both.png); at 15
+// on 92 %. The owner, 2026-10-04: "take it away past 20 mm altogether, it is
+// not needed, so there is no temptation". Test's Tail as it was.
+const TAIL_MIN = 10, TAIL_MAX = 20;
 // More than this past the walls is no longer a hair (Test's 2 mm of 2026-10-03):
 // the canvas lies partly out of reach, said in red and before PLAY.
 const PAST_MANY = 50;   // mm between the centre's points: coarse while the mouse turns it
@@ -34,7 +39,7 @@ const S = {
   anchors: SKETCH.map(a => ({ ...a })),
   rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0,                   // the band; Roll is a point's (band.js, squeezed)
   tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
-  speed: 150, travel: 180, tail: 70, ink: false,                                  // the brush, as on Test (est.)
+  speed: 150, travel: 180, tail: 15, ink: false,                                  // the brush, as on Test (est.)
   off: [],                                                                        // the layers switched off: N1 · N2 · N3 latch as D1 · D2 · D3 on Test
   cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
   boardW: 500, boardH: 700,
@@ -46,6 +51,7 @@ function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
     for (const k of NUM) if (Number.isFinite(o[k])) S[k] = o[k];
+    S.tail = Math.max(TAIL_MIN, Math.min(TAIL_MAX, S.tail));                        // a save from before, Tail up to 200
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (Array.isArray(o.off)) S.off = o.off.filter(Number.isInteger);
     S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
@@ -458,7 +464,7 @@ const BAND_SL = [['rows', 'Rows', '', 1, 2, ROWS_MAX], ['pitch', 'Row to row', '
 const VIEW_SL = [['tilt', 'Rotate X', '°', 1, -180, 180], ['swing', 'Rotate Y', '°', 1, -180, 180], ['spin', '↻', '°', 1, -180, 180],
   ['zoom', 'Size', '×', 0.01, 0.4, 2], ['dy', 'X ↑', 'mm', 1, -250, 250, null, -1], ['dx', 'Y →', 'mm', 1, -250, 250], ['lens', 'Lens', '', 1, 0, 100]];
 const POINT_SL = [['z', 'Depth', 'mm', 1, -250, 250], ['roll', 'Roll', '°', 1, -180, 360]];
-const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 5, 10, 200]];
+const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 1, TAIL_MIN, TAIL_MAX]];
 function scale(step, min, max, label) {
   let h = '';
   for (let i = 0; min + i * step <= max + 1e-9; i++) {
