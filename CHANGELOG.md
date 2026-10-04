@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the run's trace grey in the air, orange on the canvas** (the
+  owner, 2026-10-04: "the trajectories are unclear — the lines from the cup
+  through the air and those the brush painted are all orange; I would leave
+  grey what went through the air"). The board does not say, inside a block,
+  whether the brush is down, so the run's own blocks do: a piece with paint
+  is orange, a travel, the dip, the arm, home are grey; the colours part
+  where the plan lands and lifts the brush, and a piece run between two
+  pings (22 mm is 0.16 s) is drawn from its start to its end.
 - **The run never presses a sliver into the walls — the brush ran along all
   four, through the cup** (NOLAN's first run, 2026-10-04 12:58; the owner:
   "the brush goes past the canvas and does not lift; it does not see the

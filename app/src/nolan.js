@@ -215,15 +215,38 @@ function drawImprint() {
     }
   }
 }
-// The run as it goes (Test's): where the carriage has been since PLAY.
-let trail = [], trailOf = null;
+// The run as it goes (Test's): where the carriage has been since PLAY —
+// orange where the brush paints, grey in the air: to the cup, between the
+// pieces, home (the owner, 2026-10-04: "everything is orange; I would leave
+// grey what went through the air"). Each point says how the way to it went.
+let trail = [], trailOf = null, RUN = null;   // RUN: the blocks PLAY sent
+const AIR = '#8E9196';
 function drawTrail() {
-  if (!hereNow() || !trail.length) return;
+  if (!hereNow() || trail.length < 1) return;
   const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, last = trail.at(-1);
-  g.save(); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2;
-  g.beginPath(); trail.forEach((q, i) => (i ? g.lineTo : g.moveTo).call(g, msx(q), msy(q))); g.stroke();
-  if (last.live) { g.fillStyle = '#EB7A25'; g.beginPath(); g.arc(msx(last), msy(last), 4, 0, Math.PI * 2); g.fill(); }
+  g.save(); g.lineWidth = 1.2;
+  for (let i = 1; i < trail.length;) {
+    const air = trail[i].air;
+    g.strokeStyle = air ? AIR : '#EB7A25'; g.beginPath(); g.moveTo(msx(trail[i - 1]), msy(trail[i - 1]));
+    for (; i < trail.length && trail[i].air === air; i++) g.lineTo(msx(trail[i]), msy(trail[i]));
+    g.stroke();
+  }
+  if (last.live) { g.fillStyle = last.air ? AIR : '#EB7A25'; g.beginPath(); g.arc(msx(last), msy(last), 4, 0, Math.PI * 2); g.fill(); }
   g.restore();
+}
+// A block of the run paints, or goes through the air (a travel, the dip, an arm, a wait, home).
+const paints = b => b?.kind === 'move' && b.paintMM > 0;
+// Where a block leaves the carriage, machine mm: its last line, arc or move.
+function endOf(b) {
+  const c = (b?.cmds || []).filter(c => /^[LAM] /.test(c)).at(-1);
+  if (!c) return null;
+  const t = c.split(' ').map(Number);
+  return c[0] === 'A' ? { x: t[3], y: t[4] } : { x: t[1], y: t[2] };
+}
+// Where block i starts: where the last move before it left the carriage.
+function startOf(B, i) {
+  for (let j = i - 1; j >= 0; j--) { const e = endOf(B[j]); if (e) return e; }
+  return null;
 }
 
 // ---------- undo ----------
@@ -515,6 +538,7 @@ $('#btnDoJob').onclick = async () => {
   if (!confirm(`${P_.passes.join(' + ')}: ${P_.rows.length} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`
     + (P_.pastWall > PAST_MANY ? `\n\n${fmt(P_.pastWall / 1000, 1)} m of them lie past the machine's walls and will be pressed along them.` : ''))) return;
   try {
+    RUN = P_.blocks;
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P_.blocks,
       log: { page: 'nolan', label: nolanLabel(), settings: S, here: hereNow(), fromCup: INK.canvas, ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) } }) });   // the run journal, rembrandt.py
     $('#runState').textContent = await r.text();
@@ -563,8 +587,18 @@ async function watch() {
   if (live && st.started !== trailOf) { trailOf = st.started; trail = []; }
   const h = hereNow();
   if (h && st && trailOf && st.started === trailOf && st.x_mm !== null && st.y_mm !== null) {
-    const q = { x: st.x_mm - h.x, y: st.y_mm - h.y, live }, l = trail.at(-1);
-    if (!l || Math.hypot(q.x - l.x, q.y - l.y) > 0.5 || l.live !== live) { trail.push(q); kick(); }
+    const B = RUN || PLAN?.blocks || [], i = st.block, air = !(live && paints(B[i]));
+    const q = { x: st.x_mm - h.x, y: st.y_mm - h.y, live, air, i }, l = trail.at(-1);
+    const put = (p, a, j) => p && trail.push({ x: p.x - h.x, y: p.y - h.y, live: false, air: a, i: j });
+    // Where the brush lands and lifts, from the plan, so the colours part
+    // there and not a ping later; a piece run between two pings (22 mm is
+    // 0.16 s) from its start to its end.
+    if (l && l.i !== i) {
+      if (!l.air) put(endOf(B[l.i]), false, l.i);
+      for (let j = l.i + 1; j < i; j++) if (paints(B[j])) { put(startOf(B, j), true, j); put(endOf(B[j]), false, j); }
+      if (!air) put(startOf(B, i), true, i);
+    }
+    if (!l || Math.hypot(q.x - l.x, q.y - l.y) > 0.5 || l.live !== live || l.air !== air || l.i !== i) { trail.push(q); kick(); }
   }
   $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${st.message}</span>` : '';
 }
