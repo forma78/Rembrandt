@@ -418,7 +418,20 @@ export function xyPlan(opts) {
   const width = box.y1 - box.y0, height = box.x1 - box.x0;
   const room = { w: o.boardW - 2 * o.margin, h: o.boardH - 2 * o.margin };
   const fits = box.x0 >= -room.h / 2 - 1e-9 && box.x1 <= room.h / 2 + 1e-9 && box.y0 >= -room.w / 2 - 1e-9 && box.y1 <= room.w / 2 + 1e-9;
+  // between D's passes, always: another paint; the carriage stays where it is (the owner, 2026-10-02: "a break, not the end of the day")
+  const why = key => `${key}, ${PASSES[key].paint}: its paint ${o.ink ? 'in the cup' : 'on the brush'}, then Continue`;
+  const r = plotRun(o, passes.map(({ key, ps }) => ({ key, ps, why: key && why(key) })));
+  return { blocks: r.blocks, preview: r.preview, width, height, room, box, carriage: r.carriage, length: r.length, fits,
+    seconds: r.seconds, rows: o.rows, snake: !!o.snake, turns: r.turns, lifts: r.lifts, need: r.need, passes: keys.filter(Boolean), opts: o,
+    ink: !!o.ink, cupAt: r.cupAt, air: r.air, homeAt: r.homeAt, dips: r.dips, pastWall: r.pastWall, gone: r.gone };
+}
 
+// The run of brush-down paths on the machine, for Test and NOLAN alike.
+// passes: [{ key, ps, why }] in their order — ps the paths, mm from Here, each
+// a list of pieces marked with their row (and `turn` through a turn); why: the
+// pause before a pass after the first, for its paint. o: the speeds, the
+// tail, lift, pause, ink, here, cup. The carriage goes home at the end.
+export function plotRun(o, passes) {
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
   // INK ON: the cup of the Ink tab (carriage mm, its elbow angles), from Here; the brush up over its rim between rows
@@ -434,9 +447,8 @@ export function xyPlan(opts) {
   const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
   let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0;
   const away = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
-  passes.forEach(({ key, ps }, n) => {
-    // between D's passes, always: another paint; the carriage stays where it is (the owner, 2026-10-02: "a break, not the end of the day")
-    if (n) blocks.push({ kind: 'pause', why: `${key}, ${PASSES[key].paint}: its paint ${o.ink ? 'in the cup' : 'on the brush'}, then Continue`, row: 0 });
+  passes.forEach(({ key, ps, why }, n) => {
+    if (n) blocks.push({ kind: 'pause', why, row: 0 });
     ps.forEach((p, i) => {
       const m = onTheMove(p, o), row = p[0].row;
       if (B) { const pr = pressed(m.pieces, B); m.pieces = pr.pieces; pastWall += pr.past; }
@@ -486,7 +498,5 @@ export function xyPlan(opts) {
   // where the carriage goes, from Here: the paint's box aside by the tails (the walls check)
   const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; }).concat(cupAt ? [cupAt] : []);
   const carriage = boxOf(cp);
-  return { blocks, preview, width, height, room, box, carriage, length, fits,
-    seconds, rows: o.rows, snake: !!o.snake, turns, lifts, need, passes: keys.filter(Boolean), opts: o,
-    ink: !!o.ink, cupAt, air, homeAt, dips, pastWall, gone };
+  return { blocks, preview, carriage, length, seconds, turns, lifts, need, cupAt, air, homeAt, dips, pastWall, gone };
 }
