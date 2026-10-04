@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: no white between the bundles — the strokes overlap** (the owner,
+  2026-10-04, `machine/2026-10-04 Nolan-v3-both.png`: "any ideas how to fix
+  it? If the brush goes in overlapping, even better — only not these awful
+  white gaps; the small overlap in green is OK"; in blue "a break, though
+  there should be none"). Three causes, three changes. **Overlap** (a
+  slider, 0 … 10 mm, 4, est.): where a row goes under another part or comes
+  out from under it, `layeredOf` carries its stroke on under it, within its
+  layer, never across a cut. **The brush waits just over the canvas**,
+  `ELBOW_HOVER` +12° (est.), before each stroke, not at +25°: the elbow was
+  still coming down when the carriage set off, the lines began 5–10 mm late
+  (`plotRun`'s `hover`, NOLAN only). **A dip's split laps 20 mm**
+  (`DIP_LAP`, est.), not the 3 of Tail: the odd rows split at 360 mm ran
+  dry before it. The last ribbon: 29.1 m, 68 dips, ≈ 19 min as before.
+  Test's plans as before (18). Tests.
 - **NOLAN: INK ON runs the layers one after another, no pause** (the owner,
   2026-10-04: "can the watercolour do all 3 layers at once, N1+N2+N3? What
   are the options — a non-stop key?"). Decided that morning (NOLAN.md §5:

@@ -12,7 +12,7 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
+import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, ELBOW_HOVER, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
 import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -34,14 +34,14 @@ const S = {
   anchors: SKETCH.map(a => ({ ...a })),
   rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0,                   // the band; Roll is a point's (band.js, squeezed)
   tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
-  speed: 150, travel: 180, tail: 15, ink: false,                                  // the brush, as on Test (est.)
+  speed: 150, travel: 180, tail: 15, overlap: 4, ink: false,                      // the brush, as on Test (est.); overlap: under another part, mm (est.)
   off: [],                                                                        // the layers switched off: N1 · N2 · N3 latch as D1 · D2 · D3 on Test
   cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
   boardW: 500, boardH: 700,
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
 let pick = 8;
-const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'squeeze', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'boardW', 'boardH', 'refOpacity'];
+const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'squeeze', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'overlap', 'boardW', 'boardH', 'refOpacity'];
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
@@ -94,16 +94,16 @@ let PLAN = null, planKey = '', busy = false;
 const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 function plan() {
   if (busy && PLAN) return PLAN;
-  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off, S.cuts]);
+  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off, S.cuts, S.overlap]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
   const b = band(STEP);
   if (!b) { PLAN = EMPTY; return PLAN; }
-  const L = layeredOf(b, { width: S.width, cuts: S.cuts }), lay = L.lay, imp = L.imp;   // the layers: stretches between the cuts
+  const L = layeredOf(b, { width: S.width, cuts: S.cuts, overlap: S.overlap }), lay = L.lay, imp = L.imp;   // the layers: stretches between the cuts
   const all = bandPasses(imp.runs, { ink: S.ink, tail: S.tail }), rows = all.rows;
   // the layers that run: those not switched off — all of them, if the ribbon changed and left none on
   const on = all.passes.filter(p => !S.off.includes(+p.key.slice(1))), passes = on.length ? on : all.passes;
-  const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), noDipUnder: NO_DIP };
+  const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER };
   // rows: every piece of every layer, by its number (the LCD finds a block's there); pieces: those that run
   PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, cuts: L.cuts, stretches: L.stretches, opts: o };
   return PLAN;
@@ -459,7 +459,7 @@ const BAND_SL = [['rows', 'Rows', '', 1, 2, ROWS_MAX], ['pitch', 'Row to row', '
 const VIEW_SL = [['tilt', 'Rotate X', '°', 1, -180, 180], ['swing', 'Rotate Y', '°', 1, -180, 180], ['spin', '↻', '°', 1, -180, 180],
   ['zoom', 'Size', '×', 0.01, 0.4, 2], ['dy', 'X ↑', 'mm', 1, -250, 250, null, -1], ['dx', 'Y →', 'mm', 1, -250, 250], ['lens', 'Lens', '', 1, 0, 100]];
 const POINT_SL = [['z', 'Depth', 'mm', 1, -250, 250], ['roll', 'Roll', '°', 1, -180, 360]];
-const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 1, TAIL_MIN, TAIL_MAX]];
+const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 1, TAIL_MIN, TAIL_MAX], ['overlap', 'Overlap', 'mm', 1, 0, 10]];
 function scale(step, min, max, label) {
   let h = '';
   for (let i = 0; min + i * step <= max + 1e-9; i++) {
