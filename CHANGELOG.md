@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the one ribbon in 3D, on the tab** (the owner, 2026-10-04: "yes,
+  that is it — it can go into NOLAN"; "the words from TEST: ROWS first, ROW
+  TO ROW and so on; and TAIL"). `src/band.js` and its tests: the ribbon
+  through IMG_9424's 17 points (and the ring), the band with its rows and
+  stack, the construction turned, the imprint with the near covering the
+  far, the layers N1, N2 by depth, each visible piece fitted into lines and
+  arcs within 0.1 mm, a dip every 720 mm with INK ON (est.). The tab: the
+  ribbon turned with the mouse, points moved and added with Create's Tools;
+  Geometry · Colour · Layers · Imprint; Rows, Row to row, Row width, Stack,
+  Twist, Roll; Rotate X, Rotate Y, ↻, Size, X ↑, Y →, Lens; a point's Depth
+  and Roll; Brush on, Between rows, Tail — the tails thinning on the
+  Imprint; Paste a shape from the prototype. PLAY runs it with Test's run,
+  layer by layer, a pause between. The flat ribbons of the morning
+  (`src/ribbon.js`) are gone.
 - **strokes.js: no slivers for NOLAN.** A tail's cut can leave a piece a
   thousandth of a mm long, and the firmware takes an arc ending where it
   starts for a full circle (`path.h`). `plotRun` leaves such pieces out when
