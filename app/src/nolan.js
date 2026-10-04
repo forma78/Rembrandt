@@ -122,8 +122,8 @@ function view() {
     const at = [...(Number.isFinite(c.x) ? [[{ x: c.x - h.x, y: c.y - h.y }, e]] : []), [{ x: hc.x - h.x, y: hc.y - h.y }, 24]];
     for (const [q, m] of at) { v.x0 = Math.min(v.x0, q.x - m); v.x1 = Math.max(v.x1, q.x + m); v.y0 = Math.min(v.y0, q.y - m); v.y1 = Math.max(v.y1, q.y + m); }
   }
-  const a = areaNow(), m = 16;                                                        // the image area, its walls and their names
-  if (a) { v.x0 = Math.min(v.x0, a.x0 - m); v.x1 = Math.max(v.x1, a.x1 + m); v.y0 = Math.min(v.y0, a.y0 - 4); v.y1 = Math.max(v.y1, a.y1 + 4); }
+  const a = areaNow(), m = 16;                                                        // the image area, its walls and their names; the grid's names on the left
+  if (a) { v.x0 = Math.min(v.x0, a.x0 - m); v.x1 = Math.max(v.x1, a.x1 + m); v.y0 = Math.min(v.y0, a.y0 - 34); v.y1 = Math.max(v.y1, a.y1 + 4); }
   return v;
 }
 // The image area, the machine's reach between its walls (Calibration's), in
@@ -164,8 +164,19 @@ function draw() {
   const hw = S.boardW / 2, hh = S.boardH / 2;
   g.fillStyle = themeColor('--stage', '#E2DED6'); g.fillRect(0, 0, W, H);   // the table
   const area = areaNow(), ax = y => (y - V.y0) * k, ay = x => (V.x1 - x) * k;     // machine mm from Here → the screen
-  const areaRect = () => g.rect(ax(area.y0), ay(area.x1), (area.y1 - area.y0) * k, (area.x1 - area.x0) * k);
-  if (area) { g.fillStyle = document.documentElement.classList.contains('night') ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.35)'; g.beginPath(); areaRect(); g.fill(); }
+  const areaRect = () => g.rect(ax(area.y0), ay(area.x1), (area.y1 - area.y0) * k, (area.x1 - area.x0) * k), night = document.documentElement.classList.contains('night');
+  if (area) {                                                                          // the grid every 100 mm, machine mm, as on Calibration (the owner, 2026-10-04: "I see the image area, but no scale — add X 800 / Y 500")
+    const h = hereNow();
+    g.save(); g.strokeStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(36,34,31,.07)'; g.lineWidth = 1; g.fillStyle = themeColor('--mute', '#7D776D'); g.font = font(10);
+    for (let x = Math.ceil((h.x + V.x0) / 100) * 100; x <= h.x + V.x1; x += 100) {
+      const Y = ay(x - h.x); g.beginPath(); g.moveTo(0, Y); g.lineTo(W, Y); g.stroke(); g.textAlign = 'left'; g.fillText(`X ${x}`, 4, Y + 3);
+    }
+    for (let y = Math.ceil((h.y + V.y0) / 100) * 100; y <= h.y + V.y1; y += 100) {
+      const X = ax(y - h.y); g.beginPath(); g.moveTo(X, 0); g.lineTo(X, H); g.stroke(); g.textAlign = 'center'; g.fillText(`Y ${y}`, X, H - 5);
+    }
+    g.restore();
+    g.fillStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.35)'; g.beginPath(); areaRect(); g.fill();
+  }
   g.fillStyle = ground; g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k);
   if (area) {                                                                          // the canvas out of reach: hatched, as on Calibration
     g.save(); g.beginPath(); g.rect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); g.clip();

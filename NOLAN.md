@@ -182,7 +182,9 @@ On the board:
 5. **The image area**, as on Calibration (the owner, 2026-10-04: "at the
    bottom there is no edge; I do not see the image area — can you carry it
    over?"): the machine's walls dashed orange and named, the canvas past
-   them hatched — there the brush runs along the wall (§3, past the walls).
+   them hatched — there the brush runs along the wall (§3, past the walls);
+   the grid every 100 mm, X on the left, Y along the bottom ("add X 800 /
+   Y 500").
 
 Later, and where on the tab to settle with the owner: **Sample** (a tube
 for every stretch of every row from the reference, §4), the drop map, the
