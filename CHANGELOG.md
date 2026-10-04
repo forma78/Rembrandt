@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a layer starts on its first piece of 50 mm or more**, with its
+  dip, the others after it in their order: a full brush never lands on a
+  dot (the drops of 2026-10-04 13:38, four rows' dots, four puddles). N2 of
+  the first run began on a 21.8 mm piece. NOLAN only (the owner: "no, only
+  in NOLAN, thank you"); Test's plans as before (18 compared). 166 dips,
+  ≈ 45 min. The test runs the pieces in the order sent.
 - **NOLAN: no dip before a piece under 50 mm** (the owner, 2026-10-04: "a
   stroke under 50 mm — do not dip in the paint, work with what is on the
   brush. It should be enough. Even if the paint runs out, I will see it by

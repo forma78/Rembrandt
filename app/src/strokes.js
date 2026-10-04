@@ -460,14 +460,20 @@ export function plotRun(o, passes) {
   const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
   let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0, fault = '';
   const min = o.minPiece ?? MIN_PIECE, real = ps => ps.filter(q => !sliver(q.g, min));
+  const drawnOf = p => p.filter(g => !sliver(g, min)).reduce((s, g) => s + pieceLen(g), 0);
   const away = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
-  passes.forEach(({ key, ps, why }, n) => {
+  passes.forEach(({ key, ps: ps0, why }, n) => {
     if (n) blocks.push({ kind: 'pause', why, row: 0 });
     let dry = true;                                      // the brush at a pass's start: dry, or waited through the pause
+    // With o.noDipUnder a pass starts on its first piece long enough for a
+    // dip, the others after it in their order: a full brush never lands on a
+    // dot (NOLAN, 2026-10-04: a puddle at every dot under 1 cm).
+    const j = cupAt && o.noDipUnder ? ps0.findIndex(p => drawnOf(p) >= o.noDipUnder) : -1;
+    const ps = j > 0 ? [ps0[j], ...ps0.slice(0, j), ...ps0.slice(j + 1)] : ps0;
     ps.forEach((p, i) => {
       const m = onTheMove(p, o), row = p[0].row;
       // The tails cut the row, they never add to it: the same length, or no run.
-      const drawn = p.filter(g => !sliver(g, min)).reduce((s, g) => s + pieceLen(g), 0), cut = real(m.pieces).reduce((s, q) => s + pieceLen(q.g), 0);
+      const drawn = drawnOf(p), cut = real(m.pieces).reduce((s, q) => s + pieceLen(q.g), 0);
       if (!fault && Math.abs(cut - drawn) > FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(cut)} mm after its tails`;
       if (B) { const pr = pressed(m.pieces, B); m.pieces = pr.pieces; pastWall += pr.past; }
       if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint

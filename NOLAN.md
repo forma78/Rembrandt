@@ -293,9 +293,12 @@ sees exactly where to squeeze the paint.
   dip, work with what is on the brush; it should be enough. Even if the
   paint runs out, I will see it by the density of the other lines"). A dip
   before a dot under 1 cm left a puddle of water. A piece shorter than
-  50 mm (`NO_DIP`) goes on what the brush holds; a layer's first piece dips
-  all the same, the brush dry or waited through the pause (*Claude's
-  decision*). On the first run's ribbon: 167 dips of 276, ≈ 46 min of 60.
+  50 mm (`NO_DIP`) goes on what the brush holds. A layer starts on its
+  first piece of 50 mm or more, with a dip — the brush dry, or waited
+  through the pause — the others after it in their order, so a full brush
+  never lands on a dot (*Claude's decision*: N2 of the first run began on a
+  21.8 mm piece). NOLAN only, not Test (the owner, 2026-10-04). On the
+  first run's ribbon: 166 dips of 276, ≈ 45 min of 60.
 - **Long lines**: a line longer than the dip run is split into runs; each
   starts with a fresh dip and lands where the last one's tail began.
   Neighbouring lines split half a dip run apart, so the tails never line up.
