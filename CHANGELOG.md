@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN opens with the owner's three ribbons** (the owner, 2026-10-04: "I
+  would start these three ribbons by default"). His green paths of
+  `nolan-images/IMG_9424-N1_N2_N3_paths.webp` — the sketch is IMG_9424 at
+  0.7475, 238 px down, found by matching the two — as lines and arcs on
+  the 500 × 700 canvas: N1 the upper arc (12 lines), N2 the lower loop
+  (12), N3 the middle ribbon (14). N1's hook is wider than the sketch's:
+  96 mm of lines turn no tighter than 48 mm, and the canvas ends at 500.
+  No bend marked "!", every line on the canvas (a test). The tab opens with
+  them when it keeps no ribbons; the house brings them back.
+  And a round × on the reference's picture takes it away (the owner:
+  "a little circle with a cross in the top right corner is enough").
 - **previous_research: the chat's NOLAN prototype** (2026-10-03, added by
   the owner on 2026-10-04: "primitive"). Kept as history: its look — dark
   lines with a groove, the centre dashed orange, squares to drag — went

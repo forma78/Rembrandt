@@ -13,7 +13,7 @@ import { P, sub, add, len, dist, TAU, fmt } from './util.js';
 import { segEnd, segDirEnd, tangentArc, anchorsOf, applyAnchorMove } from './geometry.js';
 import { makeLine, snapArc, pushSeg } from './gesture.js';
 import { nearestSeg, moveSegBy, curveInfo } from './curve.js';
-import { ribbonLines, ribbonName, widthLabel, clampLines, linesLength, ribbonWidth, PITCH_MM } from './ribbon.js';
+import { ribbonLines, ribbonName, widthLabel, clampLines, linesLength, ribbonWidth, sketchRibbons, PITCH_MM } from './ribbon.js';
 import { themeColor } from './lamp.js';
 import './ui.js';
 
@@ -42,6 +42,9 @@ const newId = () => 'rb' + Date.now().toString(36) + (idSeq++).toString(36);
 const byId = id => S.ribbons.find(r => r.id === id) || null;
 const indexOf = id => S.ribbons.findIndex(r => r.id === id);
 const F = () => FORMATS[S.format];
+// The owner's three ribbons of his sketch, N1 · N2 · N3 (ribbon.js): the tab
+// opens with them when nothing else is kept, and the house brings them back.
+const sketch = () => sketchRibbons().map(r => ({ id: newId(), ...r }));
 
 // The lines of every ribbon, built again only when it changes.
 const built = new Map();
@@ -380,6 +383,7 @@ document.querySelectorAll('.tog[data-view]').forEach(b => b.onclick = () => { S.
 $('#btnArc').onclick = () => { S.penArc = !S.penArc; syncTools(); };
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
 $('#btnDel').onclick = () => deleteRibbon(S.pick);
+$('#btnDefault').onclick = () => { finishAll(); undoPush(); S.ribbons = sketch(); S.pick = null; S.selAnchors = []; invalidate(); };
 $('#format').innerHTML = NOLAN_FORMATS.map(k => `<option value="${k}">${FORMATS[k].label}</option>`).join('');
 $('#format').onchange = e => { S.format = e.target.value; layout(); };
 
@@ -400,8 +404,15 @@ function setRef(src, name, store) {
   };
   img.src = src;
 }
+// The round × on the picture takes the reference away (the owner, 2026-10-04).
+function deleteRef() {
+  REF = null;
+  try { localStorage.removeItem(REF_KEY); } catch { }
+  syncRef(); invalidate();
+}
 function syncRef() {
-  $('#refThumb').innerHTML = REF ? `<img src="${REF.img.src}" alt="">` : '<span>no reference yet</span>';
+  $('#refThumb').innerHTML = REF ? `<img src="${REF.img.src}" alt=""><button class="refdel" title="Delete the reference">×</button>` : '<span>no reference yet</span>';
+  if (REF) $('#refThumb .refdel').onclick = deleteRef;
   $('#refThumb').title = REF ? REF.name : '';
   $('#refOp').value = S.refOpacity;
   $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>` : 'Under the canvas, the whole of it inside.';
@@ -517,6 +528,7 @@ function loadRef() {
 
 // ---------- start ----------
 load();
+if (!S.ribbons.length) S.ribbons = sketch();
 $('#format').value = S.format;
 syncTools(); syncView(); syncRef(); loadRef();
 new ResizeObserver(layout).observe(stage);
