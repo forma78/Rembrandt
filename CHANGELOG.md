@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the Roll sliders move again** (the owner, 2026-10-04: "the ROLL
+  slider does not move"). Roll is the band's and a point's both, and the
+  panel found every slider by its name in the whole page: the band's Roll
+  was set back to the picked point's on every step where a slider takes no
+  focus (Safari), and the point's showed nothing. Each slider is now looked
+  for in its own box; both drag in WebKit.
 - **No slivers to the board, for Test too** (the owner, 2026-10-04: "all
   correct! Of course, no need to send such noise to the board"). `plotRun`
   leaves out every piece under 0.05 mm (`MIN_PIECE`), a W before one riding
