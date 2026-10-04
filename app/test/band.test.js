@@ -197,7 +197,6 @@ test('INK ON: no dip before a piece under NO_DIP mm; a layer starts on its first
   }
   ran.push(pass);
   assert.equal(ran.length, passes.length);
-  assert.ok(passes.some(p => p.ps[0].reduce((s, g) => s + pieceLen(g), 0) < NO_DIP), 'a layer drawn starting on a dot');
   let short = 0;
   ran.forEach((d, n) => {
     assert.equal(d.length, passes[n].ps.length, 'every piece run once');
@@ -233,4 +232,19 @@ test('the layers of the first run\'s ribbon: four stretches, cut as the owner dr
   for (const l of [1, 2, 3, 4]) assert.ok(L.imp.byLayer[l] > 5000, `N${l}: ${Math.round(L.imp.byLayer[l])} mm`);
   // the suggestion alone, from the imprint
   assert.deepEqual(cutsOf(b, imprintOf(b, null, { width: RUN_1258.band.width })), L.cuts);
+});
+
+test('INK ON with the rule: a layer drawn starting on a dot starts on its first long piece, with the dip', () => {
+  const line = (x, y, L, row) => [{ t: 'L', a: { x, y }, b: { x, y: y + L }, row }];
+  const ps = [line(0, 0, 20, 1), line(10, 0, 200, 2), line(20, 0, 30, 3), line(30, 0, 150, 4)];
+  const cup = { x: 390.18, y: 0.1, est: {}, diameter: 50, height: 20, rim: 30, dip: -3, dwell: 1 };
+  const run = plotRun({ ...DEFAULTS, ink: true, snake: true, pause: false, lift: false, tail: 15, here: { x: 400, y: 280 }, cup, noDipUnder: NO_DIP }, [{ key: 'N1', ps }]);
+  const order = [], dips = [];
+  let dip = false;
+  for (const b of run.blocks) {
+    if (b.kind === 'move' && b.dip) dip = true;
+    if (b.kind === 'move' && b.paintMM > 0) { order.push(b.row); dips.push(dip); dip = false; }
+  }
+  assert.deepEqual(order, [2, 1, 3, 4], 'the 200 mm row first, the others in their order');
+  assert.deepEqual(dips, [true, false, false, true], 'a dip before the long ones only');
 });

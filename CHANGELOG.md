@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the lines go on — through a moment's hiding, across a cut, to
+  their ends** (the owner, 2026-10-04, `machine/2026-10-04 Nolan-v2-details.jpg`:
+  "the line breaks at the tips. Is it Tail too? Lower it to 10 or 8 mm?
+  The line must go on"). Of the second ribbon's 83 pieces, 66 breaks
+  inside rows: 34 at the cuts (a row visible there ended one point, 1.5 mm,
+  before the next layer began), 17 hidden for under 10 mm (edge-on, a
+  pinch), and every piece's end lifted ~7 mm early: the elbow went at the
+  brush's speed, but the carriage stops at a piece's end and is slow there.
+  Now `layeredOf` paints a row hidden for under 6 mm on the canvas through
+  (`BRIDGE_MM`, est.), and a row parted by a cut gives both parts the cut's
+  point; `onTheMove` paces the elbow by the carriage, at rest at a path's
+  start and end (`ACCEL`), so it lifts at the end and not before. Tail
+  3 … 20 mm, on Test too: at 3 the brush is fully pressed on 98 % of the
+  ribbon, the elbow at 72°/s of 211. Test: 12 plans of 18 as before, 6 with
+  slower W at their paths' ends (891 commands), the paths the same. Tests.
 - **Test: Tail 10 … 20 mm too, 15 by default** (the owner, 2026-10-04: "on
   Test it can be replaced too"). `TAIL_MIN`, `TAIL_MAX` and `tailIn` in
   `strokes.js`, shared by Test and NOLAN; `DEFAULTS.tail` 15, 100 before. A

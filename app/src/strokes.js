@@ -258,7 +258,7 @@ export const MIN_PIECE = 0.05;  // mm: a shorter piece is a sliver, never sent (
 // test_both.png); at 15 on 92 %. The owner, 2026-10-04: "take it away past
 // 20 mm altogether, it is not needed, so there is no temptation"; then "on
 // Test too".
-export const TAIL_MIN = 10, TAIL_MAX = 20;
+export const TAIL_MIN = 3, TAIL_MAX = 20;   // 10 … 20 at first; 3 since the elbow keeps pace with the carriage at a path's ends (2026-10-04, the breaks)
 export const tailIn = v => Math.max(TAIL_MIN, Math.min(TAIL_MAX, Number.isFinite(v) ? v : DEFAULTS.tail));
 const sliver = (g, min = MIN_PIECE) => Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) < min;
 // How far the board runs a piece from where it stands, as the firmware takes
@@ -302,20 +302,28 @@ function onTheMove(p, o) {
   const touch = (q, k) => { if (k <= 1e-9) { line = null; return; } if (!line) trace.push(line = []); line.push({ x: q.x, y: q.y, k }); };
   const put = (g, on, row, w) => out.push({ g, on, row, v: g.t === 'A' ? arcSpeed(o.speed, g.r) : o.speed, ...w });
   const fast = deg => ({ w: deg, ws: WRIST_MAX });
+  // The carriage starts the path at rest and stops at its end (firmware
+  // path.h, ACCEL): near them it is slow, and the elbow keeps pace with it,
+  // not with the speed it never reaches there — else it lifts before the end
+  // (NOLAN, 2026-10-04: the lines broke at their ends).
+  const all = p.reduce((s, g) => s + pieceLen(g), 0);
+  let off = 0;                                          // where the group starts along the path
+  const carriage = s => Math.min(o.speed, Math.sqrt(2 * ACCEL * Math.max(0, Math.min(off + s, all - off - s))));
+  const secs = (s0, s1) => { let t = 0; const h = (s1 - s0) / 8; for (let q = 0; q < 8; q++) t += h / Math.max(1, carriage(s0 + h * (q + 0.5))); return t; };
   groups.forEach(G => {
     if (G.up) {                                         // a turn in the air: up at its start, down to the lift-off by its end
       turns++;
       const tr = trackOf(G.p), L = tr.at(-1).s1;
       cutTrack(tr, 0, L / 2).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_UP)));
       cutTrack(tr, L / 2, L).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_LIFT)));
-      line = null;
+      line = null; off += L;
       return;
     }
     const tr = trackOf(G.p), Lr = tr.at(-1).s1, z = Math.min(o.tail, Lr / 2), th = rowLift(Lr, ELBOW_LIFT, ELBOW_LIFT, z, z);
     const zone = (a, b) => {                            // a tail: the row cut every TAIL_STEP mm, a W 2 on each step
       const n = Math.max(1, Math.ceil((b - a) / TAIL_STEP)), ds = (b - a) / n;
       for (let j = 0; j < n; j++) {
-        const s0 = a + ds * j, s1 = s0 + ds, rate = Math.abs(th(s1) - th(s0)) * o.speed / ds;
+        const s0 = a + ds * j, s1 = s0 + ds, rate = Math.abs(th(s1) - th(s0)) / secs(s0, s1);
         need = Math.max(need, rate);
         const ws = j === 0 && !a ? WRIST_MAX : rate;    // the first of a landing comes down from the air too: as fast as it goes
         cutTrack(tr, s0, s1).forEach((g, m) => put(g, 1, G.row, m ? {} : { w: round1(th(s1)), ws: Math.max(1, Math.min(WRIST_MAX, Math.ceil(ws))) }));
@@ -328,6 +336,7 @@ function onTheMove(p, o) {
       touch(atTrack(tr, s).p, 1 - th(s) / ELBOW_LIFT);
       if (s >= Lr) break;
     }
+    off += Lr;
   });
   return { pieces: out, trace, turns, lifts: turns, need };
 }

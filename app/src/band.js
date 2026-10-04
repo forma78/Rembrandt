@@ -228,15 +228,43 @@ export function stretchesOf(band, cuts, imp) {
   for (let a = 0; a < m; a++) { const i0 = st.indexOf(a), i1 = st.lastIndexOf(a); if (i0 >= 0) stretches.push({ layer: num[a], i0, i1, s0: s[i0], s1: s[i1] }); }
   return { lay, stretches, cuts: at };
 }
+// A row hidden for a moment — where the ribbon is edge-on, at a pinch — is
+// painted through: two strokes there, each landing and lifting, left a gap
+// (the owner, 2026-10-04, machine/2026-10-04 Nolan-v2-details.jpg: "the line
+// breaks at the tips; the line must go on").
+const BRIDGE_MM = 6;     // on the canvas, est. (Claude's choice): 17 of 32 such gaps of the first ribbon under 10 mm
+const BRIDGE_ALONG = 30; // mm along the ribbon: the same place of it, not another part lying near
+function bridged(band, runs) {
+  const rows = new Map(), out = [];
+  for (const r of runs) { if (!rows.has(r.k)) rows.set(r.k, []); rows.get(r.k).push(r); }
+  for (const rs of rows.values()) {
+    rs.sort((a, b) => a.i0 - b.i0);
+    let cur = null;
+    for (const r of rs) {
+      if (cur) {
+        const end = cur.i0 + cur.pts.length - 1, a = cur.pts.at(-1), c = r.pts[0];
+        if (Math.hypot(c[0] - a[0], c[1] - a[1]) < BRIDGE_MM && (r.i0 - end) * band.step <= BRIDGE_ALONG) {
+          for (let i = end + 1; i < r.i0; i++) cur.pts.push([band.S[i][r.k][0], band.S[i][r.k][1]]);
+          cur.pts.push(...r.pts);
+          continue;
+        }
+        out.push(cur);
+      }
+      cur = { ...r, pts: r.pts.slice() };
+    }
+    if (cur) out.push(cur);
+  }
+  return out;
+}
 // The imprint in its layers: o.cuts, or the cuts suggested when there are none.
 export function layeredOf(band, o) {
   const imp0 = imprintOf(band, null, o), cuts = Array.isArray(o.cuts) ? o.cuts : cutsOf(band, imp0);
   const st = stretchesOf(band, cuts, imp0), runs = [];
-  for (const r of imp0.runs) {                     // a run breaks where its layer changes
+  for (const r of bridged(band, imp0.runs)) {      // a run breaks where its layer changes, both parts at the cut's point: they meet
     let cur = null;
     r.pts.forEach((p, j) => {
       const i = r.i0 + j, layer = st.lay[Math.min(i, band.n - 2)];
-      if (!cur || cur.layer !== layer) { if (cur) runs.push(cur); cur = { k: r.k, layer, i0: i, pts: [] }; }
+      if (!cur || cur.layer !== layer) { if (cur) { cur.pts.push(p); runs.push(cur); } cur = { k: r.k, layer, i0: i, pts: [] }; }
       cur.pts.push(p);
     });
     if (cur) runs.push(cur);
