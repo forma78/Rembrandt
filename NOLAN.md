@@ -110,7 +110,7 @@ The panel, top to bottom:
    Test's D1 · D2 · D3: one, two or all, run in their order, a pause
    between them; the last one stays on; a layer off is faint on Imprint
    and Layers (the owner, 2026-10-04: "I do not see the keys as on TEST").
-   **✂** at the end of the row: the cuts as suggested again (§3.0).
+   **Auto** at the end of the row: the cuts as suggested again (§3.0).
    **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
    run (§5.1).
 4. **Geometry · Colour · Layers · Imprint**, **White · Black**: the rows dark,
@@ -144,10 +144,13 @@ On the board:
 3. **N1, N2, N3** are the layers, stretches between the cuts: the run
    paints N1, pauses — CONTINUE when it is dry — then N2, and on. In a
    layer row by row, each piece one way, the way the ribbon runs. No timers.
-4. **The cuts**, on *Layers* with Select: each a dashed line across the
-   ribbon and a circle on its centre; the circle drags along the ribbon,
-   a click on the ribbon adds one, ⌫ takes the picked one out, ⌘Z undoes;
-   each stretch named N1 … where it lies.
+4. **Cut** (C), the scissors in the Tools on the left (the owner,
+   2026-10-04: "maybe move the scissors into TOOLS on the left?"): each cut
+   a dashed line across the ribbon and a circle on its centre, each
+   stretch named N1 … where it lies, in any look — Layers colours them.
+   The circle drags along the ribbon, a click on the ribbon adds a cut,
+   ⌫ or the bin takes the picked one out, ⌘Z undoes; dragged elsewhere the
+   ribbon turns, as with Select.
 
 Later, and where on the tab to settle with the owner: **Sample** (a tube
 for every stretch of every row from the reference, §4), the drop map, the

@@ -49,7 +49,7 @@ function load() {
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (Array.isArray(o.off)) S.off = o.off.filter(Number.isInteger);
     S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
-    for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen']]]) if (ok.includes(o[k])) S[k] = o[k];
+    for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
     const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
     if (A.length >= 2) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
     // the whole band's Roll of before 2026-10-04 (two Rolls on the panel, the owner: "unprofessional"):
@@ -140,7 +140,7 @@ const kick = () => { if (!drawSoon) drawSoon = requestAnimationFrame(() => { dra
 const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
 function shade(h, f) { const n = parseInt(h.slice(1), 16); return `rgb(${Math.round(((n >> 16) & 255) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; }
 const colourOf = kk => PALETTE[Math.min(PALETTE.length - 1, Math.floor(kk / S.rows * PALETTE.length))];
-const showPoints = () => S.tool === 'pen' || S.look === 'geometry' || S.look === 'layers';
+const showPoints = () => S.tool === 'pen' || (S.tool !== 'cut' && (S.look === 'geometry' || S.look === 'layers'));
 function draw() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = g.canvas.width / dpr, H = g.canvas.height / dpr, black = S.ground === 'black', ground = black ? '#0B0B0D' : '#FCFBF8';
@@ -152,7 +152,6 @@ function draw() {
   if (b) {
     if (S.look === 'imprint' && !busy) drawImprint();
     else drawBand(b, black, ground);
-    if (S.look === 'layers') drawCuts(b, black);
   }
   if (REF && S.refOpacity > 0) {                                                       // the reference as tracing paper
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
@@ -187,6 +186,7 @@ function draw() {
       g.fillRect(X - s, Y - s, 2 * s, 2 * s); g.strokeRect(X - s, Y - s, 2 * s, 2 * s);
     });
   }
+  if (b && cutting()) drawCuts(b, black);                                              // the cuts, with the Cut tool
   drawTrail();
 }
 // Geometry, Colour, Layers: the band far to near, each piece covering what
@@ -294,7 +294,7 @@ function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); res
 
 // ---------- the mouse: turn the ribbon, move its points ----------
 let drag = null, pickCut = -1;
-const cutting = () => S.look === 'layers' && S.tool === 'select';
+const cutting = () => S.tool === 'cut';   // the Cut tool (the owner, 2026-10-04: the scissors into the Tools)
 // a cut's handle under the mouse, or −1
 function cutHit(p) {
   if (!cutting()) return -1;
@@ -352,7 +352,7 @@ cv.addEventListener('pointerdown', e => {
     drag = { x: e.clientX, y: e.clientY, moved: false, mode: 'cut' };
     cv.setPointerCapture(e.pointerId); stage.classList.add('drag'); kick(); return;
   }
-  const hit = pointHit(p);
+  const hit = cutting() ? -1 : pointHit(p);
   if (pickCut >= 0) { pickCut = -1; kick(); }
   if (hit < 0 && S.tool === 'pen') { addPoint(p); return; }
   undoPush();
@@ -407,10 +407,10 @@ cv.addEventListener('wheel', e => {
 const HINTS = {
   select: 'Select — drag a square to move a point; drag elsewhere to turn the ribbon, Shift to move it, Alt to spin it; the wheel sizes it.',
   pen: 'Pen — click to add a point at the ribbon\'s end, at the depth of the last one; drag a square to move a point.',
-  cuts: 'Layers — click the ribbon to cut it there; drag a cut\'s circle along it; ⌫ takes the picked cut out; ✂ the cuts as suggested. Drag elsewhere to turn the ribbon.',
+  cut: 'Cut — click the ribbon to cut it; drag a circle along it; ⌫ takes the picked cut out; Auto: the cuts as suggested.',
 };
-const hintNow = () => HINTS[cutting() ? 'cuts' : S.tool];
-function setTool(t) { S.tool = t; syncTools(); save(); kick(); }
+const hintNow = () => HINTS[S.tool];
+function setTool(t) { S.tool = t; if (t !== 'cut') pickCut = -1; syncTools(); save(); kick(); }
 function syncTools() {
   document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.classList.toggle('on', b2.dataset.tool === S.tool));
   stage.className = 'stage t-' + S.tool;
@@ -420,7 +420,7 @@ document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.onclick = () => s
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
 function deleteCut() { const v = cutsNow()[pickCut]; if (v === undefined) return; undoPush(); setCuts(cutsNow().filter(c => c !== v)); settle(); }
 function deletePoint() { if (S.anchors.length <= 2) return; undoPush(); S.anchors.splice(pick, 1); pick = Math.min(pick, S.anchors.length - 1); settle(); }
-$('#btnDel').onclick = deletePoint;
+$('#btnDel').onclick = () => cutting() ? deleteCut() : deletePoint();
 const blank = A => { undoPush(); S.anchors = A.map(a => ({ ...a })); pick = Math.min(pick, S.anchors.length - 1); settle(); };
 $('#btnDefault').onclick = () => blank(SKETCH);
 $('#btnRing').onclick = () => blank(ringBlank());
@@ -447,7 +447,8 @@ addEventListener('keydown', e => {
   if (cmd) return;
   if (e.key.toLowerCase() === 'v') setTool('select');
   else if (e.key.toLowerCase() === 'p') setTool('pen');
-  else if (e.key === 'Backspace' || e.key === 'Delete') pickCut >= 0 && cutting() ? deleteCut() : deletePoint();
+  else if (e.key.toLowerCase() === 'c') setTool('cut');
+  else if (e.key === 'Backspace' || e.key === 'Delete') cutting() ? deleteCut() : deletePoint();
 });
 
 // ---------- the panel: Test's sliders and words ----------
@@ -514,7 +515,7 @@ const layersNow = () => PLAN?.imp ? Object.keys(PLAN.imp.byLayer).map(Number).so
 function showLayers() {
   const lays = layersNow(), runs = l => (PLAN?.passes || []).includes(`N${l}`);
   const html = lays.map(l => `<button class="tog${runs(l) ? ' on' : ''}" data-layer="${l}" title="N${l}: ${fmt(PLAN.imp.byLayer[l] / 1000, 1)} m, painted ${l > 1 ? `after N${l - 1}` : 'first'} — on or off; the layers on run in their order, a pause between them">N${l}</button>`).join('')
-    + (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts ? ' — yours are set by hand now' : ''}">✂</button>` : '');
+    + (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts ? ' — yours are set by hand now' : ''}; the Cut tool on the left moves them">Auto</button>` : '');
   const el = $('#layerKeys');
   if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
   el.hidden = !lays.length;

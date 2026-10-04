@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the cuts are a tool, Cut (C), the scissors in the Tools** (the
+  owner, 2026-10-04: "maybe move the scissors into TOOLS on the left?").
+  With it the cuts and the stretches' names show in any look; a click on
+  the ribbon cuts it, a circle drags along it, ⌫ or the bin takes the picked
+  one out. The points' squares stay away meanwhile. **Auto** in the N row
+  brings the suggestion back (✂ there before). Tried in the browser.
 - **NOLAN: the layers are stretches of the ribbon, cut along it** (the
   owner, 2026-10-04, `machine/layers selected.png`, `layers how to
   cut.png`: "continuous bundles, where the line goes naturally … I do not

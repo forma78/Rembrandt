@@ -39,10 +39,14 @@
       <svg viewBox="0 0 24 24"><path d="M12 3l6 9-6 9-6-9z"/><path d="M12 12v9"/><circle cx="12" cy="11" r="1.4" class="dot"/></svg>
       <span>P</span>
     </button>
+    <button class="tool" data-tool="cut" title="Cut — the layers: click the ribbon to cut it there; drag a cut's circle along it; ⌫ takes the picked cut out (C)">
+      <svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="M8.5 8.8L20 17M8.5 15.2L20 7"/></svg>
+      <span>C</span>
+    </button>
     <div class="sep"></div>
     <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
     <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
-    <button class="tool" id="btnDel" title="Delete the picked point (⌫)"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
+    <button class="tool" id="btnDel" title="Delete the picked point, or with Cut the picked cut (⌫)"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
     <div class="sep"></div>
     <button class="tool" id="btnDefault" title="The ribbon through IMG_9424"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg></button>
     <button class="tool" id="btnRing" title="A ring — the donut — as the centre's blank"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg></button>
