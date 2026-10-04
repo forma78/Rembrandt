@@ -95,6 +95,8 @@ input[type=range]:disabled{opacity:.35}
     <button data-b="ring" title="A ring, the donut: a blank of the centre line">Ring</button>
   </div>
   <button class="btn" id="btnFront" title="Turned back to face the canvas, as drawn: over the reference">Face the canvas</button>
+  <button class="btn" id="btnCopy" title="The points and the settings as text, for Claude to carry into NOLAN">Copy the shape</button>
+  <p class="read" id="copyRead">Kept in this browser as you go.</p>
 
   <h2>The band</h2>
   <div id="band"></div>
@@ -398,8 +400,8 @@ function sliders(box, list, obj) {
 sliders($('whole'), WHOLE, () => G);
 sliders($('band'), BAND, () => G);
 sliders($('point'), POINT, () => A[pick]);
-$('look').querySelectorAll('button').forEach(b => b.onclick = () => { G.look = b.dataset.look; sync(); render(); });
-$('ground').querySelectorAll('button').forEach(b => b.onclick = () => { if (b.dataset.ref) G.ref = !G.ref; else G.ground = b.dataset.g; sync(); render(); });
+$('look').querySelectorAll('button').forEach(b => b.onclick = () => { G.look = b.dataset.look; sync(); render(); saveNow(); });
+$('ground').querySelectorAll('button').forEach(b => b.onclick = () => { if (b.dataset.ref) G.ref = !G.ref; else G.ground = b.dataset.g; sync(); render(); saveNow(); });
 $('blank').querySelectorAll('button').forEach(b => b.onclick = () => {
   BLANK[blank] = A.map(a => ({ ...a }));                               // the one left keeps what was done to it
   blank = b.dataset.b; A.length = 0; BLANK[blank].forEach(a => A.push({ ...a }));
@@ -426,11 +428,28 @@ function sync() {
     + `Closer than the brush: <span class="${IMP.red > 0.35 ? 'warn' : ''}">${fmt(IMP.red * 100)} %</span> of the visible lines<br>`
     + `For the machine: each piece fitted into lines and arcs (≤ 0.1 mm), then Test's run — 3D only in the drawing.`;
 }
+// Kept in this browser: the points of both blanks, the settings.
+const KEY = 'rembrandt.nolan3d.v1';
+const saveNow = () => { try { BLANK[blank] = A.map(a => ({ ...a })); localStorage.setItem(KEY, JSON.stringify({ blank, BLANK, G })); } catch { } };
+function loadSaved() {
+  try {
+    const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
+    for (const b of ['img', 'ring']) if (Array.isArray(o.BLANK?.[b]) && o.BLANK[b].length > 1) BLANK[b] = o.BLANK[b];
+    if (o.blank in BLANK) blank = o.blank;
+    Object.assign(G, o.G || {});
+    A.length = 0; BLANK[blank].forEach(a => A.push({ ...a }));
+  } catch { }
+}
+$('btnCopy').onclick = async () => {
+  const text = JSON.stringify({ blank, points: A.map(a => ({ x: Math.round(a.x), y: Math.round(a.y), z: Math.round(a.z), roll: Math.round(a.roll) })), settings: G });
+  try { await navigator.clipboard.writeText(text); $('copyRead').textContent = 'Copied: paste it to Claude.'; }
+  catch { prompt('Copy this and paste it to Claude:', text); }
+};
 let soon = 0, fastNow = false;
 function changed(fast) {
   fastNow = !!fast;
   if (soon) return;
-  soon = requestAnimationFrame(() => { soon = 0; build(fastNow ? 4 : 1.5); render(); if (!fastNow) sync(); else { show(WHOLE); show(BAND); show(POINT); } });
+  soon = requestAnimationFrame(() => { soon = 0; build(fastNow ? 4 : 1.5); render(); if (!fastNow) { sync(); saveNow(); } else { show(WHOLE); show(BAND); show(POINT); } });
 }
 
 // ---------- the mouse ----------
@@ -460,6 +479,7 @@ cv.addEventListener('pointermove', e => {
 cv.addEventListener('pointerup', () => { drag = null; cv.classList.remove('drag'); changed(); });
 cv.addEventListener('wheel', e => { e.preventDefault(); G.zoom = Math.max(0.5, Math.min(1.6, G.zoom * Math.exp(-e.deltaY * 0.001))); changed(true); clearTimeout(cv.wt); cv.wt = setTimeout(() => changed(), 200); }, { passive: false });
 
+loadSaved();
 new ResizeObserver(layout).observe(stage);
 build(1.5); sync(); layout();
 </script>

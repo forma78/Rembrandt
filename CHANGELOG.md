@@ -18,6 +18,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   chat's prototype beside the pictures, `nolan-images/nolan-band-prototype.html`.
   NOLAN.md §3.0 and the glossary: the model, and "the machine still gets
   flat lines and arcs: 3D lives only in the drawing".
+  The prototype keeps the points and the settings in the browser, and
+  "Copy the shape" hands them over as text.
 - **NOLAN built on Test** (the owner, 2026-10-04: "Stop. We are copying
   CREATE, which did not work for us. Let's go back to TEST as the base.").
   Test's board — the canvas from the cup, the table round it, the run's
