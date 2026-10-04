@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **strokes.js: the run of the paths apart from Test's patterns**
+  (`plotRun`), for NOLAN to run its ribbons the same way (the owner,
+  2026-10-04: "let's go back to TEST as the base"). Test's plans come out
+  byte for byte as before (six settings compared, INK ON and the walls
+  among them).
 - **NOLAN opens with the owner's three ribbons** (the owner, 2026-10-04: "I
   would start these three ribbons by default"). His green paths of
   `nolan-images/IMG_9424-N1_N2_N3_paths.webp` — the sketch is IMG_9424 at
