@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: no dip before a piece under 50 mm** (the owner, 2026-10-04: "a
+  stroke under 50 mm — do not dip in the paint, work with what is on the
+  brush. It should be enough. Even if the paint runs out, I will see it by
+  the density of the other lines"; before a dot under 1 cm the dip "just
+  pours water, and there is a puddle"). `NO_DIP` in `band.js`, `noDipUnder`
+  for `plotRun`, asked by NOLAN only; a layer's first piece dips all the
+  same. The first run's ribbon: 167 dips of 276, ≈ 46 min of 60. Test's
+  plans as before (18 compared). A test.
 - **The repo is public** (the owner, 2026-10-04: "I opened it for Claude in
   chat. You may push, I allow it, and leave it public"). README's working
   rule and NOLAN.md say so; nothing is pushed without his word still.

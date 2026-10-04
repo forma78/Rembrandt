@@ -289,6 +289,13 @@ sees exactly where to squeeze the paint.
   (`machine/photo_2026-10-04 01.29.23.jpeg`), and later rows of 430 and
   520 mm ran on one dip each (the run journal). The 720 mm stays est.
   until a line that long is run.
+- **Short pieces: no dip** (the owner, 2026-10-04: "under 50 mm, do not
+  dip, work with what is on the brush; it should be enough. Even if the
+  paint runs out, I will see it by the density of the other lines"). A dip
+  before a dot under 1 cm left a puddle of water. A piece shorter than
+  50 mm (`NO_DIP`) goes on what the brush holds; a layer's first piece dips
+  all the same, the brush dry or waited through the pause (*Claude's
+  decision*). On the first run's ribbon: 167 dips of 276, ≈ 46 min of 60.
 - **Long lines**: a line longer than the dip run is split into runs; each
   starts with a fresh dip and lands where the last one's tail began.
   Neighbouring lines split half a dip run apart, so the tails never line up.

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layersOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layersOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -173,4 +173,30 @@ test('the run of 2026-10-04 12:58: the brush stays where the ribbon is, never al
 test('a plan longer on the board than drawn is refused: the fault PLAY reads', () => {
   const { run } = planOf(RUN_1258, { minPiece: 0 });   // the slivers let through: each a full circle on the board
   assert.match(run.fault, /^row \d+: /);
+});
+
+// The owner, 2026-10-04: a dip before a dot under 1 cm left a puddle of water —
+// "under 50 mm, do not dip, work with what is on the brush".
+test('INK ON: no dip before a piece under NO_DIP mm, but before a layer\'s first', () => {
+  const { passes, run } = planOf(RUN_1258, { noDipUnder: NO_DIP });
+  assert.equal(run.gone, 0);
+  const drawn = passes.map(p => p.ps.map(path => path.reduce((s, g) => s + pieceLen(g), 0)));
+  const dipped = [];            // for each pass, whether each piece had its dip
+  let pass = [], dip = false;
+  for (const b of run.blocks) {
+    if (b.kind === 'pause') { dipped.push(pass); pass = []; }
+    if (b.dip && b.kind === 'move') dip = true;
+    if (b.kind === 'move' && b.paintMM > 0) { pass.push(dip); dip = false; }
+  }
+  dipped.push(pass);
+  assert.equal(dipped.length, passes.length);
+  let short = 0;
+  dipped.forEach((d, n) => d.forEach((had, i) => {
+    const L = drawn[n][i], want = i === 0 || L >= NO_DIP;
+    assert.equal(had, want, `${passes[n].key}, piece ${i + 1}: ${L.toFixed(1)} mm`);
+    if (!want) short++;
+  }));
+  assert.ok(short > 100, `${short} pieces without a dip`);
+  assert.equal(run.dips, drawn.flat().length - short);
+  assert.equal(planOf(RUN_1258).run.dips, drawn.flat().length, 'without the rule a dip before every piece');
 });
