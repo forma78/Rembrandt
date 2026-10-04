@@ -120,7 +120,21 @@ function view() {
     const at = [...(Number.isFinite(c.x) ? [[{ x: c.x - h.x, y: c.y - h.y }, e]] : []), [{ x: hc.x - h.x, y: hc.y - h.y }, 24]];
     for (const [q, m] of at) { v.x0 = Math.min(v.x0, q.x - m); v.x1 = Math.max(v.x1, q.x + m); v.y0 = Math.min(v.y0, q.y - m); v.y1 = Math.max(v.y1, q.y + m); }
   }
+  const a = areaNow(), m = 16;                                                        // the image area, its walls and their names
+  if (a) { v.x0 = Math.min(v.x0, a.x0 - m); v.x1 = Math.max(v.x1, a.x1 + m); v.y0 = Math.min(v.y0, a.y0 - 4); v.y1 = Math.max(v.y1, a.y1 + 4); }
   return v;
+}
+// The image area, the machine's reach between its walls (Calibration's), in
+// mm from Here: where the canvas lies past it the brush is pressed along the
+// wall (the owner, 2026-10-04, machine/2026-10-04 nolan on paper.jpg: "at the
+// bottom there is no edge; I do not see the image area. But it is on
+// Calibration — can you carry it over?"). The canvas of 22:17 lay 124 mm past
+// the bottom wall, and its rows there ran along it in one flat stripe.
+function areaNow() {
+  const h = hereNow();
+  if (!h) return null;
+  const R = reach();
+  return { x0: R.x.min - h.x, x1: R.x.max - h.x, y0: R.y.min - h.y, y1: R.y.max - h.y, R };
 }
 let V = view(), k = 1, dpr = 1;
 // canvas mm → the screen: across is Y, down the picture is −X
@@ -147,7 +161,17 @@ function draw() {
   const W = g.canvas.width / dpr, H = g.canvas.height / dpr, black = S.ground === 'black', ground = black ? '#0B0B0D' : '#FCFBF8';
   const hw = S.boardW / 2, hh = S.boardH / 2;
   g.fillStyle = themeColor('--stage', '#E2DED6'); g.fillRect(0, 0, W, H);   // the table
+  const area = areaNow(), ax = y => (y - V.y0) * k, ay = x => (V.x1 - x) * k;     // machine mm from Here → the screen
+  const areaRect = () => g.rect(ax(area.y0), ay(area.x1), (area.y1 - area.y0) * k, (area.x1 - area.x0) * k);
+  if (area) { g.fillStyle = document.documentElement.classList.contains('night') ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.35)'; g.beginPath(); areaRect(); g.fill(); }
   g.fillStyle = ground; g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k);
+  if (area) {                                                                          // the canvas out of reach: hatched, as on Calibration
+    g.save(); g.beginPath(); g.rect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); g.clip();
+    g.beginPath(); g.rect(0, 0, W, H); areaRect(); g.clip('evenodd');
+    g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
+    for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
+    g.restore();
+  }
   g.lineCap = 'round'; g.lineJoin = 'round';
   const b = band(busy && drag?.mode !== 'cut' ? DRAG_STEP : STEP);                // a cut dragged: the ribbon as it is
   if (b) {
@@ -159,6 +183,17 @@ function draw() {
     g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
   }
   g.strokeStyle = black ? 'rgba(255,255,255,.35)' : 'rgba(36,34,31,.8)'; g.lineWidth = 1; g.strokeRect(sx([-hw]) + .5, sy([0, -hh]) + .5, S.boardW * k - 1, S.boardH * k - 1);
+  if (area) {                                                                          // the walls: dashed orange, named, as on Calibration
+    const R = area.R, A = area;
+    g.save(); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2; g.setLineDash([6, 4]); g.beginPath(); areaRect(); g.stroke(); g.setLineDash([]);
+    g.font = font(10); g.fillStyle = '#B3470C';
+    g.textAlign = 'left'; g.fillText(`image area ${fmt(R.y.max - R.y.min)} × ${fmt(R.x.max - R.x.min)} mm`, ax(A.y0) + 4, ay(A.x1) - 5);
+    g.textAlign = 'right'; g.fillText(`wall X +${fmt(R.x.max)}`, ax(A.y1) - 4, ay(A.x1) - 5);
+    g.fillText(`wall X +${fmt(R.x.min)}`, ax(A.y1) - 4, ay(A.x0) + 13);
+    g.textAlign = 'left'; g.fillText(`wall Y +${fmt(R.y.min)}`, ax(A.y0) + 4, ay(A.x0) + 13);
+    g.textAlign = 'right'; g.fillText(`wall Y +${fmt(R.y.max)}`, ax(A.y1) - 4, ay(A.x0) + 25);
+    g.restore();
+  }
   g.strokeStyle = '#EB7A25'; g.lineWidth = 1.5;                                    // Here: the canvas's centre
   g.beginPath(); g.moveTo(sx([-8]), sy([0, 0])); g.lineTo(sx([8]), sy([0, 0])); g.moveTo(sx([0]), sy([0, -8])); g.lineTo(sx([0]), sy([0, 8])); g.stroke();
   g.font = font(10); g.fillStyle = '#B3470C'; g.textAlign = 'left';
@@ -273,7 +308,7 @@ const WASH = [74, 16, 140];   // the violet wash in the cup on 2026-10-04, by ey
 const WASH_LIGHT = [205, 175, 245];   // the same on the black ground, lighter: the board adds there
 const WASH_WET = 0.5, WASH_DRY = 0.14, WASH_BLOT = 0.8;   // its strength fresh from the cup, at the end of a dip run, in a blot (est., the trace of 18:11)
 function drawWash(P_) {
-  P_.wash ??= washOf(P_.preview, band(STEP), P_.imp.runs, S.width);
+  P_.wash ??= washOf(P_.preview, band(STEP), P_.imp.runs, S.width, areaNow());   // pressed into the walls, as the run is
   const black = S.ground === 'black';
   const tone = a => black ? `rgb(${WASH_LIGHT.map(c => Math.round(c * a)).join(',')})` : `rgb(${WASH.map(c => Math.round(255 - (255 - c) * a)).join(',')})`;
   g.save(); g.globalCompositeOperation = black ? 'screen' : 'multiply'; g.lineCap = 'butt'; g.lineJoin = 'round';
