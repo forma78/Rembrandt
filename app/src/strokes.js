@@ -252,6 +252,7 @@ export const ELBOW_LIFT = 10, ELBOW_UP = 25;   // the lift-off measured +9.8° f
 const TAIL_STEP = 16;           // mm along a tail a W
 export const WRIST_MAX = 211;   // °/s, the firmware's fastest for W (2400 ticks/s; the servo makes about 250, est.)
 export const SPEED_MAX = 250;   // mm/s, the board's fastest path (firmware F, 1…250 since 2026-10-02)
+export const MIN_PIECE = 0.05;  // mm: a shorter piece is a sliver, never sent (plotRun)
 
 const trackOf = p => { let s = 0; return p.map(g => { const L = pieceLen(g), e = { g, s0: s, s1: s + L }; s += L; return e; }); };
 function atTrack(tr, s) {
@@ -473,11 +474,11 @@ export function plotRun(o, passes) {
       let v = o.speed, len = 0, paint = 0;
       for (const q of m.pieces) {
         if (q.w !== undefined) cmds.push(`W 2 ${q.w} ${q.ws}`);
-        // o.minPiece (NOLAN, 2026-10-04): a sliver of a tail's cut, its ends
-        // closer than that, is not sent — the board takes an arc ending where
-        // it starts for a full circle (firmware path.h, arc); a W before it
-        // rides on the next piece. Off unless asked: Test as it was.
-        if (o.minPiece && Math.hypot(q.g.b.x - q.g.a.x, q.g.b.y - q.g.a.y) < o.minPiece) continue;
+        // A sliver of a tail's cut, its ends closer than MIN_PIECE, is never
+        // sent: the board takes an arc ending where it starts for a full circle
+        // (firmware path.h, arc). A W before it rides on the next piece. The
+        // owner, 2026-10-04: "of course, no need to send such noise to the board".
+        if (Math.hypot(q.g.b.x - q.g.a.x, q.g.b.y - q.g.a.y) < (o.minPiece ?? MIN_PIECE)) continue;
         if (q.v !== v) { cmds.push(`F ${q.v}`); v = q.v; }
         cmds.push(q.g.t === 'L' ? `L ${M(q.g.b)}` : `A ${M(q.g.c)} ${M(q.g.b)} ${q.g.d}`);
         const L = pieceLen(q.g);

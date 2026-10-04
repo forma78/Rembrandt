@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP, MIN_PIECE } from '../src/strokes.js';
 
 const PLOTTER = { lift: false };   // the plotter's own path, the brush not lifted at the turns
 
@@ -349,4 +349,28 @@ test('rows wholly past the bottom wall, across it, are pressed into points and l
   const left = xyPlan({ ...o, here: { x: 300, y: -40 } });
   assert.equal(left.gone, 0, 'upright rows past the left wall lie along it');
   assert.ok(allPoints(left).every(q => q.y >= 0));
+});
+
+// The owner, 2026-10-04: "of course, no need to send such noise to the board".
+// A tail's cut can leave a piece a thousandth of a mm long; the board takes an
+// arc ending where it starts for a full circle (firmware path.h).
+test('no sliver goes to the board: every piece longer than MIN_PIECE', () => {
+  const cup = { x: 390.18, y: -0.37, rim: 34, dip: -3, dwell: 1, diameter: 50, est: {} }, here = { x: 400, y: 280 };
+  const plans = [
+    xyPlan({ pattern: 'D', ...PATTERNS.D, passes: ['D1'], rows: 14, length: 330, bow: 20, wave: 5, ink: true, here, cup }),   // 28 slivers before
+    xyPlan({ ...PATTERNS.C, here, wave: 4, bow: 30 }),                                                                         // 24 before
+  ];
+  for (const p of plans) {
+    let pos = null, pieces = 0;
+    for (const b of p.blocks.filter(b => b.kind === 'move')) for (const c of b.cmds) {
+      const t = c.split(' ');
+      if (t[0] === 'M') pos = [+t[1], +t[2]];
+      if (t[0] === 'L' || t[0] === 'A') {
+        const q = t[0] === 'L' ? [+t[1], +t[2]] : [+t[3], +t[4]];
+        assert.ok(!pos || Math.hypot(q[0] - pos[0], q[1] - pos[1]) >= MIN_PIECE - 0.011, `a sliver: ${c}`);   // 0.01 mm: the commands' rounding
+        pos = q; pieces++;
+      }
+    }
+    assert.ok(pieces > 100);
+  }
 });

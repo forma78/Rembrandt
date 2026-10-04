@@ -16,7 +16,6 @@ export const DIP_RUN = 720;   // mm a dip carries along a row (the owner, 2026-1
 export const FIT_MM = 0.1;    // a fitted piece keeps this close to the imprint (Rembrandt.md §3)
 const ARC_MAX = 2000;         // mm: a flatter arc goes as a line — a centre kilometres away is no command for the board
 export const ROWS_MAX = 60;
-export const MIN_PIECE = 0.05;   // mm: a shorter sliver is not sent (strokes.js, plotRun's minPiece)
 
 // ---------- the blanks of the centre ----------
 // IMG_9424's one ribbon, by eye (the prototype the owner took, "yes, that is
