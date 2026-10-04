@@ -203,7 +203,11 @@ to send such noise to the board"): its journal held one such arc, the D1 of
   — exact lines and arcs, through `offsetSegs` of `fillet.js`; do not
   write a second offsetter. est. as everything in §3.
 - **The ends of a line** land and lift on the move, the elbow easing the
-  pressure as in Test's *Tail* — the new arm's tail, no flags.
+  pressure as in Test's *Tail* — the new arm's tail, no flags. The elbow
+  goes 211°/s at most: on a piece shorter than about 22 mm at 150 mm/s it
+  lags, and the paint lies further on. Kept as it is, no slowing down and
+  no pieces left out (the owner, 2026-10-04: "we leave it as it is and do
+  the first test"); the warning stays red on the tab.
 - **Where geometry fails** — a line folds where the centre bends tighter
   than half the ribbon — a red "!" at the place, as Create marks a rounding
   that does not fit; the owner opens the bend or narrows the ribbon.

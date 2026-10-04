@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the elbow's 211°/s, as it is** (the owner, 2026-10-04: "we leave
+  it as it is and do the first test"). Of the 92 visible pieces 33 are
+  shorter than 40 mm, the shortest 4.6 mm; at 150 mm/s the elbow lands and
+  lifts the brush in time only on a piece from about 22 mm, and lags on a
+  shorter one. Not slowed down, nothing left out: the first test shows what
+  it does. NOLAN.md §3; no code changed.
 - **NOLAN: INK shows the cup, as on Test** (the owner, 2026-10-04: "the INK
   switch does not work — it must be as on TEST, so the target shows where the
   cup of paint is"). The canvas lay only from the cup's two ruler numbers,
