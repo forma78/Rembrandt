@@ -435,6 +435,31 @@ export function washOf(preview, band, runs, width, box = null) {
   return out;
 }
 
+// ---------- TEST: the drawing's corners, before PLAY ----------
+// The owner, 2026-10-04: "before PLAY I would like a test. The brush in the
+// bottom left corner; I press TEST and it dips in the paint and puts dots at
+// the farthest corners, TL TR / BL BR". The corners of the box round what the
+// run paints (preview: plotRun's trace, machine mm from Here: X up, Y right),
+// from home at the bottom left: BL, TL, TR, BR. A dot is a stroke DOT_MM long
+// from the corner into the box; one dip before the first, the others shorter
+// than NO_DIP go on what the brush holds. → { box, dots: [{ name, at, to }],
+// passes } for plotRun.
+export const DOT_MM = 6;   // est.
+export function cornerDots(preview, dot = DOT_MM) {
+  const box = { x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity };
+  for (const line of preview) for (const t of line) {
+    if (t.x < box.x0) box.x0 = t.x; if (t.x > box.x1) box.x1 = t.x;
+    if (t.y < box.y0) box.y0 = t.y; if (t.y > box.y1) box.y1 = t.y;
+  }
+  if (!(box.x1 >= box.x0 && box.y1 >= box.y0)) return { box: null, dots: [], passes: [] };
+  const c = { x: (box.x0 + box.x1) / 2, y: (box.y0 + box.y1) / 2 };
+  const dots = [['BL', box.x0, box.y0], ['TL', box.x1, box.y0], ['TR', box.x1, box.y1], ['BR', box.x0, box.y1]].map(([name, x, y]) => {
+    const u = unit2(c.x - x, c.y - y), l = Math.min(dot, Math.hypot(c.x - x, c.y - y));
+    return { name, at: { x, y }, to: { x: x + u.x * l, y: y + u.y * l } };
+  });
+  return { box, dots, passes: [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }] };
+}
+
 // ---------- into lines and arcs, for the machine ----------
 // A run of the imprint (canvas mm) → Test's pieces in machine mm: biarcs
 // between its points, each as long as it can be and still within FIT_MM of

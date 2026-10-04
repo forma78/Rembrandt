@@ -102,8 +102,13 @@ Create only **the Tools on the left**. The ribbon is the one ribbon in 3D of
 
 The panel, top to bottom:
 
-1. **PROGRESS**: the LCD, the sun and the moon; **PLAY · PAUSE / CONTINUE ·
-   • STOP · •• HARD STOP**.
+1. **PROGRESS**: the LCD, the sun and the moon; **TEST · PLAY · PAUSE /
+   CONTINUE · • STOP · •• HARD STOP**. **TEST**, before PLAY (the owner,
+   2026-10-04: "the brush in the bottom left corner; I press TEST and it
+   dips in the paint and puts dots at the farthest corners, TL TR / BL
+   BR"): one dip in the cup, a 6 mm dot (est.) from each corner of the box
+   round what PLAY paints into it — BL, TL, TR, BR — and home; a corner past
+   a wall is said before it runs.
 2. **💾 SAVE NOLAN** — to the Library. It sits on the tests' shelf for now
    (`rembrandt.py` knows paintings and tests); the Library opens it on NOLAN.
 3. **N1 · N2 · N3**, a key for each layer the imprint has, latching as
