@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: N1 · N2 · N3 keys, as D1 · D2 · D3 on Test** (the owner,
+  2026-10-04: "let's take N1 and N2 now. I do not see the keys as on TEST";
+  earlier, of PLAY's question: "it says N1 and N2 — how to part them?").
+  A key for each layer the imprint has, above INK: one, two or all, run in
+  their order, a pause between them, the last one stays on; kept with the
+  ribbon (`off`). A layer off is faint on Imprint and Layers, "(off)" in
+  the reading; PLAY's question and the LCD count the pieces that run. The
+  LCD reads the blocks PLAY sent, as the trace does. Tried in the browser:
+  the first run's ribbon, N1 off — N2 alone, 495 steps of 1664.
 - **NOLAN: no dip before a piece under 75 mm**, 50 before (the owner,
   2026-10-04: "50 mm without a dip works. Let's raise it to 75 mm — it
   should go faster still. The trace is quite clear"). The first run's
