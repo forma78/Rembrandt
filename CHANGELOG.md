@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test: Tail 10 … 20 mm too, 15 by default** (the owner, 2026-10-04: "on
+  Test it can be replaced too"). `TAIL_MIN`, `TAIL_MAX` and `tailIn` in
+  `strokes.js`, shared by Test and NOLAN; `DEFAULTS.tail` 15, 100 before. A
+  Tail up to 200 kept in the browser or a Library save opens at 20. Tried in
+  the browser: both sliders 10 … 20, an old 155 at 20.
 - **NOLAN: Tail 10 … 20 mm, 15 by default** (the owner, 2026-10-04: "set
   it to 15, yes. Take it away past 20 mm altogether, it is not needed, so
   there is no temptation"). Every run of the day had Tail 155 mm: the

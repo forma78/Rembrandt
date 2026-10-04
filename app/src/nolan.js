@@ -12,7 +12,7 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
+import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
 import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -25,11 +25,6 @@ const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0
 const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#3FA7A0', '#B04FC4'];   // N1 … N5 on Layers
 const DRAG_STEP = 4, STEP = 1.5;
 const OFF_ALPHA = 0.18, OFF_HEX = '2E';   // a layer switched off, on the board: faint
-// Tail, 10 … 20 mm: at 155 mm the brush was fully pressed on 30 % of the ribbon,
-// the pieces' ends never painted (machine/2026-10-04-test_both.png); at 15
-// on 92 %. The owner, 2026-10-04: "take it away past 20 mm altogether, it is
-// not needed, so there is no temptation". Test's Tail as it was.
-const TAIL_MIN = 10, TAIL_MAX = 20;
 // More than this past the walls is no longer a hair (Test's 2 mm of 2026-10-03):
 // the canvas lies partly out of reach, said in red and before PLAY.
 const PAST_MANY = 50;   // mm between the centre's points: coarse while the mouse turns it
@@ -51,7 +46,7 @@ function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
     for (const k of NUM) if (Number.isFinite(o[k])) S[k] = o[k];
-    S.tail = Math.max(TAIL_MIN, Math.min(TAIL_MAX, S.tail));                        // a save from before, Tail up to 200
+    S.tail = tailIn(S.tail);                                                       // a save from before, Tail up to 200 (strokes.js)
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (Array.isArray(o.off)) S.off = o.off.filter(Number.isInteger);
     S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;

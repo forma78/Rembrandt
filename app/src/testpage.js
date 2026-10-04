@@ -6,7 +6,7 @@
 
 import { fmt } from './util.js';
 import { parsePing, toMm, reach } from './machine.js';
-import { xyPlan, PATTERNS, PASSES, DEFAULTS, TABLE_MM, BRUSH_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
+import { xyPlan, PATTERNS, PASSES, DEFAULTS, TABLE_MM, BRUSH_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
@@ -16,6 +16,7 @@ const $ = s => document.querySelector(s);
 const KEY = 'rembrandt.test.v01';
 const S = { ...DEFAULTS, pattern: 'A', here: null };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch { }
+S.tail = tailIn(S.tail);   // a Tail up to 200 before 2026-10-04: at 20
 for (const k of ['sweep', 'reach', 'fast', 'turnSpeed', 'land']) delete S[k];   // the arm strokes' settings, dropped 2026-10-02; the landing shift, tried and dropped the same day
 if (S.board) { S.boardW = S.boardH = S.board; delete S.board; }
 if (S.lift === undefined && S.tilt !== undefined) S.lift = S.tilt >= 45;   // the wrist off the board at a turn, before the new arm: the brush up there now          // one size for both before; width and height apart since 2026-10-02
@@ -49,7 +50,7 @@ const SLIDERS = [
   ['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX],
   // along the first and the last of a row the elbow eases the brush on and off on the move (2026-10-02);
   // "Wrist at a turn" went with the new arm: the wrist lifting the brush was the broom
-  ['tail', 'Tail', 'mm', 5, 20, 200],
+  ['tail', 'Tail', 'mm', 1, TAIL_MIN, TAIL_MAX],   // 10 … 20 mm since 2026-10-04 (strokes.js)
 ];
 // a dot every step, a bigger one with its number every `label`, as on
 // Calibration; a scale across zero signs its numbers
@@ -324,6 +325,7 @@ async function openFromLibrary(file) {
     const o = JSON.parse(meta.textContent.replace(/- -/g, '--'));
     if (o.nolan) { location.href = 'nolan.html?open=' + encodeURIComponent(file); return; }   // a NOLAN save shares the tests' shelf
     Object.assign(S, o.settings || {});
+    S.tail = tailIn(S.tail);
     update();
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
   } catch { $('#saveState').textContent = 'could not open it from the Library'; }
