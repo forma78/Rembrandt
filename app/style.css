@@ -510,6 +510,12 @@ html.night .tool:hover{background:#303236}
    Test's page (body.adjust.arm3) with Create's Tools on the left; the pen's
    cross on the board; a round × on the reference's picture. */
 .nolan .stage.t-pen #cv{cursor:crosshair}
+.nolan .stage.drag #cv{cursor:grabbing}
+.nolan .looks{display:flex;margin:10px 0 0}
+.nolan .looks .tog{flex:1}
+.nolan .sec h4{margin:16px 0 2px}
+.nolan .grid4.keys{margin:10px 0 0}
+.nolan .read .lay{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:0}
 .nolan .refthumb{position:relative}
 .refdel{position:absolute;top:4px;right:4px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(36,34,31,.72);color:#fff;font-size:14px;line-height:20px;text-align:center;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
 .refdel:hover{background:#24221F}

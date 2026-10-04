@@ -8,11 +8,10 @@
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
 </head>
 <body class="adjust arm3 nolan">
-<!-- Rembrandt · NOLAN — the ribbons, after nolan-images/IMG_9424.jpg (NOLAN.md),
-     in Create's place in the top row. Built on the Test tab (the owner,
-     2026-10-04: "we are copying CREATE, which did not work for us — let's go
-     back to TEST as the base"): its board on the canvas from the cup, its
-     PROGRESS, keys and sliders; from Create only the Tools on the left. -->
+<!-- Rembrandt · NOLAN — one ribbon in 3D, imprinted on the canvas (NOLAN.md
+     §3.0; the owner, 2026-10-04: "yes, that is it — carry it into NOLAN").
+     Built on the Test tab: its board on the canvas from the cup, PROGRESS,
+     keys, INK, its sliders' words; from Create the Tools on the left. -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -32,27 +31,24 @@
 
 <main>
   <nav class="tools" aria-label="Tools">
-    <button class="tool" data-tool="pen" title="Pen — click points, Alt/A for a tangent arc, Enter to finish (P)">
-      <svg viewBox="0 0 24 24"><path d="M12 3l6 9-6 9-6-9z"/><path d="M12 12v9"/><circle cx="12" cy="11" r="1.4" class="dot"/></svg>
-      <span>P</span>
-    </button>
-    <button class="tool" data-tool="select" title="Select — pick a ribbon, drag it or its squares (V)">
+    <button class="tool" data-tool="select" title="Select — drag a square to move a point; drag elsewhere to turn the ribbon, Shift to move it, Alt to spin it; the wheel sizes it (V)">
       <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
       <span>V</span>
     </button>
-    <div class="sep"></div>
-    <button class="tool" id="btnArc" title="Next pen segment is a tangent arc (A)">
-      <svg viewBox="0 0 24 24"><path d="M4 18V11a8 8 0 0 1 16 0v7"/></svg>
-      <span>A</span>
+    <button class="tool" data-tool="pen" title="Pen — click to add a point at the ribbon's end (P)">
+      <svg viewBox="0 0 24 24"><path d="M12 3l6 9-6 9-6-9z"/><path d="M12 12v9"/><circle cx="12" cy="11" r="1.4" class="dot"/></svg>
+      <span>P</span>
     </button>
     <div class="sep"></div>
     <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
     <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
-    <button class="tool" id="btnDel" title="Delete the picked ribbon (⌫)"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
-    <button class="tool" id="btnDefault" title="Open the owner's three ribbons: N1, N2, N3 of the sketch"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg></button>
+    <button class="tool" id="btnDel" title="Delete the picked point (⌫)"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
+    <div class="sep"></div>
+    <button class="tool" id="btnDefault" title="The ribbon through IMG_9424"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg></button>
+    <button class="tool" id="btnRing" title="A ring — the donut — as the centre's blank"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg></button>
   </nav>
 
-  <section class="stage t-pen" id="stage">
+  <section class="stage t-select" id="stage">
     <div class="board" id="board"><canvas id="cv"></canvas></div>
   </section>
 
@@ -61,9 +57,8 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <!-- the keys of Test: PLAY and one key for Pause and Continue, then STOP and HARD STOP -->
       <div class="runkeys">
-        <button class="btn" id="btnDoJob" title="Run the ribbons on the machine">PLAY</button>
+        <button class="btn" id="btnDoJob" title="Run the imprint on the machine, layer by layer">PLAY</button>
         <button class="btn" id="btnPause" title="Pause the run; pressed, Continue goes on">PAUSE</button>
       </div>
       <div class="stops">
@@ -73,30 +68,48 @@
     </section>
 
     <div class="savebar">
-      <button class="btn save" id="btnSave" title="Save the ribbons in the Library, as a new one named by the date and time">💾 SAVE NOLAN</button>
+      <button class="btn save" id="btnSave" title="Save the ribbon in the Library, as a new one named by the date and time">💾 SAVE NOLAN</button>
       <span class="save-state" id="saveState">to the Library</span>
     </div>
     <section class="sec">
       <h3>Nolan</h3>
-      <!-- INK as on Test (the owner, 2026-10-04): ON, the Watercolour run — a dip in
-           the cup of the Ink tab before every line, the lines one way; OFF, the
-           Paint run — the paint on the canvas, each ribbon a snake -->
-      <div class="inkrow" title="ON: the brush dips in the cup of the Ink tab before every line, the lines one way, back to the cup after each, home at the end">
+      <!-- INK as on Test: ON the Watercolour run — a dip in the cup every dip run along a row;
+           OFF the Paint run, the paint on the canvas -->
+      <div class="inkrow" title="ON: the brush dips in the cup of the Ink tab, a dip every 720 mm along a row (est.); OFF: the paint on the canvas">
         <span class="slh"><span>Ink</span></span>
         <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
       </div>
-      <div class="sliders" id="sliders"></div>
+      <div class="toggles looks" id="looks">
+        <button class="tog" data-look="geometry" title="The rows on the canvas; red where they lie closer than a row's width">Geometry</button>
+        <button class="tog" data-look="colour" title="The rows in IMG_9424's stripes; the band's back darker — the glazes">Colour</button>
+        <button class="tog" data-look="layers" title="What lies over what: painted in this order, each once the one under it is dry">Layers</button>
+        <button class="tog" data-look="imprint" title="What the machine paints: the visible pieces of the rows, their tails thinning">Imprint</button>
+      </div>
+      <div class="toggles looks" id="grounds">
+        <button class="tog" data-ground="white" title="The white canvas, as the machine paints it">White</button>
+        <button class="tog" data-ground="black" title="The black ground, as after the owner's hand">Black</button>
+      </div>
+      <div class="sliders" id="slBand"></div>
+      <h4>The ribbon in space</h4>
+      <div class="sliders" id="slView"></div>
+      <div class="grid4 keys">
+        <button class="btn" id="btnFront" title="Turned back to face the canvas, as drawn">Face the canvas</button>
+        <button class="btn" id="btnPaste" title="A shape copied from the prototype (Copy the shape)">Paste a shape</button>
+      </div>
+      <h4 id="ptHead">Point</h4>
+      <div class="sliders" id="slPoint"></div>
+      <h4>The brush</h4>
+      <div class="sliders" id="slRun"></div>
       <div class="grid4" id="fields"></div>
-      <label class="inline check"><input id="lift" type="checkbox"> Lift at the turns: the brush up through every turn</label>
       <p class="read" id="planRead"></p>
     </section>
 
     <section class="sec">
-      <h3>Reference <span class="hint">never painted as is</span></h3>
+      <h3>Reference <span class="hint">over the canvas, as tracing paper</span></h3>
       <div class="refrow">
         <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
         <div class="refctl">
-          <button class="btn" id="btnRef" title="An image under the canvas: traced, never painted as is">📎 Add new reference</button>
+          <button class="btn" id="btnRef" title="An image over the canvas, to fit the ribbon to: never painted as is">📎 Add new reference</button>
           <p class="read" id="refRead"></p>
           <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
         </div>

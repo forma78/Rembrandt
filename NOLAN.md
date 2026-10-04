@@ -92,52 +92,54 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 **The tab is built on Test** (the owner, 2026-10-04: "Stop. We are copying
 CREATE, which did not work for us. Let's go back to TEST as the base."):
 Test's board, the canvas placed from the cup (§3); Test's PROGRESS, keys,
-INK and sliders; Test's run. From Create only **the Tools on the left**
-("from CREATE we take the vertical menu on the left, the drawing icons").
-No second row: the first draft's format, modes and toggles are gone, the
-board's size is two numbers in the panel, as on Test ("Test solved it
-well, at the bottom of the panel on the right").
+INK and run; Test's words for the sliders (the owner: "the terminology from
+TEST, so there is no mess: ROWS first, ROW TO ROW and so on; and TAIL"). From
+Create only **the Tools on the left**. The ribbon is the one ribbon in 3D of
+§3.0 (the owner, 2026-10-04: "yes, that is it — it can go into NOLAN").
 
 The panel, top to bottom:
 
 1. **PROGRESS**: the LCD, the sun and the moon; **PLAY · PAUSE / CONTINUE ·
-   • STOP · •• HARD STOP**, as on Test.
+   • STOP · •• HARD STOP**.
 2. **💾 SAVE NOLAN** — to the Library. It sits on the tests' shelf for now
    (`rembrandt.py` knows paintings and tests); the Library opens it on NOLAN.
 3. **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
    run (§5.1).
-4. Test's sliders, shared by all the ribbons as Test's go to all its
-   passes: **Rows** — the lines across a ribbon (`12 · 96 mm`); **Row to
-   row** — their pitch, 8 mm; **Wave**; **Brush on**; **Between rows**;
-   **Tail**; then **Board width · Board height** and **Lift at the turns**.
-   Test's Row length and Bow are not here: a ribbon's length and bends are
-   its drawn centre.
-5. **Reference**: under the canvas, the whole of it inside, at 45 %; the
-   round × on its picture takes it away (the owner, 2026-10-04).
+4. **Geometry · Colour · Layers · Imprint**, **White · Black**: the rows dark,
+   red where they lie closer than a row's width; IMG_9424's stripes, the
+   band's back darker for the glazes; what lies over what; what the machine
+   paints — the visible pieces, their tails thinning.
+5. The band: **Rows** (first), **Row to row**, **Row width**, **Stack**,
+   **Twist**, **Roll** (all of it).
+6. The ribbon in space: **Rotate X**, **Rotate Y**, **↻**, **Size**, **X ↑**,
+   **Y →**, **Lens**; *Face the canvas*; *Paste a shape* (from the
+   prototype's *Copy the shape*).
+7. **Point n of m**: its **Depth** and **Roll**.
+8. The brush, Test's: **Brush on**, **Between rows**, **Tail** — the elbow
+   landing and lifting the brush over the ends of every piece, so the tails
+   are as long as the owner sets them ("we can make tails of different
+   lengths now"); then **Board width · Board height**.
+9. **Reference**: tracing paper over the canvas, its opacity; the round ×.
 
-Test's pattern keys (A B C, D1 D2 D3) and its X ↑ · Y → · ↻ rows are not
-drawn ("do not draw the buttons for now").
+Test's *Row length*, *Bow*, *Wave* and *Lift at the turns* are not here: the
+ribbon's length and bends are its points, and every piece runs one way, no
+turns. Test's pattern keys are not drawn.
 
 On the board:
 
-1. **The owner's three ribbons** open by default (the owner, 2026-10-04: "I
-   would start these three ribbons by default"): his paths of
-   `nolan-images/IMG_9424-N1_N2_N3_paths.webp` — N1 the upper arc, N2 the
-   lower loop, N3 the middle ribbon lying over both. The house brings them
-   back.
-2. **Pen** and **Arc** draw a ribbon's centre, as the curve on Create; a
-   click on a ribbon's end goes on with it, elsewhere starts the next N.
-   **Select** drags a ribbon or its squares. ⌘Z undoes; Esc is STOP, as on
-   Test.
-3. **N1, N2, N3** are the ribbons by painting order, each a layer (the
-   owner, 2026-10-03: "three arcs as three layers"). They run in their
-   order, **a pause between them**: the owner presses CONTINUE — in the
-   Paint run once the layer below is dry, in the Watercolour run at once.
-   No timers. Keys to pick them, as D1 · D2 · D3 on Test, come later.
+1. **The ribbon through IMG_9424** opens by default — 17 points; the house
+   brings it back, the ring (the first try's donut) is the other blank.
+2. **Select** drags a square to move a point in the screen's plane; dragged
+   elsewhere the ribbon turns — Shift moves it, Alt spins it, the wheel sizes
+   it. **Pen** adds a point at the ribbon's end; ⌫ takes the picked one out;
+   ⌘Z undoes; Esc is STOP, as on Test.
+3. **N1, N2, N3** are the layers by depth: the run paints N1, pauses —
+   CONTINUE when it is dry — then N2, and on. In a layer row by row, each
+   piece one way, the way the ribbon runs. No timers.
 
 Later, and where on the tab to settle with the owner: **Sample** (a tube
-for every stretch of every line from the reference, §4), the drop map, the
-colour preview with **Black ground** and **Hand** (§6).
+for every stretch of every row from the reference, §4), the drop map, the
+colours' preview with **Black ground** and **Hand** (§6).
 
 ---
 
@@ -177,6 +179,16 @@ and Claude in VS Code (`previous_research/nolan_3d_prototype.html`):
 **The machine still gets flat lines and arcs: 3D lives only in the
 drawing.** Each visible piece of a line is fitted into lines and arcs
 (≤ 0.1 mm, Rembrandt.md §3), then Test's run (`plotRun`), as now.
+
+On the tab (`app/src/band.js`): the centre in plan as biarcs through the
+points, depth and roll eased between them; the imprint's visible runs
+fitted into biarcs within 0.1 mm, an arc flatter than 2 m laid as its chord
+— a centre kilometres away is no command for the board. **A sliver is never
+sent**: a tail's cut can leave a piece a thousandth of a mm long, and the
+firmware takes an arc ending where it starts for a full circle (`path.h`,
+`arc`); NOLAN's run leaves out pieces shorter than 0.05 mm (`plotRun`'s
+`minPiece`). Test's run is as it was until the owner says: its journal
+holds one such arc, the D1 of 2026-10-03 14:49 pressed into the bottom wall.
 
 - **Bundles, not a grid** (the owner, 2026-10-03: "bundles, in
   principle"). Each ribbon's lines run along its own centre path, so the

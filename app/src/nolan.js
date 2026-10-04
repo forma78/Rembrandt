@@ -1,111 +1,107 @@
-// Rembrandt · NOLAN — the ribbons, after nolan-images/IMG_9424.jpg (NOLAN.md).
-// Built on the Test tab (the owner, 2026-10-04: "we are copying CREATE, which
-// did not work for us — let's go back to TEST as the base"): its board, the
-// canvas placed from the cup; its PROGRESS, keys, INK and sliders; its run,
-// strokes.js's plotRun. From Create only the Tools on the left: the ribbons'
-// centres drawn with Pen and Arc, their squares dragged.
+// Rembrandt · NOLAN — one ribbon in 3D, imprinted on the canvas (NOLAN.md
+// §3.0; the owner, 2026-10-04: "yes, that is it — carry it into NOLAN"; "the
+// words from TEST, so there is no mess: ROWS first, ROW TO ROW and so on;
+// and TAIL"). The model is band.js; this page draws it on Test's board —
+// the canvas from the cup — turns it with the mouse, edits its points with
+// Create's Tools, and runs its imprint with Test's run (strokes.js, plotRun),
+// layer by layer. 3D lives only in the drawing: the machine gets lines and
+// arcs.
 //
-// The ribbons are in pt from the canvas's centre, x across, y down
-// (ribbon.js); the board, as on Test, in mm from Here — the canvas's centre
-// — X up, Y to the right. Rows are the lines across a ribbon, the same for
-// all of them, as Test's sliders go to all its passes.
+// Canvas mm from its centre: x right, y down, z towards the viewer. The
+// board, as on Test: mm from Here — the canvas's centre — X up, Y right.
 
-import { PT_MM } from './config.js';
-import { P, sub, add, len, dist, TAU, fmt } from './util.js';
-import { segEnd, segDirEnd, tangentArc, anchorsOf, applyAnchorMove } from './geometry.js';
-import { makeLine, snapArc, pushSeg } from './gesture.js';
-import { nearestSeg, moveSegBy } from './curve.js';
-import { reach } from './machine.js';
+import { fmt } from './util.js';
+import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
-import { ribbonLines, ribbonPasses, ribbonName, widthLabel, ribbonWidth, clampLines, linesLength, sketchRibbons, LINE_MM, MAX_LINES } from './ribbon.js';
+import { SKETCH, ringBlank, bandOf, layersOf, imprintOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, MIN_PIECE, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const KEY = 'rembrandt.nolan.v02', REF_KEY = 'rembrandt.nolan.ref';
-const GROOVE = 1.5;     // mm of white between two lines on the board, so each reads on its own
-const DIP_RUN = 720;    // mm a dip carries along a line (the owner, 2026-10-04: "all 720 mm will go easily"), est.
+const KEY = 'rembrandt.nolan.v03', REF_KEY = 'rembrandt.nolan.ref';
+const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0', '#3D63D8', '#46A6EA', '#A6E3F8', '#EDE7F5'];   // IMG_9424's stripes, est. by eye
+const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#24221F'];
+const DRAG_STEP = 4, STEP = 1.5;   // mm between the centre's points: coarse while the mouse turns it
 
 // ---------- state ----------
 const S = {
-  ribbons: [],          // [{ id, segs }] by painting order: N1, N2, N3 …
-  rows: 12, pitch: 8, wave: 0, cornerR: 10,
-  speed: 150, travel: 180, tail: 70, lift: true, ink: false,   // the brush as on the owner's Test of 2026-10-04 (est.)
+  anchors: SKETCH.map(a => ({ ...a })),
+  rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, roll: 0,                      // the band
+  tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
+  speed: 150, travel: 180, tail: 70, ink: false,                                  // the brush, as on Test (est.)
   boardW: 500, boardH: 700,
-  tool: 'pen', penArc: false, angleSnap: 15, refOpacity: 45,
+  look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
-let pick = null, selAnchors = [];   // the picked ribbon's id, its picked squares
-let REF = null;                      // { img, name }
-let idSeq = 0;
-const newId = () => 'rb' + Date.now().toString(36) + (idSeq++).toString(36);
-const byId = id => S.ribbons.find(r => r.id === id) || null;
-const indexOf = id => S.ribbons.findIndex(r => r.id === id);
-const sketch = () => sketchRibbons().map(r => ({ id: newId(), ...r }));
-const lineOpts = () => ({ n: S.rows, pitch: S.pitch, wave: S.wave, cornerR: S.cornerR });
+let pick = 8;
+const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'roll', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'boardW', 'boardH', 'refOpacity'];
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
-    for (const k of ['rows', 'pitch', 'wave', 'cornerR', 'speed', 'travel', 'tail', 'boardW', 'boardH', 'angleSnap', 'refOpacity']) if (Number.isFinite(o[k])) S[k] = o[k];
-    for (const k of ['lift', 'ink']) if (typeof o[k] === 'boolean') S[k] = o[k];
-    if (o.tool === 'pen' || o.tool === 'select') S.tool = o.tool;
-    if (Array.isArray(o.ribbons)) S.ribbons = o.ribbons.filter(r => r && r.id && Array.isArray(r.segs) && r.segs.length).map(r => ({ id: r.id, segs: r.segs }));
+    for (const k of NUM) if (Number.isFinite(o[k])) S[k] = o[k];
+    if (typeof o.ink === 'boolean') S.ink = o.ink;
+    for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen']]]) if (ok.includes(o[k])) S[k] = o[k];
+    const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
+    if (A.length >= 2) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
   } catch { }
-  S.rows = clampLines(S.rows);
+  pick = Math.min(pick, S.anchors.length - 1);
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
+const bandOpts = step => ({ rows: S.rows, pitch: S.pitch, width: S.width, stack: S.stack, twist: S.twist, roll: S.roll, tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens, step });
+const view3 = () => ({ tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens });
 
-// the lines of every ribbon, built again only when it changes
-const built = new Map();
-function linesOf(r) {
-  const key = JSON.stringify([r.segs, lineOpts()]), hit = built.get(r.id);
-  if (hit && hit.key === key) return hit.L;
-  const L = ribbonLines(r, lineOpts());
-  built.set(r.id, { key, L });
-  return L;
-}
-
-// ---------- the cup and the canvas from it (Test's) ----------
+// ---------- the cup, and the canvas from it (Test's) ----------
 let INK = {};
 const cup = () => cupOf(INK);
 async function loadInk() {
   try { const r = await fetch('/ink', { cache: 'no-store' }); INK = r.ok ? await r.json() : {}; } catch { INK = {}; }
 }
-// Here: the canvas's centre, from the cup and the two ruler numbers of the Ink tab (NOLAN.md §3)
 const hereNow = () => canvasFrom(INK, S.boardW, S.boardH);
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
 
-// ---------- the plan: the ribbons as Test's run ----------
-let PLAN = null, planKey = '';
+// ---------- the band, and the plan of its run ----------
+let BAND = null, bandKey = '';
+function band(step) {
+  const key = JSON.stringify([S.anchors, bandOpts(step)]);
+  if (key !== bandKey) { bandKey = key; BAND = bandOf(S.anchors, bandOpts(step)); }
+  return BAND;
+}
+// The slow part — what lies over what, the imprint, its fitting, Test's run —
+// waits while the mouse turns the ribbon or a slider moves.
+let PLAN = null, planKey = '', busy = false;
+const EMPTY = { blocks: [], rows: [], passes: [], imp: null, lay: null, seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 function plan() {
-  const here = hereNow(), key = JSON.stringify([S.ribbons, lineOpts(), S.speed, S.travel, S.tail, S.lift, S.ink, here, S.ink ? dipCup() : null]);
+  if (busy && PLAN) return PLAN;
+  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
-  const { passes, rows } = ribbonPasses(S.ribbons, { ...lineOpts(), ink: S.ink });
-  const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: S.lift, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup() };
-  PLAN = { ...plotRun(o, passes), rows, passes: passes.map(p => p.key), ink: S.ink, opts: o };
+  const b = band(STEP);
+  if (!b) { PLAN = EMPTY; return PLAN; }
+  const lay = layersOf(b), imp = imprintOf(b, lay, { width: S.width });
+  const { passes, rows } = bandPasses(imp.runs, { ink: S.ink, tail: S.tail });
+  const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), minPiece: MIN_PIECE };
+  PLAN = { ...plotRun(o, passes), rows, passes: passes.map(p => p.key), ink: S.ink, imp, lay, opts: o };
   return PLAN;
 }
 
-// ---------- the board ----------
+// ---------- the board (Test's) ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
-const PAD_X = 20, PAD_Y = 20 + TABLE_MM;   // the table round the canvas, as on Test
+let g = ctx;   // the context drawn on: the board's, or a PNG's for the Library
+const PAD_X = 20, PAD_Y = 20 + TABLE_MM;
 function view() {
-  const P_ = plan(), v = { x0: -S.boardH / 2 - PAD_X, x1: S.boardH / 2 + PAD_X, y0: -S.boardW / 2 - PAD_Y, y1: S.boardW / 2 + PAD_Y };
-  if (P_.ink && hereNow()) {
-    const e = cup().diameter / 2 * 1.7 + 6, home = 24;
-    for (const [q, m] of [...(P_.cupAt ? [[P_.cupAt, e]] : []), [P_.homeAt, home]]) { v.x0 = Math.min(v.x0, q.x - m); v.x1 = Math.max(v.x1, q.x + m); v.y0 = Math.min(v.y0, q.y - m); v.y1 = Math.max(v.y1, q.y + m); }
+  const v = { x0: -S.boardH / 2 - PAD_X, x1: S.boardH / 2 + PAD_X, y0: -S.boardW / 2 - PAD_Y, y1: S.boardW / 2 + PAD_Y }, h = hereNow();
+  if (S.ink && h) {                                                                   // the cup and home on the table too
+    const c = cup(), hc = homeCorner(), e = (c.diameter || 50) / 2 * 1.7 + 6;
+    const at = [...(Number.isFinite(c.x) ? [[{ x: c.x - h.x, y: c.y - h.y }, e]] : []), [{ x: hc.x - h.x, y: hc.y - h.y }, 24]];
+    for (const [q, m] of at) { v.x0 = Math.min(v.x0, q.x - m); v.x1 = Math.max(v.x1, q.x + m); v.y0 = Math.min(v.y0, q.y - m); v.y1 = Math.max(v.y1, q.y + m); }
   }
   return v;
 }
 let V = view(), k = 1, dpr = 1;
-const kPt = () => k * PT_MM;
-// the ribbons' pt → the screen: across is Y, down the picture is −X
-const toScr = q => P((q.x * PT_MM - V.y0) * k, (V.x1 + q.y * PT_MM) * k);
-const docT = c => c.setTransform(dpr * kPt(), 0, 0, dpr * kPt(), -V.y0 * k * dpr, V.x1 * k * dpr);
-const scrT = c => c.setTransform(dpr, 0, 0, dpr, 0, 0);
-const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
+// canvas mm → the screen: across is Y, down the picture is −X
+const sx = p => (p[0] - V.y0) * k, sy = p => (V.x1 + p[1]) * k;
+const toCanvas = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / k + V.y0, (e.clientY - r.top) / k - V.x1]; };
 function layout() {
   V = view();
   const r = stage.getBoundingClientRect(), m = 36, sw = V.y1 - V.y0, sh = V.x1 - V.x0;
@@ -118,296 +114,212 @@ function layout() {
 }
 let drawSoon = 0;
 const kick = () => { if (!drawSoon) drawSoon = requestAnimationFrame(() => { drawSoon = 0; draw(); }); };
-function tracePath(c, segs) {
-  let first = true;
-  for (const g of segs) {
-    if (g.t === 'L') { if (first) c.moveTo(g.a.x, g.a.y); c.lineTo(g.b.x, g.b.y); }
-    else { if (first) c.moveTo(g.c.x + g.r * Math.cos(g.a0), g.c.y + g.r * Math.sin(g.a0)); c.arc(g.c.x, g.c.y, g.r, g.a0, g.a0 + g.s, g.s < 0); }
-    first = false;
+const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
+function shade(h, f) { const n = parseInt(h.slice(1), 16); return `rgb(${Math.round(((n >> 16) & 255) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; }
+const colourOf = kk => PALETTE[Math.min(PALETTE.length - 1, Math.floor(kk / S.rows * PALETTE.length))];
+const showPoints = () => S.tool === 'pen' || S.look === 'geometry' || S.look === 'layers';
+function draw() {
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = g.canvas.width / dpr, H = g.canvas.height / dpr, black = S.ground === 'black', ground = black ? '#0B0B0D' : '#FCFBF8';
+  const hw = S.boardW / 2, hh = S.boardH / 2;
+  g.fillStyle = themeColor('--stage', '#E2DED6'); g.fillRect(0, 0, W, H);   // the table
+  g.fillStyle = ground; g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  const b = band(busy ? DRAG_STEP : STEP);
+  if (b) {
+    if (S.look === 'imprint' && !busy) drawImprint();
+    else drawBand(b, black, ground);
   }
-}
-function pathOf(c, segs) { c.beginPath(); c.save(); docT(c); tracePath(c, segs); c.restore(); }
-function draw() { scrT(ctx); drawOn(ctx, k, cv.width / dpr, cv.height / dpr, true); drawTrail(ctx); }
-// The board on c, kk px a mm; wire: the centres, the squares and the pen too.
-function drawOn(c, kk, W, H, wire) {
-  const P_ = plan(), sx = y => (y - V.y0) * kk, sy = x => (V.x1 - x) * kk, hw = S.boardW / 2, hh = S.boardH / 2;
-  c.fillStyle = themeColor('--stage', '#E2DED6'); c.fillRect(0, 0, W, H);   // the table, dark by night
-  c.fillStyle = '#FCFBF8'; c.fillRect(sx(-hw), sy(hh), S.boardW * kk, S.boardH * kk);
-  if (REF) {                                                                // the reference, the whole of it inside the canvas
+  if (REF && S.refOpacity > 0) {                                                       // the reference as tracing paper
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
-    c.save(); c.globalAlpha = S.refOpacity / 100; c.drawImage(img, sx(-w / 2), sy(h / 2), w * kk, h * kk); c.restore();
+    g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
   }
-  c.strokeStyle = 'rgba(36,34,31,.8)'; c.lineWidth = 1; c.strokeRect(sx(-hw) + .5, sy(hh) + .5, S.boardW * kk - 1, S.boardH * kk - 1);
-  c.lineCap = 'round'; c.lineJoin = 'round';
-  if (P_.ink && hereNow()) {                                                // INK ON: the brush's way in the air, dashed
-    c.save(); c.setLineDash([3, 4]); c.strokeStyle = themeColor('--mute', '#7D776D'); c.lineWidth = 1;
-    for (const [a, b] of P_.air) { c.beginPath(); c.moveTo(sx(a.y), sy(a.x)); c.lineTo(sx(b.y), sy(b.x)); c.stroke(); }
-    c.restore();
+  g.strokeStyle = black ? 'rgba(255,255,255,.35)' : 'rgba(36,34,31,.8)'; g.lineWidth = 1; g.strokeRect(sx([-hw]) + .5, sy([0, -hh]) + .5, S.boardW * k - 1, S.boardH * k - 1);
+  g.strokeStyle = '#EB7A25'; g.lineWidth = 1.5;                                    // Here: the canvas's centre
+  g.beginPath(); g.moveTo(sx([-8]), sy([0, 0])); g.lineTo(sx([8]), sy([0, 0])); g.moveTo(sx([0]), sy([0, -8])); g.lineTo(sx([0]), sy([0, 8])); g.stroke();
+  g.font = font(10); g.fillStyle = '#B3470C'; g.textAlign = 'left';
+  g.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx([-hw]), sy([0, -hh]) - 6);
+  const h = hereNow();
+  if (S.ink && h && PLAN && !busy) {                                                   // INK ON: the way in the air, the cup, home
+    const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
+    g.save(); g.setLineDash([3, 4]); g.strokeStyle = themeColor('--mute', '#7D776D'); g.lineWidth = 1;
+    for (const [a, c] of PLAN.air) { g.beginPath(); g.moveTo(msx(a), msy(a)); g.lineTo(msx(c), msy(c)); g.stroke(); }
+    g.restore();
+    if (PLAN.cupAt) { const r = cup().diameter / 2 * k; drawCup(g, msx(PLAN.cupAt), msy(PLAN.cupAt), r); g.fillStyle = ink; g.fillText(`cup ⌀${cup().diameter}`, msx(PLAN.cupAt) + r * 1.7 + 4, msy(PLAN.cupAt) + 3); }
+    const hX = msx(PLAN.homeAt), hY = msy(PLAN.homeAt);
+    g.strokeStyle = ink; g.lineWidth = 1.2; g.strokeRect(hX - 4, hY - 4, 8, 8); g.fillStyle = ink; g.fillText('home', hX + 8, hY - 6);
   }
-  // the lines as the brush leaves them, thinner in the tails; a groove between neighbours
-  const wMm = Math.max(1, Math.min(LINE_MM, S.pitch) - GROOVE);
-  c.strokeStyle = 'rgba(40,38,35,.62)'; c.lineCap = 'butt';
-  for (const line of P_.preview) {
-    const wd = i => Math.round(10 * Math.max(0.15, (line[i - 1].k + line[i].k) / 2)) / 10;
-    for (let i = 1; i < line.length;) {
-      const w = wd(i);
-      c.lineWidth = wMm * kk * w;
-      c.beginPath(); c.moveTo(sx(line[i - 1].y), sy(line[i - 1].x));
-      while (i < line.length && wd(i) === w) { c.lineTo(sx(line[i].y), sy(line[i].x)); i++; }
-      c.stroke();
-    }
-  }
-  c.lineCap = 'round';
-  c.strokeStyle = '#EB7A25'; c.lineWidth = 1.5;                            // Here: the canvas's centre
-  c.beginPath(); c.moveTo(sx(-8), sy(0)); c.lineTo(sx(8), sy(0)); c.moveTo(sx(0), sy(-8)); c.lineTo(sx(0), sy(8)); c.stroke();
-  c.font = font(10); c.fillStyle = '#B3470C';
-  c.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx(-hw), sy(hh) - 6);
-  if (P_.ink && hereNow()) {                                                // the cup, the red scope of the Ink tab; home
-    const ink = themeColor('--ink', '#24221F');
-    if (P_.cupAt) {
-      const X = sx(P_.cupAt.y), Y = sy(P_.cupAt.x), r = cup().diameter / 2 * kk;
-      drawCup(c, X, Y, r);
-      c.fillStyle = ink; c.textAlign = 'left'; c.fillText(`cup ⌀${cup().diameter}`, X + r * 1.7 + 4, Y + 3);
-    }
-    const hX = sx(P_.homeAt.y), hY = sy(P_.homeAt.x);
-    c.strokeStyle = ink; c.lineWidth = 1.2; c.strokeRect(hX - 4, hY - 4, 8, 8);
-    c.fillStyle = ink; c.textAlign = 'left'; c.fillText('home', hX + 8, hY - 6);
-  }
-  if (wire) drawWire(c);
-}
-// The centres dashed orange, the squares, the names, a bend too tight; the pen.
-function drawWire(c) {
-  S.ribbons.forEach((r, i) => {
-    if (!r.segs.length) return;
-    const on = r.id === pick, L = linesOf(r);
-    pathOf(c, L.centre); c.strokeStyle = on ? '#EB7A25' : 'rgba(235,122,37,.7)'; c.lineWidth = on ? 1.8 : 1.2;
-    c.setLineDash([6, 5]); c.stroke(); c.setLineDash([]);
-    const as = anchorsOf(r);
-    as.forEach((q, j) => {
-      const s = toScr(q), picked = on && selAnchors.includes(j), h = on ? 5 : 4;
-      c.fillStyle = picked ? '#EB7A25' : '#fff'; c.strokeStyle = on ? '#24221F' : 'rgba(36,34,31,.55)'; c.lineWidth = on ? 1.5 : 1;
-      c.fillRect(s.x - h, s.y - h, 2 * h, 2 * h); c.strokeRect(s.x - h, s.y - h, 2 * h, 2 * h);
+  if (showPoints()) {                                                                  // the points: squares where they lie now
+    const imp = projector(view3());
+    S.anchors.forEach((a, i) => {
+      const p = imp([a.x, a.y, a.z]), X = sx(p), Y = sy(p), s = i === pick ? 5 : 4;
+      g.fillStyle = i === pick ? '#EB7A25' : '#fff'; g.strokeStyle = '#24221F'; g.lineWidth = 1.2;
+      g.fillRect(X - s, Y - s, 2 * s, 2 * s); g.strokeRect(X - s, Y - s, 2 * s, 2 * s);
     });
-    const a = toScr(as[0]);
-    c.font = font(13, '600'); c.fillStyle = '#EB7A25'; c.textAlign = 'left'; c.fillText(ribbonName(i), a.x + 9, a.y - 9);
-    for (const q of L.warn) {
-      const s = toScr(q);
-      c.beginPath(); c.arc(s.x, s.y, 13, 0, TAU); c.strokeStyle = '#D9481C'; c.lineWidth = 2; c.setLineDash([3, 3]); c.stroke(); c.setLineDash([]);
-      c.fillStyle = '#D9481C'; c.font = '600 11px ' + getComputedStyle(document.body).getPropertyValue('--sans');
-      c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('!', s.x, s.y); c.textAlign = 'start'; c.textBaseline = 'alphabetic';
-    }
-  });
-  if (PEN) {
-    const a = toScr(PEN.anchor);
-    c.fillStyle = '#EB7A25'; c.fillRect(a.x - 3.5, a.y - 3.5, 7, 7);
-    if (PEN.prov) {
-      pathOf(c, [PEN.prov]); c.strokeStyle = '#EB7A25'; c.lineWidth = 1.6; c.setLineDash([6, 4]); c.stroke(); c.setLineDash([]);
-      const e = toScr(segEnd(PEN.prov)), label = segLabel(PEN.prov);
-      c.font = font(11);
-      const tw = c.measureText(label).width;
-      c.fillStyle = 'rgba(36,34,31,.85)'; c.fillRect(e.x + 12, e.y + 10, tw + 12, 19);
-      c.fillStyle = '#fff'; c.fillText(label, e.x + 18, e.y + 23);
+  }
+  drawTrail();
+}
+// Geometry, Colour, Layers: the band far to near, each piece covering what
+// lies behind it, then its rows.
+function drawBand(b, black, ground) {
+  const lay = S.look === 'layers' ? (busy ? null : plan().lay) : null;
+  for (const q of b.quads) {
+    const i = q.i;
+    g.beginPath(); q.poly.forEach((p, j) => j ? g.lineTo(sx(p), sy(p)) : g.moveTo(sx(p), sy(p))); g.closePath();
+    g.fillStyle = ground; g.strokeStyle = ground; g.lineWidth = 0.8; g.fill(); g.stroke();
+    g.lineWidth = S.width * k;
+    for (let kk = 0; kk < b.rows; kk++) {
+      g.strokeStyle = S.look === 'geometry' ? (b.pitch[i] < S.width ? '#D9481C' : black ? '#E9E5DD' : '#2A2826')
+        : S.look === 'layers' ? LAYER[Math.min(LAYER.length - 1, (lay ? lay[i] : 1) - 1)]
+        : b.back[i] ? shade(colourOf(kk), 0.5) : colourOf(kk);
+      g.beginPath(); g.moveTo(sx(b.S[i][kk]), sy(b.S[i][kk])); g.lineTo(sx(b.S[i + 1][kk]), sy(b.S[i + 1][kk])); g.stroke();
     }
   }
 }
-function segLabel(g) {
-  if (g.t === 'L') return `Line ${fmt(Math.atan2(-(g.b.y - g.a.y), g.b.x - g.a.x) * 180 / Math.PI, 0)}° · ${fmt(dist(g.a, g.b) * PT_MM / 10, 1)} cm`;
-  return `Arc ${fmt(Math.abs(g.s) * 180 / Math.PI, 0)}° · r ${fmt(g.r * PT_MM / 10, 1)} cm`;
+// Imprint: what the machine paints — the visible pieces, their ends thinning
+// over Tail as the elbow lands and lifts the brush (strokes.js, rowLift).
+function drawImprint() {
+  const P_ = plan();
+  if (!P_.imp) return;
+  for (const r of P_.imp.runs) {
+    const L = lengthOf(r.pts), z = Math.min(S.tail, L / 2);
+    let s = 0;
+    g.strokeStyle = colourOf(r.k);
+    for (let j = 1; j < r.pts.length; j++) {
+      const a = r.pts[j - 1], c = r.pts[j], d = Math.hypot(c[0] - a[0], c[1] - a[1]), m = s + d / 2;
+      const w = m < z ? (1 - Math.cos(Math.PI * m / z)) / 2 : m > L - z ? (1 - Math.cos(Math.PI * (L - m) / z)) / 2 : 1;
+      g.lineWidth = Math.max(0.6, S.width * k * w);
+      g.beginPath(); g.moveTo(sx(a), sy(a)); g.lineTo(sx(c), sy(c)); g.stroke();
+      s += d;
+    }
+  }
 }
 // The run as it goes (Test's): where the carriage has been since PLAY.
 let trail = [], trailOf = null;
-function drawTrail(c) {
+function drawTrail() {
   if (!hereNow() || !trail.length) return;
-  const sx = y => (y - V.y0) * k, sy = x => (V.x1 - x) * k, last = trail.at(-1);
-  c.save(); c.strokeStyle = '#EB7A25'; c.lineWidth = 1.2; c.lineJoin = 'round';
-  c.beginPath(); trail.forEach((q, i) => (i ? c.lineTo : c.moveTo).call(c, sx(q.y), sy(q.x))); c.stroke();
-  if (last.live) { c.fillStyle = '#EB7A25'; c.beginPath(); c.arc(sx(last.y), sy(last.x), 4, 0, Math.PI * 2); c.fill(); }
-  c.restore();
+  const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, last = trail.at(-1);
+  g.save(); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2;
+  g.beginPath(); trail.forEach((q, i) => (i ? g.lineTo : g.moveTo).call(g, msx(q), msy(q))); g.stroke();
+  if (last.live) { g.fillStyle = '#EB7A25'; g.beginPath(); g.arc(msx(last), msy(last), 4, 0, Math.PI * 2); g.fill(); }
+  g.restore();
 }
 
-// ---------- the ribbons: drawn and edited (Create's Tools) ----------
+// ---------- undo ----------
 let undoStack = [], redoStack = [];
-const snapshot = () => JSON.stringify({ ribbons: S.ribbons, pick });
+const SHAPE = ['anchors', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy'];
+const snapshot = () => JSON.stringify(Object.fromEntries(SHAPE.map(k2 => [k2, S[k2]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
-let lastSoft = 0;
-function undoPushSoft() { const t = performance.now(); if (t - lastSoft > 700) undoPush(); lastSoft = t; }
-function restore(js) { const o = JSON.parse(js); S.ribbons = o.ribbons; pick = byId(o.pick) ? o.pick : null; selAnchors = []; update(); }
-function undo() { finishAll(); if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); }
+function restore(js) { Object.assign(S, JSON.parse(js)); pick = Math.min(pick, S.anchors.length - 1); settle(); }
+function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); }
 function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); }
 
-function evPt(e) {
-  const r = cv.getBoundingClientRect(), Y = (e.clientX - r.left) / k + V.y0, X = V.x1 - (e.clientY - r.top) / k;
-  return P(Y / PT_MM, -X / PT_MM);
+// ---------- the mouse: turn the ribbon, move its points ----------
+let drag = null;
+const wrap = v => ((v + 180) % 360 + 360) % 360 - 180;
+function pointHit(p) {
+  if (!showPoints()) return -1;
+  const imp = projector(view3());
+  let best = -1, bd = 8 / k;
+  S.anchors.forEach((a, i) => { const q = imp([a.x, a.y, a.z]), d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; best = i; } });
+  return best;
 }
-const tol = () => 5 / kPt(), near = () => 8 / kPt();
-function anchorHit(q) {                                   // a square, the topmost ribbon first: { id, i }
-  for (let j = S.ribbons.length - 1; j >= 0; j--) {
-    const r = S.ribbons[j];
-    let best = null, bd = near();
-    anchorsOf(r).forEach((a, i) => { const d = dist(a, q); if (d < bd) { bd = d; best = i; } });
-    if (best !== null) return { id: r.id, i: best };
-  }
-  return null;
-}
-function endHit(q) {                                      // a ribbon's end: the pen goes on with it
-  for (let j = S.ribbons.length - 1; j >= 0; j--) {
-    const r = S.ribbons[j], last = r.segs.at(-1);
-    if (last && dist(q, segEnd(last)) < near()) return r.id;
-  }
-  return null;
-}
-function ribbonHit(q) {                                   // anywhere across its width, the topmost first
-  for (let j = S.ribbons.length - 1; j >= 0; j--) {
-    const r = S.ribbons[j];
-    if (r.segs.length && nearestSeg(r.segs, q, Math.max(tol(), (ribbonWidth(S.rows, S.pitch) / 2) / PT_MM)) !== null) return r.id;
-  }
-  return null;
-}
-// Pen: click — a point; A or Alt — a tangent arc. On a ribbon's end it goes
-// on with that ribbon; elsewhere it starts the next N.
-let PEN = null;
-function penSeg(q, e) {
-  if ((S.penArc !== !!e.altKey) && PEN.tan) { const g = tangentArc(PEN.anchor, PEN.tan, q); if (g) return snapArc(g); }
-  if (dist(q, PEN.anchor) < tol()) return null;
-  return makeLine(PEN.anchor, q, PEN.tan, S.angleSnap);
-}
-function penStart(id, q) {
+// A point put in the screen's plane, at the depth of the ribbon's last point.
+function addPoint(p) {
+  const R = rotation(S.tilt, S.swing, S.spin), last = S.anchors.at(-1), w = apply(R, [last.x, last.y, last.z]);
+  const m = apply(transpose(R), [(p[0] - S.dx) / S.zoom, (p[1] - S.dy) / S.zoom, w[2]]);
   undoPush();
-  let r = byId(id);
-  if (!r) { r = { id: newId(), segs: [] }; S.ribbons.push(r); }
-  const last = r.segs.at(-1);
-  PEN = last ? { id: r.id, anchor: segEnd(last), tan: segDirEnd(last), prov: null, added: 0 } : { id: r.id, anchor: q, tan: null, prov: null, added: 0 };
-  pick = r.id; selAnchors = [];
-  update();
-}
-function penDown(e, q) {
-  const g = penSeg(q, e); if (!g) return;
-  pushSeg(byId(PEN.id), g); PEN.added++;
-  PEN.anchor = segEnd(g); PEN.tan = segDirEnd(g); PEN.prov = null;
-  update();
-}
-function penFinish() {
-  if (!PEN) return;
-  const added = PEN.added; PEN = null;
-  if (!added) { const was = undoStack.pop(); if (was) restore(was); }   // nothing drawn: as it was
-  update();
-}
-const finishAll = () => penFinish();
-let DRAG = null, AD = null;
-function selDown(q) {
-  const id = ribbonHit(q);
-  pick = id; selAnchors = [];
-  if (id) { undoPush(); DRAG = { id, last: q, moved: false }; }
-  update();
-}
-function anchorDown(e, hit) {
-  if (pick !== hit.id) { pick = hit.id; selAnchors = []; }
-  if (e.shiftKey) {
-    const j = selAnchors.indexOf(hit.i);
-    if (j >= 0) { selAnchors.splice(j, 1); kick(); return; }
-    selAnchors.push(hit.i);
-  } else if (!selAnchors.includes(hit.i)) selAnchors = [hit.i];
-  const r = byId(hit.id);
-  undoPush();
-  AD = { id: hit.id, orig: JSON.parse(JSON.stringify(r.segs)), start: anchorsOf(r)[hit.i], from: null, moved: false };
-  kick();
-}
-function nudgeAnchors(dx, dy) {
-  const r = byId(pick); if (!r || !selAnchors.length) return;
-  undoPushSoft();
-  applyAnchorMove(r, JSON.parse(JSON.stringify(r.segs)), selAnchors, P(dx, dy));
-  update();
+  S.anchors.push({ x: Math.round(m[0]), y: Math.round(m[1]), z: Math.round(m[2]), roll: last.roll });
+  pick = S.anchors.length - 1; settle();
 }
 cv.addEventListener('pointerdown', e => {
   if (e.button !== 0) return;
-  cv.setPointerCapture(e.pointerId);
-  const q = evPt(e);
-  if (S.tool === 'pen') {
-    if (PEN) { penDown(e, q); return; }
-    const end = endHit(q);
-    if (end) { penStart(end, q); return; }
-    const a = anchorHit(q);
-    if (a) { anchorDown(e, a); return; }
-    penStart(null, q); return;
-  }
-  const a = anchorHit(q);
-  if (a) { anchorDown(e, a); return; }
-  selDown(q);
+  const p = toCanvas(e), hit = pointHit(p);
+  if (hit < 0 && S.tool === 'pen') { addPoint(p); return; }
+  undoPush();
+  drag = { x: e.clientX, y: e.clientY, moved: false, mode: hit >= 0 ? 'point' : e.shiftKey ? 'move' : e.altKey ? 'spin' : 'turn' };
+  if (hit >= 0) { pick = hit; showPanel(); }
+  cv.setPointerCapture(e.pointerId); stage.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
-  const q = evPt(e);
-  if (AD) {
-    if (!AD.from) AD.from = q;
-    const delta = sub(add(AD.start, sub(q, AD.from)), AD.start);
-    if (!AD.moved && len(delta) * kPt() < 1) return;
-    AD.moved = true;
-    applyAnchorMove(byId(AD.id), AD.orig, selAnchors, delta);
-    updateSoon(); return;
-  }
-  cv.style.cursor = !PEN && anchorHit(q) ? 'move' : '';
-  if (PEN) { PEN.prov = penSeg(q, e); kick(); return; }
-  if (DRAG) {
-    const d = sub(q, DRAG.last), r = byId(DRAG.id); DRAG.last = q; DRAG.moved = true;
-    r.segs = r.segs.map(g => moveSegBy(g, d)); updateSoon();
-  }
+  if (!drag) { cv.style.cursor = pointHit(toCanvas(e)) >= 0 ? 'move' : ''; return; }
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.moved && Math.hypot(dx, dy) < 2) return;
+  drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true;
+  if (drag.mode === 'point') {                                                         // in the screen's plane, the depth along
+    const d = apply(transpose(rotation(S.tilt, S.swing, S.spin)), [dx / k / S.zoom, dy / k / S.zoom, 0]), a = S.anchors[pick];
+    a.x += d[0]; a.y += d[1]; a.z += d[2];
+  } else if (drag.mode === 'move') { S.dx += dx / k; S.dy += dy / k; }
+  else if (drag.mode === 'spin') S.spin = wrap(S.spin + dx * 0.5);
+  else { S.swing = wrap(S.swing + dx * 0.5); S.tilt = wrap(S.tilt - dy * 0.5); }
+  showSliders(); kick();
 });
 cv.addEventListener('pointerup', () => {
-  if (AD) { if (!AD.moved) undoStack.pop(); AD = null; update(); return; }
-  if (DRAG) { if (!DRAG.moved) undoStack.pop(); DRAG = null; update(); }
+  if (!drag) return;
+  if (!drag.moved) undoStack.pop();
+  else { const a = S.anchors[pick]; if (drag.mode === 'point') { a.x = Math.round(a.x); a.y = Math.round(a.y); a.z = Math.round(a.z); } }
+  drag = null; stage.classList.remove('drag'); settle();
 });
-cv.addEventListener('dblclick', () => { if (S.tool === 'pen') penFinish(); });
+let wheelT = 0;
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (!busy) undoPush();
+  busy = true; S.zoom = Math.max(0.4, Math.min(2, S.zoom * Math.exp(-e.deltaY * 0.001)));
+  showSliders(); kick();
+  clearTimeout(wheelT); wheelT = setTimeout(settle, 250);
+}, { passive: false });
 
+// ---------- the tools (Create's) ----------
 const HINTS = {
-  pen: 'Pen — click to place points; Alt-click or A for a tangent arc; double-click or Enter to finish. Click a ribbon\'s end to go on with it, elsewhere to start the next N.',
-  select: 'Select — click a ribbon to pick it and drag it; drag a square to move one point, Shift-click for more. Arrows nudge 1 mm (Shift 10 mm).',
+  select: 'Select — drag a square to move a point; drag elsewhere to turn the ribbon, Shift to move it, Alt to spin it; the wheel sizes it.',
+  pen: 'Pen — click to add a point at the ribbon\'s end, at the depth of the last one; drag a square to move a point.',
 };
-function setTool(t) { finishAll(); S.tool = t; syncTools(); save(); }
+function setTool(t) { S.tool = t; syncTools(); save(); kick(); }
 function syncTools() {
-  document.querySelectorAll('.tool[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
-  $('#btnArc').classList.toggle('armed', S.penArc);
+  document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.classList.toggle('on', b2.dataset.tool === S.tool));
   stage.className = 'stage t-' + S.tool;
   $('#hint').textContent = HINTS[S.tool];
 }
-function deleteRibbon(id) {
-  if (!byId(id)) return;
-  finishAll(); undoPush();
-  S.ribbons = S.ribbons.filter(r => r.id !== id); built.delete(id);
-  if (pick === id) { pick = null; selAnchors = []; }
-  update();
-}
-document.querySelectorAll('.tool[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
-$('#btnArc').onclick = () => { S.penArc = !S.penArc; syncTools(); };
+document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.onclick = () => setTool(b2.dataset.tool));
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
-$('#btnDel').onclick = () => deleteRibbon(pick);
-$('#btnDefault').onclick = () => { finishAll(); undoPush(); S.ribbons = sketch(); pick = null; selAnchors = []; update(); };
+function deletePoint() { if (S.anchors.length <= 2) return; undoPush(); S.anchors.splice(pick, 1); pick = Math.min(pick, S.anchors.length - 1); settle(); }
+$('#btnDel').onclick = deletePoint;
+const blank = A => { undoPush(); S.anchors = A.map(a => ({ ...a })); pick = Math.min(pick, S.anchors.length - 1); settle(); };
+$('#btnDefault').onclick = () => blank(SKETCH);
+$('#btnRing').onclick = () => blank(ringBlank());
+$('#btnFront').onclick = () => { undoPush(); Object.assign(S, { tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0 }); settle(); };
+// a shape from the prototype's "Copy the shape" (previous_research/nolan_3d_prototype.html)
+$('#btnPaste').onclick = () => {
+  const text = prompt('Paste the shape copied from the prototype:'); if (!text) return;
+  try {
+    const o = JSON.parse(text), A = (o.points || []).filter(a => ['x', 'y', 'z', 'roll'].every(k2 => Number.isFinite(a?.[k2])));
+    if (A.length < 2) throw new Error('no points');
+    undoPush();
+    S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
+    const g = o.settings || {}, map = { lines: 'rows', pitch: 'pitch', brush: 'width', stack: 'stack', twist: 'twist', rollAll: 'roll', tilt: 'tilt', turn: 'swing', spin: 'spin', zoom: 'zoom', dx: 'dx', dy: 'dy', lens: 'lens' };
+    for (const [from, to] of Object.entries(map)) if (Number.isFinite(g[from])) S[to] = g[from];
+    pick = Math.min(pick, S.anchors.length - 1); settle();
+  } catch { alert('That is not a shape from the prototype.'); }
+};
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') post('/run/stop');              // Esc = STOP, as on Test and Calibration
+  if (e.key === 'Escape') post('/run/stop');                                         // Esc = STOP, as on Test
   if (e.target.matches('input,select,textarea')) return;
   const cmd = e.metaKey || e.ctrlKey;
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (cmd) return;
-  const key = e.key.toLowerCase();
-  if (key === 'p') setTool('pen');
-  else if (key === 'v') setTool('select');
-  else if (key === 'a') { S.penArc = !S.penArc; syncTools(); if (PEN) kick(); }
-  else if (e.key.startsWith('Arrow') && selAnchors.length) {
-    e.preventDefault();
-    const st = (e.shiftKey ? 10 : 1) / PT_MM, v = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-    nudgeAnchors(v[0] * st, v[1] * st);
-  }
-  else if (e.key === 'Enter' || e.key === 'Escape') { penFinish(); if (e.key === 'Escape') { pick = null; selAnchors = []; kick(); } }
-  else if ((e.key === 'Backspace' || e.key === 'Delete') && pick && !PEN) deleteRibbon(pick);
+  if (e.key.toLowerCase() === 'v') setTool('select');
+  else if (e.key.toLowerCase() === 'p') setTool('pen');
+  else if (e.key === 'Backspace' || e.key === 'Delete') deletePoint();
 });
 
-// ---------- the panel: Test's sliders ----------
-// Rows: the lines across a ribbon; Row to row: their pitch; Wave: the
-// ribbon waving; then the brush as on Test.
-const SLIDERS = [
-  ['rows', 'Rows', '', 1, 1, MAX_LINES], ['pitch', 'Row to row', 'mm', 0.5, 4, 30, { label: 5 }],
-  ['wave', 'Wave', 'mm', 1, 0, 30],
-  ['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX],
-  ['tail', 'Tail', 'mm', 5, 20, 200],
-];
+// ---------- the panel: Test's sliders and words ----------
+const signed = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
+const BAND_SL = [['rows', 'Rows', '', 1, 2, ROWS_MAX], ['pitch', 'Row to row', 'mm', 0.5, 2, 16, { label: 2 }], ['width', 'Row width', 'mm', 0.5, 1, 12],
+  ['stack', 'Stack', 'mm', 1, 0, 30], ['twist', 'Twist', 'half turns', 0.25, -4, 4], ['roll', 'Roll', '°', 1, -180, 180]];
+const VIEW_SL = [['tilt', 'Rotate X', '°', 1, -180, 180], ['swing', 'Rotate Y', '°', 1, -180, 180], ['spin', '↻', '°', 1, -180, 180],
+  ['zoom', 'Size', '×', 0.01, 0.4, 2], ['dy', 'X ↑', 'mm', 1, -250, 250, null, -1], ['dx', 'Y →', 'mm', 1, -250, 250], ['lens', 'Lens', '', 1, 0, 100]];
+const POINT_SL = [['z', 'Depth', 'mm', 1, -250, 250], ['roll', 'Roll', '°', 1, -180, 360]];
+const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 5, 10, 200]];
 function scale(step, min, max, label) {
   let h = '';
   for (let i = 0; min + i * step <= max + 1e-9; i++) {
@@ -416,69 +328,82 @@ function scale(step, min, max, label) {
   }
   return `<div class="ticks">${h}</div>`;
 }
-const shown = (key, unit) => key === 'rows' ? `${S.rows} · ${widthLabel(S.rows, S.pitch).split(' · ')[0]}` : `${S[key]}${unit ? ' ' + unit : ''}`;
-$('#sliders').innerHTML = SLIDERS.map(([key, label, , step, min, max, sc]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}">${sc ? scale(step, min, max, sc.label) : ''}</label>`).join('');
-let soon = 0;
-const updateSoon = () => { if (!soon) soon = requestAnimationFrame(() => { soon = 0; update(); }); };
-$('#sliders').querySelectorAll('input').forEach(inp => inp.oninput = () => { S[inp.dataset.k] = +inp.value; updateSoon(); });
+// each slider: [key, label, unit, step, min, max, scale, sign]; sign −1: shown the other way round (X ↑ is up, the canvas's y down)
+function sliders(box, list, objOf) {
+  box.innerHTML = list.map(([key, label, , step, min, max, sc]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}">${sc ? scale(step, min, max, sc.label) : ''}</label>`).join('');
+  box.querySelectorAll('input').forEach(inp => {
+    const row = list.find(r => r[0] === inp.dataset.k), sign = row[7] || 1;
+    inp.oninput = () => { if (!busy) undoPush(); busy = true; objOf()[inp.dataset.k] = +inp.value * sign; showSliders(); kick(); };
+    inp.onchange = () => settle();
+  });
+}
+sliders($('#slBand'), BAND_SL, () => S);
+sliders($('#slView'), VIEW_SL, () => S);
+sliders($('#slPoint'), POINT_SL, () => S.anchors[pick]);
+sliders($('#slRun'), RUN_SL, () => S);
 const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step]) => `<label>${label} <input data-k="${key}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
-$('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; update(); });
-$('#lift').onchange = e => { S.lift = e.target.checked; update(); };
-$('#ink').onchange = e => { S.ink = e.target.checked; update(); };
-$('#inkOff').onclick = () => { S.ink = false; update(); };
-$('#inkOn').onclick = () => { S.ink = true; update(); };
-
-function update() {
-  const P_ = plan();
-  for (const [key, , unit] of SLIDERS) {
-    const inp = $(`#sliders input[data-k="${key}"]`);
-    if (document.activeElement !== inp) inp.value = S[key];
-    $(`#sliders [data-v="${key}"]`).textContent = shown(key, unit);
+$('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; settle(); });
+$('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
+$('#inkOff').onclick = () => { S.ink = false; settle(); };
+$('#inkOn').onclick = () => { S.ink = true; settle(); };
+document.querySelectorAll('[data-look]').forEach(b2 => b2.onclick = () => { S.look = b2.dataset.look; showPanel(); save(); kick(); });
+document.querySelectorAll('[data-ground]').forEach(b2 => b2.onclick = () => { S.ground = b2.dataset.ground; showPanel(); save(); kick(); });
+function showSliders() {
+  for (const [list, objOf] of [[BAND_SL, () => S], [VIEW_SL, () => S], [POINT_SL, () => S.anchors[pick]], [RUN_SL, () => S]]) for (const [key, , unit, , , , , sign = 1] of list) {
+    const obj = objOf(), inp = document.querySelector(`input[data-k="${key}"]`), v = obj[key] * sign;
+    if (document.activeElement !== inp) inp.value = v;
+    const shown = key === 'rows' ? `${S.rows} · ${fmt((S.rows - 1) * S.pitch + S.width, 0)} mm` : key === 'zoom' ? fmt(v, 2) : ['dx', 'dy', 'roll', 'twist'].includes(key) ? signed(Math.round(v * 100) / 100) : Math.round(v * 100) / 100;
+    document.querySelector(`[data-v="${key}"]`).textContent = `${shown}${unit && key !== 'rows' ? ' ' + unit : ''}`;
   }
+  $('#ptHead').textContent = `Point ${pick + 1} of ${S.anchors.length}`;
+}
+function showPanel() {
+  showSliders();
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
-  $('#lift').checked = !!S.lift; $('#ink').checked = !!S.ink;
-  $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', !!S.ink);
-  $('#lift').disabled = !!S.ink; $('#lift').parentElement.classList.toggle('off', !!S.ink);   // INK ON: every line on its own, no turns
-  const C = cup(), est = key => C.est[key] ? ' (est.)' : '', inkWhy = S.ink ? cupProblem(C) : '';
-  const nLines = P_.rows.length, names = P_.passes.join(' + ');
-  const tight = S.ribbons.map((r, i) => linesOf(r).warn.length ? ribbonName(i) : null).filter(Boolean);
-  const long = S.ink ? S.ribbons.reduce((a, r) => a + linesOf(r).lines.filter(l => linesLength({ lines: [l] }) > DIP_RUN).length, 0) : 0;
-  const here = hereNow();
-  $('#planRead').innerHTML = (names ? `${names}: ${P_.passes.length > 1 ? `${P_.passes.length} ribbons, a pause between them${S.ink ? '' : ' — CONTINUE when the one below is dry'} · ` : ''}` : 'No ribbons: draw one with Pen (P), or the house opens the three of the sketch. ')
-    + (!nLines ? '' : P_.ink
-      ? `<b>Ink ON</b>, the Watercolour run · ${nLines} lines, each on its own, a dip in the cup before every one — ${P_.dips || 'no'} dips, back to the cup after each line, home at the end · ${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint`
-        + (inkWhy ? ` <span class="warn">${inkWhy}</span>` : '')
-      : `the Paint run · each ribbon a snake of its ${S.rows} lines${S.lift ? ', the brush up through the turns' : ', the turns painted'} · ${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.)`)
-    + (nLines ? ` · the elbow eases the brush on and off over ${S.tail} mm of each line's ends, on the move, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.)` : '')
+  $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
+  document.querySelectorAll('[data-look]').forEach(b2 => b2.classList.toggle('on', b2.dataset.look === S.look));
+  document.querySelectorAll('[data-ground]').forEach(b2 => b2.classList.toggle('on', b2.dataset.ground === S.ground));
+}
+// Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
+function settle() {
+  busy = false;
+  const P_ = plan(), C = cup(), here = hereNow(), est = key => C.est?.[key] ? ' (est.)' : '';
+  const lays = P_.imp ? Object.keys(P_.imp.byLayer).map(Number).sort((a, b2) => a - b2) : [];
+  const inkWhy = S.ink ? cupProblem(C) : '';
+  $('#planRead').innerHTML = (!P_.imp ? 'No ribbon: two points at least.' :
+    `The imprint: <b>${P_.imp.runs.length}</b> pieces of row, <b>${fmt(P_.imp.total / 1000, 1)} m</b> · `
+    + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m`).join(' · ')}${lays.length > 1 ? ', a pause between them — CONTINUE when the one under is dry' : ''} · `
+    + `closer than the row's width: <span class="${P_.imp.red > 0.35 ? 'warn' : ''}">${fmt(P_.imp.red * 100, 0)} %</span> · `
+    + (S.ink ? `<b>Ink ON</b>, the Watercolour run: a dip every ${DIP_RUN} mm along a row (est.), ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint · ` : 'the Paint run · ')
+    + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
+    + (inkWhy ? ` <span class="warn">${inkWhy}</span>` : '')
     + (P_.need > WRIST_MAX ? ` <span class="warn">The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.</span>` : '')
-    + (tight.length ? ` <span class="warn">Too tight a bend for ${widthLabel(S.rows, S.pitch).split(' · ')[0]} in ${tight.join(', ')}: marked ! on the canvas — open the bend, fewer rows or less wave.</span>` : '')
-    + (long ? ` <span class="hint">${long} line${long > 1 ? 's' : ''} longer than a dip carries (${DIP_RUN} mm, est.): split into runs is the next step.</span>` : '')
-    + (P_.pastWall > 0.05 ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab${P_.gone ? `; ${P_.gone} line${P_.gone > 1 ? 's' : ''} wholly past, left out` : ''}.</span>` : '')
+    + (P_.pastWall > 0.05 ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
     + (walls() ? ` <span class="warn">${walls()}</span>` : '')
     + (here ? ` · The canvas's centre, from the cup: carriage <b>X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)} mm</b>.`
       : ' <span class="warn">Where the canvas lies: measure it from the cup on the Ink tab — its left edge and its bottom edge, two ruler numbers.</span>');
-  $('#stats').textContent = `${P_.blocks.length} steps · ${names || 'no ribbons'} · ${nLines} lines`;
-  save(); layout();
+  $('#stats').textContent = `${P_.blocks.length} steps · ${P_.passes.join(' + ') || 'nothing to paint'} · ${S.anchors.length} points`;
+  showPanel(); save(); layout(); lastLcd && lcd(lastLcd);
 }
-// The machine's walls: the last guard before a run (Test's).
 function walls() {
-  const h = hereNow(), P_ = plan();
-  if (!h || !P_.rows.length) return '';
-  const R = reach(), b = P_.carriage, x0 = h.x + b.x0, x1 = h.x + b.x1, y0 = h.y + b.y0, y1 = h.y + b.y1;
+  const h = hereNow(), P_ = PLAN;
+  if (!h || !P_?.carriage || !P_.rows.length) return '';
+  const R = reach(), b2 = P_.carriage, x0 = h.x + b2.x0, x1 = h.x + b2.x1, y0 = h.y + b2.y0, y1 = h.y + b2.y1;
   const out = [x0 < R.x.min && `${fmt(R.x.min - x0, 0)} mm past the bottom wall`, x1 > R.x.max && `${fmt(x1 - R.x.max, 0)} mm past the top wall`,
     y0 < R.y.min && `${fmt(R.y.min - y0, 0)} mm past the left wall`, y1 > R.y.max && `${fmt(y1 - R.y.max, 0)} mm past the right wall`].filter(Boolean);
-  return out.length ? `The brush would go ${out.join(', ')}: move the canvas or the ribbons.` : '';
+  return out.length ? `The brush would go ${out.join(', ')}: move the canvas or the ribbon.` : '';
 }
 
-// ---------- the reference: under the canvas, the whole of it inside ----------
+// ---------- the reference: tracing paper over the canvas ----------
+let REF = null;
 function setRef(src, name, store) {
   const img = new Image();
   img.onload = () => {
     REF = { img, name };
     if (store) {
-      const kk = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
-      const c2 = document.createElement('canvas'); c2.width = Math.round(img.naturalWidth * kk); c2.height = Math.round(img.naturalHeight * kk);
+      const kk = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
+      c2.width = Math.round(img.naturalWidth * kk); c2.height = Math.round(img.naturalHeight * kk);
       c2.getContext('2d').drawImage(img, 0, 0, c2.width, c2.height);
       try { localStorage.setItem(REF_KEY, JSON.stringify({ name, src: c2.toDataURL('image/jpeg', 0.9) })); } catch { }
     }
@@ -486,72 +411,55 @@ function setRef(src, name, store) {
   };
   img.src = src;
 }
-// the round × on the picture takes the reference away (the owner, 2026-10-04)
-function deleteRef() { REF = null; try { localStorage.removeItem(REF_KEY); } catch { } syncRef(); kick(); }
+function deleteRef() { REF = null; try { localStorage.removeItem(REF_KEY); } catch { } syncRef(); kick(); }   // the round × (the owner, 2026-10-04)
 const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 function syncRef() {
   $('#refThumb').innerHTML = REF ? `<img src="${REF.img.src}" alt=""><button class="refdel" title="Delete the reference">×</button>` : '<span>no reference yet</span>';
   if (REF) $('#refThumb .refdel').onclick = deleteRef;
-  $('#refThumb').title = REF ? REF.name : '';
   $('#refOp').value = S.refOpacity;
-  $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>` : 'Under the canvas, the whole of it inside.';
+  $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>` : 'Over the canvas, the whole of it inside, to fit the ribbon to.';
 }
 $('#btnRef').onclick = () => $('#refIn').click();
-$('#refIn').onchange = e => {
-  const f = e.target.files[0]; if (!f) return;
-  const rd = new FileReader(); rd.onload = () => setRef(rd.result, f.name, true); rd.readAsDataURL(f);
-  e.target.value = '';
-};
+$('#refIn').onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => setRef(rd.result, f.name, true); rd.readAsDataURL(f); e.target.value = ''; };
 $('#refOp').oninput = e => { S.refOpacity = +e.target.value; syncRef(); save(); kick(); };
 function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) setRef(o.src, o.name || 'reference', false); } catch { } }
 
-// ---------- 💾 SAVE NOLAN: into the Library ----------
-// As SAVE TEST does: an SVG of the canvas in mm with its lines, the whole
-// state in its metadata, a PNG preview. It sits on the tests' shelf for now
-// (rembrandt.py knows paintings and tests); the Library opens it here.
-const settingsNow = () => ({ ...S });
-const nolanLabel = () => `NOLAN · ${plan().passes.join('+') || 'no ribbons'} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows${S.ink ? ' · ink' : ''}`;
+// ---------- 💾 SAVE NOLAN ----------
+// As SAVE TEST does: an SVG of the canvas in mm with the imprint, the whole
+// state in its metadata, a PNG preview. With the tests in the Library, which
+// opens it here.
+const nolanLabel = () => `NOLAN · ${PLAN?.passes.join('+') || 'no ribbon'} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows${S.ink ? ' · ink' : ''}`;
 function nolanSvg() {
-  const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), wMm = Math.max(1, Math.min(LINE_MM, S.pitch) - GROOVE);
-  const meta = JSON.stringify({ rembrandt: '0.2', nolan: true, label: nolanLabel(), settings: settingsNow() }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
-  const lines = plan().preview.flatMap(line => {
-    const out = [], wd = i => Math.round(10 * Math.max(0.15, (line[i - 1].k + line[i].k) / 2)) / 10;
-    for (let i = 1; i < line.length;) {
-      const w = wd(i), pts = [line[i - 1]];
-      while (i < line.length && wd(i) === w) pts.push(line[i++]);
-      out.push(`  <path stroke-width="${f(wMm * w)}" d="M${pts.map(q => `${f(W / 2 + q.y)} ${f(H / 2 - q.x)}`).join(' L')}"/>`);
-    }
-    return out;
-  }).join('\n');
+  const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P_ = plan();
+  const meta = JSON.stringify({ rembrandt: '0.2', nolan: true, label: nolanLabel(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const rows = (P_.imp?.runs || []).map(r => `  <path stroke="${colourOf(r.k)}" data-layer="${r.layer}" d="M${r.pts.map(p => `${f(W / 2 + p[0])} ${f(H / 2 + p[1])}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
 <!-- Rembrandt v0.2 · ${nolanLabel()}; 1 unit = 1 mm -->
 <metadata id="rembrandt-test">${meta}</metadata>
-<rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
-<g fill="none" stroke="#1B1A19" stroke-linecap="butt" stroke-linejoin="round">
-${lines}
+<rect width="${W}" height="${H}" fill="${S.ground === 'black' ? '#0B0B0D' : '#FCFBF8'}" stroke="#24221F" stroke-width="0.5"/>
+<g fill="none" stroke-width="${f(S.width)}" stroke-linecap="round" stroke-linejoin="round">
+${rows}
 </g>
 </svg>`;
 }
 function nolanPng() {
-  const sw = V.y1 - V.y0, sh = V.x1 - V.x0, kk = 800 / Math.max(sw, sh), c2 = document.createElement('canvas');
+  const keep = [g, k, dpr], sw = V.y1 - V.y0, sh = V.x1 - V.x0, kk = 800 / Math.max(sw, sh), c2 = document.createElement('canvas');
   c2.width = Math.round(sw * kk); c2.height = Math.round(sh * kk);
-  const keep = [k, dpr]; k = kk; dpr = 1;
-  const c = c2.getContext('2d'); drawOn(c, kk, c2.width, c2.height, false);
-  [k, dpr] = keep;
+  g = c2.getContext('2d'); k = kk; dpr = 1;
+  try { draw(); } finally { [g, k, dpr] = keep; }
   return c2.toDataURL('image/png');
 }
 $('#btnSave').onclick = async () => {
-  const st = $('#saveState'), b = $('#btnSave');
-  b.disabled = true; st.textContent = 'saving…';
+  const st = $('#saveState'), b2 = $('#btnSave');
+  b2.disabled = true; st.textContent = 'saving…';
   try {
     const r = await fetch('/library', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ svg: nolanSvg(), png: nolanPng() }) });
     const o = await r.json();
     st.textContent = o.ok ? `saved · ${o.name}` : `not saved · ${o.message}`;
   } catch { st.textContent = 'not saved · start rembrandt.py'; }
-  b.disabled = false;
+  b2.disabled = false;
 };
-// Opened from the Library (library.html → nolan.html?open=<file>).
 async function openFromLibrary(file) {
   history.replaceState(null, '', location.pathname);
   try {
@@ -560,9 +468,9 @@ async function openFromLibrary(file) {
     const meta = new DOMParser().parseFromString(await r.text(), 'image/svg+xml').querySelector('metadata#rembrandt-test');
     const o = meta ? JSON.parse(meta.textContent.replace(/- -/g, '--')) : null;
     if (!o?.nolan) { $('#saveState').textContent = 'not a NOLAN save: open it on Test'; return; }
+    if (!Array.isArray(o.settings?.anchors)) { $('#saveState').textContent = 'a NOLAN save of the flat ribbons, before 3D: it cannot open here'; return; }
     undoPush();
-    localStorage.setItem(KEY, JSON.stringify(o.settings || {})); load();
-    update();
+    localStorage.setItem(KEY, JSON.stringify(o.settings)); load(); settle();
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
   } catch { $('#saveState').textContent = 'could not open it from the Library'; }
 }
@@ -570,17 +478,16 @@ async function openFromLibrary(file) {
 // ---------- the run (Test's) ----------
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 $('#btnDoJob').onclick = async () => {
-  finishAll();
-  await loadInk(); update();
+  await loadInk(); settle();
   const P_ = plan();
   if (!hereNow()) { $('#runState').innerHTML = '<span class="warn">Where the canvas lies: measure it from the cup on the Ink tab first.</span>'; return; }
-  if (!P_.rows.length) { $('#runState').innerHTML = '<span class="warn">No ribbons to run.</span>'; return; }
+  if (!P_.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to paint.</span>'; return; }
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
-  if (!confirm(`${P_.passes.join(' + ')}: ${P_.rows.length} lines will be run on the machine${S.ink ? `, a dip in the cup before each: ${P_.dips} dips` : ''}`)) return;
+  if (!confirm(`${P_.passes.join(' + ')}: ${P_.rows.length} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P_.blocks,
-      log: { page: 'nolan', label: nolanLabel(), settings: settingsNow(), here: hereNow(), fromCup: INK.canvas, ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) } }) });   // the run journal, rembrandt.py
+      log: { page: 'nolan', label: nolanLabel(), settings: S, here: hereNow(), fromCup: INK.canvas, ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) } }) });   // the run journal, rembrandt.py
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 };
@@ -589,36 +496,32 @@ $('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
 $('#btnStop').onclick = () => post('/run/stop');
 $('#btnKill').onclick = () => post('/run/kill');
 
-// The LCD, as on Test: the percent by painted length, the time left and the total, where it is.
+// The LCD, as on Test.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
-let started = null;
+let started = null, lastLcd = null;
 function lcd(st) {
-  const P_ = plan(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
+  lastLcd = st;
+  const P_ = PLAN || EMPTY, live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
   const pct = st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
   if (live && !started) started = st.started || Date.now() / 1000;
   if (!live) started = null;
   const total = P_.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
-  const b = st && P_.blocks[st.block], row = b && P_.rows[b.row - 1];
+  const b2 = st && P_.blocks[st.block], row = b2 && P_.rows[b2.row - 1];
   const waiting = st?.state === 'paused' && st.message;
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
-  keyEl.textContent = paused ? 'CONTINUE' : 'PAUSE';
-  keyEl.classList.toggle('call', paused);
-  keyEl.disabled = !live;
+  keyEl.textContent = paused ? 'CONTINUE' : 'PAUSE'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
   const now = waiting ? `❚❚ ${st.message}`
-    : live && b?.home ? 'done · the carriage goes home, the brush off'
-    : live && row && b?.dip ? `${row.name} · line ${row.line} of ${row.of} · the dip in the cup`
-    : live && row ? (P_.ink ? `${row.name} · line ${row.line} of ${row.of}` : `${row.name} · ${fmt(st.painted_mm / 10, 0)} of ${fmt(st.paint_mm / 10, 0)} cm`) + (st.brush_on ? ' · brush on' : ' · brush off')
-    : `${P_.rows.length} lines · ${P_.passes.join('+') || 'no ribbons'}`;
+    : live && b2?.home ? 'done · the carriage goes home, the brush off'
+    : live && row && b2?.dip ? `${row.name} · row ${row.row} of ${S.rows} · the dip in the cup`
+    : live && row ? `${row.name} · row ${row.row} of ${S.rows}` + (st.brush_on ? ' · brush on' : ' · brush off')
+    : `${P_.rows.length} pieces · ${P_.passes.join('+') || 'nothing to paint'}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
-      <div class="lcd-times">
-        <span class="k">left</span>${segments(mmss(left), 17)}
-        <span class="k">total</span>${segments(mmss(total), 17)}
-      </div>
+      <div class="lcd-times"><span class="k">left</span>${segments(mmss(left), 17)}<span class="k">total</span>${segments(mmss(total), 17)}</div>
     </div>
     ${sticks(pct / 100)}
     <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
@@ -639,14 +542,13 @@ async function watch() {
 
 // ---------- start ----------
 load();
-if (!S.ribbons.length) S.ribbons = sketch();
 syncTools(); syncRef(); loadRef();
 lampSwitch($('#lamp'));
 addEventListener('rembrandt-night', () => kick());
 setInterval(watch, 500);
 new ResizeObserver(layout).observe(stage);
-update(); watch();
-loadInk().then(update);
-addEventListener('focus', () => loadInk().then(update));   // back from the Ink tab
-const opening = new URLSearchParams(location.search).get('open');   // from the Library
+settle(); watch();
+loadInk().then(settle);
+addEventListener('focus', () => loadInk().then(settle));
+const opening = new URLSearchParams(location.search).get('open');
 if (opening) openFromLibrary(opening);
