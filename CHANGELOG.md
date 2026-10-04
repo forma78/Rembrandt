@@ -5,6 +5,30 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The run never presses a sliver into the walls — the brush ran along all
+  four, through the cup** (NOLAN's first run, 2026-10-04 12:58; the owner:
+  "the brush goes past the canvas and does not lift; it does not see the
+  cup and nearly knocked it to the floor. I switched the machine off";
+  "an exceptional blunder — the machine nearly killed itself"). The tails'
+  cuts left arcs whose ends meet, and `sweepOf`, as the firmware, takes such
+  an arc for a full circle, up to 1.1 m across. `plotRun` left slivers out
+  only after `pressed`, which had already cut the circles at the walls into
+  lines along them: in 236 of 276 pieces, 22 mm of ribbon became up to 7 m,
+  the elbow at 0°; steps 16, 40 and 64 ran along the left wall at Y 0, where
+  the cup stands (the "215.3 m past the walls" of the PLAY question). The
+  same fault as Test's D1 of 2026-10-03 14:49; the fix of 4d0dfae put the
+  filter in the wrong place. Now `pressed` never presses a sliver: inside the
+  walls it stays and is not sent, past them it is a point, its W riding on.
+  The run's plan is 26.5 m with the brush down, pressed only along the
+  bottom wall (1.5 m, the Test tab's Here; measure the canvas from the cup).
+  **A guard**: the plan checks every row — the tails never change its
+  length, the board is never sent more than was drawn, every piece runs on
+  the board as long as planned, taken as the firmware takes it from where
+  the carriage stands; otherwise `fault`, said in red, and PLAY refuses, on
+  NOLAN and Test. Test's commands byte for byte as before (18 plans; two
+  near the walls carry one `painted` mark a piece sent now, as
+  `rembrandt.py` counts them). Tests: this run, and a plan longer on the
+  board than drawn refused.
 - **Calibration: Home at the top; Ink: The dip at the top, its text under
   ⓘ** (the owner, 2026-10-04: "put the HOME button at the top — it is
   awkward to scroll down every time"; on Ink, of the dip's explanation: "it

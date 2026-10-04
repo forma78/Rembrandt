@@ -403,6 +403,7 @@ function settle() {
     + (S.ink ? `<b>Ink ON</b>, the Watercolour run: a dip every ${DIP_RUN} mm along a row (est.), ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint · ` : 'the Paint run · ')
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
     + (inkWhy ? ` <span class="warn">${inkWhy}</span>` : '')
+    + (P_.fault ? ` <span class="warn">The plan is wrong, PLAY will not run it: ${P_.fault}.</span>` : '')
     + (P_.need > WRIST_MAX ? ` <span class="warn">The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.</span>` : '')
     + (P_.pastWall > PAST_MANY ? ` <span class="warn">${fmt(P_.pastWall / 1000, 1)} m of the rows lie past the machine's walls and would be pressed along them: the canvas lies partly out of reach — measure it from the cup on the Ink tab, or move the ribbon.</span>`
       : P_.pastWall > 0.05 ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
@@ -510,6 +511,7 @@ $('#btnDoJob').onclick = async () => {
   if (!P_.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to paint.</span>'; return; }
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
+  if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
   if (!confirm(`${P_.passes.join(' + ')}: ${P_.rows.length} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`
     + (P_.pastWall > PAST_MANY ? `\n\n${fmt(P_.pastWall / 1000, 1)} m of them lie past the machine's walls and will be pressed along them.` : ''))) return;
   try {

@@ -126,3 +126,51 @@ test('Squeeze: the whole band towards edge-on (+) or flat (−), nothing jumping
   const apart = q => bandOf(SKETCH, { ...o, squeeze: q }).pitch.reduce((a, v) => a + v, 0);
   assert.ok(apart(100) < apart(50) && apart(50) < apart(0) && apart(0) < apart(-50) && apart(-50) < apart(-100), 'the more Squeeze, the closer the rows');
 });
+
+// NOLAN's first run on the machine, 2026-10-04 12:58 (logs/runs.jsonl): the
+// tails' cuts left arcs whose ends meet; pressed into the walls as full
+// circles of up to 1.1 m, they ran along all four walls with the brush
+// down, through the cup — the owner switched the machine off at step 66.
+// The run's own settings, Here and cup.
+const RUN_1258 = {
+  anchors: [[232, -98, -10, 46], [207, -292, 152, 3], [86, -403, 40, -20], [-57, -255, -38, -32], [-140, -172, -40, -24], [-257, -142, -13, -4], [-172, 40, 20, 40], [-108, 62, 62, -14], [-38, -17, 95, -65], [35, -57, 52, 56], [217, -47, 22, 28], [239, 92, -124, -7], [111, 94, -110, -27], [-60, 168, -52, -32], [-92, 92, -72, -22], [-32, 54, -110, 3], [2, 80, -150, 38]].map(([x, y, z, roll]) => ({ x, y, z, roll })),
+  band: { rows: 17, pitch: 8, width: 1.5, stack: 0, twist: -2, squeeze: -87, tilt: 21.276947021484375, swing: -9.675262451171875, spin: -52, zoom: 0.78, dx: -22, dy: 89, lens: 31, step: 1.5 },
+  here: { x: 226.2375, y: 333.7875 },
+  cup: { x: 390.18, y: 0.1, est: {}, diameter: 50, height: 20, rim: 30, dip: -3, dwell: 1 },
+};
+const planOf = (R, extra = {}) => {
+  const b = bandOf(R.anchors, R.band), lay = layersOf(b), imp = imprintOf(b, lay, { width: R.band.width });
+  const { passes } = bandPasses(imp.runs, { ink: true, tail: 155 });
+  return { passes, run: plotRun({ ...DEFAULTS, speed: 137, travel: 180, tail: 155, lift: false, ink: true, snake: true, pause: false, here: R.here, cup: R.cup, ...extra }, passes) };
+};
+
+test('the run of 2026-10-04 12:58: the brush stays where the ribbon is, never along the walls round it', () => {
+  const { passes, run } = planOf(RUN_1258);
+  assert.equal(run.fault, '');
+  // the box the ribbon covers on the machine, the walls cutting it
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const p of passes) for (const path of p.ps) for (const g of path) for (const q of [g.a, g.b]) {
+    x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y);
+  }
+  const H = RUN_1258.here, inBox = (x, y) => x >= Math.max(0, H.x + x0) - 1 && x <= H.x + x1 + 1 && y >= H.y + y0 - 1 && y <= H.y + y1 + 1;
+  let pieces = 0;
+  for (const b of run.blocks.filter(b => b.kind === 'move' && b.paintMM > 0)) {
+    for (const c of b.cmds) {
+      const t = c.split(' ');
+      if (t[0] !== 'L' && t[0] !== 'A') continue;
+      const [x, y] = t[0] === 'L' ? [+t[1], +t[2]] : [+t[3], +t[4]];
+      assert.ok(inBox(x, y), `${c}: past the ribbon`);
+      pieces++;
+    }
+    assert.ok(b.lengthMM < 1000, `a piece of the ribbon ${Math.round(b.lengthMM)} mm long`);
+  }
+  assert.ok(pieces > 1000);
+  assert.ok(run.length < 30000, `${Math.round(run.length / 1000)} m with the brush down, 26.5 m drawn`);
+  // what lies past the bottom wall (this Here puts the canvas 124 mm past it) is all that is pressed
+  assert.ok(run.pastWall < 2000, `${Math.round(run.pastWall)} mm pressed`);
+});
+
+test('a plan longer on the board than drawn is refused: the fault PLAY reads', () => {
+  const { run } = planOf(RUN_1258, { minPiece: 0 });   // the slivers let through: each a full circle on the board
+  assert.match(run.fault, /^row \d+: /);
+});

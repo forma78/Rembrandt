@@ -338,6 +338,7 @@ $('#btnDoJob').onclick = async () => {
     if (cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
   }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
+  if (P.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P.fault}.</span>`; return; }
   // one line, Cancel or OK (the owner, 2026-10-02: no more than that)
   if (!confirm(`${P.rows} rows of pattern ${S.pattern === 'D' ? P.passes.join(' + ') : S.pattern} will be run on the machine${S.ink ? `, a dip in the cup before each: ${P.dips} dips` : ''}`)) return;
   try {

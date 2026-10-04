@@ -253,6 +253,13 @@ const TAIL_STEP = 16;           // mm along a tail a W
 export const WRIST_MAX = 211;   // °/s, the firmware's fastest for W (2400 ticks/s; the servo makes about 250, est.)
 export const SPEED_MAX = 250;   // mm/s, the board's fastest path (firmware F, 1…250 since 2026-10-02)
 export const MIN_PIECE = 0.05;  // mm: a shorter piece is a sliver, never sent (plotRun)
+const sliver = (g, min = MIN_PIECE) => Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) < min;
+// How far the board runs a piece from where it stands, as the firmware takes
+// it (path.h, arc): an arc's sweep from its start's angle to its end's, the
+// way d goes — ends that meet are a full circle.
+const boardLen = (from, g) => g.t === 'L' ? Math.hypot(g.b.x - from.x, g.b.y - from.y)
+  : Math.hypot(from.x - g.c.x, from.y - g.c.y) * sweepOf({ ...g, a: from });
+const FAULT_MM = 0.5;   // more than this between the drawing and what the board would run: no run
 
 const trackOf = p => { let s = 0; return p.map(g => { const L = pieceLen(g), e = { g, s0: s, s1: s + L }; s += L; return e; }); };
 function atTrack(tr, s) {
@@ -361,6 +368,11 @@ function pressed(pieces, B) {
   let past = 0, carry = null;                                // a W whose piece was pressed into a point
   for (const q of pieces) {
     const g = q.g, own = q.w !== undefined ? { w: q.w, ws: q.ws } : null;
+    // A sliver is never pressed: an arc whose ends meet is a full circle, and
+    // pressed it ran along the walls, the brush down (NOLAN, 2026-10-04 12:58,
+    // the cup nearly knocked off the table). Inside, it stays as it is and is
+    // never sent (plotRun); past a wall it is a point pressed: its W rides on.
+    if (sliver(g)) { if (inB(g.a, B) && inB(g.b, B)) out.push(q); else if (own) carry = own; continue; }
     let first = true;
     const add = g2 => {
       const w = first ? own || carry : null;
@@ -424,7 +436,7 @@ export function xyPlan(opts) {
   const r = plotRun(o, passes.map(({ key, ps }) => ({ key, ps, why: key && why(key) })));
   return { blocks: r.blocks, preview: r.preview, width, height, room, box, carriage: r.carriage, length: r.length, fits,
     seconds: r.seconds, rows: o.rows, snake: !!o.snake, turns: r.turns, lifts: r.lifts, need: r.need, passes: keys.filter(Boolean), opts: o,
-    ink: !!o.ink, cupAt: r.cupAt, air: r.air, homeAt: r.homeAt, dips: r.dips, pastWall: r.pastWall, gone: r.gone };
+    ink: !!o.ink, cupAt: r.cupAt, air: r.air, homeAt: r.homeAt, dips: r.dips, pastWall: r.pastWall, gone: r.gone, fault: r.fault };
 }
 
 // The run of brush-down paths on the machine, for Test and NOLAN alike.
@@ -446,12 +458,16 @@ export function plotRun(o, passes) {
   // the brush up (the elbow), then the wrist to the active pose, in the air
   const blocks = [{ kind: 'arm', cmd: `J 2 ${up}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
   const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
-  let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0;
+  let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0, fault = '';
+  const min = o.minPiece ?? MIN_PIECE, real = ps => ps.filter(q => !sliver(q.g, min));
   const away = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   passes.forEach(({ key, ps, why }, n) => {
     if (n) blocks.push({ kind: 'pause', why, row: 0 });
     ps.forEach((p, i) => {
       const m = onTheMove(p, o), row = p[0].row;
+      // The tails cut the row, they never add to it: the same length, or no run.
+      const drawn = p.filter(g => !sliver(g, min)).reduce((s, g) => s + pieceLen(g), 0), cut = real(m.pieces).reduce((s, q) => s + pieceLen(q.g), 0);
+      if (!fault && Math.abs(cut - drawn) > FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(cut)} mm after its tails`;
       if (B) { const pr = pressed(m.pieces, B); m.pieces = pr.pieces; pastWall += pr.past; }
       if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint
       const first = m.pieces[0].g.a;
@@ -472,26 +488,34 @@ export function plotRun(o, passes) {
       // one move, the brush landing at its start, lifting at its end and at every turn, on the way
       const cmds = [`F ${o.speed}`];
       let v = o.speed, len = 0, paint = 0;
+      const sent = q => pt(+f(X0 + q.x) - X0, +f(Y0 + q.y) - Y0);   // a point as the command carries it, to 0.01 mm
+      let on = sent(first);
       for (const q of m.pieces) {
         if (q.w !== undefined) cmds.push(`W 2 ${q.w} ${q.ws}`);
         // A sliver of a tail's cut, its ends closer than MIN_PIECE, is never
         // sent: the board takes an arc ending where it starts for a full circle
         // (firmware path.h, arc). A W before it rides on the next piece. The
         // owner, 2026-10-04: "of course, no need to send such noise to the board".
-        if (Math.hypot(q.g.b.x - q.g.a.x, q.g.b.y - q.g.a.y) < (o.minPiece ?? MIN_PIECE)) continue;
+        if (sliver(q.g, min)) continue;
         if (q.v !== v) { cmds.push(`F ${q.v}`); v = q.v; }
         cmds.push(q.g.t === 'L' ? `L ${M(q.g.b)}` : `A ${M(q.g.c)} ${M(q.g.b)} ${q.g.d}`);
         const L = pieceLen(q.g);
+        // what the board would run, from where it stands, as the command says it
+        const g2 = q.g.t === 'L' ? { t: 'L', b: sent(q.g.b) } : { t: 'A', b: sent(q.g.b), c: sent(q.g.c), d: q.g.d }, Lb = boardLen(on, g2);
+        if (!fault && Math.abs(Lb - L) > FAULT_MM) fault = `row ${row}: a piece of ${round1(L)} mm would run ${round1(Lb)} mm on the board`;
+        on = g2.b;
         len += L; if (q.on) paint += L;
         car.push(q.g);
       }
       cmds.push('G');
+      // pressed into the walls a row only gets shorter: longer is a path the drawing never had
+      if (!fault && len > drawn + FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(len)} mm to the board`;
       length += paint;
-      blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: m.pieces.map(q => q.on), row: p[0].row });
+      blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: real(m.pieces).map(q => q.on), row: p[0].row });   // one mark a piece sent, as rembrandt.py counts them
       blocks.push({ kind: 'arm', cmd: `J 2 ${up}`, row: p.at(-1).row });   // at the lift-off already: the brush up, over the cup's rim with INK ON
       if (!o.snake && o.pause && !o.ink && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
       for (const l of m.trace) preview.push(Object.assign(l, { pass: key }));   // its paint, on the preview
-      seconds += travelTime(Math.hypot(first.x - at0.x, first.y - at0.y), o.travel) + pathTime(m.pieces) + PATH_S;
+      seconds += travelTime(Math.hypot(first.x - at0.x, first.y - at0.y), o.travel) + pathTime(real(m.pieces)) + PATH_S;
       at0 = m.pieces.at(-1).g.b;
     });
   });
@@ -504,5 +528,5 @@ export function plotRun(o, passes) {
   // where the carriage goes, from Here: the paint's box aside by the tails (the walls check)
   const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; }).concat(cupAt ? [cupAt] : []);
   const carriage = boxOf(cp);
-  return { blocks, preview, carriage, length, seconds, turns, lifts, need, cupAt, air, homeAt, dips, pastWall, gone };
+  return { blocks, preview, carriage, length, seconds, turns, lifts, need, cupAt, air, homeAt, dips, pastWall, gone, fault };
 }
