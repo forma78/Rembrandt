@@ -188,15 +188,14 @@ test('INK ON: no dip before a piece under NO_DIP mm; a layer starts on its first
   const { passes, run } = planOf(RUN_1258, { noDipUnder: NO_DIP });
   assert.equal(run.gone, 0);
   const drawn = new Map(passes.flatMap(p => p.ps.map(path => [path[0].row, path.reduce((s, g) => s + pieceLen(g), 0)])));
-  const ran = [];               // for each pass, its pieces in the order run: { L, dip }
-  let pass = [], dip = false;
+  const passOf = new Map(passes.flatMap((p, n) => p.ps.map(path => [path[0].row, n])));
+  const ran = passes.map(() => []);   // for each pass, its pieces in the order run: { L, dip }
+  let dip = false;
   for (const b of run.blocks) {
-    if (b.kind === 'pause') { ran.push(pass); pass = []; }
     if (b.dip && b.kind === 'move') dip = true;
-    if (b.kind === 'move' && b.paintMM > 0) { pass.push({ L: drawn.get(b.row), dip }); dip = false; }
+    if (b.kind === 'move' && b.paintMM > 0) { ran[passOf.get(b.row)].push({ L: drawn.get(b.row), dip }); dip = false; }
   }
-  ran.push(pass);
-  assert.equal(ran.length, passes.length);
+  assert.equal(run.blocks.filter(b => b.kind === 'pause').length, 0, 'the watercolour: the layers one after another, no pause');
   let short = 0;
   ran.forEach((d, n) => {
     assert.equal(d.length, passes[n].ps.length, 'every piece run once');
@@ -247,4 +246,16 @@ test('INK ON with the rule: a layer drawn starting on a dot starts on its first 
   }
   assert.deepEqual(order, [2, 1, 3, 4], 'the 200 mm row first, the others in their order');
   assert.deepEqual(dips, [true, false, false, true], 'a dip before the long ones only');
+});
+
+// The owner, 2026-10-04: "on watercolour all 3 layers at once" (NOLAN.md §5:
+// "all three layers can safely run together"); the paint waits for the dry.
+test('NOLAN: INK ON runs the layers one after another, INK OFF pauses between them', () => {
+  const b = bandOf(RUN_1258.anchors, RUN_1258.band), imp = layeredOf(b, { width: RUN_1258.band.width }).imp;
+  for (const ink of [true, false]) {
+    const { passes } = bandPasses(imp.runs, { ink, tail: 15 });
+    const run = plotRun({ ...DEFAULTS, ink, snake: true, pause: false, lift: false, tail: 15, here: RUN_1258.here, cup: RUN_1258.cup }, passes);
+    assert.equal(passes.length, 4);
+    assert.equal(run.blocks.filter(x => x.kind === 'pause').length, ink ? 0 : 3, ink ? 'INK ON' : 'INK OFF');
+  }
 });

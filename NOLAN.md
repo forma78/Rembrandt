@@ -149,8 +149,10 @@ On the board:
    it. **Pen** adds a point at the ribbon's end; ⌫ takes the picked one out;
    ⌘Z undoes; Esc is STOP, as on Test.
 3. **N1, N2, N3** are the layers, stretches between the cuts: the run
-   paints N1, pauses — CONTINUE when it is dry — then N2, and on. In a
-   layer row by row, each piece one way, the way the ribbon runs. No timers.
+   paints N1, pauses — CONTINUE when it is dry — then N2, and on; with INK
+   ON, the watercolour, one after another with no pause (§5; the owner,
+   2026-10-04: "on watercolour all 3 layers at once"). In a layer row by
+   row, each piece one way, the way the ribbon runs. No timers.
 4. **Cut** (C), the scissors in the Tools on the left (the owner,
    2026-10-04: "maybe move the scissors into TOOLS on the left?"): each cut
    a dashed line across the ribbon and a circle on its centre, each

@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: INK ON runs the layers one after another, no pause** (the owner,
+  2026-10-04: "can the watercolour do all 3 layers at once, N1+N2+N3? What
+  are the options — a non-stop key?"). Decided that morning (NOLAN.md §5:
+  "all three layers can safely run together"), never built: no key needed.
+  `bandPasses` gives the watercolour's layers no pause, `plotRun` pauses
+  only where a pass says why. INK OFF, the paint, pauses for the dry as
+  before. Each layer still starts with a dip. Test's plans as before (18).
+  A test.
 - **NOLAN: the lines go on — through a moment's hiding, across a cut, to
   their ends** (the owner, 2026-10-04, `machine/2026-10-04 Nolan-v2-details.jpg`:
   "the line breaks at the tips. Is it Tail too? Lower it to 10 or 8 mm?
