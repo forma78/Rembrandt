@@ -412,7 +412,9 @@ export function bandPasses(runs, o) {
     }
     if (!ps.length) continue;
     const under = passes.at(-1)?.key;
-    passes.push({ key: `N${L}`, ps, why: o.ink ? `N${L}: its wash in the cup, then CONTINUE` : `N${L}: it lies over ${under} — CONTINUE when that is dry` });
+    // INK ON, the watercolour only lays in the form: the layers one after another, no pause (the
+    // owner, 2026-10-04: "all three layers can safely run together"; "on watercolour all 3 layers at once")
+    passes.push({ key: `N${L}`, ps, why: o.ink ? null : `N${L}: it lies over ${under} — CONTINUE when that is dry` });
   }
   return { passes, rows };
 }
