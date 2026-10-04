@@ -177,26 +177,31 @@ test('a plan longer on the board than drawn is refused: the fault PLAY reads', (
 
 // The owner, 2026-10-04: a dip before a dot under 1 cm left a puddle of water —
 // "under 50 mm, do not dip, work with what is on the brush".
-test('INK ON: no dip before a piece under NO_DIP mm, but before a layer\'s first', () => {
+test('INK ON: no dip before a piece under NO_DIP mm; a layer starts on its first piece long enough, with a dip', () => {
   const { passes, run } = planOf(RUN_1258, { noDipUnder: NO_DIP });
   assert.equal(run.gone, 0);
-  const drawn = passes.map(p => p.ps.map(path => path.reduce((s, g) => s + pieceLen(g), 0)));
-  const dipped = [];            // for each pass, whether each piece had its dip
+  const drawn = new Map(passes.flatMap(p => p.ps.map(path => [path[0].row, path.reduce((s, g) => s + pieceLen(g), 0)])));
+  const ran = [];               // for each pass, its pieces in the order run: { L, dip }
   let pass = [], dip = false;
   for (const b of run.blocks) {
-    if (b.kind === 'pause') { dipped.push(pass); pass = []; }
+    if (b.kind === 'pause') { ran.push(pass); pass = []; }
     if (b.dip && b.kind === 'move') dip = true;
-    if (b.kind === 'move' && b.paintMM > 0) { pass.push(dip); dip = false; }
+    if (b.kind === 'move' && b.paintMM > 0) { pass.push({ L: drawn.get(b.row), dip }); dip = false; }
   }
-  dipped.push(pass);
-  assert.equal(dipped.length, passes.length);
+  ran.push(pass);
+  assert.equal(ran.length, passes.length);
+  assert.ok(passes.some(p => p.ps[0].reduce((s, g) => s + pieceLen(g), 0) < NO_DIP), 'a layer drawn starting on a dot');
   let short = 0;
-  dipped.forEach((d, n) => d.forEach((had, i) => {
-    const L = drawn[n][i], want = i === 0 || L >= NO_DIP;
-    assert.equal(had, want, `${passes[n].key}, piece ${i + 1}: ${L.toFixed(1)} mm`);
-    if (!want) short++;
-  }));
+  ran.forEach((d, n) => {
+    assert.equal(d.length, passes[n].ps.length, 'every piece run once');
+    assert.ok(d[0].dip && d[0].L >= NO_DIP, `${passes[n].key} starts on a dot: ${d[0].L.toFixed(1)} mm`);
+    d.forEach(({ L, dip: had }, i) => {
+      const want = i === 0 || L >= NO_DIP;
+      assert.equal(had, want, `${passes[n].key}, piece ${i + 1}: ${L.toFixed(1)} mm`);
+      if (!want) short++;
+    });
+  });
   assert.ok(short > 100, `${short} pieces without a dip`);
-  assert.equal(run.dips, drawn.flat().length - short);
-  assert.equal(planOf(RUN_1258).run.dips, drawn.flat().length, 'without the rule a dip before every piece');
+  assert.equal(run.dips, drawn.size - short);
+  assert.equal(planOf(RUN_1258).run.dips, drawn.size, 'without the rule a dip before every piece');
 });
