@@ -105,7 +105,11 @@ The panel, top to bottom:
    • STOP · •• HARD STOP**.
 2. **💾 SAVE NOLAN** — to the Library. It sits on the tests' shelf for now
    (`rembrandt.py` knows paintings and tests); the Library opens it on NOLAN.
-3. **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
+3. **N1 · N2 · N3**, a key for each layer the imprint has, latching as
+   Test's D1 · D2 · D3: one, two or all, run in their order, a pause
+   between them; the last one stays on; a layer off is faint on Imprint
+   and Layers (the owner, 2026-10-04: "I do not see the keys as on TEST").
+   **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
    run (§5.1).
 4. **Geometry · Colour · Layers · Imprint**, **White · Black**: the rows dark,
    red where they lie closer than a row's width; IMG_9424's stripes, the

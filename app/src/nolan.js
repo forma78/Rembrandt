@@ -24,6 +24,7 @@ const KEY = 'rembrandt.nolan.v03', REF_KEY = 'rembrandt.nolan.ref';
 const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0', '#3D63D8', '#46A6EA', '#A6E3F8', '#EDE7F5'];   // IMG_9424's stripes, est. by eye
 const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#24221F'];
 const DRAG_STEP = 4, STEP = 1.5;
+const OFF_ALPHA = 0.18, OFF_HEX = '2E';   // a layer switched off, on the board: faint
 // More than this past the walls is no longer a hair (Test's 2 mm of 2026-10-03):
 // the canvas lies partly out of reach, said in red and before PLAY.
 const PAST_MANY = 50;   // mm between the centre's points: coarse while the mouse turns it
@@ -34,6 +35,7 @@ const S = {
   rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0,                   // the band; Roll is a point's (band.js, squeezed)
   tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
   speed: 150, travel: 180, tail: 70, ink: false,                                  // the brush, as on Test (est.)
+  off: [],                                                                        // the layers switched off: N1 · N2 · N3 latch as D1 · D2 · D3 on Test
   boardW: 500, boardH: 700,
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
@@ -44,6 +46,7 @@ function load() {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
     for (const k of NUM) if (Number.isFinite(o[k])) S[k] = o[k];
     if (typeof o.ink === 'boolean') S.ink = o.ink;
+    if (Array.isArray(o.off)) S.off = o.off.filter(Number.isInteger);
     for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen']]]) if (ok.includes(o[k])) S[k] = o[k];
     const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
     if (A.length >= 2) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
@@ -85,18 +88,21 @@ function band(step) {
 // The slow part — what lies over what, the imprint, its fitting, Test's run —
 // waits while the mouse turns the ribbon or a slider moves.
 let PLAN = null, planKey = '', busy = false;
-const EMPTY = { blocks: [], rows: [], passes: [], imp: null, lay: null, seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
+const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 function plan() {
   if (busy && PLAN) return PLAN;
-  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null]);
+  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
   const b = band(STEP);
   if (!b) { PLAN = EMPTY; return PLAN; }
   const lay = layersOf(b), imp = imprintOf(b, lay, { width: S.width });
-  const { passes, rows } = bandPasses(imp.runs, { ink: S.ink, tail: S.tail });
+  const all = bandPasses(imp.runs, { ink: S.ink, tail: S.tail }), rows = all.rows;
+  // the layers that run: those not switched off — all of them, if the ribbon changed and left none on
+  const on = all.passes.filter(p => !S.off.includes(+p.key.slice(1))), passes = on.length ? on : all.passes;
   const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), noDipUnder: NO_DIP };
-  PLAN = { ...plotRun(o, passes), rows, passes: passes.map(p => p.key), ink: S.ink, imp, lay, opts: o };
+  // rows: every piece of every layer, by its number (the LCD finds a block's there); pieces: those that run
+  PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, opts: o };
   return PLAN;
 }
 
@@ -191,7 +197,7 @@ function drawBand(b, black, ground) {
     g.lineWidth = S.width * k;
     for (let kk = 0; kk < b.rows; kk++) {
       g.strokeStyle = S.look === 'geometry' ? (b.pitch[i] < S.width ? '#D9481C' : black ? '#E9E5DD' : '#2A2826')
-        : S.look === 'layers' ? LAYER[Math.min(LAYER.length - 1, (lay ? lay[i] : 1) - 1)]
+        : S.look === 'layers' ? LAYER[Math.min(LAYER.length - 1, (lay ? lay[i] : 1) - 1)] + (lay && PLAN?.passes && !PLAN.passes.includes(`N${lay[i]}`) ? OFF_HEX : '')
         : b.back[i] ? shade(colourOf(kk), 0.5) : colourOf(kk);
       g.beginPath(); g.moveTo(sx(b.S[i][kk]), sy(b.S[i][kk])); g.lineTo(sx(b.S[i + 1][kk]), sy(b.S[i + 1][kk])); g.stroke();
     }
@@ -206,6 +212,7 @@ function drawImprint() {
     const L = lengthOf(r.pts), z = Math.min(S.tail, L / 2);
     let s = 0;
     g.strokeStyle = colourOf(r.k);
+    g.globalAlpha = P_.passes.includes(`N${r.layer}`) ? 1 : OFF_ALPHA;   // a layer switched off, faint
     for (let j = 1; j < r.pts.length; j++) {
       const a = r.pts[j - 1], c = r.pts[j], d = Math.hypot(c[0] - a[0], c[1] - a[1]), m = s + d / 2;
       const w = m < z ? (1 - Math.cos(Math.PI * m / z)) / 2 : m > L - z ? (1 - Math.cos(Math.PI * (L - m) / z)) / 2 : 1;
@@ -214,6 +221,7 @@ function drawImprint() {
       s += d;
     }
   }
+  g.globalAlpha = 1;
 }
 // The run as it goes (Test's): where the carriage has been since PLAY —
 // orange where the brush paints, grey in the air: to the cup, between the
@@ -412,7 +420,27 @@ function showPanel() {
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
   document.querySelectorAll('[data-look]').forEach(b2 => b2.classList.toggle('on', b2.dataset.look === S.look));
   document.querySelectorAll('[data-ground]').forEach(b2 => b2.classList.toggle('on', b2.dataset.ground === S.ground));
+  showLayers();
 }
+// N1 · N2 · N3: a key for each layer the imprint has, latching as D1 · D2 ·
+// D3 on Test — one, two or all, run in their order; the last one stays on
+// (the owner, 2026-10-04: "I do not see the keys as on TEST").
+const layersNow = () => PLAN?.imp ? Object.keys(PLAN.imp.byLayer).map(Number).sort((a, b2) => a - b2) : [];
+function showLayers() {
+  const lays = layersNow(), runs = l => (PLAN?.passes || []).includes(`N${l}`);
+  const html = lays.map(l => `<button class="tog${runs(l) ? ' on' : ''}" data-layer="${l}" title="N${l}: ${fmt(PLAN.imp.byLayer[l] / 1000, 1)} m${l > 1 ? `, over N${l - 1}` : ', the first'} — on or off; the layers on run in their order, a pause between them">N${l}</button>`).join('');
+  const el = $('#layerKeys');
+  if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; }
+  el.hidden = !lays.length;
+}
+$('#layerKeys').onclick = e => {
+  const b2 = e.target.closest('[data-layer]');
+  if (!b2) return;
+  const l = +b2.dataset.layer, on = layersNow().filter(x => (PLAN?.passes || []).includes(`N${x}`));
+  if (on.includes(l)) { if (on.length < 2) return; S.off = [...new Set([...S.off, l])]; }
+  else S.off = S.off.filter(x => x !== l);
+  settle();
+};
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
   busy = false;
@@ -421,7 +449,7 @@ function settle() {
   const inkWhy = S.ink ? cupProblem(C) : '';
   $('#planRead').innerHTML = (!P_.imp ? 'No ribbon: two points at least.' :
     `The imprint: <b>${P_.imp.runs.length}</b> pieces of row, <b>${fmt(P_.imp.total / 1000, 1)} m</b> · `
-    + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m`).join(' · ')}${lays.length > 1 ? ', a pause between them — CONTINUE when the one under is dry' : ''} · `
+    + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m${P_.passes.includes(`N${l}`) ? '' : ' (off)'}`).join(' · ')}${P_.passes.length > 1 ? ', a pause between them — CONTINUE when the one under is dry' : ''} · `
     + `closer than the row's width: <span class="${P_.imp.red > 0.35 ? 'warn' : ''}">${fmt(P_.imp.red * 100, 0)} %</span> · `
     + (S.ink ? `<b>Ink ON</b>, the Watercolour run: a dip every ${DIP_RUN} mm along a row (est.), none before a piece under ${NO_DIP} mm but a layer's first, ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint · ` : 'the Paint run · ')
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
@@ -535,7 +563,7 @@ $('#btnDoJob').onclick = async () => {
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
   if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
-  if (!confirm(`${P_.passes.join(' + ')}: ${P_.rows.length} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`
+  if (!confirm(`${P_.passes.join(' + ')}: ${P_.pieces} pieces of row will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ''}`
     + (P_.pastWall > PAST_MANY ? `\n\n${fmt(P_.pastWall / 1000, 1)} m of them lie past the machine's walls and will be pressed along them.` : ''))) return;
   try {
     RUN = P_.blocks;
@@ -560,7 +588,7 @@ function lcd(st) {
   if (!live) started = null;
   const total = P_.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
-  const b2 = st && P_.blocks[st.block], row = b2 && P_.rows[b2.row - 1];
+  const b2 = st && (RUN || P_.blocks)[st.block], row = b2 && P_.rows[b2.row - 1];   // the blocks PLAY sent: N1 · N2 may be switched since
   const waiting = st?.state === 'paused' && st.message;
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
@@ -569,7 +597,7 @@ function lcd(st) {
     : live && b2?.home ? 'done · the carriage goes home, the brush off'
     : live && row && b2?.dip ? `${row.name} · row ${row.row} of ${S.rows} · the dip in the cup`
     : live && row ? `${row.name} · row ${row.row} of ${S.rows}` + (st.brush_on ? ' · brush on' : ' · brush off')
-    : `${P_.rows.length} pieces · ${P_.passes.join('+') || 'nothing to paint'}`;
+    : `${P_.pieces || 0} pieces · ${P_.passes.join('+') || 'nothing to paint'}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
