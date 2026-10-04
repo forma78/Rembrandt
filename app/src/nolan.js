@@ -91,7 +91,7 @@ function band(step) {
 // The slow part — what lies over what, the imprint, its fitting, Test's run —
 // waits while the mouse turns the ribbon or a slider moves.
 let PLAN = null, planKey = '', busy = false;
-const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
+const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], folds: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 function plan() {
   if (busy && PLAN) return PLAN;
   const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off, S.cuts, S.overlap]);
@@ -105,7 +105,7 @@ function plan() {
   const on = all.passes.filter(p => !S.off.includes(+p.key.slice(1))), passes = on.length ? on : all.passes;
   const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER };
   // rows: every piece of every layer, by its number (the LCD finds a block's there); pieces: those that run
-  PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, cuts: L.cuts, stretches: L.stretches, opts: o };
+  PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, cuts: L.cuts, stretches: L.stretches, folds: L.folds, opts: o };
   return PLAN;
 }
 
@@ -188,6 +188,7 @@ function draw() {
     });
   }
   if (b && cutting()) drawCuts(b, black);                                              // the cuts, with the Cut tool
+  if (b && !busy) drawFolds(b);                                                        // where the rows fold: a red !
   drawTrail();
 }
 // Geometry, Colour, Layers: the band far to near, each piece covering what
@@ -229,6 +230,16 @@ function drawCuts(b, black) {
     g.beginPath(); g.arc(sx(m), sy(m), 5.5, 0, Math.PI * 2); g.fill(); g.stroke();
   });
   g.restore();
+}
+// A red ! where the painted rows fold — run back against the ribbon: move a point there.
+function drawFolds(b) {
+  for (const f of PLAN?.folds || []) {
+    const m = b.M[indexAt(b, f.s)], X = sx(m), Y = sy(m);
+    g.save(); g.fillStyle = '#D9481C'; g.strokeStyle = '#fff'; g.lineWidth = 1.5;
+    g.beginPath(); g.arc(X, Y, 9, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.fillStyle = '#fff'; g.font = font(13, 700); g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('!', X, Y + 0.5);
+    g.restore();
+  }
 }
 // Imprint: what the machine paints — the visible pieces, their ends thinning
 // over Tail as the elbow lands and lifts the brush (strokes.js, rowLift).
@@ -544,6 +555,7 @@ function settle() {
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
     + (inkWhy ? ` <span class="warn">${inkWhy}</span>` : '')
     + (P_.fault ? ` <span class="warn">The plan is wrong, PLAY will not run it: ${P_.fault}.</span>` : '')
+    + (P_.folds?.length ? ` <span class="warn">${P_.folds.length === 1 ? 'One place' : `${P_.folds.length} places`} where the rows fold, the red ! (${P_.folds.map(f => `${fmt(f.s / (BAND?.L || 1) * 100, 0)} %, ${f.rows} rows`).join(' · ')}): the ribbon turns there tighter than half its width — move or take out a point near it.</span>` : '')
     + (P_.need > WRIST_MAX ? ` <span class="warn">The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.</span>` : '')
     + (P_.pastWall > PAST_MANY ? ` <span class="warn">${fmt(P_.pastWall / 1000, 1)} m of the rows lie past the machine's walls and would be pressed along them: the canvas lies partly out of reach — measure it from the cup on the Ink tab, or move the ribbon.</span>`
       : P_.pastWall > 0.05 ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')

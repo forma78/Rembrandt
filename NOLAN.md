@@ -258,7 +258,12 @@ to send such noise to the board"): its journal held one such arc, the D1 of
   that does not fit; the owner opens the bend or narrows the ribbon.
   (`offsetSegs` itself cuts a fold into a sharp point; the "!" says it
   happened.) The blend of Rembrandt.md §3 stays the alternative if folds
-  get in the way.
+  get in the way. **Built 2026-10-04** on the 3D ribbon (the owner: "turn
+  the construction and there is a gap; the imprint must be smooth — I
+  killed one point"; of the "!": "a great idea"): `foldsOf` in `band.js`
+  finds where two or more rows run back against the ribbon on the canvas,
+  where it is painted — the rows a fold hides count too, the gap is what
+  shows; the board marks each with a red "!", the reading says where.
 - **Past the walls** — pressed into them as on Job and Test; the page says
   by how many mm. Kept so, not left out (the owner, 2026-10-04:
   "as now, pressed to the wall").

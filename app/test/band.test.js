@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen, ELBOW_HOVER } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -285,4 +285,18 @@ test('a stroke starts with the brush just over the canvas (NOLAN), and a dip\'s 
   const parts = dipParts(pts, 0, DIP_RUN, DIP_LAP);
   assert.equal(parts.length, 2);
   assert.ok(Math.abs(parts[0].at(-1)[1] - parts[1][0][1] - DIP_LAP) < 1.6, 'the second part starts DIP_LAP mm back');
+});
+
+// The owner, 2026-10-04: "turn the construction and there is a gap; the
+// imprint must be smooth" — a red ! where the painted rows fold.
+test('a fold: where the ribbon turns in its own plane tighter than half its width, the rows run back — found; a gentle turn is not', () => {
+  const o = { rows: 9, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
+  const hair = [{ x: -100, y: 0, z: 0, roll: 0 }, { x: 100, y: 0, z: 0, roll: 0 }, { x: 100, y: 20, z: 0, roll: 0 }, { x: -100, y: 20, z: 0, roll: 0 }];
+  const b = bandOf(hair, o), folds = layeredOf(b, { width: 5 }).folds;
+  assert.equal(folds.length, 1);
+  assert.ok(Math.abs(folds[0].s / b.L - 0.5) < 0.1, 'at the hairpin');
+  assert.ok(folds[0].rows >= 2);
+  const gentle = [{ x: -150, y: 0, z: 0, roll: 0 }, { x: 0, y: 20, z: 0, roll: 0 }, { x: 150, y: 0, z: 0, roll: 0 }];
+  assert.equal(layeredOf(bandOf(gentle, o), { width: 5 }).folds.length, 0);
+  assert.deepEqual(foldsOf(b, []), [], 'nothing painted: nothing to warn of');
 });

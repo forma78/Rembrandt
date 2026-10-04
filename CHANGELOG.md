@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a red ! where the rows fold** (the owner, 2026-10-04: "turn the
+  construction and there is a gap; on the 2D it must not be — the imprint
+  must be smooth. I killed one point"; of the red "!" of NOLAN.md §3:
+  "yes, a great idea"). `foldsOf`: where two or more rows run back against
+  the ribbon on the canvas, the ribbon painted there — the rows a fold hides
+  count too, for the gap is what shows. The board marks each with a red !,
+  the reading says where and how many rows: move or take out a point near
+  it. The save of 18:00 (14 points): five, the worst at the pinch top left,
+  18 %, 6 rows — the puddle and the white of the last runs. Tried in the
+  browser. A test: a hairpin found, a gentle turn not.
 - **NOLAN: no white between the bundles — the strokes overlap** (the owner,
   2026-10-04, `machine/2026-10-04 Nolan-v3-both.png`: "any ideas how to fix
   it? If the brush goes in overlapping, even better — only not these awful
