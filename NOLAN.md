@@ -126,10 +126,14 @@ The panel, top to bottom:
 8. The brush, Test's: **Brush on**, **Between rows**, **Tail** — the elbow
    landing and lifting the brush over the ends of every piece, so the tails
    are as long as the owner sets them ("we can make tails of different
-   lengths now") — **10 … 20 mm** on NOLAN (the owner, 2026-10-04: "take
-   it away past 20 mm altogether, it is not needed, so there is no
-   temptation"; at 155 mm the pieces' ends went unpainted,
-   `machine/2026-10-04-test_both.png`); then **Board width · Board height**.
+   lengths now") — **3 … 20 mm** (the owner, 2026-10-04: "take it away past
+   20 mm altogether, it is not needed, so there is no temptation"; at
+   155 mm the pieces' ends went unpainted, `machine/2026-10-04-test_both.png`;
+   then "the line must go on", `2026-10-04 Nolan-v2-details.jpg`). The
+   elbow keeps pace with the carriage, which starts every piece at rest and
+   stops at its end: before, it lifted at the speed the carriage never
+   reaches there, ~7 mm before the end. Then **Board width · Board
+   height**.
 9. **Reference**: tracing paper over the canvas, its opacity; the round ×.
 
 Test's *Row length*, *Bow*, *Wave* and *Lift at the turns* are not here: the
