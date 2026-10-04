@@ -79,7 +79,7 @@ export const DEFAULTS = {
   travel: 100,                // mm/s between rows, the brush off
   tilt: 45,                   // the turns' mark in the rows' pieces, before the new arm the wrist's angle there
   lift: true,                 // the brush up through every turn (the elbow); off: a snake's turns painted too
-  tail: 100,                  // mm: along the first and the last of every row the brush lands and lifts, on the move (est.)
+  tail: 15,                   // mm: along the first and the last of every row the brush lands and lifts, on the move (est.); TAIL_MIN … TAIL_MAX
   wave: 0,                    // mm: a row waves this far either side of its line or arc; 0 — none
   waveLen: 100,               // mm, about a wave along the row (est.)
   pause: true,                // after every row: paint for the brush
@@ -253,6 +253,13 @@ const TAIL_STEP = 16;           // mm along a tail a W
 export const WRIST_MAX = 211;   // °/s, the firmware's fastest for W (2400 ticks/s; the servo makes about 250, est.)
 export const SPEED_MAX = 250;   // mm/s, the board's fastest path (firmware F, 1…250 since 2026-10-02)
 export const MIN_PIECE = 0.05;  // mm: a shorter piece is a sliver, never sent (plotRun)
+// Tail, 10 … 20 mm on NOLAN and Test: at 155 mm the brush was fully pressed on
+// 30 % of the ribbon, the pieces' ends never painted (machine/2026-10-04-
+// test_both.png); at 15 on 92 %. The owner, 2026-10-04: "take it away past
+// 20 mm altogether, it is not needed, so there is no temptation"; then "on
+// Test too".
+export const TAIL_MIN = 10, TAIL_MAX = 20;
+export const tailIn = v => Math.max(TAIL_MIN, Math.min(TAIL_MAX, Number.isFinite(v) ? v : DEFAULTS.tail));
 const sliver = (g, min = MIN_PIECE) => Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) < min;
 // How far the board runs a piece from where it stands, as the firmware takes
 // it (path.h, arc): an arc's sweep from its start's angle to its end's, the
