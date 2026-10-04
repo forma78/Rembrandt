@@ -463,6 +463,7 @@ export function plotRun(o, passes) {
   const away = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   passes.forEach(({ key, ps, why }, n) => {
     if (n) blocks.push({ kind: 'pause', why, row: 0 });
+    let dry = true;                                      // the brush at a pass's start: dry, or waited through the pause
     ps.forEach((p, i) => {
       const m = onTheMove(p, o), row = p[0].row;
       // The tails cut the row, they never add to it: the same length, or no run.
@@ -472,7 +473,9 @@ export function plotRun(o, passes) {
       if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint
       const first = m.pieces[0].g.a;
       turns += m.turns; lifts += m.lifts; need = Math.max(need, m.need);
-      if (cupAt) {
+      // o.noDipUnder (NOLAN): a shorter piece goes on what the brush holds, the first of a pass excepted
+      if (cupAt && (dry || !(drawn < o.noDipUnder))) {
+        dry = false;
         // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again
         blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(cupAt)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true },
           { kind: 'arm', cmd: `J 2 ${cup.dip}`, row, dip: true }, { kind: 'wait', s: cup.dwell, row, dip: true },
