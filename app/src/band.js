@@ -16,8 +16,9 @@ export const DIP_RUN = 720;   // mm a dip carries along a row (the owner, 2026-1
 // A piece shorter than this goes on what the brush holds, no dip: a dip
 // before a dot left a puddle of water (the owner, 2026-10-04: "under 50 mm,
 // do not dip, work with what is on the brush; even if the paint runs out, I
-// will see it by the density of the other lines"). The first of a layer dips.
-export const NO_DIP = 50;     // mm, the owner's rule
+// will see it by the density of the other lines"); then 75 mm: "the trace is
+// quite clear" (both 2026-10-04). A layer starts on its first piece this long.
+export const NO_DIP = 75;     // mm, the owner's rule
 export const FIT_MM = 0.1;    // a fitted piece keeps this close to the imprint (Rembrandt.md §3)
 const ARC_MAX = 2000;         // mm: a flatter arc goes as a line — a centre kilometres away is no command for the board
 export const ROWS_MAX = 60;

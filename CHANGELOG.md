@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: no dip before a piece under 75 mm**, 50 before (the owner,
+  2026-10-04: "50 mm without a dip works. Let's raise it to 75 mm — it
+  should go faster still. The trace is quite clear"). The first run's
+  ribbon: 139 dips of 276, ≈ 42 min.
 - **NOLAN: a layer starts on its first piece of 50 mm or more**, with its
   dip, the others after it in their order: a full brush never lands on a
   dot (the drops of 2026-10-04 13:38, four rows' dots, four puddles). N2 of
