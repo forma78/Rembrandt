@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { plotRun, DEFAULTS, at, pieceLen } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP } from '../src/band.js';
+import { plotRun, DEFAULTS, at, pieceLen, ELBOW_HOVER } from '../src/strokes.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -258,4 +258,31 @@ test('NOLAN: INK ON runs the layers one after another, INK OFF pauses between th
     assert.equal(passes.length, 4);
     assert.equal(run.blocks.filter(x => x.kind === 'pause').length, ink ? 0 : 3, ink ? 'INK ON' : 'INK OFF');
   }
+});
+
+// The owner, 2026-10-04 (machine/2026-10-04 Nolan-v3-both.png): white gaps
+// where a row goes under another part — "if the brush goes in overlapping,
+// even better"; the brush landing late; the dip's split left a gap.
+test('the overlap: a row goes on under the part over it, within its layer', () => {
+  const b = bandOf(RUN_1258.anchors, RUN_1258.band), w = RUN_1258.band.width;
+  const plain = layeredOf(b, { width: w }), lapped = layeredOf(b, { width: w, overlap: 4 });
+  assert.ok(lapped.imp.total > plain.imp.total + 100, `${Math.round(lapped.imp.total - plain.imp.total)} mm more`);
+  for (const r of lapped.imp.runs) {
+    for (let j = 0; j < r.pts.length - 1; j++) assert.equal(lapped.lay[Math.min(r.i0 + j, b.n - 2)], r.layer, 'within its layer');   // its last may be the cut's, shared
+    const s0 = b.s[r.i0], s1 = b.s[r.i0 + r.pts.length - 1];
+    assert.ok(lapped.cuts.every(c => !(s0 < c && s1 > c)), 'never across a cut');
+  }
+  // a row that comes out from under another part starts under it: before the point where it showed
+  const byRow = k => plain.imp.runs.filter(r => r.k === k), started = lapped.imp.runs.filter(r => byRow(r.k).some(q => q.layer === r.layer && q.i0 > r.i0 && q.i0 - r.i0 <= 4 / b.step + 2));
+  assert.ok(started.length > 10, `${started.length} rows start under another part`);
+});
+test('a stroke starts with the brush just over the canvas (NOLAN), and a dip\'s split laps DIP_LAP back', () => {
+  const line = (x, L, row) => [{ t: 'L', a: { x, y: 0 }, b: { x, y: L }, row }];
+  const run = plotRun({ ...DEFAULTS, snake: true, pause: false, lift: false, tail: 3, here: { x: 400, y: 280 }, hover: ELBOW_HOVER }, [{ key: 'N1', ps: [line(0, 100, 1), line(10, 100, 2)] }]);
+  const before = run.blocks.flatMap((b2, i) => b2.kind === 'move' && b2.paintMM > 0 ? [run.blocks[i - 1]] : []);
+  assert.deepEqual(before.map(b2 => b2.cmd), [`J 2 ${ELBOW_HOVER}`, `J 2 ${ELBOW_HOVER}`]);
+  const pts = []; for (let y = 0; y <= 1000; y += 1.5) pts.push([0, y]);
+  const parts = dipParts(pts, 0, DIP_RUN, DIP_LAP);
+  assert.equal(parts.length, 2);
+  assert.ok(Math.abs(parts[0].at(-1)[1] - parts[1][0][1] - DIP_LAP) < 1.6, 'the second part starts DIP_LAP mm back');
 });

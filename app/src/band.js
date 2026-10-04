@@ -13,6 +13,10 @@
 import { biarc, at, pieceLen, sweepOf } from './strokes.js';
 
 export const DIP_RUN = 720;   // mm a dip carries along a row (the owner, 2026-10-04: "all 720 mm will go easily"), est.
+// A row split for a dip goes on from this far back: the brush ran dry before
+// the split, and a fresh one starting 3 mm back left a gap (2026-10-04,
+// machine/2026-10-04 Nolan-v3-both.png, in blue).
+export const DIP_LAP = 20;    // mm, est.
 // A piece shorter than this goes on what the brush holds, no dip: a dip
 // before a dot left a puddle of water (the owner, 2026-10-04: "under 50 mm,
 // do not dip, work with what is on the brush; even if the paint runs out, I
@@ -269,6 +273,20 @@ export function layeredOf(band, o) {
     });
     if (cur) runs.push(cur);
   }
+  // Where a row goes under, or comes out from under, another part, its stroke
+  // goes on under it o.overlap mm, within its layer: the white between the two
+  // gone (the owner, 2026-10-04: "if the brush goes in overlapping, even
+  // better — only not these awful white gaps"). The part lying over is
+  // painted after it and covers the overlap.
+  const lap = o.overlap || 0;
+  if (lap > 0) for (const r of runs) {
+    const at = i => [band.S[i][r.k][0], band.S[i][r.k][1]], same = i => i >= 0 && i < band.n && st.lay[Math.min(i, band.n - 2)] === r.layer;
+    const before = [];
+    for (let i = r.i0 - 1, d = 0; same(i) && d < lap; i--) { const p = at(i), q = before[0] || r.pts[0]; d += Math.hypot(p[0] - q[0], p[1] - q[1]); before.unshift(p); }
+    let d = 0;
+    for (let i = r.i0 + r.pts.length; same(i) && d < lap; i++) { const p = at(i), q = r.pts.at(-1); d += Math.hypot(p[0] - q[0], p[1] - q[1]); r.pts.push(p); }
+    if (before.length) { r.pts.unshift(...before); r.i0 -= before.length; }
+  }
   return { imp: { ...finished(runs), red: imp0.red, vis: imp0.vis }, lay: st.lay, cuts: st.cuts, stretches: st.stretches, auto: !Array.isArray(o.cuts) };
 }
 
@@ -402,7 +420,7 @@ export function bandPasses(runs, o) {
   for (const L of [...new Set(sorted.map(r => r.layer))]) {
     const ps = [];
     for (const r of sorted.filter(q => q.layer === L)) {
-      for (const part of o.ink ? dipParts(r.pts, r.k, o.dipRun ?? DIP_RUN, o.tail || 0) : [r.pts]) {
+      for (const part of o.ink ? dipParts(r.pts, r.k, o.dipRun ?? DIP_RUN, Math.max(o.tail || 0, DIP_LAP)) : [r.pts]) {
         const pieces = fitPieces(part);
         if (!pieces.length) continue;
         rows.push({ layer: L, name: `N${L}`, row: r.k + 1 });

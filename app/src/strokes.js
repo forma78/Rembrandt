@@ -248,7 +248,7 @@ const rad = d => d * Math.PI / 180;
 // a W 2 rides on every TAIL_STEP mm of a tail, the board turning it as the
 // carriage reaches the piece — whatever the speed, a brake, a pause. The
 // wrist stands at 0° all the while ("the broom again" otherwise).
-export const ELBOW_LIFT = 10, ELBOW_UP = 25;   // the lift-off measured +9.8° from the zero raised after midnight ("round it to +10"); ELBOW_UP est.
+export const ELBOW_LIFT = 10, ELBOW_UP = 25, ELBOW_HOVER = 12;   // HOVER: just over the canvas, before a stroke (NOLAN), est.   // the lift-off measured +9.8° from the zero raised after midnight ("round it to +10"); ELBOW_UP est.
 const TAIL_STEP = 16;           // mm along a tail a W
 export const WRIST_MAX = 211;   // °/s, the firmware's fastest for W (2400 ticks/s; the servo makes about 250, est.)
 export const SPEED_MAX = 250;   // mm/s, the board's fastest path (firmware F, 1…250 since 2026-10-02)
@@ -508,8 +508,11 @@ export function plotRun(o, passes) {
       }
       if (o.ink) air.push([at0, first]);
       blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(first)}`, 'G'], lengthMM: null, paintMM: 0, row });
-      // from over the rim down to where the brush always lands from, in the air over the row's start: it lands as it did without the cup
-      if (up !== ELBOW_UP) { blocks.push({ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row }); seconds += ARM_S; }
+      // from over the rim down to where the brush always lands from, in the air over the row's start: it lands as it did without the cup;
+      // o.hover (NOLAN): just over the canvas, the carriage waiting — from +25° the elbow was still on its way down
+      // when the carriage set off, and the line began 5–10 mm late (2026-10-04, machine/2026-10-04 Nolan-v3-both.png)
+      const over = o.hover ?? ELBOW_UP;
+      if (up !== over) { blocks.push({ kind: 'arm', cmd: `J 2 ${over}`, row }); seconds += ARM_S; }
       // one move, the brush landing at its start, lifting at its end and at every turn, on the way
       const cmds = [`F ${o.speed}`];
       let v = o.speed, len = 0, paint = 0;

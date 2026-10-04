@@ -132,8 +132,15 @@ The panel, top to bottom:
    then "the line must go on", `2026-10-04 Nolan-v2-details.jpg`). The
    elbow keeps pace with the carriage, which starts every piece at rest and
    stops at its end: before, it lifted at the speed the carriage never
-   reaches there, ~7 mm before the end. Then **Board width · Board
-   height**.
+   reaches there, ~7 mm before the end. **Overlap**, 0 … 10 mm, 4 by
+   default (est.): where a row goes under another part, or comes out from
+   under it, its stroke goes on under it so far, within its layer — the
+   part over it, painted after, covers it (the owner, 2026-10-04: "if the
+   brush goes in overlapping, even better — only not these awful white
+   gaps"). Before a stroke the brush waits just over the canvas, +12°
+   (est.), not at +25°: from there the elbow was still coming down when
+   the carriage set off, and the line began 5–10 mm late. Then **Board
+   width · Board height**.
 9. **Reference**: tracing paper over the canvas, its opacity; the round ×.
 
 Test's *Row length*, *Bow*, *Wave* and *Lift at the turns* are not here: the
@@ -339,6 +346,9 @@ sees exactly where to squeeze the paint.
   never lands on a dot (*Claude's decision*, the owner: "agreed"; N2 of
   the first run began on a 21.8 mm piece). NOLAN only, not Test (the owner, 2026-10-04). On the
   first run's ribbon: 139 dips of 276, ≈ 42 min of 60.
+- **A split laps 20 mm** (`DIP_LAP`, est.): the brush ran dry before the
+  split, and the fresh run starting 3 mm back left a gap
+  (`machine/2026-10-04 Nolan-v3-both.png`, in blue).
 - **Long lines**: a line longer than the dip run is split into runs; each
   starts with a fresh dip and lands where the last one's tail began.
   Neighbouring lines split half a dip run apart, so the tails never line up.
