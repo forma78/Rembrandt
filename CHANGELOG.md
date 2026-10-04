@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: Tail 10 … 20 mm, 15 by default** (the owner, 2026-10-04: "set
+  it to 15, yes. Take it away past 20 mm altogether, it is not needed, so
+  there is no temptation"). Every run of the day had Tail 155 mm: the
+  elbow eased the brush down and up over 155 mm at each end of a piece, so
+  on the last ribbon it was fully pressed on 30 % of 28.9 m — the lines did
+  not reach, no shape closed (`machine/2026-10-04-test_on_paper.png`,
+  `-test_both.png`); at 15 mm on 92 %, the elbow at 143°/s of 211. A save
+  with a longer Tail opens at 20. Test's Tail as it was.
 - **NOLAN: the cuts are a tool, Cut (C), the scissors in the Tools** (the
   owner, 2026-10-04: "maybe move the scissors into TOOLS on the left?").
   With it the cuts and the stretches' names show in any look; a click on
