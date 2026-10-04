@@ -120,7 +120,12 @@ The panel, top to bottom:
 4. **Geometry · Colour · Layers · Imprint**, **White · Black**: the rows dark,
    red where they lie closer than a row's width; IMG_9424's stripes, the
    band's back darker for the glazes; what lies over what; what the machine
-   paints — the visible pieces, their tails thinning.
+   paints — the visible pieces, their tails thinning; with INK ON the
+   watercolour as it lies on the paper (the owner, 2026-10-04: "I would like
+   to see on the screen a more exact drawing of what I paint with the
+   brush"): darkest where the brush lands fresh from the cup, paler along the
+   dip run, wet rows under 1 mm apart one wash, strokes over one another
+   darker (`washOf` in `band.js`, est.).
 5. The band: **Rows** (first), **Row to row**, **Row width**, **Stack**,
    **Twist**, **Squeeze** — Roll is a point's alone (glossary).
 6. The ribbon in space: **Rotate X**, **Rotate Y**, **↻**, **Size**, **X ↑**,

@@ -13,7 +13,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, ELBOW_HOVER, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
@@ -242,10 +242,12 @@ function drawFolds(b) {
   }
 }
 // Imprint: what the machine paints — the visible pieces, their ends thinning
-// over Tail as the elbow lands and lifts the brush (strokes.js, rowLift).
+// over Tail as the elbow lands and lifts the brush (strokes.js, rowLift);
+// with INK ON the watercolour as it lies on the paper.
 function drawImprint() {
   const P_ = plan();
   if (!P_.imp) return;
+  if (P_.ink) { drawWash(P_); return; }
   for (const r of P_.imp.runs) {
     const L = lengthOf(r.pts), z = Math.min(S.tail, L / 2);
     let s = 0;
@@ -260,6 +262,41 @@ function drawImprint() {
     }
   }
   g.globalAlpha = 1;
+}
+// The Watercolour run on the paper (band.js, washOf; the owner, 2026-10-04:
+// "I want to see on the screen more exactly what I paint with the brush"):
+// each stroke in the wash, strongest fresh from the cup and paler along the
+// dip run, a blot where it lands so; wet rows nearly touching run into one
+// wash; strokes over one another darker — the board multiplies them, as the
+// paper does. Each stroke a few paths of one shade, so it never darkens itself.
+const WASH = [74, 16, 140];   // the violet wash in the cup on 2026-10-04, by eye from the photos, est.
+const WASH_LIGHT = [205, 175, 245];   // the same on the black ground, lighter: the board adds there
+const WASH_WET = 0.5, WASH_DRY = 0.14, WASH_BLOT = 0.8;   // its strength fresh from the cup, at the end of a dip run, in a blot (est., the trace of 18:11)
+function drawWash(P_) {
+  P_.wash ??= washOf(P_.preview, band(STEP), P_.imp.runs, S.width);
+  const black = S.ground === 'black';
+  const tone = a => black ? `rgb(${WASH_LIGHT.map(c => Math.round(c * a)).join(',')})` : `rgb(${WASH.map(c => Math.round(255 - (255 - c) * a)).join(',')})`;
+  g.save(); g.globalCompositeOperation = black ? 'screen' : 'multiply'; g.lineCap = 'butt'; g.lineJoin = 'round';
+  for (const st of P_.wash) {
+    const q = st.pts;
+    let from = 0, key = null;
+    const flush = j => {                                                            // the points from..j, one shade, one width
+      if (j <= from) return;
+      const [a, w] = key.split(' ').map(Number);
+      g.strokeStyle = tone(a); g.lineWidth = Math.max(0.6, w * k);
+      g.beginPath(); g.moveTo(sx(q[from].p), sy(q[from].p));
+      for (let m = from + 1; m <= j; m++) g.lineTo(sx(q[m].p), sy(q[m].p));
+      g.stroke();
+    };
+    for (let j = 0; j < q.length; j++) {
+      const a = WASH_DRY + (WASH_WET - WASH_DRY) * q[j].load, kk = `${(Math.round(a * 50) / 50).toFixed(2)} ${Math.round(q[j].w * 4) / 4}`;
+      if (kk !== key) { if (key !== null) flush(j); from = j; key = kk; }   // the next path from the point this one ends on
+    }
+    if (key !== null) flush(q.length - 1);
+    const land = st.dip && q.find(t => t.w >= 0.5 * S.width);                      // the blot: fresh from the cup, the brush lands
+    if (land) { g.fillStyle = tone(WASH_BLOT); g.beginPath(); g.arc(sx(land.p), sy(land.p), 0.8 * S.width * k, 0, Math.PI * 2); g.fill(); }
+  }
+  g.restore();
 }
 // The run as it goes (Test's): where the carriage has been since PLAY —
 // red where the brush paints, light blue in the air: to the cup, between the

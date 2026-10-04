@@ -496,7 +496,8 @@ export function plotRun(o, passes) {
       const first = m.pieces[0].g.a;
       turns += m.turns; lifts += m.lifts; need = Math.max(need, m.need);
       // o.noDipUnder (NOLAN): a shorter piece goes on what the brush holds, the first of a pass excepted
-      if (cupAt && (dry || !(drawn < o.noDipUnder))) {
+      const dipped = !!cupAt && (dry || !(drawn < o.noDipUnder));
+      if (dipped) {
         dry = false;
         // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again
         blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(cupAt)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true },
@@ -542,7 +543,7 @@ export function plotRun(o, passes) {
       blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: real(m.pieces).map(q => q.on), row: p[0].row });   // one mark a piece sent, as rembrandt.py counts them
       blocks.push({ kind: 'arm', cmd: `J 2 ${up}`, row: p.at(-1).row });   // at the lift-off already: the brush up, over the cup's rim with INK ON
       if (!o.snake && o.pause && !o.ink && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
-      for (const l of m.trace) preview.push(Object.assign(l, { pass: key }));   // its paint, on the preview
+      m.trace.forEach((l, j) => preview.push(Object.assign(l, { pass: key, dip: dipped && !j })));   // its paint, on the preview; dip: the brush fresh from the cup
       seconds += travelTime(Math.hypot(first.x - at0.x, first.y - at0.y), o.travel) + pathTime(real(m.pieces)) + PATH_S;
       at0 = m.pieces.at(-1).g.b;
     });

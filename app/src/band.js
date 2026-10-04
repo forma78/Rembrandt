@@ -370,6 +370,66 @@ function finished(runs) {
 }
 export const lengthOf = pts => pts.reduce((a, p, i) => i ? a + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0);
 
+// ---------- the trace on the paper ----------
+// The Watercolour run as it lies on the paper, for the Imprint look (the
+// owner, 2026-10-04: "I want to see on the screen more exactly what I paint
+// with the brush on paper and canvas"; the trace of 18:11 with a ruler,
+// machine/photo_2026-10-04 21.43.54 … 21.44.15.jpeg: "the line, as you see,
+// is 4 mm"). What the photos show and the rows did not: the wash darkest
+// where the brush lands fresh from the cup, and paler along the dip run; wet
+// rows less than WASH_MERGE of white apart running into one wash — the left
+// loop of 18:11, 0–1 mm apart, merged, the middle band, 1–2 mm, kept its
+// white; rows over one another darker, the pinches (the page multiplies).
+export const WASH_FADE = 350;   // mm the brush paints after a dip, its wash down to a third, est.
+export const WASH_MERGE = 1;    // mm of white between two wet rows that the wash closes, est.
+const MERGE_CELL = 3;           // mm, the grid the merging places are looked up in
+// preview: plotRun's trace, the tip's points { x, y, k } in machine mm from
+// Here, a line a stroke, `dip` on the first after a dip; band, runs: the
+// imprint's, for the white between the rows; width: the row's. → the strokes
+// in canvas mm: [{ dip, pts: [{ p, w, load }] }] — w the line's width there,
+// load 1 fresh from the cup, fading along the dip run.
+export function washOf(preview, band, runs, width) {
+  const painted = new Set();
+  for (const r of runs) for (let j = 0; j < r.pts.length; j++) painted.add((r.i0 + j) * 64 + r.k);
+  // where the white beside a row is under WASH_MERGE: there its line widens to its neighbour's
+  const grid = new Map();
+  for (const r of runs) for (let j = 0; j < r.pts.length; j++) {
+    const i = Math.min(r.i0 + j, band.n - 1), p = r.pts[j];
+    let extra = 0;
+    for (const k2 of [r.k - 1, r.k + 1]) {
+      if (k2 < 0 || k2 >= band.rows || !painted.has(i * 64 + k2)) continue;
+      const q = band.S[i][k2], gap = Math.hypot(q[0] - p[0], q[1] - p[1]) - width;
+      if (gap > 0 && gap < WASH_MERGE) extra = Math.max(extra, gap);
+    }
+    if (!extra) continue;
+    const key = Math.floor(p[0] / MERGE_CELL) * 100003 + Math.floor(p[1] / MERGE_CELL);
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push([p[0], p[1], extra]);
+  }
+  const extraAt = p => {
+    let best = 0, bd = 1.5;
+    const cx = Math.floor(p[0] / MERGE_CELL), cy = Math.floor(p[1] / MERGE_CELL);
+    for (let a = -1; a <= 1; a++) for (let c = -1; c <= 1; c++) for (const q of grid.get((cx + a) * 100003 + cy + c) || []) {
+      const d = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      if (d < bd) { bd = d; best = q[2]; }
+    }
+    return best;
+  };
+  const out = [], dips = preview.some(l => l.dip);   // none: the canvas not placed yet, no cup to dip in — the wash as fresh
+  let since = 0;                                   // mm painted since the last dip
+  for (const line of preview) {
+    if (line.dip) since = 0;
+    const pts = [];
+    line.forEach((t, j) => {
+      const p = [t.y, -t.x];                       // machine mm → canvas mm (toMachine, the other way)
+      if (j) since += Math.hypot(t.x - line[j - 1].x, t.y - line[j - 1].y);
+      pts.push({ p, w: (width + extraAt(p)) * t.k, load: dips ? Math.exp(-since / WASH_FADE) : 1 });
+    });
+    out.push({ dip: !!line.dip, pts });
+  }
+  return out;
+}
+
 // ---------- into lines and arcs, for the machine ----------
 // A run of the imprint (canvas mm) → Test's pieces in machine mm: biarcs
 // between its points, each as long as it can be and still within FIT_MM of
