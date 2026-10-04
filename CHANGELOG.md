@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN in 3D: one ribbon, imprinted — a prototype and the decision**
+  (the owner, 2026-10-04: the parallel lines "stand like idols, a rake";
+  "let's make one construction that turns, something like IMG_9424").
+  `previous_research/nolan_3d_prototype.html`: one flat band along one
+  curve in space through IMG_9424 — the curl, the arch, the big band in
+  front, the fold, the lower loop into its vortex — 17 points with their
+  depth and roll; the whole turned with the mouse; the canvas its imprint,
+  the near part covering the far; the layers N1, N2 from depth; red where
+  the lines lie closer than the brush; the back darker, for the glazes; a
+  ring as a second blank. It replaces the same day's three rings. The
+  chat's prototype beside the pictures, `nolan-images/nolan-band-prototype.html`.
+  NOLAN.md §3.0 and the glossary: the model, and "the machine still gets
+  flat lines and arcs: 3D lives only in the drawing".
 - **NOLAN built on Test** (the owner, 2026-10-04: "Stop. We are copying
   CREATE, which did not work for us. Let's go back to TEST as the base.").
   Test's board — the canvas from the cup, the table round it, the run's

@@ -1,0 +1,467 @@
+<!doctype html>
+<!--
+  NOLAN — one ribbon in 3D, imprinted on the 500 × 700 canvas. A prototype,
+  2026-10-04 (it replaces the three rings of the first try, the same day): the owner ("one construction that turns, shaped like
+  IMG_9424"), Claude in chat (nolan-band-prototype.html: the flat band, Roll
+  the lever) and Claude in VS Code (the deck of cards, the hidden lines, the
+  layers by depth).
+
+  For Claude in VS Code: the model to rebuild in NOLAN with its own modules.
+  - ONE ribbon: a flat band along one centre curve in space. Not three, not
+    tubes ("bubliki": a ring can stay as a blank of the centre line).
+  - The centre: anchors { x, y, z, roll }. x, y on the canvas as the owner
+    draws them now; z the depth, + towards the viewer; roll the band's angle
+    there. In plan the curve is biarcs through the anchors, tangent
+    continuous — lines and arcs, as Pen and Arc draw; z and roll ease
+    between the anchors.
+  - The band across the curve: D = cos(roll) B + sin(roll) N, B in the
+    canvas plane across the curve, N towards the viewer. Roll 0°: the band
+    lies flat, facing you; 90°: edge-on. Twist adds half turns along it.
+    Roll is the lever: it decides where the bundle closes and where it opens.
+  - The lines lie on the band `pitch` apart, and a little apart in depth
+    too (Stack): a deck of cards, so a band edge-on fans out like IMG_9424's
+    fold instead of collapsing to one line.
+  - The whole construction turns (X, Y, spin), moves, zooms: the
+    composition. The canvas is its imprint: x, y kept, z dropped
+    (orthographic; Lens adds perspective).
+  - Depth decides what lies on top: drawn far to near, each piece of band
+    covering what lies behind it. The layers: a part lying over another
+    part is painted after it, once that is dry — N1, N2, N3 from depth.
+  - The back of the band (its normal turned away) is darker in Colour: the
+    places for the hand glazes, zone G.
+  - Red: the lines on the canvas closer than the brush — the owner's choice
+    there, merge the bundle or keep the overlap as a light rim.
+  The machine still gets flat lines and arcs: 3D lives only in the drawing.
+  Each visible piece of a line is fitted into lines and arcs (≤ 0.1 mm), then
+  Test's run (strokes.js, plotRun).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOLAN · one ribbon in 3D</title>
+<style>
+:root{--bg:#EDEAE4;--panel:#F5F3EF;--stage:#E2DED6;--line:#D5CFC4;--ink:#24221F;--mute:#7D776D;--orange:#EB7A25;--mono:"SF Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font:13px/1.4 "Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);display:grid;grid-template-columns:minmax(0,1fr) 340px;overflow:hidden}
+.stage{position:relative;background:var(--stage);display:grid;place-items:center;overflow:hidden;min-width:0}
+canvas{display:block;box-shadow:0 1px 0 rgba(0,0,0,.05),0 12px 36px rgba(40,30,20,.18);touch-action:none;cursor:grab}
+canvas.drag{cursor:grabbing}
+.foot{position:absolute;left:16px;right:16px;bottom:10px;font:11px var(--mono);color:var(--mute);display:flex;justify-content:space-between;gap:16px}
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:16px 18px 40px}
+h1{margin:0 0 4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+h2{margin:18px 0 6px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);font-weight:500;display:flex;justify-content:space-between}
+h2 b{font:12px var(--mono);letter-spacing:0;text-transform:none;color:var(--orange);font-weight:600}
+p.read{margin:6px 0;font-size:12px;color:var(--mute)}
+.keys{display:flex;gap:3px;padding:3px;background:#E3DFD7;border-radius:9px;box-shadow:inset 0 1px 2px rgba(0,0,0,.12);margin:6px 0}
+.keys button{flex:1;border:0;border-radius:6px;padding:7px 0;background:linear-gradient(#FBFAF8,#F0EEEA);color:var(--mute);font:600 11px var(--mono);box-shadow:0 1px 1px rgba(0,0,0,.14);cursor:pointer}
+.keys button.on{background:#DCD7CE;color:var(--ink);box-shadow:inset 0 1px 2px rgba(0,0,0,.2)}
+.keys button.on::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--orange);margin-right:5px;vertical-align:1px}
+.sl{display:block;margin:7px 0}
+.slh{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.slh b{font:12px var(--mono);letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
+input[type=range]{width:100%;margin:5px 0 0;accent-color:#3F3C38}
+input[type=range]:disabled{opacity:.35}
+.stats{margin-top:10px;padding:10px 12px;border-radius:10px;background:#E9E6E0;font:11.5px/1.6 var(--mono);color:var(--ink)}
+.stats .warn{color:#B3470C}
+.stats i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+.btn{width:100%;margin-top:6px;border:0;border-radius:8px;padding:8px;background:linear-gradient(#FBFAF8,#F0EEEA);box-shadow:0 1px 1px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.05);font-size:12px;cursor:pointer}
+</style>
+</head>
+<body>
+<section class="stage" id="stage">
+  <canvas id="cv"></canvas>
+  <div class="foot"><span id="hint">Drag: turn the ribbon · Shift-drag: move · Alt-drag: spin · wheel: zoom · drag a square: move a point</span><span id="fps"></span></div>
+</section>
+<aside class="panel">
+  <h1>NOLAN · one ribbon in 3D</h1>
+  <p class="read">One flat band along one curve in space, its lines parallel on it. The canvas is its imprint: the lines close up where the band turns its edge to you and open where it faces you; the near part covers the far one.</p>
+
+  <div class="keys" id="look">
+    <button data-look="geometry" title="The lines dark on the white canvas; red where they lie closer than the brush">Geometry</button>
+    <button data-look="colour" title="The lines in IMG_9424's stripes; the band's back darker: the glazes">Colour</button>
+    <button data-look="layers" title="What lies over what: painted in this order, each once the one under it is dry">Layers</button>
+    <button data-look="imprint" title="Only what the machine would paint: the visible pieces of the lines">Imprint</button>
+  </div>
+  <div class="keys" id="ground">
+    <button data-g="white">White</button><button data-g="black">Black</button><button data-ref="1" title="IMG_9424 over the canvas, as tracing paper">Reference</button>
+  </div>
+
+  <h2>The construction</h2>
+  <div id="whole"></div>
+  <div class="keys" id="blank">
+    <button data-b="img" title="One ribbon through IMG_9424, by eye">IMG_9424</button>
+    <button data-b="ring" title="A ring, the donut: a blank of the centre line">Ring</button>
+  </div>
+  <button class="btn" id="btnFront" title="Turned back to face the canvas, as drawn: over the reference">Face the canvas</button>
+
+  <h2>The band</h2>
+  <div id="band"></div>
+
+  <h2>Point <b id="ptName"></b></h2>
+  <div id="point"></div>
+  <p class="read">Click a square to pick a point; drag it to move it.</p>
+
+  <div class="stats" id="stats"></div>
+</aside>
+<script>
+'use strict';
+// ---------- the canvas: 500 × 700 mm, origin at its centre, x right, y down, z towards the viewer ----------
+const CW = 500, CH = 700;
+const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0', '#3D63D8', '#46A6EA', '#A6E3F8', '#EDE7F5'];   // IMG_9424's stripes, est. by eye
+const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#24221F'];
+
+// One ribbon through IMG_9424, by eye: the curl on the right, the arch over
+// the top, down the left, the big band in front up to the fold at the
+// centre, down the right behind it, round the lower loop into its vortex.
+// { x, y } on the canvas, z the depth (+ towards you), roll: 0 flat, 90 edge-on.
+const A = [
+  { x: 232, y: -98, z: -10, roll: 78 },
+  { x: 188, y: -168, z: -20, roll: 35 },
+  { x: 92, y: -214, z: -35, roll: 12 },
+  { x: -30, y: -220, z: -45, roll: 0 },
+  { x: -140, y: -172, z: -40, roll: 8 },
+  { x: -188, y: -78, z: -20, roll: 28 },
+  { x: -172, y: 40, z: 20, roll: 72 },
+  { x: -108, y: 62, z: 62, roll: 18 },
+  { x: -38, y: 8, z: 72, roll: 8 },
+  { x: 22, y: -44, z: 62, roll: 88 },
+  { x: 118, y: -42, z: -8, roll: 60 },
+  { x: 150, y: 60, z: -30, roll: 25 },
+  { x: 62, y: 168, z: -42, roll: 5 },
+  { x: -60, y: 168, z: -52, roll: 0 },
+  { x: -92, y: 92, z: -72, roll: 10 },
+  { x: -32, y: 54, z: -110, roll: 35 },
+  { x: 2, y: 80, z: -150, roll: 70 },
+];
+// The blanks of the centre line (Claude in chat, 2026-10-04: "the donuts need
+// not be thrown away — their shape can stay a blank of the centre line the
+// band is then stretched on"): IMG_9424's ribbon above, or a ring.
+const BLANK = {
+  img: A.map(a => ({ ...a })),
+  ring: Array.from({ length: 13 }, (_, i) => {
+    const th = -Math.PI / 2 + i * (Math.PI * 2 * 330 / 360) / 12;
+    return { x: Math.round(165 * Math.cos(th)), y: Math.round(40 + 165 * Math.sin(th)), z: Math.round(60 * Math.sin(2 * th)), roll: Math.round(30 * Math.sin(th)) };
+  }),
+};
+let blank = 'img';
+const G = { lines: 16, pitch: 8, brush: 5, stack: 6, twist: 0, rollAll: 0, tilt: 0, turn: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0, look: 'colour', ground: 'black', ref: false, refOp: 40 };
+let pick = 8;
+
+const WHOLE = [['tilt', 'Turn X', '°', -180, 180, 1], ['turn', 'Turn Y', '°', -180, 180, 1], ['spin', 'Spin', '°', -180, 180, 1], ['zoom', 'Size', '×', 0.5, 1.6, 0.01], ['lens', 'Lens', '', 0, 100, 1], ['refOp', 'Reference', '%', 0, 100, 1]];
+const BAND = [['lines', 'Lines', '', 2, 40, 1], ['pitch', 'Line to line', 'mm', 2, 12, 0.5], ['brush', 'Brush', 'mm', 1, 10, 0.5], ['stack', 'Stack', 'mm', 0, 30, 1], ['rollAll', 'Roll, all', '°', -180, 180, 1], ['twist', 'Twist', 'half turns', -4, 4, 0.25]];
+const POINT = [['z', 'Depth', 'mm', -200, 200, 1], ['roll', 'Roll', '°', -180, 360, 1]];
+
+// ---------- vectors ----------
+const rad = d => d * Math.PI / 180;
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const crs = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const nrm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const mul = (A_, B) => A_.map(r => [0, 1, 2].map(j => r[0] * B[0][j] + r[1] * B[1][j] + r[2] * B[2][j]));
+const app = (M, v) => [M[0][0] * v[0] + M[0][1] * v[1] + M[0][2] * v[2], M[1][0] * v[0] + M[1][1] * v[1] + M[1][2] * v[2], M[2][0] * v[0] + M[2][1] * v[1] + M[2][2] * v[2]];
+const tr = M => [[M[0][0], M[1][0], M[2][0]], [M[0][1], M[1][1], M[2][1]], [M[0][2], M[1][2], M[2][2]]];
+function rotation() {
+  const a = rad(G.tilt), b = rad(G.turn), c = rad(G.spin), ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b), cc = Math.cos(c), sc = Math.sin(c);
+  return mul([[cc, -sc, 0], [sc, cc, 0], [0, 0, 1]], mul([[cb, 0, sb], [0, 1, 0], [-sb, 0, cb]], [[1, 0, 0], [0, ca, -sa], [0, sa, ca]]));
+}
+
+// ---------- the centre in plan: biarcs through the anchors ----------
+// two arcs between two anchors, each leaving and arriving along its tangent
+// (strokes.js's biarc); a line where an arc would bulge under 0.02 mm
+function arcTo(p, t, q) {
+  const v = [q[0] - p[0], q[1] - p[1]], n = [-t[1], t[0]], h = v[0] * n[0] + v[1] * n[1];
+  if (Math.abs(h) < 0.02) return { t: 'L', a: p, b: q };
+  const k = (v[0] * v[0] + v[1] * v[1]) / (2 * h), c = [p[0] + n[0] * k, p[1] + n[1] * k];
+  const a0 = Math.atan2(p[1] - c[1], p[0] - c[0]), a1 = Math.atan2(q[1] - c[1], q[0] - c[0]);
+  let s = a1 - a0; const dir = Math.sign(k);   // k > 0: turning towards n
+  if (dir > 0) { while (s <= 0) s += 2 * Math.PI; } else { while (s >= 0) s -= 2 * Math.PI; }
+  return { t: 'A', c, r: Math.abs(k), a0, s };
+}
+function biarc(p0, t0, p1, t1) {
+  const v = [p1[0] - p0[0], p1[1] - p0[1]], tt = [t0[0] + t1[0], t0[1] + t1[1]];
+  const vt = v[0] * tt[0] + v[1] * tt[1], c = 2 * (1 - (t0[0] * t1[0] + t0[1] * t1[1])), vv = v[0] * v[0] + v[1] * v[1];
+  const d = c < 1e-9 ? vv / (2 * vt) : (-vt + Math.sqrt(vt * vt + c * vv)) / c;
+  const q0 = [p0[0] + t0[0] * d, p0[1] + t0[1] * d], q1 = [p1[0] - t1[0] * d, p1[1] - t1[1] * d], j = [(q0[0] + q1[0]) / 2, (q0[1] + q1[1]) / 2];
+  const u = [q1[0] - q0[0], q1[1] - q0[1]], ul = Math.hypot(u[0], u[1]) || 1;
+  return [arcTo(p0, t0, j), arcTo(j, [u[0] / ul, u[1] / ul], p1)];
+}
+const pieceLen = g => g.t === 'L' ? Math.hypot(g.b[0] - g.a[0], g.b[1] - g.a[1]) : Math.abs(g.s) * g.r;
+const pieceAt = (g, d) => g.t === 'L' ? (() => { const L = pieceLen(g) || 1; return [g.a[0] + (g.b[0] - g.a[0]) * d / L, g.a[1] + (g.b[1] - g.a[1]) * d / L]; })()
+  : (() => { const th = g.a0 + Math.sign(g.s) * d / g.r; return [g.c[0] + g.r * Math.cos(th), g.c[1] + g.r * Math.sin(th)]; })();
+// a value eased between the anchors: Catmull-Rom on the anchors' values
+function ease(vals, i, u) {
+  const p0 = vals[Math.max(0, i - 1)], p1 = vals[i], p2 = vals[Math.min(vals.length - 1, i + 1)], p3 = vals[Math.min(vals.length - 1, i + 2)];
+  const m1 = (p2 - p0) / 2, m2 = (p3 - p1) / 2, u2 = u * u, u3 = u2 * u;
+  return (2 * u3 - 3 * u2 + 1) * p1 + (u3 - 2 * u2 + u) * m1 + (-2 * u3 + 3 * u2) * p2 + (u3 - u2) * m2;
+}
+// The centre in space: [{ p: [x, y, z], roll, s }] every `step` mm in plan.
+function centre(step) {
+  const P = A.map(a => [a.x, a.y]), n = P.length, tan = [];
+  for (let i = 0; i < n; i++) {
+    const a = P[Math.max(0, i - 1)], b = P[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    tan.push([(b[0] - a[0]) / l, (b[1] - a[1]) / l]);
+  }
+  const zs = A.map(a => a.z), rs = A.map(a => a.roll), out = [];
+  let s = 0;
+  for (let i = 0; i < n - 1; i++) {
+    const ps = biarc(P[i], tan[i], P[i + 1], tan[i + 1]), L = ps.reduce((q, g) => q + pieceLen(g), 0), m = Math.max(2, Math.ceil(L / step));
+    for (let j = i ? 1 : 0; j <= m; j++) {
+      let d = L * j / m; const u = j / m;
+      const g = d <= pieceLen(ps[0]) ? ps[0] : (d -= pieceLen(ps[0]), ps[1]);
+      const xy = pieceAt(g, Math.min(d, pieceLen(g)));
+      out.push({ p: [xy[0], xy[1], ease(zs, i, u)], roll: ease(rs, i, u), s: s + L * u });
+    }
+    s += L;
+  }
+  return out;
+}
+
+// ---------- the band and its imprint ----------
+let GEO = null, QUADS = [], R = null;
+function build(step) {
+  const C = centre(step), L = C.at(-1).s || 1, n = G.lines, half = (n - 1) / 2 * G.pitch, edge = half + G.brush / 2;
+  R = rotation();
+  const f = G.lens > 0 ? 9000 / G.lens : Infinity;
+  const imp = q => { const v = app(R, q), x = v[0] * G.zoom + G.dx, y = v[1] * G.zoom + G.dy, k = f === Infinity ? 1 : f / (f - v[2] * G.zoom); return [x * k, y * k, v[2]]; };
+  const S = [], E0 = [], E1 = [], M = [], pitch = [], back = [];
+  C.forEach((c, i) => {
+    const a = C[Math.max(0, i - 1)].p, b = C[Math.min(C.length - 1, i + 1)].p;
+    const T = nrm([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
+    let N = [-T[2] * T[0], -T[2] * T[1], 1 - T[2] * T[2]];   // towards the viewer, across the curve
+    N = Math.hypot(...N) < 1e-6 ? [1, 0, 0] : nrm(N);
+    const B = crs(T, N);                                        // in the canvas plane, across the curve
+    const th = rad(c.roll + G.rollAll) + Math.PI * G.twist * c.s / L;
+    const D = [0, 1, 2].map(j => Math.cos(th) * B[j] + Math.sin(th) * N[j]), F = crs(D, T);   // the band's face: towards you at roll 0
+    const at = (v, w) => imp([0, 1, 2].map(j => c.p[j] + v * D[j] + w * F[j]));
+    const row = [];
+    for (let k = 0; k < n; k++) row.push(at(-half + k * G.pitch, (k / Math.max(1, n - 1) - 0.5) * G.stack));
+    S.push(row); E0.push(at(-edge, -G.stack / 2)); E1.push(at(edge, G.stack / 2)); M.push(imp(c.p));
+    const Dr = app(R, D);
+    pitch.push(Math.hypot(Dr[0], Dr[1]) * G.pitch * G.zoom);
+    back.push(app(R, F)[2] < 0);
+  });
+  GEO = { S, E0, E1, M, pitch, back, n: C.length, step };
+  QUADS = [];
+  for (let i = 0; i < GEO.n - 1; i++) QUADS.push({ i, z: (M[i][2] + M[i + 1][2]) / 2, poly: [E0[i], E0[i + 1], E1[i + 1], E1[i]] });
+  QUADS.sort((a, b) => a.z - b.z);                                 // far first: the painter's order
+  QUADS.forEach((q, o) => q.o = o);
+  LAYERS = null; IMP = null;
+}
+
+// ---------- the layers: a part of the band lying over another is painted after it ----------
+// Far to near, a piece takes 1 + the highest layer of the pieces under it —
+// those farther along the band than its neighbours; under nothing, layer 1.
+function pip(p, poly) {
+  let ins = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i], b = poly[j];
+    if ((a[1] > p[1]) !== (b[1] > p[1]) && p[0] < (b[0] - a[0]) * (p[1] - a[1]) / (b[1] - a[1]) + a[0]) ins = !ins;
+  }
+  return ins;
+}
+const CELL = 24, ckey = (i, j) => i * 100003 + j;
+function gridOf(qs) {
+  const grid = new Map();
+  for (const q of qs) {
+    const xs = q.poly.map(p => p[0]), ys = q.poly.map(p => p[1]);
+    for (let i = Math.floor(Math.min(...xs) / CELL); i <= Math.floor(Math.max(...xs) / CELL); i++)
+      for (let j = Math.floor(Math.min(...ys) / CELL); j <= Math.floor(Math.max(...ys) / CELL); j++) {
+        const kk = ckey(i, j); if (!grid.has(kk)) grid.set(kk, []); grid.get(kk).push(q);
+      }
+  }
+  return grid;
+}
+let LAYERS = null;
+function layers() {
+  const grid = gridOf(QUADS), near = Math.ceil((G.lines * G.pitch + 30) / GEO.step);   // along the band, its own neighbours, about its width
+  const lay = new Array(GEO.n - 1).fill(1);
+  for (const q of QUADS) {
+    const pts = [...q.poly, [(q.poly[0][0] + q.poly[2][0]) / 2, (q.poly[0][1] + q.poly[2][1]) / 2]];
+    let top = 0; const seen = new Set();
+    for (const p of pts) for (const r of grid.get(ckey(Math.floor(p[0] / CELL), Math.floor(p[1] / CELL))) || []) {
+      if (r.o >= q.o || Math.abs(r.i - q.i) <= near || seen.has(r)) continue;
+      if (pip(p, r.poly)) { seen.add(r); top = Math.max(top, lay[r.i]); }
+    }
+    lay[q.i] = top + 1;
+  }
+  LAYERS = lay;
+}
+
+// ---------- the imprint: only the visible pieces of the lines ----------
+let IMP = null;
+function imprint() {
+  if (!LAYERS) layers();
+  const grid = gridOf(QUADS), orderOf = new Array(GEO.n - 1);
+  for (const q of QUADS) orderOf[q.i] = q.o;
+  const runs = []; let red = 0, all = 0;
+  for (let k = 0; k < G.lines; k++) {
+    let run = null;
+    for (let i = 0; i < GEO.n; i++) {
+      const p = GEO.S[i][k], mine = Math.max(orderOf[i - 1] ?? -1, orderOf[i] ?? -1), layer = LAYERS[Math.min(i, GEO.n - 2)];
+      let hidden = false;
+      for (const q of grid.get(ckey(Math.floor(p[0] / CELL), Math.floor(p[1] / CELL))) || []) {
+        if (q.o <= mine || Math.abs(q.i - i) <= 1) continue;
+        if (pip(p, q.poly)) { hidden = true; break; }
+      }
+      if (hidden || (run && run.layer !== layer)) { if (run) { runs.push(run); run = null; } if (hidden) continue; }
+      if (!run) run = { k, layer, pts: [] };
+      run.pts.push(p); all++; if (GEO.pitch[i] < G.brush) red++;
+    }
+    if (run) runs.push(run);
+  }
+  const len = r => r.pts.reduce((a, p, i) => i ? a + Math.hypot(p[0] - r.pts[i - 1][0], p[1] - r.pts[i - 1][1]) : a, 0);
+  const kept = runs.filter(r => r.pts.length > 1 && len(r) >= 4);
+  const byLayer = {};
+  for (const r of kept) byLayer[r.layer] = (byLayer[r.layer] || 0) + len(r);
+  IMP = { runs: kept, total: kept.reduce((a, r) => a + len(r), 0), byLayer, red: all ? red / all : 0 };
+}
+
+// ---------- drawing ----------
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d'), stage = document.getElementById('stage');
+let k = 1, dpr = 1;
+function layout() {
+  const r = stage.getBoundingClientRect(), m = 40;
+  k = Math.min((r.width - 2 * m) / CW, (r.height - 2 * m - 20) / CH);
+  dpr = devicePixelRatio || 1;
+  cv.style.width = CW * k + 'px'; cv.style.height = CH * k + 'px';
+  cv.width = Math.round(CW * k * dpr); cv.height = Math.round(CH * k * dpr);
+  render();
+}
+const sx = p => (p[0] + CW / 2) * k, sy = p => (p[1] + CH / 2) * k;
+const REF = new Image(); REF.onload = () => render(); REF.src = '../nolan-images/IMG_9424.jpg';
+function shade(h, f) { const n = parseInt(h.slice(1), 16); return `rgb(${Math.round(((n >> 16) & 255) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; }
+const lineColour = (kk, i, look, black) => {
+  if (look === 'layers') return LAYER[Math.min(LAYER.length - 1, (LAYERS ? LAYERS[Math.min(i, GEO.n - 2)] : 1) - 1)];
+  if (look === 'geometry') return GEO.pitch[i] < G.brush ? '#D9481C' : black ? '#E9E5DD' : '#2A2826';
+  const c = PALETTE[Math.min(PALETTE.length - 1, Math.floor(kk / G.lines * PALETTE.length))];
+  return GEO.back[i] ? shade(c, 0.5) : c;
+};
+function render() {
+  if (!GEO) return;
+  const t = performance.now();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const black = G.ground === 'black', ground = black ? '#0B0B0D' : '#FCFBF8';
+  ctx.fillStyle = ground; ctx.fillRect(0, 0, CW * k, CH * k);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (G.look === 'imprint') {
+    if (!IMP) imprint();
+    ctx.lineWidth = G.brush * k;
+    for (const r of IMP.runs) {
+      ctx.strokeStyle = PALETTE[Math.min(PALETTE.length - 1, Math.floor(r.k / G.lines * PALETTE.length))];
+      ctx.beginPath(); r.pts.forEach((p, i) => i ? ctx.lineTo(sx(p), sy(p)) : ctx.moveTo(sx(p), sy(p))); ctx.stroke();
+    }
+  } else {
+    if (G.look === 'layers' && !LAYERS) layers();
+    const fill = ground;
+    for (const q of QUADS) {
+      const i = q.i;
+      if (fill) {                                                    // it covers what lies behind
+        ctx.beginPath(); q.poly.forEach((p, j) => j ? ctx.lineTo(sx(p), sy(p)) : ctx.moveTo(sx(p), sy(p))); ctx.closePath();
+        ctx.fillStyle = fill; ctx.strokeStyle = fill; ctx.lineWidth = 0.8; ctx.fill(); ctx.stroke();
+      }
+      ctx.lineWidth = G.brush * k;
+      for (let kk = 0; kk < G.lines; kk++) {
+        ctx.strokeStyle = lineColour(kk, i, G.look, black);
+        ctx.beginPath(); ctx.moveTo(sx(GEO.S[i][kk]), sy(GEO.S[i][kk])); ctx.lineTo(sx(GEO.S[i + 1][kk]), sy(GEO.S[i + 1][kk])); ctx.stroke();
+      }
+    }
+  }
+  if (G.ref && REF.complete && REF.naturalWidth) {                   // IMG_9424 as tracing paper over it
+    const s = Math.min(CW / REF.naturalWidth, CH / REF.naturalHeight), w = REF.naturalWidth * s, h = REF.naturalHeight * s;
+    ctx.globalAlpha = G.refOp / 100; ctx.drawImage(REF, (CW - w) / 2 * k, (CH - h) / 2 * k, w * k, h * k); ctx.globalAlpha = 1;
+  }
+  if (G.look === 'geometry' || G.look === 'layers') {               // the points: squares where they lie now
+    A.forEach((a, i) => {
+      const p = anchorAt(i), X = sx(p), Y = sy(p), h = i === pick ? 5 : 4;
+      ctx.fillStyle = i === pick ? '#EB7A25' : '#fff'; ctx.strokeStyle = '#24221F'; ctx.lineWidth = 1.2;
+      ctx.fillRect(X - h, Y - h, 2 * h, 2 * h); ctx.strokeRect(X - h, Y - h, 2 * h, 2 * h);
+    });
+  }
+  document.getElementById('fps').textContent = `${Math.round(performance.now() - t)} ms`;
+}
+function anchorAt(i) {
+  const a = A[i], v = app(R, [a.x, a.y, a.z]), f = G.lens > 0 ? 9000 / G.lens : Infinity, x = v[0] * G.zoom + G.dx, y = v[1] * G.zoom + G.dy, kk = f === Infinity ? 1 : f / (f - v[2] * G.zoom);
+  return [x * kk, y * kk];
+}
+
+// ---------- the panel ----------
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 0) => Number(v).toFixed(d);
+const SL = {};
+function sliders(box, list, obj) {
+  box.innerHTML = list.map(([key, label, , min, max, step]) => `<label class="sl"><span class="slh"><span>${label}</span><b data-v="${key}"></b></span><input type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
+  for (const [key] of list) SL[key] = obj;
+  box.querySelectorAll('input').forEach(inp => inp.oninput = () => { SL[inp.dataset.k]()[inp.dataset.k] = +inp.value; changed(true); });
+  box.querySelectorAll('input').forEach(inp => inp.onchange = () => changed());
+}
+sliders($('whole'), WHOLE, () => G);
+sliders($('band'), BAND, () => G);
+sliders($('point'), POINT, () => A[pick]);
+$('look').querySelectorAll('button').forEach(b => b.onclick = () => { G.look = b.dataset.look; sync(); render(); });
+$('ground').querySelectorAll('button').forEach(b => b.onclick = () => { if (b.dataset.ref) G.ref = !G.ref; else G.ground = b.dataset.g; sync(); render(); });
+$('blank').querySelectorAll('button').forEach(b => b.onclick = () => {
+  BLANK[blank] = A.map(a => ({ ...a }));                               // the one left keeps what was done to it
+  blank = b.dataset.b; A.length = 0; BLANK[blank].forEach(a => A.push({ ...a }));
+  pick = Math.min(pick, A.length - 1); changed();
+});
+$('btnFront').onclick = () => { Object.assign(G, { tilt: 0, turn: 0, spin: 0, zoom: 1, dx: 0, dy: 0 }); changed(); };
+function show(list) {
+  for (const [key, , unit] of list) {
+    const obj = SL[key](), inp = document.querySelector(`input[data-k="${key}"]`);
+    if (document.activeElement !== inp) inp.value = obj[key];
+    document.querySelector(`[data-v="${key}"]`).textContent = `${key === 'zoom' ? fmt(obj[key], 2) : Math.round(obj[key] * 100) / 100}${unit ? ' ' + unit : ''}`;
+  }
+}
+function sync() {
+  show(WHOLE); show(BAND); show(POINT);
+  $('ptName').textContent = `${pick + 1} of ${A.length}`;
+  $('look').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.look === G.look));
+  $('blank').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.b === blank));
+  $('ground').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.ref ? G.ref : b.dataset.g === G.ground));
+  if (!IMP) imprint();
+  const lays = Object.keys(IMP.byLayer).map(Number).sort((a, b) => a - b);
+  $('stats').innerHTML = `The imprint: <b>${IMP.runs.length}</b> pieces of line, <b>${fmt(IMP.total / 1000, 1)} m</b><br>`
+    + `Layers by depth: ${lays.map(l => `<i style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></i>N${l} ${fmt(IMP.byLayer[l] / 1000, 1)} m`).join(' · ')}<br>`
+    + `Closer than the brush: <span class="${IMP.red > 0.35 ? 'warn' : ''}">${fmt(IMP.red * 100)} %</span> of the visible lines<br>`
+    + `For the machine: each piece fitted into lines and arcs (≤ 0.1 mm), then Test's run — 3D only in the drawing.`;
+}
+let soon = 0, fastNow = false;
+function changed(fast) {
+  fastNow = !!fast;
+  if (soon) return;
+  soon = requestAnimationFrame(() => { soon = 0; build(fastNow ? 4 : 1.5); render(); if (!fastNow) sync(); else { show(WHOLE); show(BAND); show(POINT); } });
+}
+
+// ---------- the mouse ----------
+let drag = null;
+const evMm = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / k - CW / 2, (e.clientY - r.top) / k - CH / 2]; };
+cv.addEventListener('pointerdown', e => {
+  const p = evMm(e);
+  let hit = -1;
+  if (G.look === 'geometry' || G.look === 'layers') A.forEach((a, i) => { const q = anchorAt(i); if (Math.hypot(q[0] - p[0], q[1] - p[1]) * k < 8) hit = i; });
+  drag = { x: e.clientX, y: e.clientY, mode: hit >= 0 ? 'point' : e.shiftKey ? 'move' : e.altKey ? 'spin' : 'turn' };
+  if (hit >= 0) { pick = hit; sync(); }
+  cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
+});
+cv.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  drag.x = e.clientX; drag.y = e.clientY;
+  const wrap = v => ((v + 180) % 360 + 360) % 360 - 180;
+  if (drag.mode === 'point') {                                       // the point moves in the screen's plane, its depth along
+    const d = app(tr(R), [dx / k / G.zoom, dy / k / G.zoom, 0]);
+    A[pick].x += d[0]; A[pick].y += d[1]; A[pick].z += d[2];
+  } else if (drag.mode === 'move') { G.dx += dx / k; G.dy += dy / k; }
+  else if (drag.mode === 'spin') G.spin = wrap(G.spin + dx * 0.5);
+  else { G.turn = wrap(G.turn + dx * 0.5); G.tilt = wrap(G.tilt - dy * 0.5); }
+  changed(true);
+});
+cv.addEventListener('pointerup', () => { drag = null; cv.classList.remove('drag'); changed(); });
+cv.addEventListener('wheel', e => { e.preventDefault(); G.zoom = Math.max(0.5, Math.min(1.6, G.zoom * Math.exp(-e.deltaY * 0.001))); changed(true); clearTimeout(cv.wt); cv.wt = setTimeout(() => changed(), 200); }, { passive: false });
+
+new ResizeObserver(layout).observe(stage);
+build(1.5); sync(); layout();
+</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!doctype html>
+<!--
+  NOLAN — flat band prototype. Chat with the owner, 2026-10-04.
+
+  For Claude in VS Code. A reference, not code to paste: rebuild the idea
+  inside Rembrandt with its own modules and rules.
+
+  THE MODEL
+  A ribbon is a FLAT BAND in 3D, not a tube (not a torus / "bublik").
+  - Centre curve C(t) in 3D. Here a wavy loop; in NOLAN it comes from the
+    owner's anchors (x, y on the canvas as now, plus a depth z per anchor).
+  - At every point a frame: tangent T, a normal N (world up made
+    perpendicular to T), and B = T x N.
+  - The band direction D(t) = cos(theta) N + sin(theta) B, where
+    theta(t) = Roll + Twist * pi * t. Roll (per anchor in NOLAN) is the
+    lever: it decides where the bundle closes up and where it opens.
+  - Line k of N: P_k(t) = C(t) + v_k D(t), v_k = (k/(N-1) - 1/2) * (N-1) * 8 mm.
+    On the band the lines are parallel, exactly 8 mm apart.
+  - The canvas is the orthographic projection ("the cast"): rotate the
+    whole thing by Rotate X / Rotate Y, drop z. Where D turns towards the
+    viewer the lines close up (the bundle); where it lies flat they open.
+  - Depth z decides what lies on top: segments are drawn far to near, each
+    with a halo of the ground colour, so nearer lines cut the ones behind.
+    In NOLAN this becomes hidden-line removal + the layer order D1, D2, D3.
+  - The sign of the band's normal (T x D) after rotation tells the front
+    from the back. The back is darker in Colour — those are the places for
+    the hand glazes (zone G).
+  - Pitch on the canvas = |projection of D| * 8 mm. Red where it is under
+    4 mm: the brush would lay one line over the next. Owner's choice to
+    make there (a setting): merge the bundle (every second line lifts and
+    goes on later) or keep the overlap on purpose (a light rim at the fold).
+
+  The machine still gets flat lines and arcs: 3D lives only in drawing.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOLAN — flat band prototype</title>
+<style>
+  :root { --ink:#24221F; --mute:#6E6A64; --line:#D9D5CF; --face:#F2F0EC; --orange:#EB7A25; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px; font:14px/1.5 -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; color:var(--ink); background:var(--face); }
+  h1 { font-size:15px; font-weight:600; letter-spacing:.02em; margin:0 0 16px; }
+  .wrap { display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start; }
+  .cvbox { flex:1 1 320px; max-width:460px; }
+  canvas { width:100%; display:block; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  .ctl { flex:1 1 240px; min-width:240px; max-width:360px; }
+  .r { display:flex; align-items:center; gap:10px; margin:0 0 12px; }
+  .r label { color:var(--mute); min-width:80px; font-size:13px; }
+  .r input { flex:1; accent-color:var(--orange); }
+  .r output { font:13px ui-monospace, Menlo, monospace; min-width:52px; text-align:right; }
+  .bt { display:flex; gap:6px; margin:0 0 16px; }
+  button { font:13px inherit; padding:6px 12px; border:1px solid var(--line); background:#fff; border-radius:6px; cursor:pointer; color:var(--ink); }
+  button.on { border-color:var(--ink); font-weight:600; }
+  .st { font:13px ui-monospace, Menlo, monospace; color:var(--mute); margin:10px 0 0; }
+  p.note { color:var(--mute); font-size:13px; margin:8px 0 0; }
+</style>
+</head>
+<body>
+<h1>NOLAN — a ribbon as a flat band in 3D, projected onto 500 × 700 mm</h1>
+<div class="wrap">
+  <div class="cvbox">
+    <canvas id="c"></canvas>
+    <div class="st" id="st"></div>
+  </div>
+  <div class="ctl">
+    <div class="bt">
+      <button id="bG" class="on">Geometry</button>
+      <button id="bC">Colour</button>
+      <button id="bK">Black ground</button>
+    </div>
+    <div class="r"><label>Rotate X</label><input type="range" id="rx" min="-90" max="90" value="58"><output id="orx"></output></div>
+    <div class="r"><label>Rotate Y</label><input type="range" id="ry" min="-90" max="90" value="18"><output id="ory"></output></div>
+    <div class="r"><label>Twist</label><input type="range" id="tw" min="0" max="4" value="1"><output id="otw"></output></div>
+    <div class="r"><label>Roll</label><input type="range" id="ro" min="0" max="180" value="20"><output id="oro"></output></div>
+    <div class="r"><label>Wave</label><input type="range" id="wv" min="0" max="140" value="90"><output id="owv"></output></div>
+    <div class="r"><label>Lines</label><input type="range" id="nl" min="6" max="18" value="12"><output id="onl"></output></div>
+    <p class="note">Lines stay 8 mm apart on the band in 3D. On the canvas they close up where the band turns edge-on and open where it faces you. Red: closer than 4 mm, the brush would lay one line over the next. In Colour the back of the band is darker — that is where the glaze goes.</p>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id), cv = $('c'), ctx = cv.getContext('2d');
+let mode = 'geo', black = false;
+const PAL = ['#F4EFEA','#F59A3A','#F7B26A','#F26B5B','#F4EFEA','#7FD3F2','#4DA8E8','#2E6FD1','#8E4FE0','#D44FD0','#E6DED6','#F4EFEA'];
+function shade(h, f) {
+  const n = parseInt(h.slice(1), 16);
+  return `rgb(${Math.round(((n >> 16) & 255) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`;
+}
+const sub = (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const nrm = a => { const l = Math.hypot(...a) || 1; return a.map(v => v / l); };
+
+function size() {
+  const w = cv.clientWidth, dpr = window.devicePixelRatio || 1;
+  cv.style.height = (w * 1.4) + 'px';
+  cv.width = Math.round(w * dpr); cv.height = Math.round(w * 1.4 * dpr);
+  ctx.setTransform(cv.width / 500, 0, 0, cv.width / 500, 0, 0);   // 1 unit = 1 mm
+}
+
+function draw() {
+  const RX = +$('rx').value * Math.PI / 180, RY = +$('ry').value * Math.PI / 180;
+  const TW = +$('tw').value, RO = +$('ro').value * Math.PI / 180, WV = +$('wv').value, N = +$('nl').value;
+  $('orx').value = $('rx').value + '°'; $('ory').value = $('ry').value + '°';
+  $('otw').value = TW + '×½'; $('oro').value = $('ro').value + '°';
+  $('owv').value = WV + ' mm'; $('onl').value = N;
+
+  const Wd = (N - 1) * 8, M = 420, R = 150;
+  // centre curve: a wavy loop (in NOLAN: from the owner's anchors)
+  const C = t => [R * (1 + 0.22 * Math.cos(2 * t)) * Math.cos(t),
+                  R * (1 + 0.22 * Math.cos(2 * t)) * Math.sin(t) * 0.9,
+                  WV * Math.sin(2 * t)];
+  const cx = Math.cos(RX), sx = Math.sin(RX), cy = Math.cos(RY), sy = Math.sin(RY);
+  const rot = p => { const x1 = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy;
+                     return [x1, p[1] * cx - z1 * sx, p[1] * sx + z1 * cx]; };
+
+  // frame along the curve
+  const F = [];
+  for (let i = 0; i <= M; i++) {
+    const t = 2 * Math.PI * i / M, c = C(t);
+    const T = nrm(sub(C(t + 1e-3), C(t - 1e-3))), U = [0, 0, 1];
+    const Nn = nrm(sub(U, T.map(v => v * dot(U, T)))), B = cross(T, Nn);
+    const th = RO + TW * Math.PI * i / M;
+    const D = [0, 1, 2].map(j => Math.cos(th) * Nn[j] + Math.sin(th) * B[j]);
+    const Dr = rot(D), Sn = rot(cross(T, D));
+    F.push({ c, D, pitch: Math.hypot(Dr[0], Dr[1]) * 8, face: Sn[2] });
+  }
+
+  // lines as short segments with depth
+  const segs = [];
+  let pmin = 99, pmax = 0, merge = 0;
+  for (let k = 0; k < N; k++) {
+    const v = (k / (N - 1) - 0.5) * Wd;
+    for (let i = 0; i < M; i++) {
+      const a = F[i], b = F[i + 1];
+      const p0 = rot(a.c.map((q, j) => q + v * a.D[j])), p1 = rot(b.c.map((q, j) => q + v * b.D[j]));
+      segs.push({ x0: 250 + p0[0], y0: 350 - p0[1], x1: 250 + p1[0], y1: 350 - p1[1],
+                  z: (p0[2] + p1[2]) / 2, k, pitch: a.pitch, face: a.face });
+    }
+  }
+  F.forEach(f => { pmin = Math.min(pmin, f.pitch); pmax = Math.max(pmax, f.pitch); if (f.pitch < 4) merge++; });
+  segs.sort((a, b) => a.z - b.z);   // far first, near last
+
+  const col = mode === 'col', bg = col && black ? '#000000' : '#FFFFFF';
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 500, 700); ctx.lineCap = 'round';
+  for (const s of segs) {
+    ctx.strokeStyle = bg; ctx.lineWidth = 8.5;            // halo: hides what lies behind
+    ctx.beginPath(); ctx.moveTo(s.x0, s.y0); ctx.lineTo(s.x1, s.y1); ctx.stroke();
+    let c;
+    if (col) { const base = PAL[Math.min(PAL.length - 1, Math.floor(s.k * PAL.length / N))]; c = shade(base, s.face < 0 ? 0.5 : 1); }
+    else c = s.pitch < 4 ? '#D85A30' : '#3A3835';
+    ctx.strokeStyle = c; ctx.lineWidth = 5.5;              // the 8 mm line, drawn narrower so grooves show
+    ctx.beginPath(); ctx.moveTo(s.x0, s.y0); ctx.lineTo(s.x1, s.y1); ctx.stroke();
+  }
+  $('st').textContent = `${N} lines · pitch on canvas ${pmin.toFixed(1)}–${pmax.toFixed(1)} mm · closer than 4 mm on ${Math.round(100 * merge / F.length)}% of the band`;
+}
+
+['rx', 'ry', 'tw', 'ro', 'wv', 'nl'].forEach(id => $(id).addEventListener('input', draw));
+$('bG').onclick = () => { mode = 'geo'; $('bG').classList.add('on'); $('bC').classList.remove('on'); draw(); };
+$('bC').onclick = () => { mode = 'col'; $('bC').classList.add('on'); $('bG').classList.remove('on'); draw(); };
+$('bK').onclick = () => { black = !black; $('bK').classList.toggle('on', black); if (mode === 'geo') $('bC').onclick(); else draw(); };
+window.addEventListener('resize', () => { size(); draw(); });
+size(); draw();
+</script>
+</body>
+</html>
