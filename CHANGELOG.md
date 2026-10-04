@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the grid every 100 mm, as on Calibration** (the owner,
+  2026-10-04: "I see the image area, but there is no scale — add X 800 /
+  Y 500, please"). Machine mm: X on the left, Y along the bottom, faint on
+  the table, under the canvas; the board a little wider on the left for the
+  names. Tried in the browser.
+
 - **NOLAN: Pass through — nothing hides** (the owner, 2026-10-04,
   `machine/2026-10-04 nolan on paper.jpg`: "maybe let it run straight
   through? At the bottom, you see, a break again. Let's add a key after
