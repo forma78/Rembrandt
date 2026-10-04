@@ -515,7 +515,7 @@ html.night .tool:hover{background:#303236}
 .nolan .stage.drag #cv{cursor:grabbing}
 .nolan .looks{display:flex;margin:10px 0 0}
 .nolan .looks .tog{flex:1}
-.nolan .looks .tog.cutkey{flex:0 0 52px}   /* Auto: the cuts as suggested */
+.nolan .looks .tog.cutkey{flex:0 0 56px}   /* Auto: the cuts as suggested; Uncut: none */
 .nolan .sec h4{margin:16px 0 2px}
 .nolan .grid4.keys{margin:10px 0 0}
 .nolan .read .lay{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:0}
