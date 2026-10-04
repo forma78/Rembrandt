@@ -114,7 +114,10 @@ The panel, top to bottom:
    **Uncut**: no cuts, the ribbon one layer, one pass — every row whole,
    broken only where another part lies over it (the owner, 2026-10-04:
    "what if we add an option Uncut and do not cut at all?"; the suggested
-   cuts lay on the pinches, and every row ended there).
+   cuts lay on the pinches, and every row ended there); **Pass through**,
+   on or off: nothing hides, every row runs whole over and under the other
+   parts, as through glass (the owner, the same night: "maybe let it run
+   straight through? At the bottom, you see, a break again").
    **INK** OFF · switch · ON: OFF the Paint run (§5.2), ON the Watercolour
    run (§5.1).
 4. **Geometry · Colour · Layers · Imprint**, **White · Black**: the rows dark,

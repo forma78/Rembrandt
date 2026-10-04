@@ -331,9 +331,11 @@ export function foldsOf(band, runs) {
 // "on the right the bundles did not come together into lines as in the
 // drawing — the main flaw"). A visible run breaks where its layer changes
 // (layers null: one). o.width: the row's width — closer than that on the
-// canvas, the rows lie on one another ("red"). covers: pairs of the piece
-// hiding a point and the point, along the band; vis: the rows in sight at
-// each place.
+// canvas, the rows lie on one another ("red"). o.through: nothing hides,
+// every row runs whole over and under the other parts (Pass through, the
+// owner, 2026-10-04: "maybe let it run straight through? At the bottom, you
+// see, a break again"). covers: pairs of the piece hiding a point and the
+// point, along the band; vis: the rows in sight at each place.
 const NECK = 0.4;   // est.: the pinches of 18:11 narrowed to 0.09–0.12 of the band's width on the canvas, of 18:37 to 0.25–0.34
 export function imprintOf(band, layers, o) {
   const grid = gridOf(band.quads), order = new Array(band.n - 1);
@@ -347,7 +349,7 @@ export function imprintOf(band, layers, o) {
     for (let i = 0; i < band.n; i++) {
       const p = band.S[i][k], mine = Math.max(order[i - 1] ?? -1, order[i] ?? -1), layer = layers ? layers[Math.min(i, band.n - 2)] : 1;
       let hidden = false;
-      for (const q of near(grid, p)) {
+      if (!o.through) for (const q of near(grid, p)) {
         if (q.o <= mine || Math.abs(q.i - i) <= 1) continue;
         if (pip(p, q.poly) && !pinch(q.i, i)) { hidden = true; covers.push(q.i, i); break; }
       }

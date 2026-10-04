@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: Pass through — nothing hides** (the owner, 2026-10-04,
+  `machine/2026-10-04 nolan on paper.jpg`: "maybe let it run straight
+  through? At the bottom, you see, a break again. Let's add a key after
+  Uncut, Pass through"). A
+  latch after Uncut: every row whole, over and under the other parts of
+  the ribbon, as through glass; the cuts — Auto, Uncut or the owner's — as
+  they are. 22:17 with it: 655 steps of 827. Kept with the ribbon. Tried in
+  the browser. A test.
+
 - **NOLAN: the image area on the board, as on Calibration** (the owner,
   2026-10-04, `machine/2026-10-04 nolan on paper.jpg`: "at the bottom there
   is no edge of the canvas; I do not see the image area. But it is on
