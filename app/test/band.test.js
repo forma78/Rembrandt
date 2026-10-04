@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen, ELBOW_HOVER } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -328,4 +328,27 @@ test('a twist hides none of its own rows: each row runs through it in one piece'
   // another part lying over still hides: the ribbon crossing itself
   const cross = [{ x: -150, y: 0, z: 0, roll: 0 }, { x: 150, y: 0, z: 0, roll: 0 }, { x: 150, y: 150, z: 10, roll: 0 }, { x: 0, y: 150, z: 20, roll: 0 }, { x: 0, y: -150, z: 40, roll: 0 }];
   assert.ok(layeredOf(bandOf(cross, { ...o, twist: 0, tilt: 0, swing: 0 }), { width: 4, cuts: [] }).imp.runs.length > 17, 'the crossing parts the rows under it');
+});
+
+// The owner, 2026-10-04: "I want to see on the screen more exactly what I paint
+// with the brush" — the trace of 18:11 with a ruler: the line 4 mm, darkest
+// fresh from the cup, wet rows nearly touching run into one wash.
+test('the wash on the paper: fresh after a dip and paler along it; rows under WASH_MERGE apart run together', () => {
+  const cup = { x: 390.18, y: 0.1, est: {}, diameter: 50, height: 20, rim: 30, dip: -3, dwell: 1 };
+  const washFor = (pitch, here) => {
+    const b = bandOf(line(), { rows: 5, pitch, width: 4, stack: 0, twist: 0, squeeze: 0 }), L = layeredOf(b, { width: 4, cuts: [] });
+    const { passes } = bandPasses(L.imp.runs, { ink: true, tail: 3 });
+    const run = plotRun({ ...DEFAULTS, ink: true, snake: true, pause: false, lift: false, tail: 3, here, cup, noDipUnder: NO_DIP }, passes);
+    return washOf(run.preview, b, L.imp.runs, 4);
+  };
+  const near = washFor(4 + WASH_MERGE / 2, { x: 400, y: 280 }), apart = washFor(8, { x: 400, y: 280 });
+  assert.equal(near.length, 5);
+  for (const st of near) {
+    assert.ok(st.dip, 'a 300 mm row: a dip before it');
+    assert.ok(close(st.pts[0].load, 1), 'fresh from the cup');
+    assert.ok(close(st.pts.at(-1).load, Math.exp(-300 / WASH_FADE), 0.03), `paler at its end: ${st.pts.at(-1).load.toFixed(2)}`);
+    assert.ok(close(st.pts[st.pts.length >> 1].w, 4 + WASH_MERGE / 2, 0.01), `merged: ${st.pts[st.pts.length >> 1].w} mm`);
+  }
+  for (const st of apart) assert.ok(close(st.pts[st.pts.length >> 1].w, 4, 0.01), 'apart: the brush\'s 4 mm');
+  assert.ok(washFor(8, null).every(st => !st.dip && st.pts.every(t => t.load === 1)), 'no canvas placed, no dips known: the wash as fresh');
 });

@@ -5,6 +5,25 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: Imprint with INK ON — the watercolour as it lies on the paper**
+  (the owner, 2026-10-04: "I would like to see on the screen a more exact
+  drawing of what I paint with the brush on paper and canvas"; the photos
+  with a ruler, `machine/photo_2026-10-04 21.43.54 … 21.44.15.jpeg`: "the
+  line, as you see, is 4 mm"). The trace of 18:11 beside its plan at 4 mm:
+  dark blots and hooks where the brush landed fresh from the cup; every
+  stroke paler along its dip run; the left loop one wash, where the white
+  between two wet rows was under 1 mm (the middle band, 1–2 mm, kept it);
+  the pinches darkest. Now `washOf` (`band.js`) gives each stroke of the
+  plan its strength — 1 after a dip, fading over `WASH_FADE` 350 mm (est.)
+  — and its width, the row's, widened to its neighbour where the white is
+  under `WASH_MERGE` 1 mm (est.); the board multiplies the strokes, as the
+  paper does, in the cup's violet (est., by eye), a blot where the brush
+  lands after a dip. With no canvas placed, no dips are known: the wash as
+  fresh. `plotRun` marks the stroke after a dip on its preview; the blocks
+  as before. Row width stays the owner's slider ("I can do it myself with
+  the slider"): every run of the day had 1.5 mm. Tried in the browser on
+  18:11 and 22:17 (the owner: "even the paint is like mine"). A test.
+
 - **NOLAN: Uncut — no cuts, the ribbon one layer** (the owner, 2026-10-04:
   "what if we add an option Uncut and do not cut at all?"). A key after
   Auto in the N row: every row whole from end to end, broken only where
