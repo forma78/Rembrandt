@@ -37,6 +37,15 @@
 
   <aside class="panel">
     <section class="sec">
+      <h3>Home <span class="hint">bottom left, both stops</span></h3>
+      <p class="read">Zero is at the walls; the reserve up to each stop is minus. After power-on: X down to its stop, then Y left to its stop, both on level 1; stop at the first sound. Then set home: X becomes −9.45 mm, Y −8.3 mm.</p>
+      <div class="row home-row">
+        <button class="btn" id="btnHome">Set home…</button>
+        <button class="btn primary" id="btnHomeYes" hidden>Both at the stops — set</button>
+      </div>
+    </section>
+
+    <section class="sec">
       <h3>Jog <span class="hint">10 mm/s per level · Esc = STOP</span></h3>
       <div class="axis" id="axX">
         <div class="axis-head">
@@ -86,15 +95,6 @@
         <button class="btn danger" id="btnKill" title="Stop both axes at once, no braking">HARD STOP</button>
       </div>
       <p class="read">X and Y: the slider stays where you put it, like a throttle. STOP and HARD STOP stop X and Y.</p>
-    </section>
-
-    <section class="sec">
-      <h3>Home <span class="hint">bottom left, both stops</span></h3>
-      <p class="read">Zero is at the walls; the reserve up to each stop is minus. After power-on: X down to its stop, then Y left to its stop, both on level 1; stop at the first sound. Then set home: X becomes −9.45 mm, Y −8.3 mm.</p>
-      <div class="row home-row">
-        <button class="btn" id="btnHome">Set home…</button>
-        <button class="btn primary" id="btnHomeYes" hidden>Both at the stops — set</button>
-      </div>
     </section>
 
     <section class="sec">
