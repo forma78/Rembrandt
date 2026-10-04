@@ -186,9 +186,10 @@ fitted into biarcs within 0.1 mm, an arc flatter than 2 m laid as its chord
 — a centre kilometres away is no command for the board. **A sliver is never
 sent**: a tail's cut can leave a piece a thousandth of a mm long, and the
 firmware takes an arc ending where it starts for a full circle (`path.h`,
-`arc`); NOLAN's run leaves out pieces shorter than 0.05 mm (`plotRun`'s
-`minPiece`). Test's run is as it was until the owner says: its journal
-holds one such arc, the D1 of 2026-10-03 14:49 pressed into the bottom wall.
+`arc`); the run leaves out pieces shorter than 0.05 mm (`plotRun`,
+`MIN_PIECE`). Test's run too, by the owner's word (2026-10-04: "of course, no need
+to send such noise to the board"): its journal held one such arc, the D1 of
+2026-10-03 14:49 pressed into the bottom wall.
 
 - **Bundles, not a grid** (the owner, 2026-10-03: "bundles, in
   principle"). Each ribbon's lines run along its own centre path, so the

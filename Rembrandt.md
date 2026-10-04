@@ -432,7 +432,7 @@ this section disagree, this section wins: the owner corrected the sketch on
   carriage reaches each piece (`W 2`). **Lift at the turns**, a tick: off,
   a snake's turns are painted too. (The same evening it was the wrist,
   tilting to ±45° with the carriage stepping aside — "(a) + (b)" — until the
-  new arm made it the broom again.) Up to 250 mm/s. No pause for paint
+  new arm made it the broom again.) Up to 250 mm/s. **No slivers to the board** (the owner, 2026-10-04: "of course, no need to send such noise to the board"): a piece under 0.05 mm, left by a tail's cut, is not sent — the firmware takes an arc ending where it starts for a full circle. No pause for paint
   every few rows ("let's not overthink it"); between D's passes the carriage
   stays where it is — "a break, not the end of the working day" — and goes
   home only at 100 %. Turn is hidden on C and D.

@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **No slivers to the board, for Test too** (the owner, 2026-10-04: "all
+  correct! Of course, no need to send such noise to the board"). `plotRun`
+  leaves out every piece under 0.05 mm (`MIN_PIECE`), a W before one riding
+  on the next: the firmware takes an arc ending where it starts for a full
+  circle. Test's plans change only where such pieces were — of six compared,
+  the D1 with INK ON (28 arcs ending where they start) and the C with Wave
+  and Bow (24 under 0.05 mm); the other four byte for byte as before. A test.
 - **NOLAN: the one ribbon in 3D, on the tab** (the owner, 2026-10-04: "yes,
   that is it — it can go into NOLAN"; "the words from TEST: ROWS first, ROW
   TO ROW and so on; and TAIL"). `src/band.js` and its tests: the ribbon

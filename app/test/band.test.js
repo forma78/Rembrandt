@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layersOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, DIP_RUN, MIN_PIECE } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layersOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, lengthOf, DIP_RUN } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, roll: 0 };
@@ -92,7 +92,7 @@ test("the owner's ribbon runs: layers in order, a pause between, no gaps in the 
   const { passes, rows } = bandPasses(imp.runs, { tail: 70 });
   assert.deepEqual(passes.map(p => p.key), ['N1', 'N2']);
   assert.match(passes[1].why, /N2.*over N1.*dry/);
-  const run = plotRun({ ...DEFAULTS, snake: true, pause: false, lift: false, tail: 70, speed: 150, travel: 180, minPiece: MIN_PIECE }, passes);
+  const run = plotRun({ ...DEFAULTS, snake: true, pause: false, lift: false, tail: 70, speed: 150, travel: 180 }, passes);
   // no arc ends where it starts: the board would run it as a full circle
   let pos = null, circles = 0;
   for (const b2 of run.blocks) if (b2.kind === 'move') for (const c of b2.cmds) {

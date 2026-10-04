@@ -13,7 +13,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layersOf, imprintOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, MIN_PIECE, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layersOf, imprintOf, bandPasses, rotation, transpose, apply, projector, lengthOf, DIP_RUN, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
@@ -80,7 +80,7 @@ function plan() {
   if (!b) { PLAN = EMPTY; return PLAN; }
   const lay = layersOf(b), imp = imprintOf(b, lay, { width: S.width });
   const { passes, rows } = bandPasses(imp.runs, { ink: S.ink, tail: S.tail });
-  const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), minPiece: MIN_PIECE };
+  const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup() };
   PLAN = { ...plotRun(o, passes), rows, passes: passes.map(p => p.key), ink: S.ink, imp, lay, opts: o };
   return PLAN;
 }
