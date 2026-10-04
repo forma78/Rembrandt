@@ -300,3 +300,16 @@ test('a fold: where the ribbon turns in its own plane tighter than half its widt
   assert.equal(layeredOf(bandOf(gentle, o), { width: 5 }).folds.length, 0);
   assert.deepEqual(foldsOf(b, []), [], 'nothing painted: nothing to warn of');
 });
+
+// The owner, 2026-10-04, the trace of 18:11 (machine/photo_2026-10-04
+// 21.43.54.jpeg): "on the right the bundles did not come together into lines
+// as in the drawing — the main flaw". The band hid its own rows at a pinch.
+test('a twist hides none of its own rows: each row runs through it in one piece', () => {
+  const o = { rows: 17, pitch: 8, width: 4, stack: 0, twist: 2, squeeze: 0, tilt: 20, swing: 10 };
+  const b = bandOf(line(), o), runs = layeredOf(b, { width: 4, cuts: [] }).imp.runs;
+  assert.equal(runs.length, 17, `${runs.length} pieces: broken at the twists`);   // 43 when the band hid its own rows
+  for (const r of runs) assert.ok(r.pts.length > 0.95 * b.n, `row ${r.k + 1}: ${r.pts.length} of ${b.n} points`);
+  // another part lying over still hides: the ribbon crossing itself
+  const cross = [{ x: -150, y: 0, z: 0, roll: 0 }, { x: 150, y: 0, z: 0, roll: 0 }, { x: 150, y: 150, z: 10, roll: 0 }, { x: 0, y: 150, z: 20, roll: 0 }, { x: 0, y: -150, z: 40, roll: 0 }];
+  assert.ok(layeredOf(bandOf(cross, { ...o, twist: 0, tilt: 0, swing: 0 }), { width: 4, cuts: [] }).imp.runs.length > 17, 'the crossing parts the rows under it');
+});
