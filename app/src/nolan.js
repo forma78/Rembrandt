@@ -349,12 +349,15 @@ $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
 document.querySelectorAll('[data-look]').forEach(b2 => b2.onclick = () => { S.look = b2.dataset.look; showPanel(); save(); kick(); });
 document.querySelectorAll('[data-ground]').forEach(b2 => b2.onclick = () => { S.ground = b2.dataset.ground; showPanel(); save(); kick(); });
+// Each slider looked for in its own box: Roll is the band's and a point's
+// both (the owner, 2026-10-04: "the ROLL slider does not move" — the band's
+// was set back to the point's on every step where a slider takes no focus).
 function showSliders() {
-  for (const [list, objOf] of [[BAND_SL, () => S], [VIEW_SL, () => S], [POINT_SL, () => S.anchors[pick]], [RUN_SL, () => S]]) for (const [key, , unit, , , , , sign = 1] of list) {
-    const obj = objOf(), inp = document.querySelector(`input[data-k="${key}"]`), v = obj[key] * sign;
+  for (const [list, box, objOf] of [[BAND_SL, '#slBand', () => S], [VIEW_SL, '#slView', () => S], [POINT_SL, '#slPoint', () => S.anchors[pick]], [RUN_SL, '#slRun', () => S]]) for (const [key, , unit, , , , , sign = 1] of list) {
+    const obj = objOf(), inp = $(`${box} input[data-k="${key}"]`), v = obj[key] * sign;
     if (document.activeElement !== inp) inp.value = v;
     const shown = key === 'rows' ? `${S.rows} · ${fmt((S.rows - 1) * S.pitch + S.width, 0)} mm` : key === 'zoom' ? fmt(v, 2) : ['dx', 'dy', 'roll', 'twist'].includes(key) ? signed(Math.round(v * 100) / 100) : Math.round(v * 100) / 100;
-    document.querySelector(`[data-v="${key}"]`).textContent = `${shown}${unit && key !== 'rows' ? ' ' + unit : ''}`;
+    $(`${box} [data-v="${key}"]`).textContent = `${shown}${unit && key !== 'rows' ? ' ' + unit : ''}`;
   }
   $('#ptHead').textContent = `Point ${pick + 1} of ${S.anchors.length}`;
 }
