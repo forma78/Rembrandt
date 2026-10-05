@@ -431,11 +431,14 @@ export const lengthOf = pts => pts.reduce((a, p, i) => i ? a + Math.hypot(p[0] -
 // is a perfect circle, run on round it 50 mm further, past its 360°"): every
 // ring started at its seam with the thin landing and ended there with the
 // lift's hook, the two apart — an onion dome on top of each ring. A row that
-// runs whole round a loop now goes on LOOP_LAP mm over its own start: the
-// landing painted over at full pressure, the lift on wet paint. In place on
-// runs (canvas mm, layeredOf's); a row broken by a cut or another part is no
-// loop and stays as it is. → mm added.
-export const LOOP_LAP = 50;   // mm, the owner's
+// runs whole round a loop now goes on LOOP_LAP mm over its own start, and the
+// brush lifts off over all of it (r.lap: the run's last tail, bandPasses →
+// strokes.js), not over Tail: the landing painted over, the lift a long fade
+// on wet paint, no hook (the owner, the same day: "a smooth one? then 75 mm,
+// the lap and the lift-off"; 50 at first). In place on runs (canvas mm,
+// layeredOf's); a row broken by a cut or another part is no loop and stays
+// as it is. → mm added.
+export const LOOP_LAP = 75;   // mm, the owner's
 export function lapLoops(band, runs, lap = LOOP_LAP) {
   if (!band?.closed || !(lap > 0)) return 0;
   let added = 0;
@@ -448,7 +451,7 @@ export function lapLoops(band, runs, lap = LOOP_LAP) {
       if (d + step > lap) { const t = (lap - d) / step; P.push([q[0] + (p[0] - q[0]) * t, q[1] + (p[1] - q[1]) * t]); d = lap; break; }
       P.push([p[0], p[1]]); d += step;
     }
-    added += d;
+    r.lap = d; added += d;
   }
   return added;
 }
@@ -636,13 +639,14 @@ export function bandPasses(runs, o) {
   for (const L of [...new Set(sorted.map(r => r.layer))]) {
     const ps = [];
     for (const r of sorted.filter(q => q.layer === L)) {
-      for (const part of o.ink ? dipParts(r.pts, r.k, o.dipRun ?? DIP_RUN, Math.max(o.tail || 0, DIP_LAP)) : [r.pts]) {
+      const parts = o.ink ? dipParts(r.pts, r.k, o.dipRun ?? DIP_RUN, Math.max(o.tail || 0, DIP_LAP)) : [r.pts];
+      parts.forEach((part, pi) => {
         const pieces = fitPieces(part);
-        if (!pieces.length) continue;
+        if (!pieces.length) return;
         rows.push({ layer: L, name: `N${L}`, row: r.k + 1, f: r.f || 0 });
-        const row = rows.length;
-        ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
-      }
+        const row = rows.length, out = pi === parts.length - 1 && r.lap ? { tailOut: r.lap } : {};   // a loop's lap: the lift-off over all of it (lapLoops)
+        ps.push(pieces.map(g => ({ ...g, tilt: 0, row, ...out })));
+      });
     }
     if (!ps.length) continue;
     const under = passes.at(-1)?.key;
