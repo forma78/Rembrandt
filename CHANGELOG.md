@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Rembrandt.md §0: o'clock** — a place on a ring as on a clock face over
+  the canvas: 12 at the top, 3 right, 6 bottom, 9 left by the cup; the
+  Circle's seam at 12, its rows clockwise (the owner, 2026-10-05: "the
+  clock face — I guessed it; write about it on GitHub").
+
 - **NOLAN: a ring's lap is half its own length** (the owner, 2026-10-05,
   `nolan-v2/IMAGE 2026-10-05 17:48:32.jpg`, `17:48:35.jpg`, after the run
   of 17:21, 8 rings, 25 min: "maybe lap each circle by 50 %, not just

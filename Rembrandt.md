@@ -51,6 +51,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Swing mark** | The hook the wrist leaves where the wet brush lifts or lands (RUBENS's word, `Rubens_v2.md` §4.5). In Rembrandt an ornament, kept on purpose. |
 | **Film · Brush keeps · Nozzle · Max drop** | The RUBENS paint fields, same meaning (`src/cnc.js`). |
 | **est.** | Marks any number not yet measured in Adjustments, in the UI and in the code. |
+| **o'clock** | A place on a ring or a loop, read as a clock face over the canvas as it lies on the machine: 12 at the top, towards the top wall (machine +X); 3 to the right (+Y); 6 at the bottom, by home; 9 to the left, the cup's side. A Circle's seam — where every row lands and its lap begins — is at 12 o'clock, and its rows run clockwise (the owner, 2026-10-05: "the clock face — I guessed it"). |
 
 ---
 
