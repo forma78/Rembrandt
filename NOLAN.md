@@ -23,8 +23,8 @@ written "Rembrandt.md §".
 
 - **`IMG_9424.jpg` is what NOLAN is made for**: a glowing render of
   ribbons on black, each ribbon a bundle of fine parallel strokes. Not the
-  owner's picture; it went into git while the repo was private, and stays
-  now that the owner keeps it public (2026-10-04). A copy is in
+  owner's picture; it went into git while the repo was private, and stayed
+  while it was public (2026-10-04 … 05); private again since. A copy is in
   `references/`.
 - **`IMG_9424-N1_N2_N3_paths.webp`**: the owner's three paths over it,
   drawn by finger, every square or triangle an anchor. Three ribbons for

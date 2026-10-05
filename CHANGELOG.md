@@ -3,6 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **Rembrandt private on GitHub again** (the owner, 2026-10-05: "close it,
+  please, make it private"): the references hold other artists' works.
+  README's rule says so.
+
 ## v0.4 — 2026-10-05
 
 - **v0.4 after the name** (the owner, 2026-10-05: "publish the update on
