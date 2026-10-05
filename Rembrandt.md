@@ -191,7 +191,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **Create is hidden, NOLAN takes its place** (the owner, 2026-10-04: "I
   would hide Create for now. It just isn't working — a pile-up of
   colours"). The version, **v0.2**, moves next to the name; **v0.3**
-  since 2026-10-05 (the owner: "REMBRANDT v0.3 already :)").
+  since 2026-10-05 (the owner: "REMBRANDT v0.3 already :)"); **v0.4** the
+  same evening (the owner: "publish the update on GitHub and make it
+  v0.4 :)").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -396,7 +398,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v0.3**, then the tabs **NOLAN · Job · Test · Ink · Calibration ·
+  **v0.4**, then the tabs **NOLAN · Job · Test · Ink · Calibration ·
   Library** (Create hidden since 2026-10-04, Adjustments since
   2026-10-05, §1), and on
   Create the green **Open Job**. The second
