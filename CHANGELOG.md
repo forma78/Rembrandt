@@ -5,6 +5,26 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **New Yuri: the letters as rings — `rings.js` and the owner's set in
+  `app/glyphs.json`** (the owner, 2026-10-05: "maybe make a New Yuri tab,
+  so as not to mix all this into NOLAN? We have no 3D there, half the
+  sliders are not needed"). A letter is strokes, a stroke a skeleton of
+  lines and arcs; a circle of radius R lies every STEP along it, RAMP
+  spreading the spacing from dense to sparse — RINGS, each circle its own
+  loop from 12 o'clock clockwise, or COIL, one line a stroke, a whole turn
+  from centre to centre (the logic of `type_rings_mode/rings.py`, Claude in
+  chat, ported). A circle on both ends of a stroke and on every corner of
+  its skeleton, the spacing even between them: the V's bottom fell between
+  two circles and stood 2.6 mm off the baseline (*Claude's choice*). Dots,
+  as the owner's ! and %: a sphere — circles every STEP down, cut to the
+  first. The gap between letters is between their outlines, 0 touching,
+  below 0 overlapping (the first task). The skeletons are the owner's set,
+  `NEW-YURI/*.png` — A–Z, 0–9, % and ! — fitted by Claude to the pictures'
+  silhouettes, 96 … 99.7 % overlap a letter (the owner: "transfer them
+  yourself then"; `type_rings_mode/glyphs_v3.json` was v2 again); the A
+  of `ABCD.png` the canon ("the only correct A"). The tab itself is next.
+  Seen in the browser on a page of its own; no machine.
+
 - **Ink: 🙋‍♂️ and 🙇‍♂️ on The dip's keys** (the owner, 2026-10-05: "two
   emoji icons here"): 🙋‍♂️ Over the rim ← elbow — the arm up; 🙇‍♂️ In the
   cup ← elbow — the bow down into the paint.

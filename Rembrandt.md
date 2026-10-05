@@ -209,6 +209,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   they must depend on the board's width and height"), BL first, and the
   canvas at the Test tab's Here, 124 mm past the bottom wall. On NOLAN
   this replaces the canvas from the cup of 2026-10-04.
+- **New Yuri, a tab of its own for letters** (the owner, 2026-10-05:
+  "maybe make a New Yuri tab, so as not to mix all this into NOLAN? We have
+  no 3D there, half the sliders are not needed"). Letters drawn as rings of
+  circles along a skeleton, RINGS or COIL (`app/src/rings.js`, after
+  `type_rings_mode/rings.py` of Claude in chat). The skeletons are the
+  owner's set, `NEW-YURI/*.png`, fitted by Claude (`app/glyphs.json`); the
+  A of `ABCD.png` is the canon ("the only correct A"). The page is copied
+  from NOLAN; the run, TEST, the lap, the LCD and the cup stay in the shared
+  modules and are imported, so a fix reaches both tabs (the owner agreed).
 
 ---
 
