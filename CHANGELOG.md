@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a ring's lap is half its own length** (the owner, 2026-10-05,
+  `nolan-v2/IMAGE 2026-10-05 17:48:32.jpg`, `17:48:35.jpg`, after the run
+  of 17:21, 8 rings, 25 min: "maybe lap each circle by 50 %, not just
+  75 mm — a wide ring uses its paint otherwise than the smallest, so an
+  equal lap of some mm is not fair"; "the lap is needed"). `LOOP_SHARE`
+  0.5 in place of `LOOP_LAP` 75 mm: the 12 rings of a figure of 17:21 lap
+  51 … 293 mm, the brush lifting off over all of it as before. The plan of
+  17:21 so: 120 pieces, 120 dips — the outer rings over 720 mm now split
+  for a second dip — 49.9 m, ≈ 29 min. The little tail over the seam at
+  12 o'clock, the brush landing at speed, stays: the press is not
+  calibrated yet, and on a dry run without the watercolour it does not
+  matter (the owner). Tried in the browser; not run on the machine from here.
+
 - **NOLAN: the rings painted whole again — the fit never spans a point back
   to itself** (the owner, 2026-10-05, `nolan-v2/Screenshot 2026-10-05
   issue.png`: "something is wrong — it does not draw the circle, only the
