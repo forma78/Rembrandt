@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen, ELBOW_HOVER } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, cornerDots, lengthOf, squeezed, strokeAnchors, BRUSH_FIT, circleAnchors, CIRCLE_N, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE, DOT_MM, TEST_MARGIN } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, cornerDots, lengthOf, squeezed, strokeAnchors, BRUSH_FIT, circleAnchors, CIRCLE_N, lapLoops, LOOP_LAP, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE, DOT_MM, TEST_MARGIN } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -428,4 +428,23 @@ test('Several figures: N1 of every figure before N2, figure by figure within a l
   const { passes, rows } = bandPasses(runs.reverse(), { ink: false, tail: 3 });
   assert.deepEqual(passes.map(p => p.key), ['N1', 'N2']);
   assert.deepEqual(rows.map(r => `${r.name}·${r.f}·${r.row}`), ['N1·0·1', 'N1·0·2', 'N1·1·1', 'N1·1·2', 'N2·0·1', 'N2·0·2', 'N2·1·1', 'N2·1·2']);
+});
+
+// The owner, 2026-10-05: "the ring does not close, the brush paints a tulip;
+// run on round it 50 mm further, past its 360°".
+test('A loop: every whole ring runs on LOOP_LAP mm over its own start; an open row does not', () => {
+  const o = { closed: true, rows: 7, pitch: 9.5, width: 4, stack: 0, twist: 0, squeeze: 0, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0 };
+  const b = bandOf(circleAnchors(0, 0, 100), o), L = layeredOf(b, { width: 4, cuts: [], overlap: 4 });
+  const before = L.imp.runs.map(r => lengthOf(r.pts));
+  const added = lapLoops(b, L.imp.runs);
+  assert.ok(close(added, 7 * LOOP_LAP, 0.01), `${added.toFixed(2)} mm added`);
+  L.imp.runs.forEach((r, i) => {
+    assert.ok(close(lengthOf(r.pts), before[i] + LOOP_LAP, 0.01), `ring ${r.k}: once round and ${LOOP_LAP} mm`);
+    const rad = Math.hypot(r.pts[0][0], r.pts[0][1]);
+    assert.ok(r.pts.every(p => Math.abs(Math.hypot(p[0], p[1]) - rad) < 0.05), `ring ${r.k}: the lap on the ring itself`);
+  });
+  const open = bandOf(circleAnchors(0, 0, 100), { ...o, closed: false }), L2 = layeredOf(open, { width: 4, cuts: [], overlap: 4 });
+  assert.equal(lapLoops(open, L2.imp.runs), 0, 'an open figure: no lap');
+  const cut = layeredOf(b, { width: 4, cuts: [200], overlap: 0 });
+  assert.equal(lapLoops(b, cut.imp.runs), 0, 'a ring cut in two is no loop');
 });
