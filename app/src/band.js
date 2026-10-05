@@ -438,12 +438,13 @@ export const lengthOf = pts => pts.reduce((a, p, i) => i ? a + Math.hypot(p[0] -
 // of the ring's own length (17:48, nolan-v2/IMAGE 2026-10-05 17:48:32,
 // 17:48:35.jpg: "a wide ring uses its paint otherwise than the smallest, so
 // an equal lap of some mm is not fair — 50 % of each circle"; "the lap is
-// needed"). The little tail the brush leaves over the seam, landing at speed,
+// needed"); 60 % since 23:57 (the owner, of New Yuri's rings: "a 60 % lap
+// will do"; of the Circle's: "60 % too"). The little tail the brush leaves over the seam, landing at speed,
 // stays: the press is not calibrated yet, and it does not matter on a dry
 // run without the watercolour (the owner). In place on runs (canvas mm,
 // layeredOf's): r.loop, the ring's length. A row broken by a cut or another
 // part is no loop and stays as it is. → mm added.
-export const LOOP_SHARE = 0.5;   // of the ring's length, the owner's
+export const LOOP_SHARE = 0.6;   // of the ring's length, the owner's (0.5 until 2026-10-05, 23:57)
 export function lapLoops(band, runs, share = LOOP_SHARE) {
   if (!band?.closed || !(share > 0)) return 0;
   let added = 0;
