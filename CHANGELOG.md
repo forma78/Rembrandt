@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a figure dragged moves in the plane; Size, X ↑, Y → as fields**
+  (the owner, 2026-10-05: "X ↑ −250 is the limit, the slider blocks, though
+  it can go lower"; "drag and drop turns it in 3D — I do not need 3D;
+  better to drag the circles over the plane, as in Adobe Illustrator"; "as
+  in CANVAS, Board width / Board height: arrows down and up for Size,
+  X ↑ / Y →"). Select: a figure dragged moves, whole mm, picked as it is
+  taken; ⇧ turns it in 3D (Shift moved it before), ⌥ spins it; dragged off
+  every figure nothing moves; the same under the Cut tool, whose click still
+  cuts. Size, X ↑ and Y → are number fields with their arrows, each step at
+  once, X ↑ and Y → with no limit, Size 0.05 … 10 × (the wheel too; 0.4 … 2
+  before); Rotate X, Rotate Y, ↻ and Lens stay sliders. Tried in the
+  browser: a ring dragged by its band, its points as they were; ⇧ drag;
+  X ↑ −400, two ↓ to −402; Size 1.5; ⌘Z.
+
 - **NOLAN: figures — a second stays; the Circle (O); ⌘C ⌘V copies down**
   (the owner, 2026-10-05, `nolan-v2/Screenshot 2026-10-05 at 3.53.05 PM.png`:
   "when I make a second figure with the brush, the first disappears — it

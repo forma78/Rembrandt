@@ -139,8 +139,10 @@ The panel, top to bottom:
    darker (`washOf` in `band.js`, est.).
 5. The band: **Rows** (first), **Row to row**, **Row width**, **Stack**,
    **Twist**, **Squeeze** — Roll is a point's alone (glossary).
-6. The ribbon in space: **Rotate X**, **Rotate Y**, **↻**, **Size**, **X ↑**,
-   **Y →**, **Lens**; *Face the canvas*; *Paste a shape* (from the
+6. The ribbon in space: **Rotate X**, **Rotate Y**, **↻**; **Size**, **X ↑**,
+   **Y →** as fields with their arrows, as Board width and height, with no
+   limits (the owner, 2026-10-05: "X ↑ −250 is the limit, I cannot go lower;
+   make them as in CANVAS, arrows up and down"); **Lens**; *Face the canvas*; *Paste a shape* (from the
    prototype's *Copy the shape*).
 7. **Point n of m**: its **Depth** and **Roll**.
 8. The brush, Test's: **Brush on**, **Between rows**, **Tail** — the elbow
@@ -177,9 +179,11 @@ On the board:
    brings it back, the ring (the first try's donut) is the other blank.
 2. **Select** picks a figure with a click on it — a dashed frame round it,
    the panel its — or, a click on the picked one, the whole of it; drags a
-   square to move a point in the screen's plane; dragged elsewhere the
-   figure turns — Shift moves it, Alt spins it, the wheel sizes it, the
-   arrows move it 1 mm, ⇧ 10 mm. **Pen** adds a point at the picked figure's
+   square to move a point in the screen's plane; a figure dragged moves in
+   the canvas's plane, as in Illustrator (the owner, 2026-10-05: "drag and
+   drop turns it in 3D; I do not need 3D — better to drag the circles over
+   the plane"), ⇧ turns it in 3D, ⌥ spins it, dragged off every figure
+   nothing moves; the wheel sizes it, the arrows move it 1 mm, ⇧ 10 mm. **Pen** adds a point at the picked figure's
    end; **Brush** (B) paints a new figure in one stroke, the others staying,
    back to its start a loop, flat by default — the canvas faced, Size 1×, every
    point Depth 0 and Roll 0, no Twist, no Squeeze, the band Rows × Row to

@@ -521,7 +521,8 @@ html.night .tool:hover{background:#303236}
 .nolan .looks .tog.cutkey.through{flex:1.4}   /* Pass through: nothing hides */
 .nolan .sec h4{margin:16px 0 2px}
 .nolan .grid4.keys{margin:10px 0 0}
-.nolan #fields{margin-top:11px}   /* under Canvas as a slider under its heading: The brush, Brush on */
+.nolan #fields{margin-top:11px}
+.nolan .grid4.three{grid-template-columns:1fr 1fr 1fr;margin:0 0 2px}   /* Size · X ↑ · Y →, fields as the board's */   /* under Canvas as a slider under its heading: The brush, Brush on */
 .nolan .runkeys{grid-template-columns:1fr 1fr 1fr}   /* TEST · PLAY · PAUSE */
 .nolan .read .lay{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0 2px;vertical-align:0}
 .nolan .refthumb{position:relative}
