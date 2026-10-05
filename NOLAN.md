@@ -75,7 +75,8 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 | term | meaning |
 |---|---|
 | **NOLAN** | The tab that paints ribbons (this file), in Create's place. The only tab where the hand works too (§0). |
-| **Ribbon** | One flat band in space along one centre curve, its lines parallel on it, each with its tube; the painting is one ribbon turned as a whole (§3.0, 2026-10-04). Before: a band traced flat on the canvas, a painting of several. |
+| **Ribbon** | One flat band in space along one centre curve, its lines parallel on it, each with its tube (§3.0). The painting was one ribbon turned as a whole (2026-10-04); since 2026-10-05 it may be several figures. Before 2026-10-04: a band traced flat on the canvas, a painting of several. |
+| **Figure** | One ribbon on the tab, an object as in Illustrator: its points, its band (Rows, Row to row, Row width, Stack, Twist, Squeeze), its place in space, its cuts; open, or closed — a loop, as the Circle's. The panel edits the picked one (the owner, 2026-10-05: "when I make a second figure with the brush, the first disappears — it must stay"). |
 | **Roll** | The band's angle about its centre curve at a point: 0° flat, facing you — the lines open; 90° edge-on — they close up. The lever of the bundles (§3.0). |
 | **Squeeze** | The whole band's lever, beside each point's Roll: it presses the band towards edge-on (+, the bundles close up) or towards flat (−, they open); a slanted place moves most, a flat one stays flat (the owner, 2026-10-04: "why a glossary, if the panel has two Rolls? That is unprofessional — the second one, Squeeze?"). |
 | **Imprint** | «Слепок», the owner's word: the ribbon in space projected onto the canvas, its hidden parts left out — what the machine paints (§3.0). |
@@ -174,22 +175,30 @@ On the board:
 
 1. **The ribbon through IMG_9424** opens by default — 17 points; the house
    brings it back, the ring (the first try's donut) is the other blank.
-2. **Select** drags a square to move a point in the screen's plane; dragged
-   elsewhere the ribbon turns — Shift moves it, Alt spins it, the wheel sizes
-   it. **Pen** adds a point at the ribbon's end; **Brush** (B) paints a new
-   ribbon in one stroke, flat by default — the canvas faced, Size 1×, every
+2. **Select** picks a figure with a click on it — a dashed frame round it,
+   the panel its — or, a click on the picked one, the whole of it; drags a
+   square to move a point in the screen's plane; dragged elsewhere the
+   figure turns — Shift moves it, Alt spins it, the wheel sizes it, the
+   arrows move it 1 mm, ⇧ 10 mm. **Pen** adds a point at the picked figure's
+   end; **Brush** (B) paints a new figure in one stroke, the others staying,
+   back to its start a loop, flat by default — the canvas faced, Size 1×, every
    point Depth 0 and Roll 0, no Twist, no Squeeze, the band Rows × Row to
    row wide in true mm; the bundles come after, by turning it (the owner,
    2026-10-05, `nolan-v2/`: "I cannot make it flat — the lines are born
    twisted"; "brevity is the sister of talent"; Pen put its points in the
    screen's plane, at Rotate X −84° nearly along the ribbon's depth, so the
-   band turned edge-on as it was drawn); ⌫ takes the picked one out, the
-   last two the whole ribbon; **Clear**, as Create's, leaves the canvas
-   empty for a new stroke (the owner, 2026-10-05: "I cannot clear the
-   screen entirely, one tip is left");
+   band turned edge-on as it was drawn); **Circle** (O): pressed at the
+   centre and dragged out to the radius, a flat ring of 8 points, closed —
+   the centre the circle itself; **⌘C ⌘V** copies the picked figure and
+   pastes it 10 mm under it, picked, so ⌘V again lays the next under that,
+   ⌘X takes it out (the owner, 2026-10-05: "I need to draw circles — draw
+   one and copy it down, ⌘C and ⌘V"); ⌫ takes the picked point out, the
+   whole figure when it is picked whole or down to its last two points;
+   **Clear**, as Create's, leaves the canvas empty (the owner, 2026-10-05:
+   "I cannot clear the screen entirely, one tip is left");
    ⌘Z undoes; Esc is STOP, as on Test.
-3. **N1, N2, N3** are the layers, stretches between the cuts: the run
-   paints N1, pauses — CONTINUE when it is dry — then N2, and on; with INK
+3. **N1, N2, N3** are the layers, stretches between the cuts — N1 of every
+   figure together: the run paints N1, figure by figure, pauses — CONTINUE when it is dry — then N2, and on; with INK
    ON, the watercolour, one after another with no pause (§5; the owner,
    2026-10-04: "on watercolour all 3 layers at once"). In a layer row by
    row, each piece one way, the way the ribbon runs. No timers.

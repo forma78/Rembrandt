@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen, ELBOW_HOVER } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, cornerDots, lengthOf, squeezed, strokeAnchors, BRUSH_FIT, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE, DOT_MM, TEST_MARGIN } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, cornerDots, lengthOf, squeezed, strokeAnchors, BRUSH_FIT, circleAnchors, CIRCLE_N, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE, DOT_MM, TEST_MARGIN } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -400,4 +400,32 @@ test('Brush: a stroke → points within BRUSH_FIT of it, the band flat and facin
     assert.ok(b.pitch.every(v => close(v, 8, 1e-6)), 'the rows 8 mm apart on the canvas everywhere: flat');
   }
   assert.equal(strokeAnchors([[0, 0], [3, 0], [6, 1]]), null, 'a click is no stroke');
+});
+
+// The owner, 2026-10-05: "I need to draw circles — one, then copy it down".
+test('Circle: a closed loop of CIRCLE_N points, the centre the circle itself, its rows rings', () => {
+  const A = circleAnchors(10, -20, 120), C = centreOf(A, 1, true);
+  assert.equal(A.length, CIRCLE_N);
+  assert.ok(C.every(c => Math.abs(Math.hypot(c.p[0] - 10, c.p[1] + 20) - 120) < 0.01), 'on the circle');
+  assert.ok(close(C.at(-1).s, 2 * Math.PI * 120, 0.05), `once round: ${C.at(-1).s.toFixed(2)} mm`);
+  assert.ok(close(C.at(-1).p[0], C[0].p[0], 1e-6) && close(C.at(-1).p[1], C[0].p[1], 1e-6), 'back to its start');
+  assert.equal(centreOf(A, 1).length < C.length, true, 'open, it stops at its last point');
+  const b = bandOf(A, { closed: true, rows: 7, pitch: 9.5, width: 4, stack: 0, twist: 0, squeeze: 0, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0 });
+  for (const k of [0, 3, 6]) {
+    const r = b.S.map(q => Math.hypot(q[k][0] - 10, q[k][1] + 20)), want = 120 + (k - 3) * 9.5;
+    assert.ok(r.every(v => Math.abs(Math.abs(v - 120) - Math.abs(want - 120)) < 0.05), `row ${k}: a ring ⌀${(2 * Math.abs(want)).toFixed(0)}`);
+  }
+  assert.ok(b.back.every(x => !x), 'facing you');
+  const L = layeredOf(b, { width: 4, cuts: [], overlap: 0 });
+  assert.equal(L.imp.runs.length, 7, 'every ring one whole run');
+});
+
+// "When I make a second figure, the first must stay" (2026-10-05): the
+// figures' runs, marked f, run N1 of them all before N2, figure by figure.
+test('Several figures: N1 of every figure before N2, figure by figure within a layer', () => {
+  const runs = [], mk = (f, layer, k) => ({ f, layer, k, i0: 0, pts: [[f * 100 + k * 8, 0], [f * 100 + k * 8, 60]] });
+  for (const f of [0, 1]) for (const layer of [1, 2]) for (const k of [0, 1]) runs.push(mk(f, layer, k));
+  const { passes, rows } = bandPasses(runs.reverse(), { ink: false, tail: 3 });
+  assert.deepEqual(passes.map(p => p.key), ['N1', 'N2']);
+  assert.deepEqual(rows.map(r => `${r.name}·${r.f}·${r.row}`), ['N1·0·1', 'N1·0·2', 'N1·1·1', 'N1·1·2', 'N2·0·1', 'N2·0·2', 'N2·1·1', 'N2·1·2']);
 });

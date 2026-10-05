@@ -13,7 +13,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, ELBOW_HOVER, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, TEST_MARGIN, strokeAnchors, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, TEST_MARGIN, strokeAnchors, BRUSH_FIT, BRUSH_CLOSE, circleAnchors, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
@@ -29,18 +29,46 @@ const DRAG_STEP = 4, STEP = 1.5;
 const PAST_MANY = 50;   // mm between the centre's points: coarse while the mouse turns it
 
 // ---------- state ----------
-const S = {
-  anchors: SKETCH.map(a => ({ ...a })),
+// The figures (the owner, 2026-10-05, nolan-v2/Screenshot 2026-10-05 at
+// 3.53.05 PM.png: "when I make a second figure with the brush, the first
+// disappears; it must stay"): each its own ribbon — its points, its band, its
+// place in space, its cuts — as objects in Illustrator. The panel edits the
+// picked one, S.cur: S's keys of FIG read and write it. With none, S.tpl
+// keeps the panel's numbers for the next.
+const FIG_NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'squeeze', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens'];
+const FIG = ['anchors', 'closed', 'cuts', ...FIG_NUM];
+const newFig = (o = {}) => ({
+  anchors: [], closed: false,                                                     // its points; closed: a loop (a circle)
+  cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
   rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0,                   // the band; Roll is a point's (band.js, squeezed)
   tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
+  ...o,
+});
+const S = {
+  figs: [newFig({ anchors: SKETCH.map(a => ({ ...a })) })], cur: 0, tpl: newFig(),
   speed: 150, travel: 180, tail: 15, overlap: 4, ink: false,                      // the brush, as on Test (est.); overlap: under another part, mm (est.)
-  cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
   through: false,                                                                 // Pass through: the rows run whole over and under the other parts
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,                         // the canvas, and its edges from home (the owner's, 2026-10-05)
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
-let pick = 8;
-const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'squeeze', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'overlap', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
+const figNow = () => S.figs[S.cur] || S.tpl;
+for (const k2 of FIG) Object.defineProperty(S, k2, { get: () => figNow()[k2], set: v => { figNow()[k2] = v; }, enumerable: false });
+// A figure to draw into: the picked one, or a new one with the panel's numbers.
+function ensureFig() { if (!S.figs[S.cur]) { S.figs.push({ ...S.tpl, anchors: [], cuts: null, closed: false }); S.cur = S.figs.length - 1; } }
+let pick = 8;   // the picked point of the picked figure; −1: the whole figure
+const NUM = ['speed', 'travel', 'tail', 'overlap', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
+// A figure as saved, checked. o.roll: the whole band's Roll of before
+// 2026-10-04 (two Rolls on the panel, the owner: "unprofessional") — its angle
+// goes into every point, so the ribbon keeps its shape.
+function figOf(o) {
+  const f = newFig();
+  for (const k2 of FIG_NUM) if (Number.isFinite(o?.[k2])) f[k2] = o[k2];
+  f.anchors = (Array.isArray(o?.anchors) ? o.anchors : []).filter(a => ['x', 'y', 'z', 'roll'].every(k2 => Number.isFinite(a?.[k2]))).map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
+  f.closed = o?.closed === true && f.anchors.length >= 3;
+  f.cuts = Array.isArray(o?.cuts) ? o.cuts.filter(Number.isFinite) : null;
+  if (Number.isFinite(o?.roll) && o.roll) f.anchors.forEach(a => { a.roll += o.roll; });
+  return f;
+}
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
@@ -48,21 +76,25 @@ function load() {
     S.tail = tailIn(S.tail);                                                       // a save from before, Tail up to 200 (strokes.js)
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     S.through = o.through === true;
-    S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
-    for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'brush', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
-    const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
-    if (Array.isArray(o.anchors)) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));   // none: the canvas cleared
-    // the whole band's Roll of before 2026-10-04 (two Rolls on the panel, the owner: "unprofessional"):
-    // its angle goes into every point, so the ribbon keeps its shape
-    if (Number.isFinite(o.roll) && o.roll) S.anchors.forEach(a => { a.roll += o.roll; });
+    for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'brush', 'circle', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
+    if (Array.isArray(o.figs)) {
+      S.figs = o.figs.map(figOf).filter(f => f.anchors.length);
+      S.tpl = { ...figOf(o.tpl || o.figs[0]), anchors: [], cuts: null, closed: false };
+      S.cur = Number.isInteger(o.cur) ? o.cur : 0;
+    } else if (Array.isArray(o.anchors)) {                                         // a save of the one ribbon, before 2026-10-05
+      const f = figOf(o);
+      S.figs = f.anchors.length ? [f] : []; S.tpl = { ...f, anchors: [], cuts: null, closed: false }; S.cur = 0;   // none: the canvas cleared
+    }
   } catch { }
-  fixPick();
+  fixCur(); fixPick();
 }
-// The picked point: one of them, or −1 with none (the canvas cleared).
-function fixPick() { pick = Math.min(Math.max(pick, 0), S.anchors.length - 1); }
+// The picked figure: one of them, or −1 with none (the canvas cleared); its
+// picked point: one of its points, or −1 for the whole figure.
+function fixCur() { S.cur = S.figs.length ? Math.max(0, Math.min(S.cur, S.figs.length - 1)) : -1; }
+function fixPick() { pick = Math.max(-1, Math.min(pick, S.anchors.length - 1)); }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
-const bandOpts = step => ({ rows: S.rows, pitch: S.pitch, width: S.width, stack: S.stack, twist: S.twist, squeeze: S.squeeze, tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens, step });
-const view3 = () => ({ tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens });
+const bandOpts = (f, step) => ({ rows: f.rows, pitch: f.pitch, width: f.width, stack: f.stack, twist: f.twist, squeeze: f.squeeze, tilt: f.tilt, swing: f.swing, spin: f.spin, zoom: f.zoom, dx: f.dx, dy: f.dy, lens: f.lens, closed: f.closed, step });
+const view3 = (f = figNow()) => ({ tilt: f.tilt, swing: f.swing, spin: f.spin, zoom: f.zoom, dx: f.dx, dy: f.dy, lens: f.lens });
 
 // ---------- the cup, and the canvas from home ----------
 let INK = {};
@@ -81,33 +113,47 @@ async function loadInk() {
 const hereNow = () => { const R = reach(); return { x: R.x.min + S.edgeBottom + S.boardH / 2, y: R.y.min + S.edgeLeft + S.boardW / 2 }; };
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
 
-// ---------- the band, and the plan of its run ----------
-let BAND = null, bandKey = '';
-function band(step) {
-  const key = JSON.stringify([S.anchors, bandOpts(step)]);
-  if (key !== bandKey) { bandKey = key; BAND = bandOf(S.anchors, bandOpts(step)); }
-  return BAND;
+// ---------- the bands, and the plan of their run ----------
+const BANDS = new WeakMap();   // a figure → its band, while the figure stays as it is
+function bandFor(f, step = STEP) {
+  const key = JSON.stringify([f.anchors, bandOpts(f, step)]), c = BANDS.get(f);
+  if (c?.key === key) return c.b;
+  const b = bandOf(f.anchors, bandOpts(f, step));
+  BANDS.set(f, { key, b });
+  return b;
 }
+const band = step => bandFor(figNow(), step);   // the picked figure's
 // The slow part — what lies over what, the imprint, its fitting, Test's run —
 // waits while the mouse turns the ribbon or a slider moves.
 let PLAN = null, planKey = '', busy = false;
-const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], folds: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
+const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, figs: [], folds: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 // Test's run, as PLAY and TEST take it: rows, the number of rows it runs.
+const mineL = () => PLAN?.figs?.[S.cur]?.L;   // the picked figure's layers: its cuts, its stretches
 const runOpts = rows => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
 function plan() {
   if (busy && PLAN) return PLAN;
-  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.cuts, S.overlap, S.through]);
+  const here = hereNow(), key = JSON.stringify([S.figs, S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.overlap, S.through]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
-  const b = band(STEP);
-  if (!b) { PLAN = EMPTY; return PLAN; }
-  const L = layeredOf(b, { width: S.width, cuts: S.cuts, overlap: S.overlap, through: S.through }), lay = L.lay, imp = L.imp;   // the layers: stretches between the cuts
-  const all = bandPasses(imp.runs, { ink: S.ink, tail: S.tail }), rows = all.rows;
-  // every layer runs, in its order: no N1 · N2 · N3 keys since 2026-10-05 (the owner: "I do not press one first and then the other")
-  const passes = all.passes;
+  // each figure's layers, stretches between its cuts; its runs marked with it (f), its rows (n) and their width (w)
+  const figs = S.figs.map((f, i) => {
+    const b = bandFor(f, STEP);
+    if (!b) return null;
+    const L = layeredOf(b, { width: f.width, cuts: f.cuts, overlap: S.overlap, through: S.through });
+    for (const r of L.imp.runs) Object.assign(r, { f: i, n: f.rows, w: f.width });
+    return { b, L };
+  });
+  if (!figs.some(Boolean)) { PLAN = EMPTY; return PLAN; }
+  const runs = figs.flatMap(x => x ? x.L.imp.runs : []), byLayer = {};
+  for (const x of figs) if (x) for (const [l, m] of Object.entries(x.L.imp.byLayer)) byLayer[l] = (byLayer[l] || 0) + m;
+  const total = figs.reduce((a, x) => a + (x ? x.L.imp.total : 0), 0);
+  const imp = { runs, total, byLayer, red: figs.reduce((a, x) => a + (x ? x.L.imp.red * x.L.imp.total : 0), 0) / (total || 1) };
+  // every layer runs, in its order, N1 of every figure before N2: no N1 · N2 · N3 keys since 2026-10-05 (the owner: "I do not press one first and then the other")
+  const all = bandPasses(runs, { ink: S.ink, tail: S.tail }), rows = all.rows, passes = all.passes;
   const o = runOpts(rows.length);
   // rows: every piece of every layer, by its number (the LCD finds a block's there); pieces: those that run
-  PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, cuts: L.cuts, stretches: L.stretches, folds: L.folds, opts: o };
+  PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, figs,
+    folds: figs.flatMap((x, i) => x ? x.L.folds.map(fo => ({ ...fo, f: i })) : []), opts: o };
   return PLAN;
 }
 
@@ -156,8 +202,8 @@ let drawSoon = 0;
 const kick = () => { if (!drawSoon) drawSoon = requestAnimationFrame(() => { drawSoon = 0; draw(); }); };
 const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
 function shade(h, f) { const n = parseInt(h.slice(1), 16); return `rgb(${Math.round(((n >> 16) & 255) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; }
-const colourOf = kk => PALETTE[Math.min(PALETTE.length - 1, Math.floor(kk / S.rows * PALETTE.length))];
-const showPoints = () => S.tool === 'pen' || S.tool === 'brush' || (S.tool !== 'cut' && (S.look === 'geometry' || S.look === 'layers'));
+const colourOf = (kk, rows = S.rows) => PALETTE[Math.min(PALETTE.length - 1, Math.floor(kk / rows * PALETTE.length))];
+const showPoints = () => ['pen', 'brush', 'circle'].includes(S.tool) || (S.tool !== 'cut' && (S.look === 'geometry' || S.look === 'layers'));
 function draw() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = g.canvas.width / dpr, H = g.canvas.height / dpr, black = S.ground === 'black', ground = black ? '#0B0B0D' : '#FCFBF8';
@@ -186,11 +232,10 @@ function draw() {
     g.restore();
   }
   g.lineCap = 'round'; g.lineJoin = 'round';
-  const b = band(busy && drag?.mode !== 'cut' ? DRAG_STEP : STEP);                // a cut dragged: the ribbon as it is
-  if (b) {
-    if (S.look === 'imprint' && !busy) drawImprint();
-    else drawBand(b, black, ground);
-  }
+  const step = busy && drag?.mode !== 'cut' ? DRAG_STEP : STEP;                     // a cut dragged: the ribbon as it is
+  const bands = S.figs.map((f, i) => bandFor(f, i === S.cur ? step : STEP)), b = bands[S.cur] || null;   // the others stay as they are
+  if (S.look === 'imprint' && !busy) drawImprint();
+  else bands.forEach((bb, i) => bb && drawBand(bb, black, ground, i));               // in the order drawn: the last on top
   if (REF && S.refOpacity > 0) {                                                       // the reference as tracing paper
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
     g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
@@ -229,6 +274,11 @@ function draw() {
       drawCup(g, msx(at), msy(at), r); g.fillStyle = ink; g.textAlign = 'left'; g.fillText(`cup ⌀${cup().diameter || 50}`, msx(at) + r * 1.7 + 4, msy(at) + 3);
     }
   }
+  if (b && S.figs.length > 1) {                                                        // the picked figure, the one the panel edits: a dashed frame round it
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const q of [...b.E0, ...b.E1]) { x0 = Math.min(x0, sx(q)); x1 = Math.max(x1, sx(q)); y0 = Math.min(y0, sy(q)); y1 = Math.max(y1, sy(q)); }
+    g.save(); g.setLineDash([4, 4]); g.strokeStyle = '#EB7A25'; g.lineWidth = 1; g.strokeRect(x0 - 6, y0 - 6, x1 - x0 + 12, y1 - y0 + 12); g.restore();
+  }
   if (showPoints()) {                                                                  // the points: squares where they lie now
     const imp = projector(view3());
     S.anchors.forEach((a, i) => {
@@ -243,35 +293,42 @@ function draw() {
     g.globalAlpha = 0.25; g.lineWidth = ((S.rows - 1) * S.pitch + S.width) * k; line(); g.stroke();
     g.globalAlpha = 1; g.lineWidth = 1.5; line(); g.stroke(); g.restore();
   }
+  if (drag?.mode === 'circle' && drag.r > 0) {                                         // the Circle as it is dragged: its width, its centre line
+    g.save(); g.strokeStyle = '#EB7A25';
+    g.globalAlpha = 0.25; g.lineWidth = ((S.rows - 1) * S.pitch + S.width) * k; g.beginPath(); g.arc(sx(drag.c), sy(drag.c), drag.r * k, 0, Math.PI * 2); g.stroke();
+    g.globalAlpha = 1; g.lineWidth = 1.5; g.beginPath(); g.arc(sx(drag.c), sy(drag.c), drag.r * k, 0, Math.PI * 2); g.stroke();
+    g.font = font(10); g.fillStyle = '#EB7A25'; g.textAlign = 'left'; g.fillText(`⌀ ${fmt(2 * drag.r, 0)} mm`, sx(drag.c) + drag.r * k + 8, sy(drag.c) + 3);
+    g.restore();
+  }
   if (b && cutting()) drawCuts(b, black);                                              // the cuts, with the Cut tool
-  if (b && !busy) drawFolds(b);                                                        // where the rows fold: a red !
+  if (!busy) drawFolds();                                                              // where the rows fold: a red !
   drawTrail();
 }
 // Geometry, Colour, Layers: the band far to near, each piece covering what
 // lies behind it, then its rows.
-function drawBand(b, black, ground) {
-  const lay = S.look === 'layers' ? (busy ? (drag?.mode === 'cut' ? PLAN?.lay : null) : plan().lay) : null;
+function drawBand(b, black, ground, f) {
+  const lay = S.look === 'layers' ? (busy ? (drag?.mode === 'cut' ? PLAN?.figs?.[f]?.L.lay : null) : plan().figs[f]?.L.lay) : null, width = S.figs[f].width;
   for (const q of b.quads) {
     const i = q.i;
     g.beginPath(); q.poly.forEach((p, j) => j ? g.lineTo(sx(p), sy(p)) : g.moveTo(sx(p), sy(p))); g.closePath();
     g.fillStyle = ground; g.strokeStyle = ground; g.lineWidth = 0.8; g.fill(); g.stroke();
-    g.lineWidth = S.width * k;
+    g.lineWidth = width * k;
     for (let kk = 0; kk < b.rows; kk++) {
-      g.strokeStyle = S.look === 'geometry' ? (b.pitch[i] < S.width ? '#D9481C' : black ? '#E9E5DD' : '#2A2826')
+      g.strokeStyle = S.look === 'geometry' ? (b.pitch[i] < width ? '#D9481C' : black ? '#E9E5DD' : '#2A2826')
         : S.look === 'layers' ? LAYER[Math.min(LAYER.length - 1, (lay ? lay[i] : 1) - 1)]
-        : b.back[i] ? shade(colourOf(kk), 0.5) : colourOf(kk);
+        : b.back[i] ? shade(colourOf(kk, b.rows), 0.5) : colourOf(kk, b.rows);
       g.beginPath(); g.moveTo(sx(b.S[i][kk]), sy(b.S[i][kk])); g.lineTo(sx(b.S[i + 1][kk]), sy(b.S[i + 1][kk])); g.stroke();
     }
   }
 }
 // Layers: each stretch's name, and the cuts between them — a line across the
 // ribbon, a handle on its centre to drag it along.
-const cutsNow = () => S.cuts ?? PLAN?.cuts ?? [];
+const cutsNow = () => S.cuts ?? mineL()?.cuts ?? [];
 const indexAt = (b, v) => { let lo = 0, hi = b.n - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (b.s[m] < v) lo = m + 1; else hi = m; } return lo; };
 function drawCuts(b, black) {
   const ink = black ? '#F2EEE6' : '#24221F';
   g.save(); g.font = font(11, 600); g.textAlign = 'center'; g.textBaseline = 'middle';
-  if (!busy) for (const st of PLAN?.stretches || []) {                                 // N1 … at the middle of its stretch
+  if (!busy) for (const st of mineL()?.stretches || []) {                                 // N1 … at the middle of its stretch
     const p = b.M[indexAt(b, (st.s0 + st.s1) / 2)], X = sx(p), Y = sy(p), on = PLAN.passes.includes(`N${st.layer}`);
     g.globalAlpha = on ? 1 : 0.5;
     g.fillStyle = LAYER[Math.min(LAYER.length - 1, st.layer - 1)]; g.beginPath(); g.roundRect(X - 15, Y - 9, 30, 18, 9); g.fill();
@@ -288,8 +345,9 @@ function drawCuts(b, black) {
   g.restore();
 }
 // A red ! where the painted rows fold — run back against the ribbon: move a point there.
-function drawFolds(b) {
+function drawFolds() {
   for (const f of PLAN?.folds || []) {
+    const b = PLAN.figs[f.f]?.b; if (!b) continue;
     const m = b.M[indexAt(b, f.s)], X = sx(m), Y = sy(m);
     g.save(); g.fillStyle = '#D9481C'; g.strokeStyle = '#fff'; g.lineWidth = 1.5;
     g.beginPath(); g.arc(X, Y, 9, 0, Math.PI * 2); g.fill(); g.stroke();
@@ -307,11 +365,11 @@ function drawImprint() {
   for (const r of P_.imp.runs) {
     const L = lengthOf(r.pts), z = Math.min(S.tail, L / 2);
     let s = 0;
-    g.strokeStyle = colourOf(r.k);
+    g.strokeStyle = colourOf(r.k, r.n);
     for (let j = 1; j < r.pts.length; j++) {
       const a = r.pts[j - 1], c = r.pts[j], d = Math.hypot(c[0] - a[0], c[1] - a[1]), m = s + d / 2;
       const w = m < z ? (1 - Math.cos(Math.PI * m / z)) / 2 : m > L - z ? (1 - Math.cos(Math.PI * (L - m) / z)) / 2 : 1;
-      g.lineWidth = Math.max(0.6, S.width * k * w);
+      g.lineWidth = Math.max(0.6, r.w * k * w);
       g.beginPath(); g.moveTo(sx(a), sy(a)); g.lineTo(sx(c), sy(c)); g.stroke();
       s += d;
     }
@@ -328,7 +386,7 @@ const WASH = [74, 16, 140];   // the violet wash in the cup on 2026-10-04, by ey
 const WASH_LIGHT = [205, 175, 245];   // the same on the black ground, lighter: the board adds there
 const WASH_WET = 0.5, WASH_DRY = 0.14, WASH_BLOT = 0.8;   // its strength fresh from the cup, at the end of a dip run, in a blot (est., the trace of 18:11)
 function drawWash(P_) {
-  P_.wash ??= washOf(P_.preview, band(STEP), P_.imp.runs, S.width, areaNow());   // pressed into the walls, as the run is
+  P_.wash ??= washOf(P_.preview, P_.figs.map(x => x?.b), P_.imp.runs, S.width, areaNow());   // pressed into the walls, as the run is; each figure's band
   const black = S.ground === 'black';
   const tone = a => black ? `rgb(${WASH_LIGHT.map(c => Math.round(c * a)).join(',')})` : `rgb(${WASH.map(c => Math.round(255 - (255 - c) * a)).join(',')})`;
   g.save(); g.globalCompositeOperation = black ? 'screen' : 'multiply'; g.lineCap = 'butt'; g.lineJoin = 'round';
@@ -390,10 +448,9 @@ function startOf(B, i) {
 
 // ---------- undo ----------
 let undoStack = [], redoStack = [];
-const SHAPE = ['anchors', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'cuts', 'twist', 'squeeze'];
-const snapshot = () => JSON.stringify(Object.fromEntries(SHAPE.map(k2 => [k2, S[k2]])));
+const snapshot = () => JSON.stringify({ figs: S.figs, cur: S.cur, tpl: S.tpl, pick });   // every figure: its points, band, place, cuts
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
-function restore(js) { Object.assign(S, JSON.parse(js)); fixPick(); settle(); }
+function restore(js) { const o = JSON.parse(js); S.figs = o.figs; S.cur = o.cur; S.tpl = o.tpl; pick = o.pick ?? pick; pickCut = -1; fixCur(); fixPick(); settle(); }
 function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); }
 function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); }
 
@@ -428,6 +485,20 @@ function ribbonAt(p, s0 = null, near = 150) {
   }
   return best === null ? null : b.s[best];
 }
+// The figure under the mouse, the one drawn last on top: its band's pieces. −1: none.
+function figAt(p) {
+  for (let f = S.figs.length - 1; f >= 0; f--) {
+    const b = bandFor(S.figs[f], STEP);
+    if (!b) continue;
+    for (const q of b.quads) {
+      const P = q.poly;
+      let ins = false;
+      for (let a = 0, j = 3; a < 4; j = a++) if ((P[a][1] > p[1]) !== (P[j][1] > p[1]) && p[0] < (P[j][0] - P[a][0]) * (p[1] - P[a][1]) / (P[j][1] - P[a][1]) + P[a][0]) ins = !ins;
+      if (ins) return f;
+    }
+  }
+  return -1;
+}
 const CUT_MIN = 20;   // mm along the ribbon between two cuts, at least
 function setCuts(list, picked) {
   S.cuts = list.slice().sort((a, b2) => a - b2); pickCut = picked === undefined ? -1 : S.cuts.indexOf(picked);
@@ -442,9 +513,9 @@ function pointHit(p) {
 }
 // A point put in the screen's plane, at the depth of the ribbon's last point.
 function addPoint(p) {
-  const R = rotation(S.tilt, S.swing, S.spin), last = S.anchors.at(-1) || { x: 0, y: 0, z: 0, roll: 0 }, w = apply(R, [last.x, last.y, last.z]);   // the canvas cleared: the first one at the centre's depth
+  undoPush(); ensureFig();                                                         // the canvas cleared: a new figure, its first point at the centre's depth
+  const R = rotation(S.tilt, S.swing, S.spin), last = S.anchors.at(-1) || { x: 0, y: 0, z: 0, roll: 0 }, w = apply(R, [last.x, last.y, last.z]);
   const m = apply(transpose(R), [(p[0] - S.dx) / S.zoom, (p[1] - S.dy) / S.zoom, w[2]]);
-  undoPush();
   S.anchors.push({ x: Math.round(m[0]), y: Math.round(m[1]), z: Math.round(m[2]), roll: last.roll });
   pick = S.anchors.length - 1; settle();
 }
@@ -459,9 +530,14 @@ cv.addEventListener('pointerdown', e => {
   const hit = cutting() ? -1 : pointHit(p);
   if (pickCut >= 0) { pickCut = -1; kick(); }
   if (hit < 0 && S.tool === 'pen') { addPoint(p); return; }
-  if (hit < 0 && S.tool === 'brush') {                                                 // Brush: the stroke as the mouse goes
-    drag = { x: e.clientX, y: e.clientY, moved: false, mode: 'brush', stroke: [p] };
+  if (hit < 0 && (S.tool === 'brush' || S.tool === 'circle')) {                       // Brush: the stroke as the mouse goes; Circle: from its centre out
+    drag = { x: e.clientX, y: e.clientY, moved: false, mode: S.tool, stroke: [p], c: p, r: 0 };
     cv.setPointerCapture(e.pointerId); stage.classList.add('drag'); return;
+  }
+  if (hit < 0) {                                                                       // a click on another figure picks it; on the picked one's body, the whole of it
+    const f = figAt(p);
+    if (f >= 0 && f !== S.cur) { S.cur = f; pick = -1; settle(); if (cutting()) return; }
+    else if (f >= 0 && !cutting() && pick >= 0) { pick = -1; showPanel(); kick(); }
   }
   undoPush();
   drag = { x: e.clientX, y: e.clientY, p, moved: false, mode: hit >= 0 ? 'point' : e.shiftKey ? 'move' : e.altKey ? 'spin' : 'turn' };
@@ -473,6 +549,7 @@ cv.addEventListener('pointermove', e => {
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   if (!drag.moved && Math.hypot(dx, dy) < 2) return;
   if (drag.mode === 'brush') { drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true; drag.stroke.push(toCanvas(e)); kick(); return; }
+  if (drag.mode === 'circle') { const q = toCanvas(e); drag.moved = true; busy = true; drag.r = Math.hypot(q[0] - drag.c[0], q[1] - drag.c[1]); kick(); return; }
   if (drag.mode === 'cut') {                                                           // along the ribbon, between its neighbours
     if (!drag.moved && !S.cuts) setCuts(cutsNow(), cutsNow()[pickCut]);                // the suggested ones become the owner's
     drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true;
@@ -494,7 +571,11 @@ cv.addEventListener('pointermove', e => {
 });
 cv.addEventListener('pointerup', () => {
   if (!drag) return;
-  if (drag.mode === 'brush') { const A = strokeAnchors(drag.stroke); drag = null; stage.classList.remove('drag'); A ? brushed(A) : settle(); return; }
+  if (drag.mode === 'brush') {                                                       // back to its start: a loop
+    const st = drag.stroke, closed = Math.hypot(st[0][0] - st.at(-1)[0], st[0][1] - st.at(-1)[1]) < BRUSH_CLOSE && lengthOf(st) > 4 * BRUSH_CLOSE;
+    const A = strokeAnchors(st, BRUSH_FIT, closed); drag = null; stage.classList.remove('drag'); A ? born(A, closed) : settle(); return;
+  }
+  if (drag.mode === 'circle') { const { c, r } = drag; drag = null; stage.classList.remove('drag'); r >= CIRCLE_MIN ? born(circleAnchors(c[0], c[1], r), true) : settle(); return; }
   if (drag.mode === 'cut') { if (!drag.moved) undoStack.pop(); drag = null; stage.classList.remove('drag'); settle(); return; }
   if (!drag.moved && drag.mode === 'turn' && cutting()) {                              // a click on the ribbon: a cut there
     const v = ribbonAt(drag.p), L = band(STEP).L;
@@ -504,16 +585,40 @@ cv.addEventListener('pointerup', () => {
   else { const a = S.anchors[pick]; if (drag.mode === 'point') { a.x = Math.round(a.x); a.y = Math.round(a.y); a.z = Math.round(a.z); } }
   drag = null; stage.classList.remove('drag'); settle();
 });
-// A new ribbon from the Brush's stroke, flat (the owner, 2026-10-05: "with
-// the brush only flat, no twisting into bundles by default"): the canvas
-// faced, as Face the canvas does, Size 1× so the band is Rows × Row to row
-// wide in true mm; no Twist, no Squeeze; the cuts as suggested. Its points
-// Depth 0, Roll 0 (band.js, strokeAnchors). ⌘Z brings the ribbon before back.
-function brushed(A) {
+// A new figure, flat (the owner, 2026-10-05: "with the brush only flat, no
+// twisting into bundles by default"; "when I make a second figure, the first
+// must stay"): beside the others, the panel's band — Rows, Row to row, Row
+// width, Stack — facing you, as Face the canvas, Size 1× so it is Rows × Row
+// to row wide in true mm; no Twist, no Squeeze; the cuts as suggested. Its
+// points Depth 0, Roll 0: the Brush's stroke (band.js, strokeAnchors), the
+// Circle's loop (circleAnchors). Picked whole; ⌘Z takes it away.
+const CIRCLE_MIN = 5;   // mm: a smaller drag is a click
+function born(A, closed = false) {
   undoPush();
-  Object.assign(S, { anchors: A, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, twist: 0, squeeze: 0, cuts: null });
-  pick = A.length - 1; pickCut = -1; settle();
+  S.figs.push({ ...figNow(), anchors: A, closed, cuts: null, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, twist: 0, squeeze: 0 });
+  S.cur = S.figs.length - 1; pick = -1; pickCut = -1; settle();
 }
+// ⌘C ⌘V (the owner, 2026-10-05: "draw one circle and copy it down, ⌘C and
+// ⌘V — I am on a Mac"): the picked figure copied; pasted under the picked
+// one, PASTE_GAP below it, and picked — ⌘V again, the next under that. ⌘X
+// copies and takes it out. The arrows move the picked one, 1 mm, ⇧ 10 mm.
+const PASTE_GAP = 10;   // mm (Claude's choice)
+let CLIP = null;
+function boxOf(f) {
+  const b = bandFor(f, STEP);
+  if (!b) return null;
+  const P = [...b.E0, ...b.E1];
+  return { y0: Math.min(...P.map(q => q[1])), y1: Math.max(...P.map(q => q[1])) };
+}
+function copyFig() { if (S.figs[S.cur]) CLIP = JSON.stringify(S.figs[S.cur]); }
+function pasteFig() {
+  if (!CLIP) return;
+  undoPush();
+  const f = JSON.parse(CLIP), over = S.figs[S.cur] && boxOf(S.figs[S.cur]), own = boxOf(f);
+  if (over && own) f.dy += over.y1 + PASTE_GAP - own.y0;                              // the canvas's y down: under the picked one
+  S.figs.push(f); S.cur = S.figs.length - 1; pick = -1; pickCut = -1; settle();
+}
+function moveFig(ddx, ddy) { if (!S.figs[S.cur]) return; undoPush(); S.dx += ddx; S.dy += ddy; settle(); }
 let wheelT = 0;
 cv.addEventListener('wheel', e => {
   e.preventDefault();
@@ -525,9 +630,10 @@ cv.addEventListener('wheel', e => {
 
 // ---------- the tools (Create's) ----------
 const HINTS = {
-  select: 'Select — drag a square to move a point; drag elsewhere to turn the ribbon, Shift to move it, Alt to spin it; the wheel sizes it.',
+  select: 'Select — click a figure to pick it; drag a square to move a point; drag elsewhere to turn it, Shift to move it, Alt to spin it; the wheel sizes it; ⌘C ⌘V copies it down, the arrows move it.',
   pen: 'Pen — click to add a point at the ribbon\'s end, at the depth of the last one; drag a square to move a point.',
-  brush: 'Brush — paint the ribbon in one stroke: flat, facing you, Rows × Row to row wide; drag a square to move a point; ⌘Z brings the one before back.',
+  brush: 'Brush — paint a figure in one stroke, the others stay: flat, facing you, Rows × Row to row wide; back to its start, a loop; drag a square to move a point.',
+  circle: 'Circle — press at the centre and drag out to the radius: a flat ring, Rows × Row to row wide; ⌘C ⌘V copies it down.',
   cut: 'Cut — click the ribbon to cut it; drag a circle along it; ⌫ takes the picked cut out; Auto: the cuts as suggested; Uncut: none.',
 };
 const hintNow = () => HINTS[S.tool];
@@ -540,15 +646,31 @@ function syncTools() {
 document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.onclick = () => setTool(b2.dataset.tool));
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
 function deleteCut() { const v = cutsNow()[pickCut]; if (v === undefined) return; undoPush(); setCuts(cutsNow().filter(c => c !== v)); settle(); }
-function deletePoint() { if (S.anchors.length <= 2) { clearRibbon(); return; } undoPush(); S.anchors.splice(pick, 1); fixPick(); settle(); }
-// The canvas cleared, no ribbon (the owner, 2026-10-05, nolan-v2/Screenshot
+// ⌫: the picked point; the whole figure when it is picked whole, or down to
+// its last two points (a loop's last three).
+function deletePoint() {
+  if (!S.figs[S.cur]) return;
+  if (pick < 0 || S.anchors.length <= (S.closed ? 3 : 2)) { deleteFig(); return; }
+  undoPush(); S.anchors.splice(pick, 1); fixPick(); settle();
+}
+function deleteFig() {
+  if (!S.figs[S.cur]) return;
+  undoPush();
+  const [f] = S.figs.splice(S.cur, 1);
+  if (!S.figs.length) S.tpl = { ...f, anchors: [], cuts: null, closed: false };     // its numbers for the next
+  fixCur(); pick = -1; pickCut = -1; settle();
+}
+// The canvas cleared, no figure (the owner, 2026-10-05, nolan-v2/Screenshot
 // 2026-10-05 at 3.45.43 PM.png: "I cannot clear the screen entirely, one tip
-// is left" — ⌫ stopped at two points): Clear, as Create's; ⌫ on the last two
-// points too. Then Brush or Pen paints a new one; ⌘Z brings it back.
-function clearRibbon() { if (!S.anchors.length) return; undoPush(); S.anchors = []; S.cuts = null; pick = -1; pickCut = -1; settle(); }
+// is left" — ⌫ stopped at two points): Clear, as Create's. Then Brush, Circle
+// or Pen paints a new one; ⌘Z brings them back.
+function clearRibbon() {
+  if (!S.figs.length) return;
+  undoPush(); S.tpl = { ...figNow(), anchors: [], cuts: null, closed: false }; S.figs = []; S.cur = -1; pick = -1; pickCut = -1; settle();
+}
 $('#btnClear').onclick = clearRibbon;
 $('#btnDel').onclick = () => cutting() ? deleteCut() : deletePoint();
-const blank = A => { undoPush(); S.anchors = A.map(a => ({ ...a })); fixPick(); settle(); };
+const blank = A => { undoPush(); ensureFig(); S.anchors = A.map(a => ({ ...a })); S.closed = false; fixPick(); settle(); };
 $('#btnDefault').onclick = () => blank(SKETCH);
 $('#btnRing').onclick = () => blank(ringBlank());
 $('#btnFront').onclick = () => { undoPush(); Object.assign(S, { tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0 }); settle(); };
@@ -558,9 +680,9 @@ $('#btnPaste').onclick = () => {
   try {
     const o = JSON.parse(text), A = (o.points || []).filter(a => ['x', 'y', 'z', 'roll'].every(k2 => Number.isFinite(a?.[k2])));
     if (A.length < 2) throw new Error('no points');
-    undoPush();
+    undoPush(); ensureFig();
     const g = o.settings || {}, all = Number.isFinite(g.rollAll) ? g.rollAll : 0;   // the prototype's "Roll, all": into every point
-    S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll + all }));
+    S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll + all })); S.closed = false;
     const map = { lines: 'rows', pitch: 'pitch', brush: 'width', stack: 'stack', twist: 'twist', tilt: 'tilt', turn: 'swing', spin: 'spin', zoom: 'zoom', dx: 'dx', dy: 'dy', lens: 'lens' };
     for (const [from, to] of Object.entries(map)) if (Number.isFinite(g[from])) S[to] = g[from];
     fixPick(); settle();
@@ -571,10 +693,18 @@ addEventListener('keydown', e => {
   if (e.target.matches('input,select,textarea')) return;
   const cmd = e.metaKey || e.ctrlKey;
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (cmd && ['c', 'v', 'x'].includes(e.key.toLowerCase()) && !getSelection().toString()) {   // a figure, not the page's text
+    e.preventDefault(); const c = e.key.toLowerCase();
+    if (c === 'c') copyFig(); else if (c === 'v') pasteFig(); else { copyFig(); deleteFig(); }
+    return;
+  }
   if (cmd) return;
+  const arrow = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
+  if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveFig(arrow[0] * d, arrow[1] * d); return; }
   if (e.key.toLowerCase() === 'v') setTool('select');
   else if (e.key.toLowerCase() === 'p') setTool('pen');
   else if (e.key.toLowerCase() === 'b') setTool('brush');
+  else if (e.key.toLowerCase() === 'o') setTool('circle');
   else if (e.key.toLowerCase() === 'c') setTool('cut');
   else if (e.key === 'Backspace' || e.key === 'Delete') cutting() ? deleteCut() : deletePoint();
 });
@@ -635,8 +765,9 @@ function showSliders() {
     const shown = key === 'rows' ? `${S.rows} · ${fmt((S.rows - 1) * S.pitch + S.width, 0)} mm` : key === 'zoom' ? fmt(v, 2) : ['dx', 'dy', 'roll', 'twist', 'squeeze'].includes(key) ? signed(Math.round(v * 100) / 100) : Math.round(v * 100) / 100;
     $(`${box} [data-v="${key}"]`).textContent = `${shown}${unit && key !== 'rows' ? ' ' + unit : ''}`;
   }
-  $('#ptHead').textContent = S.anchors.length ? `Point ${pick + 1} of ${S.anchors.length}` : 'No points';
-  $('#slPoint').hidden = !S.anchors.length;
+  const n = S.anchors.length, fig = S.figs.length > 1 ? `Figure ${S.cur + 1} of ${S.figs.length} · ` : '';
+  $('#ptHead').textContent = pick >= 0 ? `${fig}Point ${pick + 1} of ${n}` : n ? `${fig}${n} points — click a square` : 'No figure';
+  $('#slPoint').hidden = pick < 0;
 }
 function showPanel() {
   showSliders();
@@ -680,13 +811,13 @@ function settle() {
   // The reading under the ⓘ of Canvas, what stops PLAY always (the owner,
   // 2026-10-05: "this text below we hide under (i)", as The dip on the Ink
   // tab); the folds have their red ! on the board.
-  $('#planRead').innerHTML = (!P_.imp ? 'No ribbon: paint one with the Brush (B), or two points with the Pen (P).' :
+  $('#planRead').innerHTML = (!P_.imp ? 'No figure: paint one with the Brush (B) or the Circle (O), or two points with the Pen (P).' :
     `The imprint: <b>${P_.imp.runs.length}</b> pieces of row, <b>${fmt(P_.imp.total / 1000, 1)} m</b> · `
     + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m`).join(' · ')}${P_.passes.length > 1 ? (S.ink ? ', one after another, no pause: the watercolour only lays in the form' : ', a pause between them — CONTINUE when the one under is dry') : ''} · `
     + `closer than the row's width: <span class="${P_.imp.red > 0.35 ? 'warn' : ''}">${fmt(P_.imp.red * 100, 0)} %</span> · `
     + (S.ink ? `<b>Ink ON</b>, the Watercolour run: a dip every ${DIP_RUN} mm along a row (est.), none before a piece under ${NO_DIP} mm but a layer's first, ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint · ` : 'the Paint run · ')
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
-    + (P_.folds?.length ? ` <span class="warn">${P_.folds.length === 1 ? 'One place' : `${P_.folds.length} places`} where the rows fold, the red ! (${P_.folds.map(f => `${fmt(f.s / (BAND?.L || 1) * 100, 0)} %, ${f.rows} rows`).join(' · ')}): the ribbon turns there tighter than half its width — move or take out a point near it.</span>` : '')
+    + (P_.folds?.length ? ` <span class="warn">${P_.folds.length === 1 ? 'One place' : `${P_.folds.length} places`} where the rows fold, the red ! (${P_.folds.map(f => `${S.figs.length > 1 ? `figure ${f.f + 1} ` : ''}${fmt(f.s / (P_.figs[f.f]?.b.L || 1) * 100, 0)} %, ${f.rows} rows`).join(' · ')}): the ribbon turns there tighter than half its width — move or take out a point near it.</span>` : '')
     + (P_.pastWall > 0.05 && P_.pastWall <= PAST_MANY ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
     + ` · The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>, its centre X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)}; TEST's dots ${TEST_MARGIN} mm in from its edges.`;
   const warn = [inkWhy, P_.fault && `The plan is wrong, PLAY will not run it: ${P_.fault}.`,
@@ -695,7 +826,7 @@ function settle() {
     walls()].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = `${P_.blocks.length} steps · ${P_.passes.join(' + ') || 'nothing to paint'} · ${S.anchors.length} points`;
+  $('#stats').textContent = `${P_.blocks.length} steps · ${P_.passes.join(' + ') || 'nothing to paint'} · ${S.figs.length === 1 ? '1 figure' : `${S.figs.length} figures`} · ${S.figs.reduce((a, f) => a + f.anchors.length, 0)} points`;
   showPanel(); save(); layout(); lastLcd && lcd(lastLcd);
 }
 function walls() {
@@ -743,8 +874,8 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 const nolanLabel = () => `NOLAN · ${PLAN?.passes.join('+') || 'no ribbon'} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows${S.ink ? ' · ink' : ''}`;
 function nolanSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P_ = plan();
-  const meta = JSON.stringify({ rembrandt: '0.2', nolan: true, label: nolanLabel(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
-  const rows = (P_.imp?.runs || []).map(r => `  <path stroke="${colourOf(r.k)}" data-layer="${r.layer}" d="M${r.pts.map(p => `${f(W / 2 + p[0])} ${f(H / 2 + p[1])}`).join(' L')}"/>`).join('\n');
+  const meta = JSON.stringify({ rembrandt: '0.3', nolan: true, label: nolanLabel(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const rows = (P_.imp?.runs || []).map(r => `  <path stroke="${colourOf(r.k, r.n)}" stroke-width="${f(r.w)}" data-layer="${r.layer}" data-figure="${r.f + 1}" d="M${r.pts.map(p => `${f(W / 2 + p[0])} ${f(H / 2 + p[1])}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
 <!-- Rembrandt v0.3 · ${nolanLabel()}; 1 unit = 1 mm -->
@@ -780,7 +911,7 @@ async function openFromLibrary(file) {
     const meta = new DOMParser().parseFromString(await r.text(), 'image/svg+xml').querySelector('metadata#rembrandt-test');
     const o = meta ? JSON.parse(meta.textContent.replace(/- -/g, '--')) : null;
     if (!o?.nolan) { $('#saveState').textContent = 'not a NOLAN save: open it on Test'; return; }
-    if (!Array.isArray(o.settings?.anchors)) { $('#saveState').textContent = 'a NOLAN save of the flat ribbons, before 3D: it cannot open here'; return; }
+    if (!Array.isArray(o.settings?.anchors) && !Array.isArray(o.settings?.figs)) { $('#saveState').textContent = 'a NOLAN save of the flat ribbons, before 3D: it cannot open here'; return; }
     undoPush();
     localStorage.setItem(KEY, JSON.stringify(o.settings)); load(); settle();
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
@@ -850,7 +981,7 @@ function lcd(st) {
   const total = R_.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b2 = st && (RUN || P_.blocks)[st.block], row = b2 && R_.rows[b2.row - 1];   // the blocks PLAY sent: N1 · N2 may be switched since
-  const what = row && (row.label ?? `${row.name} · row ${row.row} of ${S.rows}`);
+  const what = row && (row.label ?? `${row.name} · ${S.figs.length > 1 ? `figure ${row.f + 1} · ` : ''}row ${row.row} of ${S.figs[row.f]?.rows ?? S.rows}`);
   const waiting = st?.state === 'paused' && st.message;
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
