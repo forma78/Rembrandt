@@ -812,7 +812,7 @@ function drawingText() {
   const curve = S.curve.segs.length ? `<path id="curve" d="${pathD(filleted(S.curve, S.cornerR))}" fill="none" stroke="#24221F" stroke-width="1"/>` : '';
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${fmt(IA.w, 1)}mm" height="${fmt(IA.h, 1)}mm" viewBox="0 0 ${fmt(pt(IA.w), 3)} ${fmt(pt(IA.h), 3)}">
-<!-- Rembrandt v0.2 · ${FORMATS[S.format].label} · the image area ${fmt(IA.w, 1)} × ${fmt(IA.h, 1)} mm; 1 unit = 1 pt = 25.4/72 mm -->
+<!-- Rembrandt v0.3 · ${FORMATS[S.format].label} · the image area ${fmt(IA.w, 1)} × ${fmt(IA.h, 1)} mm; 1 unit = 1 pt = 25.4/72 mm -->
 <metadata id="rembrandt-state">${meta}</metadata>
 <rect id="canvas" x="${fmt(pt(cr.x), 3)}" y="${fmt(pt(cr.y), 3)}" width="${fmt(pt(cr.w), 3)}" height="${fmt(pt(cr.h), 3)}" fill="none" stroke="#24221F" stroke-width="1"/>
 <g id="lanes" fill="none" stroke-width="${fmt(pt(PAINT.line), 3)}" stroke-linecap="round" stroke-linejoin="round">

@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+## v0.3 — 2026-10-05
+
+- **v0.3 after the name** (the owner, 2026-10-05: "REMBRANDT v0.3
+  already :)"), on every tab and in the saved SVGs.
+
 - **Ink: the Cup's reading under the ⓘ, as The dip's** (the owner,
   2026-10-05: "let's do it so everywhere"): the cup's centre, its size and
   where the brush dips inside the walls behind the ⓘ of Cup; The canvas
@@ -34,6 +39,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   stops PLAY stays out. The owner ran TEST at 14:55 on it: TL X 680 · Y 70,
   TR X 680 · Y 530, BR X 20 · Y 530, BL X 20 · Y 70, home; 32 s. In the
   canon, Rembrandt.md §1. A test.
+
+## v0.2 — 2026-10-04
 
 - **NOLAN: TEST before PLAY — a dot at each corner of the drawing** (the
   owner, 2026-10-04: "before pressing PLAY I would like to do a test. The
@@ -432,6 +439,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   Calibration · Library. `nolan.html` says the tab is being built;
   `start.command` opens it. Create's page stays, and the Library still
   opens a painting on it. A saved SVG says v0.2.
+
+## v0.1 — 2026-10-01 … 10-04
+
 - **The owner's decisions for NOLAN, in the spec** (`NOLAN.md` §0). The
   ribbon collection comes first; NOLAN is the one tab where the hand
   paints too — the black around the ribbons, the glazes in glazing medium,
