@@ -437,6 +437,7 @@ body.create .lhead .ends button{flex-direction:row;padding:4px 9px;font-size:11p
 
 /* ---------- Test: sliders as on Calibration; the Library's second shelf (2026-10-02) ---------- */
 .sliders{display:flex;flex-direction:column;margin-bottom:10px}
+.sliders[hidden]{display:none}   /* NOLAN: no point to slide, the canvas cleared */
 .sl{display:block}
 .sl[hidden]{display:none}   /* Test: Turn off the snakes (2026-10-02) */
 .slh{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}

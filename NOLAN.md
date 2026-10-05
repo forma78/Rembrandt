@@ -183,7 +183,10 @@ On the board:
    2026-10-05, `nolan-v2/`: "I cannot make it flat — the lines are born
    twisted"; "brevity is the sister of talent"; Pen put its points in the
    screen's plane, at Rotate X −84° nearly along the ribbon's depth, so the
-   band turned edge-on as it was drawn); ⌫ takes the picked one out;
+   band turned edge-on as it was drawn); ⌫ takes the picked one out, the
+   last two the whole ribbon; **Clear**, as Create's, leaves the canvas
+   empty for a new stroke (the owner, 2026-10-05: "I cannot clear the
+   screen entirely, one tip is left");
    ⌘Z undoes; Esc is STOP, as on Test.
 3. **N1, N2, N3** are the layers, stretches between the cuts: the run
    paints N1, pauses — CONTINUE when it is dry — then N2, and on; with INK
