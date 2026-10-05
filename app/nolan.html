@@ -31,7 +31,7 @@
 
 <main>
   <nav class="tools" aria-label="Tools">
-    <button class="tool" data-tool="select" title="Select — click a figure to pick it; drag a square to move a point; drag elsewhere to turn it, Shift to move it, Alt to spin it; the wheel sizes it; ⌘C ⌘V copies it down (V)">
+    <button class="tool" data-tool="select" title="Select — drag a figure to move it, a square to move a point; ⇧ drag turns it in 3D, ⌥ spins it; the wheel sizes it; ⌘C ⌘V copies it down (V)">
       <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
       <span>V</span>
     </button>
@@ -108,6 +108,8 @@
       <div class="sliders" id="slBand"></div>
       <h4>The ribbon in space</h4>
       <div class="sliders" id="slView"></div>
+      <div class="grid4 three" id="viewFields"></div>
+      <div class="sliders" id="slLens"></div>
       <div class="grid4 keys">
         <button class="btn" id="btnFront" title="Turned back to face the canvas, as drawn">Face the canvas</button>
         <button class="btn" id="btnPaste" title="A shape copied from the prototype (Copy the shape)">Paste a shape</button>

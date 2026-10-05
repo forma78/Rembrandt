@@ -539,13 +539,18 @@ cv.addEventListener('pointerdown', e => {
     if (f >= 0 && f !== S.cur) { S.cur = f; pick = -1; settle(); if (cutting()) return; }
     else if (f >= 0 && !cutting() && pick >= 0) { pick = -1; showPanel(); kick(); }
   }
+  // Dragged, the figure moves in the canvas's plane, as in Illustrator (the
+  // owner, 2026-10-05: "drag and drop turns it in 3D; I do not need 3D —
+  // better to drag the circles over the plane"); ⇧ turns it in 3D, ⌥ spins it.
+  // Dragged off every figure, nothing moves.
   undoPush();
-  drag = { x: e.clientX, y: e.clientY, p, moved: false, mode: hit >= 0 ? 'point' : e.shiftKey ? 'move' : e.altKey ? 'spin' : 'turn' };
+  drag = { x: e.clientX, y: e.clientY, p, moved: false, mode: hit >= 0 ? 'point' : e.shiftKey ? 'turn' : e.altKey ? 'spin' : figAt(p) >= 0 ? 'move' : 'none' };
   if (hit >= 0) { pick = hit; showPanel(); }
   cv.setPointerCapture(e.pointerId); stage.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
-  if (!drag) { const p = toCanvas(e); cv.style.cursor = cutHit(p) >= 0 ? 'grab' : pointHit(p) >= 0 ? 'move' : ''; return; }
+  if (!drag) { const p = toCanvas(e); cv.style.cursor = cutHit(p) >= 0 ? 'grab' : pointHit(p) >= 0 || (S.tool === 'select' && figAt(p) >= 0) ? 'move' : ''; return; }
+  if (drag.mode === 'none') return;
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   if (!drag.moved && Math.hypot(dx, dy) < 2) return;
   if (drag.mode === 'brush') { drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true; drag.stroke.push(toCanvas(e)); kick(); return; }
@@ -577,12 +582,13 @@ cv.addEventListener('pointerup', () => {
   }
   if (drag.mode === 'circle') { const { c, r } = drag; drag = null; stage.classList.remove('drag'); r >= CIRCLE_MIN ? born(circleAnchors(c[0], c[1], r), true) : settle(); return; }
   if (drag.mode === 'cut') { if (!drag.moved) undoStack.pop(); drag = null; stage.classList.remove('drag'); settle(); return; }
-  if (!drag.moved && drag.mode === 'turn' && cutting()) {                              // a click on the ribbon: a cut there
+  if (!drag.moved && drag.mode !== 'point' && cutting()) {                           // a click on the ribbon: a cut there
     const v = ribbonAt(drag.p), L = band(STEP).L;
     if (v !== null && v > CUT_MIN && v < L - CUT_MIN && cutsNow().every(c => Math.abs(c - v) >= CUT_MIN)) { setCuts([...cutsNow(), v], v); drag = null; stage.classList.remove('drag'); settle(); return; }
   }
   if (!drag.moved) undoStack.pop();
-  else { const a = S.anchors[pick]; if (drag.mode === 'point') { a.x = Math.round(a.x); a.y = Math.round(a.y); a.z = Math.round(a.z); } }
+  else if (drag.mode === 'point') { const a = S.anchors[pick]; a.x = Math.round(a.x); a.y = Math.round(a.y); a.z = Math.round(a.z); }
+  else if (drag.mode === 'move') { S.dx = Math.round(S.dx); S.dy = Math.round(S.dy); }   // whole mm, as the fields show it
   drag = null; stage.classList.remove('drag'); settle();
 });
 // A new figure, flat (the owner, 2026-10-05: "with the brush only flat, no
@@ -623,14 +629,14 @@ let wheelT = 0;
 cv.addEventListener('wheel', e => {
   e.preventDefault();
   if (!busy) undoPush();
-  busy = true; S.zoom = Math.max(0.4, Math.min(2, S.zoom * Math.exp(-e.deltaY * 0.001)));
+  busy = true; S.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, S.zoom * Math.exp(-e.deltaY * 0.001)));
   showSliders(); kick();
   clearTimeout(wheelT); wheelT = setTimeout(settle, 250);
 }, { passive: false });
 
 // ---------- the tools (Create's) ----------
 const HINTS = {
-  select: 'Select — click a figure to pick it; drag a square to move a point; drag elsewhere to turn it, Shift to move it, Alt to spin it; the wheel sizes it; ⌘C ⌘V copies it down, the arrows move it.',
+  select: 'Select — drag a figure to move it, a square to move a point; ⇧ drag turns it in 3D, ⌥ spins it; the wheel sizes it; ⌘C ⌘V copies it down, the arrows move it.',
   pen: 'Pen — click to add a point at the ribbon\'s end, at the depth of the last one; drag a square to move a point.',
   brush: 'Brush — paint a figure in one stroke, the others stay: flat, facing you, Rows × Row to row wide; back to its start, a loop; drag a square to move a point.',
   circle: 'Circle — press at the centre and drag out to the radius: a flat ring, Rows × Row to row wide; ⌘C ⌘V copies it down.',
@@ -713,8 +719,14 @@ addEventListener('keydown', e => {
 const signed = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)}`;
 const BAND_SL = [['rows', 'Rows', '', 1, 2, ROWS_MAX], ['pitch', 'Row to row', 'mm', 0.5, 2, 16, { label: 2 }], ['width', 'Row width', 'mm', 0.5, 1, 12],
   ['stack', 'Stack', 'mm', 1, 0, 30], ['twist', 'Twist', 'half turns', 0.25, -4, 4], ['squeeze', 'Squeeze', '%', 1, -100, 100]];
-const VIEW_SL = [['tilt', 'Rotate X', '°', 1, -180, 180], ['swing', 'Rotate Y', '°', 1, -180, 180], ['spin', '↻', '°', 1, -180, 180],
-  ['zoom', 'Size', '×', 0.01, 0.4, 2], ['dy', 'X ↑', 'mm', 1, -250, 250, null, -1], ['dx', 'Y →', 'mm', 1, -250, 250], ['lens', 'Lens', '', 1, 0, 100]];
+const VIEW_SL = [['tilt', 'Rotate X', '°', 1, -180, 180], ['swing', 'Rotate Y', '°', 1, -180, 180], ['spin', '↻', '°', 1, -180, 180]];
+const LENS_SL = [['lens', 'Lens', '', 1, 0, 100]];
+// Size, X ↑ and Y →: fields with the arrows, as Board width and height (the
+// owner, 2026-10-05: "X ↑ −250 is the limit, I cannot go lower; make them as
+// in CANVAS, arrows up and down"). No limits but Size's. [key, label, unit,
+// step, title, sign]; sign −1: X ↑ is up, the canvas's y down.
+const ZOOM_MIN = 0.05, ZOOM_MAX = 10;
+const VIEW_FIELDS = [['zoom', 'Size', '×', 0.01, 'The picked figure\'s size; the wheel too'], ['dy', 'X ↑', 'mm', 1, 'The picked figure moved up the canvas, mm; the arrows too', -1], ['dx', 'Y →', 'mm', 1, 'The picked figure moved to the right, mm; the arrows too']];
 const POINT_SL = [['z', 'Depth', 'mm', 1, -250, 250], ['roll', 'Roll', '°', 1, -180, 360]];
 const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 1, TAIL_MIN, TAIL_MAX], ['overlap', 'Overlap', 'mm', 1, 0, 10]];
 function scale(step, min, max, label) {
@@ -736,6 +748,18 @@ function sliders(box, list, objOf) {
 }
 sliders($('#slBand'), BAND_SL, () => S);
 sliders($('#slView'), VIEW_SL, () => S);
+sliders($('#slLens'), LENS_SL, () => S);
+$('#viewFields').innerHTML = VIEW_FIELDS.map(([key, label, unit, step, title]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${key === 'zoom' ? ` min="${ZOOM_MIN}" max="${ZOOM_MAX}"` : ''}><em>${unit}</em></label>`).join('');
+$('#viewFields').querySelectorAll('input').forEach(inp => {
+  const [key, , , , , sign = 1] = VIEW_FIELDS.find(f => f[0] === inp.dataset.k);
+  inp.oninput = () => {                                                           // each arrow's step at once, as a slider
+    const v = +inp.value;
+    if (inp.value === '' || !Number.isFinite(v) || !S.figs[S.cur] || (key === 'zoom' && !(v >= ZOOM_MIN && v <= ZOOM_MAX))) return;
+    if (!busy) undoPush();
+    busy = true; S[key] = v * sign; kick();
+  };
+  inp.onchange = () => settle();
+});
 sliders($('#slPoint'), POINT_SL, () => S.anchors[pick]);
 sliders($('#slRun'), RUN_SL, () => S);
 // The board's size, and where it lies: its edges from home, with a ruler
@@ -758,7 +782,11 @@ document.querySelectorAll('[data-ground]').forEach(b2 => b2.onclick = () => { S.
 // both (the owner, 2026-10-04: "the ROLL slider does not move" — the band's
 // was set back to the point's on every step where a slider takes no focus).
 function showSliders() {
-  for (const [list, box, objOf] of [[BAND_SL, '#slBand', () => S], [VIEW_SL, '#slView', () => S], [POINT_SL, '#slPoint', () => S.anchors[pick]], [RUN_SL, '#slRun', () => S]]) for (const [key, , unit, , , , , sign = 1] of list) {
+  $('#viewFields').querySelectorAll('input').forEach(inp => {
+    const [key, , , , , sign = 1] = VIEW_FIELDS.find(f => f[0] === inp.dataset.k), v = S[key] * sign;
+    if (document.activeElement !== inp) inp.value = key === 'zoom' ? Math.round(v * 100) / 100 : Math.round(v * 10) / 10;
+  });
+  for (const [list, box, objOf] of [[BAND_SL, '#slBand', () => S], [VIEW_SL, '#slView', () => S], [LENS_SL, '#slLens', () => S], [POINT_SL, '#slPoint', () => S.anchors[pick]], [RUN_SL, '#slRun', () => S]]) for (const [key, , unit, , , , , sign = 1] of list) {
     const obj = objOf(); if (!obj) continue;                                        // no point picked: the canvas cleared
     const inp = $(`${box} input[data-k="${key}"]`), v = obj[key] * sign;
     if (document.activeElement !== inp) inp.value = v;
