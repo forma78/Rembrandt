@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the rings painted whole again — the fit never spans a point back
+  to itself** (the owner, 2026-10-05, `nolan-v2/Screenshot 2026-10-05
+  issue.png`: "something is wrong — it does not draw the circle, only the
+  tails; please fix it"). The run of 17:13, stopped at 9 %: of every ring
+  only its 75 mm lap went to the board. A lapped run passes its own seam
+  point, and `fitPieces` tried a span of one whole turn, its two ends on one
+  point: the biarc between them NaN, which every check let through, and the
+  pieces of no length were dropped — the turn with them. Now a span whose
+  ends meet round a loop is refused before its biarc, every check fails on a
+  NaN, and the pieces must be as long as the run they stand for (0.5 mm or
+  0.5 %). The 17:13 plan from the journal: its first ring 176.1 mm fitted of
+  176.5 (74.9 before); 8 rings, 96 rows, 96 dips. A test from that run fails
+  on the old fit. Not run on the machine from here.
+
 - **NOLAN: a loop's lap 75 mm, the brush lifting off over all of it; Tail
   0.05 … 5 mm** (the owner, 2026-10-05: "a smooth one? then increase it
   from 50 to 75 mm, the lap and the lift-off"; and of Tail: "I do not use

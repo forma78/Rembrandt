@@ -460,3 +460,28 @@ test('A loop: every whole ring runs on LOOP_LAP mm over its own start, lifting o
   const cut = layeredOf(b, { width: 4, cuts: [200], overlap: 0 });
   assert.equal(lapLoops(b, cut.imp.runs), 0, 'a ring cut in two is no loop');
 });
+
+// The owner, 2026-10-05, nolan-v2/Screenshot 2026-10-05 issue.png: "it does
+// not draw the circle, only the tails". The run of 17:13 (its first figure,
+// from the journal): a ring's lapped run passed its own seam point, a span of
+// one whole turn had both ends on one point, its biarc NaN — and the turn was
+// dropped. Every ring, every radius: the pieces as long as the run.
+test('A lapped ring is fitted whole: no span from a point back to itself (17:13)', () => {
+  const owner = { anchors: [{"x": -135.99, "y": -245.66, "z": 0, "roll": 0}, {"x": -97.34, "y": -229.65, "z": 0, "roll": 0}, {"x": -81.34, "y": -191.01, "z": 0, "roll": 0}, {"x": -97.34, "y": -152.37, "z": 0, "roll": 0}, {"x": -135.99, "y": -136.37, "z": 0, "roll": 0}, {"x": -174.63, "y": -152.37, "z": 0, "roll": 0}, {"x": -190.63, "y": -191.01, "z": 0, "roll": 0}, {"x": -174.63, "y": -229.65, "z": 0, "roll": 0}], closed: true, rows: 12, pitch: 7, width: 4, stack: 0, twist: 0, squeeze: 0, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 235, dy: 0, lens: 19 };
+  const cases = [owner, ...[16, 30, 54.65, 89, 120].map(r => ({ ...owner, anchors: circleAnchors(-136, -191, r), rows: 7, pitch: 9.5, dx: 0 }))];
+  for (const f of cases) {
+    const b = bandOf(f.anchors, { ...f, step: 1.5 }), L = layeredOf(b, { width: 4, cuts: null, overlap: 0, through: true });
+    lapLoops(b, L.imp.runs);
+    for (const r of L.imp.runs) {
+      const want = lengthOf(r.pts), got = fitPieces(r.pts).reduce((a, g) => a + pieceLen(g), 0);
+      assert.ok(Math.abs(got - want) < 1, `ring ${r.k}: ${got.toFixed(1)} mm fitted of ${want.toFixed(1)}`);
+    }
+    for (const ink of [false, true]) {
+      const all = bandPasses(L.imp.runs, { ink, tail: 3 }), cup = { x: 332.49, y: 0.1, est: {}, diameter: 50, height: 20, rim: 26, dip: -4, dwell: 1 };
+      const run = plotRun({ ...DEFAULTS, ink, snake: true, pause: false, lift: false, tail: 3, here: { x: 350, y: 300 }, cup, noDipUnder: NO_DIP, hover: ELBOW_HOVER, rows: all.rows.length }, all.passes);
+      const painted = run.blocks.reduce((a, x) => a + (x.paintMM || 0), 0), drawn = L.imp.runs.reduce((a, r) => a + lengthOf(r.pts), 0);
+      assert.equal(run.fault, '');
+      assert.ok(painted > drawn - 2 * L.imp.runs.length - (ink ? 2 * DIP_LAP * all.rows.length : 0), `INK ${ink}: ${painted.toFixed(0)} mm painted of ${drawn.toFixed(0)}`);
+    }
+  }
+});

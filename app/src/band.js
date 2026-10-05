@@ -565,11 +565,23 @@ export function offPiece(g, q) {
   if (d <= sweepOf(g) + 1e-9) return Math.abs(Math.hypot(q.x - g.c.x, q.y - g.c.y) - g.r);
   return Math.min(Math.hypot(q.x - g.a.x, q.y - g.a.y), Math.hypot(q.x - g.b.x, q.y - g.b.y));
 }
+// Never a span that comes back to where it began, and the pieces as long as
+// the run they stand for (2026-10-05, nolan-v2/Screenshot 2026-10-05
+// issue.png: "it does not draw the circle, only the tails"): a ring's run,
+// lapped, passed its own seam point, and a span of one whole turn had its
+// two ends on one point — the biarc between them NaN, which every check let
+// through, and the pieces of no length dropped: the turn was gone, only the
+// lap left. Every check here fails on a NaN.
+const CLOSE_MM = 1;   // mm: a span longer than twice this, its ends closer, is a loop
 export function fitPieces(pts, tol = FIT_MM) {
   const P = pts.map(toMachine), n = P.length;
   if (n < 2) return [];
   const T = P.map((_, i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(n - 1, i + 1)]; return unit2(b.x - a.x, b.y - a.y); });
+  const cum = [0];
+  for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(P[i].x - P[i - 1].x, P[i].y - P[i - 1].y));
   const fits = (i, j) => {
+    const lp = cum[j] - cum[i];
+    if (Math.hypot(P[j].x - P[i].x, P[j].y - P[i].y) < CLOSE_MM && lp > 2 * CLOSE_MM) return null;   // round a loop, back to where it began
     const bs = [];
     for (const g of biarc(P[i], T[i], P[j], T[j])) {
       if (g.t === 'A' && g.r > ARC_MAX) {
@@ -578,7 +590,9 @@ export function fitPieces(pts, tol = FIT_MM) {
         bs.push({ t: 'L', a: g.a, b: g.b });
       } else bs.push(g);
     }
-    for (let q = i + 1; q < j; q++) if (Math.min(offPiece(bs[0], P[q]), offPiece(bs[1], P[q])) > tol) return null;
+    for (const g of bs) if (!(pieceLen(g) <= 2 * CLOSE_MM || Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) >= CLOSE_MM)) return null;   // a piece closing on itself
+    if (!(Math.abs(pieceLen(bs[0]) + pieceLen(bs[1]) - lp) <= Math.max(0.5, 0.005 * lp))) return null;
+    for (let q = i + 1; q < j; q++) if (!(Math.min(offPiece(bs[0], P[q]), offPiece(bs[1], P[q])) <= tol)) return null;
     return bs;
   };
   const out = [];
