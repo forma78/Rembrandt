@@ -25,7 +25,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **NOLAN** | The tab that paints ribbons, in Create's place since 2026-10-04. Its task: `NOLAN.md`. The only tab where the hand works too (§1). |
 | **Job** | The tab that runs one layer on the machine. Writes `job.json`; ⚡️ Do Job runs it. |
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
-| **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. |
+| **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. Off the top row since 2026-10-05 (§1); the page stays. |
 | **Library** | Saved paintings, as in RUBENS. |
 | **Reference** | An image attached on the Create tab with **Add new reference**. Shown under the canvas, traced, sampled for colours. Never painted as is. |
 | **Curve** | The one master path of a painting. Lines and arcs only. Every band is built from it. |
@@ -218,6 +218,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   A of `ABCD.png` is the canon ("the only correct A"). The page is copied
   from NOLAN; the run, TEST, the lap, the LCD and the cup stay in the shared
   modules and are imported, so a fix reaches both tabs (the owner agreed).
+- **Adjustments off the top row** (the owner, 2026-10-05: "the Adjustments
+  tab can go now — it only gets in the way"). Its page stays, as Create's
+  does.
 
 ---
 
@@ -393,8 +396,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v0.3**, then the tabs **NOLAN · Job · Test · Ink · Adjustments ·
-  Calibration · Library** (Create hidden since 2026-10-04, §1), and on
+  **v0.3**, then the tabs **NOLAN · Job · Test · Ink · Calibration ·
+  Library** (Create hidden since 2026-10-04, Adjustments since
+  2026-10-05, §1), and on
   Create the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
   Format; the toggles **Reference · Lanes · Drops**, then **Reach · Grid**;
