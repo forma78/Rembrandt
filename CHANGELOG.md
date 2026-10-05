@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Test's run: a row may go on what the brush holds** (`nodip`, for New
+  Yuri's rings, several to a dip; the owner, 2026-10-05: "yes"). NOLAN and
+  Test never mark one, their runs as before.
+
 - **NOLAN: a ring runs whole on one dip** (the owner, 2026-10-05,
   `nolan-v2/IMAGE 2026-10-05 23:57:03.jpg`, `23:57:07.jpg`: "some rings did
   not turn the full 360 degrees but went in two goes"). With INK ON a

@@ -498,8 +498,9 @@ export function plotRun(o, passes) {
       if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint
       const first = m.pieces[0].g.a;
       turns += m.turns; lifts += m.lifts; need = Math.max(need, m.need);
-      // o.noDipUnder (NOLAN): a shorter piece goes on what the brush holds, the first of a pass excepted
-      const dipped = !!cupAt && (dry || !(drawn < o.noDipUnder));
+      // o.noDipUnder (NOLAN): a shorter piece goes on what the brush holds, the first of a pass excepted;
+      // nodip on a row (New Yuri's rings, several to a dip run): it goes on what the brush holds too
+      const dipped = !!cupAt && (dry || (!p[0].nodip && !(drawn < o.noDipUnder)));
       if (dipped) {
         dry = false;
         // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again

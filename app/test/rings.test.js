@@ -101,3 +101,16 @@ test('a corner of the skeleton has its circle: the V\'s bottom on the baseline',
   const v = letterOf(G.V, o).strokes[0], tip = v.centres.reduce((a, c) => c[1] > a[1] ? c : a);
   assert.ok(close(tip[1], o.base - o.R, 1e-6));
 });
+
+// New Yuri with INK ON (the owner, 2026-10-05: several rings to a dip, "yes"):
+// a row marked nodip goes on what the brush holds; the others dip as before.
+import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
+test('a row marked nodip takes no dip; unmarked, every ring dips', () => {
+  const ring = (cx, row, nodip) => [0, 1, 2, 3].map(i => { const a = i * Math.PI / 2, b = a + Math.PI / 2, P = t => ({ x: cx + 20 * Math.cos(t), y: 20 * Math.sin(t) }); return { t: 'A', a: P(a), b: P(b), c: { x: cx, y: 0 }, r: 20, d: 1, tilt: 0, row, ...(nodip ? { nodip: true } : {}) }; });
+  const cup = { x: 390.18, y: 0.1, est: {}, diameter: 50, height: 20, rim: 30, dip: -3, dwell: 1 };
+  const run = rows => plotRun({ ...DEFAULTS, ink: true, snake: true, pause: false, lift: false, tail: 3, here: { x: 400, y: 280 }, cup, noDipUnder: 75, hover: ELBOW_HOVER, rows: rows.length }, [{ key: 'Y', ps: rows, why: null }]);
+  const each = run([ring(0, 1), ring(10, 2), ring(20, 3)]), shared = run([ring(0, 1), ring(10, 2, true), ring(20, 3, true)]);
+  assert.equal(each.fault, ''); assert.equal(shared.fault, '');
+  assert.equal(each.dips, 3);
+  assert.equal(shared.dips, 1);
+});
