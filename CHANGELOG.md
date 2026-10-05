@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Ink: 🙋‍♂️ and 🙇‍♂️ on The dip's keys** (the owner, 2026-10-05: "two
+  emoji icons here"): 🙋‍♂️ Over the rim ← elbow — the arm up; 🙇‍♂️ In the
+  cup ← elbow — the bow down into the paint.
+
 - **Rembrandt.md §0: o'clock** — a place on a ring as on a clock face over
   the canvas: 12 at the top, 3 right, 6 bottom, 9 left by the cup; the
   Circle's seam at 12, its rows clockwise (the owner, 2026-10-05: "the
