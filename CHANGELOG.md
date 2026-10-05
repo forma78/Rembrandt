@@ -3,7 +3,10 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v0.4 — 2026-10-05
+
+- **v0.4 after the name** (the owner, 2026-10-05: "publish the update on
+  GitHub and make it v0.4 :)"), on every tab and in the saved SVGs.
 
 - **Adjustments off the top row** (the owner, 2026-10-05: "the Adjustments
   tab can go now — it only gets in the way"): NOLAN · Job · Test · Ink ·

@@ -65,7 +65,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 4. **Create is hidden, NOLAN takes its place** (the owner, 2026-10-04: "I
    would hide Create for now. It just isn't working — a pile-up of
    colours"). The top row: REMBRANDT, its version right after the name
-   — **v0.2**, **v0.3** since 2026-10-05 — then NOLAN · Job · Test · Ink · Adjustments · Calibration ·
+   — **v0.2**, **v0.3** since 2026-10-05, **v0.4** the same evening — then NOLAN · Job · Test · Ink · Adjustments · Calibration ·
    Library. Create's page stays; the Library still opens a painting on it.
    Adjustments left the top row on 2026-10-05 (Rembrandt.md §1).
 
