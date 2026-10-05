@@ -723,7 +723,7 @@ function nolanSvg() {
   const rows = (P_.imp?.runs || []).map(r => `  <path stroke="${colourOf(r.k)}" data-layer="${r.layer}" d="M${r.pts.map(p => `${f(W / 2 + p[0])} ${f(H / 2 + p[1])}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v0.2 · ${nolanLabel()}; 1 unit = 1 mm -->
+<!-- Rembrandt v0.3 · ${nolanLabel()}; 1 unit = 1 mm -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${S.ground === 'black' ? '#0B0B0D' : '#FCFBF8'}" stroke="#24221F" stroke-width="0.5"/>
 <g fill="none" stroke-width="${f(S.width)}" stroke-linecap="round" stroke-linejoin="round">
