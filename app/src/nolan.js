@@ -51,13 +51,15 @@ function load() {
     S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
     for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'brush', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
     const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
-    if (A.length >= 2) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
+    if (Array.isArray(o.anchors)) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));   // none: the canvas cleared
     // the whole band's Roll of before 2026-10-04 (two Rolls on the panel, the owner: "unprofessional"):
     // its angle goes into every point, so the ribbon keeps its shape
     if (Number.isFinite(o.roll) && o.roll) S.anchors.forEach(a => { a.roll += o.roll; });
   } catch { }
-  pick = Math.min(pick, S.anchors.length - 1);
+  fixPick();
 }
+// The picked point: one of them, or −1 with none (the canvas cleared).
+function fixPick() { pick = Math.min(Math.max(pick, 0), S.anchors.length - 1); }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
 const bandOpts = step => ({ rows: S.rows, pitch: S.pitch, width: S.width, stack: S.stack, twist: S.twist, squeeze: S.squeeze, tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens, step });
 const view3 = () => ({ tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens });
@@ -90,6 +92,8 @@ function band(step) {
 // waits while the mouse turns the ribbon or a slider moves.
 let PLAN = null, planKey = '', busy = false;
 const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], folds: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
+// Test's run, as PLAY and TEST take it: rows, the number of rows it runs.
+const runOpts = rows => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
 function plan() {
   if (busy && PLAN) return PLAN;
   const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.cuts, S.overlap, S.through]);
@@ -101,7 +105,7 @@ function plan() {
   const all = bandPasses(imp.runs, { ink: S.ink, tail: S.tail }), rows = all.rows;
   // every layer runs, in its order: no N1 · N2 · N3 keys since 2026-10-05 (the owner: "I do not press one first and then the other")
   const passes = all.passes;
-  const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER };
+  const o = runOpts(rows.length);
   // rows: every piece of every layer, by its number (the LCD finds a block's there); pieces: those that run
   PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, cuts: L.cuts, stretches: L.stretches, folds: L.folds, opts: o };
   return PLAN;
@@ -389,7 +393,7 @@ let undoStack = [], redoStack = [];
 const SHAPE = ['anchors', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'cuts', 'twist', 'squeeze'];
 const snapshot = () => JSON.stringify(Object.fromEntries(SHAPE.map(k2 => [k2, S[k2]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
-function restore(js) { Object.assign(S, JSON.parse(js)); pick = Math.min(pick, S.anchors.length - 1); settle(); }
+function restore(js) { Object.assign(S, JSON.parse(js)); fixPick(); settle(); }
 function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); }
 function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); }
 
@@ -438,7 +442,7 @@ function pointHit(p) {
 }
 // A point put in the screen's plane, at the depth of the ribbon's last point.
 function addPoint(p) {
-  const R = rotation(S.tilt, S.swing, S.spin), last = S.anchors.at(-1), w = apply(R, [last.x, last.y, last.z]);
+  const R = rotation(S.tilt, S.swing, S.spin), last = S.anchors.at(-1) || { x: 0, y: 0, z: 0, roll: 0 }, w = apply(R, [last.x, last.y, last.z]);   // the canvas cleared: the first one at the centre's depth
   const m = apply(transpose(R), [(p[0] - S.dx) / S.zoom, (p[1] - S.dy) / S.zoom, w[2]]);
   undoPush();
   S.anchors.push({ x: Math.round(m[0]), y: Math.round(m[1]), z: Math.round(m[2]), roll: last.roll });
@@ -536,9 +540,15 @@ function syncTools() {
 document.querySelectorAll('.tool[data-tool]').forEach(b2 => b2.onclick = () => setTool(b2.dataset.tool));
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo;
 function deleteCut() { const v = cutsNow()[pickCut]; if (v === undefined) return; undoPush(); setCuts(cutsNow().filter(c => c !== v)); settle(); }
-function deletePoint() { if (S.anchors.length <= 2) return; undoPush(); S.anchors.splice(pick, 1); pick = Math.min(pick, S.anchors.length - 1); settle(); }
+function deletePoint() { if (S.anchors.length <= 2) { clearRibbon(); return; } undoPush(); S.anchors.splice(pick, 1); fixPick(); settle(); }
+// The canvas cleared, no ribbon (the owner, 2026-10-05, nolan-v2/Screenshot
+// 2026-10-05 at 3.45.43 PM.png: "I cannot clear the screen entirely, one tip
+// is left" — ⌫ stopped at two points): Clear, as Create's; ⌫ on the last two
+// points too. Then Brush or Pen paints a new one; ⌘Z brings it back.
+function clearRibbon() { if (!S.anchors.length) return; undoPush(); S.anchors = []; S.cuts = null; pick = -1; pickCut = -1; settle(); }
+$('#btnClear').onclick = clearRibbon;
 $('#btnDel').onclick = () => cutting() ? deleteCut() : deletePoint();
-const blank = A => { undoPush(); S.anchors = A.map(a => ({ ...a })); pick = Math.min(pick, S.anchors.length - 1); settle(); };
+const blank = A => { undoPush(); S.anchors = A.map(a => ({ ...a })); fixPick(); settle(); };
 $('#btnDefault').onclick = () => blank(SKETCH);
 $('#btnRing').onclick = () => blank(ringBlank());
 $('#btnFront').onclick = () => { undoPush(); Object.assign(S, { tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0 }); settle(); };
@@ -553,7 +563,7 @@ $('#btnPaste').onclick = () => {
     S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll + all }));
     const map = { lines: 'rows', pitch: 'pitch', brush: 'width', stack: 'stack', twist: 'twist', tilt: 'tilt', turn: 'swing', spin: 'spin', zoom: 'zoom', dx: 'dx', dy: 'dy', lens: 'lens' };
     for (const [from, to] of Object.entries(map)) if (Number.isFinite(g[from])) S[to] = g[from];
-    pick = Math.min(pick, S.anchors.length - 1); settle();
+    fixPick(); settle();
   } catch { alert('That is not a shape from the prototype.'); }
 };
 addEventListener('keydown', e => {
@@ -590,7 +600,7 @@ function sliders(box, list, objOf) {
   box.innerHTML = list.map(([key, label, , step, min, max, sc]) => `<label class="sl"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}">${sc ? scale(step, min, max, sc.label) : ''}</label>`).join('');
   box.querySelectorAll('input').forEach(inp => {
     const row = list.find(r => r[0] === inp.dataset.k), sign = row[7] || 1;
-    inp.oninput = () => { if (!busy) undoPush(); busy = true; objOf()[inp.dataset.k] = +inp.value * sign; showSliders(); kick(); };
+    inp.oninput = () => { const o = objOf(); if (!o) return; if (!busy) undoPush(); busy = true; o[inp.dataset.k] = +inp.value * sign; showSliders(); kick(); };
     inp.onchange = () => settle();
   });
 }
@@ -619,12 +629,14 @@ document.querySelectorAll('[data-ground]').forEach(b2 => b2.onclick = () => { S.
 // was set back to the point's on every step where a slider takes no focus).
 function showSliders() {
   for (const [list, box, objOf] of [[BAND_SL, '#slBand', () => S], [VIEW_SL, '#slView', () => S], [POINT_SL, '#slPoint', () => S.anchors[pick]], [RUN_SL, '#slRun', () => S]]) for (const [key, , unit, , , , , sign = 1] of list) {
-    const obj = objOf(), inp = $(`${box} input[data-k="${key}"]`), v = obj[key] * sign;
+    const obj = objOf(); if (!obj) continue;                                        // no point picked: the canvas cleared
+    const inp = $(`${box} input[data-k="${key}"]`), v = obj[key] * sign;
     if (document.activeElement !== inp) inp.value = v;
     const shown = key === 'rows' ? `${S.rows} · ${fmt((S.rows - 1) * S.pitch + S.width, 0)} mm` : key === 'zoom' ? fmt(v, 2) : ['dx', 'dy', 'roll', 'twist', 'squeeze'].includes(key) ? signed(Math.round(v * 100) / 100) : Math.round(v * 100) / 100;
     $(`${box} [data-v="${key}"]`).textContent = `${shown}${unit && key !== 'rows' ? ' ' + unit : ''}`;
   }
-  $('#ptHead').textContent = `Point ${pick + 1} of ${S.anchors.length}`;
+  $('#ptHead').textContent = S.anchors.length ? `Point ${pick + 1} of ${S.anchors.length}` : 'No points';
+  $('#slPoint').hidden = !S.anchors.length;
 }
 function showPanel() {
   showSliders();
@@ -668,7 +680,7 @@ function settle() {
   // The reading under the ⓘ of Canvas, what stops PLAY always (the owner,
   // 2026-10-05: "this text below we hide under (i)", as The dip on the Ink
   // tab); the folds have their red ! on the board.
-  $('#planRead').innerHTML = (!P_.imp ? 'No ribbon: two points at least.' :
+  $('#planRead').innerHTML = (!P_.imp ? 'No ribbon: paint one with the Brush (B), or two points with the Pen (P).' :
     `The imprint: <b>${P_.imp.runs.length}</b> pieces of row, <b>${fmt(P_.imp.total / 1000, 1)} m</b> · `
     + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m`).join(' · ')}${P_.passes.length > 1 ? (S.ink ? ', one after another, no pause: the watercolour only lays in the form' : ', a pause between them — CONTINUE when the one under is dry') : ''} · `
     + `closer than the row's width: <span class="${P_.imp.red > 0.35 ? 'warn' : ''}">${fmt(P_.imp.red * 100, 0)} %</span> · `
@@ -800,8 +812,8 @@ $('#btnDoJob').onclick = async () => {
 // TL, TR, BR, BL (2026-10-05: the board's, not the drawing's) — and home.
 // Test's run, as PLAY's.
 function testRun() {
-  const P_ = plan(), T = cornerDots(S.boardW, S.boardH);
-  return T.dots.length ? { ...plotRun({ ...P_.opts, ink: true, cup: dipCup(), noDipUnder: NO_DIP, rows: T.dots.length }, T.passes), dots: T.dots } : null;
+  const T = cornerDots(S.boardW, S.boardH);   // the board's, so with no ribbon too
+  return T.dots.length ? { ...plotRun({ ...runOpts(T.dots.length), ink: true }, T.passes), dots: T.dots } : null;
 }
 $('#btnTest').onclick = async () => {
   await loadInk(); settle();

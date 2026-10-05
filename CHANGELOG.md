@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: Clear — the canvas empty, no ribbon** (the owner, 2026-10-05,
+  `nolan-v2/Screenshot 2026-10-05 at 3.45.43 PM.png`: "I cannot clear the
+  screen entirely, one tip is left" — ⌫ stopped at two points). Clear in
+  the Tools, as Create's, after the ring; ⌫ on the last two points takes
+  the whole ribbon too; ⌘Z brings it back. An empty canvas stays empty
+  through a reload; Point's sliders hide; Brush or Pen paints a new ribbon
+  from nothing, Pen's first point at the canvas's depth. TEST needs no
+  ribbon: its dots are the board's. Tried in the browser.
+
 - **NOLAN: Brush (B) — the ribbon in one stroke, flat** (the owner,
   2026-10-05, `nolan-v2/Screenshot 2026-10-05 at 3.07.42 … 3.09.39 PM.png`:
   "I cannot make it flat — they twist at once"; "how about a new tool in
