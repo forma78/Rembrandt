@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Adjustments off the top row** (the owner, 2026-10-05: "the Adjustments
+  tab can go now — it only gets in the way"): NOLAN · Job · Test · Ink ·
+  Calibration · Library. Its page stays, as Create's does.
+
 - **New Yuri: the letters as rings — `rings.js` and the owner's set in
   `app/glyphs.json`** (the owner, 2026-10-05: "maybe make a New Yuri tab,
   so as not to mix all this into NOLAN? We have no 3D there, half the

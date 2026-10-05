@@ -67,6 +67,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
    colours"). The top row: REMBRANDT, its version right after the name
    — **v0.2**, **v0.3** since 2026-10-05 — then NOLAN · Job · Test · Ink · Adjustments · Calibration ·
    Library. Create's page stays; the Library still opens a painting on it.
+   Adjustments left the top row on 2026-10-05 (Rembrandt.md §1).
 
 ---
 
