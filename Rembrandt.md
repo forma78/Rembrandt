@@ -190,6 +190,23 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **Create is hidden, NOLAN takes its place** (the owner, 2026-10-04: "I
   would hide Create for now. It just isn't working — a pile-up of
   colours"). The version, **v0.2**, moves next to the name.
+- **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
+  owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
+  Calibration is the bottom left corner"; "the canvas must not slide down
+  under the image area, but lie on it"). On NOLAN the canvas's bottom left
+  corner is fixed from the machine's home — its bottom edge level with
+  home, its left edge 50 mm to the right, two ruler numbers on the tab —
+  and **Board width** and **Board height** grow it up and to the right.
+  TEST's four dots stand 20 mm in from both edges of their corner at any
+  board size: "the bottom left point, for example: from the left edge to
+  the point and from the bottom edge to the point, always 20 mm. The same
+  at every corner … so I can make the board 400 × 600 mm, and the points
+  keep their 20 mm from the edge." The brush goes round the board in one
+  go — TL, TR, BR, BL — and home ("so a neat square is cut"). Before, the
+  dots stood at the corners of the drawing ("they depend on the shape, and
+  they must depend on the board's width and height"), BL first, and the
+  canvas at the Test tab's Here, 124 mm past the bottom wall. On NOLAN
+  this replaces the canvas from the cup of 2026-10-04.
 
 ---
 

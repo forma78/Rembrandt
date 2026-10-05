@@ -94,7 +94,7 @@ Recorded in `Rembrandt.md` (§0, §1, §8) on 2026-10-04, before any code.
 
 **The tab is built on Test** (the owner, 2026-10-04: "Stop. We are copying
 CREATE, which did not work for us. Let's go back to TEST as the base."):
-Test's board, the canvas placed from the cup (§3); Test's PROGRESS, keys,
+Test's board, the canvas placed from home (§3); Test's PROGRESS, keys,
 INK and run; Test's words for the sliders (the owner: "the terminology from
 TEST, so there is no mess: ROWS first, ROW TO ROW and so on; and TAIL"). From
 Create only **the Tools on the left**. The ribbon is the one ribbon in 3D of
@@ -106,9 +106,11 @@ The panel, top to bottom:
    CONTINUE · • STOP · •• HARD STOP**. **TEST**, before PLAY (the owner,
    2026-10-04: "the brush in the bottom left corner; I press TEST and it
    dips in the paint and puts dots at the farthest corners, TL TR / BL
-   BR"): one dip in the cup, a 6 mm dot (est.) from each corner of the box
-   round what PLAY paints into it — BL, TL, TR, BR — and home; a corner past
-   a wall is said before it runs.
+   BR"): one dip in the cup, a 6 mm dot (est.) 20 mm in from each corner
+   of the board, towards its centre — TL, TR, BR, BL, round the board in
+   one go — and home (the owner, 2026-10-05: the board's corners at any
+   size, not the drawing's; Rembrandt.md §1); a corner past a wall is said
+   before it runs.
 2. **💾 SAVE NOLAN** — to the Library. It sits on the tests' shelf for now
    (`rembrandt.py` knows paintings and tests); the Library opens it on NOLAN.
 3. **N1 · N2 · N3**, a key for each layer the imprint has, latching as
@@ -156,8 +158,12 @@ The panel, top to bottom:
    brush goes in overlapping, even better — only not these awful white
    gaps"). Before a stroke the brush waits just over the canvas, +12°
    (est.), not at +25°: from there the elbow was still coming down when
-   the carriage set off, and the line began 5–10 mm late. Then **Board
-   width · Board height**.
+   the carriage set off, and the line began 5–10 mm late. Then **Canvas**
+   (the owner, 2026-10-05: "the word CANVAS is missing at the bottom"):
+   **Board width · Board height**, and its **Left edge →** and **Bottom
+   edge ↑** from home (§3); the plan's reading under the ⓘ, as The dip on
+   the Ink tab ("this text below we hide under (i)"), what stops PLAY
+   always shown.
 9. **Reference**: tracing paper over the canvas, its opacity; the round ×.
 
 Test's *Row length*, *Bow*, *Wave* and *Lift at the turns* are not here: the
@@ -189,7 +195,8 @@ On the board:
    over?"): the machine's walls dashed orange and named, the canvas past
    them hatched — there the brush runs along the wall (§3, past the walls);
    the grid every 100 mm, X on the left, Y along the bottom ("add X 800 /
-   Y 500").
+   Y 500"); home, which the canvas lies from, and TEST's four dots as
+   small crosses.
 
 Later, and where on the tab to settle with the owner: **Sample** (a tube
 for every stretch of every row from the reference, §4), the drop map, the
@@ -290,10 +297,16 @@ to send such noise to the board"): its journal held one such arc, the D1 of
 - **Past the walls** — pressed into them as on Job and Test; the page says
   by how many mm. Kept so, not left out (the owner, 2026-10-04:
   "as now, pressed to the wall").
-- **The canvas on the machine** lies from the cup: the two ruler numbers
-  of the Ink tab, its left edge and its bottom edge from the cup's centre
-  (`canvasFrom` of `ink.js`), as the Test board does (the owner,
-  2026-10-04). Not Calibration's canvas corners.
+- **The canvas on the machine** lies from home, Calibration's, the bottom
+  left corner of the walls (the owner, 2026-10-05,
+  `adobe_ai/500x700_image_area.png`; Rembrandt.md §1): its bottom edge
+  **Bottom edge ↑** mm above home, 0 by default, its left edge **Left
+  edge →** mm to the right, 50 — two ruler numbers on the tab. Board width
+  and height grow it up and to the right; its centre is Here, the mm the
+  board and the run count from. From the cup's two numbers on the Ink tab
+  (`canvasFrom` of `ink.js`) until then, and the Test tab's Here while
+  they were not typed: the canvas of 2026-10-04 and -05 lay 124 mm past
+  the bottom wall. Not Calibration's canvas corners.
 
 ---
 
@@ -461,8 +474,9 @@ No machine moves. Not in phase 1.
    2026-10-04; §5.1).
 3. ~~The Watercolour run traces the Edges by default, or All lines?~~
    All lines (the owner, 2026-10-04; §5.1).
-4. ~~Where the canvas lies on the machine?~~ From the cup and the two
-   ruler numbers, as the Test board (the owner, 2026-10-04; §3).
+4. ~~Where the canvas lies on the machine?~~ From home: the bottom edge
+   level with it, the left edge 50 mm to the right (the owner, 2026-10-05;
+   §3). From the cup and two ruler numbers before (2026-10-04).
 5. ~~Snake in the Paint run: where does the owner squeeze the paint of a
    line that runs bottom to top?~~ Where the drop map says: at the start
    of each stretch in the brush's direction — on Snake's upward lines, at

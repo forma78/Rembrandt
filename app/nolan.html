@@ -62,7 +62,7 @@
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
       <div class="runkeys">
-        <button class="btn" id="btnTest" title="Before PLAY: one dip in the cup, a dot at each corner of what PLAY paints — BL, TL, TR, BR — and home">TEST</button>
+        <button class="btn" id="btnTest" title="Before PLAY: one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home">TEST</button>
         <button class="btn" id="btnDoJob" title="Run the imprint on the machine, layer by layer">PLAY</button>
         <button class="btn" id="btnPause" title="Pause the run; pressed, Continue goes on">PAUSE</button>
       </div>
@@ -107,8 +107,10 @@
       <div class="sliders" id="slPoint"></div>
       <h4>The brush</h4>
       <div class="sliders" id="slRun"></div>
+      <h4>Canvas <button class="info" id="planInfo" title="The plan: the imprint, the run, where the canvas lies from home">i</button></h4>
       <div class="grid4" id="fields"></div>
-      <p class="read" id="planRead"></p>
+      <p class="read" id="planRead" hidden></p>
+      <p class="read" id="planWarn" hidden></p>
     </section>
 
     <section class="sec">

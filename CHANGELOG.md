@@ -5,6 +5,29 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: the canvas from home, TEST's dots 20 mm in from the board's
+  corners** (the owner, 2026-10-05, `adobe_ai/500x700_image_area.png`:
+  "the test dabs at four edges, but the edges depend on the shape, and they
+  must depend on the board's width and height"; "the canvas must not slide
+  down under the image area, but lie on it"; "home in Calibration is the
+  bottom left corner … the TEST points keep a 20 mm margin … so I can make
+  the board 400 × 600 mm"). The canvas's bottom left corner lies from
+  home — its bottom edge level with it, its left edge 50 mm to the right,
+  **Left edge →** and **Bottom edge ↑** on the tab — and Board width and
+  height grow it up and to the right: 500 × 700 at X 0 … 700, Y 50 … 550.
+  Before, it was centred on the Test tab's Here (X 226.2 · Y 333.8), 124 mm
+  past the bottom wall. `cornerDots` (`band.js`) takes the board's size:
+  a dot `TEST_MARGIN` 20 mm in from both edges of each corner, round the
+  board TL, TR, BR, BL, then home ("so a neat square is cut"; before, BL
+  TL TR BR, at the corners of the drawing's box, and the way home crossed
+  the square — the last TEST, 14:04, put them at X 21.8 … 538.1,
+  Y 126 … 528). The board draws home and the four dots. **Canvas** heads
+  the fields ("the word CANVAS is missing at the bottom"); the plan's
+  reading goes under its ⓘ ("this text below we hide under (i)"), what
+  stops PLAY stays out. The owner ran TEST at 14:55 on it: TL X 680 · Y 70,
+  TR X 680 · Y 530, BR X 20 · Y 530, BL X 20 · Y 70, home; 32 s. In the
+  canon, Rembrandt.md §1. A test.
+
 - **NOLAN: TEST before PLAY — a dot at each corner of the drawing** (the
   owner, 2026-10-04: "before pressing PLAY I would like to do a test. The
   brush in the bottom left corner; I press TEST and it dips in the paint and
