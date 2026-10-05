@@ -50,7 +50,7 @@ const SLIDERS = [
   ['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX],
   // along the first and the last of a row the elbow eases the brush on and off on the move (2026-10-02);
   // "Wrist at a turn" went with the new arm: the wrist lifting the brush was the broom
-  ['tail', 'Tail', 'mm', 1, TAIL_MIN, TAIL_MAX],   // 10 … 20 mm since 2026-10-04 (strokes.js)
+  ['tail', 'Tail', 'mm', 0.05, TAIL_MIN, TAIL_MAX],   // 0.05 … 5 mm since 2026-10-05 (strokes.js)
 ];
 // a dot every step, a bigger one with its number every `label`, as on
 // Calibration; a scale across zero signs its numbers

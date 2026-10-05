@@ -46,7 +46,7 @@ const newFig = (o = {}) => ({
 });
 const S = {
   figs: [newFig({ anchors: SKETCH.map(a => ({ ...a })) })], cur: 0, tpl: newFig(),
-  speed: 150, travel: 180, tail: 15, overlap: 4, ink: false,                      // the brush, as on Test (est.); overlap: under another part, mm (est.)
+  speed: 150, travel: 180, tail: 3, overlap: 4, ink: false,                      // the brush, as on Test (est.); overlap: under another part, mm (est.)
   through: false,                                                                 // Pass through: the rows run whole over and under the other parts
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,                         // the canvas, and its edges from home (the owner's, 2026-10-05)
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
@@ -364,12 +364,12 @@ function drawImprint() {
   if (!P_.imp) return;
   if (P_.ink) { drawWash(P_); return; }
   for (const r of P_.imp.runs) {
-    const L = lengthOf(r.pts), z = Math.min(S.tail, L / 2);
+    const L = lengthOf(r.pts), z = Math.min(S.tail, L / 2), zo = Math.min(r.lap || S.tail, L / 2);   // a loop's lap: the lift-off over all of it
     let s = 0;
     g.strokeStyle = colourOf(r.k, r.n);
     for (let j = 1; j < r.pts.length; j++) {
       const a = r.pts[j - 1], c = r.pts[j], d = Math.hypot(c[0] - a[0], c[1] - a[1]), m = s + d / 2;
-      const w = m < z ? (1 - Math.cos(Math.PI * m / z)) / 2 : m > L - z ? (1 - Math.cos(Math.PI * (L - m) / z)) / 2 : 1;
+      const w = m < z ? (1 - Math.cos(Math.PI * m / z)) / 2 : m > L - zo ? (1 - Math.cos(Math.PI * (L - m) / zo)) / 2 : 1;
       g.lineWidth = Math.max(0.6, r.w * k * w);
       g.beginPath(); g.moveTo(sx(a), sy(a)); g.lineTo(sx(c), sy(c)); g.stroke();
       s += d;
@@ -729,7 +729,7 @@ const LENS_SL = [['lens', 'Lens', '', 1, 0, 100]];
 const ZOOM_MIN = 0.05, ZOOM_MAX = 10;
 const VIEW_FIELDS = [['zoom', 'Size', '×', 0.01, 'The picked figure\'s size; the wheel too'], ['dy', 'X ↑', 'mm', 1, 'The picked figure moved up the canvas, mm; the arrows too', -1], ['dx', 'Y →', 'mm', 1, 'The picked figure moved to the right, mm; the arrows too']];
 const POINT_SL = [['z', 'Depth', 'mm', 1, -250, 250], ['roll', 'Roll', '°', 1, -180, 360]];
-const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 1, TAIL_MIN, TAIL_MAX], ['overlap', 'Overlap', 'mm', 1, 0, 10]];
+const RUN_SL = [['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 0.05, TAIL_MIN, TAIL_MAX], ['overlap', 'Overlap', 'mm', 1, 0, 10]];
 function scale(step, min, max, label) {
   let h = '';
   for (let i = 0; min + i * step <= max + 1e-9; i++) {
@@ -847,10 +847,10 @@ function settle() {
     + (S.ink ? `<b>Ink ON</b>, the Watercolour run: a dip every ${DIP_RUN} mm along a row (est.), none before a piece under ${NO_DIP} mm but a layer's first, ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint · ` : 'the Paint run · ')
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
     + (P_.folds?.length ? ` <span class="warn">${P_.folds.length === 1 ? 'One place' : `${P_.folds.length} places`} where the rows fold, the red ! (${P_.folds.map(f => `${S.figs.length > 1 ? `figure ${f.f + 1} ` : ''}${fmt(f.s / (P_.figs[f.f]?.b.L || 1) * 100, 0)} %, ${f.rows} rows`).join(' · ')}): the ribbon turns there tighter than half its width — move or take out a point near it.</span>` : '')
+    + (P_.need > WRIST_MAX ? ` <span class="hint">The elbow goes ${WRIST_MAX}°/s at most: over so short a Tail it lands and lifts as fast as it goes.</span>` : '')
     + (P_.pastWall > 0.05 && P_.pastWall <= PAST_MANY ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
     + ` · The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>, its centre X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)}; TEST's dots ${TEST_MARGIN} mm in from its edges.`;
   const warn = [inkWhy, P_.fault && `The plan is wrong, PLAY will not run it: ${P_.fault}.`,
-    P_.need > WRIST_MAX && `The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.`,
     P_.pastWall > PAST_MANY && `${fmt(P_.pastWall / 1000, 1)} m of the rows lie past the machine's walls and would be pressed along them: the canvas lies partly out of reach — check its edges from home, or move the ribbon.`,
     walls()].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');

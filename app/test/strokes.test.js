@@ -154,7 +154,7 @@ test('the elbow never past the reach of rembrandt.py: −5…+45°', () => {
 
 const lengthOf = l => l.slice(1).reduce((a, q, i) => a + Math.hypot(q.x - l[i].x, q.y - l[i].y), 0);
 test('the tip keeps to the row: the snake pressed throughout is one stroke, light at both ends, its whole length', () => {
-  const p = xyPlan({ ...PATTERNS.C, lift: false }), k = p.preview[0];
+  const p = xyPlan({ ...PATTERNS.C, lift: false, tail: 15 }), k = p.preview[0];   // a tail longer than the trace's 2 mm steps (3 by default since 2026-10-05)
   assert.equal(p.preview.length, 1);
   assert.ok(k[0].k < 0.05 && k.at(-1).k < 0.05 && Math.max(...k.map(q => q.k)) === 1, 'light where it lands and lifts, full between');
   const rows = PATTERNS.C.rows, full = rows * 220 + (rows - 1) * Math.PI * PATTERNS.C.pitch / 2;

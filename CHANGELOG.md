@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a loop's lap 75 mm, the brush lifting off over all of it; Tail
+  0.05 … 5 mm** (the owner, 2026-10-05: "a smooth one? then increase it
+  from 50 to 75 mm, the lap and the lift-off"; and of Tail: "I do not use
+  it, to be honest — past 3 mm it starts to play up; cut it to 0.05 …
+  5 mm"). A ring's row now runs 75 mm over its start, and the elbow eases
+  the brush off over the whole lap, a half cosine from pressed to +10° —
+  a long fade on wet paint, not the hook of a short tail: `lapLoops` marks
+  the run's lap, `bandPasses` hands it to the row's last piece as
+  `tailOut`, and `strokes.js` lifts over it; the landing stays on Tail.
+  Imprint draws it so. Tail on NOLAN and Test 0.05 … 5 mm, in 0.05 mm
+  steps, 3 by default (3 … 20 and 15 before; a saved 15 opens as 5); a
+  tail under 0.05 mm is a sliver, never sent, its elbow command riding on
+  the next piece. The elbow's 211°/s note, which so short a tail always
+  raises and which never stops PLAY, goes under the ⓘ. Planned in node and
+  tried in the browser; not run on the machine from here.
+
 - **NOLAN: a loop's rows run on 50 mm over their own start** (the owner,
   2026-10-05, `nolan-v2/IMAGE 2026-10-05 16:56:15 … 16:56:33.jpg`: "the
   ring does not close, the brush paints a tulip on the canvas"; "if it is a

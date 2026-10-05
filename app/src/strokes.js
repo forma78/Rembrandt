@@ -79,7 +79,7 @@ export const DEFAULTS = {
   travel: 100,                // mm/s between rows, the brush off
   tilt: 45,                   // the turns' mark in the rows' pieces, before the new arm the wrist's angle there
   lift: true,                 // the brush up through every turn (the elbow); off: a snake's turns painted too
-  tail: 15,                   // mm: along the first and the last of every row the brush lands and lifts, on the move (est.); TAIL_MIN … TAIL_MAX
+  tail: 3,                    // mm: along the first and the last of every row the brush lands and lifts, on the move (est.); TAIL_MIN … TAIL_MAX
   wave: 0,                    // mm: a row waves this far either side of its line or arc; 0 — none
   waveLen: 100,               // mm, about a wave along the row (est.)
   pause: true,                // after every row: paint for the brush
@@ -257,8 +257,10 @@ export const MIN_PIECE = 0.05;  // mm: a shorter piece is a sliver, never sent (
 // 30 % of the ribbon, the pieces' ends never painted (machine/2026-10-04-
 // test_both.png); at 15 on 92 %. The owner, 2026-10-04: "take it away past
 // 20 mm altogether, it is not needed, so there is no temptation"; then "on
-// Test too".
-export const TAIL_MIN = 3, TAIL_MAX = 20;   // 10 … 20 at first; 3 since the elbow keeps pace with the carriage at a path's ends (2026-10-04, the breaks)
+// Test too". Then 0.05 … 5 (the owner, 2026-10-05: "I do not use it, to be
+// honest; past 3 mm it starts to play up — cut it to 0.05 … 5 mm"): a tail
+// under MIN_PIECE is a sliver, never sent, its W riding on the next piece.
+export const TAIL_MIN = 0.05, TAIL_MAX = 5;   // 10 … 20 at first; 3 … 20 since the elbow keeps pace with the carriage at a path's ends (2026-10-04, the breaks)
 export const tailIn = v => Math.max(TAIL_MIN, Math.min(TAIL_MAX, Number.isFinite(v) ? v : DEFAULTS.tail));
 const sliver = (g, min = MIN_PIECE) => Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y) < min;
 // How far the board runs a piece from where it stands, as the firmware takes
@@ -319,7 +321,8 @@ function onTheMove(p, o) {
       line = null; off += L;
       return;
     }
-    const tr = trackOf(G.p), Lr = tr.at(-1).s1, z = Math.min(o.tail, Lr / 2), th = rowLift(Lr, ELBOW_LIFT, ELBOW_LIFT, z, z);
+    // its last tail its own when a piece says so: a loop's lap, the lift-off over all of it (NOLAN, band.js lapLoops)
+    const tr = trackOf(G.p), Lr = tr.at(-1).s1, z = Math.min(o.tail, Lr / 2), zo = Math.min(G.p.at(-1).tailOut ?? o.tail, Lr / 2), th = rowLift(Lr, ELBOW_LIFT, ELBOW_LIFT, z, zo);
     const zone = (a, b) => {                            // a tail: the row cut every TAIL_STEP mm, a W 2 on each step
       const n = Math.max(1, Math.ceil((b - a) / TAIL_STEP)), ds = (b - a) / n;
       for (let j = 0; j < n; j++) {
@@ -330,8 +333,8 @@ function onTheMove(p, o) {
       }
     };
     zone(0, z);
-    for (const g of cutTrack(tr, z, Lr - z)) put(g, 1, G.row, {});
-    zone(Lr - z, Lr);
+    for (const g of cutTrack(tr, z, Lr - zo)) put(g, 1, G.row, {});
+    zone(Lr - zo, Lr);
     for (let s = 0; ; s = Math.min(Lr, s + 2)) {         // the tip: the row itself, light in its tails
       touch(atTrack(tr, s).p, 1 - th(s) / ELBOW_LIFT);
       if (s >= Lr) break;

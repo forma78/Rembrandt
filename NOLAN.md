@@ -148,7 +148,8 @@ The panel, top to bottom:
 8. The brush, Test's: **Brush on**, **Between rows**, **Tail** — the elbow
    landing and lifting the brush over the ends of every piece, so the tails
    are as long as the owner sets them ("we can make tails of different
-   lengths now") — **3 … 20 mm** (the owner, 2026-10-04: "take it away past
+   lengths now") — **0.05 … 5 mm** since 2026-10-05 (the owner: "past 3 mm
+   it starts to play up"), **3 … 20 mm** before (the owner, 2026-10-04: "take it away past
    20 mm altogether, it is not needed, so there is no temptation"; at
    155 mm the pieces' ends went unpainted, `machine/2026-10-04-test_both.png`;
    then "the line must go on", `2026-10-04 Nolan-v2-details.jpg`). The
@@ -194,9 +195,10 @@ On the board:
    band turned edge-on as it was drawn); **Circle** (O): pressed at the
    centre and dragged out to the radius, a flat ring of 8 points, closed —
    the centre the circle itself; every row that runs whole round a loop
-   goes on 50 mm over its own start (the owner, 2026-10-05,
-   `nolan-v2/IMAGE 2026-10-05 16:56:*.jpg`: "the ring does not close, the
-   brush paints a tulip — run on 50 mm further, past its 360°"); **⌘C ⌘V** copies the picked figure and
+   goes on 75 mm over its own start, the brush lifting off over all of it
+   (the owner, 2026-10-05, `nolan-v2/IMAGE 2026-10-05 16:56:*.jpg`: "the
+   ring does not close, the brush paints a tulip — run on 50 mm further,
+   past its 360°"; then "75 mm, the lap and the lift-off"); **⌘C ⌘V** copies the picked figure and
    pastes it 10 mm under it, picked, so ⌘V again lays the next under that,
    ⌘X takes it out (the owner, 2026-10-05: "I need to draw circles — draw
    one and copy it down, ⌘C and ⌘V"); ⌫ takes the picked point out, the
