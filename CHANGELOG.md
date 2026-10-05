@@ -5,6 +5,29 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: figures — a second stays; the Circle (O); ⌘C ⌘V copies down**
+  (the owner, 2026-10-05, `nolan-v2/Screenshot 2026-10-05 at 3.53.05 PM.png`:
+  "when I make a second figure with the brush, the first disappears — it
+  must stay"; "I need to draw circles: draw one and copy it down, ⌘C and
+  ⌘V, I am on a Mac — can you make one more tool in Tools"). The tab holds
+  figures now, objects as in Illustrator, not the one ribbon: each its
+  points, band, place in space and cuts; the panel edits the picked one,
+  framed dashed orange; a click on another picks it, a click on the picked
+  one's body picks it whole, and ⌫ then takes the whole figure out. Brush
+  and Circle add a figure with the panel's band, flat, facing you; a
+  Brush stroke back to its start (within 20 mm) is a loop. **Circle** (O):
+  press at the centre, drag to the radius — its width and ⌀ shown as it
+  goes — a closed ring of 8 points; `centreOf` takes loops, the centre
+  then the circle itself within 0.01 mm, every row a ring. **⌘C ⌘V**: the
+  copy 10 mm under the picked figure, picked, so ⌘V again lays the next
+  under it; ⌘X cuts; the arrows move the picked one 1 mm, ⇧ 10 mm. The run:
+  N1 of every figure, figure by figure, then N2; the LCD names the figure.
+  Figures do not hide one another; each its own over-and-under. A save of
+  the one ribbon opens as one figure. Clear empties every figure. Tried in
+  the browser: a migrated save, Brush, Circle, two pastes, a click to pick,
+  ⌫, ⌘Z, the arrows, Layers, Imprint with INK ON, Uncut, PLAY's question,
+  a reload.
+
 - **NOLAN: Clear — the canvas empty, no ribbon** (the owner, 2026-10-05,
   `nolan-v2/Screenshot 2026-10-05 at 3.45.43 PM.png`: "I cannot clear the
   screen entirely, one tip is left" — ⌫ stopped at two points). Clear in

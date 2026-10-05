@@ -75,27 +75,31 @@ export function projector(v) {
 // In plan, biarcs through the anchors — two arcs between two anchors, the
 // tangent continuous (strokes.js): lines and arcs, as Pen and Arc draw. The
 // depth and the roll ease between the anchors (Catmull-Rom on their values).
-function ease(vals, i, u) {
-  const p0 = vals[Math.max(0, i - 1)], p1 = vals[i], p2 = vals[Math.min(vals.length - 1, i + 1)], p3 = vals[Math.min(vals.length - 1, i + 2)];
+// closed: a loop, the last anchor back to the first (a circle, 2026-10-05).
+function ease(vals, i, u, closed = false) {
+  const n = vals.length, v = j => closed ? vals[(j % n + n) % n] : vals[Math.max(0, Math.min(n - 1, j))];
+  const p0 = v(i - 1), p1 = v(i), p2 = v(i + 1), p3 = v(i + 2);
   const m1 = (p2 - p0) / 2, m2 = (p3 - p1) / 2, u2 = u * u, u3 = u2 * u;
   return (2 * u3 - 3 * u2 + 1) * p1 + (u3 - 2 * u2 + u) * m1 + (-2 * u3 + 3 * u2) * p2 + (u3 - u2) * m2;
 }
 const unit2 = (x, y) => { const l = Math.hypot(x, y); return l > 1e-9 ? { x: x / l, y: y / l } : { x: 1, y: 0 }; };
 // The centre in space, every `step` mm in plan: [{ p: [x, y, z], roll, s }].
-export function centreOf(anchors, step = 1.5) {
+// closed: a loop through the anchors and back to the first, its tangent
+// continuous there too — on a circle's anchors, the circle itself.
+export function centreOf(anchors, step = 1.5, closed = false) {
   const n = anchors.length;
-  if (n < 2) return [];
+  if (n < 2 || (closed && n < 3)) return [];
   const P = anchors.map(a => ({ x: a.x, y: a.y })), zs = anchors.map(a => a.z), rs = anchors.map(a => a.roll);
-  const T = P.map((_, i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(n - 1, i + 1)]; return unit2(b.x - a.x, b.y - a.y); });
+  const T = P.map((_, i) => { const a = P[i > 0 ? i - 1 : closed ? n - 1 : 0], b = P[i < n - 1 ? i + 1 : closed ? 0 : i]; return unit2(b.x - a.x, b.y - a.y); });
   const out = [];
   let s = 0;
-  for (let i = 0; i < n - 1; i++) {
-    const ps = biarc(P[i], T[i], P[i + 1], T[i + 1]), lens = ps.map(pieceLen), L = lens[0] + lens[1];
+  for (let i = 0; i < (closed ? n : n - 1); i++) {
+    const i2 = (i + 1) % n, ps = biarc(P[i], T[i], P[i2], T[i2]), lens = ps.map(pieceLen), L = lens[0] + lens[1];
     if (!(L > 1e-6)) continue;
     const m = Math.max(2, Math.ceil(L / step));
     for (let j = out.length ? 1 : 0; j <= m; j++) {
       const d = L * j / m, u = j / m, first = d <= lens[0], g = first ? ps[0] : ps[1], q = at(g, Math.min(first ? d : d - lens[0], first ? lens[0] : lens[1])).p;
-      out.push({ p: [q.x, q.y, ease(zs, i, u)], roll: ease(rs, i, u), s: s + d });
+      out.push({ p: [q.x, q.y, ease(zs, i, u, closed)], roll: ease(rs, i, u, closed), s: s + d });
     }
     s += L;
   }
@@ -110,10 +114,23 @@ export function centreOf(anchors, step = 1.5) {
 // canvas mm, → the fewest points whose centre (biarcs, centreOf) keeps within
 // BRUSH_FIT of it: Douglas–Peucker first, then the stroke's farthest point
 // added while one lies further off. Depth 0, Roll 0: the band in the canvas's
-// plane, its face towards you. null for a stroke under BRUSH_MIN.
+// plane, its face towards you. null for a stroke under BRUSH_MIN. closed: the
+// stroke came back to its start (BRUSH_CLOSE), a loop.
 export const BRUSH_FIT = 3;    // mm (Claude's choice): a mouse's jitter is a px, 1–2 mm on the board
 export const BRUSH_MIN = 10;   // mm: shorter is a click, not a stroke
-export function strokeAnchors(stroke, tol = BRUSH_FIT) {
+export const BRUSH_CLOSE = 20; // mm: a stroke ending this near its start, and four times as long, is a loop (Claude's choice)
+
+// ---------- Circle: a loop of CIRCLE_N points ----------
+// The owner, 2026-10-05: "I need to draw circles — one circle, then copy it
+// down, ⌘C ⌘V". Centre (x, y) and radius r, canvas mm: CIRCLE_N points round
+// it from the top, clockwise on the canvas, Depth 0, Roll 0 — closed, the
+// centre the circle itself (centreOf).
+export const CIRCLE_N = 8;
+export const circleAnchors = (x, y, r, n = CIRCLE_N) => Array.from({ length: n }, (_, i) => {
+  const t = -Math.PI / 2 + i * 2 * Math.PI / n;
+  return { x: Math.round((x + r * Math.cos(t)) * 100) / 100, y: Math.round((y + r * Math.sin(t)) * 100) / 100, z: 0, roll: 0 };
+});
+export function strokeAnchors(stroke, tol = BRUSH_FIT, closed = false) {
   const raw = [];
   for (const q of stroke) if (!raw.length || Math.hypot(q[0] - raw.at(-1)[0], q[1] - raw.at(-1)[1]) >= 1) raw.push(q);
   if (raw.length < 2 || lengthOf(raw) < BRUSH_MIN) return null;
@@ -122,9 +139,14 @@ export function strokeAnchors(stroke, tol = BRUSH_FIT) {
   const keep = new Set([0, P.length - 1]);
   const dp = (i, j) => { let w = -1, wd = tol; for (let m = i + 1; m < j; m++) { const d = off(P[m], P[i], P[j]); if (d > wd) { wd = d; w = m; } } if (w > 0) { keep.add(w); dp(i, w); dp(w, j); } };
   dp(0, P.length - 1);
+  if (closed) {                                    // a loop: its end is its start again, and three points at least
+    keep.delete(P.length - 1);
+    if (keep.size < 3) { let w = 1, wd = -1; P.forEach((q, m) => { const d = Math.hypot(q[0] - P[0][0], q[1] - P[0][1]); if (!keep.has(m) && d > wd) { wd = d; w = m; } }); keep.add(w); }
+    if (keep.size < 3) return null;
+  }
   const anchorsOf = () => [...keep].sort((a, b) => a - b).map(i => ({ x: Math.round(P[i][0]), y: Math.round(P[i][1]), z: 0, roll: 0 }));
   for (let guard = 0; guard < P.length; guard++) {
-    const C = centreOf(anchorsOf(), 1).map(c => c.p);
+    const C = centreOf(anchorsOf(), 1, closed).map(c => c.p);
     let w = -1, wd = tol;
     P.forEach((q, m) => { if (keep.has(m)) return; let d = Infinity; for (let j = 1; j < C.length && d > 0.01; j++) d = Math.min(d, off(q, C[j - 1], C[j])); if (d > wd) { wd = d; w = m; } });
     if (w < 0) break;
@@ -158,13 +180,13 @@ export function squeezed(deg, pct) {
 // IMG_9424. o: { rows, pitch, width, stack, twist, squeeze, step } and the view
 // { tilt, swing, spin, zoom, dx, dy, lens }.
 export function bandOf(anchors, o) {
-  const step = o.step || 1.5, C = centreOf(anchors, step);
+  const step = o.step || 1.5, closed = !!o.closed, C = centreOf(anchors, step, closed);
   if (C.length < 2) return null;
   const L = C.at(-1).s || 1, n = o.rows, half = (n - 1) / 2 * o.pitch, edge = half + o.width / 2, stack = o.stack || 0;
   const imp = projector(o), R = rotation(o.tilt, o.swing, o.spin), zoom = o.zoom ?? 1;
   const S = [], E0 = [], E1 = [], M = [], pitch = [], back = [];
   C.forEach((c, i) => {
-    const a = C[Math.max(0, i - 1)].p, b = C[Math.min(C.length - 1, i + 1)].p;
+    const a = C[i > 0 ? i - 1 : closed ? C.length - 2 : 0].p, b = C[i < C.length - 1 ? i + 1 : closed ? 1 : i].p;   // a loop: across its seam
     const T = nrm([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
     let N = [-T[2] * T[0], -T[2] * T[1], 1 - T[2] * T[2]];
     N = Math.hypot(N[0], N[1], N[2]) < 1e-6 ? [1, 0, 0] : nrm(N);
@@ -182,7 +204,7 @@ export function bandOf(anchors, o) {
   for (let i = 0; i < C.length - 1; i++) quads.push({ i, z: (M[i][2] + M[i + 1][2]) / 2, poly: [E0[i], E0[i + 1], E1[i + 1], E1[i]] });
   quads.sort((p, q) => p.z - q.z);                            // far first: the painter's order
   quads.forEach((q, j) => { q.o = j; });
-  return { S, E0, E1, M, pitch, back, s: C.map(c => c.s), n: C.length, step, quads, L, rows: n, across: 2 * edge, zoom };
+  return { S, E0, E1, M, pitch, back, s: C.map(c => c.s), n: C.length, step, quads, L, rows: n, across: 2 * edge, zoom, closed };
 }
 
 // ---------- what lies over what ----------
@@ -424,15 +446,16 @@ const MERGE_CELL = 3;           // mm, the grid the merging places are looked up
 // strokes in canvas mm: [{ dip, pts: [{ p, w, load }] }] — w the line's width
 // there, load 1 fresh from the cup, fading along the dip run.
 export function washOf(preview, band, runs, width, box = null) {
+  const bandOf_ = r => Array.isArray(band) ? band[r.f || 0] : band;   // several figures: each run's own band
   const painted = new Set();
-  for (const r of runs) for (let j = 0; j < r.pts.length; j++) painted.add((r.i0 + j) * 64 + r.k);
+  for (const r of runs) for (let j = 0; j < r.pts.length; j++) painted.add(((r.f || 0) * 100003 + r.i0 + j) * 64 + r.k);
   // where the white beside a row is under WASH_MERGE: there its line widens to its neighbour's
   const grid = new Map();
   for (const r of runs) for (let j = 0; j < r.pts.length; j++) {
-    const i = Math.min(r.i0 + j, band.n - 1), p = r.pts[j];
+    const band = bandOf_(r), i = Math.min(r.i0 + j, band.n - 1), p = r.pts[j];
     let extra = 0;
     for (const k2 of [r.k - 1, r.k + 1]) {
-      if (k2 < 0 || k2 >= band.rows || !painted.has(i * 64 + k2)) continue;
+      if (k2 < 0 || k2 >= band.rows || !painted.has(((r.f || 0) * 100003 + i) * 64 + k2)) continue;
       const q = band.S[i][k2], gap = Math.hypot(q[0] - p[0], q[1] - p[1]) - width;
       if (gap > 0 && gap < WASH_MERGE) extra = Math.max(extra, gap);
     }
@@ -575,9 +598,11 @@ export function dipParts(pts, k, dipRun = DIP_RUN, tail = 0) {
 // The imprint's runs as the passes of Test's run, layer by layer — N1 first,
 // a pause before each next, CONTINUE once the one under it is dry; in a
 // layer row by row, along the ribbon. Each piece one way, the way the
-// ribbon runs. rows: what each row of the run is.
+// ribbon runs. rows: what each row of the run is. Several figures (f, the
+// run's figure, 2026-10-05): a layer's rows figure by figure, N1 of them all
+// before N2.
 export function bandPasses(runs, o) {
-  const sorted = runs.slice().sort((a, b) => a.layer - b.layer || a.k - b.k || a.i0 - b.i0);
+  const sorted = runs.slice().sort((a, b) => a.layer - b.layer || (a.f || 0) - (b.f || 0) || a.k - b.k || a.i0 - b.i0);
   const rows = [], passes = [];
   for (const L of [...new Set(sorted.map(r => r.layer))]) {
     const ps = [];
@@ -585,7 +610,7 @@ export function bandPasses(runs, o) {
       for (const part of o.ink ? dipParts(r.pts, r.k, o.dipRun ?? DIP_RUN, Math.max(o.tail || 0, DIP_LAP)) : [r.pts]) {
         const pieces = fitPieces(part);
         if (!pieces.length) continue;
-        rows.push({ layer: L, name: `N${L}`, row: r.k + 1 });
+        rows.push({ layer: L, name: `N${L}`, row: r.k + 1, f: r.f || 0 });
         const row = rows.length;
         ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
       }

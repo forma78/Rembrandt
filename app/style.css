@@ -513,7 +513,7 @@ html.night .tool:hover{background:#303236}
 /* ---------- Rembrandt · NOLAN (2026-10-04) ----------
    Test's page (body.adjust.arm3) with Create's Tools on the left; the pen's
    cross on the board; a round × on the reference's picture. */
-.nolan .stage.t-pen #cv,.nolan .stage.t-brush #cv,.nolan .stage.t-cut #cv{cursor:crosshair}
+.nolan .stage.t-pen #cv,.nolan .stage.t-brush #cv,.nolan .stage.t-circle #cv,.nolan .stage.t-cut #cv{cursor:crosshair}
 .nolan .stage.drag #cv{cursor:grabbing}
 .nolan .looks{display:flex;margin:10px 0 0}
 .nolan .looks .tog{flex:1}
