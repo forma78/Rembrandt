@@ -13,7 +13,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, ELBOW_HOVER, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, TEST_MARGIN, strokeAnchors, BRUSH_FIT, BRUSH_CLOSE, circleAnchors, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, lapLoops, cornerDots, TEST_MARGIN, strokeAnchors, BRUSH_FIT, BRUSH_CLOSE, circleAnchors, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
@@ -140,14 +140,15 @@ function plan() {
     const b = bandFor(f, STEP);
     if (!b) return null;
     const L = layeredOf(b, { width: f.width, cuts: f.cuts, overlap: S.overlap, through: S.through });
+    lapLoops(b, L.imp.runs);                                                       // a loop's rows on over their own start (band.js)
     for (const r of L.imp.runs) Object.assign(r, { f: i, n: f.rows, w: f.width });
     return { b, L };
   });
   if (!figs.some(Boolean)) { PLAN = EMPTY; return PLAN; }
   const runs = figs.flatMap(x => x ? x.L.imp.runs : []), byLayer = {};
-  for (const x of figs) if (x) for (const [l, m] of Object.entries(x.L.imp.byLayer)) byLayer[l] = (byLayer[l] || 0) + m;
-  const total = figs.reduce((a, x) => a + (x ? x.L.imp.total : 0), 0);
-  const imp = { runs, total, byLayer, red: figs.reduce((a, x) => a + (x ? x.L.imp.red * x.L.imp.total : 0), 0) / (total || 1) };
+  for (const r of runs) byLayer[r.layer] = (byLayer[r.layer] || 0) + lengthOf(r.pts);                 // the loops' laps in
+  const total = runs.reduce((a, r) => a + lengthOf(r.pts), 0), seen = figs.reduce((a, x) => a + (x ? x.L.imp.total : 0), 0);
+  const imp = { runs, total, byLayer, red: figs.reduce((a, x) => a + (x ? x.L.imp.red * x.L.imp.total : 0), 0) / (seen || 1) };
   // every layer runs, in its order, N1 of every figure before N2: no N1 · N2 · N3 keys since 2026-10-05 (the owner: "I do not press one first and then the other")
   const all = bandPasses(runs, { ink: S.ink, tail: S.tail }), rows = all.rows, passes = all.passes;
   const o = runOpts(rows.length);

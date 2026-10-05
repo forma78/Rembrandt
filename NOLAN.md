@@ -193,7 +193,10 @@ On the board:
    screen's plane, at Rotate X −84° nearly along the ribbon's depth, so the
    band turned edge-on as it was drawn); **Circle** (O): pressed at the
    centre and dragged out to the radius, a flat ring of 8 points, closed —
-   the centre the circle itself; **⌘C ⌘V** copies the picked figure and
+   the centre the circle itself; every row that runs whole round a loop
+   goes on 50 mm over its own start (the owner, 2026-10-05,
+   `nolan-v2/IMAGE 2026-10-05 16:56:*.jpg`: "the ring does not close, the
+   brush paints a tulip — run on 50 mm further, past its 360°"); **⌘C ⌘V** copies the picked figure and
    pastes it 10 mm under it, picked, so ⌘V again lays the next under that,
    ⌘X takes it out (the owner, 2026-10-05: "I need to draw circles — draw
    one and copy it down, ⌘C and ⌘V"); ⌫ takes the picked point out, the

@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a loop's rows run on 50 mm over their own start** (the owner,
+  2026-10-05, `nolan-v2/IMAGE 2026-10-05 16:56:15 … 16:56:33.jpg`: "the
+  ring does not close, the brush paints a tulip on the canvas"; "if it is a
+  perfect circle, run on round it 50 mm further, though it has turned its
+  360°"). The rings of 16:38 started at their seam, at the top, with the
+  thin landing and ended there with the lift curling up, the two apart: an
+  onion dome on every ring. `lapLoops` (`band.js`): a row that runs whole
+  round a closed figure — a Circle, a Brush loop — goes on `LOOP_LAP` 50 mm
+  over its start, so the landing is painted over at full pressure and the
+  brush lifts on wet paint; a row broken by a cut or by another part is no
+  loop. The wash shows the lap darker, as the paper will. Planned in node:
+  7 rings, one piece each, 50 mm longer; INK ON, 9 pieces, the two outer
+  rings over 720 mm with a dip between. Not run on the machine from here.
+  The rings crossing where they overlap stay as they are (the owner: "all
+  perfect here, nothing needed").
+
 - **NOLAN: a figure dragged moves in the plane; Size, X ↑, Y → as fields**
   (the owner, 2026-10-05: "X ↑ −250 is the limit, the slider blocks, though
   it can go lower"; "drag and drop turns it in 3D — I do not need 3D;

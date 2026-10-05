@@ -425,6 +425,34 @@ function finished(runs) {
 }
 export const lengthOf = pts => pts.reduce((a, p, i) => i ? a + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0);
 
+// ---------- a loop closes over its own start ----------
+// The owner, 2026-10-05 (nolan-v2/IMAGE 2026-10-05 16:56:15 … 16:56:33.jpg:
+// "the ring does not close, the brush paints a tulip on the canvas"; "if it
+// is a perfect circle, run on round it 50 mm further, past its 360°"): every
+// ring started at its seam with the thin landing and ended there with the
+// lift's hook, the two apart — an onion dome on top of each ring. A row that
+// runs whole round a loop now goes on LOOP_LAP mm over its own start: the
+// landing painted over at full pressure, the lift on wet paint. In place on
+// runs (canvas mm, layeredOf's); a row broken by a cut or another part is no
+// loop and stays as it is. → mm added.
+export const LOOP_LAP = 50;   // mm, the owner's
+export function lapLoops(band, runs, lap = LOOP_LAP) {
+  if (!band?.closed || !(lap > 0)) return 0;
+  let added = 0;
+  for (const r of runs) {
+    const P = r.pts, a = P[0], z = P.at(-1);
+    if (r.i0 > 0 || P.length < band.n || Math.hypot(a[0] - z[0], a[1] - z[1]) > 0.5) continue;   // whole round only
+    let d = 0;
+    for (let j = 1; j < P.length && d < lap; j++) {
+      const p = P[j], q = P[j - 1], step = Math.hypot(p[0] - q[0], p[1] - q[1]);
+      if (d + step > lap) { const t = (lap - d) / step; P.push([q[0] + (p[0] - q[0]) * t, q[1] + (p[1] - q[1]) * t]); d = lap; break; }
+      P.push([p[0], p[1]]); d += step;
+    }
+    added += d;
+  }
+  return added;
+}
+
 // ---------- the trace on the paper ----------
 // The Watercolour run as it lies on the paper, for the Imprint look (the
 // owner, 2026-10-04: "I want to see on the screen more exactly what I paint
@@ -448,11 +476,12 @@ const MERGE_CELL = 3;           // mm, the grid the merging places are looked up
 export function washOf(preview, band, runs, width, box = null) {
   const bandOf_ = r => Array.isArray(band) ? band[r.f || 0] : band;   // several figures: each run's own band
   const painted = new Set();
-  for (const r of runs) for (let j = 0; j < r.pts.length; j++) painted.add(((r.f || 0) * 100003 + r.i0 + j) * 64 + r.k);
+  const at = (b, r, j) => b.closed ? (r.i0 + j) % (b.n - 1) : Math.min(r.i0 + j, b.n - 1);   // a loop's lap past its seam: its start again
+  for (const r of runs) for (let j = 0; j < r.pts.length; j++) painted.add(((r.f || 0) * 100003 + at(bandOf_(r), r, j)) * 64 + r.k);
   // where the white beside a row is under WASH_MERGE: there its line widens to its neighbour's
   const grid = new Map();
   for (const r of runs) for (let j = 0; j < r.pts.length; j++) {
-    const band = bandOf_(r), i = Math.min(r.i0 + j, band.n - 1), p = r.pts[j];
+    const band = bandOf_(r), i = at(band, r, j), p = r.pts[j];
     let extra = 0;
     for (const k2 of [r.k - 1, r.k + 1]) {
       if (k2 < 0 || k2 >= band.rows || !painted.has(((r.f || 0) * 100003 + i) * 64 + k2)) continue;
