@@ -13,7 +13,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, ELBOW_HOVER, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, TEST_MARGIN, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, TEST_MARGIN, strokeAnchors, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
@@ -49,7 +49,7 @@ function load() {
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     S.through = o.through === true;
     S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
-    for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
+    for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'brush', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
     const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
     if (A.length >= 2) S.anchors = A.map(a => ({ x: a.x, y: a.y, z: a.z, roll: a.roll }));
     // the whole band's Roll of before 2026-10-04 (two Rolls on the panel, the owner: "unprofessional"):
@@ -153,7 +153,7 @@ const kick = () => { if (!drawSoon) drawSoon = requestAnimationFrame(() => { dra
 const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
 function shade(h, f) { const n = parseInt(h.slice(1), 16); return `rgb(${Math.round(((n >> 16) & 255) * f)},${Math.round(((n >> 8) & 255) * f)},${Math.round((n & 255) * f)})`; }
 const colourOf = kk => PALETTE[Math.min(PALETTE.length - 1, Math.floor(kk / S.rows * PALETTE.length))];
-const showPoints = () => S.tool === 'pen' || (S.tool !== 'cut' && (S.look === 'geometry' || S.look === 'layers'));
+const showPoints = () => S.tool === 'pen' || S.tool === 'brush' || (S.tool !== 'cut' && (S.look === 'geometry' || S.look === 'layers'));
 function draw() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = g.canvas.width / dpr, H = g.canvas.height / dpr, black = S.ground === 'black', ground = black ? '#0B0B0D' : '#FCFBF8';
@@ -232,6 +232,12 @@ function draw() {
       g.fillStyle = i === pick ? '#EB7A25' : '#fff'; g.strokeStyle = '#24221F'; g.lineWidth = 1.2;
       g.fillRect(X - s, Y - s, 2 * s, 2 * s); g.strokeRect(X - s, Y - s, 2 * s, 2 * s);
     });
+  }
+  if (drag?.mode === 'brush' && drag.stroke.length > 1) {                             // the Brush's stroke as it goes: its width, its centre
+    const line = () => { g.beginPath(); drag.stroke.forEach((p, i) => i ? g.lineTo(sx(p), sy(p)) : g.moveTo(sx(p), sy(p))); };
+    g.save(); g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = '#EB7A25';
+    g.globalAlpha = 0.25; g.lineWidth = ((S.rows - 1) * S.pitch + S.width) * k; line(); g.stroke();
+    g.globalAlpha = 1; g.lineWidth = 1.5; line(); g.stroke(); g.restore();
   }
   if (b && cutting()) drawCuts(b, black);                                              // the cuts, with the Cut tool
   if (b && !busy) drawFolds(b);                                                        // where the rows fold: a red !
@@ -380,7 +386,7 @@ function startOf(B, i) {
 
 // ---------- undo ----------
 let undoStack = [], redoStack = [];
-const SHAPE = ['anchors', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'cuts'];
+const SHAPE = ['anchors', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'cuts', 'twist', 'squeeze'];
 const snapshot = () => JSON.stringify(Object.fromEntries(SHAPE.map(k2 => [k2, S[k2]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
 function restore(js) { Object.assign(S, JSON.parse(js)); pick = Math.min(pick, S.anchors.length - 1); settle(); }
@@ -449,6 +455,10 @@ cv.addEventListener('pointerdown', e => {
   const hit = cutting() ? -1 : pointHit(p);
   if (pickCut >= 0) { pickCut = -1; kick(); }
   if (hit < 0 && S.tool === 'pen') { addPoint(p); return; }
+  if (hit < 0 && S.tool === 'brush') {                                                 // Brush: the stroke as the mouse goes
+    drag = { x: e.clientX, y: e.clientY, moved: false, mode: 'brush', stroke: [p] };
+    cv.setPointerCapture(e.pointerId); stage.classList.add('drag'); return;
+  }
   undoPush();
   drag = { x: e.clientX, y: e.clientY, p, moved: false, mode: hit >= 0 ? 'point' : e.shiftKey ? 'move' : e.altKey ? 'spin' : 'turn' };
   if (hit >= 0) { pick = hit; showPanel(); }
@@ -458,6 +468,7 @@ cv.addEventListener('pointermove', e => {
   if (!drag) { const p = toCanvas(e); cv.style.cursor = cutHit(p) >= 0 ? 'grab' : pointHit(p) >= 0 ? 'move' : ''; return; }
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   if (!drag.moved && Math.hypot(dx, dy) < 2) return;
+  if (drag.mode === 'brush') { drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true; drag.stroke.push(toCanvas(e)); kick(); return; }
   if (drag.mode === 'cut') {                                                           // along the ribbon, between its neighbours
     if (!drag.moved && !S.cuts) setCuts(cutsNow(), cutsNow()[pickCut]);                // the suggested ones become the owner's
     drag.x = e.clientX; drag.y = e.clientY; drag.moved = true; busy = true;
@@ -479,6 +490,7 @@ cv.addEventListener('pointermove', e => {
 });
 cv.addEventListener('pointerup', () => {
   if (!drag) return;
+  if (drag.mode === 'brush') { const A = strokeAnchors(drag.stroke); drag = null; stage.classList.remove('drag'); A ? brushed(A) : settle(); return; }
   if (drag.mode === 'cut') { if (!drag.moved) undoStack.pop(); drag = null; stage.classList.remove('drag'); settle(); return; }
   if (!drag.moved && drag.mode === 'turn' && cutting()) {                              // a click on the ribbon: a cut there
     const v = ribbonAt(drag.p), L = band(STEP).L;
@@ -488,6 +500,16 @@ cv.addEventListener('pointerup', () => {
   else { const a = S.anchors[pick]; if (drag.mode === 'point') { a.x = Math.round(a.x); a.y = Math.round(a.y); a.z = Math.round(a.z); } }
   drag = null; stage.classList.remove('drag'); settle();
 });
+// A new ribbon from the Brush's stroke, flat (the owner, 2026-10-05: "with
+// the brush only flat, no twisting into bundles by default"): the canvas
+// faced, as Face the canvas does, Size 1× so the band is Rows × Row to row
+// wide in true mm; no Twist, no Squeeze; the cuts as suggested. Its points
+// Depth 0, Roll 0 (band.js, strokeAnchors). ⌘Z brings the ribbon before back.
+function brushed(A) {
+  undoPush();
+  Object.assign(S, { anchors: A, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, twist: 0, squeeze: 0, cuts: null });
+  pick = A.length - 1; pickCut = -1; settle();
+}
 let wheelT = 0;
 cv.addEventListener('wheel', e => {
   e.preventDefault();
@@ -501,6 +523,7 @@ cv.addEventListener('wheel', e => {
 const HINTS = {
   select: 'Select — drag a square to move a point; drag elsewhere to turn the ribbon, Shift to move it, Alt to spin it; the wheel sizes it.',
   pen: 'Pen — click to add a point at the ribbon\'s end, at the depth of the last one; drag a square to move a point.',
+  brush: 'Brush — paint the ribbon in one stroke: flat, facing you, Rows × Row to row wide; drag a square to move a point; ⌘Z brings the one before back.',
   cut: 'Cut — click the ribbon to cut it; drag a circle along it; ⌫ takes the picked cut out; Auto: the cuts as suggested; Uncut: none.',
 };
 const hintNow = () => HINTS[S.tool];
@@ -541,6 +564,7 @@ addEventListener('keydown', e => {
   if (cmd) return;
   if (e.key.toLowerCase() === 'v') setTool('select');
   else if (e.key.toLowerCase() === 'p') setTool('pen');
+  else if (e.key.toLowerCase() === 'b') setTool('brush');
   else if (e.key.toLowerCase() === 'c') setTool('cut');
   else if (e.key === 'Backspace' || e.key === 'Delete') cutting() ? deleteCut() : deletePoint();
 });

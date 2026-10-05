@@ -176,7 +176,14 @@ On the board:
    brings it back, the ring (the first try's donut) is the other blank.
 2. **Select** drags a square to move a point in the screen's plane; dragged
    elsewhere the ribbon turns — Shift moves it, Alt spins it, the wheel sizes
-   it. **Pen** adds a point at the ribbon's end; ⌫ takes the picked one out;
+   it. **Pen** adds a point at the ribbon's end; **Brush** (B) paints a new
+   ribbon in one stroke, flat by default — the canvas faced, Size 1×, every
+   point Depth 0 and Roll 0, no Twist, no Squeeze, the band Rows × Row to
+   row wide in true mm; the bundles come after, by turning it (the owner,
+   2026-10-05, `nolan-v2/`: "I cannot make it flat — the lines are born
+   twisted"; "brevity is the sister of talent"; Pen put its points in the
+   screen's plane, at Rotate X −84° nearly along the ribbon's depth, so the
+   band turned edge-on as it was drawn); ⌫ takes the picked one out;
    ⌘Z undoes; Esc is STOP, as on Test.
 3. **N1, N2, N3** are the layers, stretches between the cuts: the run
    paints N1, pauses — CONTINUE when it is dry — then N2, and on; with INK

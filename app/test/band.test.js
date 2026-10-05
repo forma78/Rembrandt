@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { plotRun, DEFAULTS, at, pieceLen, ELBOW_HOVER } from '../src/strokes.js';
-import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, cornerDots, lengthOf, squeezed, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE, DOT_MM, TEST_MARGIN } from '../src/band.js';
+import { SKETCH, ringBlank, centreOf, bandOf, layeredOf, cutsOf, foldsOf, imprintOf, fitPieces, offPiece, toMachine, dipParts, bandPasses, washOf, cornerDots, lengthOf, squeezed, strokeAnchors, BRUSH_FIT, DIP_RUN, NO_DIP, DIP_LAP, WASH_FADE, WASH_MERGE, DOT_MM, TEST_MARGIN } from '../src/band.js';
 
 const close = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const flat = { rows: 5, pitch: 8, width: 5, stack: 0, twist: 0, squeeze: 0 };
@@ -379,4 +379,25 @@ test('TEST: one dip, a dot 20 mm in from each corner of the board, TL TR BR BL, 
     assert.equal(t.fault, '');
   }
   assert.deepEqual(cornerDots(40, 700).dots, [], 'a board 40 mm across: no room for the dots');
+});
+
+// The owner, 2026-10-05: "with the brush only flat, no twisting into bundles
+// by default" — Brush (B): a stroke on the canvas, the fewest points along it.
+test('Brush: a stroke → points within BRUSH_FIT of it, the band flat and facing you', () => {
+  const px = v => Math.round(v * 0.8) / 0.8;   // the mouse in whole px at 0.8 px/mm
+  const strokes = [
+    Array.from({ length: 300 }, (_, i) => { const t = i / 299; return [px(-200 + 400 * t), px(120 * Math.sin(t * 2 * Math.PI))]; }),
+    Array.from({ length: 400 }, (_, i) => { const t = i / 399 * 5.5; return [px(150 * Math.cos(t)), px(150 * Math.sin(t) - 40 * t)]; }),
+  ];
+  for (const st of strokes) {
+    const A = strokeAnchors(st), C = centreOf(A, 1).map(c => c.p);
+    assert.ok(A.length >= 3 && A.length < 30, `${A.length} points`);
+    assert.ok(A.every(a => a.z === 0 && a.roll === 0), 'depth 0, roll 0');
+    const worst = Math.max(...st.map(q => Math.min(...C.map(c => Math.hypot(q[0] - c[0], q[1] - c[1])))));
+    assert.ok(worst <= BRUSH_FIT + 0.5, `the centre ${worst.toFixed(2)} mm off the stroke`);
+    const b = bandOf(A, { rows: 16, pitch: 8, width: 4, stack: 0, twist: 0, squeeze: 0, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0 });
+    assert.ok(b.back.every(x => !x), 'no back towards you');
+    assert.ok(b.pitch.every(v => close(v, 8, 1e-6)), 'the rows 8 mm apart on the canvas everywhere: flat');
+  }
+  assert.equal(strokeAnchors([[0, 0], [3, 0], [6, 1]]), null, 'a click is no stroke');
 });

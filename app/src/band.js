@@ -102,6 +102,37 @@ export function centreOf(anchors, step = 1.5) {
   return out;
 }
 
+// ---------- Brush: a stroke on the canvas → the centre's points ----------
+// The owner, 2026-10-05 (nolan-v2/Screenshot 2026-10-05 at 3.07.42 … 3.09.39
+// PM.png: "I cannot make it flat — the lines are born twisted"; "brevity is
+// the sister of talent", "everything ingenious is simple"): Brush (B) paints
+// the ribbon as one stroke, flat by default. The stroke as the mouse went,
+// canvas mm, → the fewest points whose centre (biarcs, centreOf) keeps within
+// BRUSH_FIT of it: Douglas–Peucker first, then the stroke's farthest point
+// added while one lies further off. Depth 0, Roll 0: the band in the canvas's
+// plane, its face towards you. null for a stroke under BRUSH_MIN.
+export const BRUSH_FIT = 3;    // mm (Claude's choice): a mouse's jitter is a px, 1–2 mm on the board
+export const BRUSH_MIN = 10;   // mm: shorter is a click, not a stroke
+export function strokeAnchors(stroke, tol = BRUSH_FIT) {
+  const raw = [];
+  for (const q of stroke) if (!raw.length || Math.hypot(q[0] - raw.at(-1)[0], q[1] - raw.at(-1)[1]) >= 1) raw.push(q);
+  if (raw.length < 2 || lengthOf(raw) < BRUSH_MIN) return null;
+  const P = raw.map((q, i) => i && i < raw.length - 1 ? [(raw[i - 1][0] + q[0] + raw[i + 1][0]) / 3, (raw[i - 1][1] + q[1] + raw[i + 1][1]) / 3] : q);   // the px steps smoothed
+  const off = (q, a, b) => { const vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((q[0] - a[0]) * vx + (q[1] - a[1]) * vy) / l2)); return Math.hypot(q[0] - a[0] - vx * t, q[1] - a[1] - vy * t); };
+  const keep = new Set([0, P.length - 1]);
+  const dp = (i, j) => { let w = -1, wd = tol; for (let m = i + 1; m < j; m++) { const d = off(P[m], P[i], P[j]); if (d > wd) { wd = d; w = m; } } if (w > 0) { keep.add(w); dp(i, w); dp(w, j); } };
+  dp(0, P.length - 1);
+  const anchorsOf = () => [...keep].sort((a, b) => a - b).map(i => ({ x: Math.round(P[i][0]), y: Math.round(P[i][1]), z: 0, roll: 0 }));
+  for (let guard = 0; guard < P.length; guard++) {
+    const C = centreOf(anchorsOf(), 1).map(c => c.p);
+    let w = -1, wd = tol;
+    P.forEach((q, m) => { if (keep.has(m)) return; let d = Infinity; for (let j = 1; j < C.length && d > 0.01; j++) d = Math.min(d, off(q, C[j - 1], C[j])); if (d > wd) { wd = d; w = m; } });
+    if (w < 0) break;
+    keep.add(w);
+  }
+  return anchorsOf();
+}
+
 // ---------- Squeeze: the whole band's lever ----------
 // The owner, 2026-10-04 ("why a glossary, if the panel has two Rolls — the
 // second one, Squeeze?"): Roll is a point's; Squeeze presses the whole band

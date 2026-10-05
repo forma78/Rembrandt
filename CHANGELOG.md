@@ -5,6 +5,24 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: Brush (B) — the ribbon in one stroke, flat** (the owner,
+  2026-10-05, `nolan-v2/Screenshot 2026-10-05 at 3.07.42 … 3.09.39 PM.png`:
+  "I cannot make it flat — they twist at once"; "how about a new tool in
+  Tools, Brush — we have Pen P, it will be B — and with the brush only flat,
+  no twisting into bundles by default. It is very hard with Pen; the lines
+  are born twisted. Brevity is the sister of talent, and everything
+  ingenious is simple"). Why Pen twisted them: at Rotate X −84° the screen's
+  plane runs nearly along the ribbon's depth, so the points Pen put there
+  climbed in depth and the band, flat in its own plane, turned edge-on and
+  its back to you — Twist was 0. Brush: drag a stroke, the brush's width
+  shown as it goes; let go, and a new ribbon lies along it — the canvas
+  faced, Size 1×, Twist and Squeeze 0, the cuts as suggested, every point
+  Depth 0 and Roll 0, the fewest points whose centre keeps within 3 mm of
+  the stroke (`strokeAnchors` in `band.js`). The rows parallel, Row to row
+  apart in true mm; a turn tighter than half the band folds, the red !.
+  ⌘Z brings the ribbon before back (Twist and Squeeze in the undo now).
+  Tried in the browser at the owner's view of 3.07 PM.
+
 ## v0.3 — 2026-10-05
 
 - **v0.3 after the name** (the owner, 2026-10-05: "REMBRANDT v0.3
