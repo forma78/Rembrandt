@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Ink: the Cup's reading under the ⓘ, as The dip's** (the owner,
+  2026-10-05: "let's do it so everywhere"): the cup's centre, its size and
+  where the brush dips inside the walls behind the ⓘ of Cup; The canvas
+  from the cup likewise. What needs doing stays out: the cup not set, too
+  near the rim, no board. An empty reading leaves no gap. Tried in the
+  browser.
+
 - **NOLAN: the canvas from home, TEST's dots 20 mm in from the board's
   corners** (the owner, 2026-10-05, `adobe_ai/500x700_image_area.png`:
   "the test dabs at four edges, but the edges depend on the shape, and they
