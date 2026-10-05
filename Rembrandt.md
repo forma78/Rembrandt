@@ -23,6 +23,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Machine** | CNCDM-001: 2020 frame, two NEMA17 belt axes (X, Y), the arm on the carriage (shoulder J1, elbow J2, wrist J3), spring-mounted tool holder, camera on the bracket. |
 | **Create** | The tab where a painting is planned. Never touches the hardware. Hidden from the top row since 2026-10-04, NOLAN in its place (§1); the page stays, and the Library still opens a painting on it. |
 | **NOLAN** | The tab that paints ribbons, in Create's place since 2026-10-04. Its task: `NOLAN.md`. The only tab where the hand works too (§1). |
+| **New Yuri** | The tab that paints letters as rings of circles, after NOLAN since 2026-10-06 (§1, §8). Named by the owner. |
+| **Letter** | On New Yuri: one glyph of `app/glyphs.json` on the canvas, a figure of its own — its baseline and left edge, its height, Weight and Step, Rings or Coil. |
+| **Skeleton** | A letter stroke's centre line, lines and arcs, in a box from the baseline to the capline inset by the Weight; the circles' centres walk along it. |
+| **Weight · Step** | New Yuri: a letter's circle radius, and the distance between neighbouring circles along a skeleton, mm. |
+| **Rings · Coil** | New Yuri's two ways to draw a stroke: every circle a ring of its own — it lands, goes round, on 60 % over its start, lifts; or one line a stroke, a whole turn from circle to circle. |
 | **Job** | The tab that runs one layer on the machine. Writes `job.json`; ⚡️ Do Job runs it. |
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
 | **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. Off the top row since 2026-10-05 (§1); the page stays. |
@@ -398,9 +403,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v0.4**, then the tabs **NOLAN · Job · Test · Ink · Calibration ·
-  Library** (Create hidden since 2026-10-04, Adjustments since
-  2026-10-05, §1), and on
+  **v0.4**, then the tabs **NOLAN · New Yuri · Job · Test · Ink ·
+  Calibration · Library** (Create hidden since 2026-10-04, Adjustments
+  since 2026-10-05, §1), and on
   Create the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
   Format; the toggles **Reference · Lanes · Drops**, then **Reach · Grid**;
@@ -424,6 +429,23 @@ this section disagree, this section wins: the owner corrected the sketch on
   keys, INK and sliders — with Create's Tools on the left (the owner,
   2026-10-04: "let's go back to TEST as the base"). Its task, its terms and
   the owner's words are in `NOLAN.md`.
+- **New Yuri**, after NOLAN (2026-10-06, §1): letters as rings of circles,
+  the owner's set (`app/glyphs.json`, `app/src/rings.js`). NOLAN's page
+  without the 3D — its board, the canvas from home, PROGRESS, TEST, PLAY,
+  INK, the brush, Canvas, Reference, 💾 SAVE NEW YURI (the Library opens it
+  here). On the left Select (V) and **T** (T): with T a strip of the
+  letters by the Tools, A–Z, 0–9, % and ! (the owner's sketch,
+  `NEW-YURI/2026-10-05 type.png`); a letter picked there, pressed on the
+  canvas at its baseline and dragged up to its height. Select picks a
+  letter, drags it, the wheel sizes it; a double-click picks a stroke, its
+  own Step; ⌘C ⌘V lays a copy beside it, the outlines touching; Esc is
+  STOP. The panel: Ink, **Rings · Coil**, the letter's **Weight** and
+  **Step**, its Height and place; the brush's **Row width** — no Step
+  under it — Brush on, Between rows, Tail. With INK ON a dip, then rings on
+  what the brush holds up to the dip run, a ring never split. No RAMP and
+  no gap between letters (the owner, 2026-10-06: "I don't need RAMP —
+  better not to clutter the interface"; "I take the letters from the strip
+  and put them on the canvas, as the circles").
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

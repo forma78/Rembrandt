@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · New Yuri</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+</head>
+<body class="adjust arm3 nolan newyuri">
+<!-- Rembrandt · New Yuri — letters as rings of circles (Rembrandt.md §1; the
+     owner, 2026-10-05: "maybe make a New Yuri tab, so as not to mix all this
+     into NOLAN? We have no 3D there, half the sliders are not needed").
+     NOLAN's page without the 3D: its board, the canvas from home, PROGRESS,
+     TEST, PLAY, INK, the brush; the letters are rings.js's. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v0.4</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="nolan.html">NOLAN</a>
+      <a href="newyuri.html" class="on">New Yuri</a>
+      <a href="job.html">Job</a>
+      <a href="test.html">Test</a>
+      <a href="ink.html">Ink</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+    </nav>
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <nav class="tools" aria-label="Tools">
+    <button class="tool" data-tool="select" title="Select — click a letter to pick it, drag it to move it; double-click it for its strokes; the wheel sizes it; ⌘C ⌘V copies it beside it (V)">
+      <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
+      <span>V</span>
+    </button>
+    <button class="tool" data-tool="type" title="Type — pick a letter in the strip, press on the canvas at its baseline and drag up to its height (T)">
+      <svg viewBox="0 0 24 24"><path d="M5 5h14M12 5v14"/><circle cx="12" cy="19.5" r="1.4" class="dot"/></svg>
+      <span>T</span>
+    </button>
+    <div class="sep"></div>
+    <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
+    <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
+    <button class="tool" id="btnDel" title="Delete the picked letter (⌫)"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
+    <div class="sep"></div>
+    <button class="tool" id="btnClear" title="Clear the canvas: no letters (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+  </nav>
+
+  <section class="stage t-select" id="stage">
+    <!-- the letters' strip by the Tools, with T (the owner's sketch, NEW-YURI/2026-10-05 type.png) -->
+    <div class="glyphs" id="glyphs" hidden></div>
+    <div class="board" id="board"><canvas id="cv"></canvas></div>
+  </section>
+
+  <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <div class="runkeys">
+        <button class="btn" id="btnTest" title="Before PLAY: one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home">TEST</button>
+        <button class="btn" id="btnDoJob" title="Run the letters on the machine, ring by ring">PLAY</button>
+        <button class="btn" id="btnPause" title="Pause the run; pressed, Continue goes on">PAUSE</button>
+      </div>
+      <div class="stops">
+        <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
+        <button class="btn danger" id="btnKill" title="Stop the carriage at once and the arm where it is">HARD STOP</button>
+      </div>
+    </section>
+
+    <div class="savebar">
+      <button class="btn save" id="btnSave" title="Save the letters in the Library, as a new save named by the date and time">💾 SAVE NEW YURI</button>
+      <span class="save-state" id="saveState">to the Library</span>
+    </div>
+    <section class="sec">
+      <h3>New Yuri</h3>
+      <!-- INK as on NOLAN: ON the brush dips in the cup of the Ink tab, several rings to a dip; OFF the paint on the canvas -->
+      <div class="inkrow" title="ON: the brush dips in the cup of the Ink tab, several rings to a dip, as long as a dip carries (720 mm, est.), a ring never split; OFF: the paint on the canvas">
+        <span class="slh"><span>Ink</span></span>
+        <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
+      </div>
+      <div class="toggles looks" id="modes">
+        <button class="tog" data-mode="rings" title="Every circle its own ring: it lands, goes round from where the last one ended, on 60 % over its start, and lifts">Rings</button>
+        <button class="tog" data-mode="coil" title="One line a stroke: a whole turn from one circle to the next, no lift inside the stroke">Coil</button>
+      </div>
+      <h4 id="letterHead">Next letter</h4>
+      <div class="sliders" id="slLetter"></div>
+      <div class="grid4 three" id="letterFields"></div>
+      <div class="grid4 keys" id="strokeKeys" hidden>
+        <button class="btn" id="btnOwnStep" title="The stroke takes the letter's Step again">Letter's step</button>
+        <button class="btn" id="btnLetter" title="Back to the whole letter (or click the canvas off it)">Whole letter</button>
+      </div>
+      <h4>The brush</h4>
+      <div class="sliders" id="slRun"></div>
+      <h4>Canvas <button class="info" id="planInfo" title="The plan: the rings, the run, where the canvas lies from home">i</button></h4>
+      <div class="grid4" id="fields"></div>
+      <p class="read" id="planRead" hidden></p>
+      <p class="read" id="planWarn" hidden></p>
+    </section>
+
+    <section class="sec">
+      <h3>Reference <span class="hint">over the canvas, as tracing paper</span></h3>
+      <div class="refrow">
+        <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
+        <div class="refctl">
+          <button class="btn" id="btnRef" title="An image over the canvas, to set the letters to: never painted as is">📎 Add new reference</button>
+          <p class="read" id="refRead"></p>
+          <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+        </div>
+      </div>
+      <input type="file" id="refIn" accept="image/*" hidden>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint"></span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/newyuri.js"></script>
+</body>
+</html>

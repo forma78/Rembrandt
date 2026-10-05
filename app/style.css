@@ -528,3 +528,14 @@ html.night .tool:hover{background:#303236}
 .nolan .refthumb{position:relative}
 .refdel{position:absolute;top:4px;right:4px;width:20px;height:20px;padding:0;border:0;border-radius:50%;background:rgba(36,34,31,.72);color:#fff;font-size:14px;line-height:20px;text-align:center;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
 .refdel:hover{background:#24221F}
+
+/* ---------- New Yuri: letters as rings (Rembrandt.md §1, 2026-10-05) ----------
+   NOLAN's page (body.nolan) with the letters' strip by the Tools, shown with
+   T (the owner's sketch, NEW-YURI/2026-10-05 type.png). */
+.newyuri .stage.t-type #cv{cursor:crosshair}
+.newyuri .glyphs{position:absolute;left:0;top:0;bottom:0;width:46px;z-index:2;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:8px 4px;background:var(--panel);border-right:1px solid var(--line)}
+.newyuri .glyphs[hidden]{display:none}
+.newyuri .glyphs button{flex:none;height:30px;border:1px solid transparent;border-radius:7px;background:transparent;font:600 15px var(--sans,"Helvetica Neue",Helvetica,Arial,sans-serif);color:var(--ink);position:relative}
+.newyuri .glyphs button:hover{background:var(--card)}
+.newyuri .glyphs button.on{background:var(--key-on);box-shadow:var(--press);color:var(--orange)}
+.newyuri .grid4[hidden]{display:none}

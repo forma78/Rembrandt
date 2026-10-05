@@ -27,13 +27,16 @@ async function load() {
   grid.innerHTML = paintings.map(card).join('');
 }
 // One card; a test opens on the Test tab, a painting on Create, a NOLAN save
-// on NOLAN (it sits with the tests: its label says NOLAN, 2026-10-04).
+// on NOLAN (it sits with the tests: its label says NOLAN, 2026-10-04), a New
+// Yuri save on New Yuri (its label NEW YURI, 2026-10-06).
 const isNolan = d => d.kind === 'test' && /^NOLAN\b/.test(d.label || '');
-const tabOf = d => isNolan(d) ? 'NOLAN' : d.kind === 'test' ? 'Test' : 'Create';
+const isNewYuri = d => d.kind === 'test' && /^NEW YURI\b/.test(d.label || '');
+const kindOf = d => isNolan(d) ? 'nolan' : isNewYuri(d) ? 'newyuri' : d.kind || 'painting';
+const tabOf = d => isNolan(d) ? 'NOLAN' : isNewYuri(d) ? 'New Yuri' : d.kind === 'test' ? 'Test' : 'Create';
 function card(d) {
   const fmt = d.kind === 'test' ? (d.label || 'test') : FORMATS[d.format]?.label || '';
   const strokes = d.strokes == null ? '' : `${d.strokes} stroke${d.strokes === 1 ? '' : 's'}`;
-  return `<article class="card" data-file="${esc(d.file)}" data-kind="${isNolan(d) ? 'nolan' : d.kind || 'painting'}" title="Open on the ${tabOf(d)} tab">
+  return `<article class="card" data-file="${esc(d.file)}" data-kind="${kindOf(d)}" title="Open on the ${tabOf(d)} tab">
       <div class="thumb">${d.png ? `<img src="${url(d.file, '.png')}" alt="" loading="lazy">` : ''}</div>
       <div class="meta"><span class="name">${esc(d.name)}</span><span class="sub">${esc([fmt, strokes].filter(Boolean).join(' · '))}</span></div>
       <button class="del" title="Delete" aria-label="Delete ${esc(d.name)}">×</button>
@@ -50,7 +53,7 @@ async function onCard(e) {
     if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();
   }
-  location.href = ({ test: 'test.html', nolan: 'nolan.html' }[el.dataset.kind] || 'index.html') + '?open=' + encodeURIComponent(file);
+  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html' }[el.dataset.kind] || 'index.html') + '?open=' + encodeURIComponent(file);
 }
 $('#grid').addEventListener('click', onCard);
 $('#tests').addEventListener('click', onCard);

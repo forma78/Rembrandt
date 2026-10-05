@@ -5,6 +5,26 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **New Yuri, the tab** (the owner, 2026-10-05/06: "let's make the tab, and
+  we'll see there"), after NOLAN in the top row. NOLAN's page without the
+  3D: its board, the canvas from home, PROGRESS, TEST, PLAY, INK, the
+  brush, Canvas, Reference, 💾 SAVE NEW YURI — the Library shelves it with
+  the tests and opens it here. **T** (T): the letters' strip by the Tools;
+  a letter picked, pressed on the canvas at its baseline, dragged up to its
+  height. Select: a click picks, a drag moves, the wheel sizes, a
+  double-click picks a stroke for its own Step; ⌘C ⌘V lays a copy beside
+  it. The panel: Rings · Coil, Weight, Step, Height and place, Row width;
+  no RAMP, no gap (the owner, 2026-10-06: "I don't need RAMP — better not
+  to clutter the interface"; "I take the letters from the strip and put
+  them on the canvas, as the circles"). The run: ring by ring, each from
+  the point nearest the last one's end, clockwise, on 60 % over its start,
+  lifting over all of it; Coil one line a stroke, fitted into lines and
+  arcs. With INK ON a dip, then rings on what the brush holds up to 720 mm
+  (est.), a ring never split: AMOUR at 100 mm, Weight 15, Step 4 — 292
+  circles, ≈ 26 min (est.). Letters past the canvas, a stroke over 400
+  circles, the walls: named. Tried in a headless browser on rembrandt.py,
+  no machine.
+
 - **Test's run: a row may go on what the brush holds** (`nodip`, for New
   Yuri's rings, several to a dip; the owner, 2026-10-05: "yes"). NOLAN and
   Test never mark one, their runs as before.
