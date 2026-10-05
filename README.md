@@ -34,6 +34,8 @@ Rembrandt/
     CNCDM-001/       the board's firmware (from RUBENS, Rembrandt's since 2026-10-02)
   app/
     nolan.html       NOLAN, the ribbons (new; NOLAN.md)
+    newyuri.html     New Yuri, letters as rings (new; Rembrandt.md §8)
+    glyphs.json      the owner's letters: skeletons of lines and arcs
     index.html       Create (hidden from the top row since 2026-10-04)
     job.html         Job (from RUBENS, plus pointer mode)
     test.html        Test, the test bench (new)
@@ -66,8 +68,8 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
-`pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, and pointer mode in
-`jobpage.js`.
+`pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
+Yuri's letters as rings), and pointer mode in `jobpage.js`.
 
 ## Run
 
