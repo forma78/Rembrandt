@@ -661,7 +661,10 @@ export function bandPasses(runs, o) {
   for (const L of [...new Set(sorted.map(r => r.layer))]) {
     const ps = [];
     for (const r of sorted.filter(q => q.layer === L)) {
-      const parts = o.ink ? dipParts(r.pts, r.k, o.dipRun ?? DIP_RUN, Math.max(o.tail || 0, DIP_LAP)) : [r.pts];
+      // a ring never: it runs whole on one dip, its lap too (the owner, 2026-10-05, nolan-v2/IMAGE
+      // 2026-10-05 23:57:03, 23:57:07.jpg: "some rings did not turn the full 360 degrees but went in two
+      // goes" — split at 720 mm, the odd rows at 360, the fresh brush landing mid-ring in a blot)
+      const parts = o.ink && !r.loop ? dipParts(r.pts, r.k, o.dipRun ?? DIP_RUN, Math.max(o.tail || 0, DIP_LAP)) : [r.pts];
       parts.forEach((part, pi) => {
         const pieces = fitPieces(part);
         if (!pieces.length) return;

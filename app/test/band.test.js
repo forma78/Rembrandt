@@ -451,7 +451,7 @@ test('A loop: every whole ring runs on LOOP_SHARE of its length over its start, 
     assert.equal(run.fault, '', `INK ${ink}: ${run.fault}`);
     const rows = all.passes.flatMap(p => p.ps);
     assert.equal(rows.filter(ps => ps.at(-1).tailOut > 100).length, 7, `INK ${ink}: each ring's last part lifts over its lap`);
-    if (ink) assert.ok(rows.length > 7, 'the long rings split for a dip');
+    assert.equal(rows.length, 7, `INK ${ink}: every ring whole, on one dip with INK ON (23:57)`);
   }
   const open = bandOf(circleAnchors(0, 0, 100), { ...o, closed: false }), L2 = layeredOf(open, { width: 4, cuts: [], overlap: 4 });
   assert.equal(lapLoops(open, L2.imp.runs), 0, 'an open figure: no lap');
