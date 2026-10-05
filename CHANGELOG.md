@@ -10,6 +10,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 - **v0.3 after the name** (the owner, 2026-10-05: "REMBRANDT v0.3
   already :)"), on every tab and in the saved SVGs.
 
+- **NOLAN: no N1 · N2 · N3 keys — every layer runs** (the owner,
+  2026-10-05: "remove the N1 and N2 keys; I do not press one first and
+  then the other. These keys are not needed"). The layers run in their
+  order, a pause between them as before; Auto, Uncut and Pass through fill
+  the row. A layer switched off in a save of before runs again. **Canvas**
+  stands off its fields as The brush off Brush on ("now it is pressed to
+  Board width / Board height"). Tried in the browser.
+
 - **Ink: the Cup's reading under the ⓘ, as The dip's** (the owner,
   2026-10-05: "let's do it so everywhere"): the cup's centre, its size and
   where the brush dips inside the walls behind the ⓘ of Cup; The canvas

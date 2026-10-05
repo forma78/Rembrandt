@@ -113,11 +113,11 @@ The panel, top to bottom:
    before it runs.
 2. **💾 SAVE NOLAN** — to the Library. It sits on the tests' shelf for now
    (`rembrandt.py` knows paintings and tests); the Library opens it on NOLAN.
-3. **N1 · N2 · N3**, a key for each layer the imprint has, latching as
-   Test's D1 · D2 · D3: one, two or all, run in their order, a pause
-   between them; the last one stays on; a layer off is faint on Imprint
-   and Layers (the owner, 2026-10-04: "I do not see the keys as on TEST").
-   **Auto** at the end of the row: the cuts as suggested again (§3.0);
+3. The cuts' keys. Every layer runs, N1, N2, N3 in their order, a pause
+   between them: the **N1 · N2 · N3** keys that latched as Test's D1 · D2
+   · D3 (2026-10-04) are gone (the owner, 2026-10-05: "I do not press one
+   first and then the other; these keys are not needed").
+   **Auto**: the cuts as suggested again (§3.0);
    **Uncut**: no cuts, the ribbon one layer, one pass — every row whole,
    broken only where another part lies over it (the owner, 2026-10-04:
    "what if we add an option Uncut and do not cut at all?"; the suggested
@@ -455,7 +455,7 @@ No machine moves. Not in phase 1.
 - Sample fills the lines, a line changing tube along the ribbon; the drop
   map shows every drop; a muddy neighbour shows one ⚠.
 - Black ground preview works.
-- N1 · N2 · N3 latch as D1 · D2 · D3 on Test, a pause between passes.
+- N1 · N2 · N3 run in their order, a pause between passes.
 - Each layer runs as Watercolour, then Paint; Paint runs One way and Snake,
   and Snake turns in the air, never on the canvas.
 - The run starts from the tab with its dips, cup waits and pauses, and runs

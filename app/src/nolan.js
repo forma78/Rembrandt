@@ -24,7 +24,6 @@ const KEY = 'rembrandt.nolan.v03', REF_KEY = 'rembrandt.nolan.ref';
 const PALETTE = ['#F7F1E8', '#F9C38A', '#F28A2E', '#EF5E4E', '#D24FC4', '#7B4FE0', '#3D63D8', '#46A6EA', '#A6E3F8', '#EDE7F5'];   // IMG_9424's stripes, est. by eye
 const LAYER = ['#A9A397', '#EB7A25', '#3D63D8', '#3FA7A0', '#B04FC4'];   // N1 … N5 on Layers
 const DRAG_STEP = 4, STEP = 1.5;
-const OFF_ALPHA = 0.18, OFF_HEX = '2E';   // a layer switched off, on the board: faint
 // More than this past the walls is no longer a hair (Test's 2 mm of 2026-10-03):
 // the canvas lies partly out of reach, said in red and before PLAY.
 const PAST_MANY = 50;   // mm between the centre's points: coarse while the mouse turns it
@@ -35,7 +34,6 @@ const S = {
   rows: 16, pitch: 8, width: 5, stack: 6, twist: 0, squeeze: 0,                   // the band; Roll is a point's (band.js, squeezed)
   tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0,                     // the ribbon in space
   speed: 150, travel: 180, tail: 15, overlap: 4, ink: false,                      // the brush, as on Test (est.); overlap: under another part, mm (est.)
-  off: [],                                                                        // the layers switched off: N1 · N2 · N3 latch as D1 · D2 · D3 on Test
   cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
   through: false,                                                                 // Pass through: the rows run whole over and under the other parts
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,                         // the canvas, and its edges from home (the owner's, 2026-10-05)
@@ -50,7 +48,6 @@ function load() {
     S.tail = tailIn(S.tail);                                                       // a save from before, Tail up to 200 (strokes.js)
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     S.through = o.through === true;
-    if (Array.isArray(o.off)) S.off = o.off.filter(Number.isInteger);
     S.cuts = Array.isArray(o.cuts) ? o.cuts.filter(Number.isFinite) : null;
     for (const [k, ok] of [['look', ['geometry', 'colour', 'layers', 'imprint']], ['ground', ['white', 'black']], ['tool', ['select', 'pen', 'cut']]]) if (ok.includes(o[k])) S[k] = o[k];
     const A = Array.isArray(o.anchors) ? o.anchors.filter(a => ['x', 'y', 'z', 'roll'].every(k => Number.isFinite(a?.[k]))) : [];
@@ -95,15 +92,15 @@ let PLAN = null, planKey = '', busy = false;
 const EMPTY = { blocks: [], rows: [], pieces: 0, passes: [], imp: null, lay: null, cuts: [], stretches: [], folds: [], seconds: 0, length: 0, need: 0, pastWall: 0, gone: 0, dips: 0, carriage: null, air: [], ink: false };
 function plan() {
   if (busy && PLAN) return PLAN;
-  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.off, S.cuts, S.overlap, S.through]);
+  const here = hereNow(), key = JSON.stringify([S.anchors, bandOpts(STEP), S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null, S.cuts, S.overlap, S.through]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
   const b = band(STEP);
   if (!b) { PLAN = EMPTY; return PLAN; }
   const L = layeredOf(b, { width: S.width, cuts: S.cuts, overlap: S.overlap, through: S.through }), lay = L.lay, imp = L.imp;   // the layers: stretches between the cuts
   const all = bandPasses(imp.runs, { ink: S.ink, tail: S.tail }), rows = all.rows;
-  // the layers that run: those not switched off — all of them, if the ribbon changed and left none on
-  const on = all.passes.filter(p => !S.off.includes(+p.key.slice(1))), passes = on.length ? on : all.passes;
+  // every layer runs, in its order: no N1 · N2 · N3 keys since 2026-10-05 (the owner: "I do not press one first and then the other")
+  const passes = all.passes;
   const o = { ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows: rows.length, here, cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER };
   // rows: every piece of every layer, by its number (the LCD finds a block's there); pieces: those that run
   PLAN = { ...plotRun(o, passes), rows, pieces: passes.reduce((a, p) => a + p.ps.length, 0), passes: passes.map(p => p.key), ink: S.ink, imp, lay, cuts: L.cuts, stretches: L.stretches, folds: L.folds, opts: o };
@@ -251,7 +248,7 @@ function drawBand(b, black, ground) {
     g.lineWidth = S.width * k;
     for (let kk = 0; kk < b.rows; kk++) {
       g.strokeStyle = S.look === 'geometry' ? (b.pitch[i] < S.width ? '#D9481C' : black ? '#E9E5DD' : '#2A2826')
-        : S.look === 'layers' ? LAYER[Math.min(LAYER.length - 1, (lay ? lay[i] : 1) - 1)] + (lay && PLAN?.passes && !PLAN.passes.includes(`N${lay[i]}`) ? OFF_HEX : '')
+        : S.look === 'layers' ? LAYER[Math.min(LAYER.length - 1, (lay ? lay[i] : 1) - 1)]
         : b.back[i] ? shade(colourOf(kk), 0.5) : colourOf(kk);
       g.beginPath(); g.moveTo(sx(b.S[i][kk]), sy(b.S[i][kk])); g.lineTo(sx(b.S[i + 1][kk]), sy(b.S[i + 1][kk])); g.stroke();
     }
@@ -301,7 +298,6 @@ function drawImprint() {
     const L = lengthOf(r.pts), z = Math.min(S.tail, L / 2);
     let s = 0;
     g.strokeStyle = colourOf(r.k);
-    g.globalAlpha = P_.passes.includes(`N${r.layer}`) ? 1 : OFF_ALPHA;   // a layer switched off, faint
     for (let j = 1; j < r.pts.length; j++) {
       const a = r.pts[j - 1], c = r.pts[j], d = Math.hypot(c[0] - a[0], c[1] - a[1]), m = s + d / 2;
       const w = m < z ? (1 - Math.cos(Math.PI * m / z)) / 2 : m > L - z ? (1 - Math.cos(Math.PI * (L - m) / z)) / 2 : 1;
@@ -425,7 +421,6 @@ function ribbonAt(p, s0 = null, near = 150) {
 const CUT_MIN = 20;   // mm along the ribbon between two cuts, at least
 function setCuts(list, picked) {
   S.cuts = list.slice().sort((a, b2) => a - b2); pickCut = picked === undefined ? -1 : S.cuts.indexOf(picked);
-  S.off = [];                                      // new stretches: every layer on
 }
 const wrap = v => ((v + 180) % 360 + 360) % 360 - 180;
 function pointHit(p) {
@@ -615,10 +610,10 @@ function showPanel() {
   document.querySelectorAll('[data-ground]').forEach(b2 => b2.classList.toggle('on', b2.dataset.ground === S.ground));
   showLayers();
 }
-// N1 · N2 · N3: a key for each layer the imprint has, latching as D1 · D2 ·
-// D3 on Test — one, two or all, run in their order; the last one stays on
-// (the owner, 2026-10-04: "I do not see the keys as on TEST"); then Auto and
-// Uncut.
+// The cuts' keys: Auto and Uncut, then Pass through. The N1 · N2 · N3 keys
+// before them, latching as D1 · D2 · D3 on Test (2026-10-04), are gone (the
+// owner, 2026-10-05: "I do not press one first and then the other; these keys
+// are not needed"): every layer runs, in its order.
 const layersNow = () => PLAN?.imp ? Object.keys(PLAN.imp.byLayer).map(Number).sort((a, b2) => a - b2) : [];
 // Uncut: no cuts at all, the ribbon one layer (the owner, 2026-10-04: "what if
 // we add an option Uncut and do not cut at all?") — the suggested cuts lay on
@@ -627,9 +622,8 @@ const layersNow = () => PLAN?.imp ? Object.keys(PLAN.imp.byLayer).map(Number).so
 // straight through? Let's add a key after Uncut, Pass through").
 const uncut = () => Array.isArray(S.cuts) && !S.cuts.length;
 function showLayers() {
-  const lays = layersNow(), runs = l => (PLAN?.passes || []).includes(`N${l}`);
-  const html = lays.map(l => `<button class="tog${runs(l) ? ' on' : ''}" data-layer="${l}" title="N${l}: ${fmt(PLAN.imp.byLayer[l] / 1000, 1)} m, painted ${l > 1 ? `after N${l - 1}` : 'first'} — on or off; the layers on run in their order, a pause between them">N${l}</button>`).join('')
-    + (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts?.length ? ' — yours are set by hand now' : ''}; the Cut tool on the left moves them">Auto</button>`
+  const lays = layersNow();
+  const html = (lays.length ? `<button class="tog cutkey${S.cuts ? '' : ' on'}" data-cuts title="The cuts as suggested: where the ribbon hides behind itself, turns over or edge-on${S.cuts?.length ? ' — yours are set by hand now' : ''}; the Cut tool on the left moves them">Auto</button>`
       + `<button class="tog cutkey${uncut() ? ' on' : ''}" data-uncut title="No cuts: the ribbon in one layer, every row whole from end to end, broken only where another part lies over it — one pass, no pause for the dry; the Cut tool cuts it again">Uncut</button>`
       + `<button class="tog cutkey through${S.through ? ' on' : ''}" data-through title="Pass through, on or off: nothing hides — every row runs whole over and under the other parts of the ribbon, as through glass">Pass through</button>` : '');
   const el = $('#layerKeys');
@@ -637,15 +631,9 @@ function showLayers() {
   el.hidden = !lays.length;
 }
 $('#layerKeys').onclick = e => {
-  if (e.target.closest('[data-cuts]')) { if (S.cuts) { undoPush(); S.cuts = null; S.off = []; pickCut = -1; settle(); } return; }
-  if (e.target.closest('[data-uncut]')) { if (!uncut()) { undoPush(); S.cuts = []; S.off = []; pickCut = -1; settle(); } return; }
-  if (e.target.closest('[data-through]')) { S.through = !S.through; settle(); return; }
-  const b2 = e.target.closest('[data-layer]');
-  if (!b2) return;
-  const l = +b2.dataset.layer, on = layersNow().filter(x => (PLAN?.passes || []).includes(`N${x}`));
-  if (on.includes(l)) { if (on.length < 2) return; S.off = [...new Set([...S.off, l])]; }
-  else S.off = S.off.filter(x => x !== l);
-  settle();
+  if (e.target.closest('[data-cuts]')) { if (S.cuts) { undoPush(); S.cuts = null; pickCut = -1; settle(); } return; }
+  if (e.target.closest('[data-uncut]')) { if (!uncut()) { undoPush(); S.cuts = []; pickCut = -1; settle(); } return; }
+  if (e.target.closest('[data-through]')) { S.through = !S.through; settle(); }
 };
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
@@ -658,7 +646,7 @@ function settle() {
   // tab); the folds have their red ! on the board.
   $('#planRead').innerHTML = (!P_.imp ? 'No ribbon: two points at least.' :
     `The imprint: <b>${P_.imp.runs.length}</b> pieces of row, <b>${fmt(P_.imp.total / 1000, 1)} m</b> · `
-    + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m${P_.passes.includes(`N${l}`) ? '' : ' (off)'}`).join(' · ')}${P_.passes.length > 1 ? (S.ink ? ', one after another, no pause: the watercolour only lays in the form' : ', a pause between them — CONTINUE when the one under is dry') : ''} · `
+    + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m`).join(' · ')}${P_.passes.length > 1 ? (S.ink ? ', one after another, no pause: the watercolour only lays in the form' : ', a pause between them — CONTINUE when the one under is dry') : ''} · `
     + `closer than the row's width: <span class="${P_.imp.red > 0.35 ? 'warn' : ''}">${fmt(P_.imp.red * 100, 0)} %</span> · `
     + (S.ink ? `<b>Ink ON</b>, the Watercolour run: a dip every ${DIP_RUN} mm along a row (est.), none before a piece under ${NO_DIP} mm but a layer's first, ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint · ` : 'the Paint run · ')
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
