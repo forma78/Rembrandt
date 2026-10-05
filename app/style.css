@@ -114,6 +114,7 @@ main{display:grid;grid-template-columns:60px 1fr 340px;min-height:0}
 
 .scale{display:flex;justify-content:space-between;font:10px var(--mono);color:var(--mute)}
 .read{margin:8px 0 0;font-size:12px;color:var(--mute)}
+.read:empty{display:none}   /* nothing to say: no gap */
 .read b{color:var(--ink);font-weight:600}
 .read .warn{color:#B3470C}
 .link{border:0;background:none;color:var(--orange);text-decoration:underline;padding:0;font-size:12px}

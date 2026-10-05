@@ -2,7 +2,7 @@
 // §3.0; the owner, 2026-10-04: "yes, that is it — carry it into NOLAN"; "the
 // words from TEST, so there is no mess: ROWS first, ROW TO ROW and so on;
 // and TAIL"). The model is band.js; this page draws it on Test's board —
-// the canvas from the cup — turns it with the mouse, edits its points with
+// the canvas from home — turns it with the mouse, edits its points with
 // Create's Tools, and runs its imprint with Test's run (strokes.js, plotRun),
 // layer by layer. 3D lives only in the drawing: the machine gets lines and
 // arcs.
@@ -13,10 +13,10 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, WRIST_MAX, SPEED_MAX, ELBOW_LIFT, ELBOW_HOVER, TAIL_MIN, TAIL_MAX, tailIn } from './strokes.js';
-import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
+import { SKETCH, ringBlank, bandOf, layeredOf, bandPasses, washOf, cornerDots, TEST_MARGIN, rotation, transpose, apply, projector, lengthOf, DIP_RUN, NO_DIP, ROWS_MAX } from './band.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
-import { cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
+import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -38,11 +38,11 @@ const S = {
   off: [],                                                                        // the layers switched off: N1 · N2 · N3 latch as D1 · D2 · D3 on Test
   cuts: null,                                                                     // the layers' cuts, mm along the ribbon; null: as band.js suggests
   through: false,                                                                 // Pass through: the rows run whole over and under the other parts
-  boardW: 500, boardH: 700,
+  boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,                         // the canvas, and its edges from home (the owner's, 2026-10-05)
   look: 'colour', ground: 'black', refOpacity: 30, tool: 'select',
 };
 let pick = 8;
-const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'squeeze', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'overlap', 'boardW', 'boardH', 'refOpacity'];
+const NUM = ['rows', 'pitch', 'width', 'stack', 'twist', 'squeeze', 'tilt', 'swing', 'spin', 'zoom', 'dx', 'dy', 'lens', 'speed', 'travel', 'tail', 'overlap', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
@@ -65,22 +65,21 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 const bandOpts = step => ({ rows: S.rows, pitch: S.pitch, width: S.width, stack: S.stack, twist: S.twist, squeeze: S.squeeze, tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens, step });
 const view3 = () => ({ tilt: S.tilt, swing: S.swing, spin: S.spin, zoom: S.zoom, dx: S.dx, dy: S.dy, lens: S.lens });
 
-// ---------- the cup, and the canvas from it (Test's) ----------
+// ---------- the cup, and the canvas from home ----------
 let INK = {};
 const cup = () => cupOf(INK);
-// The Test tab's own Here (this browser's settings of the Test tab), until
-// the canvas is measured from the cup — as the Test and Ink tabs do (the
-// owner, 2026-10-04: INK "as on TEST, so the target shows where the cup is").
-let TEST_HERE = null;
-function readTestHere() {
-  try { const t = JSON.parse(localStorage.getItem('rembrandt.test.v01') || '{}'); TEST_HERE = Number.isFinite(t.here?.x) && Number.isFinite(t.here?.y) ? { x: t.here.x, y: t.here.y } : null; } catch { TEST_HERE = null; }
-}
 async function loadInk() {
-  readTestHere();
   try { const r = await fetch('/ink', { cache: 'no-store' }); INK = r.ok ? await r.json() : {}; } catch { INK = {}; }
 }
-const fromCup = () => canvasFrom(INK, S.boardW, S.boardH);
-const hereNow = () => fromCup() || TEST_HERE;
+// The canvas lies from home, Calibration's, at the bottom left corner of the
+// walls (the owner, 2026-10-05, adobe_ai/500x700_image_area.png: "the canvas
+// must not slide down under the image area, but lie on it"): its bottom edge
+// edgeBottom mm above home, its left edge edgeLeft mm to the right — 0 and 50
+// on his drawing. Board width and height grow it up and to the right, its
+// bottom left corner where it is. Here, the mm the board counts from, is its
+// centre. Before, the Test tab's Here (X 226.2 · Y 333.8): the canvas lay
+// 124 mm past the bottom wall, and TEST's dots landed off it.
+const hereNow = () => { const R = reach(); return { x: R.x.min + S.edgeBottom + S.boardH / 2, y: R.y.min + S.edgeLeft + S.boardW / 2 }; };
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
 
 // ---------- the band, and the plan of its run ----------
@@ -122,8 +121,8 @@ function view() {
     const at = [...(Number.isFinite(c.x) ? [[{ x: c.x - h.x, y: c.y - h.y }, e]] : []), [{ x: hc.x - h.x, y: hc.y - h.y }, 24]];
     for (const [q, m] of at) { v.x0 = Math.min(v.x0, q.x - m); v.x1 = Math.max(v.x1, q.x + m); v.y0 = Math.min(v.y0, q.y - m); v.y1 = Math.max(v.y1, q.y + m); }
   }
-  const a = areaNow(), m = 16;                                                        // the image area, its walls and their names; the grid's names on the left
-  if (a) { v.x0 = Math.min(v.x0, a.x0 - m); v.x1 = Math.max(v.x1, a.x1 + m); v.y0 = Math.min(v.y0, a.y0 - 34); v.y1 = Math.max(v.y1, a.y1 + 4); }
+  const a = areaNow(), m = 16;                                                        // the image area, its walls and their names; the grid's names on the left,
+  if (a) { v.x0 = Math.min(v.x0, a.x0 - 60); v.x1 = Math.max(v.x1, a.x1 + m); v.y0 = Math.min(v.y0, a.y0 - 34); v.y1 = Math.max(v.y1, a.y1 + 4); }   // under the bottom wall's names those of Y
   return v;
 }
 // The image area, the machine's reach between its walls (Calibration's), in
@@ -211,9 +210,13 @@ function draw() {
   g.beginPath(); g.moveTo(sx([-8]), sy([0, 0])); g.lineTo(sx([8]), sy([0, 0])); g.moveTo(sx([0]), sy([0, -8])); g.lineTo(sx([0]), sy([0, 8])); g.stroke();
   g.font = font(10); g.fillStyle = '#B3470C'; g.textAlign = 'left';
   g.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx([-hw]), sy([0, -hh]) - 6);
-  const h = hereNow();
-  if (S.ink && h) {                                                                    // INK ON, as on Test: the cup's red scope, home, the way in the air
-    const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
+  const h = hereNow(), msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
+  g.save(); g.strokeStyle = black ? 'rgba(255,255,255,.55)' : 'rgba(36,34,31,.55)'; g.lineWidth = 1;   // TEST's dots: a small cross each, 20 mm in from the corners
+  for (const d of cornerDots(S.boardW, S.boardH).dots) { const X = msx(d.at), Y = msy(d.at); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
+  g.restore();
+  const hc = homeCorner(), home = { x: hc.x - h.x, y: hc.y - h.y }, hX = msx(home), hY = msy(home);   // home: the canvas lies from it
+  g.strokeStyle = ink; g.lineWidth = 1.2; g.strokeRect(hX - 4, hY - 4, 8, 8); g.fillStyle = ink; g.textAlign = 'left'; g.fillText('home', hX + 8, hY - 6);
+  if (S.ink) {                                                                         // INK ON, as on Test: the cup's red scope, the way in the air
     if (PLAN && !busy) {
       g.save(); g.setLineDash([3, 4]); g.strokeStyle = themeColor('--mute', '#7D776D'); g.lineWidth = 1;
       for (const [a, c] of PLAN.air) { g.beginPath(); g.moveTo(msx(a), msy(a)); g.lineTo(msx(c), msy(c)); g.stroke(); }
@@ -224,8 +227,6 @@ function draw() {
       const at = { x: c.x - h.x, y: c.y - h.y }, r = (cup().diameter || 50) / 2 * k;
       drawCup(g, msx(at), msy(at), r); g.fillStyle = ink; g.textAlign = 'left'; g.fillText(`cup ⌀${cup().diameter || 50}`, msx(at) + r * 1.7 + 4, msy(at) + 3);
     }
-    const hc = homeCorner(), home = { x: hc.x - h.x, y: hc.y - h.y }, hX = msx(home), hY = msy(home);
-    g.strokeStyle = ink; g.lineWidth = 1.2; g.strokeRect(hX - 4, hY - 4, 8, 8); g.fillStyle = ink; g.fillText('home', hX + 8, hY - 6);
   }
   if (showPoints()) {                                                                  // the points: squares where they lie now
     const imp = projector(view3());
@@ -354,7 +355,7 @@ function drawWash(P_) {
 let trail = [], trailOf = null, RUN = null, RUN_INFO = null;   // RUN: the blocks PLAY or TEST sent; RUN_INFO: their seconds and rows, for the LCD
 const AIR = '#4FC3F7', PAPER = '#E5203A';   // light blue in the air, red on the paper: the orange was lost in Layers' N2 (the owner, 2026-10-04)
 function drawTrail() {
-  if (!hereNow() || trail.length < 1) return;
+  if (trail.length < 1) return;
   const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, last = trail.at(-1);
   g.save(); g.lineWidth = 1.2;
   for (let i = 1; i < trail.length;) {
@@ -578,9 +579,17 @@ sliders($('#slBand'), BAND_SL, () => S);
 sliders($('#slView'), VIEW_SL, () => S);
 sliders($('#slPoint'), POINT_SL, () => S.anchors[pick]);
 sliders($('#slRun'), RUN_SL, () => S);
-const FIELDS = [['boardW', 'Board width', 'mm', 10], ['boardH', 'Board height', 'mm', 10]];
-$('#fields').innerHTML = FIELDS.map(([key, label, unit, step]) => `<label>${label} <input data-k="${key}" type="number" step="${step}" min="${step}"><em>${unit}</em></label>`).join('');
-$('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => { const v = +inp.value; if (v > 0) S[inp.dataset.k] = v; settle(); });
+// The board's size, and where it lies: its edges from home, with a ruler
+// (the owner, 2026-10-05) — any number, 0 and below too.
+const FIELDS = [['boardW', 'Board width', 'mm', 10, 'The canvas across; it grows to the right'], ['boardH', 'Board height', 'mm', 10, 'The canvas up the machine; it grows upwards'],
+  ['edgeLeft', 'Left edge →', 'mm', 1, 'The canvas\'s left edge, mm to the right of home', true], ['edgeBottom', 'Bottom edge ↑', 'mm', 1, 'The canvas\'s bottom edge, mm above home', true]];
+$('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
+$('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
+  const v = +inp.value, any = FIELDS.find(f => f[0] === inp.dataset.k)[5];
+  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) S[inp.dataset.k] = v;
+  settle();
+});
+$('#planInfo').onclick = () => { $('#planRead').hidden = !$('#planRead').hidden; $('#planInfo').classList.toggle('on', !$('#planRead').hidden); };
 $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
@@ -644,21 +653,24 @@ function settle() {
   const P_ = plan(), C = cup(), here = hereNow(), est = key => C.est?.[key] ? ' (est.)' : '';
   const lays = P_.imp ? Object.keys(P_.imp.byLayer).map(Number).sort((a, b2) => a - b2) : [];
   const inkWhy = S.ink ? cupProblem(C) : '';
+  // The reading under the ⓘ of Canvas, what stops PLAY always (the owner,
+  // 2026-10-05: "this text below we hide under (i)", as The dip on the Ink
+  // tab); the folds have their red ! on the board.
   $('#planRead').innerHTML = (!P_.imp ? 'No ribbon: two points at least.' :
     `The imprint: <b>${P_.imp.runs.length}</b> pieces of row, <b>${fmt(P_.imp.total / 1000, 1)} m</b> · `
     + `the layers by depth ${lays.map(l => `<span class="lay" style="background:${LAYER[Math.min(LAYER.length - 1, l - 1)]}"></span>N${l} ${fmt(P_.imp.byLayer[l] / 1000, 1)} m${P_.passes.includes(`N${l}`) ? '' : ' (off)'}`).join(' · ')}${P_.passes.length > 1 ? (S.ink ? ', one after another, no pause: the watercolour only lays in the form' : ', a pause between them — CONTINUE when the one under is dry') : ''} · `
     + `closer than the row's width: <span class="${P_.imp.red > 0.35 ? 'warn' : ''}">${fmt(P_.imp.red * 100, 0)} %</span> · `
     + (S.ink ? `<b>Ink ON</b>, the Watercolour run: a dip every ${DIP_RUN} mm along a row (est.), none before a piece under ${NO_DIP} mm but a layer's first, ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint · ` : 'the Paint run · ')
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · the elbow lands and lifts the brush over ${S.tail} mm of each piece's ends, 0° pressed to +${ELBOW_LIFT}° off; up to ${fmt(P_.need, 0)}°/s (est.) · into lines and arcs, ≤ 0.1 mm: 3D only in the drawing`)
-    + (inkWhy ? ` <span class="warn">${inkWhy}</span>` : '')
-    + (P_.fault ? ` <span class="warn">The plan is wrong, PLAY will not run it: ${P_.fault}.</span>` : '')
     + (P_.folds?.length ? ` <span class="warn">${P_.folds.length === 1 ? 'One place' : `${P_.folds.length} places`} where the rows fold, the red ! (${P_.folds.map(f => `${fmt(f.s / (BAND?.L || 1) * 100, 0)} %, ${f.rows} rows`).join(' · ')}): the ribbon turns there tighter than half its width — move or take out a point near it.</span>` : '')
-    + (P_.need > WRIST_MAX ? ` <span class="warn">The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.</span>` : '')
-    + (P_.pastWall > PAST_MANY ? ` <span class="warn">${fmt(P_.pastWall / 1000, 1)} m of the rows lie past the machine's walls and would be pressed along them: the canvas lies partly out of reach — measure it from the cup on the Ink tab, or move the ribbon.</span>`
-      : P_.pastWall > 0.05 ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
-    + (walls() ? ` <span class="warn">${walls()}</span>` : '')
-    + (here ? ` · The canvas's centre, ${fromCup() ? 'from the cup' : 'the Test tab\'s Here — until the canvas is measured from the cup on the Ink tab'}: carriage <b>X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)} mm</b>.`
-      : ' <span class="warn">Where the canvas lies: measure it from the cup on the Ink tab — its left edge and its bottom edge, two ruler numbers.</span>');
+    + (P_.pastWall > 0.05 && P_.pastWall <= PAST_MANY ? ` <span class="hint">${fmt(P_.pastWall, 0)} mm of the path past the machine's walls: pressed along them, as on the Job tab.</span>` : '')
+    + ` · The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>, its centre X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)}; TEST's dots ${TEST_MARGIN} mm in from its edges.`;
+  const warn = [inkWhy, P_.fault && `The plan is wrong, PLAY will not run it: ${P_.fault}.`,
+    P_.need > WRIST_MAX && `The elbow goes ${WRIST_MAX}°/s at most on the move: a longer Tail or a slower brush.`,
+    P_.pastWall > PAST_MANY && `${fmt(P_.pastWall / 1000, 1)} m of the rows lie past the machine's walls and would be pressed along them: the canvas lies partly out of reach — check its edges from home, or move the ribbon.`,
+    walls()].filter(Boolean);
+  $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
+  $('#planWarn').hidden = !warn.length;
   $('#stats').textContent = `${P_.blocks.length} steps · ${P_.passes.join(' + ') || 'nothing to paint'} · ${S.anchors.length} points`;
   showPanel(); save(); layout(); lastLcd && lcd(lastLcd);
 }
@@ -756,7 +768,6 @@ const post = async path => { try { const r = await fetch(path, { method: 'POST' 
 $('#btnDoJob').onclick = async () => {
   await loadInk(); settle();
   const P_ = plan();
-  if (!hereNow()) { $('#runState').innerHTML = '<span class="warn">Where the canvas lies: measure it from the cup on the Ink tab first.</span>'; return; }
   if (!P_.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to paint.</span>'; return; }
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
@@ -766,29 +777,29 @@ $('#btnDoJob').onclick = async () => {
   try {
     RUN = P_.blocks; RUN_INFO = { seconds: P_.seconds, rows: P_.rows };
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P_.blocks,
-      log: { page: 'nolan', label: nolanLabel(), settings: S, here: hereNow(), fromCup: INK.canvas, ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) } }) });   // the run journal, rembrandt.py
+      log: { page: 'nolan', label: nolanLabel(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) } }) });   // the run journal, rembrandt.py
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 };
 // TEST, before PLAY (the owner, 2026-10-04: "before PLAY I would like a test.
 // The brush in the bottom left corner; I press TEST and it dips in the paint
 // and puts dots at the farthest corners, TL TR / BL BR"): one dip in the cup,
-// with INK ON or OFF, a dot at each corner of the box round what PLAY paints
-// — the layers that are on — and home. Test's run, as PLAY's.
+// with INK ON or OFF, a dot TEST_MARGIN mm in from each corner of the board —
+// TL, TR, BR, BL (2026-10-05: the board's, not the drawing's) — and home.
+// Test's run, as PLAY's.
 function testRun() {
-  const P_ = plan(), T = cornerDots(P_.preview || []);
+  const P_ = plan(), T = cornerDots(S.boardW, S.boardH);
   return T.dots.length ? { ...plotRun({ ...P_.opts, ink: true, cup: dipCup(), noDipUnder: NO_DIP, rows: T.dots.length }, T.passes), dots: T.dots } : null;
 }
 $('#btnTest').onclick = async () => {
   await loadInk(); settle();
   const here = hereNow(), T = testRun();
-  if (!here) { $('#runState').innerHTML = '<span class="warn">Where the canvas lies: measure it from the cup on the Ink tab first.</span>'; return; }
-  if (!T) { $('#runState').innerHTML = '<span class="warn">Nothing to paint: no corners.</span>'; return; }
+  if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the board is ${2 * TEST_MARGIN} mm or less across.</span>`; return; }
   if (cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TEST dips in the cup: ${cupProblem(cup())}</span>`; return; }
   if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the test is wrong — ${T.fault}.</span>`; return; }
   const R = reach(), past = d => { const x = here.x + d.at.x, y = here.y + d.at.y; return [x < R.x.min && `${fmt(R.x.min - x, 0)} mm past the bottom wall`, x > R.x.max && `${fmt(x - R.x.max, 0)} mm past the top wall`, y < R.y.min && `${fmt(R.y.min - y, 0)} mm past the left wall`, y > R.y.max && `${fmt(y - R.y.max, 0)} mm past the right wall`].filter(Boolean).join(', '); };
   const out = T.dots.filter(d => past(d));
-  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of what PLAY paints — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
+  if (!confirm(`TEST: one dip in the cup, then a dot ${TEST_MARGIN} mm in from each corner of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
     + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
   try {
     RUN = T.blocks; RUN_INFO = { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) };
