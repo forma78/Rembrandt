@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a ring runs whole on one dip** (the owner, 2026-10-05,
+  `nolan-v2/IMAGE 2026-10-05 23:57:03.jpg`, `23:57:07.jpg`: "some rings did
+  not turn the full 360 degrees but went in two goes"). With INK ON a
+  lapped ring longer than the dip run, 720 mm, was split for a second dip,
+  the odd rows already at 360 mm — 206° of a ring of 100 mm radius — and
+  the fresh brush landed mid-ring in a dark blot, the photos' 2–3 and 9–10
+  o'clock. Now a ring is never split: whole, its lap too, on one dip (the
+  owner: "I agree"); a ring wider than 229 mm, one turn longer than the
+  dip run, is named under the ⓘ. Open lines split as before. Tried in the
+  tests; not run on the machine from here.
+
 - **NOLAN: a ring's lap 60 % of its length** (the owner, 2026-10-05,
   23:57: New Yuri's letters by the brush, "a 60 % lap will do"; the
   Circle's, "60 % too"). `LOOP_SHARE` 0.6, 0.5 before.

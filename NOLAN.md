@@ -426,6 +426,12 @@ sees exactly where to squeeze the paint.
   starts with a fresh dip and lands where the last one's tail began.
   Neighbouring lines split half a dip run apart, so the tails never line up.
   *Claude's decision.*
+  **A ring never** (the owner, 2026-10-05, `nolan-v2/IMAGE 2026-10-05
+  23:57:03.jpg`, `23:57:07.jpg`: "some rings did not turn the full 360
+  degrees but went in two goes"): a lapped ring over 720 mm was split, the
+  odd rows at 360 mm, and the fresh brush landed mid-ring in a dark blot.
+  A ring runs whole on one dip, its lap too (the owner: "I agree"); one
+  wider than 229 mm, a turn longer than the dip run, is named under the ⓘ.
 - **One cup, one wash** for the whole trace; a pause for another wash only
   if the owner gives lines different ones.
 - Water is right here: the trace lies under the acrylic. Glazing medium is
