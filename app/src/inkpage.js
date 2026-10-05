@@ -56,10 +56,16 @@ fields($('#dip'), DIP);
 
 function show() {
   const c = cup();
-  $('#cupRead').innerHTML = c.x !== null
+  // Under the ⓘ, as The dip (the owner, 2026-10-05: "let's do it so
+  // everywhere"); what needs doing stays out: not set, too near the rim.
+  const off = c.x !== null ? dipAt(c).off : 0, rim = off > c.diameter / 4;
+  $('#cupHelp').innerHTML = c.x !== null
     ? `The cup's centre: carriage <b>X ${fmt(c.x, 1)} · Y ${fmt(c.y, 1)} mm</b> · ⌀${c.diameter}, ${c.height} mm high. Jog there and press again to change it.`
-      + (dipAt(c).off > 0 ? ` <span class="warn">It lies ${fmt(dipAt(c).off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them${dipAt(c).off > c.diameter / 4 ? ' — too near the rim: move the cup in' : ', well within the cup'}.</span>` : '')
-    : 'Not set. The elbow up over the rim first (+35° or more), or the brush knocks the cup over; jog the brush over the red scope, the cup\'s centre; lower it into the paint to check; then press here.';
+      + (off > 0 && !rim ? ` It lies ${fmt(off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them, well within the cup.` : '')
+    : 'The cup is not set yet.';
+  $('#cupRead').innerHTML = c.x === null
+    ? 'Not set. The elbow up over the rim first (+35° or more), or the brush knocks the cup over; jog the brush over the red scope, the cup\'s centre; lower it into the paint to check; then press here.'
+    : rim ? `<span class="warn">It lies ${fmt(off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them — too near the rim: move the cup in.</span>` : '';
   for (const inp of document.querySelectorAll('.grid4 input')) {
     const k = inp.dataset.k, typed = S.ink[inp.dataset.part] || {};
     if (document.activeElement !== inp) inp.value = typed[k] ?? '';
@@ -77,6 +83,8 @@ function show() {
   $('#dipRead').innerHTML = why ? `<span class="warn">${why}</span>` : '';
 }
 $('#dipInfo').onclick = () => { $('#dipHelp').hidden = !$('#dipHelp').hidden; $('#dipInfo').classList.toggle('on', !$('#dipHelp').hidden); };
+$('#cupInfo').onclick = () => { $('#cupHelp').hidden = !$('#cupHelp').hidden; $('#cupInfo').classList.toggle('on', !$('#cupHelp').hidden); };
+$('#canvasInfo').onclick = () => { $('#canvasRead').hidden = !$('#canvasRead').hidden; $('#canvasInfo').classList.toggle('on', !$('#canvasRead').hidden); };
 
 // ---------- Here: the brush over the cup's centre ----------
 $('#btnCup').onclick = async () => {
