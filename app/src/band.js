@@ -431,27 +431,34 @@ export const lengthOf = pts => pts.reduce((a, p, i) => i ? a + Math.hypot(p[0] -
 // is a perfect circle, run on round it 50 mm further, past its 360°"): every
 // ring started at its seam with the thin landing and ended there with the
 // lift's hook, the two apart — an onion dome on top of each ring. A row that
-// runs whole round a loop now goes on LOOP_LAP mm over its own start, and the
-// brush lifts off over all of it (r.lap: the run's last tail, bandPasses →
+// runs whole round a loop goes on over its own start, and the brush lifts
+// off over all of the lap (r.lap: the run's last tail, bandPasses →
 // strokes.js), not over Tail: the landing painted over, the lift a long fade
-// on wet paint, no hook (the owner, the same day: "a smooth one? then 75 mm,
-// the lap and the lift-off"; 50 at first). In place on runs (canvas mm,
-// layeredOf's); a row broken by a cut or another part is no loop and stays
-// as it is. → mm added.
-export const LOOP_LAP = 75;   // mm, the owner's
-export function lapLoops(band, runs, lap = LOOP_LAP) {
-  if (!band?.closed || !(lap > 0)) return 0;
+// on wet paint. 50 mm, then 75 ("the lap and the lift-off"); now LOOP_SHARE
+// of the ring's own length (17:48, nolan-v2/IMAGE 2026-10-05 17:48:32,
+// 17:48:35.jpg: "a wide ring uses its paint otherwise than the smallest, so
+// an equal lap of some mm is not fair — 50 % of each circle"; "the lap is
+// needed"). The little tail the brush leaves over the seam, landing at speed,
+// stays: the press is not calibrated yet, and it does not matter on a dry
+// run without the watercolour (the owner). In place on runs (canvas mm,
+// layeredOf's): r.loop, the ring's length. A row broken by a cut or another
+// part is no loop and stays as it is. → mm added.
+export const LOOP_SHARE = 0.5;   // of the ring's length, the owner's
+export function lapLoops(band, runs, share = LOOP_SHARE) {
+  if (!band?.closed || !(share > 0)) return 0;
   let added = 0;
   for (const r of runs) {
     const P = r.pts, a = P[0], z = P.at(-1);
     if (r.i0 > 0 || P.length < band.n || Math.hypot(a[0] - z[0], a[1] - z[1]) > 0.5) continue;   // whole round only
+    const C = lengthOf(P), lap = share * C;
     let d = 0;
     for (let j = 1; j < P.length && d < lap; j++) {
       const p = P[j], q = P[j - 1], step = Math.hypot(p[0] - q[0], p[1] - q[1]);
       if (d + step > lap) { const t = (lap - d) / step; P.push([q[0] + (p[0] - q[0]) * t, q[1] + (p[1] - q[1]) * t]); d = lap; break; }
       P.push([p[0], p[1]]); d += step;
     }
-    r.lap = d; added += d;
+    Object.assign(r, { lap: d, loop: C });
+    added += d;
   }
   return added;
 }
