@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **NOLAN: a ring's lap 60 % of its length** (the owner, 2026-10-05,
+  23:57: New Yuri's letters by the brush, "a 60 % lap will do"; the
+  Circle's, "60 % too"). `LOOP_SHARE` 0.6, 0.5 before.
+
 - **Rembrandt private on GitHub again** (the owner, 2026-10-05: "close it,
   please, make it private"): the references hold other artists' works.
   README's rule says so.

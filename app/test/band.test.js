@@ -433,15 +433,15 @@ test('Several figures: N1 of every figure before N2, figure by figure within a l
 // The owner, 2026-10-05: "the ring does not close, the brush paints a tulip;
 // run on round it further, past its 360°"; then "50 % of each circle — an
 // equal lap of some mm is not fair — the lap is needed".
-test('A loop: every whole ring runs on half its length over its start, lifting off over all of it', () => {
+test('A loop: every whole ring runs on LOOP_SHARE of its length over its start, lifting off over all of it', () => {
   const o = { closed: true, rows: 7, pitch: 9.5, width: 4, stack: 0, twist: 0, squeeze: 0, tilt: 0, swing: 0, spin: 0, zoom: 1, dx: 0, dy: 0, lens: 0 };
   const b = bandOf(circleAnchors(0, 0, 100), o), L = layeredOf(b, { width: 4, cuts: [], overlap: 4 });
   const before = L.imp.runs.map(r => lengthOf(r.pts));
   const added = lapLoops(b, L.imp.runs);
   assert.ok(close(added, before.reduce((a, v) => a + LOOP_SHARE * v, 0), 0.05), `${added.toFixed(1)} mm added`);
   L.imp.runs.forEach((r, i) => {
-    assert.ok(close(r.lap, LOOP_SHARE * before[i], 0.05) && close(r.loop, before[i], 0.05), `ring ${r.k}: half of ${before[i].toFixed(0)} mm`);
-    assert.ok(close(lengthOf(r.pts), (1 + LOOP_SHARE) * before[i], 0.05), `ring ${r.k}: once round and half again`);
+    assert.ok(close(r.lap, LOOP_SHARE * before[i], 0.05) && close(r.loop, before[i], 0.05), `ring ${r.k}: ${LOOP_SHARE * 100} % of ${before[i].toFixed(0)} mm`);
+    assert.ok(close(lengthOf(r.pts), (1 + LOOP_SHARE) * before[i], 0.05), `ring ${r.k}: once round and the lap again`);
     const rad = Math.hypot(r.pts[0][0], r.pts[0][1]);
     assert.ok(r.pts.every(p => Math.abs(Math.hypot(p[0], p[1]) - rad) < 0.05), `ring ${r.k}: the lap on the ring itself`);
   });

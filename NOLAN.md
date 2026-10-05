@@ -196,9 +196,10 @@ On the board:
    band turned edge-on as it was drawn); **Circle** (O): pressed at the
    centre and dragged out to the radius, a flat ring of 8 points, closed —
    the centre the circle itself; every row that runs whole round a loop
-   goes on half its own length over its start, the brush lifting off over
+   goes on 60 % of its own length over its start, the brush lifting off over
    all of it (75 mm at first; the owner: "a wide ring uses its paint
-   otherwise than the smallest — 50 % of each circle")
+   otherwise than the smallest — 50 % of each circle"; 60 % since
+   2026-10-05, 23:57, as New Yuri's rings)
    (the owner, 2026-10-05, `nolan-v2/IMAGE 2026-10-05 16:56:*.jpg`: "the
    ring does not close, the brush paints a tulip — run on 50 mm further,
    past its 360°"; then "75 mm, the lap and the lift-off"); **⌘C ⌘V** copies the picked figure and
