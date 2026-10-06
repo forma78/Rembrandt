@@ -43,6 +43,13 @@
     <button class="tool" id="btnClear" title="Clear the canvas: no text (⌘Z brings it back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
   </nav>
 
+  <!-- the zoom, over the board (the owner, 2026-10-06, TYPE-Claude/Screenshot 2026-10-06 zoom.png) -->
+  <div class="zoombar" id="zoombar">
+    <button class="zk" id="zoomOut" title="Zoom out (⌘−)" aria-label="Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button class="zk pct" id="zoomFit" title="Back to 100 %: the whole table (⌘0)">100%</button>
+    <button class="zk" id="zoomIn" title="Zoom in (⌘+). A pinch on the trackpad zooms where it is; two fingers move the board" aria-label="Zoom in"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+  </div>
+
   <section class="stage t-select" id="stage">
     <!-- the paints in stock by the Tools, colours with no names (the owner, 2026-10-06), as New Yuri's letters' strip -->
     <div class="paintstrip" id="paints" aria-label="Paints in stock"></div>
