@@ -302,6 +302,13 @@ export function markPaths(seg, R, width) {
 }
 
 // ---------- pass 3, the Drag ----------
+// The pitch for `rings` lanes in a band W wide (the owner, 2026-10-06: "the
+// E has 7 rings on the photo — I would make a slider, 5 for example"): an
+// open band's rings from the brush's half width inside its edge to its
+// centre line, rings − 1 pitches; a closed band's the same pitch, so
+// 2·rings − 1 across it.
+export const RINGS_MIN = 2, RINGS_MAX = 12;
+export const pitchOf = (W, brush, rings) => Math.max(0.1, Math.max(0, W / 2 - brush / 2) / Math.max(1, rings - 1));
 // Lanes: brush-down loops in a band, the brush's width inside its edge, a
 // pitch apart, to its centre line (TYPE.md): an open band's concentric
 // stadiums, a closed band's rings either side, a dot's circles. Outside
@@ -343,13 +350,16 @@ function openRing(ring, startS, closed, L) {
 // band. → [{ p, s }]
 export const JOG = 1;   // pitches along the band a step to the next lane takes: 45°, a short seam by the landing (Claude's choice; 3, 18°, cut long chords across a short band)
 const ahead = (R, i, mm) => { let acc = 0, j = i; while (acc < mm) { const n = (j + 1) % R.length; acc += len(sub(R[n].p, R[j].p)); j = n; if (j === i) break; } return j; };
-export function spiralOf(seg, lanes, startS, pitch) {
+// from: where the brush comes from, still down (Pass through): the first lane
+// from its point nearest to there, not from the band's landing.
+export function spiralOf(seg, lanes, startS, pitch, from = null) {
   const out = [];
   let end = null, last = null;
   for (const { ring: R } of lanes) {
     if (R.length < 2) continue;
     let i0 = 0;
-    if (!end) { for (let i = 0; i < R.length; i++) { const s = R[i].s; if (seg.closed ? ((s - startS + seg.L) % seg.L) < 2 : s >= startS) { i0 = i; break; } } }
+    if (!end && from) R.forEach((q, i) => { if (len(sub(q.p, from)) < len(sub(R[i0].p, from))) i0 = i; });
+    else if (!end) { for (let i = 0; i < R.length; i++) { const s = R[i].s; if (seg.closed ? ((s - startS + seg.L) % seg.L) < 2 : s >= startS) { i0 = i; break; } } }
     else {
       R.forEach((q, i) => { if (len(sub(q.p, end)) < len(sub(R[i0].p, end))) i0 = i; });
       i0 = ahead(R, i0, JOG * pitch);
@@ -374,6 +384,7 @@ export function spiralOf(seg, lanes, startS, pitch) {
 export const STRIP = 0.94;   // of the lane's share: a hair of white between strips, the groove (the prototype's)
 export function dragOf(plan, o) {
   const inner = Math.min(o.brush, o.pitch) * STRIP, R = plan.W / 2;
+  plan.pitch = o.pitch;
   for (const s of plan.segs) {
     const startS = s.dot ? 0 : s.closed ? (s.marks[0].s - 4 + s.L) % s.L : Math.max(0, s.marks[0].s - 4);
     const open = ring => s.dot ? [...ring, ring[0]] : openRing(ring, startS, s.closed, s.L);
@@ -387,6 +398,7 @@ export function dragOf(plan, o) {
       return lane;
     });
     s.spiral = spiralOf(s, lanes, startS, o.pitch);
+    Object.assign(s, { rings: lanes, startS });
   }
 }
 // The marks a lane crosses going from s0 to s1 along its band (for Result).
@@ -423,21 +435,88 @@ export function marksRows(plan, session, width, ink) {
   }
   return { ps, info, marks: n, count };
 }
-// DRAG: the session's bands one after another, each its lanes non-stop
-// (spiralOf), a row a band; the dry brush, no dip ever (TYPE.md: "pass 3
-// never dips"). → { ps, info, lanes, bands, length }
-export function dragRows(plan, session) {
+// DRAG's paths in a session: a band a path, its lanes non-stop (spiralOf);
+// with `through`, Pass through (the owner, 2026-10-06: "a switch as on NOLAN
+// — Pass through; maybe an interesting effect"; "(a)"): a letter a path, its
+// bands one after another with the brush down. From one band to the next it
+// goes inside the letter, never over the canvas between: to its band's centre
+// line, along it to where the next band meets it, band to band through those
+// meeting points — the E's middle bar to its bottom one by way of the stem —
+// then into the next band's spiral, every other one from its centre out.
+// Parts of a letter that do not meet (the dot of !, the rings of %) the brush
+// lifts between. → [{ pts: [{ p, s }], ch, li, bands, lanes }]
+function meetings(G, R) {                                                          // where the letter's bands meet: their centre lines within R
+  const J = G.map(() => G.map(() => null));
+  for (let i = 0; i < G.length; i++) for (let j = i + 1; j < G.length; j++) {
+    let best = Infinity, at = null;
+    for (const p of G[i].pts) for (const q of G[j].pts) { const d = len(sub(p, q)); if (d < best) { best = d; at = mul(add(p, q), 0.5); } }
+    if (best <= R) J[i][j] = J[j][i] = at;
+  }
+  return J;
+}
+function routeOf(J, from, to) {                                                    // the bands from one to another through their meetings, fewest hops
+  const prev = new Map([[from, -1]]), queue = [from];
+  while (queue.length) {
+    const i = queue.shift();
+    if (i === to) break;
+    J[i].forEach((m, j) => { if (m && !prev.has(j)) { prev.set(j, i); queue.push(j); } });
+  }
+  if (!prev.has(to)) return null;
+  const out = [to];
+  while (out[0] !== from) out.unshift(prev.get(out[0]));
+  return out;
+}
+function along(seg, p, q) {                                                        // the centre line from nearest p to nearest q, the shorter way round a loop
+  const near = x => seg.pts.reduce((b, c, i) => len(sub(c, x)) < len(sub(seg.pts[b], x)) ? i : b, 0);
+  const a = near(p), b = near(q), n = seg.pts.length, out = [];
+  if (!seg.closed || Math.abs(b - a) <= n / 2) { const st = b >= a ? 1 : -1; for (let i = a; i !== b + st; i += st) out.push(seg.pts[i]); }
+  else { const st = b > a ? -1 : 1; for (let i = a; i !== b; i = (i + st + n) % n) out.push(seg.pts[i]); out.push(seg.pts[b]); }
+  return out;
+}
+export function dragPaths(plan, session, through = false) {
+  const segs = plan.segs.filter(s => s.session === session && s.spiral?.length), out = [];
+  if (!through) return segs.map(s => ({ pts: [...s.spiral], ch: s.ch, li: s.li, bands: 1, lanes: s.lanes.length }));
+  for (const li of [...new Set(segs.map(s => s.li))]) {
+    const G = segs.filter(s => s.li === li), J = meetings(G, plan.R), done = new Set([0]);
+    const fresh = i => ({ pts: [...G[i].spiral], ch: G[i].ch, li, bands: 1, lanes: G[i].lanes.length });
+    let d = fresh(0), cur = 0;
+    while (done.size < G.length) {
+      const at = d.pts.at(-1).p, near = s => Math.min(...s.pts.map(q => len(sub(q, at))));
+      let best = null;
+      G.forEach((s, j) => {
+        if (done.has(j)) return;
+        const r = routeOf(J, cur, j); if (!r) return;
+        const cost = r.length * 1e4 + near(s);
+        if (!best || cost < best.cost) best = { j, r, cost };
+      });
+      if (!best) { out.push(d); const j = G.findIndex((_, i) => !done.has(i)); d = fresh(j); done.add(j); cur = j; continue; }   // a part apart: the brush lifts
+      let p = at;
+      for (let k = 1; k < best.r.length; k++) {                                     // along the centre lines, meeting to meeting
+        const m = J[best.r[k - 1]][best.r[k]];
+        d.pts.push(...along(G[best.r[k - 1]], p, m).map(q => ({ p: q, s: null })), { p: m, s: null });
+        p = m;
+      }
+      const s = G[best.j], rings = d.bands % 2 ? [...s.rings].reverse() : s.rings;
+      d.pts.push(...spiralOf(s, rings, s.startS, plan.pitch, p));
+      d.bands++; d.lanes += s.lanes.length; done.add(best.j); cur = best.j;
+    }
+    out.push(d);
+  }
+  return out;
+}
+// DRAG: the session's paths one after another, a row a path; the dry brush,
+// no dip ever (TYPE.md: "pass 3 never dips"). → { ps, info, lanes, bands, paths, length }
+export function dragRows(plan, session, through = false) {
   const ps = [], info = [];
-  let length = 0, lanes = 0;
-  for (const s of plan.segs) {
-    if (s.session !== session || !s.spiral?.length) continue;
-    const pts = s.spiral.map(q => q.p), pieces = fitPieces(pts);
+  let length = 0, lanes = 0, bands = 0;
+  for (const d of dragPaths(plan, session, through)) {
+    const pts = d.pts.map(q => q.p), pieces = fitPieces(pts);
     if (!pieces.length) continue;
     const row = ps.length + 1, L = lengthOf(pts);
     ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
-    info.push({ label: `${s.ch} · band ${s.si + 1} · ${s.lanes.length} lanes non-stop`, li: s.li, L });
-    length += L; lanes += s.lanes.length;
+    info.push({ label: d.bands > 1 ? `${d.ch} · ${d.bands} bands, ${d.lanes} lanes non-stop` : `${d.ch} · ${d.lanes} lanes non-stop`, li: d.li, L });
+    length += L; lanes += d.lanes; bands += d.bands;
   }
-  return { ps, info, lanes, bands: ps.length, length };
+  return { ps, info, lanes, bands, paths: ps.length, length };
 }
 

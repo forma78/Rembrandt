@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE: Rings, and Pass through — a letter one DRAG path** (the owner,
+  2026-10-06, `TYPE-Machine/IMAGE 2026-10-06 15:50:01.jpg`: "how to cut the
+  number of passes? The E has 7 rings — a slider, 5 for example; and a
+  switch as on NOLAN, Pass through — maybe an interesting effect"). Rings
+  2 … 12 in place of Lane pitch, the pitch following (`typeplan.js`,
+  pitchOf): a 50 mm band, a 6 mm brush, 5 rings — 5.5 mm apart; the warning
+  when the rings lie wider apart than the brush. Pass through OFF · ON
+  under OVERLAPS (dragPaths): ON, a letter's bands one path — the brush
+  goes from a band's spiral to its centre line, along it to where the next
+  band meets it, through any between, into that band's spiral, every other
+  one from its centre out; it never runs over the canvas between bands
+  (every letter and digit checked: the E's middle bar reaches its bottom
+  one by way of the stem; a straight hop crossed the white between them).
+  Parts apart lift: !, %. 3 Drag draws it; the reading counts the brush
+  down. Not run on the machine yet.
+
 - **TYPE: DRAG non-stop, a band's lanes one spiral** (the owner, 2026-10-06,
   `TYPE-Machine/` — the first drags, NEW / YURI and Z, pink over the
   watercolour: "must the brush lift off the canvas every time? Maybe let it
