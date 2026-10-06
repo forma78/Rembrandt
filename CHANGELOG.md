@@ -3,6 +3,21 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **TYPE: the trace and the colour meet at the band's edge** (the owner,
+  2026-10-06, `TYPE-Claude/Screenshot 2026-10-06 preview-issue.png`, 1 Trace
+  over Result in Photoshop: "the coloured letters go inside the outline of
+  1 Trace — it must not be so: the brush is the same, in paint and dry;
+  either pull the violet trace in, or widen the colour"). Both: TRACE runs
+  its outlines half the line's width inside the band's edge, so the line's
+  outer edge is the band's — the machine's path too; Result paints each
+  band's outermost lane out to the edge, where the brush's own edge runs,
+  half the brush and half a strip wide (it stopped 2.7 mm short at a 12 mm
+  brush, 7 mm pitch); a mark's round ends stop at the trace's inner edge.
+  Tried: NEW / YURI, 1 Trace over Result multiplied, no violet outside the
+  colour.
+
 ## v.1.0.1 — 2026-10-06
 
 - **v.1.0.1 after the name** (the owner, 2026-10-06: "replace REMBRANDT

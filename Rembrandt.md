@@ -505,7 +505,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   together at a 4 mm line); a paint whose ticks pass its mark's end is
   named. On the
   left Select (V): a drag moves the text, the arrows a mm. TRACE: every
-  band's outline, round clockwise from its letter's top, the next from
+  band's outline, the line's outer edge on the band's (the owner,
+  2026-10-06: "the brush is the same, in paint and dry"), as the
+  outermost lane's strip of Result is; round clockwise from its letter's top, the next from
   nearest the last end, on 60 % over its start, lifting off over all of
   that; with INK ON a dip, then outlines on what the brush holds up to the
   dip run, an outline never split; 1 Trace shows the wash (`src/wash.js`,

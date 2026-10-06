@@ -206,13 +206,18 @@ export const clockwise = P => areaOf(P) >= 0 ? P : P.slice().reverse();
 // the next ones where the last one ended — the point of them nearest to there
 // (New Yuri's rings). Each goes round clockwise, on `share` of itself over its
 // start, the brush lifting off over all of that lap, as every loop of NOLAN
-// and New Yuri (band.js, lapLoops; the owner, 2026-10-05: "60 %"). → [{ pts,
-// C its length once round, lap mm, ch, li, si, part }]
-export function traceOf(plan, share = LOOP_SHARE) {
+// and New Yuri (band.js, lapLoops; the owner, 2026-10-05: "60 %"). inset:
+// the outline that far inside the band's edge — half the line's width, so
+// the line's outer edge is the band's, as the drag's outermost lane's is
+// (the owner, 2026-10-06, TYPE-Claude/Screenshot 2026-10-06 preview-issue.png:
+// "the coloured letters go inside the outline of 1 Trace — it must not be
+// so: the brush is the same, in paint and dry"). → [{ pts, C its length
+// once round, lap mm, ch, li, si, part }]
+export function traceOf(plan, share = LOOP_SHARE, inset = 0) {
   const out = [];
   let end = null, li = -1;
   for (const seg of plan.segs) {
-    for (const { part, pts } of outlinesOf(seg, plan.R)) {
+    for (const { part, pts } of outlinesOf(seg, Math.max(0.5, plan.R - inset))) {
       const P = clockwise(pts);
       if (P.length < 3) continue;
       let i0 = 0;
@@ -273,8 +278,9 @@ export function marksOf(plan, o) {
     }
   }
 }
-// A mark as the brush draws it: a stroke across the band, short of its
-// sides; its ticks the paint's number, as on an abacus (the owner,
+// A mark as the brush draws it: a stroke across the band, its round ends at
+// the trace's inner edge (the trace's line `width` inside the band's edge);
+// its ticks the paint's number, as on an abacus (the owner,
 // 2026-10-06: "(a)") — a long one five, a short one one, so 8 is a long and
 // three short — short strokes along the band from the mark's outer end in, a
 // line and a line's white apart, so a wet line of `width` keeps them apart
@@ -283,7 +289,7 @@ export function marksOf(plan, o) {
 // mark's other end.
 export const ticksOf = paint => [...Array(Math.floor((paint + 1) / 5)).fill(true), ...Array((paint + 1) % 5).fill(false)];   // long?, in order
 export function markPaths(seg, R, width) {
-  const out = [], half = Math.max(2, R - 3), pitch = 2 * width;
+  const out = [], half = Math.max(2, R - width), pitch = 2 * width;
   for (const m of seg.marks) {
     const N = seg.dot ? [1, 0] : m.N, T = seg.dot ? [0, 1] : m.T;
     out.push({ pts: [add(m.p, mul(N, -half)), add(m.p, mul(N, half))], paint: m.paint, tick: false });
@@ -325,11 +331,28 @@ function openRing(ring, startS, closed, L) {
   for (let i = 1; i < r.length && acc < DRAG_ON; i++) { acc += len(sub(r[i].p, r[i - 1].p)); tail.push(r[i]); }
   return [...r, ...tail];
 }
-// Sets seg.lanes: [{ d, path: [{ p, s }] }], each a brush-down run, after marksOf.
+// Sets seg.lanes: [{ d, path: [{ p, s }], w, face? }], each a brush-down
+// run, after marksOf. For Result, the strip of the band each lane paints, w
+// wide: the prototype's, a pitch less STRIP's groove — and the outermost
+// one's out to the band's edge, where the brush's own edge runs (face: the
+// strip's middle), so the colour reaches the trace's outer edge and covers
+// it (the owner, 2026-10-06: "either pull the violet trace in, or widen the
+// colour" — both: the trace inset, this).
+export const STRIP = 0.94;   // of the lane's share: a hair of white between strips, the groove (the prototype's)
 export function dragOf(plan, o) {
+  const inner = Math.min(o.brush, o.pitch) * STRIP, R = plan.W / 2;
   for (const s of plan.segs) {
     const startS = s.dot ? 0 : s.closed ? (s.marks[0].s - 4 + s.L) % s.L : Math.max(0, s.marks[0].s - 4);
-    s.lanes = lanesOf(s, plan.W, o).map(l => ({ d: l.d, path: s.dot ? [...l.ring, l.ring[0]] : openRing(l.ring, startS, s.closed, s.L) }));
+    const open = ring => s.dot ? [...ring, ring[0]] : openRing(ring, startS, s.closed, s.L);
+    const lanes = lanesOf(s, plan.W, o), edge = Math.max(0, ...lanes.map(l => Math.abs(l.d)));
+    s.lanes = lanes.map(l => {
+      const lane = { d: l.d, path: open(l.ring), w: inner };
+      if (edge > 1e-9 && Math.abs(Math.abs(l.d) - edge) < 1e-9) {
+        const w = o.brush / 2 + inner / 2, ring = loopAt(s, Math.sign(l.d) * (R - w / 2));
+        if (ring.length > 1) Object.assign(lane, { w, face: open(ring) });
+      }
+      return lane;
+    });
   }
 }
 // The marks a lane crosses going from s0 to s1 along its band (for Result).

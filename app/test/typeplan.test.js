@@ -171,3 +171,23 @@ test('crossed: the marks between two places along a band, round a closed band\'s
   assert.ok(crossed(O, O.L - 1, 1).length === (O.marks.some(q => q.s > O.L - 1 || q.s <= 1) ? 1 : 0));
   assert.ok(crossed(O, last.s - 0.5, last.s + 0.5).includes(last));
 });
+
+test('the trace and the colour meet at the band\'s edge: the line inset half its width, the outermost lane\'s strip out to the edge', () => {
+  const L = layoutOf(G, { ...o, text: 'IO' }), [I, O] = L.segs, w = 6;
+  const T = traceOf(L, LOOP_SHARE, w / 2);
+  const off = (seg, p) => Math.min(...seg.pts.map(q => dist(p, q)));
+  for (const p of T[0].pts.filter((_, j) => j % 5 === 0)) assert.ok(Math.abs(off(I, p) + w / 2 - L.R) < 0.6, 'the stem\'s line, its outer edge on the band\'s');
+  marksOf(L, { paints: 8, per: 2, spacing: 90 }); dragOf(L, { brush: 12, pitch: 7, order: 'out' });
+  for (const seg of [I, O]) {
+    const outer = seg.lanes.filter(l => l.face);
+    assert.ok(outer.length >= 1 && outer.length <= 2, 'an open band one outermost lane, a closed one two');
+    for (const l of outer) {
+      assert.ok(Math.abs(l.w - (6 + 3.5 * 0.94 * 2 / 2)) < 1e-9, 'half the brush and half the inner strip');
+      const p = l.face[3].p, edge = Math.abs(off(seg, p)) + l.w / 2;
+      assert.ok(Math.abs(edge - L.R) < 0.6, `${seg.ch}: the colour to ${edge}, the band ${L.R}`);
+    }
+    for (const l of seg.lanes.filter(l => !l.face)) assert.ok(Math.abs(l.w - 7 * 0.94) < 1e-9);
+  }
+  const marks = markPaths(I, L.R, w).filter(m => !m.tick);
+  for (const m of marks) assert.ok(Math.abs(dist(m.pts[0], m.pts[1]) / 2 + w / 2 - (L.R - w / 2)) < 1e-6, 'a mark\'s round end at the trace\'s inner edge');
+});

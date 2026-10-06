@@ -121,7 +121,7 @@ function plan() {
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
   if (!L?.segs.length) { PLAN = { ...EMPTY, lay: L }; return PLAN; }
-  const trace = traceOf(L), R = traceRows(trace, S.ink);
+  const trace = traceOf(L, LOOP_SHARE, S.width / 2), R = traceRows(trace, S.ink);   // the line's outer edge on the band's
   if (!R.ps.length) { PLAN = { ...EMPTY, lay: L }; return PLAN; }
   const o = runOpts(R.ps.length);
   PLAN = { ...plotRun(o, [{ key: 'TRACE', ps: R.ps, why: null }]), rows: R.info, outlines: R.ps.length, trace, lay: L, ink: S.ink, opts: o };
@@ -294,12 +294,13 @@ function drawResult() {
     const layers = [];
     for (let ss = 0; ss < L.sessions; ss++) {
       const c = document.createElement('canvas'); c.width = g.canvas.width; c.height = g.canvas.height;
-      const lg = c.getContext('2d'), w = Math.min(S.brush, S.pitch) * 0.94;
+      const lg = c.getContext('2d');
       lg.setTransform(k * dpr, 0, 0, k * dpr, -V.y0 * k * dpr, V.x1 * k * dpr);   // canvas mm, as sx, sy
       lg.lineCap = 'butt'; lg.lineJoin = 'round';                                  // butt: a shade's path meets the next one's edge to edge, no darker dot between
       for (const s of L.segs.filter(q => q.session === ss)) for (const lane of s.lanes) {
         let col = null, load = 0, key2 = null, run = [];
         if (s.dot && s.marks[0]) { col = rgb(hexOf(s.marks[0].paint)); load = 1; }
+        const w = lane.w;                                                           // its strip: the outermost out to the band's edge (typeplan.js, dragOf)
         const flush = () => {                                                       // the points of one shade: the lane and its groove
           if (run.length > 1) {
             const [r, gg, b, a] = key2;
@@ -309,7 +310,7 @@ function drawResult() {
           }
           run = [];
         };
-        const P = lane.path;
+        const P = lane.face || lane.path;
         for (let i = 1; i < P.length; i++) {
           for (const m of crossed(s, P[i - 1].s, P[i].s)) { const pc = rgb(hexOf(m.paint)); col = col && load > 0.05 ? mix(col, pc, 0.72) : pc; load = 1; }
           load *= Math.exp(-Math.hypot(P[i].p[0] - P[i - 1].p[0], P[i].p[1] - P[i - 1].p[1]) / S.run);
@@ -379,7 +380,7 @@ function blockBox() {
 }
 function onBlock(p) {
   const L = layNow(); if (!L) return false;
-  const r = L.R + S.width / 2;
+  const r = L.R;                                                                     // the band's edge: the trace's and the colour's outer edge
   return L.segs.some(s => s.pts.some(q => Math.hypot(q[0] - p[0], q[1] - p[1]) <= r));
 }
 let drag = null;
