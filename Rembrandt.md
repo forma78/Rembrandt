@@ -30,7 +30,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Rings · Coil** | New Yuri's two ways to draw a stroke: every circle a ring of its own — it lands, goes round, on 60 % over its start, lifts; or one line a stroke, a whole turn from circle to circle. |
 | **TYPE** | The tab that paints letters as bands, after New Yuri since 2026-10-06 (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
 | **Band (on TYPE)** | A letter's stroke as the brush fills it: its skeleton (New Yuri's set) a share of the letter's height wide, round at its ends; split at every corner sharper than 25°, so V, M, Z, L are overlapping bands; O, 0, 8 closed bands; the dots of ! and % discs. Not Create's band. |
-| **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number, from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
+| **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number as on an abacus — a long one five, a short one one — from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
 | **Session** | On TYPE: the bands marked and dragged together. A band over a band of an earlier session goes to a later one, the earlier dry first; OVERLAPS: wet on wet, dry between letters, dry every overlap. |
 | **Job** | The tab that runs one layer on the machine. Writes `job.json`; ⚡️ Do Job runs it. |
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
@@ -488,11 +488,14 @@ this section disagree, this section wins: the owner corrected the sketch on
   spacing, Margin, Line width (the watercolour's, 4 mm), Fit to canvas;
   Brush, pass 3: Brush width, Lane pitch, Outside first · Inside first;
   Paint layout, pass 2: Mark spacing, Paints per letter; Simulation: Paint
-  run, Glaze (est.); Paints in stock — a colour and a name each, ×, Add
-  paint, Reset colour clicks; a click on a band in 2 Marks or Result steps
-  its paint; the Canvas. A mark's ticks are the paint's number, two line
-  widths apart (Claude's choice: the prototype's 3.5 mm run together at a
-  4 mm line); a paint whose ticks pass its mark's end is named. On the
+  run, Glaze (est.); a click on a band in 2 Marks or Result steps
+  its paint; the Canvas. The paints in stock a strip by the Tools, colours
+  with no names (the owner, 2026-10-06): a chip a paint, its number on it,
+  its marks under it, + and ↺ at the end. A mark's ticks are the paint's
+  number as on an abacus, a long one five, a short one one (the owner:
+  "(a)"), two line widths apart (Claude's choice: the prototype's 3.5 mm run
+  together at a 4 mm line); a paint whose ticks pass its mark's end is
+  named. On the
   left Select (V): a drag moves the text, the arrows a mm. TRACE: every
   band's outline, round clockwise from its letter's top, the next from
   nearest the last end, on 60 % over its start, lifting off over all of

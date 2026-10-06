@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, lanesOf, dragOf, crossed, DRAG_ON } from '../src/typeplan.js';
+import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, ticksOf, lanesOf, dragOf, crossed, DRAG_ON } from '../src/typeplan.js';
 import { offPiece, toMachine, washOf, lengthOf, LOOP_SHARE, DIP_RUN, FIT_MM, NO_DIP } from '../src/band.js';
 import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
@@ -125,15 +125,22 @@ test('the marks: one or more on every band, a letter its own paints, a click ste
   assert.equal(paintPlan({ [`${s3.li}:${s3.si}`]: 1 }).segs[3].marks[0].paint, (before + 1) % 8);
 });
 
-test('a mark\'s ticks: the paint\'s number of them, a line and a line\'s white apart; too many named', () => {
+test('a mark\'s ticks: the paint\'s number as on an abacus — a long one five, a short one one — a line and a line\'s white apart', () => {
+  assert.deepEqual(ticksOf(0), [false]);
+  assert.deepEqual(ticksOf(3), [false, false, false, false]);
+  assert.deepEqual(ticksOf(4), [true]);
+  assert.deepEqual(ticksOf(7), [true, false, false, false]);       // paint 8: a long and three short
+  assert.deepEqual(ticksOf(9), [true, true]);
   const L = paintPlan(), s = L.segs[0], ps = markPaths(s, L.R, 4);
   const marks = ps.filter(q => !q.tick), ticks = ps.filter(q => q.tick);
   assert.equal(marks.length, s.marks.length);
-  assert.equal(ticks.length, s.marks.reduce((a, m) => a + m.paint + 1, 0));
+  assert.equal(ticks.length, s.marks.reduce((a, m) => a + ticksOf(m.paint).length, 0));
+  for (const t of ticks) assert.ok(Math.abs(dist(t.pts[0], t.pts[1]) - (t.long ? 24 : 12)) < 1e-6, 'a long tick twice a short one');
   const t = ticks.filter(q => q.paint === s.marks[0].paint).slice(0, 2);
-  if (t.length === 2) assert.ok(Math.abs(dist(t[0].pts[0], t[1].pts[0]) - 8) < 1e-6, 'ticks 2 × the line apart');
-  const narrow = { ...s, marks: [{ ...s.marks[0], paint: 7 }] };
-  assert.ok(markPaths(narrow, 12, 4).some(q => q.tick && !q.fits), 'eight ticks do not fit a 18 mm mark');
+  if (t.length === 2) assert.ok(Math.abs(dist(t[0].pts[0], t[1].pts[0]) - 8) < 1e-6 || t[0].long !== t[1].long, 'ticks 2 × the line apart');
+  const narrow = { ...s, marks: [{ ...s.marks[0], paint: 3 }] };
+  assert.ok(markPaths(narrow, 8, 4).some(q => q.tick && !q.fits), 'four ticks do not fit a 10 mm mark');
+  assert.ok(markPaths({ ...s, marks: [{ ...s.marks[0], paint: 7 }] }, L.R, 4).every(q => !q.tick || q.fits), 'paint 8 fits a 45 mm mark now');
 });
 
 test('the lanes: the outermost the brush\'s half width inside the band, a pitch apart, inside first reversed', () => {

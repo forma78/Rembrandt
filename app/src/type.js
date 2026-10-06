@@ -40,8 +40,7 @@ let GLYPHS = null;
 // letter; how far a lane carries a paint (run) and how a session glazes the
 // one under it (est., the simulation's); the paints in stock, and the bands
 // clicked to another paint (over, 'letter:band' → steps).
-const PAINTS = [['Lemon yellow', '#F5D21A'], ['Orange', '#F28A1D'], ['Vermilion', '#E2412A'], ['Magenta', '#D8247A'],
-  ['Violet', '#6B3FA0'], ['Ultramarine', '#2B4FB8'], ['Turquoise', '#169C9C'], ['Leaf green', '#3FA33C']];   // the prototype's, by eye
+const PAINTS = ['#F5D21A', '#F28A1D', '#E2412A', '#D8247A', '#6B3FA0', '#2B4FB8', '#169C9C', '#3FA33C'];   // the prototype's, by eye: lemon yellow … leaf green
 const PAINTS_MAX = 12;
 const DRAG_SPEED = 60;   // mm/s, the dry brush along a lane, for DRAG's time: the prototype's, est.
 const VIEWS = ['trace', 'marks', 'drag', 'result'];
@@ -49,7 +48,7 @@ const S = {
   text: 'AM\nOUR', H: 160, band: 30, gap: -14, lead: 20, margin: 40, x: 0, y: 0, overlap: 'letters',
   width: 4, speed: 150, travel: 180, tail: 3, ink: true,                          // the brush (est.)
   brush: 12, pitch: 7, order: 'out', spacing: 90, per: 2, run: 220, glaze: 0.8,  // MARKS, DRAG, Result
-  paints: PAINTS.map(([name, hex]) => ({ name, hex })), over: {},
+  paints: PAINTS.map(hex => ({ hex })), over: {},                                // colours, no names (the owner, 2026-10-06)
   view: 'trace', session: 0,
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,                          // the canvas, and its edges from home, as on NOLAN
   refOpacity: 30,
@@ -67,8 +66,8 @@ function load() {
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (['out', 'in'].includes(o.order)) S.order = o.order;
     if (VIEWS.includes(o.view)) S.view = o.view;
-    if (Array.isArray(o.paints) && o.paints.length) S.paints = o.paints.filter(q => HEX.test(q?.hex)).slice(0, PAINTS_MAX).map(q => ({ name: String(q.name ?? ''), hex: q.hex }));
-    if (!S.paints.length) S.paints = PAINTS.map(([name, hex]) => ({ name, hex }));
+    if (Array.isArray(o.paints) && o.paints.length) S.paints = o.paints.filter(q => HEX.test(q?.hex)).slice(0, PAINTS_MAX).map(q => ({ hex: q.hex }));
+    if (!S.paints.length) S.paints = PAINTS.map(hex => ({ hex }));
     S.over = o.over && typeof o.over === 'object' ? Object.fromEntries(Object.entries(o.over).filter(([, v]) => Number.isInteger(v))) : {};
     FRESH = false;
   } catch { }
@@ -153,11 +152,11 @@ const sx = p => (p[0] - V.y0) * k, sy = p => (V.x1 + p[1]) * k;   // canvas mm �
 const toCanvas = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / k + V.y0, (e.clientY - r.top) / k - V.x1]; };
 function layout() {
   V = view();
-  const r = stage.getBoundingClientRect(), m = 36, sw = V.y1 - V.y0, sh = V.x1 - V.x0;
-  k = Math.max(0.2, Math.min((r.width - 2 * m) / sw, (r.height - 2 * m) / sh));
+  const r = stage.getBoundingClientRect(), m = 36, sw = V.y1 - V.y0, sh = V.x1 - V.x0, strip = 46;   // the paints' strip by the Tools
+  k = Math.max(0.2, Math.min((r.width - strip - 2 * m) / sw, (r.height - 2 * m) / sh));
   dpr = window.devicePixelRatio || 1;
   const w = Math.round(sw * k), h = Math.round(sh * k);
-  board.style.width = w + 'px'; board.style.height = h + 'px';
+  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.marginLeft = strip + 'px';
   cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
 }
@@ -454,20 +453,25 @@ for (const [box, list] of ALL_SL) {
     inp.onchange = () => settle();
   });
 }
-// the paints in stock: a number, its colour, its name, × — as the prototype's; the marks of each counted
+// The paints in stock, a strip by the Tools (the owner, 2026-10-06: "the
+// colours without names, moved to the second column by the TOOLS"): a chip
+// a paint, its number on it — the ticks' number — a click changes its colour,
+// × on it takes it out; under it how many marks it has; + one more, ↺ every
+// band back to its letter's paints.
+const inkOn = hex => { const [r, gg, b] = rgb(hex); return 0.299 * r + 0.587 * gg + 0.114 * b > 150 ? '#24221F' : '#FFFFFF'; };
 function palette() {
-  $('#paints').innerHTML = S.paints.map((q, i) => `<div class="paint"><span class="n">${i + 1}</span><input type="color" value="${q.hex}" aria-label="Colour of paint ${i + 1}"><input type="text" value="${esc(q.name)}" aria-label="Name of paint ${i + 1}" spellcheck="false"><span class="cnt" data-cnt="${i}"></span><button class="x" title="Take paint ${i + 1} out of the list" aria-label="Remove paint ${i + 1}">×</button></div>`).join('');
-  $('#paints').querySelectorAll('.paint').forEach((row, i) => {
-    const [c, t] = row.querySelectorAll('input');
-    c.oninput = () => { if (!busy) undoPush(); busy = true; S.paints[i].hex = c.value; kick(); };
+  $('#paints').innerHTML = S.paints.map((q, i) => `<div class="chip" title="Paint ${i + 1} — a click changes its colour"><span class="sw" style="background:${q.hex};color:${inkOn(q.hex)}">${i + 1}</span><input type="color" value="${q.hex}" aria-label="Colour of paint ${i + 1}"><span class="cnt" data-cnt="${i}"></span><button class="x" title="Take paint ${i + 1} out" aria-label="Remove paint ${i + 1}">×</button></div>`).join('')
+    + `<button class="pbtn first" id="btnAddPaint" title="Add paint: one more at the end, up to ${PAINTS_MAX}">+</button><button class="pbtn" id="btnResetClicks" title="Reset colour clicks: every band back to its letter's paints">↺</button>`;
+  $('#paints').querySelectorAll('.chip').forEach((chip, i) => {
+    const c = chip.querySelector('input'), sw = chip.querySelector('.sw');
+    c.oninput = () => { if (!busy) undoPush(); busy = true; S.paints[i].hex = c.value; sw.style.background = c.value; sw.style.color = inkOn(c.value); kick(); };
     c.onchange = () => settle();
-    t.onfocus = () => undoPush();
-    t.oninput = () => { S.paints[i].name = t.value; save(); };
-    row.querySelector('.x').onclick = () => { if (S.paints.length < 2) return; undoPush(); S.paints.splice(i, 1); S.over = {}; palette(); settle(); };
+    chip.querySelector('.x').onclick = () => { if (S.paints.length < 2) return; undoPush(); S.paints.splice(i, 1); S.over = {}; palette(); settle(); };
   });
+  $('#btnAddPaint').disabled = S.paints.length >= PAINTS_MAX;
+  $('#btnAddPaint').onclick = () => { if (S.paints.length >= PAINTS_MAX) return; undoPush(); S.paints.push({ hex: '#888888' }); palette(); settle(); };
+  $('#btnResetClicks').onclick = () => { if (!Object.keys(S.over).length) return; undoPush(); S.over = {}; settle(); };
 }
-$('#btnAddPaint').onclick = () => { if (S.paints.length >= PAINTS_MAX) return; undoPush(); S.paints.push({ name: 'New paint', hex: '#888888' }); palette(); settle(); };
-$('#btnResetClicks').onclick = () => { if (!Object.keys(S.over).length) return; undoPush(); S.over = {}; settle(); };
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; settle(); });
 document.querySelectorAll('[data-order]').forEach(b => b.onclick = () => { if (S.order === b.dataset.order) return; undoPush(); S.order = b.dataset.order; settle(); });
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
@@ -523,13 +527,13 @@ function settle() {
     per.push(`${ses > 1 ? `Session ${ss + 1}: ` : ''}MARKS <b>${marks}</b> from the cup · DRAG <b>${lanes}</b> lanes, <b>${fmt(mm / 1000, 1)} m</b>, ≈ ${fmt(mm / DRAG_SPEED / 60, 1)} min at ${DRAG_SPEED} mm/s (est.)`);
   }
   if (per.length) $('#planRead').innerHTML += ' · ' + per.join(' · ');
-  $('#paints').querySelectorAll('[data-cnt]').forEach(el => { const n = count[+el.dataset.cnt] || 0; el.textContent = n ? `${n} mark${n === 1 ? '' : 's'}` : ''; });
+  $('#paints').querySelectorAll('[data-cnt]').forEach(el => { const n = count[+el.dataset.cnt] || 0; el.textContent = n || ''; el.parentNode.title = `Paint ${+el.dataset.cnt + 1}: ${n} mark${n === 1 ? '' : 's'} — a click changes its colour`; });
   const Rc = L ? L.W / 2 - S.brush / 2 : 1, tight = Lp?.segs.some(q => markPaths(q, L.R, S.width).some(m => m.tick && !m.fits));
   const warn = [S.ink ? cupProblem(C) : '', P_.fault && `The plan is wrong, TRACE will not run it: ${P_.fault}.`, offCanvas(), walls(),
     L?.segs.length && Rc <= 0 && 'The brush is as wide as the band: one lane, no grooves. Widen the band or take a narrower brush.',
     L?.segs.length && S.pitch > S.brush && 'Lane pitch is wider than the brush: white gaps between the lanes.',
     L?.segs.length && S.spacing > S.run * 0.8 && 'Marks are far apart for this paint run: the brush runs dry between them.',
-    tight && 'A paint\'s ticks are longer than its mark: widen the band, a thinner line, or fewer paints.'].filter(Boolean);
+    tight && 'A paint\'s ticks are longer than its mark: widen the band, a thinner line, or fewer paints.'].filter(Boolean);   // the ticks as on an abacus (typeplan.js, ticksOf)
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
   // the sessions under the view, in 2 Marks and 3 Drag, when there are more than one
@@ -600,7 +604,7 @@ function svgOf() {
   const pts = q => q.map(p => `${f(W / 2 + p[0])},${f(H / 2 + p[1])}`).join(' ');
   const lines = (plan().trace || []).map(t => `  <polyline points="${pts(t.pts)}"/>`).join('\n');
   const L = paintNow(), marks = (L?.segs || []).flatMap(q => markPaths(q, L.R, S.width).map(m => `  <polyline points="${pts(m.pts)}" stroke="${hexOf(m.paint)}" data-paint="${m.paint + 1}"${m.tick ? ' data-tick="1"' : ''}/>`)).join('\n');
-  const paints = S.paints.map((q, i) => `${i + 1} ${q.name} ${q.hex}`).join(' · ');
+  const paints = S.paints.map((q, i) => `${i + 1} ${q.hex}`).join(' · ');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
 <!-- Rembrandt v0.4 · ${esc(label())}; 1 unit = 1 mm; TRACE, each outline with its lap -->
