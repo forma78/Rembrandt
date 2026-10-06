@@ -89,10 +89,35 @@
         <span class="slh"><span>Ink</span></span>
         <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
       </div>
+      <!-- the passes as they will look, before the machine runs them (the owner, 2026-10-06: "for the
+           preliminary work I need to understand what the result will be — Result is needed"); a view only -->
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="trace" title="TRACE: the outlines in watercolour, as they lie on the paper">1 Trace</button>
+        <button class="tog" data-view="marks" title="MARKS: a mark across a band where each paint goes, its ticks the paint's number, the colour the paint's; a click on a band steps its paint">2 Marks</button>
+        <button class="tog" data-view="drag" title="DRAG: every lane of the dry brush, an orange dot where it lands">3 Drag</button>
+        <button class="tog" data-view="result" title="The painting: each lane picks up the paint of every mark it crosses and carries it until it runs out, the sessions dry and glaze over one another; a click on a band steps its paint">Result</button>
+      </div>
+      <div class="toggles looks" id="sessions" hidden></div>
       <h4>Text</h4>
       <textarea id="text" rows="2" spellcheck="false" autocapitalize="characters" aria-label="Text"></textarea>
       <div class="sliders" id="slLetters"></div>
       <div class="grid4 keys"><button class="btn" id="btnFit" title="The tallest letters that fit inside the margin, the text in the middle of the canvas">Fit to canvas</button></div>
+      <h4>Brush, pass 3</h4>
+      <div class="sliders" id="slBrush"></div>
+      <div class="toggles looks" id="orders">
+        <button class="tog" data-order="out" title="Each band's outermost lane first, in to its centre">Outside first</button>
+        <button class="tog" data-order="in" title="Each band's centre lane first, out to its edge">Inside first</button>
+      </div>
+      <h4>Paint layout, pass 2</h4>
+      <div class="sliders" id="slPaint"></div>
+      <h4>Simulation</h4>
+      <div class="sliders" id="slSim"></div>
+      <h4>Paints in stock</h4>
+      <div class="paints" id="paints"></div>
+      <div class="grid4 keys two">
+        <button class="btn" id="btnAddPaint" title="One more paint at the end of the list, up to 12">Add paint</button>
+        <button class="btn" id="btnResetClicks" title="Every band back to its letter's paints">Reset colour clicks</button>
+      </div>
       <h4>Canvas <button class="info" id="planInfo" title="The plan: the bands, the trace, where the canvas lies from home">i</button></h4>
       <div class="grid4" id="fields"></div>
       <p class="read" id="planRead" hidden></p>

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { layoutOf, fitHeight, sessionsOf, outlinesOf, clockwise, traceOf, traceRows, cleanText } from '../src/typeplan.js';
+import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, lanesOf, dragOf, crossed, DRAG_ON } from '../src/typeplan.js';
 import { offPiece, toMachine, washOf, lengthOf, LOOP_SHARE, DIP_RUN, FIT_MM, NO_DIP } from '../src/band.js';
 import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
@@ -96,7 +96,6 @@ test('sessions: wet on wet one, dry between letters more where letters overlap, 
   assert.equal(sessionsOf(L, 'wet'), 1);
   const letters = sessionsOf(L, 'letters');
   assert.ok(letters >= 2, `${letters}`);
-  for (const s of L.segs) for (const q of L.segs) if (s !== q && s.li === q.li) continue;   // a letter's own bands may share a session
   assert.ok(sessionsOf(L, 'all') >= letters);
   assert.equal(sessionsOf(layoutOf(G, { ...o, text: 'I I', gap: 40 }), 'all'), 1);
 });
@@ -110,4 +109,58 @@ test('TRACE on the machine: no fault, a dip before a row that does not share one
   const w = washOf(r.preview, [], [], 4);
   assert.equal(w.filter(s => s.dip).length, r.dips);
   assert.ok(w.every(s => s.pts.every(q => q.load > 0 && q.load <= 1)));
+});
+
+const paintPlan = (over = {}, per = 2, P = 8) => { const L = layoutOf(G, o); marksOf(L, { paints: P, per, spacing: 90, over }); dragOf(L, { brush: 12, pitch: 7, order: 'out' }); return L; };
+
+test('the marks: one or more on every band, a letter its own paints, a click steps a band\'s', () => {
+  const L = paintPlan();
+  for (const s of L.segs) {
+    assert.ok(s.marks.length >= 1);
+    for (const m of s.marks) assert.ok(m.paint >= 0 && m.paint < 8 && m.s >= 0 && m.s <= s.L + 1e-9);
+  }
+  const one = paintPlan({}, 1);
+  for (const s of one.segs) assert.ok(s.marks.every(m => m.paint === s.li % 8), `${s.ch}: a letter one paint`);
+  const before = paintPlan().segs[3].marks[0].paint, s3 = paintPlan().segs[3];
+  assert.equal(paintPlan({ [`${s3.li}:${s3.si}`]: 1 }).segs[3].marks[0].paint, (before + 1) % 8);
+});
+
+test('a mark\'s ticks: the paint\'s number of them, a line and a line\'s white apart; too many named', () => {
+  const L = paintPlan(), s = L.segs[0], ps = markPaths(s, L.R, 4);
+  const marks = ps.filter(q => !q.tick), ticks = ps.filter(q => q.tick);
+  assert.equal(marks.length, s.marks.length);
+  assert.equal(ticks.length, s.marks.reduce((a, m) => a + m.paint + 1, 0));
+  const t = ticks.filter(q => q.paint === s.marks[0].paint).slice(0, 2);
+  if (t.length === 2) assert.ok(Math.abs(dist(t[0].pts[0], t[1].pts[0]) - 8) < 1e-6, 'ticks 2 × the line apart');
+  const narrow = { ...s, marks: [{ ...s.marks[0], paint: 7 }] };
+  assert.ok(markPaths(narrow, 12, 4).some(q => q.tick && !q.fits), 'eight ticks do not fit a 18 mm mark');
+});
+
+test('the lanes: the outermost the brush\'s half width inside the band, a pitch apart, inside first reversed', () => {
+  const L = layoutOf(G, { ...o, text: 'IO' }), [I, O] = L.segs, Rc = L.W / 2 - 6;
+  const out = lanesOf(I, L.W, { brush: 12, pitch: 7, order: 'out' }), inn = lanesOf(I, L.W, { brush: 12, pitch: 7, order: 'in' });
+  assert.ok(Math.abs(out[0].d - Rc) < 1e-9 && Math.abs(out.at(-1).d) < 1e-9);
+  assert.deepEqual(inn.map(l => l.d), out.map(l => l.d).reverse());
+  const ring = lanesOf(O, L.W, { brush: 12, pitch: 7, order: 'out' });
+  assert.ok(ring.some(l => l.d > 0) && ring.some(l => l.d < 0), 'a closed band: lanes either side of its centre line');
+});
+
+test('the drag: every lane lands just before its band\'s first mark and runs on past its own start', () => {
+  const L = paintPlan();
+  for (const s of L.segs) for (const l of s.lanes) {
+    const P = l.path;
+    if (!s.dot && !s.closed) assert.ok(P[0].s >= Math.max(0, s.marks[0].s - 4) - 1e-9);
+    let on = 0, i = P.length - 1;
+    while (i > 0 && dist(P[i].p, P[0].p) > 1e-9) { on += dist(P[i].p, P[i - 1].p); i--; }
+    assert.ok(i > 0 && on >= DRAG_ON - 2 && on <= DRAG_ON + 2, `${s.ch}: ${on} mm past its start`);
+  }
+});
+
+test('crossed: the marks between two places along a band, round a closed band\'s seam too', () => {
+  const L = paintPlan(), O = L.segs.find(s => s.closed), m = O.marks[0];
+  assert.deepEqual(crossed(O, m.s - 1, m.s + 1), [m]);
+  assert.equal(crossed(O, m.s + 1, m.s + 2).length, 0);
+  const last = O.marks.at(-1);
+  assert.ok(crossed(O, O.L - 1, 1).length === (O.marks.some(q => q.s > O.L - 1 || q.s <= 1) ? 1 : 0));
+  assert.ok(crossed(O, last.s - 0.5, last.s + 0.5).includes(last));
 });
