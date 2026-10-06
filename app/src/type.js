@@ -19,6 +19,7 @@ import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, tailIn } from './strokes.js';
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP, LOOP_SHARE } from './band.js';
 import { layoutOf, fitHeight, sessionsOf, traceOf, traceRows, marksOf, markPaths, dragOf, crossed, OVERLAPS } from './typeplan.js';
 import { drawWash } from './wash.js';
+import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
@@ -443,8 +444,6 @@ const SIM_SL = [['run', 'Paint run', 'mm', 10, 40, 600], ['glaze', 'Glaze', '', 
 const ALL_SL = [['#slLetters', LETTER_SL], ['#slBrush', BRUSH_SL], ['#slPaint', PAINT_SL], ['#slSim', SIM_SL]];
 const valOf = key => key === 'band' ? `${fmt(S.band, 1)} % · ${fmt(S.band / 100 * S.H, 0)} mm` : key === 'per' ? `${S.per}` : key === 'glaze' ? `${S.glaze.toFixed(2)} (est.)`
   : key === 'run' ? `${S.run} mm (est.)` : `${Math.round(S[key] * 100) / 100} mm`;
-const FIELDS = [['boardW', 'Board width', 'mm', 10, 'The canvas across; it grows to the right'], ['boardH', 'Board height', 'mm', 10, 'The canvas up the machine; it grows upwards'],
-  ['edgeLeft', 'Left edge →', 'mm', 1, 'The canvas\'s left edge, mm to the right of home', true], ['edgeBottom', 'Bottom edge ↑', 'mm', 1, 'The canvas\'s bottom edge, mm above home', true]];
 const SL_TITLE = { width: 'The watercolour line of TRACE and MARKS on the canvas (the owner, 2026-10-04: &quot;the line is 4 mm&quot;)', brush: 'The dry brush of DRAG',
   pitch: 'From one lane of DRAG to the next', spacing: 'A mark every so many mm along a band', per: 'How many paints along a letter', run: 'How far a lane carries a paint, in the simulation (est.)', glaze: 'How strongly a session covers the one under it, in the simulation (est.)' };
 for (const [box, list] of ALL_SL) {
@@ -478,7 +477,7 @@ document.querySelectorAll('[data-order]').forEach(b => b.onclick = () => { if (S
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
   const v = +inp.value, any = FIELDS.find(f => f[0] === inp.dataset.k)[5];
-  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) S[inp.dataset.k] = v;
+  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) { S[inp.dataset.k] = v; setCanvas(S); }   // the canvas: one base for every tab (canvas.js)
   settle();
 });
 // the text: a new text is fitted to the canvas, in its middle (the prototype's)
@@ -647,7 +646,7 @@ async function openFromLibrary(file) {
     const o = meta ? JSON.parse(meta.textContent.replace(/- -/g, '--')) : null;
     if (!o?.type) { $('#saveState').textContent = 'not a TYPE save: open it on its own tab'; return; }
     undoPush();
-    localStorage.setItem(KEY, JSON.stringify(o.settings)); load(); settle();
+    localStorage.setItem(KEY, JSON.stringify(o.settings)); setCanvas(o.settings); load(); Object.assign(S, canvasNow(S)); settle();   // the save's canvas becomes the base
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
   } catch { $('#saveState').textContent = 'could not open it from the Library'; }
 }
@@ -755,7 +754,8 @@ async function watch() {
 }
 
 // ---------- start ----------
-load();
+load(); Object.assign(S, canvasNow(S));                                          // the canvas from the base, every tab's (canvas.js)
+onCanvas(c => { Object.assign(S, c); settle(); });                               // changed in another window
 $('#text').value = S.text;
 $('#hint').textContent = HINT;
 palette();

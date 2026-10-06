@@ -18,6 +18,7 @@ import { letterOf, coilOf, pointAt, pieceLength, nextX } from './rings.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
+import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -462,8 +463,6 @@ addEventListener('keydown', e => {
 const LETTER_SL = [['R', 'Weight', 'mm', 0.5, 2, 80], ['step', 'Step', 'mm', 0.1, 1, 40]];
 const RUN_SL = [['width', 'Row width', 'mm', 0.5, 1, 12], ['speed', 'Brush on', 'mm/s', 1, 5, SPEED_MAX], ['travel', 'Between rows', 'mm/s', 5, 20, SPEED_MAX], ['tail', 'Tail', 'mm', 0.05, TAIL_MIN, TAIL_MAX]];
 const LETTER_FIELDS = [['H', 'Height', 'mm', 1, 'The picked letter\'s height, baseline to capline; the wheel too'], ['up', 'X ↑', 'mm', 1, 'The picked letter\'s baseline, mm up from the canvas\'s centre; the arrows too'], ['x', 'Y →', 'mm', 1, 'The picked letter\'s left edge, mm right of the canvas\'s centre; the arrows too']];
-const FIELDS = [['boardW', 'Board width', 'mm', 10, 'The canvas across; it grows to the right'], ['boardH', 'Board height', 'mm', 10, 'The canvas up the machine; it grows upwards'],
-  ['edgeLeft', 'Left edge →', 'mm', 1, 'The canvas\'s left edge, mm to the right of home', true], ['edgeBottom', 'Bottom edge ↑', 'mm', 1, 'The canvas\'s bottom edge, mm above home', true]];
 // what a letter slider moves: the picked stroke's own Step, else the letter (or the next one)
 const stepOwner = () => { const f = S.figs[S.cur]; return f && pickStroke >= 0 ? (f.strokes[pickStroke] ||= {}) : null; };
 function sliders(box, list, get, set) {
@@ -489,7 +488,7 @@ $('#letterFields').querySelectorAll('input').forEach(inp => {
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
   const v = +inp.value, any = FIELDS.find(f => f[0] === inp.dataset.k)[5];
-  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) S[inp.dataset.k] = v;
+  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) { S[inp.dataset.k] = v; setCanvas(S); }   // the canvas: one base for every tab (canvas.js)
   settle();
 });
 document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { undoPush(); figNow().mode = b.dataset.mode; settle(); });
@@ -640,7 +639,7 @@ async function openFromLibrary(file) {
     const o = meta ? JSON.parse(meta.textContent.replace(/- -/g, '--')) : null;
     if (!o?.newyuri) { $('#saveState').textContent = 'not a New Yuri save: open it on its own tab'; return; }
     undoPush();
-    localStorage.setItem(KEY, JSON.stringify(o.settings)); load(); settle();
+    localStorage.setItem(KEY, JSON.stringify(o.settings)); setCanvas(o.settings); load(); Object.assign(S, canvasNow(S)); settle();   // the save's canvas becomes the base
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
   } catch { $('#saveState').textContent = 'could not open it from the Library'; }
 }
@@ -742,7 +741,8 @@ async function watch() {
 }
 
 // ---------- start ----------
-load();
+load(); Object.assign(S, canvasNow(S));                                          // the canvas from the base, every tab's (canvas.js)
+onCanvas(c => { Object.assign(S, c); settle(); });                               // changed in another window
 syncTools(); syncRef(); loadRef();
 lampSwitch($('#lamp'));
 addEventListener('rembrandt-night', () => kick());
