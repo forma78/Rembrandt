@@ -519,8 +519,17 @@ this section disagree, this section wins: the owner corrected the sketch on
   nearest the last end, on 60 % over its start, lifting off over all of
   that; with INK ON a dip, then outlines on what the brush holds up to the
   dip run, an outline never split; 1 Trace shows the wash (`src/wash.js`,
-  NOLAN's). Result is the prototype's simulation. The MARKS and DRAG keys
-  next.
+  NOLAN's). Result is the prototype's simulation. MARKS (the owner,
+  2026-10-06, after the first trace: "I cannot press MARKS"): every mark of
+  the session and its ticks, a stroke each, a dip every 4 marks (est.); the
+  confirm names the paints to squeeze, paint by paint. DRAG: every lane of
+  the session, the dry brush, no dip, at its own **Drag speed** (60 mm/s,
+  the prototype's). Each key runs its next session and, once that is done,
+  shows the one after (`Marks 1/2` → `2/2`); **Line speed** for TRACE and
+  MARKS (150 mm/s). The run's trace on the board follows the plan's lines
+  and arcs, the carriage's place only for the move going on (the owner:
+  "it draws crooked somehow" — the place every half second, joined by
+  chords).
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

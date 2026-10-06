@@ -13,7 +13,7 @@
 // Canvas mm from its centre, x right, y down, as in rings.js. No DOM.
 
 import { skeletonOf, placed, pieceLength } from './rings.js';
-import { fitPieces, lengthOf, LOOP_SHARE, DIP_RUN } from './band.js';
+import { fitPieces, toMachine, lengthOf, LOOP_SHARE, DIP_RUN } from './band.js';
 import { pieceLen } from './strokes.js';
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]];
@@ -365,3 +365,47 @@ export function crossed(seg, s0, s1) {
   for (const m of seg.marks) for (const sm of seg.closed ? [m.s, m.s + seg.L] : [m.s]) if (sm > lo && sm <= hi) hits.push(m);
   return hits;
 }
+
+// ---------- the runs of MARKS and DRAG, a session at a time ----------
+// MARKS (the owner, 2026-10-06: "I made the first trace; I cannot press
+// MARKS"): every mark of the session's bands and its ticks, each a stroke of
+// its own, mark then ticks, band by band; from the same cup as TRACE, a dip
+// before every MARKS_DIP-th mark, its ticks on the same dip (the prototype's
+// "dip every 4 marks"). → { ps, info: [{ label, li, L }], marks, count:
+// marks per paint }
+export const MARKS_DIP = 4;   // marks a dip carries, each with its ticks, est.
+export function marksRows(plan, session, width, ink) {
+  const ps = [], info = [], count = {};
+  let n = 0;
+  for (const s of plan.segs) {
+    if (s.session !== session) continue;
+    let mi = -1, ti = 0;
+    for (const m of markPaths(s, plan.R, width)) {
+      if (!m.tick) { mi++; n++; ti = 0; count[m.paint] = (count[m.paint] || 0) + 1; } else ti++;
+      const dip = !m.tick && (n - 1) % MARKS_DIP === 0, row = ps.length + 1;
+      ps.push([{ t: 'L', a: toMachine(m.pts[0]), b: toMachine(m.pts[1]), tilt: 0, row, ...(ink && !dip ? { nodip: true } : {}) }]);
+      info.push({ label: `${s.ch} · band ${s.si + 1} · ${m.tick ? `paint ${m.paint + 1}, its ${m.long ? 'long' : 'short'} tick ${ti}` : `mark ${mi + 1}, paint ${m.paint + 1}`}`, li: s.li, L: lengthOf(m.pts) });
+    }
+  }
+  return { ps, info, marks: n, count };
+}
+// DRAG: every lane of the session's bands, one brush-down path each, band by
+// band, in its lanes' order; the dry brush, no dip ever (TYPE.md: "pass 3
+// never dips"). → { ps, info, lanes, length }
+export function dragRows(plan, session) {
+  const ps = [], info = [];
+  let length = 0;
+  for (const s of plan.segs) {
+    if (s.session !== session) continue;
+    s.lanes.forEach((l, k) => {
+      const pieces = fitPieces(l.path.map(q => q.p));
+      if (!pieces.length) return;
+      const row = ps.length + 1, L = lengthOf(l.path.map(q => q.p));
+      ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
+      info.push({ label: `${s.ch} · band ${s.si + 1} · lane ${k + 1} of ${s.lanes.length}`, li: s.li, L });
+      length += L;
+    });
+  }
+  return { ps, info, lanes: ps.length, length };
+}
+
