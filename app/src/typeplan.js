@@ -274,20 +274,23 @@ export function marksOf(plan, o) {
   }
 }
 // A mark as the brush draws it: a stroke across the band, short of its
-// sides; its ticks — as many as the paint's number — short strokes along the
-// band, from the mark's outer end in, a line and a line's white apart, so a
-// wet line of `width` keeps them apart (Claude's choice: the prototype's
-// 3.5 mm would run together at 4). → [{ pts, paint, tick }]; fits: false
-// where the ticks pass the mark's other end.
+// sides; its ticks the paint's number, as on an abacus (the owner,
+// 2026-10-06: "(a)") — a long one five, a short one one, so 8 is a long and
+// three short — short strokes along the band from the mark's outer end in, a
+// line and a line's white apart, so a wet line of `width` keeps them apart
+// (Claude's choice: the prototype's 3.5 mm would run together at 4).
+// → [{ pts, paint, tick, long }]; fits: false where the ticks pass the
+// mark's other end.
+export const ticksOf = paint => [...Array(Math.floor((paint + 1) / 5)).fill(true), ...Array((paint + 1) % 5).fill(false)];   // long?, in order
 export function markPaths(seg, R, width) {
-  const out = [], half = Math.max(2, R - 3), pitch = 2 * width, long = 1.5 * width;
+  const out = [], half = Math.max(2, R - 3), pitch = 2 * width;
   for (const m of seg.marks) {
     const N = seg.dot ? [1, 0] : m.N, T = seg.dot ? [0, 1] : m.T;
     out.push({ pts: [add(m.p, mul(N, -half)), add(m.p, mul(N, half))], paint: m.paint, tick: false });
-    for (let k = 0; k <= m.paint; k++) {
-      const c = add(m.p, mul(N, half - width / 2 - pitch * k));
-      out.push({ pts: [add(c, mul(T, -long)), add(c, mul(T, long))], paint: m.paint, tick: true, fits: half - width / 2 - pitch * k >= -half });
-    }
+    ticksOf(m.paint).forEach((long, k) => {
+      const at = half - width / 2 - pitch * k, c = add(m.p, mul(N, at)), l = (long ? 3 : 1.5) * width;
+      out.push({ pts: [add(c, mul(T, -l)), add(c, mul(T, l))], paint: m.paint, tick: true, long, fits: at >= -half });
+    });
   }
   return out;
 }

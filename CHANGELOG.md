@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE: the paints a strip by the Tools, colours with no names; the
+  ticks as on an abacus** (the owner, 2026-10-06: "colours without names,
+  moved to the second column, where the TOOLS are"; of the ticks, "(a)"). A
+  chip a paint, its number on it, its marks under it; a click changes its
+  colour, × takes it out, + and ↺ at the end (Add paint, Reset colour
+  clicks). A long tick is five, a short one one: paint 8 a long and three
+  short, 32 mm of ticks where it was 64 — every paint of the eight fits a
+  51 mm band's mark at a 4 mm line.
+
 - **TYPE: the views, Result and the paints** (the owner, 2026-10-06,
   `TYPE-Claude/2026-10-06 1978.png`: "for the preliminary work I need to
   understand what the result will be — as Claude in chat had it. The Result
