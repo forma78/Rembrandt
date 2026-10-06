@@ -29,6 +29,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Weight · Step** | New Yuri: a letter's circle radius, and the distance between neighbouring circles along a skeleton, mm. |
 | **Rings · Coil** | New Yuri's two ways to draw a stroke: every circle a ring of its own — it lands, goes round, on 60 % over its start, lifts; or one line a stroke, a whole turn from circle to circle. |
 | **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` since 2026-10-06 (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
+| **LOVE** | TYPE's copy, after it in the top row since 2026-10-07 (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **Band (on TYPE)** | A letter's stroke as the brush fills it: its skeleton (New Yuri's set) a share of the letter's height wide, round at its ends; split at every corner sharper than 25°, so V, M, Z, L are overlapping bands; O, 0, 8 closed bands; the dots of ! and % discs. Not Create's band. |
 | **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number as on an abacus — a long one five, a short one one — from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
 | **Session** | On TYPE: the bands marked and dragged together. A band over a band of an earlier session goes to a later one, the earlier dry first; OVERLAPS: wet on wet, dry between letters, dry every overlap. |
@@ -268,6 +269,14 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   bands clicked to another, are kept with the save in the Library ("so the
   new palette is kept with the name in the Library"). Before, no Result and
   the board showing every pass at once.
+- **LOVE, a copy of TYPE for the new things** (the owner, 2026-10-07: "I
+  would duplicate TYPE's functionality but make a new tab, LOVE, and bring
+  the new changes there"; "because if something goes wrong, we can roll
+  back to TYPE"). After TYPE in the top row: TYPE · LOVE · NOLAN · Test ·
+  Ink · Calibration · Library. Its page `love.html`, its plan `loveplan.js`,
+  a copy of `typeplan.js` changed there and not in TYPE; its own keep in
+  this browser, its saves labelled LOVE and opened on it; the run, the
+  canvas from home, the cup and the LCD shared, as New Yuri's are.
 - **TYPE first; Job and New Yuri off the top row** (the owner, 2026-10-06:
   "remove the JOB and NEW YURI tabs, please; put TYPE first, it is the new
   index.html"): TYPE · NOLAN · Test · Ink · Calibration · Library. TYPE's
@@ -449,8 +458,8 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.1**, then the tabs **TYPE · NOLAN · Test · Ink · Calibration ·
-  Library** (Create hidden since 2026-10-04, Adjustments since 2026-10-05,
+  **v.1.0.1**, then the tabs **TYPE · LOVE · NOLAN · Test · Ink · Calibration ·
+  Library** (LOVE since 2026-10-07; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
   Create the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
