@@ -304,15 +304,17 @@ export function markPaths(seg, R, width) {
 // ---------- pass 3, the Drag ----------
 // Lanes: brush-down loops in a band, the brush's width inside its edge, a
 // pitch apart, to its centre line (TYPE.md): an open band's concentric
-// stadiums, a closed band's rings either side, a dot's circles. Outside or
-// inside first. → [{ d, ring }]
+// stadiums, a closed band's rings either side, a dot's circles. Outside
+// first: from the edge in — a closed band's from its outer edge across to
+// its hole's, in one sweep, so the non-stop path never jumps across the band
+// (it went edge, hole, edge … before); inside first, the other way. → [{ d,
+// ring }]
 export function lanesOf(seg, W, o) {
   const Rc = Math.max(0, W / 2 - o.brush / 2);
   let ds = [];
   if (seg.closed) {
     const n = Math.max(1, Math.round(2 * Rc / o.pitch) + 1);
     for (let k = 0; k < n; k++) ds.push(n === 1 ? 0 : Rc - 2 * Rc * k / (n - 1));
-    ds = [...ds.filter((_, i) => i % 2 === 0), ...ds.filter((_, i) => i % 2 === 1).reverse()].sort((a, b) => Math.abs(b) - Math.abs(a));
   } else {
     const n = Math.max(1, Math.round(Rc / o.pitch) + 1);
     for (let k = 0; k < n; k++) ds.push(n === 1 ? Rc : Rc * (1 - k / (n - 1)));
@@ -331,8 +333,39 @@ function openRing(ring, startS, closed, L) {
   for (let i = 1; i < r.length && acc < DRAG_ON; i++) { acc += len(sub(r[i].p, r[i - 1].p)); tail.push(r[i]); }
   return [...r, ...tail];
 }
-// Sets seg.lanes: [{ d, path: [{ p, s }], w, face? }], each a brush-down
-// run, after marksOf. For Result, the strip of the band each lane paints, w
+// DRAG non-stop (the owner, 2026-10-06, TYPE-Machine/, the first drag: "must
+// the brush lift off the canvas every time? Maybe let it go on non-stop" —
+// and from the start: "the dry brush rides the canvas non-stop, as
+// Florian's"): a band's lanes one path, a spiral — round a lane, then on
+// into the next one, JOG pitches along the band, the brush down all the
+// way; the last lane runs on DRAG_ON past its own start. It lands once a
+// band and lifts once: each lift and landing left a knob of paint in the
+// band. → [{ p, s }]
+export const JOG = 1;   // pitches along the band a step to the next lane takes: 45°, a short seam by the landing (Claude's choice; 3, 18°, cut long chords across a short band)
+const ahead = (R, i, mm) => { let acc = 0, j = i; while (acc < mm) { const n = (j + 1) % R.length; acc += len(sub(R[n].p, R[j].p)); j = n; if (j === i) break; } return j; };
+export function spiralOf(seg, lanes, startS, pitch) {
+  const out = [];
+  let end = null, last = null;
+  for (const { ring: R } of lanes) {
+    if (R.length < 2) continue;
+    let i0 = 0;
+    if (!end) { for (let i = 0; i < R.length; i++) { const s = R[i].s; if (seg.closed ? ((s - startS + seg.L) % seg.L) < 2 : s >= startS) { i0 = i; break; } } }
+    else {
+      R.forEach((q, i) => { if (len(sub(q.p, end)) < len(sub(R[i0].p, end))) i0 = i; });
+      i0 = ahead(R, i0, JOG * pitch);
+    }
+    const r = [...R.slice(i0), ...R.slice(0, i0)];
+    out.push(...r); end = r.at(-1).p; last = r;
+  }
+  if (last) {                                                                      // the last lane round to its own start, then on DRAG_ON past it
+    out.push(last[0]);
+    for (let i = 1, acc = 0; i < last.length && acc < DRAG_ON; i++) { acc += len(sub(last[i].p, last[i - 1].p)); out.push(last[i]); }
+  }
+  return out;
+}
+// Sets seg.lanes: [{ d, path: [{ p, s }], w, face? }], each lane on its own —
+// Result's strips — and seg.spiral, the band's lanes as DRAG runs them, one
+// path, after marksOf. For Result, the strip of the band each lane paints, w
 // wide: the prototype's, a pitch less STRIP's groove — and the outermost
 // one's out to the band's edge, where the brush's own edge runs (face: the
 // strip's middle), so the colour reaches the trace's outer edge and covers
@@ -353,6 +386,7 @@ export function dragOf(plan, o) {
       }
       return lane;
     });
+    s.spiral = spiralOf(s, lanes, startS, o.pitch);
   }
 }
 // The marks a lane crosses going from s0 to s1 along its band (for Result).
@@ -389,23 +423,21 @@ export function marksRows(plan, session, width, ink) {
   }
   return { ps, info, marks: n, count };
 }
-// DRAG: every lane of the session's bands, one brush-down path each, band by
-// band, in its lanes' order; the dry brush, no dip ever (TYPE.md: "pass 3
-// never dips"). → { ps, info, lanes, length }
+// DRAG: the session's bands one after another, each its lanes non-stop
+// (spiralOf), a row a band; the dry brush, no dip ever (TYPE.md: "pass 3
+// never dips"). → { ps, info, lanes, bands, length }
 export function dragRows(plan, session) {
   const ps = [], info = [];
-  let length = 0;
+  let length = 0, lanes = 0;
   for (const s of plan.segs) {
-    if (s.session !== session) continue;
-    s.lanes.forEach((l, k) => {
-      const pieces = fitPieces(l.path.map(q => q.p));
-      if (!pieces.length) return;
-      const row = ps.length + 1, L = lengthOf(l.path.map(q => q.p));
-      ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
-      info.push({ label: `${s.ch} · band ${s.si + 1} · lane ${k + 1} of ${s.lanes.length}`, li: s.li, L });
-      length += L;
-    });
+    if (s.session !== session || !s.spiral?.length) continue;
+    const pts = s.spiral.map(q => q.p), pieces = fitPieces(pts);
+    if (!pieces.length) continue;
+    const row = ps.length + 1, L = lengthOf(pts);
+    ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
+    info.push({ label: `${s.ch} · band ${s.si + 1} · ${s.lanes.length} lanes non-stop`, li: s.li, L });
+    length += L; lanes += s.lanes.length;
   }
-  return { ps, info, lanes: ps.length, length };
+  return { ps, info, lanes, bands: ps.length, length };
 }
 

@@ -284,13 +284,14 @@ function drawMarks() {
   for (const s of L.segs) if (shown(s)) for (const m of markPaths(s, L.R, S.width)) { g.strokeStyle = hexOf(m.paint); line(m.pts); }
   g.restore();
 }
-// DRAG: every lane, where the brush runs; an orange dot where it lands.
+// DRAG: each band's lanes as the brush runs them, one path, non-stop; an
+// orange dot where it lands, once a band.
 function drawLanes() {
   const L = paintNow(); if (!L) return;
   g.save(); g.lineJoin = 'round'; g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 0.8;
-  for (const s of L.segs) if (shown(s)) for (const l of s.lanes) line(l.path.map(q => q.p));
+  for (const s of L.segs) if (shown(s) && s.spiral?.length) line(s.spiral.map(q => q.p));
   g.fillStyle = ORANGE;
-  for (const s of L.segs) if (shown(s)) for (const l of s.lanes) { g.beginPath(); g.arc(sx(l.path[0].p), sy(l.path[0].p), Math.max(1.5, 1.6 * k), 0, Math.PI * 2); g.fill(); }
+  for (const s of L.segs) if (shown(s) && s.spiral?.length) { g.beginPath(); g.arc(sx(s.spiral[0].p), sy(s.spiral[0].p), Math.max(1.5, 1.6 * k), 0, Math.PI * 2); g.fill(); }
   g.restore();
 }
 // Result (the prototype's simulation): each lane picks up the paint of every
@@ -599,9 +600,9 @@ function settle() {
   const Lp = paintNow(), per = [], count = S.paints.map(() => 0);
   if (Lp?.segs.length) for (let ss = 0; ss < ses; ss++) {
     const segs = Lp.segs.filter(q => q.session === ss), marks = segs.reduce((a, q) => a + q.marks.length, 0), lanes = segs.reduce((a, q) => a + q.lanes.length, 0);
-    const mm = segs.reduce((a, q) => a + q.lanes.reduce((b, l) => b + l.path.reduce((c, t, j) => j ? c + Math.hypot(t.p[0] - l.path[j - 1].p[0], t.p[1] - l.path[j - 1].p[1]) : 0, 0), 0), 0);
+    const mm = segs.reduce((a, q) => a + (q.spiral || []).reduce((c, t, j, P) => j ? c + Math.hypot(t.p[0] - P[j - 1].p[0], t.p[1] - P[j - 1].p[1]) : 0, 0), 0);
     for (const q of segs) for (const m of q.marks) count[m.paint]++;
-    per.push(`${ses > 1 ? `Session ${ss + 1}: ` : ''}MARKS <b>${marks}</b> from the cup · DRAG <b>${lanes}</b> lanes, <b>${fmt(mm / 1000, 1)} m</b>, ≈ ${fmt(mm / S.drag / 60, 1)} min at ${S.drag} mm/s (est.)`);
+    per.push(`${ses > 1 ? `Session ${ss + 1}: ` : ''}MARKS <b>${marks}</b> from the cup · DRAG <b>${lanes}</b> lanes, a band non-stop, <b>${fmt(mm / 1000, 1)} m</b>, ≈ ${fmt(mm / S.drag / 60, 1)} min at ${S.drag} mm/s (est.)`);
   }
   if (per.length) $('#planRead').innerHTML += ' · ' + per.join(' · ');
   $('#paints').querySelectorAll('[data-cnt]').forEach(el => { const n = count[+el.dataset.cnt] || 0; el.textContent = n || ''; el.parentNode.title = `Paint ${+el.dataset.cnt + 1}: ${n} mark${n === 1 ? '' : 's'} — a click changes its colour`; });
@@ -778,7 +779,7 @@ function marksRun(ses) {
 function dragRun(ses) {
   const L = paintNow(); if (!L?.segs.length) return null;
   const R = dragRows(L, ses - 1); if (!R.ps.length) return null;
-  return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag }, [{ key: 'DRAG', ps: R.ps, why: null }]), rows: R.info, lanes: R.lanes, mm: R.length };
+  return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag }, [{ key: 'DRAG', ps: R.ps, why: null }]), rows: R.info, lanes: R.lanes, bands: R.bands, mm: R.length };
 }
 async function runPass(key) {
   await loadInk(); settle();
@@ -789,7 +790,7 @@ async function runPass(key) {
   if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
   const min = fmt(P_.seconds / 60, 0), what = key === 'marks'
     ? `${P_.marks} marks and their ticks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => a[0] - b[0]).map(([i, c]) => `paint ${+i + 1} × ${c}`).join(', ')} — and press DRAG.`
-    : `${P_.lanes} lanes, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
+    : `${P_.lanes} lanes in ${P_.bands} bands, each band non-stop — the brush lands once and lifts once a band — ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
   if (!confirm(`${key.toUpperCase()} ${textLabel()}${of}: ${what}`)) return;
   S.view = key; S.session = n > 1 ? ses : 0; RUN_SES = ses; settle();                // the board shows the pass running
   await start(key, P_.blocks, { seconds: P_.seconds, rows: P_.rows },
