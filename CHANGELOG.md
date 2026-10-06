@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE first; Job and New Yuri off the top row** (the owner, 2026-10-06:
+  "remove the JOB and NEW YURI tabs, please; put TYPE first, it is the new
+  index.html"): TYPE · NOLAN · Test · Ink · Calibration · Library on every
+  page. TYPE is `index.html` now, the server's first page, and
+  `start.command` opens it; Create moves to `create.html`, the Library opens
+  paintings there and TYPE saves on `index.html`. Job's and New Yuri's
+  pages stay, the Library still opens New Yuri's saves.
+
 - **TYPE: the paints a strip by the Tools, colours with no names; the
   ticks as on an abacus** (the owner, 2026-10-06: "colours without names,
   moved to the second column, where the TOOLS are"; of the ticks, "(a)"). A

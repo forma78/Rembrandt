@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · Create</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+</head>
+<body class="create">
+<!-- Rembrandt · Create — one curve over the reference; the layers built from
+     it (Rembrandt.md §8). Never touches the hardware. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v0.4</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="index.html">TYPE</a>
+      <a href="nolan.html">NOLAN</a>
+      <a href="test.html">Test</a>
+      <a href="ink.html">Ink</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+    </nav>
+  </div>
+  <div class="top-mid"></div>
+  <div class="top-right">
+    <button class="btn job" id="btnJob" title="Open the Job tab">🖨 Open Job</button>
+  </div>
+</header>
+<!-- The second row, centred (the owner, 2026-10-01): the format, the view
+     toggles, import and export. -->
+<div class="bar2 center">
+  <label class="field">
+    <span>Format</span>
+    <select id="format"></select>
+  </label>
+  <div class="toggles">
+    <button class="tog" data-view="reference" title="The reference under the canvas">Reference</button>
+    <button class="tog" data-view="lanes" title="The lines of the layers, painted from the reference">Lanes</button>
+    <button class="tog" data-view="drops" title="The drop plan: where each drop goes">Drops</button>
+  </div>
+  <div class="toggles">
+    <button class="tog" data-view="reach" title="The image area: the machine's walls, and where the canvas lies past them">Reach</button>
+    <button class="tog" data-view="grid" title="Grid 10 mm">Grid</button>
+  </div>
+  <div class="io">
+    <button class="btn" id="btnImport" title="A curve from an SVG: its longest path, cut into straight lines">Import SVG</button>
+    <button class="btn" id="btnPng">Export PNG</button>
+    <input type="file" id="fileIn" accept=".svg,image/svg+xml" hidden>
+  </div>
+  <div class="savebox">
+    <button class="btn save" id="btnSave" title="Save the painting in the Library, as a new one named by the date and time">💾 SAVE</button>
+    <span class="save-state" id="saveState">to the Library</span>
+  </div>
+</div>
+
+<main>
+  <nav class="tools" aria-label="Tools">
+    <button class="tool" data-tool="gesture" title="Gesture — drag slowly, hold still to straighten (G)">
+      <svg viewBox="0 0 24 24"><path d="M3 17c3-1 4-9 8-9s2 7 6 7h4"/><circle cx="21" cy="15" r="1.4" class="dot"/></svg>
+      <span>G</span>
+    </button>
+    <button class="tool" data-tool="pen" title="Pen — click points, Alt/A for tangent arc, Enter to finish (P)">
+      <svg viewBox="0 0 24 24"><path d="M12 3l6 9-6 9-6-9z"/><path d="M12 12v9"/><circle cx="12" cy="11" r="1.4" class="dot"/></svg>
+      <span>P</span>
+    </button>
+    <button class="tool" data-tool="select" title="Select — pick a segment, drag the curve or its points (V)">
+      <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
+      <span>V</span>
+    </button>
+    <div class="sep"></div>
+    <button class="tool" id="btnArc" title="Next pen segment is a tangent arc (A)">
+      <svg viewBox="0 0 24 24"><path d="M4 18V11a8 8 0 0 1 16 0v7"/></svg>
+      <span>A</span>
+    </button>
+    <div class="sep"></div>
+    <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
+    <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
+    <button class="tool" id="btnDel" title="Delete the curve (⌫)"><svg viewBox="0 0 24 24"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
+    <button class="tool" id="btnDefault" title="Open the default curve: the one of IMG_9422"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></svg></button>
+    <button class="tool" id="btnClear" title="Clear canvas"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+  </nav>
+
+  <section class="stage" id="stage">
+    <div class="board" id="board">
+      <canvas id="paint"></canvas>
+      <canvas id="wire"></canvas>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <section class="sec">
+      <h3>Reference <span class="hint">never painted as is</span></h3>
+      <div class="refrow">
+        <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
+        <div class="refctl">
+          <button class="btn" id="btnRef" title="An image under the canvas: traced and sampled, never painted as is">📎 Add new reference</button>
+          <p class="read" id="refRead"></p>
+          <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+        </div>
+      </div>
+      <input type="file" id="refIn" accept="image/*" hidden>
+    </section>
+
+    <section class="sec">
+      <h3>Curve <span class="hint">lines and arcs</span></h3>
+      <div class="math">
+        <table>
+          <tr><td>Segments</td><td class="r" id="cSegs"></td></tr>
+          <tr><td>Length</td><td class="r"><input id="cLen" type="number" step="0.1" min="1" title="A new length scales the whole curve about its start"> cm</td></tr>
+          <tr><td>Inner corner radius</td><td class="r"><input id="cR" type="number" step="1" min="0" title="Every kink is rounded with an arc of this radius"> mm</td></tr>
+        </table>
+        <div id="segBox"></div>
+        <div id="cWarn"></div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h3>Lanes <span class="hint">Sonnet's way</span></h3>
+      <div class="math">
+        <table>
+          <tr><td>Width <span class="hint">Adjustments</span></td><td class="r" id="lnW"></td></tr>
+          <tr><td>Apart, centre to centre</td><td class="r"><input id="lnPitch" type="number" step="1" min="2"> mm</td></tr>
+          <tr><td>Below · above the curve</td><td class="r" id="lnCount"></td></tr>
+          <tr><td>Length · time</td><td class="r" id="lnLen"></td></tr>
+        </table>
+        <div id="lnNote"></div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <h3>Layers <span class="hint">click: up to this one</span></h3>
+      <div id="layers"></div>
+      <p class="read">Light first, the sheet over it when dry, black last. Inside a layer the lighter tube runs first.</p>
+    </section>
+
+    <section class="sec">
+      <h3>Drops <span class="hint">est.</span></h3>
+      <div class="math" id="drops"></div>
+      <p class="read" id="dropNote"></p>
+    </section>
+
+    <section class="sec">
+      <h3>Tubes in use <span class="val" id="tubeCount"></span></h3>
+      <div class="tubes" id="tubes"></div>
+      <button class="btn addtube" id="btnAddTube" title="A new tube, at the end of the list">+ Add a tube</button>
+      <p class="read">Click the shade or the name to change it; drag ⋮⋮ to move a tube in the list. The shades are est. until the photos of the real tubes.</p>
+      <p class="read" id="tubeSave"></p>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint"></span>
+  <span id="coords"></span>
+  <span id="stats"></span>
+</footer>
+
+<div class="menu" id="tubeMenu" hidden></div>
+<script type="module" src="src/create.js"></script>
+</body>
+</html>

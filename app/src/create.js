@@ -845,7 +845,7 @@ async function saveToLibrary() {
   b.disabled = false;
 }
 $('#btnSave').onclick = saveToLibrary;
-// Opened from the Library (library.html → index.html?open=<file>): the
+// Opened from the Library (library.html → create.html?open=<file>): the
 // painting takes the place of the one here; ⌘Z brings that one back.
 async function openFromLibrary(file) {
   history.replaceState(null, '', location.pathname);
