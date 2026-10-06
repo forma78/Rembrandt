@@ -251,3 +251,91 @@ export function traceRows(trace, ink, dipRun = DIP_RUN) {
   }
   return { ps, info };
 }
+
+// ---------- pass 2, the Marks ----------
+// Each band's paints along its letter (the prototype's): a letter `per`
+// paints from the palette, the next letter the next ones; a band clicked on
+// steps its own (over, 'li:si' → how many steps). A mark every `spacing` mm
+// along a band, in the middle of its stretch; a dot one. Sets seg.marks:
+// [{ s, paint, p, N, T }] — paint the palette's index.
+export function marksOf(plan, o) {
+  const { segs, W } = plan, P = Math.max(1, o.paints), per = Math.max(1, o.per), total = {}, acc = {};
+  for (const s of segs) total[s.li] = (total[s.li] || 0) + Math.max(s.L, W);
+  for (const s of segs) {
+    const first = (s.li * per + (o.over?.[`${s.li}:${s.si}`] || 0)) % P, n = s.dot ? 1 : Math.max(1, Math.round(s.L / o.spacing));
+    const before = acc[s.li] || 0, span = Math.max(s.L, W);
+    acc[s.li] = before + span;
+    s.marks = [];
+    for (let j = 0; j < n; j++) {
+      const sm = s.dot ? 0 : s.L * (j + 0.5) / n, t = (before + (s.dot ? 0.5 : (j + 0.5) / n) * span) / total[s.li];
+      let i = s.s.findIndex(v => v >= sm); if (i < 0) i = s.pts.length - 1;
+      s.marks.push({ s: sm, paint: (first + Math.min(per - 1, Math.floor(t * per))) % P, p: s.pts[i], N: s.N[i], T: s.T[i] });
+    }
+  }
+}
+// A mark as the brush draws it: a stroke across the band, short of its
+// sides; its ticks — as many as the paint's number — short strokes along the
+// band, from the mark's outer end in, a line and a line's white apart, so a
+// wet line of `width` keeps them apart (Claude's choice: the prototype's
+// 3.5 mm would run together at 4). → [{ pts, paint, tick }]; fits: false
+// where the ticks pass the mark's other end.
+export function markPaths(seg, R, width) {
+  const out = [], half = Math.max(2, R - 3), pitch = 2 * width, long = 1.5 * width;
+  for (const m of seg.marks) {
+    const N = seg.dot ? [1, 0] : m.N, T = seg.dot ? [0, 1] : m.T;
+    out.push({ pts: [add(m.p, mul(N, -half)), add(m.p, mul(N, half))], paint: m.paint, tick: false });
+    for (let k = 0; k <= m.paint; k++) {
+      const c = add(m.p, mul(N, half - width / 2 - pitch * k));
+      out.push({ pts: [add(c, mul(T, -long)), add(c, mul(T, long))], paint: m.paint, tick: true, fits: half - width / 2 - pitch * k >= -half });
+    }
+  }
+  return out;
+}
+
+// ---------- pass 3, the Drag ----------
+// Lanes: brush-down loops in a band, the brush's width inside its edge, a
+// pitch apart, to its centre line (TYPE.md): an open band's concentric
+// stadiums, a closed band's rings either side, a dot's circles. Outside or
+// inside first. → [{ d, ring }]
+export function lanesOf(seg, W, o) {
+  const Rc = Math.max(0, W / 2 - o.brush / 2);
+  let ds = [];
+  if (seg.closed) {
+    const n = Math.max(1, Math.round(2 * Rc / o.pitch) + 1);
+    for (let k = 0; k < n; k++) ds.push(n === 1 ? 0 : Rc - 2 * Rc * k / (n - 1));
+    ds = [...ds.filter((_, i) => i % 2 === 0), ...ds.filter((_, i) => i % 2 === 1).reverse()].sort((a, b) => Math.abs(b) - Math.abs(a));
+  } else {
+    const n = Math.max(1, Math.round(Rc / o.pitch) + 1);
+    for (let k = 0; k < n; k++) ds.push(n === 1 ? Rc : Rc * (1 - k / (n - 1)));
+  }
+  if (o.order === 'in') ds.reverse();
+  return ds.map(d => ({ d, ring: loopAt(seg, d) })).filter(l => l.ring.length > 1);
+}
+// a lane opened where the brush lands — just before the band's first mark —
+// and run on DRAG_ON past its own start, so it closes without a seam (the prototype's)
+export const DRAG_ON = 14;   // mm
+function openRing(ring, startS, closed, L) {
+  let i0 = 0;
+  for (let i = 0; i < ring.length; i++) { const s = ring[i].s; if (closed ? ((s - startS + L) % L) < 2 : s >= startS) { i0 = i; break; } }
+  const r = [...ring.slice(i0), ...ring.slice(0, i0)], tail = [r[0]];
+  let acc = 0;
+  for (let i = 1; i < r.length && acc < DRAG_ON; i++) { acc += len(sub(r[i].p, r[i - 1].p)); tail.push(r[i]); }
+  return [...r, ...tail];
+}
+// Sets seg.lanes: [{ d, path: [{ p, s }] }], each a brush-down run, after marksOf.
+export function dragOf(plan, o) {
+  for (const s of plan.segs) {
+    const startS = s.dot ? 0 : s.closed ? (s.marks[0].s - 4 + s.L) % s.L : Math.max(0, s.marks[0].s - 4);
+    s.lanes = lanesOf(s, plan.W, o).map(l => ({ d: l.d, path: s.dot ? [...l.ring, l.ring[0]] : openRing(l.ring, startS, s.closed, s.L) }));
+  }
+}
+// The marks a lane crosses going from s0 to s1 along its band (for Result).
+export function crossed(seg, s0, s1) {
+  if (seg.dot) return [];
+  let a = s0, b = s1;
+  if (seg.closed && Math.abs(b - a) > seg.L / 2) { if (b < a) b += seg.L; else a += seg.L; }
+  if (a === b) return [];
+  const lo = Math.min(a, b), hi = Math.max(a, b), hits = [];
+  for (const m of seg.marks) for (const sm of seg.closed ? [m.s, m.s + seg.L] : [m.s]) if (sm > lo && sm <= hi) hits.push(m);
+  return hits;
+}

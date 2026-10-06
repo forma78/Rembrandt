@@ -243,14 +243,21 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   PLAY** — a cassette deck, TEST · PAUSE, TRACE · MARKS · DRAG, the stops
   ("PLAY is no longer needed, it splits in three: a panel as on old cassette
   recorders"; an icon on each key, its name in the sliders' letters, "maybe
-  three rows"); PAUSE turns to CONT.; no Result view; the board shows every
-  pass at once; the canvas ours, from home, not the prototype's formats
+  three rows"); PAUSE turns to CONT.; the canvas ours, from home, not the prototype's formats
   (past the reach); OVERLAPS in NOLAN's Auto · Uncut row, then INK; the text
   typed in a field, Select to move it; the ticks always on ("simplify as far
   as we can"); MARKS and DRAG go session by session, a press each. **One
   cup**: TRACE and MARKS dip in the Ink tab's cup, DRAG never; the
   prototype's second cup, INK-2, is cancelled ("I would keep one cup. Why
-  complicate").
+  complicate"). **The views back, and Result** (the owner, the same
+  afternoon, `TYPE-Claude/2026-10-06 1978.png`: "we moved the action into
+  the cassette keys, but for the preliminary work I need to understand what
+  the result will be — so they must be repeated in the simulation, as Claude
+  in chat had it. The Result key is needed, and the paints"): 1 Trace · 2
+  Marks · 3 Drag · Result show, the deck runs; the paints in stock, and the
+  bands clicked to another, are kept with the save in the Library ("so the
+  new palette is kept with the name in the Library"). Before, no Result and
+  the board showing every pass at once.
 
 ---
 
@@ -475,15 +482,24 @@ this section disagree, this section wins: the owner corrected the sketch on
   (the Library opens it here) — with a cassette deck for PLAY: **TEST ·
   PAUSE**, **TRACE · MARKS · DRAG**, • STOP · •• HARD STOP, an icon and a
   small name on each key, the running one down. The panel: OVERLAPS (Wet on
-  wet · Dry between letters · Dry every overlap), INK, the Text, Letter
-  height, Band width (% of the height), Letter gap, Line spacing, Margin,
-  Line width (the watercolour's, 4 mm), Fit to canvas, the Canvas. On the
+  wet · Dry between letters · Dry every overlap), INK, the view — **1 Trace ·
+  2 Marks · 3 Drag · Result**, and All · Session 1 · … under 2 and 3 — the
+  Text, Letter height, Band width (% of the height), Letter gap, Line
+  spacing, Margin, Line width (the watercolour's, 4 mm), Fit to canvas;
+  Brush, pass 3: Brush width, Lane pitch, Outside first · Inside first;
+  Paint layout, pass 2: Mark spacing, Paints per letter; Simulation: Paint
+  run, Glaze (est.); Paints in stock — a colour and a name each, ×, Add
+  paint, Reset colour clicks; a click on a band in 2 Marks or Result steps
+  its paint; the Canvas. A mark's ticks are the paint's number, two line
+  widths apart (Claude's choice: the prototype's 3.5 mm run together at a
+  4 mm line); a paint whose ticks pass its mark's end is named. On the
   left Select (V): a drag moves the text, the arrows a mm. TRACE: every
   band's outline, round clockwise from its letter's top, the next from
   nearest the last end, on 60 % over its start, lifting off over all of
   that; with INK ON a dip, then outlines on what the brush holds up to the
-  dip run, an outline never split; the board shows the wash (`src/wash.js`,
-  NOLAN's). MARKS and DRAG next.
+  dip run, an outline never split; 1 Trace shows the wash (`src/wash.js`,
+  NOLAN's). Result is the prototype's simulation. The MARKS and DRAG keys
+  next.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

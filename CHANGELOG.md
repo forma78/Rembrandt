@@ -5,6 +5,23 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE: the views, Result and the paints** (the owner, 2026-10-06,
+  `TYPE-Claude/2026-10-06 1978.png`: "for the preliminary work I need to
+  understand what the result will be — as Claude in chat had it. The Result
+  key is needed, and the paints"). 1 Trace · 2 Marks · 3 Drag · Result under
+  INK, All · Session 1 · … under 2 and 3; the deck still runs the passes.
+  The prototype's marks, lanes and simulation (`typeplan.js`: marksOf,
+  markPaths, lanesOf, dragOf, crossed): Brush width, Lane pitch, Outside ·
+  Inside first, Mark spacing, Paints per letter, Paint run and Glaze (est.);
+  Paints in stock, each its count of marks, Add paint, Reset colour clicks;
+  a click on a band in 2 Marks or Result steps its paint. The ticks two line
+  widths apart, at the line's width (Claude's choice), the ones past their
+  mark named. 💾 SAVE TYPE keeps the palette — names, colours, the clicks —
+  and the Library opens it with them ("so the new palette is kept with the
+  name in the Library"); its preview is the Result, the SVG has the marks in
+  their paints. Tried in a headless browser, the Library's save caught
+  there, nothing written.
+
 - **TYPE, the tab: TRACE in watercolour** (the owner, 2026-10-06: "we
   start work on the new TYPE tab"; the first of three stages, "the brush
   draws the trace in watercolour"), after New Yuri in the top row. The text
