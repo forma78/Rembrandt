@@ -5,6 +5,23 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE: MARKS and DRAG run; the run's trace along the plan** (the owner,
+  2026-10-06, after the first TRACE on the machine, NEW / YURI, 343 s: "I
+  cannot press MARKS (it is not active)"; `TYPE-Claude/Screenshot
+  2026-10-06 trace.png`: "it draws crooked somehow — lower the speed, or
+  for the dry brush it does not matter?"). MARKS: the session's marks and
+  their ticks, a stroke each, from the cup, a dip every 4 marks (est.,
+  the prototype's); its confirm lists the paints to squeeze. DRAG: the
+  session's lanes, the dry brush, never a dip, at Drag speed (60 mm/s, the
+  prototype's). Each key runs its next session, `Marks 1/2`, and goes on to
+  the next once the run is done on this page; the board shows the pass
+  running. Line speed (TRACE, MARKS) and Drag speed are sliders now. The
+  crooked line was the page, not the brush: the carriage's place every
+  0.5 s joined by straight lines — 75 mm chords at 150 mm/s; the board
+  runs the plan's arcs. The trace now draws each move of the run as the
+  plan lays it, the one going on up to the carriage. Tried in a headless
+  browser against a stand-in /run, nothing sent to the machine.
+
 - **The canvas, one base for every tab** (the owner, 2026-10-06,
   `TYPE-Claude/Screenshot 2026-10-06 INK.png`: the Ink tab's white board
   under the image area — "make it as on NOLAN and TYPE, let them have one

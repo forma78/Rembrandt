@@ -15,9 +15,9 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, tailIn } from './strokes.js';
+import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } from './strokes.js';
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP, LOOP_SHARE } from './band.js';
-import { layoutOf, fitHeight, sessionsOf, traceOf, traceRows, marksOf, markPaths, dragOf, crossed, OVERLAPS } from './typeplan.js';
+import { layoutOf, fitHeight, sessionsOf, traceOf, traceRows, marksOf, markPaths, dragOf, crossed, marksRows, dragRows, MARKS_DIP, OVERLAPS } from './typeplan.js';
 import { drawWash } from './wash.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
@@ -43,18 +43,18 @@ let GLYPHS = null;
 // clicked to another paint (over, 'letter:band' → steps).
 const PAINTS = ['#F5D21A', '#F28A1D', '#E2412A', '#D8247A', '#6B3FA0', '#2B4FB8', '#169C9C', '#3FA33C'];   // the prototype's, by eye: lemon yellow … leaf green
 const PAINTS_MAX = 12;
-const DRAG_SPEED = 60;   // mm/s, the dry brush along a lane, for DRAG's time: the prototype's, est.
 const VIEWS = ['trace', 'marks', 'drag', 'result'];
 const S = {
   text: 'AM\nOUR', H: 160, band: 30, gap: -14, lead: 20, margin: 40, x: 0, y: 0, overlap: 'letters',
   width: 4, speed: 150, travel: 180, tail: 3, ink: true,                          // the brush (est.)
   brush: 12, pitch: 7, order: 'out', spacing: 90, per: 2, run: 220, glaze: 0.8,  // MARKS, DRAG, Result
+  drag: 60, next: { marks: 1, drag: 1 },                                          // DRAG's speed (the prototype's 60 mm/s); the session each key runs next
   paints: PAINTS.map(hex => ({ hex })), over: {},                                // colours, no names (the owner, 2026-10-06)
   view: 'trace', session: 0,
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,                          // the canvas, and its edges from home, as on NOLAN
   refOpacity: 30,
 };
-const NUM = ['H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'width', 'speed', 'travel', 'tail', 'brush', 'pitch', 'spacing', 'per', 'run', 'glaze', 'session', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
+const NUM = ['H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'width', 'speed', 'travel', 'tail', 'brush', 'pitch', 'spacing', 'per', 'run', 'glaze', 'drag', 'session', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
 const HEX = /^#[0-9a-f]{6}$/i;
 let FRESH = true;   // nothing kept yet: the text fitted to the canvas once the letters load
 function load() {
@@ -67,6 +67,7 @@ function load() {
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (['out', 'in'].includes(o.order)) S.order = o.order;
     if (VIEWS.includes(o.view)) S.view = o.view;
+    for (const k of ['marks', 'drag']) if (Number.isInteger(o.next?.[k]) && o.next[k] >= 1) S.next[k] = o.next[k];
     if (Array.isArray(o.paints) && o.paints.length) S.paints = o.paints.filter(q => HEX.test(q?.hex)).slice(0, PAINTS_MAX).map(q => ({ hex: q.hex }));
     if (!S.paints.length) S.paints = PAINTS.map(hex => ({ hex }));
     S.over = o.over && typeof o.over === 'object' ? Object.fromEntries(Object.entries(o.over).filter(([, v]) => Number.isInteger(v))) : {};
@@ -330,20 +331,50 @@ function drawResult() {
   for (const c of SIM.layers) g.drawImage(c, 0, 0);
   g.restore();
 }
-// The run as it goes (New Yuri's): red where the brush paints, light blue in the air.
-let trail = [], trailOf = null, RUN = null, RUN_INFO = null;
+// The run as it goes: each move of the run as the plan lays it — its lines
+// and arcs — red where the brush paints, light blue through the air, the one
+// going on up to where the carriage is. Not the carriage's place every half
+// second joined by straight lines, as before: at 150 mm/s those cut an
+// outline into chords 75 mm long (the owner, 2026-10-06, TYPE-Claude/
+// Screenshot 2026-10-06 trace.png: "it draws crooked somehow"); the board
+// runs the arcs.
+let trailOf = null, lastSt = null, RUN = null, RUN_INFO = null;
 const AIR = '#4FC3F7', PAPER = '#E5203A';
-function drawTrail() {
-  if (trail.length < 1) return;
-  const msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, last = trail.at(-1);
-  g.save(); g.lineWidth = 1.2;
-  for (let i = 1; i < trail.length;) {
-    const air = trail[i].air;
-    g.strokeStyle = air ? AIR : PAPER; g.beginPath(); g.moveTo(msx(trail[i - 1]), msy(trail[i - 1]));
-    for (; i < trail.length && trail[i].air === air; i++) g.lineTo(msx(trail[i]), msy(trail[i]));
-    g.stroke();
+function pathOf(B, i) {                                                             // a move's path, carriage mm, from where the one before it ended
+  let p = startOf(B, i);
+  const out = p ? [p] : [];
+  for (const c of B[i]?.cmds || []) {
+    const t = c.split(' '), v = t.slice(1).map(Number);
+    if (t[0] === 'L' || t[0] === 'M') { p = { x: v[0], y: v[1] }; out.push(p); }
+    else if (t[0] === 'A' && p) {
+      const c0 = { x: v[0], y: v[1] }, e = { x: v[2], y: v[3] }, d = v[4], r = Math.hypot(p.x - c0.x, p.y - c0.y);
+      const sw = sweepOf({ a: p, b: e, c: c0, d }), a0 = Math.atan2(p.y - c0.y, p.x - c0.x), n = Math.max(2, Math.ceil(sw * r / 2));
+      for (let j = 1; j <= n; j++) out.push({ x: c0.x + r * Math.cos(a0 + d * sw * j / n), y: c0.y + r * Math.sin(a0 + d * sw * j / n) });
+      p = e;
+    }
   }
-  if (last.live) { g.fillStyle = last.air ? AIR : PAPER; g.beginPath(); g.arc(msx(last), msy(last), 4, 0, Math.PI * 2); g.fill(); }
+  return out;
+}
+function drawTrail() {
+  const st = lastSt;
+  if (!st || !trailOf || st.started !== trailOf) return;
+  const B = RUN || PLAN?.blocks || [], h = hereNow(), at = st.x_mm !== null && st.y_mm !== null ? { x: st.x_mm, y: st.y_mm } : null;
+  const live = ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
+  const X = q => (q.y - h.y - V.y0) * k, Y = q => (V.x1 - q.x + h.x) * k;
+  g.save(); g.lineWidth = 1.2; g.lineJoin = 'round';
+  for (let j = 0; j <= Math.min(st.block, B.length - 1); j++) {
+    if (B[j]?.kind !== 'move') continue;
+    let pts = pathOf(B, j);
+    if (j === st.block && st.state !== 'done' && at && pts.length > 1) {          // going on: up to the carriage
+      let best = 0, bd = Infinity;
+      pts.forEach((q, m) => { const d = Math.hypot(q.x - at.x, q.y - at.y); if (d < bd) { bd = d; best = m; } });
+      pts = [...pts.slice(0, best + 1), at];
+    }
+    if (pts.length < 2) continue;
+    g.strokeStyle = paints(B[j]) ? PAPER : AIR; g.beginPath();
+    pts.forEach((q, m) => m ? g.lineTo(X(q), Y(q)) : g.moveTo(X(q), Y(q))); g.stroke();
+  }
+  if (live && at) { g.fillStyle = paints(B[st.block]) ? PAPER : AIR; g.beginPath(); g.arc(X(at), Y(at), 4, 0, Math.PI * 2); g.fill(); }
   g.restore();
 }
 const paints = b => b?.kind === 'move' && b.paintMM > 0;
@@ -359,7 +390,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['text', 'H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'overlap', 'width', 'brush', 'pitch', 'order', 'spacing', 'per', 'run', 'glaze', 'paints', 'over'];
+const UNDO_KEYS = ['text', 'H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'overlap', 'width', 'speed', 'brush', 'pitch', 'drag', 'order', 'spacing', 'per', 'run', 'glaze', 'paints', 'over'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(k => [k, S[k]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -437,14 +468,14 @@ addEventListener('keydown', e => {
 // the marks, the simulation, the paints in stock (the prototype's); the
 // canvas from home, as New Yuri's.
 const LETTER_SL = [['H', 'Letter height', 'mm', 1, 20, 700], ['band', 'Band width', '%', 0.5, 10, 45], ['gap', 'Letter gap', 'mm', 1, -120, 80],
-  ['lead', 'Line spacing', 'mm', 1, -120, 120], ['margin', 'Margin', 'mm', 1, 0, 150], ['width', 'Line width', 'mm', 0.5, 1, 12]];
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 4, 30], ['pitch', 'Lane pitch', 'mm', 0.5, 2, 20]];
+  ['lead', 'Line spacing', 'mm', 1, -120, 120], ['margin', 'Margin', 'mm', 1, 0, 150], ['width', 'Line width', 'mm', 0.5, 1, 12], ['speed', 'Line speed', 'mm/s', 5, 20, SPEED_MAX]];
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 4, 30], ['pitch', 'Lane pitch', 'mm', 0.5, 2, 20], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX]];
 const PAINT_SL = [['spacing', 'Mark spacing', 'mm', 5, 30, 300], ['per', 'Paints per letter', '', 1, 1, 4]];
 const SIM_SL = [['run', 'Paint run', 'mm', 10, 40, 600], ['glaze', 'Glaze', '', 0.05, 0.3, 1]];
 const ALL_SL = [['#slLetters', LETTER_SL], ['#slBrush', BRUSH_SL], ['#slPaint', PAINT_SL], ['#slSim', SIM_SL]];
 const valOf = key => key === 'band' ? `${fmt(S.band, 1)} % · ${fmt(S.band / 100 * S.H, 0)} mm` : key === 'per' ? `${S.per}` : key === 'glaze' ? `${S.glaze.toFixed(2)} (est.)`
-  : key === 'run' ? `${S.run} mm (est.)` : `${Math.round(S[key] * 100) / 100} mm`;
-const SL_TITLE = { width: 'The watercolour line of TRACE and MARKS on the canvas (the owner, 2026-10-04: &quot;the line is 4 mm&quot;)', brush: 'The dry brush of DRAG',
+  : key === 'run' ? `${S.run} mm (est.)` : key === 'speed' || key === 'drag' ? `${S[key]} mm/s` : `${Math.round(S[key] * 100) / 100} mm`;
+const SL_TITLE = { width: 'The watercolour line of TRACE and MARKS on the canvas (the owner, 2026-10-04: &quot;the line is 4 mm&quot;)', speed: 'The brush along a line of TRACE and MARKS', drag: 'The dry brush along a lane of DRAG', brush: 'The dry brush of DRAG',
   pitch: 'From one lane of DRAG to the next', spacing: 'A mark every so many mm along a band', per: 'How many paints along a letter', run: 'How far a lane carries a paint, in the simulation (est.)', glaze: 'How strongly a session covers the one under it, in the simulation (est.)' };
 for (const [box, list] of ALL_SL) {
   $(box).innerHTML = list.map(([key, label, , step, min, max]) => `<label class="sl"${SL_TITLE[key] ? ` title="${SL_TITLE[key]}"` : ''}><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
@@ -518,13 +549,13 @@ function settle() {
     + `${fmt(P_.length / 1000, 2)} m with the brush down, at ${S.speed} mm/s · ≈ ${fmt(P_.seconds / 60, 1)} min (est.)`
     + (long.length ? ` · Longer than a dip run with their lap, each on one dip, the wash paling before it ends: ${long.map(r => `${r.label.split(' · ').slice(0, 2).join(' ')} (${fmt(r.L, 0)} mm)`).join(', ')}` : ''))
     + ` · The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`;
-  // MARKS and DRAG, session by session (the prototype's reading); DRAG's time at DRAG_SPEED
+  // MARKS and DRAG, session by session (the prototype's reading); DRAG's time at its speed
   const Lp = paintNow(), per = [], count = S.paints.map(() => 0);
   if (Lp?.segs.length) for (let ss = 0; ss < ses; ss++) {
     const segs = Lp.segs.filter(q => q.session === ss), marks = segs.reduce((a, q) => a + q.marks.length, 0), lanes = segs.reduce((a, q) => a + q.lanes.length, 0);
     const mm = segs.reduce((a, q) => a + q.lanes.reduce((b, l) => b + l.path.reduce((c, t, j) => j ? c + Math.hypot(t.p[0] - l.path[j - 1].p[0], t.p[1] - l.path[j - 1].p[1]) : 0, 0), 0), 0);
     for (const q of segs) for (const m of q.marks) count[m.paint]++;
-    per.push(`${ses > 1 ? `Session ${ss + 1}: ` : ''}MARKS <b>${marks}</b> from the cup · DRAG <b>${lanes}</b> lanes, <b>${fmt(mm / 1000, 1)} m</b>, ≈ ${fmt(mm / DRAG_SPEED / 60, 1)} min at ${DRAG_SPEED} mm/s (est.)`);
+    per.push(`${ses > 1 ? `Session ${ss + 1}: ` : ''}MARKS <b>${marks}</b> from the cup · DRAG <b>${lanes}</b> lanes, <b>${fmt(mm / 1000, 1)} m</b>, ≈ ${fmt(mm / S.drag / 60, 1)} min at ${S.drag} mm/s (est.)`);
   }
   if (per.length) $('#planRead').innerHTML += ' · ' + per.join(' · ');
   $('#paints').querySelectorAll('[data-cnt]').forEach(el => { const n = count[+el.dataset.cnt] || 0; el.textContent = n || ''; el.parentNode.title = `Paint ${+el.dataset.cnt + 1}: ${n} mark${n === 1 ? '' : 's'} — a click changes its colour`; });
@@ -543,7 +574,7 @@ function settle() {
   $('#sessions').innerHTML = showSes ? ['All', ...Array.from({ length: ses }, (_, i) => `Session ${i + 1}`)].map((t, i) => `<button class="tog${S.session === i ? ' on' : ''}" data-ses="${i}">${t}</button>`).join('') : '';
   $('#sessions').querySelectorAll('[data-ses]').forEach(b => b.onclick = () => { S.session = +b.dataset.ses; settle(); });
   $('#stats').textContent = !P_.outlines ? 'no text' : `${P_.outlines} outlines · ${fmt(P_.length / 1000, 1)} m of line · ≈ ${fmt(P_.seconds / 60, 1)} min (est.) · ${ses} session${ses === 1 ? '' : 's'} · ${P_.blocks.length} steps`;
-  showPanel(); save(); layout(); lastLcd && lcd(lastLcd);
+  showPanel(); showDeck(); save(); layout(); lastLcd && lcd(lastLcd);
 }
 // letters past the canvas's edges
 function offCanvas() {
@@ -551,8 +582,8 @@ function offCanvas() {
   for (const t of PLAN?.trace || []) if (t.pts.some(p => p[0] - e < -hw || p[0] + e > hw || p[1] - e < -hh || p[1] + e > hh)) out.add(t.ch);
   return out.size ? `${[...out].join(', ')}: past the canvas's edge — the trace goes on the board under it.` : '';
 }
-function walls() {
-  const h = hereNow(), P_ = PLAN;
+function walls(P_ = PLAN) {
+  const h = hereNow();
   if (!P_?.carriage || !P_.rows.length) return '';
   const R = reach(), b = P_.carriage, x0 = h.x + b.x0, x1 = h.x + b.x1, y0 = h.y + b.y0, y1 = h.y + b.y1;
   const out = [x0 < R.x.min && `${fmt(R.x.min - x0, 0)} mm past the bottom wall`, x1 > R.x.max && `${fmt(x1 - R.x.max, 0)} mm past the top wall`,
@@ -658,7 +689,7 @@ async function openFromLibrary(file) {
 // the keys with icons as on a tape recorder"); PAUSE turns to CONT. while the
 // run waits. The one running stays down, as a deck's key does, till the end.
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
-let RUN_KEY = null;
+let RUN_KEY = null, RUN_SES = 1, counted = null;
 async function start(key, blocks, info, log) {
   try {
     RUN = blocks; RUN_INFO = info; RUN_KEY = key;
@@ -677,6 +708,48 @@ $('#btnTrace').onclick = async () => {
   await start('trace', P_.blocks, { seconds: P_.seconds, rows: P_.rows },
     { page: 'type', pass: 'trace', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) });
 };
+// MARKS and DRAG, a session a press (the owner, 2026-10-06: "the sessions
+// go by themselves, press by press"): the key runs its next session and,
+// once that is done, goes on to the one after; one session, always it.
+// MARKS from the cup as TRACE, a dip every MARKS_DIP marks; DRAG dry, never
+// a dip, at its own speed.
+const nextOf = key => Math.min(Math.max(1, S.next[key] || 1), paintNow()?.sessions || 1);
+function showDeck() {
+  const n = paintNow()?.sessions || 0;
+  for (const [id, key, name, what] of [['#btnMarks', 'marks', 'Marks', 'MARKS, pass 2: a mark across each band where its paint goes, its ticks the paint\'s number, from the same cup as TRACE'],
+    ['#btnDrag', 'drag', 'Drag', 'DRAG, pass 3: the dry brush through the paint, every lane non-stop, no dip']]) {
+    const el = $(id), ses = nextOf(key);
+    el.querySelector('span').textContent = n > 1 ? `${name} ${ses}/${n}` : name;
+    el.title = what + (n > 1 ? `; next session ${ses} of ${n}` : '');
+  }
+}
+function marksRun(ses) {
+  const L = paintNow(); if (!L?.segs.length) return null;
+  const R = marksRows(L, ses - 1, S.width, S.ink); if (!R.ps.length) return null;
+  return { ...plotRun({ ...runOpts(R.ps.length), noDipUnder: 0 }, [{ key: 'MARKS', ps: R.ps, why: null }]), rows: R.info, marks: R.marks, count: R.count };   // noDipUnder 0: a mark's dip is its own (typeplan.js)
+}
+function dragRun(ses) {
+  const L = paintNow(); if (!L?.segs.length) return null;
+  const R = dragRows(L, ses - 1); if (!R.ps.length) return null;
+  return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag }, [{ key: 'DRAG', ps: R.ps, why: null }]), rows: R.info, lanes: R.lanes, mm: R.length };
+}
+async function runPass(key) {
+  await loadInk(); settle();
+  const n = paintNow()?.sessions || 0, ses = nextOf(key), P_ = key === 'marks' ? marksRun(ses) : dragRun(ses), of = n > 1 ? ` · session ${ses} of ${n}` : '';
+  if (!P_) { $('#runState').innerHTML = '<span class="warn">Nothing to run: type the text.</span>'; return; }
+  if (key === 'marks' && S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
+  if (walls(P_)) { $('#runState').innerHTML = `<span class="warn">${walls(P_)}</span>`; return; }
+  if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
+  const min = fmt(P_.seconds / 60, 0), what = key === 'marks'
+    ? `${P_.marks} marks and their ticks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => a[0] - b[0]).map(([i, c]) => `paint ${+i + 1} × ${c}`).join(', ')} — and press DRAG.`
+    : `${P_.lanes} lanes, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
+  if (!confirm(`${key.toUpperCase()} ${textLabel()}${of}: ${what}`)) return;
+  S.view = key; S.session = n > 1 ? ses : 0; RUN_SES = ses; settle();                // the board shows the pass running
+  await start(key, P_.blocks, { seconds: P_.seconds, rows: P_.rows },
+    { page: 'type', pass: key, session: ses, sessions: n, label: label(), settings: S, here: hereNow(), ...(key === 'marks' && S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) });
+}
+$('#btnMarks').onclick = () => runPass('marks');
+$('#btnDrag').onclick = () => runPass('drag');
 // TEST, before the passes (New Yuri's): one dip in the cup, a dot 20 mm in from each corner of the board, and home.
 function testRun() {
   const T = cornerDots(S.boardW, S.boardH);
@@ -737,18 +810,15 @@ async function watch() {
   try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
   lcd(st);
   const live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
-  if (live && st.started !== trailOf) { trailOf = st.started; trail = []; }
-  const h = hereNow();
-  if (st && trailOf && st.started === trailOf && st.x_mm !== null && st.y_mm !== null) {
-    const B = RUN || PLAN?.blocks || [], i = st.block, air = !(live && paints(B[i]));
-    const q = { x: st.x_mm - h.x, y: st.y_mm - h.y, live, air, i }, l = trail.at(-1);
-    const put = (p, a, j) => p && trail.push({ x: p.x - h.x, y: p.y - h.y, live: false, air: a, i: j });
-    if (l && l.i !== i) {
-      if (!l.air) put(endOf(B[l.i]), false, l.i);
-      for (let j = l.i + 1; j < i; j++) if (paints(B[j])) { put(startOf(B, j), true, j); put(endOf(B[j]), false, j); }
-      if (!air) put(startOf(B, i), true, i);
-    }
-    if (!l || Math.hypot(q.x - l.x, q.y - l.y) > 0.5 || l.live !== live || l.air !== air || l.i !== i) { trail.push(q); kick(); }
+  if (live && st.started !== trailOf) trailOf = st.started;
+  const moved = !lastSt || !st || lastSt.block !== st.block || lastSt.state !== st.state || lastSt.x_mm !== st.x_mm || lastSt.y_mm !== st.y_mm;
+  lastSt = st;
+  if (st && trailOf && st.started === trailOf && moved) kick();
+  // MARKS or DRAG run to its end on this page: the key goes on to the next session
+  if (st?.state === 'done' && trailOf && st.started === trailOf && st.started !== counted && (RUN_KEY === 'marks' || RUN_KEY === 'drag')) {
+    counted = st.started;
+    const n = paintNow()?.sessions || 1;
+    S.next[RUN_KEY] = RUN_SES % n + 1; save(); showDeck();
   }
   $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${st.message}</span>` : '';
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, ticksOf, lanesOf, dragOf, crossed, DRAG_ON } from '../src/typeplan.js';
+import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, ticksOf, lanesOf, dragOf, crossed, DRAG_ON, marksRows, dragRows, MARKS_DIP } from '../src/typeplan.js';
 import { offPiece, toMachine, washOf, lengthOf, LOOP_SHARE, DIP_RUN, FIT_MM, NO_DIP } from '../src/band.js';
 import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
@@ -191,3 +191,31 @@ test('the trace and the colour meet at the band\'s edge: the line inset half its
   const marks = markPaths(I, L.R, w).filter(m => !m.tick);
   for (const m of marks) assert.ok(Math.abs(dist(m.pts[0], m.pts[1]) / 2 + w / 2 - (L.R - w / 2)) < 1e-6, 'a mark\'s round end at the trace\'s inner edge');
 });
+
+const RUN = { ...DEFAULTS, snake: true, pause: false, lift: false, tail: 3, speed: 150, travel: 180, here: { x: 350, y: 300 }, cup: { x: 400, y: 0, rim: 35, dip: 5, dwell: 1 } };
+test('MARKS on the machine: a stroke a mark and a tick, a session at a time, a dip every four marks', () => {
+  const L = paintPlan(), ses = sessionsOf(L, 'letters');
+  let all = 0;
+  for (let k = 0; k < ses; k++) {
+    const R = marksRows(L, k, 4, true), segs = L.segs.filter(s => s.session === k);
+    assert.equal(R.marks, segs.reduce((a, s) => a + s.marks.length, 0));
+    assert.equal(R.ps.length, segs.reduce((a, s) => a + markPaths(s, L.R, 4).length, 0));
+    assert.ok(R.ps.every(p => p.length === 1 && p[0].t === 'L'));
+    const r = plotRun({ ...RUN, ink: true, rows: R.ps.length, noDipUnder: 0 }, [{ key: 'MARKS', ps: R.ps, why: null }]);
+    assert.equal(r.fault, '');
+    assert.equal(r.dips, Math.ceil(R.marks / MARKS_DIP), `session ${k + 1}: ${R.marks} marks`);
+    all += R.marks;
+  }
+  assert.equal(all, L.segs.reduce((a, s) => a + s.marks.length, 0), 'every mark in one session or another');
+  assert.ok(marksRows(L, 0, 4, false).ps.every(p => !p[0].nodip));
+});
+
+test('DRAG on the machine: every lane of the session one path, the dry brush, no dip', () => {
+  const L = paintPlan(), R = dragRows(L, 0), segs = L.segs.filter(s => s.session === 0);
+  assert.equal(R.lanes, segs.reduce((a, s) => a + s.lanes.length, 0));
+  const r = plotRun({ ...RUN, ink: false, speed: 60, rows: R.ps.length, noDipUnder: NO_DIP }, [{ key: 'DRAG', ps: R.ps, why: null }]);
+  assert.equal(r.fault, '');
+  assert.equal(r.dips, 0);
+  assert.ok(Math.abs(r.length - R.length) < 0.01 * R.length + 5, `${r.length} painted, ${R.length} laid`);
+});
+
