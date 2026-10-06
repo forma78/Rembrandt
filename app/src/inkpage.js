@@ -10,7 +10,8 @@
 import { fmt } from './util.js';
 import { parsePing, toMm, reach, homeCorner } from './machine.js';
 import { mountJog } from './jog.js';
-import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup, canvasFrom, dipAt } from './ink.js';
+import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup, dipAt } from './ink.js';
+import { CANVAS_FIELDS, canvasNow, setCanvas, hereOf, onCanvas } from './canvas.js';
 import { isNight, themeColor } from './lamp.js';
 import './ui.js';
 
@@ -34,9 +35,7 @@ async function save(what) {
 // [key, label, unit, step, min, max]; the elbow's two est. until typed
 const SIZE = [['diameter', 'Diameter', 'mm', 1, 10, 200], ['height', 'Height', 'mm', 1, 1, 100]];
 const DIP = [['rim', 'Over the rim', '°', 1, RIM_MIN, ELBOW_MAX], ['dip', 'In the cup', '°', 1, ELBOW_MIN, ELBOW_MAX - 5], ['dwell', 'In the paint', 's', 0.1, 0, DWELL_MAX]];
-// the canvas from the cup's centre, with a ruler: no defaults, measured or nothing
-const CANVAS = [['left', 'Left edge →', 'mm', 1, -1000, 1000], ['bottom', 'Bottom edge ↓', 'mm', 1, -1000, 1000]];
-// part: where in ink.json — the cup's numbers, or the canvas's
+// part: where in ink.json — the cup's numbers
 function fields(el, list, part = 'cup') {
   el.innerHTML = list.map(([k, label, unit, step, min, max]) =>
     `<label><span>${label}${EST.includes(k) ? ` <span class="est" data-est="${k}">est.</span>` : ''}</span><input data-part="${part}" data-k="${k}" type="number" step="${step}" min="${min}" max="${max}" placeholder="${part === 'cup' ? CUP[k] : '—'}"><em>${unit}</em></label>`).join('');
@@ -47,12 +46,21 @@ function fields(el, list, part = 'cup') {
     else c[k] = Math.max(min, Math.min(max, +inp.value));
     S.ink = { ...S.ink, [part]: c };
     show(); draw();
-    save(`${part === 'canvas' ? 'the canvas: ' : ''}${label} ${c[k] ?? CUP[k] ?? '—'} ${unit}`);
+    save(`${label} ${c[k] ?? CUP[k] ?? '—'} ${unit}`);
   });
 }
 fields($('#size'), SIZE);
-fields($('#canvas'), CANVAS, 'canvas');
 fields($('#dip'), DIP);
+// The canvas from home, the one base of TYPE, NOLAN and New Yuri (canvas.js;
+// the owner, 2026-10-06: "make it as on NOLAN and TYPE — one base"), in
+// place of the canvas from the cup's ruler numbers of 2026-10-03.
+$('#canvas').innerHTML = CANVAS_FIELDS.map(([k, label, unit, step, title, any]) =>
+  `<label title="${title}"><span>${label}</span><input data-canvas="${k}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
+$('#canvas').querySelectorAll('input').forEach(inp => inp.onchange = () => {
+  const k = inp.dataset.canvas, v = +inp.value, [, label, unit, , , any] = CANVAS_FIELDS.find(f => f[0] === k);
+  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) { setCanvas({ [k]: v }); $('#saved').textContent = `the canvas: ${label} ${v} ${unit} · on every tab`; }
+  show(); draw();
+});
 
 function show() {
   const c = cup();
@@ -66,14 +74,14 @@ function show() {
   $('#cupRead').innerHTML = c.x === null
     ? 'Not set. The elbow up over the rim first (+35° or more), or the brush knocks the cup over; jog the brush over the red scope, the cup\'s centre; lower it into the paint to check; then press here.'
     : rim ? `<span class="warn">It lies ${fmt(off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them — too near the rim: move the cup in.</span>` : '';
-  for (const inp of document.querySelectorAll('.grid4 input')) {
+  for (const inp of document.querySelectorAll('.grid4 input[data-part]')) {
     const k = inp.dataset.k, typed = S.ink[inp.dataset.part] || {};
     if (document.activeElement !== inp) inp.value = typed[k] ?? '';
   }
-  const B = testBoard(), at = B?.fromCup;
-  $('#canvasRead').innerHTML = at
-    ? `With a ruler from the cup's centre: the canvas's left edge <b>${at.left} mm</b> to the right, its bottom edge <b>${at.bottom} mm</b> down. The Test tab lays its ${B.w} × ${B.h} board from here; its centre, the Test tab's Here: <b>X ${fmt(at.x, 1)} · Y ${fmt(at.y, 1)}</b>.`
-    : 'The canvas from the cup: measure with a ruler from the cup\'s centre to the canvas\'s left edge and to its bottom edge. Then the Test tab lays its board from the cup and finds its centre itself; until then it uses its own Here.';
+  const C = canvasNow(), h = hereOf(C);
+  for (const inp of $('#canvas').querySelectorAll('input')) if (document.activeElement !== inp) inp.value = C[inp.dataset.canvas];
+  $('#canvasRead').innerHTML = `The canvas from home, the same on TYPE, NOLAN and New Yuri — typed here or there, it changes on all of them: <b>${C.boardW} × ${C.boardH} mm</b>, `
+    + `its bottom left corner at carriage <b>X ${fmt(h.x - C.boardH / 2, 1)} · Y ${fmt(h.y - C.boardW / 2, 1)} mm</b>, its centre — their Here — X ${fmt(h.x, 1)} · Y ${fmt(h.y, 1)}. The Test tab lays its own board from its own Here.`;
   document.querySelectorAll('[data-est]').forEach(el => { el.hidden = !c.est[el.dataset.est]; });
   const why = cupProblem({ ...c, x: 0, y: 0 });   // the numbers only: the centre has its own line above
   // The explanation under the ⓘ, the warning always (the owner, 2026-10-04: "it makes noise, I know it").
@@ -117,17 +125,9 @@ $('#btnDip').onclick = () => takeElbow('dip', 'In the cup');
 // ---------- the jog, and where the carriage is ----------
 const JOG = mountJog($('#jog'), { link: $('#linkState'), onPing: st => { S.pos = st.pos; draw(); } });
 
-// The Test tab's board, where its Here put it (this browser's settings of
-// the Test tab): drawn round the cup, so the two are seen together.
-// From the cup when the canvas is measured from it, else where the Test
-// tab's own Here put it.
-function testBoard() {
-  let t = {};
-  try { t = JSON.parse(localStorage.getItem('rembrandt.test.v01') || '{}'); } catch { }
-  const w = t.boardW || 300, h = t.boardH || 300, at = canvasFrom(S.ink, w, h);
-  if (at) return { x: at.x, y: at.y, w, h, fromCup: at };
-  return t.here ? { x: t.here.x, y: t.here.y, w, h } : null;
-}
+// The canvas from home, as TYPE and NOLAN lay it (canvas.js): drawn round
+// the cup, so the two are seen together.
+function theCanvas() { const C = canvasNow(), h = hereOf(C); return { x: h.x, y: h.y, w: C.boardW, h: C.boardH }; }
 
 // ---------- the view from above ----------
 // As on Calibration: the bottom of the picture at the bottom, X up, Y to the
@@ -140,7 +140,7 @@ function draw() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
   const night = isNight(), ink = themeColor('--ink', INK_), mute = themeColor('--mute', MUTE);
-  const R = reach(), c = cup(), B = testBoard(), home = homeCorner();
+  const R = reach(), c = cup(), B = theCanvas(), home = homeCorner();
   const pts = [{ x: R.x.min, y: R.y.min }, { x: R.x.max, y: R.y.max }];
   if (B) pts.push({ x: B.x - B.h / 2, y: B.y - B.w / 2 }, { x: B.x + B.h / 2, y: B.y + B.w / 2 });
   const at = c.x !== null ? c : CUP_AIM, aimed = c.x === null, e = c.diameter / 2 * 1.7;   // the cup, or the scope where it is aimed at
@@ -168,12 +168,12 @@ function draw() {
   ctx.save(); ctx.strokeStyle = ORANGE; ctx.lineWidth = 1.2; ctx.setLineDash([6, 4]);
   ctx.strokeRect(sx(R.y.min), sy(R.x.max), (R.y.max - R.y.min) * k, (R.x.max - R.x.min) * k); ctx.restore();
 
-  // the Test tab's board
+  // the canvas, from home
   if (B) {
     ctx.fillStyle = PAPER; ctx.fillRect(sx(B.y - B.w / 2), sy(B.x + B.h / 2), B.w * k, B.h * k);
     ctx.strokeStyle = 'rgba(36,34,31,.8)'; ctx.lineWidth = 1; ctx.strokeRect(sx(B.y - B.w / 2), sy(B.x + B.h / 2), B.w * k, B.h * k);
     ctx.fillStyle = '#B3470C'; ctx.textAlign = 'left';
-    ctx.fillText(`${B.fromCup ? 'the canvas, from the cup' : 'Test board, its Here'} · ${B.w} × ${B.h} mm`, sx(B.y - B.w / 2), sy(B.x + B.h / 2) - 6);
+    ctx.fillText(`canvas ${B.w} × ${B.h} mm · from home, as on TYPE and NOLAN`, sx(B.y - B.w / 2), sy(B.x + B.h / 2) - 6);
   }
   // home, where every run ends
   ctx.strokeStyle = ink; ctx.lineWidth = 1.2;
@@ -201,7 +201,7 @@ function draw() {
 }
 addEventListener('resize', draw);
 addEventListener('rembrandt-night', draw);
-addEventListener('storage', e => { if (e.key === 'rembrandt.test.v01') draw(); });   // Here moved on the Test tab
+onCanvas(() => { show(); draw(); });   // the canvas typed on another tab
 
 await load();
 show(); draw();

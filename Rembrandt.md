@@ -45,6 +45,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Layer** | Everything painted in one session over the dry layer below it: a band, its tubes, its drops. Not "pass" — in RUBENS a pass is a brush run inside a lane. |
 | **Hand layer** | None since 2026-10-01: the machine paints every layer, the black too. The hand only corrects. **Except on NOLAN** (2026-10-03, §1): there the owner paints the black around the ribbons, the dark glazes and the airbrush glow. |
 | **Ground** | What lies under the first layer: the white canvas. |
+| **The canvas from home** | The canvas on the machine: its bottom left corner level with home, its left edge so many mm to the right of it; Board width and height grow it up and to the right (§1). One base for TYPE, NOLAN, New Yuri and Ink since 2026-10-06 (`src/canvas.js`): typed on one, it changes on all. |
 | **Image area** | What the machine paints: its whole reach between the walls (Calibration), now 568.5 × 865 mm (Y × X), about 57 × 86 cm — nearly the 2 : 3 of IMG_9422. The canvas lies inside it; paint past the canvas lands on the canvas underneath, on purpose. |
 | **Tube** | One paint on the owner's shelf: name, pigment code, swatches. The **inventory** is the list of tubes. |
 | **Drop** | One squeeze of paint across the lanes, at its tube's home, before a layer runs. Florian Markus's method, made exact. |
@@ -221,7 +222,14 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   dots stood at the corners of the drawing ("they depend on the shape, and
   they must depend on the board's width and height"), BL first, and the
   canvas at the Test tab's Here, 124 mm past the bottom wall. On NOLAN
-  this replaces the canvas from the cup of 2026-10-04.
+  this replaces the canvas from the cup of 2026-10-04. **One base since
+  2026-10-06** (the owner, `TYPE-Claude/Screenshot 2026-10-06 INK.png`, the
+  Ink tab's white board under the image area: "make it as on NOLAN and
+  TYPE — let them have one base we carry the parameters to"): the four
+  numbers kept once, in this browser; TYPE, NOLAN, New Yuri and Ink read
+  and write them, and the Ink tab draws that canvas in place of the Test
+  tab's board, its fields in place of the canvas from the cup's. The Test
+  tab keeps its own Here.
 - **New Yuri, a tab of its own for letters** (the owner, 2026-10-05:
   "maybe make a New Yuri tab, so as not to mix all this into NOLAN? We have
   no 3D there, half the sliders are not needed"). Letters drawn as rings of
@@ -620,6 +628,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   aim the brush at. Not Calibration, which
   is the machine's and never the paint's, and not Test: the cups will be
   many, each with its place, its height and its paint.
+  **Since 2026-10-06 the Ink tab shows the canvas from home** in place of
+  the canvas from the cup — the one base of TYPE, NOLAN and New Yuri, its
+  four fields under Cup (§1); the Test tab keeps its own Here.
 - **Tools on the left exactly as in RUBENS** (`references/Screenshot
   2026-09-30 create.png`): Gesture (G), Pen (P), Select (V) · Arc (A) ·
   Undo, Redo, Delete, Open default, Clear.

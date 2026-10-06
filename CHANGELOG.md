@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The canvas, one base for every tab** (the owner, 2026-10-06,
+  `TYPE-Claude/Screenshot 2026-10-06 INK.png`: the Ink tab's white board
+  under the image area — "make it as on NOLAN and TYPE, let them have one
+  base we carry the parameters to"). `src/canvas.js`: Board width, Board
+  height, Left edge →, Bottom edge ↑ from home, kept once in this browser;
+  TYPE, NOLAN, New Yuri and Ink read and write the same four numbers, a tab
+  in another window follows, a save opened from the Library brings its
+  canvas. The base starts from the first tab opened with its own numbers.
+  The Ink tab draws that canvas from home, where it drew the Test tab's
+  board from its Here (400 × 700, 124 mm under the bottom wall), and shows
+  its four fields in place of the canvas from the cup's. The Test tab
+  keeps its own Here. Tried in a headless browser: typed on Ink, followed
+  on TYPE and NOLAN.
+
 - **TYPE: the trace and the colour meet at the band's edge** (the owner,
   2026-10-06, `TYPE-Claude/Screenshot 2026-10-06 preview-issue.png`, 1 Trace
   over Result in Photoshop: "the coloured letters go inside the outline of

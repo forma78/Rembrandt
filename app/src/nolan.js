@@ -18,6 +18,7 @@ import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
 import { drawWash as paintWash } from './wash.js';
+import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -737,12 +738,10 @@ sliders($('#slPoint'), POINT_SL, () => S.anchors[pick]);
 sliders($('#slRun'), RUN_SL, () => S);
 // The board's size, and where it lies: its edges from home, with a ruler
 // (the owner, 2026-10-05) — any number, 0 and below too.
-const FIELDS = [['boardW', 'Board width', 'mm', 10, 'The canvas across; it grows to the right'], ['boardH', 'Board height', 'mm', 10, 'The canvas up the machine; it grows upwards'],
-  ['edgeLeft', 'Left edge →', 'mm', 1, 'The canvas\'s left edge, mm to the right of home', true], ['edgeBottom', 'Bottom edge ↑', 'mm', 1, 'The canvas\'s bottom edge, mm above home', true]];
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
   const v = +inp.value, any = FIELDS.find(f => f[0] === inp.dataset.k)[5];
-  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) S[inp.dataset.k] = v;
+  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) { S[inp.dataset.k] = v; setCanvas(S); }   // the canvas: one base for every tab (canvas.js)
   settle();
 });
 $('#planInfo').onclick = () => { $('#planRead').hidden = !$('#planRead').hidden; $('#planInfo').classList.toggle('on', !$('#planRead').hidden); };
@@ -915,7 +914,7 @@ async function openFromLibrary(file) {
     if (!o?.nolan) { $('#saveState').textContent = 'not a NOLAN save: open it on Test'; return; }
     if (!Array.isArray(o.settings?.anchors) && !Array.isArray(o.settings?.figs)) { $('#saveState').textContent = 'a NOLAN save of the flat ribbons, before 3D: it cannot open here'; return; }
     undoPush();
-    localStorage.setItem(KEY, JSON.stringify(o.settings)); load(); settle();
+    localStorage.setItem(KEY, JSON.stringify(o.settings)); setCanvas(o.settings); load(); Object.assign(S, canvasNow(S)); settle();   // the save's canvas becomes the base
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
   } catch { $('#saveState').textContent = 'could not open it from the Library'; }
 }
@@ -1027,7 +1026,8 @@ async function watch() {
 }
 
 // ---------- start ----------
-load();
+load(); Object.assign(S, canvasNow(S));                                          // the canvas from the base, every tab's (canvas.js)
+onCanvas(c => { Object.assign(S, c); settle(); });                               // changed in another window
 syncTools(); syncRef(); loadRef();
 lampSwitch($('#lamp'));
 addEventListener('rembrandt-night', () => kick());
