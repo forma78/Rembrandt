@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE: the zoom over the board; the panel, the LCD with it, from the
+  top** (the owner, 2026-10-06, `TYPE-Claude/Screenshot 2026-10-06
+  zoom.png`: "I need a panel at the top that zooms the screen; the LCD up").
+  − 100% + in a strip under the header, 50 … 800 %; ⌘− ⌘0 ⌘+; a pinch on the
+  trackpad zooms round the pointer, two fingers move the board. 100 % is the
+  whole table as before; closer, the board fills the stage and shows a
+  window of the table — the canvas stays the stage's size, so a close look
+  costs nothing. The panel from the top of the window, the header and the
+  zoom over the tools and the board: PROGRESS the header's height higher. The
+  Library's preview stays the whole table, whatever the zoom.
+
 - **TYPE: MARKS and DRAG run; the run's trace along the plan** (the owner,
   2026-10-06, after the first TRACE on the machine, NEW / YURI, 343 s: "I
   cannot press MARKS (it is not active)"; `TYPE-Claude/Screenshot

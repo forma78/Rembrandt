@@ -149,15 +149,27 @@ function areaNow() {
   const h = hereNow(), R = reach();
   return { x0: R.x.min - h.x, x1: R.x.max - h.x, y0: R.y.min - h.y, y1: R.y.max - h.y, R };
 }
-let V = view(), k = 1, dpr = 1;
+let V = view(), k = 1, dpr = 1, kFit = 1;
 const sx = p => (p[0] - V.y0) * k, sy = p => (V.x1 + p[1]) * k;   // canvas mm → the screen: across is Y, down the picture is −X
 const toCanvas = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / k + V.y0, (e.clientY - r.top) / k - V.x1]; };
+// The zoom (the owner, 2026-10-06: "I need a panel at the top that zooms the
+// screen"): 100 % the whole table in the stage, as before; closer, the board
+// fills the stage and shows a window of the table round ZC, its centre (board
+// mm, X up, Y right) — kept inside the table. The canvas stays the stage's
+// size, whatever the zoom.
+const ZOOMS = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
+let Z = 1, ZC = null;   // the zoom; the window's centre, null: the table's
 function layout() {
-  V = view();
-  const r = stage.getBoundingClientRect(), m = 36, sw = V.y1 - V.y0, sh = V.x1 - V.x0, strip = 46;   // the paints' strip by the Tools
-  k = Math.max(0.2, Math.min((r.width - strip - 2 * m) / sw, (r.height - 2 * m) / sh));
+  const F = view(), r = stage.getBoundingClientRect(), m = 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0, strip = 46;   // the paints' strip by the Tools
+  kFit = Math.max(0.2, Math.min((r.width - strip - 2 * m) / sw, (r.height - 2 * m) / sh));
+  k = kFit * Z;
   dpr = window.devicePixelRatio || 1;
-  const w = Math.round(sw * k), h = Math.round(sh * k);
+  const w = Math.round(Math.min(sw * k, r.width - strip)), h = Math.round(Math.min(sh * k, r.height)), ww = w / k, hh = h / k;
+  const mid = { x: (F.x0 + F.x1) / 2, y: (F.y0 + F.y1) / 2 }, c = ZC || mid;
+  const cy = ww >= sw - 1e-6 ? mid.y : Math.max(F.y0 + ww / 2, Math.min(F.y1 - ww / 2, c.y));
+  const cx = hh >= sh - 1e-6 ? mid.x : Math.max(F.x0 + hh / 2, Math.min(F.x1 - hh / 2, c.x));
+  if (ZC) ZC = { x: cx, y: cy };
+  V = { y0: cy - ww / 2, y1: cy + ww / 2, x0: cx - hh / 2, x1: cx + hh / 2 };
   board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.marginLeft = strip + 'px';
   cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
@@ -462,6 +474,40 @@ addEventListener('keydown', e => {
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveBlock(arrow[0] * d, arrow[1] * d); }
 });
 
+// The zoom's keys: − 100% +, ⌘− ⌘0 ⌘+; a pinch on the trackpad zooms where
+// it is, two fingers move the board when it is closer than 100 %.
+function zoomTo(z, e) {
+  z = Math.max(ZOOMS[0], Math.min(ZOOMS.at(-1), z));
+  if (Math.abs(z - 1) < 1e-6) { Z = 1; ZC = null; layout(); showZoom(); return; }
+  const F = view(), at = e ? toCanvas(e) : null, r = cv.getBoundingClientRect();
+  if (at) {                                                                          // the point under the pointer stays under it
+    const kz = kFit * z, ox = e.clientX - r.left - r.width / 2, oy = e.clientY - r.top - r.height / 2;
+    ZC = { y: at[0] - ox / kz, x: -at[1] + oy / kz };
+  } else ZC = ZC || { x: (V.x0 + V.x1) / 2, y: (V.y0 + V.y1) / 2 };
+  Z = z; layout(); showZoom();
+}
+const zoomStep = up => zoomTo(up ? ZOOMS.find(q => q > Z + 1e-6) ?? Z : [...ZOOMS].reverse().find(q => q < Z - 1e-6) ?? Z);
+function showZoom() {
+  $('#zoomFit').textContent = `${Math.round(Z * 100)}%`;
+  $('#zoomOut').disabled = Z <= ZOOMS[0] + 1e-6; $('#zoomIn').disabled = Z >= ZOOMS.at(-1) - 1e-6;
+}
+$('#zoomIn').onclick = () => zoomStep(true);
+$('#zoomOut').onclick = () => zoomStep(false);
+$('#zoomFit').onclick = () => zoomTo(1);
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (e.ctrlKey) { zoomTo(Z * Math.exp(-e.deltaY * 0.01), e); return; }             // a pinch
+  if (Z <= 1) return;
+  const c = ZC || { x: (V.x0 + V.x1) / 2, y: (V.y0 + V.y1) / 2 };
+  ZC = { x: c.x - e.deltaY / k, y: c.y + e.deltaX / k }; layout();
+}, { passive: false });
+addEventListener('keydown', e => {
+  if (!(e.metaKey || e.ctrlKey) || e.target.matches('input,textarea')) return;
+  if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomStep(true); }
+  else if (e.key === '-') { e.preventDefault(); zoomStep(false); }
+  else if (e.key === '0') { e.preventDefault(); zoomTo(1); }
+});
+
 // ---------- the panel ----------
 // OVERLAPS, INK, the view and its session; the text, its letters (the
 // prototype's sliders); the line's width; Fit to canvas; the brush of DRAG,
@@ -651,11 +697,12 @@ ${marks}
 </svg>`;
 }
 function pngOf() {
-  const keep = [g, k, dpr], sw = V.y1 - V.y0, sh = V.x1 - V.x0, kk = 800 / Math.max(sw, sh), c2 = document.createElement('canvas');
+  const keep = [g, k, dpr, V]; V = view();                                           // the whole table, whatever the zoom
+  const sw = V.y1 - V.y0, sh = V.x1 - V.x0, kk = 800 / Math.max(sw, sh), c2 = document.createElement('canvas');
   c2.width = Math.round(sw * kk); c2.height = Math.round(sh * kk);
   g = c2.getContext('2d'); k = kk; dpr = 1;
   const view = S.view; S.view = 'result';                                            // the Library shows the painting
-  try { draw(); } finally { [g, k, dpr] = keep; S.view = view; }
+  try { draw(); } finally { [g, k, dpr, V] = keep; S.view = view; }
   return c2.toDataURL('image/png');
 }
 $('#btnSave').onclick = async () => {
@@ -831,6 +878,7 @@ $('#hint').textContent = HINT;
 palette();
 syncRef(); loadRef();
 lampSwitch($('#lamp'));
+showZoom();
 addEventListener('rembrandt-night', () => kick());
 setInterval(watch, 500);
 new ResizeObserver(layout).observe(stage);

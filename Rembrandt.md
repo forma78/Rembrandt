@@ -529,7 +529,12 @@ this section disagree, this section wins: the owner corrected the sketch on
   MARKS (150 mm/s). The run's trace on the board follows the plan's lines
   and arcs, the carriage's place only for the move going on (the owner:
   "it draws crooked somehow" — the place every half second, joined by
-  chords).
+  chords). **The zoom and the panel up** (the owner, 2026-10-06,
+  `TYPE-Claude/Screenshot 2026-10-06 zoom.png`: "I need a panel at the top
+  that zooms the screen, and the LCD raised"): − 100% + over the board,
+  ⌘− ⌘0 ⌘+, a pinch on the trackpad zooms where it is, two fingers move the
+  board; the panel runs from the top of the window, the header and the
+  zoom over the tools and the board only.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line
