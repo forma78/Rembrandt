@@ -34,11 +34,11 @@ Rembrandt/
     CNCDM-001/       the board's firmware (from RUBENS, Rembrandt's since 2026-10-02)
   app/
     nolan.html       NOLAN, the ribbons (new; NOLAN.md)
-    newyuri.html     New Yuri, letters as rings (new; Rembrandt.md §8)
-    type.html        TYPE, letters as bands in three passes (new; Rembrandt.md §8)
+    newyuri.html     New Yuri, letters as rings (new; off the top row since 2026-10-06)
     glyphs.json      the owner's letters: skeletons of lines and arcs
-    index.html       Create (hidden from the top row since 2026-10-04)
-    job.html         Job (from RUBENS, plus pointer mode)
+    index.html       TYPE, letters as bands in three passes, the first tab (new; Rembrandt.md §8)
+    create.html      Create (hidden from the top row since 2026-10-04)
+    job.html         Job (from RUBENS, plus pointer mode; off the top row since 2026-10-06)
     test.html        Test, the test bench (new)
     ink.html         Ink: the cup the brush dips into (new)
     adjustments.html Adjustments (new)

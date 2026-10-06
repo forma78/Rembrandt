@@ -1,6 +1,6 @@
 // Library page: the drawings saved with 💾 SAVE on the Create tab (rubens.py
 // keeps them in library/ on this Mac, not in git), newest first. A click
-// opens a drawing on the Create tab (index.html?open=<file>), from where it
+// opens a drawing on the Create tab (create.html?open=<file>), from where it
 // goes to the Job tab and the machine; the red × moves it to
 // library/.deleted/ after asking (the owner, 2026-09-30).
 
@@ -55,7 +55,7 @@ async function onCard(e) {
     if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();
   }
-  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'type.html' }[el.dataset.kind] || 'index.html') + '?open=' + encodeURIComponent(file);
+  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'index.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
 }
 $('#grid').addEventListener('click', onCard);
 $('#tests').addEventListener('click', onCard);
