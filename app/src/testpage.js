@@ -290,7 +290,7 @@ function testSvg() {
   }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W + 2 * TABLE_MM}mm" height="${H}mm" viewBox="${-TABLE_MM} 0 ${W + 2 * TABLE_MM} ${H}">
-<!-- Rembrandt v0.4 · Test · ${testLabel()}; 1 unit = 1 mm; ${TABLE_MM} mm either side of the board, where rows may run past it -->
+<!-- Rembrandt v.1.0.1 · Test · ${testLabel()}; 1 unit = 1 mm; ${TABLE_MM} mm either side of the board, where rows may run past it -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
 <g fill="none" stroke="#1B1A19" stroke-linecap="round" stroke-linejoin="round">

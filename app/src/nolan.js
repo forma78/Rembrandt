@@ -876,11 +876,11 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 const nolanLabel = () => `NOLAN · ${PLAN?.passes.join('+') || 'no ribbon'} · ${S.boardW} × ${S.boardH} mm · ${S.rows} rows${S.ink ? ' · ink' : ''}`;
 function nolanSvg() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P_ = plan();
-  const meta = JSON.stringify({ rembrandt: '0.4', nolan: true, label: nolanLabel(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.0.1', nolan: true, label: nolanLabel(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rows = (P_.imp?.runs || []).map(r => `  <path stroke="${colourOf(r.k, r.n)}" stroke-width="${f(r.w)}" data-layer="${r.layer}" data-figure="${r.f + 1}" d="M${r.pts.map(p => `${f(W / 2 + p[0])} ${f(H / 2 + p[1])}`).join(' L')}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v0.4 · ${nolanLabel()}; 1 unit = 1 mm -->
+<!-- Rembrandt v.1.0.1 · ${nolanLabel()}; 1 unit = 1 mm -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${S.ground === 'black' ? '#0B0B0D' : '#FCFBF8'}" stroke="#24221F" stroke-width="0.5"/>
 <g fill="none" stroke-width="${f(S.width)}" stroke-linecap="round" stroke-linejoin="round">
