@@ -35,6 +35,7 @@ Rembrandt/
   app/
     nolan.html       NOLAN, the ribbons (new; NOLAN.md)
     newyuri.html     New Yuri, letters as rings (new; Rembrandt.md §8)
+    type.html        TYPE, letters as bands in three passes (new; Rembrandt.md §8)
     glyphs.json      the owner's letters: skeletons of lines and arcs
     index.html       Create (hidden from the top row since 2026-10-04)
     job.html         Job (from RUBENS, plus pointer mode)
@@ -69,7 +70,9 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 `pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
-Yuri's letters as rings), and pointer mode in `jobpage.js`.
+Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `wash.js`
+(the watercolour on the board, NOLAN's and TYPE's), and pointer mode in
+`jobpage.js`.
 
 ## Run
 

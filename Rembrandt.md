@@ -28,6 +28,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Skeleton** | A letter stroke's centre line, lines and arcs, in a box from the baseline to the capline inset by the Weight; the circles' centres walk along it. |
 | **Weight · Step** | New Yuri: a letter's circle radius, and the distance between neighbouring circles along a skeleton, mm. |
 | **Rings · Coil** | New Yuri's two ways to draw a stroke: every circle a ring of its own — it lands, goes round, on 60 % over its start, lifts; or one line a stroke, a whole turn from circle to circle. |
+| **TYPE** | The tab that paints letters as bands, after New Yuri since 2026-10-06 (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
+| **Band (on TYPE)** | A letter's stroke as the brush fills it: its skeleton (New Yuri's set) a share of the letter's height wide, round at its ends; split at every corner sharper than 25°, so V, M, Z, L are overlapping bands; O, 0, 8 closed bands; the dots of ! and % discs. Not Create's band. |
+| **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number, from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
+| **Session** | On TYPE: the bands marked and dragged together. A band over a band of an earlier session goes to a later one, the earlier dry first; OVERLAPS: wet on wet, dry between letters, dry every overlap. |
 | **Job** | The tab that runs one layer on the machine. Writes `job.json`; ⚡️ Do Job runs it. |
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
 | **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. Off the top row since 2026-10-05 (§1); the page stays. |
@@ -228,6 +232,25 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 - **Adjustments off the top row** (the owner, 2026-10-05: "the Adjustments
   tab can go now — it only gets in the way"). Its page stays, as Create's
   does.
+- **TYPE, a tab of its own: letters as bands in three passes** (the owner,
+  2026-10-06: "we start work on the new TYPE tab"): "first the brush draws
+  the trace in watercolour; second it marks where each paint goes, with
+  grooves — the marks with the brush itself are my idea, Claude came up with
+  the grooves; third a dry brush run, as Florian's." The prototype of Claude
+  in chat, `TYPE-Claude/`, gives the bands, the marks and the drag; the trace
+  is drawn as it lies on the paper, NOLAN's wash ("not schematic as here, but
+  as yours — realistic"). The page agreed before the code, the same day: **no
+  PLAY** — a cassette deck, TEST · PAUSE, TRACE · MARKS · DRAG, the stops
+  ("PLAY is no longer needed, it splits in three: a panel as on old cassette
+  recorders"; an icon on each key, its name in the sliders' letters, "maybe
+  three rows"); PAUSE turns to CONT.; no Result view; the board shows every
+  pass at once; the canvas ours, from home, not the prototype's formats
+  (past the reach); OVERLAPS in NOLAN's Auto · Uncut row, then INK; the text
+  typed in a field, Select to move it; the ticks always on ("simplify as far
+  as we can"); MARKS and DRAG go session by session, a press each. **One
+  cup**: TRACE and MARKS dip in the Ink tab's cup, DRAG never; the
+  prototype's second cup, INK-2, is cancelled ("I would keep one cup. Why
+  complicate").
 
 ---
 
@@ -403,7 +426,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v0.4**, then the tabs **NOLAN · New Yuri · Job · Test · Ink ·
+  **v0.4**, then the tabs **NOLAN · New Yuri · TYPE · Job · Test · Ink ·
   Calibration · Library** (Create hidden since 2026-10-04, Adjustments
   since 2026-10-05, §1), and on
   Create the green **Open Job**. The second
@@ -446,6 +469,21 @@ this section disagree, this section wins: the owner corrected the sketch on
   no gap between letters (the owner, 2026-10-06: "I don't need RAMP —
   better not to clutter the interface"; "I take the letters from the strip
   and put them on the canvas, as the circles").
+- **TYPE**, after New Yuri (2026-10-06, §1): letters as bands in three
+  passes (`app/type.html`, `app/src/typeplan.js`). New Yuri's page — its
+  board, the canvas from home, PROGRESS, INK, the Reference, 💾 SAVE TYPE
+  (the Library opens it here) — with a cassette deck for PLAY: **TEST ·
+  PAUSE**, **TRACE · MARKS · DRAG**, • STOP · •• HARD STOP, an icon and a
+  small name on each key, the running one down. The panel: OVERLAPS (Wet on
+  wet · Dry between letters · Dry every overlap), INK, the Text, Letter
+  height, Band width (% of the height), Letter gap, Line spacing, Margin,
+  Line width (the watercolour's, 4 mm), Fit to canvas, the Canvas. On the
+  left Select (V): a drag moves the text, the arrows a mm. TRACE: every
+  band's outline, round clockwise from its letter's top, the next from
+  nearest the last end, on 60 % over its start, lifting off over all of
+  that; with INK ON a dip, then outlines on what the brush holds up to the
+  dip run, an outline never split; the board shows the wash (`src/wash.js`,
+  NOLAN's). MARKS and DRAG next.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line
