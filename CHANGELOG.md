@@ -5,6 +5,28 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE, the tab: TRACE in watercolour** (the owner, 2026-10-06: "we
+  start work on the new TYPE tab"; the first of three stages, "the brush
+  draws the trace in watercolour"), after New Yuri in the top row. The text
+  typed in a field, laid out as bands after the prototype of Claude in chat
+  (`TYPE-Claude/`; `src/typeplan.js`, the letters New Yuri's set): Letter
+  height, Band width, Letter gap, Line spacing, Margin, Fit to canvas;
+  Select (V) moves the text. TRACE runs every band's outline, round
+  clockwise, on 60 % over its start, with INK ON several to a dip, an
+  outline never split; the board shows it as the paper will — NOLAN's wash,
+  not the prototype's hairline ("not schematic as here, but as yours —
+  realistic"). The page agreed before the code: a cassette deck instead of
+  PLAY — TEST · PAUSE, TRACE · MARKS · DRAG, the stops, an icon and a small
+  name a key ("like on old cassette recorders"; "maybe three rows"); no
+  Result; OVERLAPS, then INK; our canvas from home; one cup, the
+  prototype's INK-2 cancelled ("why complicate"). MARKS and DRAG are on the
+  deck, not yet working. AM / OUR at 169 mm: 12 bands, 13 outlines, 13
+  dips, 8.9 m, ≈ 4 min (est.). Tried in a headless browser on
+  rembrandt.py, no machine.
+
+- **The wash shared: `wash.js`** — NOLAN's watercolour drawing taken out of
+  `nolan.js`, so TYPE's trace is drawn by the same code. NOLAN as before.
+
 - **New Yuri, the tab** (the owner, 2026-10-05/06: "let's make the tab, and
   we'll see there"), after NOLAN in the top row. NOLAN's page without the
   3D: its board, the canvas from home, PROGRESS, TEST, PLAY, INK, the

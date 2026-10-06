@@ -539,3 +539,33 @@ html.night .tool:hover{background:#303236}
 .newyuri .glyphs button:hover{background:var(--card)}
 .newyuri .glyphs button.on{background:var(--key-on);box-shadow:var(--press);color:var(--orange)}
 .newyuri .grid4[hidden]{display:none}
+
+/* ---------- TYPE: letters as bands, three passes (Rembrandt.md §1, 2026-10-06) ----------
+   New Yuri's page (body.nolan) with a cassette deck for PLAY, three rows: TEST
+   PAUSE, TRACE MARKS DRAG, the stops; an icon and a small name each (the owner:
+   "as on old cassette recorders"); the passes dark
+   grey as PLAY was, the running one down with its orange dot; the text in a
+   field, upper case. */
+.type .runkeys.deck{grid-template-columns:1fr 1fr}
+.type .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}
+.type .deck .btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:9px 0 7px}
+.type .deck svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.type .deck svg .thin{stroke-width:1.2}
+.type .deck svg .bold{stroke-width:3}
+.type .deck svg .dot,.type .deck svg .fill{fill:currentColor;stroke:none}
+.type .deck .btn span{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.type #btnPause .i-cont,.type #btnPause.call .i-pause{display:none}
+.type #btnPause.call .i-cont{display:block}
+.type .deck .pass,.type .deck .pass:hover{color:#fff;background:linear-gradient(#57544F,#3F3C38);box-shadow:0 0 0 1px rgba(30,28,25,.6),0 1px 2px rgba(30,28,25,.3),0 3px 8px rgba(30,28,25,.18),inset 0 1px 0 rgba(255,255,255,.18)}
+.type .deck .pass:disabled{opacity:.4;cursor:default}
+.type .deck .btn.on,.type .deck .btn.on:hover{color:#fff;background:linear-gradient(#3F3C38,#4A4743);box-shadow:inset 0 1px 3px rgba(0,0,0,.45),0 0 0 1px rgba(30,28,25,.6);position:relative}
+.type .deck .btn.on::after{content:"";position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--orange)}
+.type .sec h4.first{margin-top:4px}
+.type .looks .tog{white-space:nowrap;font-size:11px;padding-left:4px;padding-right:4px}
+.type .looks .tog[data-overlap=letters]{flex:1.5}
+.type #text{display:block;width:100%;box-sizing:border-box;margin:6px 0 2px;min-height:58px;resize:vertical;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:#FBFAF7;color:var(--ink);font:600 18px/1.2 var(--sans,"Helvetica Neue",Helvetica,Arial,sans-serif);letter-spacing:.08em;text-transform:uppercase}
+.type #text:focus{outline:2px solid var(--orange);outline-offset:1px}
+html.night .type #text{background:#222427;border-color:var(--line)}
+.type .stage.drag #cv{cursor:grabbing}
+html.night .type .deck .pass,html.night .type .deck .pass:hover{background:linear-gradient(#5C5F63,#46494D)}
+html.night .type .deck .btn.on,html.night .type .deck .btn.on:hover{background:linear-gradient(#34363A,#3E4044)}

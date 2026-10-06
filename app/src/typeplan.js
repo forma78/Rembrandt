@@ -1,0 +1,253 @@
+// TYPE: letters as bands of brush lanes, painted in three passes (the owner,
+// 2026-10-06; TYPE-Claude/TYPE.md and the prototype of Claude in chat,
+// TYPE-Claude/Rembrandt · TYPE.html — its logic ported, not called). Pass 1,
+// the Trace: the outline of every band in watercolour, from the cup. Pass 2,
+// the Marks, and pass 3, the Drag, come next.
+//
+// A letter is glyphs.json's, New Yuri's set (rings.js: skeletonOf, placed).
+// Its band is the skeleton W wide, round at its ends, W a share of the
+// letter's height H; a stroke is split at every corner sharper than
+// CORNER_DEG, so V, M, Z, L are overlapping bands; O, 0 and 8 are closed
+// bands; the dots of ! and % are discs.
+//
+// Canvas mm from its centre, x right, y down, as in rings.js. No DOM.
+
+import { skeletonOf, placed, pieceLength } from './rings.js';
+import { fitPieces, lengthOf, LOOP_SHARE, DIP_RUN } from './band.js';
+import { pieceLen } from './strokes.js';
+
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]];
+const mul = (a, k) => [a[0] * k, a[1] * k], dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+const len = a => Math.hypot(a[0], a[1]), norm = a => { const l = len(a) || 1; return [a[0] / l, a[1] / l]; };
+
+export const CORNER_DEG = 25;   // a sharper corner splits a stroke into two bands (the prototype's)
+const CORNER = CORNER_DEG * Math.PI / 180;
+const SPACE = 0.35;             // a space, of the letters' height (the prototype's)
+const SHORT = 0.25;             // a part shorter than this share of the band's width is no band of its own (the prototype's)
+
+// ---------- the letters ----------
+// a stroke of glyphs.json → its skeleton's points on the canvas, about every mm
+function strokePts(st, x, base, H, R) {
+  const h = H - 2 * R;
+  if (st.dot) return [[x + R + st.start[0] * h, base - R - st.start[1] * h]];
+  const pts = [];
+  for (const g of placed(skeletonOf(st), x, base, H, R)) {
+    if (g.t === 'L') { if (!pts.length) pts.push(g.a); pts.push(g.b); continue; }
+    const on = a => [g.c[0] + g.r * Math.cos(a), g.c[1] + g.r * Math.sin(a)], k = Math.max(2, Math.ceil(pieceLength(g)));
+    if (!pts.length) pts.push(on(g.a0));
+    for (let i = 1; i <= k; i++) pts.push(on(g.a0 + (g.a1 - g.a0) * i / k));
+  }
+  const out = [];
+  for (const p of pts) if (!out.length || len(sub(p, out.at(-1))) > 0.05) out.push(p);
+  return out;
+}
+// an open polyline split at its sharp corners: every run between them a band of its own
+function splitCorners(pts) {
+  const parts = [];
+  let cur = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    cur.push(pts[i]);
+    if (i < pts.length - 1) {
+      const a = norm(sub(pts[i], pts[i - 1])), b = norm(sub(pts[i + 1], pts[i]));
+      if (Math.acos(Math.max(-1, Math.min(1, dot(a, b)))) > CORNER) { parts.push(cur); cur = [pts[i]]; }
+    }
+  }
+  parts.push(cur);
+  return parts;
+}
+function resample(pts, step, closed) {
+  const P = closed ? [...pts, pts[0]] : pts, cum = [0];
+  for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + len(sub(P[i], P[i - 1])));
+  const total = cum.at(-1);
+  if (!(total > 1e-6)) return { pts: [P[0]], L: 0 };
+  const n = Math.max(1, Math.round(total / step)), out = [];
+  let j = 1;
+  for (let k = 0; k <= (closed ? n - 1 : n); k++) {
+    const s = total * k / n;
+    while (j < P.length - 1 && cum[j] < s) j++;
+    const t = (s - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
+    out.push(add(P[j - 1], mul(sub(P[j], P[j - 1]), Math.max(0, Math.min(1, t)))));
+  }
+  return { pts: out, L: total };
+}
+// a band: its centre line every mm — s along it, T its tangent, N its normal
+function bandOf(pts, closed, isDot, meta) {
+  const r = isDot ? { pts, L: 0 } : resample(pts, 1, closed), P = r.pts, n = P.length, s = [], T = [], N = [];
+  let acc = 0;
+  for (let i = 0; i < n; i++) {
+    if (i) acc += len(sub(P[i], P[i - 1]));
+    s.push(acc);
+    const t = n === 1 ? [1, 0] : closed ? norm(sub(P[(i + 1) % n], P[(i - 1 + n) % n])) : norm(sub(P[Math.min(n - 1, i + 1)], P[Math.max(0, i - 1)]));
+    T.push(t); N.push([-t[1], t[0]]);
+  }
+  return { ...meta, pts: P, s, T, N, L: closed ? r.L : acc, closed, dot: isDot };
+}
+
+// ---------- the text ----------
+// Upper case, the letters glyphs.json has, a line a line of the text.
+export function cleanText(text, G) {
+  return String(text ?? '').toUpperCase().split('\n').map(l => [...l].filter(c => c === ' ' || G[c]).join('').trim()).filter((l, i, a) => l || a.length === 1);
+}
+// a letter's advance: its box, W, and the gap — box to box, below 0 they overlap
+const advanceOf = (G, ch, H, W, gap) => ch === ' ' ? H * SPACE : G[ch] ? G[ch].width * (H - W) + W + gap : 0;
+const lineWidth = (G, line, H, W, gap) => line.length ? [...line].reduce((a, ch) => a + advanceOf(G, ch, H, W, gap), 0) - gap : 0;
+// The text laid out, a block centred on x, y (the canvas's centre unless
+// moved). o: { text, H the letters' height, band its width in % of H, gap
+// between letters, lead between lines, x, y, mm }. → { segs: the bands, each
+// { li the letter, si its band, ch, pts, s, T, N, L, closed, dot }, H, W, R,
+// letters, lines }
+export function layoutOf(G, o) {
+  const lines = cleanText(o.text, G), H = o.H, W = o.band / 100 * H, R = W / 2;
+  const blockH = lines.length * H + Math.max(0, lines.length - 1) * o.lead;
+  const segs = [];
+  let li = 0;
+  lines.forEach((line, row) => {
+    let x = (o.x || 0) - lineWidth(G, line, H, W, o.gap) / 2;
+    const base = (o.y || 0) - blockH / 2 + H + row * (H + o.lead);
+    for (const ch of line) {
+      if (ch !== ' ') {
+        let si = 0;
+        for (const st of G[ch].strokes) {
+          const pts = strokePts(st, x, base, H, R), meta = () => ({ li, si: si++, ch });
+          if (st.dot || pts.length === 1) { segs.push(bandOf([pts[0]], false, true, meta())); continue; }
+          if (st.closed && len(sub(pts[0], pts.at(-1))) < 0.5) { segs.push(bandOf(pts.slice(0, -1), true, false, meta())); continue; }
+          for (const part of splitCorners(pts)) if (lengthOf(part) >= SHORT * W) segs.push(bandOf(part, false, false, meta()));
+        }
+        li++;
+      }
+      x += advanceOf(G, ch, H, W, o.gap);
+    }
+  });
+  return { segs, H, W, R, letters: li, lines };
+}
+// The tallest letters whose block fits the canvas w × h inside its margin.
+export function fitHeight(G, o, w, h, margin) {
+  const lines = cleanText(o.text, G);
+  if (!lines.some(Boolean)) return o.H;
+  let best = 20;
+  for (let H = 20; H <= 2000; H++) {
+    const W = o.band / 100 * H, wide = Math.max(...lines.map(l => lineWidth(G, l, H, W, o.gap)));
+    if (wide <= w - 2 * margin && lines.length * H + (lines.length - 1) * o.lead <= h - 2 * margin) best = H; else break;
+  }
+  return best;
+}
+
+// ---------- sessions ----------
+// Bands that overlap a band of an earlier session go to a later one: the
+// earlier must dry before the next marks go down (TYPE.md). OVERLAPS: 'wet'
+// one session, wet on wet; 'letters' dry between letters — a letter's own
+// bands overlap wet; 'all' dry every overlap. Sets seg.session. → how many.
+const BOX = (seg, pad) => seg.pts.reduce((b, p) => [Math.min(b[0], p[0] - pad), Math.min(b[1], p[1] - pad), Math.max(b[2], p[0] + pad), Math.max(b[3], p[1] + pad)], [Infinity, Infinity, -Infinity, -Infinity]);
+function touches(a, b, lim) {
+  for (let i = 0; i < a.pts.length; i += 3) for (let j = 0; j < b.pts.length; j += 3) if (len(sub(a.pts[i], b.pts[j])) < lim) return true;
+  return false;
+}
+export const OVERLAPS = ['wet', 'letters', 'all'];
+export function sessionsOf(plan, overlap) {
+  const { segs, W, R } = plan, boxes = segs.map(s => BOX(s, R));
+  segs.forEach((s, i) => {
+    s.session = 0;
+    if (overlap === 'wet') return;
+    const used = new Set();
+    for (let j = 0; j < i; j++) {
+      const o = segs[j], a = boxes[i], b = boxes[j];
+      if (overlap === 'letters' && o.li === s.li) continue;
+      if (a[2] < b[0] || b[2] < a[0] || a[3] < b[1] || b[3] < a[1]) continue;
+      if (touches(s, o, W * 0.98)) used.add(o.session);
+    }
+    while (used.has(s.session)) s.session++;
+  });
+  return segs.length ? Math.max(...segs.map(s => s.session)) + 1 : 0;
+}
+
+// ---------- a band's loops ----------
+// The band's side at d from its centre line (−d the other side), its points
+// that would run backwards on a tight bend dropped; s: where along the band.
+function offsetSide(seg, d) {
+  const out = [];
+  for (let i = 0; i < seg.pts.length; i++) {
+    const q = add(seg.pts[i], mul(seg.N[i], d));
+    if (out.length && dot(sub(q, out.at(-1).p), seg.T[i]) <= 0.05) continue;
+    out.push({ p: q, s: seg.s[i] });
+  }
+  return out;
+}
+function capPoints(c, T, N, d, s, flip) {
+  const out = [], k = Math.max(4, Math.ceil(Math.PI * d / 1.2)), f = flip ? -1 : 1;
+  for (let i = 1; i < k; i++) { const th = Math.PI * i / k; out.push({ p: add(c, add(mul(N, f * d * Math.cos(th)), mul(T, f * d * Math.sin(th)))), s }); }
+  return out;
+}
+// One loop at d from a band's centre line, a closed ring of { p, s }: an open
+// band's a stadium — out on one side, round the end, back on the other, round
+// the start; a closed band's an offset of it; a dot's a circle.
+export function loopAt(seg, d) {
+  if (seg.dot) {
+    const c = seg.pts[0], k = Math.max(8, Math.ceil(2 * Math.PI * Math.abs(d) / 1.2));
+    return Array.from({ length: k }, (_, i) => { const a = 2 * Math.PI * i / k; return { p: [c[0] + d * Math.cos(a), c[1] + d * Math.sin(a)], s: 0 }; });
+  }
+  if (seg.closed) return offsetSide(seg, d);
+  const fwd = offsetSide(seg, d), back = offsetSide(seg, -d).reverse(), n = seg.pts.length - 1;
+  if (d < 0.3) return [...fwd, ...back.slice(1, -1)];
+  return [...fwd, ...capPoints(seg.pts[n], seg.T[n], seg.N[n], d, seg.L, false), ...back, ...capPoints(seg.pts[0], seg.T[0], seg.N[0], d, 0, true)];
+}
+// a band's outline at its full width: one loop, a closed band's two — outside and inside
+export function outlinesOf(seg, R) {
+  if (seg.closed && !seg.dot) return [{ part: 'outside', pts: loopAt(seg, R).map(q => q.p) }, { part: 'inside', pts: loopAt(seg, -R).map(q => q.p) }];
+  return [{ part: seg.dot ? 'dot' : 'outline', pts: loopAt(seg, R).map(q => q.p) }];
+}
+// Clockwise on the canvas, as every ring of Rembrandt runs (Rembrandt.md §0,
+// o'clock): with y down, a positive area is clockwise on the screen.
+const areaOf = P => P.reduce((a, p, i) => { const q = P[(i + 1) % P.length]; return a + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
+export const clockwise = P => areaOf(P) >= 0 ? P : P.slice().reverse();
+
+// ---------- pass 1, the Trace ----------
+// Every band's outline, band by band, letter by letter. A letter's first
+// outline lands at its top, 12 o'clock (as a Circle's seam, Rembrandt.md §0),
+// the next ones where the last one ended — the point of them nearest to there
+// (New Yuri's rings). Each goes round clockwise, on `share` of itself over its
+// start, the brush lifting off over all of that lap, as every loop of NOLAN
+// and New Yuri (band.js, lapLoops; the owner, 2026-10-05: "60 %"). → [{ pts,
+// C its length once round, lap mm, ch, li, si, part }]
+export function traceOf(plan, share = LOOP_SHARE) {
+  const out = [];
+  let end = null, li = -1;
+  for (const seg of plan.segs) {
+    for (const { part, pts } of outlinesOf(seg, plan.R)) {
+      const P = clockwise(pts);
+      if (P.length < 3) continue;
+      let i0 = 0;
+      if (seg.li !== li || !end) P.forEach((p, i) => { if (p[1] < P[i0][1] - 1e-9) i0 = i; });
+      else P.forEach((p, i) => { if (len(sub(p, end)) < len(sub(P[i0], end))) i0 = i; });
+      li = seg.li;
+      const ring = [...P.slice(i0), ...P.slice(0, i0), P[i0]], C = lengthOf(ring), lap = share * C, run = ring.slice();
+      let d = 0;
+      for (let j = 1; j < ring.length && d < lap; j++) {
+        const p = ring[j], q = ring[j - 1], step = len(sub(p, q));
+        if (d + step > lap) { run.push(add(q, mul(sub(p, q), (lap - d) / step))); d = lap; break; }
+        run.push(p); d += step;
+      }
+      out.push({ pts: run, C, lap: d, ch: seg.ch, li: seg.li, si: seg.si, part });
+      end = run.at(-1);
+    }
+  }
+  return out;
+}
+// The Trace as rows of Test's run (strokes.js, plotRun): each outline fitted
+// into lines and arcs, its lap the lift-off (tailOut). With ink, a dip, then
+// outlines on what the brush holds while they keep within a dip run — an
+// outline never split, as a ring is never (NOLAN, 2026-10-05: "I agree").
+// → { ps, info: [{ label, li, L }] }
+export function traceRows(trace, ink, dipRun = DIP_RUN) {
+  const ps = [], info = [];
+  let since = Infinity;
+  for (const t of trace) {
+    const pieces = fitPieces(t.pts);
+    if (!pieces.length) continue;
+    const L = pieces.reduce((a, g) => a + pieceLen(g), 0), nodip = !!ink && since + L <= dipRun;
+    since = nodip ? since + L : L;
+    const row = ps.length + 1;
+    ps.push(pieces.map(g => ({ ...g, tilt: 0, row, tailOut: t.lap, ...(nodip ? { nodip: true } : {}) })));
+    info.push({ label: `${t.ch} · band ${t.si + 1} · ${t.part === 'outline' ? 'its outline' : t.part === 'dot' ? 'the dot' : `the ${t.part}`}`, li: t.li, L });
+  }
+  return { ps, info };
+}
