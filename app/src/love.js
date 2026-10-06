@@ -25,7 +25,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } from './strokes.js';
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP, LOOP_SHARE } from './band.js';
-import { layoutOf, fitHeight, sessionsOf, traceOf, traceRows, marksOf, markPaths, dragOf, dragPaths, crossed, marksRows, dragRows, pitchOf, MARKS_DIP, RINGS_MIN, RINGS_MAX, OVERLAPS } from './loveplan.js';
+import { layoutOf, fitHeight, sessionsOf, traceOf, traceRows, marksOf, markPaths, dragOf, dragPaths, paintWalk, marksRows, dragRows, pitchOf, MARKS_DIP, RINGS_MIN, RINGS_MAX, OVERLAPS } from './loveplan.js';
 import { drawWash } from './wash.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
@@ -307,56 +307,96 @@ function drawLanes() {
   for (const d of paths) { g.beginPath(); g.arc(sx(d.pts[0].p), sy(d.pts[0].p), Math.max(1.5, 1.6 * k), 0, Math.PI * 2); g.fill(); }
   g.restore();
 }
-// Result (the prototype's simulation): each lane picks up the paint of every
-// mark it crosses — mixed into what it still carries — and lays it, paler
-// and paler over the paint run; the lane its pitch wide with a groove down
-// it; a session on a layer of its own, the layers multiplied as glazes. Kept
-// while nothing changes, so a frame only lays the layers again.
+// Result: the paint along the brush's own path (loveplan.js, paintWalk; the
+// LOVE prototype's way): it carries what it picked up on round into the next
+// lane, and with Pass through into the next band, as DRAG runs non-stop; a
+// lane its pitch wide with a groove down it, the outermost out to the band's
+// edge; a session on a layer of its own, the layers multiplied as glazes.
+// Kept while nothing changes, so a frame only lays the layers again.
+// Play the run (the owner, 2026-10-07: "this preview shows how the paint will
+// lie"): the same Result laid again in the brush's order, session after
+// session, the whole run in PLAY_MS, a ring the brush's width where it is.
 const rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
-let SIM = null;
+const PLAY_MS = 12000;   // the whole run, the prototype's
+let WALK = null, SIM = null, PLAY = null;
+function walkNow() {
+  const L = paintNow(); if (!L?.segs.length) return null;
+  const key = JSON.stringify([painted, S.paints, S.run, S.glaze, S.through]);
+  if (WALK?.key !== key) {
+    const o = { colours: S.paints.map(q => rgb(q.hex)), run: S.run, glaze: S.glaze, brush: S.brush, pitch: pitchNow() };
+    let from = 0;
+    const sessions = Array.from({ length: L.sessions }, (_, ss) => { const w = paintWalk(L, ss, S.through, o); w.from = from; from += w.length; return w; });
+    WALK = { key, sessions, length: from };
+    stopPlay();                                                                      // a change stops the play: the Result whole
+  }
+  return WALK;
+}
+function shade(lg, sh, pts = sh.pts) {                                               // a shade's strip and its groove
+  const groove = mix(sh.rgb, [0, 0, 0], 0.25).map(Math.round).join(',');
+  for (const [style, width] of [[`rgba(${sh.rgb.join(',')},${sh.a})`, sh.w], [`rgba(${groove},${(sh.a * 0.35).toFixed(3)})`, sh.w * 0.18]]) {
+    lg.strokeStyle = style; lg.lineWidth = width; lg.beginPath(); pts.forEach((p, j) => j ? lg.lineTo(p[0], p[1]) : lg.moveTo(p[0], p[1])); lg.stroke();
+  }
+}
+const inMM = lg => { lg.setTransform(k * dpr, 0, 0, k * dpr, -V.y0 * k * dpr, V.x1 * k * dpr); lg.lineCap = 'butt'; lg.lineJoin = 'round'; return lg; };   // canvas mm, as sx, sy; butt: a shade meets the next edge to edge
+const layersOf = n => Array.from({ length: n }, () => { const c = document.createElement('canvas'); c.width = g.canvas.width; c.height = g.canvas.height; return inMM(c.getContext('2d')); });
+function partOf(sh, mm) {                                                            // a shade as far as mm of the walk, by its own length
+  const P = sh.pts, cum = [0];
+  for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+  const want = (mm - sh.at) / ((sh.to - sh.at) || 1) * cum.at(-1), out = [P[0]];
+  for (let i = 1; i < P.length; i++) {
+    if (cum[i] <= want) { out.push(P[i]); continue; }
+    const t = (want - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1);
+    out.push([P[i - 1][0] + (P[i][0] - P[i - 1][0]) * t, P[i - 1][1] + (P[i][1] - P[i - 1][1]) * t]); break;
+  }
+  return out;
+}
 function drawResult() {
-  const L = paintNow(); if (!L?.segs.length) return;
-  const key = JSON.stringify([painted, S.paints, S.run, S.glaze, k, dpr, V, g.canvas.width, g.canvas.height]);
-  if (SIM?.key !== key || SIM.g !== g) {
-    const layers = [];
-    for (let ss = 0; ss < L.sessions; ss++) {
-      const c = document.createElement('canvas'); c.width = g.canvas.width; c.height = g.canvas.height;
-      const lg = c.getContext('2d');
-      lg.setTransform(k * dpr, 0, 0, k * dpr, -V.y0 * k * dpr, V.x1 * k * dpr);   // canvas mm, as sx, sy
-      lg.lineCap = 'butt'; lg.lineJoin = 'round';                                  // butt: a shade's path meets the next one's edge to edge, no darker dot between
-      for (const s of L.segs.filter(q => q.session === ss)) for (const lane of s.lanes) {
-        let col = null, load = 0, key2 = null, run = [];
-        if (s.dot && s.marks[0]) { col = rgb(hexOf(s.marks[0].paint)); load = 1; }
-        const w = lane.w;                                                           // its strip: the outermost out to the band's edge (typeplan.js, dragOf)
-        const flush = () => {                                                       // the points of one shade: the lane and its groove
-          if (run.length > 1) {
-            const [r, gg, b, a] = key2;
-            for (const [style, width] of [[`rgba(${r},${gg},${b},${a})`, w], [`rgba(${mix([r, gg, b], [0, 0, 0], 0.25).map(Math.round).join(',')},${(a * 0.35).toFixed(3)})`, w * 0.18]]) {
-              lg.strokeStyle = style; lg.lineWidth = width; lg.beginPath(); run.forEach((p, j) => j ? lg.lineTo(p[0], p[1]) : lg.moveTo(p[0], p[1])); lg.stroke();
-            }
-          }
-          run = [];
-        };
-        const P = lane.face || lane.path;
-        for (let i = 1; i < P.length; i++) {
-          for (const m of crossed(s, P[i - 1].s, P[i].s)) { const pc = rgb(hexOf(m.paint)); col = col && load > 0.05 ? mix(col, pc, 0.72) : pc; load = 1; }
-          load *= Math.exp(-Math.hypot(P[i].p[0] - P[i - 1].p[0], P[i].p[1] - P[i - 1].p[1]) / S.run);
-          if (!col || load < 0.02) { flush(); key2 = null; continue; }
-          const kk = [...col.map(Math.round), Math.round(S.glaze * Math.min(1, load * 1.25) * 25) / 25]   // a shade every 0.04: fewer seams;
-          if (!key2 || kk.some((v, j) => v !== key2[j])) { const last = run.at(-1); flush(); key2 = kk; run = [last || P[i - 1].p]; }
-          run.push(P[i].p);
-        }
-        flush();
-      }
-      layers.push(c);
-    }
-    SIM = { key, g, layers };
+  const Wk = walkNow(); if (!Wk) return;
+  const vkey = JSON.stringify([Wk.key, k, dpr, V, g.canvas.width, g.canvas.height]);
+  let lgs, part = null;
+  if (PLAY && g === ctx) {
+    if (PLAY.vkey !== vkey) Object.assign(PLAY, { vkey, lgs: layersOf(Wk.sessions.length), next: Wk.sessions.map(() => 0) });   // zoomed or moved: laid again up to now
+    const mm = Math.min(Wk.length, (performance.now() - PLAY.t0) / PLAY_MS * Wk.length);
+    Wk.sessions.forEach((w, ss) => {
+      const sh = w.shades;
+      let i = PLAY.next[ss];
+      for (; i < sh.length && w.from + sh[i].to <= mm; i++) { shade(PLAY.lgs[ss], sh[i]); PLAY.brush = sh[i].pts.at(-1); }
+      PLAY.next[ss] = i;
+      if (i < sh.length && w.from + sh[i].at < mm) { part = { sh: sh[i], pts: partOf(sh[i], mm - w.from) }; PLAY.brush = part.pts.at(-1); }
+    });
+    lgs = PLAY.lgs;
+  } else {
+    if (SIM?.key !== vkey || SIM.g !== g) { const L2 = layersOf(Wk.sessions.length); Wk.sessions.forEach((w, ss) => w.shades.forEach(sh => shade(L2[ss], sh))); SIM = { key: vkey, g, lgs: L2 }; }
+    lgs = SIM.lgs;
   }
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'multiply';
-  for (const c of SIM.layers) g.drawImage(c, 0, 0);
+  for (const lg of lgs) g.drawImage(lg.canvas, 0, 0);
   g.restore();
+  if (part) { g.save(); inMM(g); g.globalCompositeOperation = 'multiply'; shade(g, part.sh, part.pts); g.restore(); }
+  if (PLAY?.brush && g === ctx) {                                                    // the brush, its true width
+    const b = PLAY.brush;
+    g.save(); g.strokeStyle = INK_DARK; g.fillStyle = INK_DARK; g.lineWidth = 1.2;
+    g.beginPath(); g.arc(sx(b), sy(b), Math.max(3, S.brush / 2 * k), 0, Math.PI * 2); g.stroke();
+    g.beginPath(); g.arc(sx(b), sy(b), 1.8, 0, Math.PI * 2); g.fill(); g.restore();
+  }
 }
+function play() {
+  if (PLAY) { stopPlay(); kick(); return; }                                          // pressed again: it stops, the Result whole
+  if (!walkNow()?.length) return;
+  PLAY = { t0: performance.now(), brush: null };
+  if (S.view !== 'result') { S.view = 'result'; save(); showPanel(); }
+  showPlay();
+  const tick = () => {
+    if (!PLAY) return;
+    draw();
+    if (performance.now() - PLAY.t0 >= PLAY_MS) { stopPlay(); kick(); return; }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function stopPlay() { if (!PLAY) return; PLAY = null; showPlay(); }
+function showPlay() { const b = $('#btnPlay'); b.classList.toggle('on', !!PLAY); b.textContent = PLAY ? '■ Stop playing' : '▶ Play the run'; }
 // The run as it goes: each move of the run as the plan lays it — its lines
 // and arcs — red where the brush paints, light blue through the air, the one
 // going on up to where the carriage is. Not the carriage's place every half
@@ -563,7 +603,8 @@ function palette() {
   $('#btnAddPaint').onclick = () => { if (S.paints.length >= PAINTS_MAX) return; undoPush(); S.paints.push({ hex: '#888888' }); palette(); settle(); };
   $('#btnResetClicks').onclick = () => { if (!Object.keys(S.over).length) return; undoPush(); S.over = {}; settle(); };
 }
-document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; settle(); });
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; if (S.view !== 'result') stopPlay(); settle(); });
+$('#btnPlay').onclick = play;
 document.querySelectorAll('[data-order]').forEach(b => b.onclick = () => { if (S.order === b.dataset.order) return; undoPush(); S.order = b.dataset.order; settle(); });
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
