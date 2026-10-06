@@ -529,7 +529,18 @@ this section disagree, this section wins: the owner corrected the sketch on
   every time? Maybe let it go on non-stop"): one path a band, a spiral —
   round a lane, a short 45° step in to the next, the brush down all the
   way; a closed band from its outer edge across to its hole's. It lands
-  once a band and lifts once; each lift had left a knob of paint. Each key runs its next session and, once that is done,
+  once a band and lifts once; each lift had left a knob of paint. **Rings**
+  in place of Lane pitch (the owner, 2026-10-06: "the E has 7 rings — a
+  slider, 5 for example"; "a great idea"): 2 … 12 rings a band, the pitch
+  following, `5 rings · 5.5 mm apart`; O, 0 and 8 at the same pitch.
+  **Pass through** OFF · ON under OVERLAPS (the owner: "a switch as on
+  NOLAN — Pass through, maybe an interesting effect"; "(a)"): ON, DRAG runs
+  a letter's bands one after another with the brush down — from a band's
+  spiral along its centre line to where the next band meets it, through the
+  others between (the E's middle bar to its bottom one by way of the stem),
+  never over the canvas between them; every other band from its centre
+  out. Parts of a letter apart, the dot of ! and the rings of %, still
+  lift. Each key runs its next session and, once that is done,
   shows the one after (`Marks 1/2` → `2/2`); **Line speed** for TRACE and
   MARKS (150 mm/s). The run's trace on the board follows the plan's lines
   and arcs, the carriage's place only for the move going on (the owner:

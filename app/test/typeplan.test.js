@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, ticksOf, lanesOf, dragOf, crossed, DRAG_ON, JOG, marksRows, dragRows, MARKS_DIP } from '../src/typeplan.js';
+import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, ticksOf, lanesOf, dragOf, dragPaths, crossed, DRAG_ON, JOG, marksRows, dragRows, pitchOf, MARKS_DIP } from '../src/typeplan.js';
 import { offPiece, toMachine, washOf, lengthOf, LOOP_SHARE, DIP_RUN, FIT_MM, NO_DIP } from '../src/band.js';
 import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
@@ -233,3 +233,31 @@ test('the spiral: every lane round once, each next one a short diagonal step in,
   const ds = O.segs[0].lanes.map(l => l.d);
   assert.deepEqual(ds, [...ds].sort((a, b) => b - a), 'a closed band from its outer edge across to its hole');
 });
+
+test('Rings: as many rings in a band as the slider says, a closed band 2 × rings − 1 at the same pitch', () => {
+  const L = layoutOf(G, { ...o, text: 'IO' }), [I, O] = L.segs;
+  for (const rings of [2, 5, 7, 12]) {
+    const pitch = pitchOf(L.W, 6, rings);
+    assert.equal(lanesOf(I, L.W, { brush: 6, pitch, order: 'out' }).length, rings, `${rings} rings in the stem`);
+    assert.equal(lanesOf(O, L.W, { brush: 6, pitch, order: 'out' }).length, 2 * rings - 1, `the O at ${rings}`);
+  }
+  assert.ok(Math.abs(pitchOf(50, 6, 5) - 5.5) < 1e-9, '50 mm band, 6 mm brush, 5 rings: 5.5 mm apart');
+});
+
+test('Pass through: a letter one path, its bands one after another, the brush down where they meet', () => {
+  const L = layoutOf(G, { ...o, text: 'E', H: 150 }); sessionsOf(L, 'wet'); marksOf(L, { paints: 8, per: 2, spacing: 60 });
+  dragOf(L, { brush: 6, pitch: pitchOf(L.W, 6, 5), order: 'out' });
+  const apart = dragPaths(L, 0, false), one = dragPaths(L, 0, true);
+  assert.equal(apart.length, L.segs.length, 'a path a band');
+  assert.equal(one.length, 1, 'the E one path');
+  assert.equal(one[0].bands, L.segs.length);
+  const inside = p => L.segs.some(sg => sg.pts.some(q => dist(p, q) <= L.R + 0.5));   // the brush down never leaves the letter
+  for (let j = 1; j < one[0].pts.length; j++) {
+    const a = one[0].pts[j - 1].p, b = one[0].pts[j].p, n = Math.max(1, Math.ceil(dist(a, b) / 2));
+    for (let t = 0; t <= n; t++) assert.ok(inside([a[0] + (b[0] - a[0]) * t / n, a[1] + (b[1] - a[1]) * t / n]), `a step from ${a} to ${b} leaves the E`);
+  }
+  const R = dragRows(L, 0, true), r = plotRun({ ...RUN, ink: false, speed: 60, rows: R.ps.length, noDipUnder: NO_DIP }, [{ key: 'DRAG', ps: R.ps, why: null }]);
+  assert.equal(r.fault, '');
+  assert.equal(r.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, 1, 'the brush down once for the E');
+});
+
