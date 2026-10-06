@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, ticksOf, lanesOf, dragOf, crossed, DRAG_ON, marksRows, dragRows, MARKS_DIP } from '../src/typeplan.js';
+import { layoutOf, fitHeight, sessionsOf, outlinesOf, traceOf, traceRows, cleanText, marksOf, markPaths, ticksOf, lanesOf, dragOf, crossed, DRAG_ON, JOG, marksRows, dragRows, MARKS_DIP } from '../src/typeplan.js';
 import { offPiece, toMachine, washOf, lengthOf, LOOP_SHARE, DIP_RUN, FIT_MM, NO_DIP } from '../src/band.js';
 import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
@@ -210,12 +210,26 @@ test('MARKS on the machine: a stroke a mark and a tick, a session at a time, a d
   assert.ok(marksRows(L, 0, 4, false).ps.every(p => !p[0].nodip));
 });
 
-test('DRAG on the machine: every lane of the session one path, the dry brush, no dip', () => {
+test('DRAG on the machine: a band\'s lanes one path, non-stop, the dry brush, no dip', () => {
   const L = paintPlan(), R = dragRows(L, 0), segs = L.segs.filter(s => s.session === 0);
+  assert.equal(R.bands, segs.length, 'a row a band');
   assert.equal(R.lanes, segs.reduce((a, s) => a + s.lanes.length, 0));
   const r = plotRun({ ...RUN, ink: false, speed: 60, rows: R.ps.length, noDipUnder: NO_DIP }, [{ key: 'DRAG', ps: R.ps, why: null }]);
   assert.equal(r.fault, '');
   assert.equal(r.dips, 0);
+  assert.equal(r.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, R.bands, 'the brush down once a band');
   assert.ok(Math.abs(r.length - R.length) < 0.01 * R.length + 5, `${r.length} painted, ${R.length} laid`);
 });
 
+test('the spiral: every lane round once, each next one a short diagonal step in, the last on past its start', () => {
+  const L = paintPlan(), I = L.segs[0], P = I.spiral;
+  let steps = 0;
+  for (const seg of L.segs) for (let j = 1; j < seg.spiral.length; j++) assert.ok(dist(seg.spiral[j].p, seg.spiral[j - 1].p) < 7 * JOG + 7 + 3, `${seg.ch}: a step of ${dist(seg.spiral[j].p, seg.spiral[j - 1].p)} mm`);
+  for (let j = 1; j < P.length; j++) { const d = dist(P[j].p, P[j - 1].p); if (d > 3) steps++; }
+  assert.ok(steps >= I.lanes.length - 1 - 1, `${steps} steps for ${I.lanes.length} lanes`);
+  const lengths = I.lanes.reduce((a, l) => a + lengthOf(l.path.map(q => q.p)) - DRAG_ON, 0);
+  assert.ok(Math.abs(lengthOf(P.map(q => q.p)) - lengths - DRAG_ON) < 0.1 * lengths, 'about every lane once round');
+  const O = layoutOf(G, { ...o, text: 'O' }); marksOf(O, { paints: 8, per: 2, spacing: 90 }); dragOf(O, { brush: 12, pitch: 7, order: 'out' });
+  const ds = O.segs[0].lanes.map(l => l.d);
+  assert.deepEqual(ds, [...ds].sort((a, b) => b - a), 'a closed band from its outer edge across to its hole');
+});

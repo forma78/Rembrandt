@@ -524,7 +524,12 @@ this section disagree, this section wins: the owner corrected the sketch on
   the session and its ticks, a stroke each, a dip every 4 marks (est.); the
   confirm names the paints to squeeze, paint by paint. DRAG: every lane of
   the session, the dry brush, no dip, at its own **Drag speed** (60 mm/s,
-  the prototype's). Each key runs its next session and, once that is done,
+  the prototype's); **a band's lanes non-stop** since the first drag (the
+  owner, 2026-10-06, `TYPE-Machine/`: "must the brush lift off the canvas
+  every time? Maybe let it go on non-stop"): one path a band, a spiral —
+  round a lane, a short 45° step in to the next, the brush down all the
+  way; a closed band from its outer edge across to its hole's. It lands
+  once a band and lifts once; each lift had left a knob of paint. Each key runs its next session and, once that is done,
   shows the one after (`Marks 1/2` → `2/2`); **Line speed** for TRACE and
   MARKS (150 mm/s). The run's trace on the board follows the plan's lines
   and arcs, the carriage's place only for the move going on (the owner:

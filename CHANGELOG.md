@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE: DRAG non-stop, a band's lanes one spiral** (the owner, 2026-10-06,
+  `TYPE-Machine/` — the first drags, NEW / YURI and Z, pink over the
+  watercolour: "must the brush lift off the canvas every time? Maybe let it
+  go on non-stop"; the task from the start: "the dry brush rides the canvas
+  non-stop, as Florian's"). Every lane had landed and lifted on its own,
+  and each lift left a knob of paint in the band (`IMAGE 2026-10-06
+  15:37:51.jpg`). Now a band's lanes are one path (`typeplan.js`,
+  spiralOf): round a lane, then a step in to the next one, a pitch along
+  the band — a short 45° seam by the landing — the last lane on 14 mm past
+  its start; a closed band from its outer edge across to its hole's, the
+  lanes no longer alternating sides. The brush lands once a band, lifts
+  once; 3 Drag draws the spiral, a dot where it lands. Result keeps its
+  strips lane by lane. Tried in the tests and a headless browser; not run
+  on the machine yet.
+
 - **TYPE: the zoom over the board; the panel, the LCD with it, from the
   top** (the owner, 2026-10-06, `TYPE-Claude/Screenshot 2026-10-06
   zoom.png`: "I need a panel at the top that zooms the screen; the LCD up").
