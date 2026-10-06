@@ -3,12 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rembrandt · TYPE</title>
+<title>Rembrandt · LOVE</title>
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
 </head>
-<body class="adjust arm3 nolan type">
-<!-- Rembrandt · TYPE — letters as bands, in three passes (Rembrandt.md §1;
+<body class="adjust arm3 nolan type love">
+<!-- Rembrandt · LOVE — a copy of TYPE where the new things are tried, TYPE
+     kept as it is to go back to (the owner, 2026-10-07: "I would duplicate
+     TYPE's functionality but make a new tab, LOVE, and bring the new changes
+     there — if something goes wrong, we can roll back to TYPE"). TYPE's own
+     words follow. Letters as bands, in three passes (Rembrandt.md §1;
      the owner, 2026-10-06; TYPE-Claude/TYPE.md, the prototype of Claude in
      chat): TRACE, the outlines in watercolour from the cup; MARKS, where
      each paint goes; DRAG, the dry brush through it. New Yuri's page: its
@@ -19,8 +23,8 @@
     <span class="logo">REMBRANDT</span>
     <span class="ver">v.1.0.1</span>
     <nav class="tabs" aria-label="Pages">
-      <a href="index.html" class="on">TYPE</a>
-      <a href="love.html">LOVE</a>
+      <a href="index.html">TYPE</a>
+      <a href="love.html" class="on">LOVE</a>
       <a href="nolan.html">NOLAN</a>
       <a href="test.html">Test</a>
       <a href="ink.html">Ink</a>
@@ -81,11 +85,11 @@
     </section>
 
     <div class="savebar">
-      <button class="btn save" id="btnSave" title="Save the text in the Library, as a new save named by the date and time">💾 SAVE TYPE</button>
+      <button class="btn save" id="btnSave" title="Save the text in the Library, as a new save named by the date and time">💾 SAVE LOVE</button>
       <span class="save-state" id="saveState">to the Library</span>
     </div>
     <section class="sec">
-      <h3>TYPE</h3>
+      <h3>LOVE</h3>
       <h4 class="first">Overlaps</h4>
       <div class="toggles looks" id="overlaps">
         <button class="tog" data-overlap="wet" title="One session: every band marked and dragged wet on wet">Wet on wet</button>
@@ -150,6 +154,6 @@
   <span id="hint"></span>
   <span id="stats"></span>
 </footer>
-<script type="module" src="src/type.js"></script>
+<script type="module" src="src/love.js"></script>
 </body>
 </html>

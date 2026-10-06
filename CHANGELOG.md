@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOVE, a copy of TYPE for the new things** (the owner, 2026-10-07: "I
+  would duplicate TYPE's functionality but make a new tab, LOVE, and bring
+  the new changes there"; "because if something goes wrong, we can roll
+  back to TYPE"). `love.html` and `src/love.js`, TYPE's page; its plan
+  `src/loveplan.js`, a copy of `typeplan.js` — what changes for LOVE
+  changes there, TYPE's own files stay. Its own keep in this browser
+  (`rembrandt.love.v01`), the text LO / VE to start with, 💾 SAVE LOVE: a
+  save labelled LOVE that the Library opens on LOVE. After TYPE in the top
+  row of every page. As TYPE for now; Play the run next.
+
 - **TYPE: Rings, and Pass through — a letter one DRAG path** (the owner,
   2026-10-06, `TYPE-Machine/IMAGE 2026-10-06 15:50:01.jpg`: "how to cut the
   number of passes? The E has 7 rings — a slider, 5 for example; and a
