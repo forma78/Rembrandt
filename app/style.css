@@ -572,6 +572,7 @@ html.night .type .deck .btn.on,html.night .type .deck .btn.on:hover{background:l
 .type #views,.type #sessions,.type #orders{margin-top:8px}
 .type #sessions[hidden]{display:none}
 .type .looks .tog[data-view]{flex:1}
+.love #btnPlay{grid-column:1/-1}   /* LOVE: Play the run, the width of the views */
 .type .paintstrip{position:absolute;left:0;top:0;bottom:0;width:46px;z-index:2;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:var(--panel);border-right:1px solid var(--line)}
 .type .chip{position:relative;flex:none;width:30px;display:flex;flex-direction:column;align-items:center;gap:1px}
 .type .chip .sw{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font:600 12px var(--mono);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),0 1px 2px rgba(0,0,0,.18)}

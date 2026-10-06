@@ -355,11 +355,12 @@ function openRing(ring, startS, closed, L) {
 export const JOG = 1;   // pitches along the band a step to the next lane takes: 45°, a short seam by the landing (Claude's choice; 3, 18°, cut long chords across a short band)
 const ahead = (R, i, mm) => { let acc = 0, j = i; while (acc < mm) { const n = (j + 1) % R.length; acc += len(sub(R[n].p, R[j].p)); j = n; if (j === i) break; } return j; };
 // from: where the brush comes from, still down (Pass through): the first lane
-// from its point nearest to there, not from the band's landing.
+// from its point nearest to there, not from the band's landing. Each point
+// keeps its lane's d and its band, for Result (paintWalk).
 export function spiralOf(seg, lanes, startS, pitch, from = null) {
   const out = [];
   let end = null, last = null;
-  for (const { ring: R } of lanes) {
+  for (const { d, ring: R } of lanes) {
     if (R.length < 2) continue;
     let i0 = 0;
     if (!end && from) R.forEach((q, i) => { if (len(sub(q.p, from)) < len(sub(R[i0].p, from))) i0 = i; });
@@ -368,7 +369,7 @@ export function spiralOf(seg, lanes, startS, pitch, from = null) {
       R.forEach((q, i) => { if (len(sub(q.p, end)) < len(sub(R[i0].p, end))) i0 = i; });
       i0 = ahead(R, i0, JOG * pitch);
     }
-    const r = [...R.slice(i0), ...R.slice(0, i0)];
+    const r = [...R.slice(i0), ...R.slice(0, i0)].map(q => ({ ...q, d, band: seg }));
     out.push(...r); end = r.at(-1).p; last = r;
   }
   if (last) {                                                                      // the last lane round to its own start, then on DRAG_ON past it
@@ -386,8 +387,10 @@ export function spiralOf(seg, lanes, startS, pitch, from = null) {
 // it (the owner, 2026-10-06: "either pull the violet trace in, or widen the
 // colour" — both: the trace inset, this).
 export const STRIP = 0.94;   // of the lane's share: a hair of white between strips, the groove (the prototype's)
+// a lane's strip, w wide; the outermost one's, from the inner strip's inner edge out to the band's edge
+export const stripsOf = (brush, pitch) => { const inner = Math.min(brush, pitch) * STRIP; return { inner, face: brush / 2 + inner / 2 }; };
 export function dragOf(plan, o) {
-  const inner = Math.min(o.brush, o.pitch) * STRIP, R = plan.W / 2;
+  const { inner, face: wf } = stripsOf(o.brush, o.pitch), R = plan.W / 2;
   plan.pitch = o.pitch;
   for (const s of plan.segs) {
     const startS = s.dot ? 0 : s.closed ? (s.marks[0].s - 4 + s.L) % s.L : Math.max(0, s.marks[0].s - 4);
@@ -396,7 +399,7 @@ export function dragOf(plan, o) {
     s.lanes = lanes.map(l => {
       const lane = { d: l.d, path: open(l.ring), w: inner };
       if (edge > 1e-9 && Math.abs(Math.abs(l.d) - edge) < 1e-9) {
-        const w = o.brush / 2 + inner / 2, ring = loopAt(s, Math.sign(l.d) * (R - w / 2));
+        const w = wf, ring = loopAt(s, Math.sign(l.d) * (R - w / 2));
         if (ring.length > 1) Object.assign(lane, { w, face: open(ring) });
       }
       return lane;
@@ -524,3 +527,60 @@ export function dragRows(plan, session, through = false) {
   return { ps, info, lanes, bands, paths: ps.length, length };
 }
 
+
+// ---------- Result: the paint along the brush's own path ----------
+// The LOVE prototype's simulation (TYPE-Claude/Rembrandt_RIBBON_LOVE.html;
+// the owner, 2026-10-07: "Play the run — this preview shows how the paint
+// will lie"): the brush walks DRAG's paths of a session in their order, as
+// the machine runs them. It picks up the paint of every mark it crosses,
+// mixed into what it still carries, lays it paler and paler over the paint
+// run, and carries it on — round into the next lane, and with Pass through
+// along the centre lines into the next band; a dot's paint at every ring of
+// it. TYPE's Result starts each lane clean, though DRAG runs a band's lanes
+// non-stop. Each step is drawn as the strip of the band its lane paints, the
+// outermost one out to the band's edge (stripsOf); a centre line between
+// bands a strip of the inner width. o: { colours: [[r, g, b]] a paint, run,
+// glaze, brush, pitch } → { shades: [{ pts, rgb, a, w, at, to }] in the
+// brush's order, a colour each — at and to, mm of the walk where it starts
+// and ends — length: the walk's mm }
+export const MIX = 0.72;   // a mark's paint into what the brush carries (the prototype's)
+const centreAt = (seg, s) => {                                                     // the centre line's point at s along it
+  if (seg.dot) return seg.pts[0];
+  let lo = 0, hi = seg.s.length - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (seg.s[m] <= s) lo = m; else hi = m; }
+  return Math.abs(seg.s[hi] - s) < Math.abs(seg.s[lo] - s) ? seg.pts[hi] : seg.pts[lo];
+};
+export function paintWalk(plan, session, through, o) {
+  const R = plan.W / 2, { inner, face } = stripsOf(o.brush, o.pitch), edges = new Map(), shades = [];
+  const edgeOf = seg => { if (!edges.has(seg)) edges.set(seg, Math.max(0, ...(seg.rings || []).map(l => Math.abs(l.d)))); return edges.get(seg); };
+  const strip = q => {                                                             // where a point of the walk is drawn, and how wide
+    const e = q.band && q.d !== undefined && q.s !== null ? edgeOf(q.band) : 0;
+    if (!(e > 1e-9) || Math.abs(Math.abs(q.d) - e) > 1e-9) return { p: q.p, w: inner };
+    const u = sub(q.p, centreAt(q.band, q.s)), l = len(u), shift = R - face / 2 - Math.abs(q.d);
+    return { p: l > 1e-6 ? add(q.p, mul(u, shift / l)) : q.p, w: face };
+  };
+  let walked = 0;
+  for (const path of dragPaths(plan, session, through)) {
+    let col = null, load = 0, key = null, run = [], at = 0, prev = null;
+    const take = paint => { const pc = o.colours[paint] || [0, 0, 0]; col = col && load > 0.05 ? col.map((v, i) => v + (pc[i] - v) * MIX) : pc; load = 1; };
+    const flush = () => { if (run.length > 1) shades.push({ pts: run, rgb: key.slice(0, 3), a: key[3], w: key[4], at, to: walked }); run = []; key = null; };
+    for (const q of path.pts) {
+      const here = strip(q);
+      if (prev) {
+        const step = len(sub(q.p, prev.q.p)), seg = q.band;
+        if (seg && seg === prev.q.band && !seg.dot && q.s !== null && prev.q.s !== null) for (const m of crossed(seg, prev.q.s, q.s)) take(m.paint);
+        load *= Math.exp(-step / o.run);
+        if (col && load >= 0.02) {
+          const kk = [...col.map(Math.round), Math.round(o.glaze * Math.min(1, load * 1.25) * 25) / 25, here.w];   // a shade every 0.04: fewer seams
+          if (!key || kk.some((v, j) => v !== key[j])) { flush(); key = kk; at = walked; run = [prev.p]; }
+          run.push(here.p);
+        } else flush();
+        walked += step;
+      }
+      if (q.band?.dot && q.band.marks?.[0] && (!prev || prev.q.band !== q.band || prev.q.d !== q.d)) take(q.band.marks[0].paint);   // a dot's paint at every ring of it
+      prev = { q, p: here.p };
+    }
+    flush();
+  }
+  return { shades, length: walked };
+}

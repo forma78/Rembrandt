@@ -560,6 +560,19 @@ this section disagree, this section wins: the owner corrected the sketch on
   ⌘− ⌘0 ⌘+, a pinch on the trackpad zooms where it is, two fingers move the
   board; the panel runs from the top of the window, the header and the
   zoom over the tools and the board only.
+- **LOVE**, after TYPE (2026-10-07, §1): TYPE's page, its plan copied to
+  `loveplan.js`; the new things go here first. **Result along the brush's
+  own path** (`paintWalk`, the LOVE prototype's,
+  `TYPE-Claude/Rembrandt_RIBBON_LOVE.html`): the brush walks DRAG's paths
+  in their order and carries what it picked up on — round into the next
+  lane, with Pass through into the next band — where TYPE's Result starts
+  every lane clean. So the seam shows: a band's lanes start a 45° step
+  apart, and the steps line up into a diagonal across the band, in the
+  paint the brush carries there. **Play the run** under the views (the
+  owner: "this preview shows how the paint will lie"): the Result laid
+  again in the brush's order, session after session, the whole run in
+  12 s, a ring the brush's width where it is; pressed again, it stops. A
+  view, not a key of the deck.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOVE: Result along the brush's own path, and Play the run** (the
+  owner, 2026-10-07, on `TYPE-Claude/Rembrandt_RIBBON_LOVE.html`: "we need
+  Play the run from there — this preview shows how the paint will lie";
+  "can you apply this system to TYPE?" — on LOVE, TYPE kept). Result walks
+  DRAG's own paths (`loveplan.js`, paintWalk): the brush carries its paint
+  on round into the next lane and, with Pass through, along the centre
+  lines into the next band, as the non-stop DRAG does; TYPE's starts every
+  lane clean. The seam shows now: the 45° steps between a band's lanes
+  line up into a diagonal across it, in the paint the brush carries there.
+  ▶ Play the run under the views lays the Result again in the brush's
+  order, the whole run in 12 s (the prototype's), a ring the brush's
+  width where it is; ■ stops it; a change, or another view, stops it too.
+  Tried in the tests and a headless browser; TYPE untouched.
+
 - **LOVE, a copy of TYPE for the new things** (the owner, 2026-10-07: "I
   would duplicate TYPE's functionality but make a new tab, LOVE, and bring
   the new changes there"; "because if something goes wrong, we can roll

@@ -112,8 +112,10 @@
         <button class="tog" data-view="trace" title="TRACE: the outlines in watercolour, as they lie on the paper">1 Trace</button>
         <button class="tog" data-view="marks" title="MARKS: a mark across a band where each paint goes, its ticks the paint's number, the colour the paint's; a click on a band steps its paint">2 Marks</button>
         <button class="tog" data-view="drag" title="DRAG: every lane of the dry brush, an orange dot where it lands">3 Drag</button>
-        <button class="tog" data-view="result" title="The painting: each lane picks up the paint of every mark it crosses and carries it until it runs out, the sessions dry and glaze over one another; a click on a band steps its paint">Result</button>
+        <button class="tog" data-view="result" title="The painting: the brush along DRAG's own path picks up the paint of every mark it crosses and carries it on — round into the next lane, with Pass through into the next band — until it runs out; the sessions dry and glaze over one another; a click on a band steps its paint">Result</button>
       </div>
+      <!-- Play the run, from the LOVE prototype (the owner, 2026-10-07: "this preview shows how the paint will lie"): a view, not a key of the deck -->
+      <div class="grid4 keys"><button class="btn" id="btnPlay" title="Result laid again in the order the brush goes, session after session, the whole run in 12 s; pressed again, it stops. A view: it moves nothing on the machine">▶ Play the run</button></div>
       <div class="toggles looks" id="sessions" hidden></div>
       <h4>Text</h4>
       <textarea id="text" rows="2" spellcheck="false" autocapitalize="characters" aria-label="Text"></textarea>
