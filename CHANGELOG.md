@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOVE: 💾 SAVE LOVE saves again** (the owner, 2026-10-07: "SAVE LOVE —
+  not saved · start rembrandt.py; the new figures do not appear in the
+  Library"). Not the server: the PNG preview threw before anything was
+  sent — its `const view` hid the `view()` it calls a line above (since the
+  zoom, 0ef9d85, copied from TYPE), and the catch said "start rembrandt.py".
+  Renamed. Tried headless and through the server's library_save in a
+  scratch folder: the save is listed as LOVE and opens on LOVE. TYPE has
+  the same fault, left for the owner's word.
+
 - **LOVE, rails: one session, and the nearest train next** (the owner,
   2026-10-07, on Play the run: "the circles were cut into three sessions —
   are there scissors somewhere in an old algorithm? I would like a
