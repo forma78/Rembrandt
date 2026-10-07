@@ -573,6 +573,12 @@ html.night .type .deck .btn.on,html.night .type .deck .btn.on:hover{background:l
 .type #sessions[hidden]{display:none}
 .type .looks .tog[data-view]{flex:1}
 .love #btnPlay{grid-column:1/-1}   /* LOVE: Play the run, the width of the views */
+.love #grounds{margin-top:8px}   /* LOVE: the ground, its gradient's two colours as the paints' chips */
+.love .groundcols{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:var(--mute)}
+.love .groundcols[hidden]{display:none}
+.love .gc{position:relative;width:34px;height:24px;margin-right:8px}
+.love .gc .sw{display:block;width:34px;height:24px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),0 1px 2px rgba(0,0,0,.15)}
+.love .gc input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
 .type .paintstrip{position:absolute;left:0;top:0;bottom:0;width:46px;z-index:2;overflow-y:auto;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 0;background:var(--panel);border-right:1px solid var(--line)}
 .type .chip{position:relative;flex:none;width:30px;display:flex;flex-direction:column;align-items:center;gap:1px}
 .type .chip .sw{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font:600 12px var(--mono);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18),0 1px 2px rgba(0,0,0,.18)}

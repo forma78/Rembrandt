@@ -136,6 +136,17 @@
       <div class="sliders" id="slPaint"></div>
       <h4>Simulation</h4>
       <div class="sliders" id="slSim"></div>
+      <!-- the ground under the paint, by hand (the owner, 2026-10-07: "a light gradient — I am not afraid of the brush; or black: depth, mystery, magic"); Result shows it -->
+      <h4>Ground</h4>
+      <div class="toggles looks" id="grounds">
+        <button class="tog" data-ground="white" title="The white canvas">White</button>
+        <button class="tog" data-ground="gradient" title="A light gradient by hand, top to bottom — its two colours below; Result shows it">Gradient</button>
+        <button class="tog" data-ground="black" title="Black by hand: the paint lies over it, the grooves between the lanes go black; Result shows it">Black</button>
+      </div>
+      <div class="groundcols" id="groundCols" hidden>
+        <span>Top</span><label class="gc" title="The gradient's colour at the top — a click changes it"><span class="sw" id="gTopSw"></span><input type="color" id="gTop" aria-label="Ground, top"></label>
+        <span>Bottom</span><label class="gc" title="The gradient's colour at the bottom — a click changes it"><span class="sw" id="gBottomSw"></span><input type="color" id="gBottom" aria-label="Ground, bottom"></label>
+      </div>
       <h4>Canvas <button class="info" id="planInfo" title="The plan: the bands, the trace, where the canvas lies from home">i</button></h4>
       <div class="grid4" id="fields"></div>
       <p class="read" id="planRead" hidden></p>
