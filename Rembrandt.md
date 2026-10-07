@@ -277,6 +277,23 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   a copy of `typeplan.js` changed there and not in TYPE; its own keep in
   this browser, its saves labelled LOVE and opened on it; the run, the
   canvas from home, the cup and the LCD shared, as New Yuri's are.
+- **LOVE runs on rails; no ribbon** (the owner, 2026-10-07, on four zeros
+  laid over one another, `TYPE-Claude/Screenshot 2026-10-07 at 1.50.09
+  AM.png`: where the rows of two letters close on one another, "the
+  algorithm takes an imprint of the pattern and works out the path as on
+  rails"; then: "No ribbon. The path will be rails. The main thing is that
+  the train runs without stops"). Every lane a rail; where the lanes of
+  touching letters lie together, a switch; the train goes round them as an
+  8, inside and outside taking turns by themselves. The ribbon of one spine
+  (`TYPE-Claude/RIBBON-new.md`) is not built. **Odd lane counts stay**: the
+  owner had asked to forbid 5 and 7, an even count "excluding hairpins";
+  counted on six zeros, the overlap decides, not the parity (7 lanes, 5 rows
+  across and 7 down: one train; 6 and 8 at best two), and the reading shows
+  the trains instead (the owner: "great! let's keep the odd ones, of
+  course"). More than one train is more than one pass, each non-stop (the
+  owner: "can we go through twice?"). The look wanted: abstractions of
+  overlapping 0 and O, not words (the owner: "LOVE or AMOUR is a cheap
+  poster for 50 euros, the magic is gone").
 - **TYPE first; Job and New Yuri off the top row** (the owner, 2026-10-06:
   "remove the JOB and NEW YURI tabs, please; put TYPE first, it is the new
   index.html"): TYPE · NOLAN · Test · Ink · Calibration · Library. TYPE's
@@ -573,6 +590,16 @@ this section disagree, this section wins: the owner corrected the sketch on
   again in the brush's order, session after session, the whole run in
   12 s, a ring the brush's width where it is; pressed again, it stops. A
   view, not a key of the deck.
+  **Rails** under Pass through, ON by default (§1; `loveplan.js`,
+  trainsOf): every lane a rail; where the rails of two bands lie within
+  0.35 of the pitch and parallel — along a side, or kissing at a curve — a
+  switch, the train coming along one going on along the other. The
+  switches that join two trains are taken, the longest stretch first, so
+  the fewest trains run; each is a DRAG row, round once and on 14 mm past
+  its landing, no step across the lanes. A lane nothing touches is a train
+  of its own; letters in different sessions do not switch (Wet on wet lets
+  the train through). 3 Drag colours the trains and rings every switch;
+  the reading: `1 train — the train goes non-stop`.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

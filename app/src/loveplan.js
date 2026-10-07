@@ -391,7 +391,7 @@ export const STRIP = 0.94;   // of the lane's share: a hair of white between str
 export const stripsOf = (brush, pitch) => { const inner = Math.min(brush, pitch) * STRIP; return { inner, face: brush / 2 + inner / 2 }; };
 export function dragOf(plan, o) {
   const { inner, face: wf } = stripsOf(o.brush, o.pitch), R = plan.W / 2;
-  plan.pitch = o.pitch;
+  plan.pitch = o.pitch; plan.railCache = {};                                       // the rails' trains, kept a session at a time until the lanes change
   for (const s of plan.segs) {
     const startS = s.dot ? 0 : s.closed ? (s.marks[0].s - 4 + s.L) % s.L : Math.max(0, s.marks[0].s - 4);
     const open = ring => s.dot ? [...ring, ring[0]] : openRing(ring, startS, s.closed, s.L);
@@ -481,6 +481,7 @@ function along(seg, p, q) {                                                     
   return out;
 }
 export function dragPaths(plan, session, through = false) {
+  if (through === 'rails') return (plan.railCache ??= {})[session] ??= trainsOf(plan, session).trains;   // LOVE's rails, below
   const segs = plan.segs.filter(s => s.session === session && s.spiral?.length), out = [];
   if (!through) return segs.map(s => ({ pts: [...s.spiral], ch: s.ch, li: s.li, bands: 1, lanes: s.lanes.length }));
   for (const li of [...new Set(segs.map(s => s.li))]) {
@@ -511,6 +512,107 @@ export function dragPaths(plan, session, through = false) {
   }
   return out;
 }
+// ---------- Rails (LOVE) ----------
+// The owner, 2026-10-07, on four zeros laid over one another (TYPE-Claude/
+// Screenshot 2026-10-07 at 1.50.09 AM.png): where the rows of two letters
+// close on one another, "the algorithm takes an imprint of the pattern and
+// works out the path as on rails — a big circle round the outside of the
+// first 0, then clockwise onto the second, in its middle by now …"; "no
+// ribbon. The path will be rails. The main thing is that the train runs
+// without stops". Every lane a rail, a closed loop; where the rails of two
+// bands lie together — within RAIL_TOL of the pitch and parallel, along a
+// side or kissing at a curve — a switch: the train coming along one goes on
+// along the other, and the other's comes back onto the first. A switch
+// between two trains makes them one (on two the same, it would split one, and
+// is left: the train runs straight on over it), longest stretch first, so the
+// fewest trains run, each round once and non-stop, no step across the lanes.
+// Inside and outside take turns by themselves: two letters side by side run
+// their shared stretch opposite ways, so the train goes round them as an 8.
+// A rail no other touches is a train of its own. Only the bands of a session:
+// a band waiting for another to dry does not take its train.
+export const RAIL_TOL = 0.35;   // of the pitch: two rails this close lie together (Claude's choice)
+const RAIL_COS = 0.995;         // and this parallel, ±5.7°
+const KISS = 0.1, KISS_COS = 0.95;   // or a kiss at a tight curve: this close (of the pitch), ±18° — the hole's ring of a 0, a few mm round, touches its neighbour at a point
+export function railsOf(plan, session) {
+  const rails = [];
+  plan.segs.forEach((seg, bi) => { if (seg.session === session) (seg.rings || []).forEach((l, k) => { if (l.ring.length > 2) rails.push({ seg, bi, k, d: l.d, P: l.ring }); }); });
+  return rails;
+}
+const tanAt = (P, i) => norm(sub(P[(i + 1) % P.length].p, P[(i - 1 + P.length) % P.length].p));
+// where two rails of different bands lie together: a stretch each, its middle the switch
+export function switchesOf(rails, pitch) {
+  const tol = RAIL_TOL * pitch, cell = Math.max(1, 2 * tol), grid = new Map(), key = (x, y) => `${Math.floor(x / cell)},${Math.floor(y / cell)}`;
+  rails.forEach((r, ri) => r.P.forEach((q, i) => { const k = key(q.p[0], q.p[1]); if (!grid.has(k)) grid.set(k, []); grid.get(k).push([ri, i]); }));
+  const touch = new Map();
+  rails.forEach((r, ri) => r.P.forEach((q, i) => {
+    const cx = Math.floor(q.p[0] / cell), cy = Math.floor(q.p[1] / cell), best = new Map();
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (const [rj, j] of grid.get(`${cx + dx},${cy + dy}`) || []) {
+      if (rj <= ri || rails[rj].bi === r.bi) continue;
+      const dd = len(sub(q.p, rails[rj].P[j].p));
+      if (dd <= tol && (!best.has(rj) || dd < best.get(rj)[1])) best.set(rj, [j, dd]);
+    }
+    for (const [rj, [j, dd]] of best) {
+      const c = dot(tanAt(r.P, i), tanAt(rails[rj].P, j));
+      if (Math.abs(c) < (dd <= KISS * pitch ? KISS_COS : RAIL_COS)) continue;
+      const k2 = `${ri}|${rj}`; if (!touch.has(k2)) touch.set(k2, []); touch.get(k2).push([i, j, c > 0, dd]);
+    }
+  }));
+  const out = [];
+  for (const [k2, hits] of touch) {
+    const [a, b] = k2.split('|').map(Number), n = rails[a].P.length, runs = [];
+    hits.sort((x, y) => x[0] - y[0]);
+    for (const h of hits) { const run = runs.at(-1); if (run && h[0] - run.at(-1)[0] <= 2) run.push(h); else runs.push([h]); }
+    if (runs.length > 1 && runs[0][0][0] + n - runs.at(-1).at(-1)[0] <= 2) runs[0] = [...runs.pop(), ...runs[0]];   // a stretch over the rail's own start
+    for (const run of runs) out.push({ a, b, run, same: run[run.length >> 1][2], mm: run.length });   // run: [ia, ib, same, apart]
+  }
+  return out;
+}
+// The trains: the switches that join two, the longest first; then each train
+// walked round once from where its first band's brush lands, on DRAG_ON past
+// it. → { trains: [{ pts: [{ p, s, d, band }], ch, li, bands, lanes, switches,
+// rails: true, junctions: [p] }], rails, switches: the ones taken }
+export function trainsOf(plan, session) {
+  const rails = railsOf(plan, session), all = switchesOf(rails, plan.pitch || 1);
+  const par = rails.map((_, i) => i), f = i => par[i] === i ? i : (par[i] = f(par[i]));
+  const cuts = rails.map(() => new Map()), taken = [];
+  const near = (r, i) => { const n = rails[r].P.length; for (let o = -2; o <= 2; o++) if (cuts[r].has((i + o + n) % n)) return true; return false; };
+  for (const s of [...all].sort((x, y) => y.mm - x.mm)) {
+    const a = f(s.a), b = f(s.b);
+    if (a === b) continue;
+    const mid = s.run.length / 2, free = s.run.map((h, j) => ({ h, j })).filter(({ h }) => h[2] === s.same && !near(s.a, h[0]) && !near(s.b, h[1]));
+    if (!free.length) continue;
+    const { h: [ia, ib] } = free.reduce((x, y) => y.h[3] < x.h[3] - 0.05 || (Math.abs(y.h[3] - x.h[3]) <= 0.05 && Math.abs(y.j - mid) < Math.abs(x.j - mid)) ? y : x);   // where the two lie closest, near the stretch's middle
+    par[a] = b; Object.assign(s, { ia, ib }); taken.push(s);
+    cuts[s.a].set(ia, { r: s.b, j: ib, same: s.same }); cuts[s.b].set(ib, { r: s.a, j: ia, same: s.same });
+  }
+  const groups = new Map();
+  rails.forEach((_, i) => { const g = f(i); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(i); });
+  const trains = [];
+  for (const members of [...groups.values()].sort((x, y) => rails[x[0]].bi - rails[y[0]].bi || rails[x[0]].k - rails[y[0]].k)) {
+    const r0 = members[0], R0 = rails[r0], seg = R0.seg, n0 = R0.P.length;
+    let i0 = 0;
+    for (let i = 0; i < n0; i++) { const s = R0.P[i].s; if (seg.dot || (seg.closed ? ((s - seg.startS + seg.L) % seg.L) < 2 : s >= seg.startS)) { i0 = i; break; } }
+    while (near(r0, i0)) i0 = (i0 + 3) % n0;                                       // not on a switch
+    const total = members.reduce((a, i) => a + rails[i].P.length, 0), pts = [], junctions = [];
+    let r = r0, i = i0, dir = 1, jumped = false;
+    for (let step = 0; step < 2 * total + 10; step++) {
+      const q = rails[r].P[i];
+      pts.push({ ...q, d: rails[r].d, band: rails[r].seg });
+      const c = !jumped && cuts[r].get(i);
+      if (c) { if (!c.met) junctions.push(q.p); c.met = true; dir = c.same ? dir : -dir; r = c.r; i = c.j; jumped = true; continue; }
+      jumped = false;
+      i = (i + dir + rails[r].P.length) % rails[r].P.length;
+      if (r === r0 && i === i0) break;                                               // round once
+    }
+    pts.push(pts[0]);
+    for (let j = 1, acc = 0; j < pts.length && acc < DRAG_ON; j++) { acc += len(sub(pts[j].p, pts[j - 1].p)); pts.push(pts[j]); }   // on past the landing
+    const segs = [...new Set(members.map(m => rails[m].seg))];
+    trains.push({ pts, ch: [...new Set(segs.map(s => s.ch))].join(''), li: segs[0].li, bands: segs.length, lanes: members.length,
+      switches: taken.filter(s => members.includes(s.a)).length, rails: true, junctions });
+  }
+  for (const c of cuts) for (const v of c.values()) delete v.met;
+  return { trains, rails, switches: taken };
+}
 // DRAG: the session's paths one after another, a row a path; the dry brush,
 // no dip ever (TYPE.md: "pass 3 never dips"). → { ps, info, lanes, bands, paths, length }
 export function dragRows(plan, session, through = false) {
@@ -521,7 +623,7 @@ export function dragRows(plan, session, through = false) {
     if (!pieces.length) continue;
     const row = ps.length + 1, L = lengthOf(pts);
     ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
-    info.push({ label: d.bands > 1 ? `${d.ch} · ${d.bands} bands, ${d.lanes} lanes non-stop` : `${d.ch} · ${d.lanes} lanes non-stop`, li: d.li, L });
+    info.push({ label: d.rails ? `${d.ch} · train ${ps.length}: ${d.lanes} lanes on rails, ${d.switches} switches, non-stop` : d.bands > 1 ? `${d.ch} · ${d.bands} bands, ${d.lanes} lanes non-stop` : `${d.ch} · ${d.lanes} lanes non-stop`, li: d.li, L });
     length += L; lanes += d.lanes; bands += d.bands;
   }
   return { ps, info, lanes, bands, paths: ps.length, length };

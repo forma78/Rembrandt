@@ -56,6 +56,7 @@ const S = {
   text: 'LO\nVE', H: 160, band: 30, gap: -14, lead: 20, margin: 40, x: 0, y: 0, overlap: 'letters',
   width: 4, speed: 150, travel: 180, tail: 3, ink: true,                          // the brush (est.)
   brush: 12, rings: 5, order: 'out', through: false, spacing: 90, per: 2, run: 220, glaze: 0.8,   // MARKS, DRAG, Result; rings a band, Pass through
+  rails: true,                                                                     // LOVE's rails (loveplan.js, trainsOf)
   drag: 60, next: { marks: 1, drag: 1 },                                          // DRAG's speed (the prototype's 60 mm/s); the session each key runs next
   paints: PAINTS.map(hex => ({ hex })), over: {},                                // colours, no names (the owner, 2026-10-06)
   view: 'trace', session: 0,
@@ -74,6 +75,7 @@ function load() {
     if (OVERLAPS.includes(o.overlap)) S.overlap = o.overlap;
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (typeof o.through === 'boolean') S.through = o.through;
+    if (typeof o.rails === 'boolean') S.rails = o.rails;
     S.rings = Math.round(Math.max(RINGS_MIN, Math.min(RINGS_MAX, S.rings)));
     if (['out', 'in'].includes(o.order)) S.order = o.order;
     if (VIEWS.includes(o.view)) S.view = o.view;
@@ -102,6 +104,8 @@ const textLabel = () => layNow()?.lines.filter(Boolean).join(' / ') || '';
 let painted = '';
 // the lanes' pitch for Rings (typeplan.js, pitchOf): W the band's width
 const pitchNow = () => pitchOf(S.band / 100 * S.H, S.brush, S.rings);
+// DRAG's paths: on rails, trains (LOVE); else a band, or with Pass through a letter, non-stop
+const how = () => S.rails ? 'rails' : S.through;
 function paintNow() {
   const L = layNow(); if (!L) return null;
   const key = JSON.stringify([layKey, S.paints.length, S.per, S.spacing, S.over, S.brush, S.rings, S.order]);
@@ -297,12 +301,15 @@ function drawMarks() {
   g.restore();
 }
 // DRAG: the paths as the brush runs them, non-stop — a band each, or with
-// Pass through a letter each; an orange dot where it lands.
+// Pass through a letter each; an orange dot where it lands. On rails a
+// colour a train, more than one, and an orange ring at every switch.
 function drawLanes() {
   const L = paintNow(); if (!L) return;
-  const paths = Array.from({ length: L.sessions }, (_, ss) => ss).filter(ss => !S.session || ss === S.session - 1).flatMap(ss => dragPaths(L, ss, S.through));
+  const paths = Array.from({ length: L.sessions }, (_, ss) => ss).filter(ss => !S.session || ss === S.session - 1).flatMap(ss => dragPaths(L, ss, how()));
   g.save(); g.lineJoin = 'round'; g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 0.8;
-  for (const d of paths) line(d.pts.map(q => q.p));
+  paths.forEach((d, i) => { if (d.rails && paths.length > 1) g.strokeStyle = `hsla(${(i * 137.5) % 360},60%,38%,.8)`; line(d.pts.map(q => q.p)); });
+  g.strokeStyle = ORANGE; g.lineWidth = 1.2;
+  for (const d of paths) for (const p of d.junctions || []) { g.beginPath(); g.arc(sx(p), sy(p), 3, 0, Math.PI * 2); g.stroke(); }
   g.fillStyle = ORANGE;
   for (const d of paths) { g.beginPath(); g.arc(sx(d.pts[0].p), sy(d.pts[0].p), Math.max(1.5, 1.6 * k), 0, Math.PI * 2); g.fill(); }
   g.restore();
@@ -322,11 +329,11 @@ const PLAY_MS = 12000;   // the whole run, the prototype's
 let WALK = null, SIM = null, PLAY = null;
 function walkNow() {
   const L = paintNow(); if (!L?.segs.length) return null;
-  const key = JSON.stringify([painted, S.paints, S.run, S.glaze, S.through]);
+  const key = JSON.stringify([painted, S.paints, S.run, S.glaze, how()]);
   if (WALK?.key !== key) {
     const o = { colours: S.paints.map(q => rgb(q.hex)), run: S.run, glaze: S.glaze, brush: S.brush, pitch: pitchNow() };
     let from = 0;
-    const sessions = Array.from({ length: L.sessions }, (_, ss) => { const w = paintWalk(L, ss, S.through, o); w.from = from; from += w.length; return w; });
+    const sessions = Array.from({ length: L.sessions }, (_, ss) => { const w = paintWalk(L, ss, how(), o); w.from = from; from += w.length; return w; });
     WALK = { key, sessions, length: from };
     stopPlay();                                                                      // a change stops the play: the Result whole
   }
@@ -456,7 +463,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['text', 'H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'overlap', 'width', 'speed', 'brush', 'rings', 'through', 'drag', 'order', 'spacing', 'per', 'run', 'glaze', 'paints', 'over'];
+const UNDO_KEYS = ['text', 'H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'overlap', 'width', 'speed', 'brush', 'rings', 'through', 'rails', 'drag', 'order', 'spacing', 'per', 'run', 'glaze', 'paints', 'over'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(k => [k, S[k]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -626,6 +633,9 @@ $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#through').onchange = e => { undoPush(); S.through = e.target.checked; settle(); };
 $('#throughOff').onclick = () => { if (!S.through) return; undoPush(); S.through = false; settle(); };
 $('#throughOn').onclick = () => { if (S.through) return; undoPush(); S.through = true; settle(); };
+$('#rails').onchange = e => { undoPush(); S.rails = e.target.checked; settle(); };
+$('#railsOff').onclick = () => { if (!S.rails) return; undoPush(); S.rails = false; settle(); };
+$('#railsOn').onclick = () => { if (S.rails) return; undoPush(); S.rails = true; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
 function showPanel() {
@@ -640,6 +650,7 @@ function showPanel() {
   if (document.activeElement !== $('#text') && !typing) $('#text').value = S.text;
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
   $('#through').checked = S.through; $('#throughOff').classList.toggle('on', !S.through); $('#throughOn').classList.toggle('on', S.through);
+  $('#rails').checked = S.rails; $('#railsOff').classList.toggle('on', !S.rails); $('#railsOn').classList.toggle('on', S.rails);
 }
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
@@ -658,9 +669,12 @@ function settle() {
   const Lp = paintNow(), per = [], count = S.paints.map(() => 0);
   if (Lp?.segs.length) for (let ss = 0; ss < ses; ss++) {
     const segs = Lp.segs.filter(q => q.session === ss), marks = segs.reduce((a, q) => a + q.marks.length, 0), lanes = segs.reduce((a, q) => a + q.lanes.length, 0);
-    const dp = dragPaths(Lp, ss, S.through), mm = dp.reduce((a, d) => a + d.pts.reduce((c, t, j, P) => j ? c + Math.hypot(t.p[0] - P[j - 1].p[0], t.p[1] - P[j - 1].p[1]) : 0, 0), 0);
+    const dp = dragPaths(Lp, ss, how()), mm = dp.reduce((a, d) => a + d.pts.reduce((c, t, j, P) => j ? c + Math.hypot(t.p[0] - P[j - 1].p[0], t.p[1] - P[j - 1].p[1]) : 0, 0), 0);
     for (const q of segs) for (const m of q.marks) count[m.paint]++;
-    per.push(`${ses > 1 ? `Session ${ss + 1}: ` : ''}MARKS <b>${marks}</b> from the cup · DRAG <b>${lanes}</b> lanes, ${S.through ? 'a letter' : 'a band'} non-stop, the brush down <b>${dp.length}</b> time${dp.length === 1 ? "" : "s"}, <b>${fmt(mm / 1000, 1)} m</b>, ≈ ${fmt(mm / S.drag / 60, 1)} min at ${S.drag} mm/s (est.)`);
+    const sw = dp.reduce((a, d) => a + (d.switches || 0), 0), drag = S.rails   // on rails, the trains (the owner: "rings: 1 — the train goes non-stop")
+      ? `on rails, <b>${dp.length}</b> train${dp.length === 1 ? ' — the train goes non-stop' : 's, each non-stop'}, ${sw} switch${sw === 1 ? '' : 'es'}`
+      : `${S.through ? 'a letter' : 'a band'} non-stop, the brush down <b>${dp.length}</b> time${dp.length === 1 ? '' : 's'}`;
+    per.push(`${ses > 1 ? `Session ${ss + 1}: ` : ''}MARKS <b>${marks}</b> from the cup · DRAG <b>${lanes}</b> lanes, ${drag}, <b>${fmt(mm / 1000, 1)} m</b>, ≈ ${fmt(mm / S.drag / 60, 1)} min at ${S.drag} mm/s (est.)`);
   }
   if (per.length) $('#planRead').innerHTML += ' · ' + per.join(' · ');
   $('#paints').querySelectorAll('[data-cnt]').forEach(el => { const n = count[+el.dataset.cnt] || 0; el.textContent = n || ''; el.parentNode.title = `Paint ${+el.dataset.cnt + 1}: ${n} mark${n === 1 ? '' : 's'} — a click changes its colour`; });
@@ -669,7 +683,8 @@ function settle() {
     L?.segs.length && Rc <= 0 && 'The brush is as wide as the band: one lane, no grooves. Widen the band or take a narrower brush.',
     L?.segs.length && pitchNow() > S.brush && `${S.rings} rings ${fmt(pitchNow(), 1)} mm apart, the brush ${S.brush} mm: white gaps between them — more rings or a wider brush.`,
     L?.segs.length && S.spacing > S.run * 0.8 && 'Marks are far apart for this paint run: the brush runs dry between them.',
-    tight && 'A paint\'s ticks are longer than its mark: widen the band, a thinner line, or fewer paints.'].filter(Boolean);   // the ticks as on an abacus (typeplan.js, ticksOf)
+    tight && 'A paint\'s ticks are longer than its mark: widen the band, a thinner line, or fewer paints.',
+    S.rails && ses > 1 && 'Rails: letters in different sessions keep their trains apart — Wet on wet lets a train run through them.'].filter(Boolean);   // the ticks as on an abacus (typeplan.js, ticksOf)
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
   // the sessions under the view, in 2 Marks and 3 Drag, when there are more than one
@@ -836,7 +851,7 @@ function marksRun(ses) {
 }
 function dragRun(ses) {
   const L = paintNow(); if (!L?.segs.length) return null;
-  const R = dragRows(L, ses - 1, S.through); if (!R.ps.length) return null;
+  const R = dragRows(L, ses - 1, how()); if (!R.ps.length) return null;
   return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag }, [{ key: 'DRAG', ps: R.ps, why: null }]), rows: R.info, lanes: R.lanes, bands: R.bands, paths: R.paths, mm: R.length };
 }
 async function runPass(key) {
@@ -848,7 +863,7 @@ async function runPass(key) {
   if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
   const min = fmt(P_.seconds / 60, 0), what = key === 'marks'
     ? `${P_.marks} marks and their ticks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => a[0] - b[0]).map(([i, c]) => `paint ${+i + 1} × ${c}`).join(', ')} — and press DRAG.`
-    : `${P_.lanes} lanes in ${P_.bands} bands, ${S.through ? 'Pass through: each letter non-stop, its bands one after another' : 'each band non-stop'} — the brush lands ${P_.paths} times — ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
+    : `${P_.lanes} lanes in ${P_.bands} bands, ${S.rails ? `on rails, ${P_.paths} train${P_.paths === 1 ? '' : 's'}, each non-stop` : S.through ? 'Pass through: each letter non-stop, its bands one after another' : 'each band non-stop'} — the brush lands ${P_.paths} times — ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
   if (!confirm(`${key.toUpperCase()} ${textLabel()}${of}: ${what}`)) return;
   S.view = key; S.session = n > 1 ? ses : 0; RUN_SES = ses; settle();                // the board shows the pass running
   await start(key, P_.blocks, { seconds: P_.seconds, rows: P_.rows },

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { layoutOf, sessionsOf, marksOf, dragOf, dragPaths, crossed, paintWalk, stripsOf, pitchOf } from '../src/loveplan.js';
+import { layoutOf, sessionsOf, marksOf, dragOf, dragPaths, dragRows, crossed, paintWalk, stripsOf, pitchOf, trainsOf, RAIL_TOL } from '../src/loveplan.js';
+import { plotRun, DEFAULTS } from '../src/strokes.js';
 
 // LOVE's plan, a copy of typeplan.js (its own tests there); here what LOVE
 // adds: Result along the brush's own path (paintWalk).
@@ -58,4 +59,53 @@ test('a dot takes up its paint at every ring; a closed band its two edges', () =
   const c = O.pts.reduce((a, p) => [a[0] + p[0] / O.pts.length, a[1] + p[1] / O.pts.length], [0, 0]), rc = O.pts.reduce((a, p) => a + dist(p, c), 0) / O.pts.length;
   const edges = W.shades.filter(sh => sh.w === face && sh.pts.every(p => off(p) < L.R + 1)).flatMap(sh => sh.pts.slice(1)).filter(p => Math.abs(off(p) + face / 2 - L.R) < 0.8);
   assert.ok(edges.some(p => dist(p, c) > rc) && edges.some(p => dist(p, c) < rc), 'the O to its outer edge and to its hole\'s');
+});
+
+// Zeros laid rows on rows (the owner's, TYPE-Claude/Screenshot 2026-10-07 at
+// 1.50.09 AM.png and 2.16.21 AM.png): the letter gap and the line spacing that
+// put the first 0's outer lane on the next one's `across`-th, and the upper
+// row's on the lower's `down`-th.
+const box = P => P.reduce((b, q) => [Math.min(b[0], q.p[0]), Math.min(b[1], q.p[1]), Math.max(b[2], q.p[0]), Math.max(b[3], q.p[1])], [Infinity, Infinity, -Infinity, -Infinity]);
+function zeros(text, rings, across, down) {
+  const H = 300, band = 30, brush = 12, pitch = pitchOf(band / 100 * H, brush, rings), o = { text, H, band, gap: -40, lead: -40 };
+  const make = () => { const L = layoutOf(G, o); sessionsOf(L, 'wet'); marksOf(L, { paints: 8, per: 2, spacing: 90 }); dragOf(L, { brush, pitch, order: 'out' }); return L; };
+  const outer = s => [...s.rings].sort((x, y) => (box(y.ring)[2] - box(y.ring)[0]) - (box(x.ring)[2] - box(x.ring)[0]));
+  for (let it = 0; it < 3; it++) {
+    const L = make(), A = outer(L.segs[0]), B = outer(L.segs[1]), mid = (box(A[0].ring)[1] + box(A[0].ring)[3]) / 2;
+    const x = (r, side) => { const n = r.ring.filter(q => Math.abs(q.p[1] - mid) < 2).map(q => q.p[0]); return side > 0 ? Math.max(...n) : Math.min(...n); };
+    o.gap -= x(B[across - 1], -1) - x(A[0], 1);
+    if (text.includes('\n')) { const C = outer(L.segs[text.indexOf('\n')]); o.lead -= box(C[down - 1].ring)[1] - box(A[0].ring)[3]; }
+  }
+  return { L: make(), pitch, brush };
+}
+const steps = pts => pts.slice(1).map((q, j) => dist(q.p, pts[j].p));
+
+test('Rails: two zeros rows on rows — a switch a row, each an 8 round both, no step across the lanes', () => {
+  const { L, pitch } = zeros('00', 5, 3), T = trainsOf(L, 0), lanes = L.segs.reduce((a, s) => a + s.rings.length, 0);
+  assert.equal(T.rails.length, lanes, 'every lane a rail');
+  assert.equal(T.switches.length, 3, 'the three rows that lie on one another');
+  assert.equal(T.trains.length, lanes - 3, 'each switch joins two rails into one train');
+  for (const tr of T.trains) {
+    assert.ok(Math.max(...steps(tr.pts)) < RAIL_TOL * pitch + 1.5, `${tr.ch}: a step of ${Math.max(...steps(tr.pts))} mm — no jump across the lanes`);
+    if (tr.switches) assert.equal(new Set(tr.pts.map(q => q.band)).size, 2, 'an 8 round both zeros');
+  }
+});
+
+test('Rails: six zeros of 7 lanes, 5 rows on 5 across and 7 down — one train, the brush down once', () => {
+  const { L, pitch } = zeros('000\n000', 4, 5, 7), T = trainsOf(L, 0);
+  assert.equal(T.trains.length, 1, `${T.trains.length} trains`);
+  assert.equal(T.trains[0].lanes, 42);
+  assert.ok(Math.max(...steps(T.trains[0].pts)) < RAIL_TOL * pitch + 1.5);
+  const R = dragRows(L, 0, 'rails'), r = plotRun({ ...DEFAULTS, snake: true, pause: false, lift: false, tail: 3, speed: 60, travel: 180, ink: false, rows: R.ps.length, here: { x: 350, y: 300 }, cup: { x: 400, y: 0 } }, [{ key: 'DRAG', ps: R.ps, why: null }]);
+  assert.equal(r.fault, '');
+  assert.equal(r.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, 1, 'the brush down once');
+  const W = paintWalk(L, 0, 'rails', { colours: COLOURS, run: 220, glaze: 0.8, brush: 12, pitch });
+  assert.ok(Math.abs(W.length - R.length) < 1e-6 * R.length + 1e-6, 'Result walks the train');
+});
+
+test('Rails: a letter that touches nothing — every lane a train of its own, round once', () => {
+  const L = plan('I'), [I] = L.segs, T = trainsOf(L, 0);
+  assert.equal(T.switches.length, 0);
+  assert.equal(T.trains.length, I.rings.length);
+  for (const [k, tr] of T.trains.entries()) assert.ok(Math.abs(lengthOf(tr.pts) - lengthOf([...I.rings[k].ring, I.rings[k].ring[0]])) < 16, 'round once, on 14 mm past the landing');
 });

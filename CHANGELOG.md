@@ -5,6 +5,25 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOVE: Rails — the train without stops** (the owner, 2026-10-07, on
+  four zeros laid over one another: "the algorithm takes an imprint of the
+  pattern and works out the path as on rails"; "No ribbon. The path will
+  be rails. The main thing is that the train runs without stops"). Rails
+  OFF · ON under Pass through, ON by default. Every lane a rail
+  (`loveplan.js`, railsOf); where the rails of two bands lie together —
+  within 0.35 of the pitch and parallel, along a side, or kissing at a
+  curve: the hole's ring of a 0 is a few mm round — a switch (switchesOf);
+  the switches that join two trains taken, the longest first, at the
+  stretch's closest point, and each train walked round once (trainsOf):
+  an 8 round two letters side by side, inside and outside taking turns by
+  themselves; no step across the lanes. DRAG runs the trains, a row each;
+  Result and Play the run follow them; 3 Drag colours them and rings the
+  switches; the reading counts them — six zeros of 7 lanes, 5 rows on 5
+  across and 7 down: `1 train — the train goes non-stop`, 42 lanes, 41
+  switches. Odd lane counts stay (the owner: "let's keep the odd ones, of
+  course"): the overlap decides, not the parity. Tried in the tests and a
+  headless browser; not run on the machine yet.
+
 - **LOVE: Result along the brush's own path, and Play the run** (the
   owner, 2026-10-07, on `TYPE-Claude/Rembrandt_RIBBON_LOVE.html`: "we need
   Play the run from there — this preview shows how the paint will lie";
