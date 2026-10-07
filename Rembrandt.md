@@ -597,9 +597,14 @@ this section disagree, this section wins: the owner corrected the sketch on
   switches that join two trains are taken, the longest stretch first, so
   the fewest trains run; each is a DRAG row, round once and on 14 mm past
   its landing, no step across the lanes. A lane nothing touches is a train
-  of its own; letters in different sessions do not switch (Wet on wet lets
-  the train through). 3 Drag colours the trains and rings every switch;
-  the reading: `1 train — the train goes non-stop`.
+  of its own. **On rails one session**, wet on wet, OVERLAPS greyed (the
+  owner, 2026-10-07: "the circles were cut into three sessions … I would
+  like a continuous train, as Florian's"). **The next train the nearest**
+  (the owner: "after the first circle the machine starts drawing at the
+  bottom — it is more logical to go on to the neighbour"): it lands where
+  the last one lifted nearest, 4 mm before a mark, so it takes up paint at
+  once. 3 Drag colours the trains and rings every switch; the reading:
+  `1 train — the train goes non-stop`.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

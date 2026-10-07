@@ -567,9 +567,24 @@ export function switchesOf(rails, pitch) {
   }
   return out;
 }
+// Where a train may land: LAND mm before every mark it crosses, so the brush
+// takes up paint at once (a band's lands so, dragOf); a dot's anywhere.
+// → indices into its loop, the loop's start first
+const LAND = 4;   // mm, dragOf's
+function landingsOf(cyc) {
+  const n = cyc.length, out = [0];
+  for (let i = 0; i < n; i++) {
+    const a = cyc[i], b = cyc[(i + 1) % n];
+    if (!a.band || a.band !== b.band || a.band.dot || a.s === null || b.s === null || !crossed(a.band, a.s, b.s).length) continue;
+    let j = i, acc = 0;
+    while (acc < LAND) { const k = (j - 1 + n) % n; acc += len(sub(cyc[j].p, cyc[k].p)); j = k; if (j === i) break; }
+    out.push(j);
+  }
+  return [...new Set(out)];
+}
 // The trains: the switches that join two, the longest first; then each train
-// walked round once from where its first band's brush lands, on DRAG_ON past
-// it. → { trains: [{ pts: [{ p, s, d, band }], ch, li, bands, lanes, switches,
+// walked round once, landing where the last one lifted nearest, on DRAG_ON
+// past it. → { trains: [{ pts: [{ p, s, d, band }], ch, li, bands, lanes, switches,
 // rails: true, junctions: [p] }], rails, switches: the ones taken }
 export function trainsOf(plan, session) {
   const rails = railsOf(plan, session), all = switchesOf(rails, plan.pitch || 1);
@@ -587,28 +602,43 @@ export function trainsOf(plan, session) {
   }
   const groups = new Map();
   rails.forEach((_, i) => { const g = f(i); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(i); });
-  const trains = [];
+  const loops = [];                                                                 // each train round once, from its first band's landing
   for (const members of [...groups.values()].sort((x, y) => rails[x[0]].bi - rails[y[0]].bi || rails[x[0]].k - rails[y[0]].k)) {
     const r0 = members[0], R0 = rails[r0], seg = R0.seg, n0 = R0.P.length;
     let i0 = 0;
     for (let i = 0; i < n0; i++) { const s = R0.P[i].s; if (seg.dot || (seg.closed ? ((s - seg.startS + seg.L) % seg.L) < 2 : s >= seg.startS)) { i0 = i; break; } }
     while (near(r0, i0)) i0 = (i0 + 3) % n0;                                       // not on a switch
-    const total = members.reduce((a, i) => a + rails[i].P.length, 0), pts = [], junctions = [];
+    const total = members.reduce((a, i) => a + rails[i].P.length, 0), cyc = [], junctions = [];
     let r = r0, i = i0, dir = 1, jumped = false;
     for (let step = 0; step < 2 * total + 10; step++) {
       const q = rails[r].P[i];
-      pts.push({ ...q, d: rails[r].d, band: rails[r].seg });
+      cyc.push({ ...q, d: rails[r].d, band: rails[r].seg });
       const c = !jumped && cuts[r].get(i);
       if (c) { if (!c.met) junctions.push(q.p); c.met = true; dir = c.same ? dir : -dir; r = c.r; i = c.j; jumped = true; continue; }
       jumped = false;
       i = (i + dir + rails[r].P.length) % rails[r].P.length;
       if (r === r0 && i === i0) break;                                               // round once
     }
+    const segs = [...new Set(members.map(m => rails[m].seg))];
+    loops.push({ cyc, lands: landingsOf(cyc), junctions, members, segs });
+  }
+  // The trains in the order the brush runs them (the owner, 2026-10-07: "after
+  // the first circle it starts drawing at the bottom — it is more logical to
+  // go on to the neighbour"): the first from its first band's landing, every
+  // next one the train, and the landing on it, nearest to where the last one
+  // lifted. A landing is LAND mm before a mark, so the brush takes up paint at
+  // once, as a band's does (dragOf).
+  const trains = [];
+  let at = null;
+  while (loops.length) {
+    let best = { k: 0, j: 0, d: Infinity };
+    if (at) loops.forEach((l, k) => l.lands.forEach(j => { const dd = len(sub(l.cyc[j].p, at)); if (dd < best.d) best = { k, j, d: dd }; }));
+    const { cyc, junctions, members, segs } = loops.splice(best.k, 1)[0], pts = [...cyc.slice(best.j), ...cyc.slice(0, best.j)];
     pts.push(pts[0]);
     for (let j = 1, acc = 0; j < pts.length && acc < DRAG_ON; j++) { acc += len(sub(pts[j].p, pts[j - 1].p)); pts.push(pts[j]); }   // on past the landing
-    const segs = [...new Set(members.map(m => rails[m].seg))];
     trains.push({ pts, ch: [...new Set(segs.map(s => s.ch))].join(''), li: segs[0].li, bands: segs.length, lanes: members.length,
       switches: taken.filter(s => members.includes(s.a)).length, rails: true, junctions });
+    at = pts.at(-1).p;
   }
   for (const c of cuts) for (const v of c.values()) delete v.met;
   return { trains, rails, switches: taken };

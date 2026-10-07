@@ -92,11 +92,11 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 let LAY = null, layKey = '';
 function layNow() {
   if (!GLYPHS) return null;
-  const key = JSON.stringify([S.text, S.H, S.band, S.gap, S.lead, S.x, S.y, S.overlap]);
+  const key = JSON.stringify([S.text, S.H, S.band, S.gap, S.lead, S.x, S.y, S.overlap, S.rails]);
   if (LAY && key === layKey) return LAY;
   layKey = key;
   LAY = layoutOf(GLYPHS, S);
-  LAY.sessions = sessionsOf(LAY, S.overlap);
+  LAY.sessions = sessionsOf(LAY, overlapNow());
   return LAY;
 }
 const textLabel = () => layNow()?.lines.filter(Boolean).join(' / ') || '';
@@ -106,6 +106,10 @@ let painted = '';
 const pitchNow = () => pitchOf(S.band / 100 * S.H, S.brush, S.rings);
 // DRAG's paths: on rails, trains (LOVE); else a band, or with Pass through a letter, non-stop
 const how = () => S.rails ? 'rails' : S.through;
+// On rails one session, wet on wet: the train runs through every letter (the
+// owner, 2026-10-07: "the circles were cut into three sessions … I would like a
+// continuous train, as Florian's"); OVERLAPS waits, greyed, till Rails is off.
+const overlapNow = () => S.rails ? 'wet' : S.overlap;
 function paintNow() {
   const L = layNow(); if (!L) return null;
   const key = JSON.stringify([layKey, S.paints.length, S.per, S.spacing, S.over, S.brush, S.rings, S.order]);
@@ -633,9 +637,9 @@ $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#through').onchange = e => { undoPush(); S.through = e.target.checked; settle(); };
 $('#throughOff').onclick = () => { if (!S.through) return; undoPush(); S.through = false; settle(); };
 $('#throughOn').onclick = () => { if (S.through) return; undoPush(); S.through = true; settle(); };
-$('#rails').onchange = e => { undoPush(); S.rails = e.target.checked; settle(); };
-$('#railsOff').onclick = () => { if (!S.rails) return; undoPush(); S.rails = false; settle(); };
-$('#railsOn').onclick = () => { if (S.rails) return; undoPush(); S.rails = true; settle(); };
+$('#rails').onchange = e => { undoPush(); S.rails = e.target.checked; S.session = 0; settle(); };
+$('#railsOff').onclick = () => { if (!S.rails) return; undoPush(); S.rails = false; S.session = 0; settle(); };
+$('#railsOn').onclick = () => { if (S.rails) return; undoPush(); S.rails = true; S.session = 0; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
 function showPanel() {
@@ -643,7 +647,8 @@ function showPanel() {
     const inp = $(`${box} input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
     $(`${box} [data-v="${key}"]`).textContent = valOf(key);
   }
-  document.querySelectorAll('[data-overlap]').forEach(b => b.classList.toggle('on', b.dataset.overlap === S.overlap));
+  document.querySelectorAll('[data-overlap]').forEach(b => { b.classList.toggle('on', b.dataset.overlap === overlapNow()); b.disabled = S.rails; });
+  $('#overlaps').title = S.rails ? 'Rails: one session, wet on wet — the train runs through every letter. Rails off to dry between them' : '';
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   document.querySelectorAll('[data-order]').forEach(b => b.classList.toggle('on', b.dataset.order === S.order));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
@@ -683,8 +688,7 @@ function settle() {
     L?.segs.length && Rc <= 0 && 'The brush is as wide as the band: one lane, no grooves. Widen the band or take a narrower brush.',
     L?.segs.length && pitchNow() > S.brush && `${S.rings} rings ${fmt(pitchNow(), 1)} mm apart, the brush ${S.brush} mm: white gaps between them — more rings or a wider brush.`,
     L?.segs.length && S.spacing > S.run * 0.8 && 'Marks are far apart for this paint run: the brush runs dry between them.',
-    tight && 'A paint\'s ticks are longer than its mark: widen the band, a thinner line, or fewer paints.',
-    S.rails && ses > 1 && 'Rails: letters in different sessions keep their trains apart — Wet on wet lets a train run through them.'].filter(Boolean);   // the ticks as on an abacus (typeplan.js, ticksOf)
+    tight && 'A paint\'s ticks are longer than its mark: widen the band, a thinner line, or fewer paints.'].filter(Boolean);   // the ticks as on an abacus (typeplan.js, ticksOf)
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
   // the sessions under the view, in 2 Marks and 3 Drag, when there are more than one

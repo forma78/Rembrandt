@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOVE, rails: one session, and the nearest train next** (the owner,
+  2026-10-07, on Play the run: "the circles were cut into three sessions —
+  are there scissors somewhere in an old algorithm? I would like a
+  continuous train, as Florian's"; "after the first circle the machine
+  starts drawing at the bottom — it is more logical to go on to the
+  neighbour"). The scissors were OVERLAPS: Dry between letters and Dry
+  every overlap put touching letters in sessions apart, and a switch is
+  only within one. Rails ON is one session now, wet on wet, OVERLAPS
+  greyed till Rails is off. The trains went in the text's order; now every
+  next one is the train, and the landing on it, nearest to where the last
+  lifted — a landing 4 mm before a mark, so the brush takes up paint at
+  once (`loveplan.js`, landingsOf).
+
 - **LOVE: Rails — the train without stops** (the owner, 2026-10-07, on
   four zeros laid over one another: "the algorithm takes an imprint of the
   pattern and works out the path as on rails"; "No ribbon. The path will

@@ -107,5 +107,19 @@ test('Rails: a letter that touches nothing — every lane a train of its own, ro
   const L = plan('I'), [I] = L.segs, T = trainsOf(L, 0);
   assert.equal(T.switches.length, 0);
   assert.equal(T.trains.length, I.rings.length);
-  for (const [k, tr] of T.trains.entries()) assert.ok(Math.abs(lengthOf(tr.pts) - lengthOf([...I.rings[k].ring, I.rings[k].ring[0]])) < 16, 'round once, on 14 mm past the landing');
+  for (const tr of T.trains) { const r = I.rings.find(l => l.d === tr.pts[0].d).ring; assert.ok(Math.abs(lengthOf(tr.pts) - lengthOf([...r, r[0]])) < 16, 'round once, on 14 mm past the landing'); }
+});
+
+test('Rails: each next train lands nearest to where the last lifted, just before a mark; none left out', () => {
+  const L = plan('O O\nO O'), T = trainsOf(L, 0), lanes = L.segs.reduce((a, s) => a + s.rings.length, 0);
+  assert.equal(T.trains.length, lanes, 'the O\'s apart: every lane a train');
+  for (const tr of T.trains) {                                                       // paint at once: a mark crossed within a few mm of the landing
+    let mm = 0, hit = false;
+    for (let j = 1; j < tr.pts.length && !hit && mm < 6; j++) { const a = tr.pts[j - 1], b = tr.pts[j]; mm += dist(a.p, b.p); hit = a.band === b.band && crossed(a.band, a.s, b.s).length > 0; }
+    assert.ok(hit, 'a mark within 6 mm of the landing');
+  }
+  const hops = T.trains.slice(1).map((tr, j) => dist(T.trains[j].pts.at(-1).p, tr.pts[0].p));
+  const byO = T.trains.map(tr => L.segs.indexOf(tr.pts[0].band));
+  assert.ok(byO.every((o, j) => !j || o === byO[j - 1] || byO.slice(0, j).filter(x => x === byO[j - 1]).length === L.segs[byO[j - 1]].rings.length), 'an O\'s rings one after another, then the next O');
+  assert.ok(Math.max(...hops.filter((_, j) => byO[j] === byO[j + 1])) < 3 * L.pitch, 'ring to ring a step, not across the canvas');
 });
