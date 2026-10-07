@@ -46,6 +46,18 @@
     <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
     <div class="sep"></div>
     <button class="tool" id="btnClear" title="Clear the canvas: no text (⌘Z brings it back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+    <div class="sep"></div>
+    <!-- the ground under the paint, by hand (the owner, 2026-10-07: "right in the tools, after the cross"): a swatch a ground; a gradient's two colours -->
+    <div class="ground" title="The ground, by hand, under the paint — Result shows it">
+      <span class="glab">ground</span>
+      <button class="gk" data-ground="white" title="Ground: the white canvas" aria-label="White ground"></button>
+      <button class="gk" data-ground="gradient" id="gGrad" title="Ground: a gradient by hand, top to bottom — its colours under it" aria-label="Gradient ground"></button>
+      <button class="gk" data-ground="black" title="Ground: black by hand — the paint over it, the grooves black" aria-label="Black ground"></button>
+      <div class="gcols" id="groundCols" hidden>
+        <label class="gc" title="The gradient's colour at the top — a click changes it"><span class="sw" id="gTopSw"></span><input type="color" id="gTop" aria-label="Ground, top"></label><span class="gcap">top</span>
+        <label class="gc" title="The gradient's colour at the bottom — a click changes it"><span class="sw" id="gBottomSw"></span><input type="color" id="gBottom" aria-label="Ground, bottom"></label><span class="gcap">bottom</span>
+      </div>
+    </div>
   </nav>
 
   <!-- the zoom, over the board (the owner, 2026-10-06, TYPE-Claude/Screenshot 2026-10-06 zoom.png) -->
@@ -136,17 +148,6 @@
       <div class="sliders" id="slPaint"></div>
       <h4>Simulation</h4>
       <div class="sliders" id="slSim"></div>
-      <!-- the ground under the paint, by hand (the owner, 2026-10-07: "a light gradient — I am not afraid of the brush; or black: depth, mystery, magic"); Result shows it -->
-      <h4>Ground</h4>
-      <div class="toggles looks" id="grounds">
-        <button class="tog" data-ground="white" title="The white canvas">White</button>
-        <button class="tog" data-ground="gradient" title="A light gradient by hand, top to bottom — its two colours below; Result shows it">Gradient</button>
-        <button class="tog" data-ground="black" title="Black by hand: the paint lies over it, the grooves between the lanes go black; Result shows it">Black</button>
-      </div>
-      <div class="groundcols" id="groundCols" hidden>
-        <span>Top</span><label class="gc" title="The gradient's colour at the top — a click changes it"><span class="sw" id="gTopSw"></span><input type="color" id="gTop" aria-label="Ground, top"></label>
-        <span>Bottom</span><label class="gc" title="The gradient's colour at the bottom — a click changes it"><span class="sw" id="gBottomSw"></span><input type="color" id="gBottom" aria-label="Ground, bottom"></label>
-      </div>
       <h4>Canvas <button class="info" id="planInfo" title="The plan: the bands, the trace, where the canvas lies from home">i</button></h4>
       <div class="grid4" id="fields"></div>
       <p class="read" id="planRead" hidden></p>

@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOVE: the Ground in the Tools** (the owner, 2026-10-07, on a cyan to
+  pink gradient, `TYPE-Claude/Screenshot 2026-10-07 at 2.55.30 AM.png`:
+  "Wow! Beauty. Maybe put the gradients in the left corner, closer to the
+  colour palette, so as not to scroll down the block?"; at the foot of the
+  paints' strip, "it is cramped down there — right in the tools, where the
+  arrows and the cross are, after the cross"). After Clear: GROUND, a
+  swatch a ground — white, the gradient in its own colours, black — the
+  chosen one with the orange dot; with the gradient, its top and bottom
+  chips under them. Gone from the panel.
+
 - **LOVE: the Ground — white, a gradient or black** (the owner, 2026-10-07:
   "the ground a light gradient, I am not afraid of the brush; or black —
   depth, mystery, magic"; "you wanted to swap the white for a gradient,

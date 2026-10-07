@@ -605,11 +605,14 @@ this section disagree, this section wins: the owner corrected the sketch on
   the last one lifted nearest, 4 mm before a mark, so it takes up paint at
   once. 3 Drag colours the trains and rings every switch; the reading:
   `1 train — the train goes non-stop`.
-  **Ground** under Simulation (the owner, 2026-10-07: "the ground a light
+  **Ground** in the Tools, after Clear (moved there from under Simulation
+  the same night, the owner: "put the gradients in the left corner, so as
+  not to scroll down"; at the foot of the paints' strip "it is cramped —
+  right in the tools, after the cross"): a swatch a ground, the chosen one with the orange dot (the owner: "the ground a light
   gradient — I am not afraid of the brush; or black: depth appears,
   mystery, magic — no longer a drawing but conceptual art"): White ·
   Gradient · Black, painted by hand; a gradient top to bottom, its two
-  colours chips (by eye). Result, Play the run, the Library's picture and
+  colours chips under it, top and bottom (by eye). Result, Play the run, the Library's picture and
   the saved SVG show it; the passes' views keep the white, so their lines
   read. Over black the paint lies on top (multiplied, it would vanish).
   Open: the ground before the rails or after them — on black, the

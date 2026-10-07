@@ -631,6 +631,18 @@ function palette() {
   $('#btnAddPaint').onclick = () => { if (S.paints.length >= PAINTS_MAX) return; undoPush(); S.paints.push({ hex: '#888888' }); palette(); settle(); };
   $('#btnResetClicks').onclick = () => { if (!Object.keys(S.over).length) return; undoPush(); S.over = {}; settle(); };
 }
+// The ground in the Tools, after Clear (the owner, 2026-10-07: "put the
+// gradients in the left corner, so as not to scroll down"; then, "it is
+// cramped down there — right in the tools, after the cross"): a swatch a
+// ground, a click shows it in Result; a gradient's top and bottom under them.
+document.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { if (S.ground === b.dataset.ground && S.view === 'result') return; undoPush(); S.ground = b.dataset.ground; S.view = 'result'; settle(); });
+for (const [id, key] of [['#gTop', 'groundTop'], ['#gBottom', 'groundBottom']]) { const inp = $(id); inp.oninput = () => { if (!busy) undoPush(); busy = true; S[key] = inp.value; showGround(); kick(); }; inp.onchange = () => settle(); }
+function showGround() {
+  document.querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === S.ground));
+  $('#groundCols').hidden = S.ground !== 'gradient';
+  $('#gGrad').style.background = `linear-gradient(${S.groundTop}, ${S.groundBottom})`;
+  for (const [id, key] of [['#gTop', 'groundTop'], ['#gBottom', 'groundBottom']]) { if (document.activeElement !== $(id)) $(id).value = S[key]; $(id + 'Sw').style.background = S[key]; }
+}
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; if (S.view !== 'result') stopPlay(); settle(); });
 $('#btnPlay').onclick = play;
 document.querySelectorAll('[data-order]').forEach(b => b.onclick = () => { if (S.order === b.dataset.order) return; undoPush(); S.order = b.dataset.order; settle(); });
@@ -657,9 +669,6 @@ $('#throughOn').onclick = () => { if (S.through) return; undoPush(); S.through =
 $('#rails').onchange = e => { undoPush(); S.rails = e.target.checked; S.session = 0; settle(); };
 $('#railsOff').onclick = () => { if (!S.rails) return; undoPush(); S.rails = false; S.session = 0; settle(); };
 $('#railsOn').onclick = () => { if (S.rails) return; undoPush(); S.rails = true; S.session = 0; settle(); };
-// The ground: a click shows it in Result; a gradient's colours as the paints' (a click on the chip)
-document.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { if (S.ground === b.dataset.ground && S.view === 'result') return; undoPush(); S.ground = b.dataset.ground; S.view = 'result'; settle(); });
-for (const [id, key] of [['#gTop', 'groundTop'], ['#gBottom', 'groundBottom']]) { const inp = $(id); inp.oninput = () => { if (!busy) undoPush(); busy = true; S[key] = inp.value; showPanel(); kick(); }; inp.onchange = () => settle(); }
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
 function showPanel() {
@@ -676,9 +685,7 @@ function showPanel() {
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
   $('#through').checked = S.through; $('#throughOff').classList.toggle('on', !S.through); $('#throughOn').classList.toggle('on', S.through);
   $('#rails').checked = S.rails; $('#railsOff').classList.toggle('on', !S.rails); $('#railsOn').classList.toggle('on', S.rails);
-  document.querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === S.ground));
-  $('#groundCols').hidden = S.ground !== 'gradient';
-  for (const [id, key] of [['#gTop', 'groundTop'], ['#gBottom', 'groundBottom']]) { if (document.activeElement !== $(id)) $(id).value = S[key]; $(id + 'Sw').style.background = S[key]; }
+  showGround();
 }
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
