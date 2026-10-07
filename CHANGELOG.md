@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TYPE: 💾 SAVE TYPE saves again** (the owner, 2026-10-07: "of course, fix
+  it"). The fault LOVE had: since the zoom (0ef9d85) the PNG preview's
+  `const view` hid the `view()` it calls, so SAVE threw before sending and
+  said "start rembrandt.py". Renamed, as on LOVE; nothing else in TYPE.
+
 - **LOVE: 💾 SAVE LOVE saves again** (the owner, 2026-10-07: "SAVE LOVE —
   not saved · start rembrandt.py; the new figures do not appear in the
   Library"). Not the server: the PNG preview threw before anything was
