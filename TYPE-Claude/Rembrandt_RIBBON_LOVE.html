@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rembrandt · RIBBON · LOVE</title>
+<style>
+:root {
+  --bg: #EDEAE4; --panel: #F5F3EF; --line: #D5CFC4; --ink: #24221F; --mute: #7D776D; --accent: #EB7A25;
+  --key: linear-gradient(#FBFAF7, #ECE8E1); --key-on: #E4DFD6; --paper: #FBFAF7;
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif; --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1F1E1C; --panel: #292825; --line: #3B3935; --ink: #ECE8E1; --mute: #A39D93;
+  --key: linear-gradient(#3A3834, #2E2C29); --key-on: #22211F; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #1F1E1C; --panel: #292825; --line: #3B3935; --ink: #ECE8E1; --mute: #A39D93;
+  --key: linear-gradient(#3A3834, #2E2C29); --key-on: #22211F; color-scheme: dark }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--sans); padding: 18px 16px 28px; }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.logo { letter-spacing: .32em; font-weight: 600; font-size: 15px; }
+.tab { font: 600 12px var(--mono); color: #fff; background: var(--accent); border-radius: 4px; padding: 2px 7px; letter-spacing: .08em; }
+header p { margin: 0; color: var(--mute); }
+.grid { display: grid; grid-template-columns: minmax(260px, 320px) 1fr; gap: 14px; align-items: start; }
+@media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 14px; }
+.blk { display: grid; gap: 7px; }
+.lab { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.keys { display: flex; flex-wrap: wrap; gap: 4px; }
+button.k { font: 600 11.5px var(--sans); letter-spacing: .04em; color: var(--ink); background: var(--key); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; position: relative; }
+button.k.on { background: var(--key-on); box-shadow: inset 0 1px 3px rgba(0,0,0,.18); }
+button.k.on::after { content: ""; position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+button.k:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sl { display: grid; gap: 1px; }
+.slh { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.slh b { font: 500 12px var(--mono); letter-spacing: 0; text-transform: none; color: var(--ink); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: #57544F; margin: 2px 0; }
+.stops { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.stops input[type=color] { width: 34px; height: 26px; border: 1px solid var(--line); border-radius: 4px; padding: 0; background: none; cursor: pointer; }
+.main { display: grid; gap: 10px; min-width: 0; }
+.sheet { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; place-items: center; overflow: hidden; }
+canvas { display: block; box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 6px 20px rgba(0,0,0,.08); }
+.readout { font: 12px var(--mono); color: var(--mute); font-variant-numeric: tabular-nums; display: grid; gap: 4px; }
+.readout b { color: var(--ink); font-weight: 500; }
+.warn { color: var(--accent); }
+#msg { font: 12px var(--mono); color: var(--accent); min-height: 1em; }
+.note { color: var(--mute); font-size: 13px; max-width: 70ch; margin: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo">REMBRANDT</span><span class="tab">RIBBON</span>
+    <p>LOVE as one ribbon: L, O, E, V, clockwise, no branches, one run.</p>
+  </header>
+  <div class="grid">
+    <section class="panel" aria-label="Settings">
+      <div class="blk">
+        <span class="lab">Canvas, mm</span>
+        <div class="keys" id="canvases"></div>
+        <label class="sl"><span class="slh">Margin <b id="o-margin"></b></span><input id="margin" type="range" min="15" max="90" step="1"></label>
+      </div>
+      <div class="blk">
+        <span class="lab">Shape, in band widths</span>
+        <label class="sl"><span class="slh">Corner roundness <b id="o-R"></b></span><input id="R" type="range" min="0.55" max="1.4" step="0.05"></label>
+        <label class="sl"><span class="slh">O corners <b id="o-Ro"></b></span><input id="Ro" type="range" min="0.6" max="1.5" step="0.05"></label>
+        <label class="sl"><span class="slh">Fold gap <b id="o-gapU"></b></span><input id="gapU" type="range" min="0" max="0.6" step="0.02"></label>
+        <label class="sl"><span class="slh">V lean <b id="o-phi"></b></span><input id="phi" type="range" min="4" max="22" step="1"></label>
+      </div>
+      <div class="blk">
+        <span class="lab">Brush</span>
+        <label class="sl"><span class="slh">Lanes <b id="o-lanes"></b></span><input id="lanes" type="range" min="4" max="10" step="2"></label>
+        <label class="sl"><span class="slh">Brush width <b id="o-brush"></b></span><input id="brush" type="range" min="4" max="24" step="0.5"></label>
+        <div class="keys" id="orders">
+          <button class="k" data-order="snake">Back and forth, no lifts</button>
+          <button class="k" data-order="same">Always clockwise, lift between lanes</button>
+        </div>
+      </div>
+      <div class="blk">
+        <span class="lab">Paint</span>
+        <div class="stops" id="stops"></div>
+        <div class="keys"><button class="k" id="addStop">Add colour</button><button class="k" id="delStop">Remove last</button></div>
+        <label class="sl"><span class="slh">Mark spacing <b id="o-spacing"></b></span><input id="spacing" type="range" min="30" max="200" step="5"></label>
+        <label class="sl"><span class="slh">Paint run <b id="o-run"></b></span><input id="run" type="range" min="40" max="600" step="10"></label>
+        <label class="sl"><span class="slh">Paint layer <b id="o-film"></b></span><input id="film" type="range" min="0.2" max="1.5" step="0.05"></label>
+      </div>
+    </section>
+    <section class="main" aria-label="Sheet">
+      <div class="keys" id="views">
+        <button class="k" data-view="spine">Spine</button>
+        <button class="k" data-view="lanes">Brush path</button>
+        <button class="k" data-view="marks">Marks</button>
+        <button class="k" data-view="result">Result</button>
+        <button class="k" id="play">Play the run</button>
+      </div>
+      <div class="sheet" id="sheet"><canvas id="cv" aria-label="Canvas preview"></canvas></div>
+      <div class="readout" id="readout"></div>
+      <div class="blk">
+        <span class="lab">Files for the machine</span>
+        <div class="keys" id="files"></div>
+        <div id="msg" role="status"></div>
+      </div>
+      <p class="note">One ribbon from the top of the L to the tip of the V. The E's middle and lower arms and the V's right arm are folds: the ribbon goes out, turns, and comes back alongside itself. The O's bottom is painted twice, once as the L's foot and once closing the loop; the brush leaves the O where the two meet and hooks down into the E.</p>
+    </section>
+  </div>
+</div>
+<script>
+const S = { cw: 500, ch: 700, margin: 40, R: 0.75, Ro: 1.0, gapU: 0.1, phi: 12, lanes: 6, brush: 10, order: 'snake',
+  spacing: 70, run: 220, film: 0.5, view: 'result', stops: ['#6E1F1A', '#D9472B', '#F08A24', '#E8B52E'] };
+try { Object.assign(S, JSON.parse(localStorage.getItem('rembrandt.ribbon.love') || '{}')); } catch (e) { }
+const save = () => { try { localStorage.setItem('rembrandt.ribbon.love', JSON.stringify(S)); } catch (e) { } };
+
+// ---------- the spine, drawn with a turtle in band widths (W = 1), y down ----------
+function turtleSpine(P, xv, CL) {
+  const pts = [], step = 0.02; let x, y, th;
+  const push = () => pts.push([x, y]);
+  const fwd = d => { const n = Math.max(1, Math.ceil(Math.abs(d) / step)); for (let i = 1; i <= n; i++) { x += Math.cos(th) * d / n; y += Math.sin(th) * d / n; push(); } };
+  const toX = tx => fwd((tx - x) / Math.cos(th)), toY = ty => fwd((ty - y) / Math.sin(th));
+  // deg > 0 turns right (clockwise on screen), < 0 left
+  const turn = (r, deg) => {
+    const a = deg * Math.PI / 180, s = Math.sign(a), cx = x - r * s * Math.sin(th), cy = y + r * s * Math.cos(th);
+    const f0 = Math.atan2(y - cy, x - cx), n = Math.max(4, Math.ceil(Math.abs(a) * r / step));
+    for (let i = 1; i <= n; i++) { const f = f0 + a * i / n; x = cx + r * Math.cos(f); y = cy + r * Math.sin(f); push(); }
+    th += a;
+  };
+  const { R, Ro, phi } = P, u = 0.5 + P.gapU / 2;
+  const H = 4 * R + 4 * u + 1, yb1 = H - 0.5, Ox0 = CL + 0.5 + 0.5, Ox1 = Ox0 + 3, yt = yb1 + Ro + R, tipc = Ox1 - u, Ex = Ox0;
+  const parts = {};
+  x = 0.5; y = 0.5; th = Math.PI / 2; push();
+  // L: stem down, round corner, foot east, straight on into the O's bottom
+  toY(yb1 - R); turn(R, -90); parts.L = pts.length;
+  // O: once round, anticlockwise, back along its own bottom
+  toX(Ox1 - Ro); turn(Ro, -90); toY(0.5 + Ro); turn(Ro, -90); toX(Ox0 + Ro); turn(Ro, -90); toY(yb1 - Ro); turn(Ro, -90); toX(Ox1 - Ro);
+  parts.O = pts.length;
+  // the hook: out of the O's bottom right, down into the E's top right
+  turn(Ro, 90); toY(yt - R); turn(R, 90);
+  // E: top arm west, then two folds east
+  toX(Ex + R); turn(R, -90); turn(R, -90); toX(tipc); turn(u, 180);
+  toX(Ex + R); turn(R, -90); turn(R, -90); toX(tipc); turn(u, 180);
+  parts.E = pts.length;
+  const ybb = y;
+  // across to the V, round its bottom, up the right arm, fold, down, round, up the left arm
+  toX(xv); parts.vStart = pts.length;
+  turn(0.5 + R * 0.3, 90 + phi); toY(yt + u + u * Math.cos(th)); turn(u, -180);
+  const r2 = 0.5 + R * 0.3; toY(ybb - r2 * (1 + Math.cos(th))); turn(r2, 180 - 2 * phi); toY(yt);
+  return { pts, parts, H, ybb, yt, Ox1 };
+}
+function spineUnits(P) {
+  let g = turtleSpine(P, 2, 4);
+  const v = g.pts.slice(g.parts.vStart), xs = v.map(p => p[0]);
+  const vw = Math.max(...xs) - Math.min(...xs) + 1, CL = Math.max(4, vw);
+  g = turtleSpine(P, 2, CL);
+  const v2 = g.pts.slice(g.parts.vStart), xs2 = v2.map(p => p[0]);
+  const shift = CL / 2 - (Math.max(...xs2) + Math.min(...xs2)) / 2;
+  g = turtleSpine(P, 2 + shift, CL);
+  g.w = g.Ox1 + 0.5; g.h = g.ybb + 0.5;
+  return g;
+}
+
+// ---------- to canvas mm ----------
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]], mul = (a, k) => [a[0] * k, a[1] * k];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1], len = a => Math.hypot(a[0], a[1]), norm = a => { const l = len(a) || 1; return [a[0] / l, a[1] / l]; };
+function resample(pts, step) {
+  const out = [pts[0]]; let acc = 0;
+  for (let i = 1; i < pts.length; i++) { acc += len(sub(pts[i], pts[i - 1])); if (acc >= step) { out.push(pts[i]); acc = 0; } }
+  if (out.at(-1) !== pts.at(-1)) out.push(pts.at(-1));
+  return out;
+}
+function plan() {
+  const g = spineUnits(S);
+  const W = Math.min((S.cw - 2 * S.margin) / g.w, (S.ch - 2 * S.margin) / g.h);
+  const ox = (S.cw - g.w * W) / 2, oy = (S.ch - g.h * W) / 2;
+  const P = resample(g.pts.map(p => [ox + p[0] * W, oy + p[1] * W]), 1);
+  const n = P.length, s = [0], T = [], N = [];
+  for (let i = 1; i < n; i++) s.push(s[i - 1] + len(sub(P[i], P[i - 1])));
+  for (let i = 0; i < n; i++) { const t = norm(sub(P[Math.min(n - 1, i + 1)], P[Math.max(0, i - 1)])); T.push(t); N.push([-t[1], t[0]]); }
+  const L = s.at(-1), Rc = Math.max(0, (W - S.brush) / 2), k = S.lanes, pitch = k > 1 ? 2 * Rc / (k - 1) : 0;
+  const lanes = [];
+  for (let j = 0; j < k; j++) {
+    const d = -Rc + j * pitch, out = [], e = Math.sqrt(Math.max(0, Rc * Rc - d * d));
+    for (let q = 6; q >= 1; q--) out.push({ p: add(add(P[0], mul(N[0], d)), mul(T[0], -e * q / 6)), s: 0 });
+    for (let i = 0; i < n; i++) {
+      const q = add(P[i], mul(N[i], d));
+      if (out.length > 6 && dot(sub(q, out.at(-1).p), T[i]) <= 0.05) continue;
+      out.push({ p: q, s: s[i] });
+    }
+    for (let q = 1; q <= 6; q++) out.push({ p: add(add(P[n - 1], mul(N[n - 1], d)), mul(T[n - 1], e * q / 6)), s: L });
+    lanes.push({ d, pts: out });
+  }
+  // brush runs: one path back and forth, or every lane clockwise with a lift
+  const runs = [];
+  if (S.order === 'snake') { let r = []; lanes.forEach((l, j) => { r = r.concat(j % 2 ? [...l.pts].reverse() : l.pts); }); runs.push(r); }
+  else lanes.forEach(l => runs.push(l.pts));
+  // marks: one across the band every spacing mm, none where the ribbon already passed
+  const marks = [], K = S.stops.length, half = Math.max(3, W / 2 - 3);
+  const at = [8]; for (let v = 8 + S.spacing; v < L - 8 - S.spacing * 0.4; v += S.spacing) at.push(v); at.push(L - 8);
+  for (const sm of at) {
+    const i = Math.min(n - 1, Math.round(sm));
+    let seen = false;
+    for (let j = 0; j < n && s[j] < sm - 2 * W; j += 2) if (len(sub(P[j], P[i])) < 0.7 * W) { seen = true; break; }
+    if (seen) continue;
+    marks.push({ s: sm, p: P[i], N: N[i], paint: Math.min(K - 1, Math.floor(sm / L * K)), a: add(P[i], mul(N[i], -half)), b: add(P[i], mul(N[i], half)) });
+  }
+  return { g, W, P, s, T, N, L, Rc, pitch, lanes, runs, marks };
+}
+
+// ---------- simulation ----------
+const hex2rgb = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+function simSegments(pl) {
+  const segs = [], w = Math.max(1, Math.min(S.brush, pl.pitch || S.brush) * 0.95), ms = pl.marks.map(m => m.s);
+  for (const run of pl.runs) {
+    let col = null, load = 0;
+    for (let i = 1; i < run.length; i++) {
+      const a = run[i - 1], b = run[i], lo = Math.min(a.s, b.s), hi = Math.max(a.s, b.s);
+      if (hi > lo) for (let m = 0; m < ms.length; m++) if (ms[m] > lo && ms[m] <= hi) {
+        const pc = hex2rgb(S.stops[pl.marks[m].paint]); col = col && load > 0.05 ? mix(col, pc, 0.7) : pc; load = 1;
+      }
+      load *= Math.exp(-len(sub(b.p, a.p)) / S.run);
+      if (col && load > 0.02) segs.push({ a: a.p, b: b.p, col, alpha: 0.9 * Math.min(1, load * 1.3), w });
+      else segs.push({ a: a.p, b: b.p, col: null });
+    }
+    segs.push({ lift: true });
+  }
+  return segs;
+}
+
+// ---------- render ----------
+const $ = q => document.querySelector(q), cv = $('#cv'), g = cv.getContext('2d');
+let PL = null, SEGS = null, SCALE = 1, anim = null;
+function line(pts) { g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(...p) : g.moveTo(...p)); }
+function drawSeg(sg) {
+  if (!sg.col) return;
+  g.strokeStyle = `rgba(${sg.col.map(Math.round).join(',')},${sg.alpha.toFixed(3)})`; g.lineWidth = sg.w;
+  g.beginPath(); g.moveTo(...sg.a); g.lineTo(...sg.b); g.stroke();
+  g.strokeStyle = `rgba(${mix(sg.col, [0, 0, 0], .3).map(Math.round).join(',')},${(sg.alpha * .3).toFixed(3)})`; g.lineWidth = sg.w * .16;
+  g.beginPath(); g.moveTo(...sg.a); g.lineTo(...sg.b); g.stroke();
+}
+function frame() {
+  const box = $('#sheet'), availW = box.clientWidth - 30, availH = Math.max(320, innerHeight * 0.8);
+  SCALE = Math.min(availW / S.cw, availH / S.ch);
+  const dpr = devicePixelRatio || 1, k = SCALE * dpr;
+  cv.style.width = Math.round(S.cw * SCALE) + 'px'; cv.style.height = Math.round(S.ch * SCALE) + 'px';
+  cv.width = Math.round(S.cw * k); cv.height = Math.round(S.ch * k);
+  g.setTransform(k, 0, 0, k, 0, 0); g.fillStyle = '#FBFAF7'; g.fillRect(0, 0, S.cw, S.ch);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+}
+function draw() {
+  if (anim) { cancelAnimationFrame(anim); anim = null; }
+  PL = plan(); SEGS = simSegments(PL); frame();
+  const { W, P, lanes, marks } = PL;
+  if (S.view === 'spine') {
+    g.strokeStyle = 'rgba(36,34,31,.10)'; g.lineWidth = W; line(P); g.stroke();
+    g.strokeStyle = '#24221F'; g.lineWidth = 1.2; line(P); g.stroke();
+    for (let i = 60; i < P.length; i += 120) {   // direction ticks
+      const t = PL.T[i], c = P[i], a = add(c, add(mul(t, -5), mul(PL.N[i], 4))), b = add(c, add(mul(t, -5), mul(PL.N[i], -4)));
+      g.beginPath(); g.moveTo(...a); g.lineTo(...c); g.lineTo(...b); g.stroke();
+    }
+    g.fillStyle = '#EB7A25'; g.beginPath(); g.arc(...P[0], 4, 0, 7); g.fill();
+    g.strokeStyle = '#EB7A25'; g.lineWidth = 2; g.beginPath(); g.arc(...P.at(-1), 4, 0, 7); g.stroke();
+  }
+  if (S.view === 'lanes' || S.view === 'marks') {
+    g.strokeStyle = 'rgba(70,110,150,.18)'; g.lineWidth = W; line(P); g.stroke();
+    if (S.view === 'lanes') lanes.forEach((l, j) => { g.strokeStyle = `hsla(${200 + j * 25},45%,35%,.8)`; g.lineWidth = 0.7; line(l.pts.map(q => q.p)); g.stroke(); });
+    if (S.view === 'marks') for (const m of marks) { g.strokeStyle = S.stops[m.paint]; g.lineWidth = 4; line([m.a, m.b]); g.stroke(); }
+    g.fillStyle = '#EB7A25'; g.beginPath(); g.arc(...PL.runs[0][0].p, 3, 0, 7); g.fill();
+  }
+  if (S.view === 'result') for (const sg of SEGS) if (!sg.lift) drawSeg(sg);
+  readout();
+}
+function play() {
+  if (anim) cancelAnimationFrame(anim);
+  S.view = 'result'; sync(false); frame();
+  const total = SEGS.length, dur = 12000, t0 = performance.now(); let done = 0;
+  const tick = now => {
+    const upto = Math.min(total, Math.floor((now - t0) / dur * total));
+    for (; done < upto; done++) if (!SEGS[done].lift) drawSeg(SEGS[done]);
+    if (done < total) anim = requestAnimationFrame(tick); else anim = null;
+  };
+  anim = requestAnimationFrame(tick);
+}
+const pathLen = pts => { let l = 0; for (let i = 1; i < pts.length; i++) l += len(sub(pts[i].p, pts[i - 1].p)); return l; };
+function readout() {
+  const { W, L, pitch, runs, marks } = PL, brushLen = runs.reduce((a, r) => a + pathLen(r), 0);
+  const ml = W * S.spacing * S.film / 1000, lines = [];
+  lines.push(`band <b>${W.toFixed(0)} mm</b> · ${S.lanes} lanes, pitch <b>${pitch.toFixed(1)} mm</b> · ribbon <b>${(L / 1000).toFixed(2)} m</b>`);
+  lines.push(`brush path <b>${(brushLen / 1000).toFixed(1)} m</b>, about <b>${(brushLen / 60 / 60).toFixed(1)} min</b> at 60 mm/s · lifts <b>${runs.length - 1}</b>`);
+  const cnt = S.stops.map((c, i) => marks.filter(m => m.paint === i).length);
+  lines.push(`<b>${marks.length}</b> marks, about <b>${ml.toFixed(1)} ml</b> each · ` + cnt.map((c, i) => `<span style="color:${S.stops[i]}">■</span> ${i + 1}: ${c}× (${(c * ml).toFixed(0)} ml)`).join(' · '));
+  if (pitch > S.brush) lines.push(`<span class="warn">Lane pitch is wider than the brush: white gaps between lanes.</span>`);
+  if (S.lanes % 2) lines.push(`<span class="warn">Odd lane count: the run ends at the other end of the ribbon.</span>`);
+  $('#readout').innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+  files();
+}
+
+// ---------- files ----------
+const f2 = v => (Math.round(v * 100) / 100).toString(), dd = pts => 'M' + pts.map(p => f2(p[0]) + ' ' + f2(p[1])).join(' L');
+const svg = (title, body) => `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt RIBBON · LOVE · ${title} · canvas ${S.cw}x${S.ch} mm, y down, origin top left. Each <path> is one brush-down run, in drawing order. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${S.cw}mm" height="${S.ch}mm" viewBox="0 0 ${S.cw} ${S.ch}">\n${body}\n</svg>\n`;
+function files() {
+  const list = [
+    ['Spine', 'love_spine.svg', () => svg('spine', `<path id="spine" d="${dd(PL.P)}" fill="none" stroke="#000" stroke-width="1" data-band-mm="${f2(PL.W)}"/>`)],
+    ['1 Trace', 'love_1_trace.svg', () => { const a = PL.lanes[0].pts.map(q => q.p), b = PL.lanes.at(-1).pts.map(q => q.p);
+      const o = (side) => PL.P.map((p, i) => add(p, mul(PL.N[i], side * PL.W / 2)));
+      return svg('pass 1 trace', `<g id="pass1-trace" data-pass="1" data-ink="INK-1" data-dip-every-mm="400" fill="none" stroke="#6E8EB0">\n  <path d="${dd(o(-1))}"/>\n  <path d="${dd(o(1))}"/>\n</g>`); }],
+    ['2 Marks', 'love_2_marks.svg', () => svg('pass 2 marks', `<g id="pass2-marks" data-pass="2" data-ink="INK-2" data-dip-every-marks="4" fill="none" stroke="#8A8A8A" stroke-width="2">\n${PL.marks.map(m => `  <path d="${dd([m.a, m.b])}" data-paint="${m.paint + 1}"/>`).join('\n')}\n</g>`)],
+    ['3 Drag', 'love_3_drag.svg', () => svg('pass 3 drag', `<g id="pass3-drag" data-pass="3" data-ink="none" data-brush-mm="${S.brush}" data-lanes="${S.lanes}" fill="none" stroke="#24221F" stroke-width="1">\n${PL.runs.map(r => `  <path d="${dd(r.map(q => q.p))}"/>`).join('\n')}\n</g>`)],
+    ['Paint map', 'love_paint_map.svg', () => svg('paint map', `<rect width="100%" height="100%" fill="#FBFAF7"/>\n<path d="${dd(PL.P)}" fill="none" stroke="#DDD6CA" stroke-width="${f2(PL.W)}" stroke-linecap="round"/>\n${PL.marks.map(m => `<path d="${dd([m.a, m.b])}" stroke="${S.stops[m.paint]}" stroke-width="5" stroke-linecap="round"/>`).join('\n')}\n${S.stops.map((c, i) => `<rect x="10" y="${10 + i * 14}" width="10" height="10" fill="${c}"/><text x="26" y="${19 + i * 14}" font-family="Helvetica, Arial" font-size="10">${i + 1}</text>`).join('')}`)]
+  ];
+  const box = $('#files'); box.innerHTML = '';
+  for (const [label, name, make] of list) { const b = document.createElement('button'); b.className = 'k'; b.textContent = label; b.onclick = () => saveFile(name, make()); box.appendChild(b); }
+}
+let DL;
+async function saveFile(name, data) {
+  const msg = $('#msg'); msg.textContent = '';
+  if (window.claude?.use) {
+    if (DL === undefined) { try { DL = await claude.use('downloads'); } catch (e) { DL = null; } }
+    if (!DL) { msg.textContent = 'Saving files is not available in this view.'; return; }
+    try { await DL.save({ filename: name, data }); msg.textContent = `Saved ${name}`; } catch (e) { msg.textContent = e?.code === 'declined' ? '' : `Could not save ${name}`; }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'image/svg+xml' })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000); msg.textContent = `Saved ${name}`;
+}
+
+// ---------- controls ----------
+const SL = { margin: v => `${v} mm`, R: v => (+v).toFixed(2), Ro: v => (+v).toFixed(2), gapU: v => (+v).toFixed(2), phi: v => `${v}°`,
+  lanes: v => `${v}`, brush: v => `${v} mm`, spacing: v => `${v} mm`, run: v => `${v} mm`, film: v => `${(+v).toFixed(2)} mm` };
+function stops() {
+  $('#stops').innerHTML = S.stops.map((c, i) => `<input type="color" value="${c}" data-i="${i}" aria-label="Colour ${i + 1}">`).join('');
+  $('#stops').querySelectorAll('input').forEach(el => el.oninput = () => { S.stops[+el.dataset.i] = el.value; sync(false); });
+}
+function sync(redraw = true) {
+  for (const id of Object.keys(SL)) { $('#' + id).value = S[id]; $('#o-' + id).textContent = SL[id](S[id]); }
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
+  document.querySelectorAll('[data-order]').forEach(b => b.classList.toggle('on', b.dataset.order === S.order));
+  document.querySelectorAll('[data-cv]').forEach(b => b.classList.toggle('on', b.dataset.cv === `${S.cw}x${S.ch}`));
+  if (redraw) draw();
+  save();
+}
+$('#canvases').innerHTML = [[500, 700], [600, 800], [700, 1000]].map(([w, h]) => `<button class="k" data-cv="${w}x${h}">${w}×${h}</button>`).join('');
+document.querySelectorAll('[data-cv]').forEach(b => b.onclick = () => { [S.cw, S.ch] = b.dataset.cv.split('x').map(Number); sync(); });
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; sync(); });
+document.querySelectorAll('[data-order]').forEach(b => b.onclick = () => { S.order = b.dataset.order; sync(); });
+for (const id of Object.keys(SL)) $('#' + id).oninput = e => { S[id] = +e.target.value; sync(); };
+$('#addStop').onclick = () => { if (S.stops.length < 6) { S.stops.push('#888888'); stops(); sync(); } };
+$('#delStop').onclick = () => { if (S.stops.length > 1) { S.stops.pop(); stops(); sync(); } };
+$('#play').onclick = play;
+new ResizeObserver(() => PL && !anim && draw()).observe($('#sheet'));
+stops(); sync();
+</script>
+</body>
+</html>

@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rembrandt · TYPE</title>
+<style>
+:root {
+  --bg: #EDEAE4; --panel: #F5F3EF; --line: #D5CFC4; --ink: #24221F; --mute: #7D776D; --accent: #EB7A25;
+  --key: linear-gradient(#FBFAF7, #ECE8E1); --key-on: #E4DFD6; --paper: #FBFAF7;
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif; --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1F1E1C; --panel: #292825; --line: #3B3935; --ink: #ECE8E1; --mute: #A39D93;
+  --key: linear-gradient(#3A3834, #2E2C29); --key-on: #22211F; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1F1E1C; --panel: #292825; --line: #3B3935; --ink: #ECE8E1; --mute: #A39D93;
+  --key: linear-gradient(#3A3834, #2E2C29); --key-on: #22211F; color-scheme: dark }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--sans); padding: 18px 16px 28px; }
+.wrap { max-width: 1320px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.logo { letter-spacing: .32em; font-weight: 600; font-size: 15px; }
+.tab { font: 600 12px var(--mono); color: #fff; background: var(--accent); border-radius: 4px; padding: 2px 7px; letter-spacing: .08em; }
+header p { margin: 0; color: var(--mute); font-size: 14px; }
+.grid { display: grid; grid-template-columns: minmax(280px, 340px) 1fr; gap: 14px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 14px; }
+.blk { display: grid; gap: 8px; }
+.lab { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.keys { display: flex; flex-wrap: wrap; gap: 4px; }
+button.k { font: 600 11.5px var(--sans); letter-spacing: .04em; color: var(--ink); background: var(--key); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; position: relative; }
+button.k.on { background: var(--key-on); box-shadow: inset 0 1px 3px rgba(0,0,0,.18); }
+button.k.on::after { content: ""; position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+button.k:disabled { opacity: .4; cursor: default; }
+button.k:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+textarea { width: 100%; font: 600 20px/1.2 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; resize: vertical; min-height: 48px; }
+.sl { display: grid; gap: 1px; }
+.slh { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.slh b { font: 500 12px var(--mono); letter-spacing: 0; text-transform: none; color: var(--ink); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: #57544F; margin: 2px 0; }
+.pal { display: grid; gap: 4px; }
+.paint { display: grid; grid-template-columns: 22px 28px 1fr 22px; gap: 6px; align-items: center; }
+.paint .n { font: 11px var(--mono); color: var(--mute); text-align: right; }
+.paint input[type=color] { width: 28px; height: 24px; border: 1px solid var(--line); border-radius: 4px; padding: 0; background: none; cursor: pointer; }
+.paint input[type=text] { min-width: 0; font: 13px var(--sans); color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 3px 2px; }
+.paint button { border: 0; background: none; color: var(--mute); cursor: pointer; font-size: 15px; line-height: 1; }
+.main { display: grid; gap: 10px; min-width: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.sheet { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; place-items: center; overflow: hidden; }
+canvas { display: block; box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 6px 20px rgba(0,0,0,.08); cursor: crosshair; touch-action: manipulation; }
+.readout { font: 12px var(--mono); color: var(--mute); font-variant-numeric: tabular-nums; display: grid; gap: 4px; overflow-wrap: anywhere; }
+.readout b { color: var(--ink); font-weight: 500; }
+.warn { color: var(--accent); }
+.squeeze { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 12px var(--mono); }
+.squeeze span { display: inline-flex; align-items: center; gap: 6px; }
+.squeeze i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,.15); }
+.files { display: flex; flex-wrap: wrap; gap: 4px; }
+.note { color: var(--mute); font-size: 13px; max-width: 70ch; margin: 0; }
+#msg { font: 12px var(--mono); color: var(--accent); min-height: 1em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="logo">REMBRANDT</span><span class="tab">TYPE</span>
+    <p>Letters as bands: watercolour trace, paint marks from INK-2, then one dry drag.</p>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-label="Settings">
+      <div class="blk">
+        <label class="lab" for="text">Text</label>
+        <textarea id="text" rows="2" spellcheck="false" autocapitalize="characters"></textarea>
+      </div>
+
+      <div class="blk">
+        <span class="lab">Canvas, mm</span>
+        <div class="keys" id="canvases"></div>
+      </div>
+
+      <div class="blk">
+        <label class="sl"><span class="slh">Letter height <b id="o-H"></b></span><input id="H" type="range" min="60" max="700" step="1"></label>
+        <div class="keys"><button class="k" id="fit">Fit to canvas</button></div>
+        <label class="sl"><span class="slh">Band width <b id="o-band"></b></span><input id="band" type="range" min="16" max="40" step="0.5"></label>
+        <label class="sl"><span class="slh">Letter gap <b id="o-gap"></b></span><input id="gap" type="range" min="-120" max="80" step="1"></label>
+        <label class="sl"><span class="slh">Line spacing <b id="o-lead"></b></span><input id="lead" type="range" min="-120" max="120" step="1"></label>
+        <label class="sl"><span class="slh">Margin <b id="o-margin"></b></span><input id="margin" type="range" min="10" max="150" step="1"></label>
+      </div>
+
+      <div class="blk">
+        <span class="lab">Brush, pass 3</span>
+        <label class="sl"><span class="slh">Brush width <b id="o-brush"></b></span><input id="brush" type="range" min="4" max="30" step="0.5"></label>
+        <label class="sl"><span class="slh">Lane pitch <b id="o-pitch"></b></span><input id="pitch" type="range" min="2" max="20" step="0.5"></label>
+        <div class="keys" id="orders">
+          <button class="k" data-order="out">Outside first</button>
+          <button class="k" data-order="in">Inside first</button>
+        </div>
+      </div>
+
+      <div class="blk">
+        <span class="lab">Paint layout, pass 2</span>
+        <label class="sl"><span class="slh">Mark spacing <b id="o-spacing"></b></span><input id="spacing" type="range" min="30" max="300" step="5"></label>
+        <label class="sl"><span class="slh">Paints per letter <b id="o-per"></b></span><input id="per" type="range" min="1" max="4" step="1"></label>
+        <div class="keys"><button class="k" id="ticks">Colour ticks on marks</button></div>
+        <span class="lab">Overlaps</span>
+        <div class="keys" id="dries">
+          <button class="k" data-dry="wet">Wet on wet</button>
+          <button class="k" data-dry="letters">Dry between letters</button>
+          <button class="k" data-dry="all">Dry every overlap</button>
+        </div>
+      </div>
+
+      <div class="blk">
+        <span class="lab">Simulation</span>
+        <label class="sl"><span class="slh">Paint run <b id="o-run"></b></span><input id="run" type="range" min="40" max="600" step="10"></label>
+        <label class="sl"><span class="slh">Glaze <b id="o-glaze"></b></span><input id="glaze" type="range" min="0.3" max="1" step="0.05"></label>
+      </div>
+
+      <div class="blk">
+        <span class="lab">Paints in stock</span>
+        <div class="pal" id="palette"></div>
+        <div class="keys"><button class="k" id="addPaint">Add paint</button><button class="k" id="resetColours">Reset colour clicks</button></div>
+      </div>
+    </section>
+
+    <section class="main" aria-label="Sheet">
+      <div class="bar">
+        <div class="keys" id="views">
+          <button class="k" data-view="trace">1 Trace</button>
+          <button class="k" data-view="marks">2 Marks</button>
+          <button class="k" data-view="drag">3 Drag</button>
+          <button class="k" data-view="result">Result</button>
+        </div>
+        <div class="keys" id="sessions"></div>
+      </div>
+      <div class="sheet" id="sheet"><canvas id="cv" aria-label="Canvas preview"></canvas></div>
+      <div class="readout" id="readout"></div>
+      <div class="squeeze" id="squeeze"></div>
+      <div class="blk">
+        <span class="lab">Files for the machine</span>
+        <div class="files" id="files"></div>
+        <div id="msg" role="status"></div>
+      </div>
+      <p class="note">Click a band in Marks or Result to step its paint to the next one in stock. The result view is a simulation: each lane picks up the paint of every mark it crosses and carries it until it runs out (paint run), sessions dry and glaze over each other.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+const GLYPHS = {"0":{"width":0.4976,"strokes":[{"start":[0,0.5],"nodes":[{"line":[0,0.2488]},{"arc":{"c":[0.2488,0.2488],"r":0.2488,"from":180,"to":270}},{"line":[0.2488,0]},{"arc":{"c":[0.2488,0.2488],"r":0.2488,"from":-90,"to":0}},{"line":[0.4976,0.7512]},{"arc":{"c":[0.2488,0.7512],"r":0.2488,"from":0,"to":90}},{"line":[0.2488,1]},{"arc":{"c":[0.2488,0.7512],"r":0.2488,"from":90,"to":180}},{"line":[0,0.5]}],"closed":true}]},"1":{"width":0.3437,"strokes":[{"start":[0,0.7294],"nodes":[{"line":[0.3437,1]}],"closed":false},{"start":[0.3437,1],"nodes":[{"line":[0.3437,0]}],"closed":false}]},"2":{"width":0.527,"strokes":[{"start":[0.0008,0.7706],"nodes":[{"arc":{"c":[0.2489,0.7511],"r":0.2489,"from":175.5,"to":-36}},{"line":[0,0]}],"closed":false},{"start":[0,0],"nodes":[{"line":[0.527,0]}],"closed":false}]},"3":{"width":0.4983,"strokes":[{"start":[0,0.7794],"nodes":[{"arc":{"c":[0.2483,0.75],"r":0.25,"from":173.248,"to":-82.125}}],"closed":false},{"start":[0.2428,0.4999],"nodes":[{"arc":{"c":[0.2483,0.25],"r":0.25,"from":91.25,"to":-171.8516}}],"closed":false}]},"4":{"width":0.5825,"strokes":[{"start":[0,1],"nodes":[{"line":[0,0.5]},{"line":[0.5825,0.5]}],"closed":false},{"start":[0.5825,1],"nodes":[{"line":[0.5825,0]}],"closed":false}]},"5":{"width":0.601,"strokes":[{"start":[0,1],"nodes":[{"line":[0.58,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0,0.5087]}],"closed":false},{"start":[0,0.5087],"nodes":[{"line":[0.3466,0.5087]},{"arc":{"c":[0.3466,0.2544],"r":0.2544,"from":90,"to":0}},{"line":[0.601,0.2543]},{"arc":{"c":[0.3466,0.2543],"r":0.2544,"from":0,"to":-90}},{"line":[0.015,0]}],"closed":false}]},"6":{"width":0.5,"strokes":[{"start":[0.434,1],"nodes":[{"line":[0.0396,0.385]},{"arc":{"c":[0.25,0.25],"r":0.25,"from":147.3268,"to":507.3268}}],"closed":false}]},"7":{"width":0.5747,"strokes":[{"start":[0,1],"nodes":[{"line":[0.5747,1]}],"closed":false},{"start":[0.5747,1],"nodes":[{"line":[0.0969,0]}],"closed":false}]},"8":{"width":0.4976,"strokes":[{"start":[0.2488,1],"nodes":[{"arc":{"c":[0.2488,0.7512],"r":0.2488,"from":90,"to":-270}}],"closed":true},{"start":[0.2488,0.4976],"nodes":[{"arc":{"c":[0.2488,0.2488],"r":0.2488,"from":90,"to":-270}}],"closed":true}]},"9":{"width":0.5,"strokes":[{"start":[0.0573,0],"nodes":[{"line":[0.4591,0.6129]},{"arc":{"c":[0.25,0.75],"r":0.25,"from":-33.2447,"to":326.7553}}],"closed":false}]},"A":{"width":0.9731,"strokes":[{"start":[0,0],"nodes":[{"line":[0.4813,1]}],"closed":false},{"start":[0.4813,1],"nodes":[{"line":[0.9731,0]}],"closed":false},{"start":[0.19,0.205],"nodes":[{"line":[0.785,0.205]}],"closed":false}]},"B":{"width":0.7013,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0.4495,1]},{"arc":{"c":[0.4495,0.7514],"r":0.2487,"from":90,"to":0}},{"line":[0.6981,0.7514]},{"arc":{"c":[0.4495,0.7514],"r":0.2487,"from":0,"to":-90}},{"line":[0,0.5027]}],"closed":false},{"start":[0,0.5027],"nodes":[{"line":[0.4499,0.5027]},{"arc":{"c":[0.4499,0.2514],"r":0.2514,"from":90,"to":0}},{"line":[0.7012,0.2513]},{"arc":{"c":[0.4499,0.2513],"r":0.2514,"from":0,"to":-90}},{"line":[0,0]}],"closed":false}]},"C":{"width":0.9071,"strokes":[{"start":[0.8766,0.8289],"nodes":[{"arc":{"c":[0.5,0.5],"r":0.5,"from":41.125,"to":324.5}}],"closed":false}]},"D":{"width":0.8175,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0.3175,1]},{"arc":{"c":[0.3175,0.5],"r":0.5,"from":90,"to":0}},{"line":[0.8175,0.5]},{"arc":{"c":[0.3175,0.5],"r":0.5,"from":0,"to":-90}},{"line":[0,0]}],"closed":false}]},"E":{"width":0.721,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0.721,1]}],"closed":false},{"start":[0,0.5025],"nodes":[{"line":[0.637,0.5025]}],"closed":false},{"start":[0,0],"nodes":[{"line":[0.721,0]}],"closed":false}]},"F":{"width":0.725,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0.725,1]}],"closed":false},{"start":[0,0.5025],"nodes":[{"line":[0.637,0.5025]}],"closed":false}]},"G":{"width":0.8303,"strokes":[{"start":[0.8303,1],"nodes":[{"line":[0.5,1]},{"arc":{"c":[0.5,0.5],"r":0.5,"from":90,"to":180}},{"line":[0,0.5]},{"arc":{"c":[0.5,0.5],"r":0.5,"from":180,"to":270}},{"line":[0.8253,0]},{"arc":{"c":[0.8253,0.005],"r":0.005,"from":-90,"to":0}},{"line":[0.8303,0.51]}],"closed":false},{"start":[0.8303,0.51],"nodes":[{"line":[0.535,0.51]}],"closed":false}]},"H":{"width":0.771,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0.771,0],"nodes":[{"line":[0.771,1]}],"closed":false},{"start":[0,0.5],"nodes":[{"line":[0.771,0.5]}],"closed":false}]},"I":{"width":0,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false}]},"J":{"width":0.6438,"strokes":[{"start":[0.6438,1],"nodes":[{"line":[0.6438,0.3275]},{"arc":{"c":[0.3163,0.3275],"r":0.3275,"from":0,"to":-90}},{"line":[0.3275,0]},{"arc":{"c":[0.3275,0.3275],"r":0.3275,"from":-90,"to":-180}},{"line":[0,0.3275]}],"closed":false}]},"K":{"width":0.6625,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0.0025,0.5075],"nodes":[{"line":[0.6188,0.9713]}],"closed":false},{"start":[0.0025,0.5075],"nodes":[{"line":[0.6625,0]}],"closed":false}]},"L":{"width":0.7,"strokes":[{"start":[0,1],"nodes":[{"line":[0,0]}],"closed":false},{"start":[0,0],"nodes":[{"line":[0.7,0]}],"closed":false}]},"M":{"width":1.1424,"strokes":[{"start":[0,0],"nodes":[{"line":[0.11,1]}],"closed":false},{"start":[1.1424,0],"nodes":[{"line":[1.0324,1]}],"closed":false},{"start":[0.11,1],"nodes":[{"line":[0.5712,0.0075]},{"line":[1.0324,1]}],"closed":false}]},"N":{"width":0.8603,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0.8603,0],"nodes":[{"line":[0.8603,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0.8603,0]}],"closed":false}]},"O":{"width":0.9976,"strokes":[{"start":[0,0.5],"nodes":[{"line":[0,0.4988]},{"arc":{"c":[0.4988,0.4988],"r":0.4988,"from":180,"to":270}},{"line":[0.4988,0]},{"arc":{"c":[0.4988,0.4988],"r":0.4988,"from":-90,"to":0}},{"line":[0.9976,0.5012]},{"arc":{"c":[0.4988,0.5012],"r":0.4988,"from":0,"to":90}},{"line":[0.4988,1]},{"arc":{"c":[0.4988,0.5012],"r":0.4988,"from":90,"to":180}},{"line":[0,0.5]}],"closed":true}]},"P":{"width":0.7011,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0.4492,1]},{"arc":{"c":[0.4492,0.7482],"r":0.2519,"from":90,"to":0}},{"line":[0.701,0.7482]},{"arc":{"c":[0.4491,0.7482],"r":0.2519,"from":0,"to":-90}},{"line":[0,0.4963]}],"closed":false}]},"Q":{"width":1.1239,"strokes":[{"start":[0.5,1],"nodes":[{"arc":{"c":[0.5,0.5],"r":0.5,"from":90,"to":-270}}],"closed":true},{"start":[0.5925,0.412],"nodes":[{"line":[1.1239,0.0106]}],"closed":false}]},"R":{"width":0.7068,"strokes":[{"start":[0,0],"nodes":[{"line":[0,1]}],"closed":false},{"start":[0,1],"nodes":[{"line":[0.4593,1]},{"arc":{"c":[0.4593,0.7525],"r":0.2475,"from":90,"to":0}},{"line":[0.7068,0.7525]},{"arc":{"c":[0.4593,0.7525],"r":0.2475,"from":0,"to":-90}},{"line":[0,0.505]}],"closed":false},{"start":[0.1138,0.445],"nodes":[{"line":[0.7009,0]}],"closed":false}]},"S":{"width":0.7403,"strokes":[{"start":[0.6969,1],"nodes":[{"line":[0.25,1]},{"arc":{"c":[0.25,0.75],"r":0.25,"from":90,"to":180}},{"line":[0,0.75]},{"arc":{"c":[0.25,0.75],"r":0.25,"from":180,"to":270}},{"line":[0.4903,0.5]},{"arc":{"c":[0.4903,0.25],"r":0.25,"from":90,"to":0}},{"line":[0.7403,0.25]},{"arc":{"c":[0.4903,0.25],"r":0.25,"from":0,"to":-90}},{"line":[0.0088,0]}],"closed":false}]},"T":{"width":0.828,"strokes":[{"start":[0,1],"nodes":[{"line":[0.828,1]}],"closed":false},{"start":[0.4215,1],"nodes":[{"line":[0.4215,0]}],"closed":false}]},"U":{"width":0.7968,"strokes":[{"start":[0,1],"nodes":[{"line":[0,0.3984]},{"arc":{"c":[0.3984,0.3984],"r":0.3984,"from":180,"to":270}},{"line":[0.3984,0]},{"arc":{"c":[0.3984,0.3984],"r":0.3984,"from":-90,"to":0}},{"line":[0.7968,1]}],"closed":false}]},"V":{"width":1.0025,"strokes":[{"start":[0,1],"nodes":[{"line":[0.505,0]},{"line":[1.0025,1]}],"closed":false}]},"W":{"width":1.154,"strokes":[{"start":[0,1],"nodes":[{"line":[0.1083,0]}],"closed":false},{"start":[1.154,1],"nodes":[{"line":[1.0457,0]}],"closed":false},{"start":[0.1083,0],"nodes":[{"line":[0.577,0.9725]},{"line":[1.0457,0]}],"closed":false}]},"X":{"width":0.8135,"strokes":[{"start":[0,1],"nodes":[{"line":[0.8135,0]}],"closed":false},{"start":[0.8135,1],"nodes":[{"line":[0,0]}],"closed":false}]},"Y":{"width":0.8179,"strokes":[{"start":[0,1],"nodes":[{"line":[0.409,0.5025]}],"closed":false},{"start":[0.8179,1],"nodes":[{"line":[0.409,0.5025]}],"closed":false},{"start":[0.409,0.5025],"nodes":[{"line":[0.409,0]}],"closed":false}]},"Z":{"width":0.7975,"strokes":[{"start":[0.005,1],"nodes":[{"line":[0.795,1]}],"closed":false},{"start":[0.7975,1],"nodes":[{"line":[0,0]}],"closed":false},{"start":[0,0],"nodes":[{"line":[0.79,0]}],"closed":false}]},"%":{"width":0.5238,"strokes":[{"start":[0,0],"nodes":[{"line":[0.5238,1]}],"closed":false},{"start":[0,0.99],"nodes":[],"closed":false,"dot":true},{"start":[0.52,0.01],"nodes":[],"closed":false,"dot":true}]},"!":{"width":0,"strokes":[{"start":[0,1],"nodes":[{"line":[0,0.505]}],"closed":false},{"start":[0,0.01],"nodes":[],"closed":false,"dot":true}]}};
+
+// ---------- state ----------
+const CANVASES = [[600, 800], [800, 600], [700, 1000], [1000, 700], [800, 800]];
+const DEFAULT_PAINTS = [
+  ['Lemon yellow', '#F5D21A'], ['Orange', '#F28A1D'], ['Vermilion', '#E2412A'], ['Magenta', '#D8247A'],
+  ['Violet', '#6B3FA0'], ['Ultramarine', '#2B4FB8'], ['Turquoise', '#169C9C'], ['Leaf green', '#3FA33C']];
+const S = {
+  text: 'AMOUR', cw: 1000, ch: 700, H: 200, band: 30, gap: -14, lead: 20, margin: 60,
+  brush: 12, pitch: 7, order: 'out', spacing: 90, per: 2, ticks: true, dry: 'letters',
+  run: 220, glaze: 0.8, view: 'result', session: 0, paints: DEFAULT_PAINTS.map(([name, hex]) => ({ name, hex })), over: {}
+};
+let FRESH = true;
+try { const st = localStorage.getItem('rembrandt.type'); if (st) { Object.assign(S, JSON.parse(st)); FRESH = false; } } catch (e) { }
+const save = () => { try { localStorage.setItem('rembrandt.type', JSON.stringify(S)); } catch (e) { } };
+
+// ---------- geometry ----------
+const rad = d => d * Math.PI / 180;
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]];
+const mul = (a, k) => [a[0] * k, a[1] * k], dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+const len = a => Math.hypot(a[0], a[1]), norm = a => { const l = len(a) || 1; return [a[0] / l, a[1] / l]; };
+const CORNER = rad(25);
+
+// a stroke of glyphs.json → a polyline on the canvas (mm, y down)
+function strokePoints(st, place, stepBox) {
+  const pts = [place(st.start)];
+  if (st.dot) return pts;
+  for (const n of st.nodes) {
+    if (n.line) pts.push(place(n.line));
+    else {
+      const { c, r } = n.arc, a0 = rad(n.arc.from), a1 = rad(n.arc.to);
+      const k = Math.max(2, Math.ceil(Math.abs(a1 - a0) * r / stepBox));
+      for (let i = 1; i <= k; i++) { const a = a0 + (a1 - a0) * i / k; pts.push(place([c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)])); }
+    }
+  }
+  const out = [];
+  for (const p of pts) if (!out.length || len(sub(p, out.at(-1))) > 0.05) out.push(p);
+  return out;
+}
+// split an open polyline at sharp corners: every straight run becomes its own band
+function splitCorners(pts) {
+  const parts = []; let cur = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    cur.push(pts[i]);
+    if (i < pts.length - 1) {
+      const a = norm(sub(pts[i], pts[i - 1])), b = norm(sub(pts[i + 1], pts[i]));
+      if (Math.acos(Math.max(-1, Math.min(1, dot(a, b)))) > CORNER) { parts.push(cur); cur = [pts[i]]; }
+    }
+  }
+  parts.push(cur);
+  return parts;
+}
+function resample(pts, step, closed) {
+  const P = closed ? [...pts, pts[0]] : pts;
+  let total = 0; const cum = [0];
+  for (let i = 1; i < P.length; i++) { total += len(sub(P[i], P[i - 1])); cum.push(total); }
+  if (total < 1e-6) return { pts: [P[0]], L: 0 };
+  const n = Math.max(1, Math.round(total / step)), out = [];
+  let j = 1;
+  for (let k = 0; k <= (closed ? n - 1 : n); k++) {
+    const s = total * k / n;
+    while (j < P.length - 1 && cum[j] < s) j++;
+    const t = (s - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
+    out.push(add(P[j - 1], mul(sub(P[j], P[j - 1]), Math.max(0, Math.min(1, t)))));
+  }
+  return { pts: out, L: total };
+}
+function makeSeg(pts, closed, dot, meta) {
+  const r = dot ? { pts, L: 0 } : resample(pts, 1, closed);
+  const P = r.pts, n = P.length, s = [], T = [], N = [];
+  let acc = 0;
+  for (let i = 0; i < n; i++) {
+    if (i) acc += len(sub(P[i], P[i - 1]));
+    s.push(acc);
+    let t;
+    if (n === 1) t = [1, 0];
+    else if (closed) t = norm(sub(P[(i + 1) % n], P[(i - 1 + n) % n]));
+    else t = norm(sub(P[Math.min(n - 1, i + 1)], P[Math.max(0, i - 1)]));
+    T.push(t); N.push([-t[1], t[0]]);
+  }
+  return { ...meta, pts: P, s, T, N, L: closed ? r.L : acc, closed, dot };
+}
+
+// lay out the text: letters → bands (segments), centred on the canvas
+function advanceOf(ch, H, W, gap) {
+  if (ch === ' ') return H * 0.35;
+  const g = GLYPHS[ch]; return g ? g.width * (H - W) + W + gap : 0;
+}
+function lineWidth(line, H, W, gap) {
+  let w = 0; for (const ch of line) w += advanceOf(ch, H, W, gap);
+  return line.length ? w - gap : 0;
+}
+function cleanText(t) {
+  return t.toUpperCase().split('\n').map(l => [...l].filter(c => c === ' ' || GLYPHS[c]).join('').trim()).filter((l, i, a) => l || a.length === 1);
+}
+function fitHeight() {
+  const lines = cleanText(S.text); if (!lines.length) return S.H;
+  const k = S.band / 100, availW = S.cw - 2 * S.margin, availH = S.ch - 2 * S.margin;
+  let best = 60;
+  for (let H = 60; H <= 900; H += 1) {
+    const W = k * H, w = Math.max(...lines.map(l => lineWidth(l, H, W, S.gap)));
+    const h = lines.length * H + (lines.length - 1) * S.lead;
+    if (w <= availW && h <= availH) best = H; else break;
+  }
+  return best;
+}
+function layout() {
+  const lines = cleanText(S.text), H = S.H, W = S.band / 100 * H, R = W / 2, h = H - W;
+  const blockH = lines.length * H + Math.max(0, lines.length - 1) * S.lead;
+  const segs = []; let li = 0;
+  lines.forEach((line, row) => {
+    let x = (S.cw - lineWidth(line, H, W, S.gap)) / 2;
+    const base = (S.ch - blockH) / 2 + H + row * (H + S.lead);
+    for (const ch of line) {
+      if (ch === ' ') { x += advanceOf(ch, H, W, S.gap); continue; }
+      const g = GLYPHS[ch], left = x, place = q => [left + R + q[0] * h, base - R - q[1] * h];
+      let si = 0;
+      for (const st of g.strokes) {
+        const pts = strokePoints(st, place, 1 / h);
+        if (st.dot || pts.length === 1) { segs.push(makeSeg([pts[0]], false, true, { li, si: si++, ch })); continue; }
+        const closed = !!st.closed && len(sub(pts[0], pts.at(-1))) < 0.5;
+        if (closed) { segs.push(makeSeg(pts.slice(0, -1), true, false, { li, si: si++, ch })); continue; }
+        for (const part of splitCorners(pts)) {
+          let L = 0; for (let i = 1; i < part.length; i++) L += len(sub(part[i], part[i - 1]));
+          if (L < 0.25 * W) continue;
+          segs.push(makeSeg(part, false, false, { li, si: si++, ch }));
+        }
+      }
+      x += advanceOf(ch, H, W, S.gap); li++;
+    }
+  });
+  return { segs, H, W, R, letters: li };
+}
+
+// ---------- lanes: concentric loops in each band ----------
+function offsetSide(seg, d) {
+  const out = [];
+  for (let i = 0; i < seg.pts.length; i++) {
+    const q = add(seg.pts[i], mul(seg.N[i], d));
+    if (out.length && dot(sub(q, out.at(-1).p), seg.T[i]) <= 0.05) continue;
+    out.push({ p: q, s: seg.s[i] });
+  }
+  return out;
+}
+function capPoints(c, T, N, d, s, flip) {
+  const out = [], k = Math.max(4, Math.ceil(Math.PI * d / 1.2));
+  for (let i = 1; i < k; i++) {
+    const th = Math.PI * i / k, f = flip ? -1 : 1;
+    out.push({ p: add(c, add(mul(N, f * d * Math.cos(th)), mul(T, f * d * Math.sin(th)))), s });
+  }
+  return out;
+}
+// one loop at half-width d, a closed ring of {p, s}
+function loopAt(seg, d) {
+  if (seg.dot) {
+    const c = seg.pts[0], k = Math.max(8, Math.ceil(2 * Math.PI * d / 1.2)), out = [];
+    for (let i = 0; i < k; i++) { const a = 2 * Math.PI * i / k; out.push({ p: [c[0] + d * Math.cos(a), c[1] + d * Math.sin(a)], s: 0 }); }
+    return out;
+  }
+  if (seg.closed) return offsetSide(seg, d);
+  const fwd = offsetSide(seg, d), back = offsetSide(seg, -d).reverse(), n = seg.pts.length - 1;
+  if (d < 0.3) return [...fwd, ...back.slice(1, -1)];
+  return [...fwd, ...capPoints(seg.pts[n], seg.T[n], seg.N[n], d, seg.L, false), ...back, ...capPoints(seg.pts[0], seg.T[0], seg.N[0], d, 0, true)];
+}
+function lanesOf(seg, W) {
+  const Rc = Math.max(0, W / 2 - S.brush / 2);
+  let ds = [];
+  if (seg.closed) {
+    const n = Math.max(1, Math.round(2 * Rc / S.pitch) + 1);
+    for (let k = 0; k < n; k++) ds.push(n === 1 ? 0 : Rc - 2 * Rc * k / (n - 1));
+    const outer = ds.filter((d, i) => i % 2 === 0), inner = ds.filter((d, i) => i % 2 === 1).reverse();
+    ds = [...outer, ...inner].sort((a, b) => Math.abs(b) - Math.abs(a));
+  } else {
+    const n = Math.max(1, Math.round(Rc / S.pitch) + 1);
+    for (let k = 0; k < n; k++) ds.push(n === 1 ? Rc : Rc * (1 - k / (n - 1)));
+  }
+  if (S.order === 'in') ds.reverse();
+  return ds.map(d => ({ d, ring: loopAt(seg, d) })).filter(l => l.ring.length > 1);
+}
+// open a ring where the brush goes down: just before the first mark, then run on past the start
+function openRing(ring, startS, closed, L) {
+  let i0 = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const s = ring[i].s, ok = closed ? ((s - startS + L) % L) < 2 : s >= startS;
+    if (ok) { i0 = i; break; }
+  }
+  const r = [...ring.slice(i0), ...ring.slice(0, i0)];
+  let acc = 0; const tail = [r[0]];
+  for (let i = 1; i < r.length && acc < 14; i++) { acc += len(sub(r[i].p, r[i - 1].p)); tail.push(r[i]); }
+  return [...r, ...tail];
+}
+
+// ---------- the plan: sessions, marks, lanes ----------
+function minDist(a, b, lim) {
+  for (let i = 0; i < a.pts.length; i += 3) for (let j = 0; j < b.pts.length; j += 3)
+    if (len(sub(a.pts[i], b.pts[j])) < lim) return true;
+  return false;
+}
+function bbox(seg, pad) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of seg.pts) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }
+  return [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
+}
+function plan() {
+  const L = layout(), { segs, W, R } = L, P = S.paints.length || 1;
+  // sessions
+  const boxes = segs.map(s => bbox(s, R));
+  segs.forEach((s, i) => {
+    s.session = 0;
+    if (S.dry === 'wet') return;
+    const used = new Set();
+    for (let j = 0; j < i; j++) {
+      const o = segs[j];
+      if (S.dry === 'letters' && o.li === s.li) continue;
+      const a = boxes[i], b = boxes[j];
+      if (a[2] < b[0] || b[2] < a[0] || a[3] < b[1] || b[3] < a[1]) continue;
+      if (minDist(s, o, W * 0.98)) used.add(o.session);
+    }
+    while (used.has(s.session)) s.session++;
+  });
+  const sessions = Math.max(1, ...segs.map(s => s.session + 1));
+  // colour along each letter
+  const letterLen = {}, letterAcc = {};
+  for (const s of segs) letterLen[s.li] = (letterLen[s.li] || 0) + Math.max(s.L, W);
+  for (const s of segs) {
+    const o = ((s.li * S.per) + (S.over[s.li + ':' + s.si] || 0)) % P, n = s.dot ? 1 : Math.max(1, Math.round(s.L / S.spacing));
+    const before = letterAcc[s.li] || 0, span = Math.max(s.L, W), total = letterLen[s.li];
+    letterAcc[s.li] = before + span;
+    s.marks = [];
+    for (let j = 0; j < n; j++) {
+      const sm = s.dot ? 0 : s.L * (j + 0.5) / n;
+      const t = (before + (s.dot ? 0.5 : (j + 0.5) / n) * span) / total;
+      const paint = (o + Math.min(S.per - 1, Math.floor(t * S.per))) % P;
+      const i = s.dot ? 0 : Math.min(s.pts.length - 1, Math.round(sm));
+      s.marks.push({ s: sm, paint, p: s.pts[i], N: s.N[i], T: s.T[i] });
+    }
+    const startS = s.dot ? 0 : s.closed ? (s.marks[0].s - 4 + s.L) % s.L : Math.max(0, s.marks[0].s - 4);
+    s.lanes = lanesOf(s, W).map(l => ({ d: l.d, path: s.dot ? [...l.ring, l.ring[0]] : openRing(l.ring, startS, s.closed, s.L) }));
+  }
+  return { ...L, sessions };
+}
+
+// ---------- drawing the passes as machine paths ----------
+function tracePaths(pl) {   // pass 1: the outline of every band at half-width R
+  return pl.segs.map(s => {
+    if (s.dot) { const r = loopAt(s, pl.R); return [...r, r[0]].map(q => q.p); }
+    if (s.closed) return [[...loopAt(s, pl.R), loopAt(s, pl.R)[0]].map(q => q.p), [...loopAt(s, -pl.R), loopAt(s, -pl.R)[0]].map(q => q.p)];
+    const r = loopAt(s, pl.R); return [[...r, r[0]].map(q => q.p)];
+  }).flatMap(x => Array.isArray(x[0][0]) ? x : [x]);
+}
+function markPaths(s, R) {   // pass 2: a stroke across the band at every mark, ticks code the paint
+  const out = [], half = Math.max(2, R - 3);
+  for (const m of s.marks) {
+    const a = add(m.p, mul(m.N, -half)), b = add(m.p, mul(m.N, half));
+    out.push({ pts: s.dot ? [add(m.p, [-half, 0]), add(m.p, [half, 0])] : [a, b], paint: m.paint, tick: false });
+    if (S.ticks) {
+      const N = s.dot ? [1, 0] : m.N, T = s.dot ? [0, 1] : m.T;
+      for (let k = 0; k <= m.paint; k++) {
+        const c = add(m.p, mul(N, half - 3 - 3.5 * k));
+        out.push({ pts: [add(c, mul(T, -3)), add(c, mul(T, 3))], paint: m.paint, tick: true });
+      }
+    }
+  }
+  return out;
+}
+const pathLen = pts => { let l = 0; for (let i = 1; i < pts.length; i++) l += len(sub(pts[i], pts[i - 1])); return l; };
+
+// ---------- simulation ----------
+const hex2rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+function crossed(seg, s0, s1) {
+  if (seg.dot) return [];
+  let a = s0, b = s1;
+  if (seg.closed && Math.abs(b - a) > seg.L / 2) { if (b < a) b += seg.L; else a += seg.L; }
+  if (a === b) return [];
+  const lo = Math.min(a, b), hi = Math.max(a, b), hits = [];
+  for (const m of seg.marks) for (const sm of seg.closed ? [m.s, m.s + seg.L] : [m.s]) if (sm > lo && sm <= hi) hits.push(m);
+  return hits;
+}
+function simulate(pl, g, k) {
+  const layers = [];
+  for (let ss = 0; ss < pl.sessions; ss++) {
+    const c = document.createElement('canvas'); c.width = g.canvas.width; c.height = g.canvas.height;
+    const lg = c.getContext('2d'); lg.setTransform(k, 0, 0, k, 0, 0); lg.lineCap = 'round'; lg.lineJoin = 'round';
+    for (const s of pl.segs.filter(q => q.session === ss)) for (const lane of s.lanes) {
+      let col = null, load = 0;
+      if (s.dot && s.marks[0]) { col = hex2rgb(S.paints[s.marks[0].paint].hex); load = 1; }
+      const P = lane.path, w = Math.min(S.brush, S.pitch) * 0.94;
+      for (let i = 1; i < P.length; i++) {
+        for (const m of crossed(s, P[i - 1].s, P[i].s)) {
+          const pc = hex2rgb(S.paints[m.paint].hex);
+          col = col && load > 0.05 ? mix(col, pc, 0.72) : pc; load = 1;
+        }
+        const ds = len(sub(P[i].p, P[i - 1].p));
+        load *= Math.exp(-ds / S.run);
+        if (!col || load < 0.02) continue;
+        const a = S.glaze * Math.min(1, load * 1.25);
+        lg.strokeStyle = `rgba(${col.map(Math.round).join(',')},${a.toFixed(3)})`; lg.lineWidth = w;
+        lg.beginPath(); lg.moveTo(...P[i - 1].p); lg.lineTo(...P[i].p); lg.stroke();
+        lg.strokeStyle = `rgba(${mix(col, [0, 0, 0], 0.25).map(Math.round).join(',')},${(a * 0.35).toFixed(3)})`; lg.lineWidth = w * 0.18;
+        lg.beginPath(); lg.moveTo(...P[i - 1].p); lg.lineTo(...P[i].p); lg.stroke();
+      }
+    }
+    layers.push(c);
+  }
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'multiply';
+  for (const c of layers) g.drawImage(c, 0, 0);
+  g.restore();
+}
+
+// ---------- render ----------
+const $ = s => document.querySelector(s), cv = $('#cv'), g = cv.getContext('2d');
+let PL = null, SCALE = 1;
+function polyline(pts) { g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(...p) : g.moveTo(...p)); }
+function draw() {
+  PL = plan();
+  const box = $('#sheet'), availW = box.clientWidth - 30, availH = Math.max(320, window.innerHeight * 0.78);
+  SCALE = Math.min(availW / S.cw, availH / S.ch);
+  const dpr = window.devicePixelRatio || 1, k = SCALE * dpr;
+  cv.style.width = Math.round(S.cw * SCALE) + 'px'; cv.style.height = Math.round(S.ch * SCALE) + 'px';
+  cv.width = Math.round(S.cw * k); cv.height = Math.round(S.ch * k);
+  g.setTransform(k, 0, 0, k, 0, 0);
+  g.fillStyle = '#FBFAF7'; g.fillRect(0, 0, S.cw, S.ch);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  const showSession = s => !S.session || s.session === S.session - 1;
+  // margin guide
+  g.strokeStyle = 'rgba(0,0,0,.06)'; g.lineWidth = 1 / SCALE; g.setLineDash([4 / SCALE, 4 / SCALE]);
+  g.strokeRect(S.margin, S.margin, S.cw - 2 * S.margin, S.ch - 2 * S.margin); g.setLineDash([]);
+
+  if (S.view === 'result') { simulate(PL, g, k); }
+  else {
+    g.strokeStyle = S.view === 'trace' ? 'rgba(70,110,150,.75)' : 'rgba(70,110,150,.28)';
+    g.lineWidth = S.view === 'trace' ? 1.4 : 1;
+    for (const p of tracePaths(PL)) { polyline(p); g.stroke(); }
+  }
+  if (S.view === 'marks') {
+    for (const s of PL.segs) if (showSession(s)) for (const m of markPaths(s, PL.R)) {
+      g.strokeStyle = S.paints[m.paint]?.hex || '#000'; g.lineWidth = m.tick ? 1.4 : 4; polyline(m.pts); g.stroke();
+    }
+  }
+  if (S.view === 'drag') {
+    for (const s of PL.segs) if (showSession(s)) for (const lane of s.lanes) {
+      g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 0.6; polyline(lane.path.map(q => q.p)); g.stroke();
+      g.fillStyle = '#EB7A25'; g.beginPath(); g.arc(...lane.path[0].p, 1.6, 0, 7); g.fill();
+    }
+  }
+  readout();
+}
+
+function stats() {
+  const trace = tracePaths(PL).reduce((a, p) => a + pathLen(p), 0);
+  const per = [];
+  for (let ss = 0; ss < PL.sessions; ss++) {
+    const segs = PL.segs.filter(s => s.session === ss);
+    const marks = segs.flatMap(s => s.marks), drag = segs.flatMap(s => s.lanes).reduce((a, l) => a + pathLen(l.path.map(q => q.p)), 0);
+    const lanes = segs.reduce((a, s) => a + s.lanes.length, 0), count = {};
+    for (const m of marks) count[m.paint] = (count[m.paint] || 0) + 1;
+    per.push({ marks: marks.length, drag, lanes, count });
+  }
+  return { trace, per };
+}
+function readout() {
+  const st = stats(), Rc = PL.W / 2 - S.brush / 2, lines = [];
+  lines.push(`<b>${PL.letters}</b> letters, <b>${PL.segs.length}</b> bands, band <b>${PL.W.toFixed(0)} mm</b>, letters <b>${S.H} mm</b> tall`);
+  lines.push(`1 Trace: <b>${(st.trace / 1000).toFixed(1)} m</b> of watercolour line, about <b>${(st.trace / 100 / 60).toFixed(1)} min</b> at 100 mm/s`);
+  st.per.forEach((p, i) => lines.push(`${PL.sessions > 1 ? `Session ${i + 1}: ` : ''}2 Marks: <b>${p.marks}</b> from INK-2 · 3 Drag: <b>${p.lanes}</b> lanes, <b>${(p.drag / 1000).toFixed(1)} m</b>, about <b>${(p.drag / 60 / 60).toFixed(1)} min</b> at 60 mm/s`));
+  if (PL.sessions > 1) lines.push(`<span class="warn">${PL.sessions} sessions: let each one dry before the next marks go down.</span>`);
+  if (Rc <= 0) lines.push(`<span class="warn">The brush is as wide as the band: one lane, no grooves. Widen the band or take a narrower brush.</span>`);
+  if (S.pitch > S.brush) lines.push(`<span class="warn">Lane pitch is wider than the brush: white gaps between lanes.</span>`);
+  if (S.spacing > S.run * 0.8) lines.push(`<span class="warn">Marks are far apart for this paint run: the brush runs dry between them.</span>`);
+  $('#readout').innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+  const tot = {};
+  st.per.forEach(p => { for (const [k, v] of Object.entries(p.count)) tot[k] = (tot[k] || 0) + v; });
+  $('#squeeze').innerHTML = Object.entries(tot).sort((a, b) => a[0] - b[0]).map(([i, n]) =>
+    `<span><i style="background:${S.paints[i].hex}"></i>${+i + 1} ${esc(S.paints[i].name)} × ${n}</span>`).join('');
+  files();
+}
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- SVG files ----------
+const f2 = v => (Math.round(v * 100) / 100).toString();
+const d = pts => 'M' + pts.map(p => f2(p[0]) + ' ' + f2(p[1])).join(' L');
+function svgDoc(title, body) {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt TYPE · ${esc(title)} · "${esc(S.text.replace(/\n/g, ' / '))}" · canvas ${S.cw}x${S.ch} mm, y down, origin top left. Each <path> is one brush-down run, in drawing order. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${S.cw}mm" height="${S.ch}mm" viewBox="0 0 ${S.cw} ${S.ch}">\n${body}\n</svg>\n`;
+}
+function fileTrace() {
+  const body = tracePaths(PL).map(p => `  <path d="${d(p)}"/>`).join('\n');
+  return svgDoc('pass 1 trace', `<g id="pass1-trace" data-pass="1" data-ink="INK-1" data-dip-every-mm="400" fill="none" stroke="#6E8EB0" stroke-width="1">\n${body}\n</g>`);
+}
+function fileMarks(ss) {
+  const segs = PL.segs.filter(s => s.session === ss), body = [];
+  for (const s of segs) for (const m of markPaths(s, PL.R)) body.push(`  <path d="${d(m.pts)}" data-paint="${m.paint + 1}"${m.tick ? ' data-tick="1"' : ''}/>`);
+  return svgDoc(`pass 2 marks, session ${ss + 1}`, `<g id="pass2-marks-s${ss + 1}" data-pass="2" data-ink="INK-2" data-dip-every-marks="4" fill="none" stroke="#8A8A8A" stroke-width="2">\n${body.join('\n')}\n</g>`);
+}
+function fileDrag(ss) {
+  const segs = PL.segs.filter(s => s.session === ss), body = [];
+  for (const s of segs) for (const l of s.lanes) body.push(`  <path d="${d(l.path.map(q => q.p))}" data-letter="${esc(s.ch)}" data-lane="${f2(l.d)}"/>`);
+  return svgDoc(`pass 3 dry drag, session ${ss + 1}`, `<g id="pass3-drag-s${ss + 1}" data-pass="3" data-ink="none" data-brush-mm="${S.brush}" fill="none" stroke="#24221F" stroke-width="${S.brush}" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".25">\n${body.join('\n')}\n</g>`);
+}
+function filePaintMap() {   // for the painter, not the machine
+  const body = [];
+  for (const p of tracePaths(PL)) body.push(`  <path d="${d(p)}" stroke="#9DB2C8" stroke-width="1"/>`);
+  for (const s of PL.segs) for (const m of markPaths(s, PL.R)) body.push(`  <path d="${d(m.pts)}" stroke="${S.paints[m.paint].hex}" stroke-width="${m.tick ? 1.5 : 5}"/>`);
+  for (const s of PL.segs) for (const m of s.marks) {
+    const q = add(m.p, mul(s.dot ? [1, 0] : m.N, PL.R + 8));
+    body.push(`  <text x="${f2(q[0])}" y="${f2(q[1])}" font-family="Helvetica, Arial, sans-serif" font-size="9" text-anchor="middle" dominant-baseline="middle" fill="#24221F">${m.paint + 1}${PL.sessions > 1 ? '·s' + (s.session + 1) : ''}</text>`);
+  }
+  let y = 18; const legend = S.paints.map((p, i) => { const r = `  <rect x="12" y="${y - 7}" width="10" height="10" fill="${p.hex}"/><text x="28" y="${y + 1}" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#24221F">${i + 1} ${esc(p.name)}</text>`; y += 14; return r; });
+  return svgDoc('paint map', `<rect width="100%" height="100%" fill="#FBFAF7"/>\n<g fill="none" stroke-linecap="round">\n${body.join('\n')}\n</g>\n${legend.join('\n')}`);
+}
+function fileJSON() {
+  return JSON.stringify({
+    tool: 'Rembrandt TYPE', text: S.text, canvas_mm: [S.cw, S.ch], letter_height_mm: S.H, band_mm: +PL.W.toFixed(2),
+    brush_mm: S.brush, lane_pitch_mm: S.pitch, sessions: PL.sessions, paints: S.paints,
+    bands: PL.segs.map(s => ({ letter: s.ch, session: s.session + 1, closed: s.closed, dot: !!s.dot, marks: s.marks.map(m => ({ x: +m.p[0].toFixed(2), y: +m.p[1].toFixed(2), paint: m.paint + 1 })), lanes: s.lanes.length }))
+  }, null, 1);
+}
+const slug = () => (cleanText(S.text).join('-').replace(/\s+/g, '_') || 'type').slice(0, 40);
+function files() {
+  const list = [['1 Trace', () => [`${slug()}_1_trace.svg`, fileTrace()]]];
+  for (let ss = 0; ss < PL.sessions; ss++) {
+    const tag = PL.sessions > 1 ? ` s${ss + 1}` : '', fs = PL.sessions > 1 ? `_s${ss + 1}` : '';
+    list.push([`2 Marks${tag}`, () => [`${slug()}_2_marks${fs}.svg`, fileMarks(ss)]]);
+    list.push([`3 Drag${tag}`, () => [`${slug()}_3_drag${fs}.svg`, fileDrag(ss)]]);
+  }
+  list.push(['Paint map', () => [`${slug()}_paint_map.svg`, filePaintMap()]], ['Plan JSON', () => [`${slug()}_plan.json`, fileJSON()]]);
+  const box = $('#files'); box.innerHTML = '';
+  for (const [label, make] of list) {
+    const b = document.createElement('button'); b.className = 'k'; b.textContent = label;
+    b.onclick = () => { const [name, data] = make(); saveFile(name, data); };
+    box.appendChild(b);
+  }
+}
+let DL = undefined;
+if (window.claude?.use) claude.use('downloads').then(x => { DL = x; }).catch(() => { DL = null; });
+async function saveFile(name, data) {
+  const msg = $('#msg'); msg.textContent = '';
+  if (window.claude?.use) {
+    if (DL === undefined) { try { DL = await claude.use('downloads'); } catch (e) { DL = null; } }
+    if (!DL) { msg.textContent = 'Saving files is not available in this view. Open the page in the browser to download.'; return; }
+    try { await DL.save({ filename: name, data }); msg.textContent = `Saved ${name}`; }
+    catch (e) { msg.textContent = e?.code === 'declined' ? '' : `Could not save ${name}: ${e?.message || e?.code || 'error'}`; }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: name.endsWith('.json') ? 'application/json' : 'image/svg+xml' }));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  msg.textContent = `Saved ${name}`;
+}
+
+// ---------- controls ----------
+const SL = {
+  H: v => `${v} mm`, band: v => `${(+v).toFixed(1)} % · ${(S.band / 100 * S.H).toFixed(0)} mm`, gap: v => `${v} mm`, lead: v => `${v} mm`, margin: v => `${v} mm`,
+  brush: v => `${v} mm`, pitch: v => `${v} mm`, spacing: v => `${v} mm`, per: v => `${v}`, run: v => `${v} mm`, glaze: v => (+v).toFixed(2)
+};
+function palette() {
+  const box = $('#palette'); box.innerHTML = '';
+  S.paints.forEach((p, i) => {
+    const row = document.createElement('div'); row.className = 'paint';
+    row.innerHTML = `<span class="n">${i + 1}</span><input type="color" value="${p.hex}" aria-label="Colour of paint ${i + 1}"><input type="text" value="${esc(p.name)}" aria-label="Name of paint ${i + 1}"><button aria-label="Remove paint ${i + 1}" title="Remove">×</button>`;
+    const [c, t] = row.querySelectorAll('input');
+    c.oninput = () => { p.hex = c.value; sync(false); };
+    t.oninput = () => { p.name = t.value; save(); readout(); };
+    row.querySelector('button').onclick = () => { if (S.paints.length > 1) { S.paints.splice(i, 1); S.over = {}; palette(); sync(); } };
+    box.appendChild(row);
+  });
+}
+function sync(redrawPalette) {
+  for (const id of Object.keys(SL)) { $('#' + id).value = S[id]; $('#o-' + id).textContent = SL[id](S[id]); }
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
+  document.querySelectorAll('[data-order]').forEach(b => b.classList.toggle('on', b.dataset.order === S.order));
+  document.querySelectorAll('[data-dry]').forEach(b => b.classList.toggle('on', b.dataset.dry === S.dry));
+  document.querySelectorAll('[data-cv]').forEach(b => b.classList.toggle('on', b.dataset.cv === `${S.cw}x${S.ch}`));
+  $('#ticks').classList.toggle('on', S.ticks);
+  if (redrawPalette) palette();
+  draw();
+  const ses = $('#sessions');
+  if (PL.sessions > 1 && S.view !== 'result') {
+    if (S.session > PL.sessions) S.session = 0;
+    ses.innerHTML = ['All', ...Array.from({ length: PL.sessions }, (_, i) => `Session ${i + 1}`)].map((t, i) => `<button class="k${S.session === i ? ' on' : ''}" data-ses="${i}">${t}</button>`).join('');
+    ses.querySelectorAll('[data-ses]').forEach(b => b.onclick = () => { S.session = +b.dataset.ses; sync(); });
+  } else ses.innerHTML = '';
+  save();
+}
+$('#canvases').innerHTML = CANVASES.map(([w, h]) => `<button class="k" data-cv="${w}x${h}">${w}×${h}</button>`).join('');
+document.querySelectorAll('[data-cv]').forEach(b => b.onclick = () => { [S.cw, S.ch] = b.dataset.cv.split('x').map(Number); S.H = fitHeight(); sync(); });
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; sync(); });
+document.querySelectorAll('[data-order]').forEach(b => b.onclick = () => { S.order = b.dataset.order; sync(); });
+document.querySelectorAll('[data-dry]').forEach(b => b.onclick = () => { S.dry = b.dataset.dry; S.session = 0; sync(); });
+$('#ticks').onclick = () => { S.ticks = !S.ticks; sync(); };
+$('#fit').onclick = () => { S.H = fitHeight(); sync(); };
+$('#addPaint').onclick = () => { if (S.paints.length < 12) { S.paints.push({ name: 'New paint', hex: '#888888' }); sync(true); } };
+$('#resetColours').onclick = () => { S.over = {}; sync(); };
+for (const id of Object.keys(SL)) $('#' + id).oninput = e => { S[id] = +e.target.value; sync(); };
+const ta = $('#text'); ta.value = S.text;
+let tt; ta.oninput = () => { S.text = ta.value; clearTimeout(tt); tt = setTimeout(() => { S.over = {}; S.H = fitHeight(); sync(); }, 250); };
+cv.onclick = e => {
+  if (!PL || (S.view !== 'marks' && S.view !== 'result')) return;
+  const r = cv.getBoundingClientRect(), p = [(e.clientX - r.left) / SCALE, (e.clientY - r.top) / SCALE];
+  let hit = null;
+  for (const s of PL.segs) for (const q of s.pts) if (len(sub(q, p)) < PL.R && (!hit || s.session >= hit.session)) hit = s;
+  if (!hit) return;
+  const key = hit.li + ':' + hit.si; S.over[key] = ((S.over[key] || 0) + 1) % S.paints.length; sync();
+};
+new ResizeObserver(() => PL && draw()).observe($('#sheet'));
+if (FRESH) S.H = fitHeight();
+sync(true);
+</script>
+</body>
+</html>
