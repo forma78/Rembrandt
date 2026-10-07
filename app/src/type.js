@@ -711,8 +711,8 @@ function pngOf() {
   const sw = V.y1 - V.y0, sh = V.x1 - V.x0, kk = 800 / Math.max(sw, sh), c2 = document.createElement('canvas');
   c2.width = Math.round(sw * kk); c2.height = Math.round(sh * kk);
   g = c2.getContext('2d'); k = kk; dpr = 1;
-  const view = S.view; S.view = 'result';                                            // the Library shows the painting
-  try { draw(); } finally { [g, k, dpr, V] = keep; S.view = view; }
+  const was = S.view; S.view = 'result';                                             // the Library shows the painting (`view` named the local here: it hid view() above, and SAVE threw)
+  try { draw(); } finally { [g, k, dpr, V] = keep; S.view = was; }
   return c2.toDataURL('image/png');
 }
 $('#btnSave').onclick = async () => {
