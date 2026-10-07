@@ -605,6 +605,15 @@ this section disagree, this section wins: the owner corrected the sketch on
   the last one lifted nearest, 4 mm before a mark, so it takes up paint at
   once. 3 Drag colours the trains and rings every switch; the reading:
   `1 train — the train goes non-stop`.
+  **Ground** under Simulation (the owner, 2026-10-07: "the ground a light
+  gradient — I am not afraid of the brush; or black: depth appears,
+  mystery, magic — no longer a drawing but conceptual art"): White ·
+  Gradient · Black, painted by hand; a gradient top to bottom, its two
+  colours chips (by eye). Result, Play the run, the Library's picture and
+  the saved SVG show it; the passes' views keep the white, so their lines
+  read. Over black the paint lies on top (multiplied, it would vanish).
+  Open: the ground before the rails or after them — on black, the
+  watercolour TRACE and the cup's marks would not show.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

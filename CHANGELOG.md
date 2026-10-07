@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOVE: the Ground — white, a gradient or black** (the owner, 2026-10-07:
+  "the ground a light gradient, I am not afraid of the brush; or black —
+  depth, mystery, magic"; "you wanted to swap the white for a gradient,
+  remember? I could use it"). White · Gradient · Black under Simulation;
+  a gradient top to bottom, its two colours chips as the paints' (cream to
+  pale blue to start, by eye). A click shows it in Result; Play the run,
+  the Library's picture and the saved SVG carry it; the passes' views keep
+  the white. Over black the paint is laid on top, not multiplied.
+
 - **TYPE: 💾 SAVE TYPE saves again** (the owner, 2026-10-07: "of course, fix
   it"). The fault LOVE had: since the zoom (0ef9d85) the PNG preview's
   `const view` hid the `view()` it calls, so SAVE threw before sending and

@@ -57,6 +57,7 @@ const S = {
   width: 4, speed: 150, travel: 180, tail: 3, ink: true,                          // the brush (est.)
   brush: 12, rings: 5, order: 'out', through: false, spacing: 90, per: 2, run: 220, glaze: 0.8,   // MARKS, DRAG, Result; rings a band, Pass through
   rails: true,                                                                     // LOVE's rails (loveplan.js, trainsOf)
+  ground: 'white', groundTop: '#F4E6D6', groundBottom: '#DCE4EE',                  // the ground by hand, under the paint; a gradient's two colours, by eye
   drag: 60, next: { marks: 1, drag: 1 },                                          // DRAG's speed (the prototype's 60 mm/s); the session each key runs next
   paints: PAINTS.map(hex => ({ hex })), over: {},                                // colours, no names (the owner, 2026-10-06)
   view: 'trace', session: 0,
@@ -65,6 +66,7 @@ const S = {
 };
 const NUM = ['H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'width', 'speed', 'travel', 'tail', 'brush', 'rings', 'spacing', 'per', 'run', 'glaze', 'drag', 'session', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
 const HEX = /^#[0-9a-f]{6}$/i;
+const GROUNDS = ['white', 'gradient', 'black'], BLACK = '#161514';
 let FRESH = true;   // nothing kept yet: the text fitted to the canvas once the letters load
 function load() {
   try {
@@ -76,6 +78,8 @@ function load() {
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (typeof o.through === 'boolean') S.through = o.through;
     if (typeof o.rails === 'boolean') S.rails = o.rails;
+    if (GROUNDS.includes(o.ground)) S.ground = o.ground;
+    for (const k of ['groundTop', 'groundBottom']) if (HEX.test(o[k] || '')) S[k] = o[k];
     S.rings = Math.round(Math.max(RINGS_MIN, Math.min(RINGS_MAX, S.rings)));
     if (['out', 'in'].includes(o.order)) S.order = o.order;
     if (VIEWS.includes(o.view)) S.view = o.view;
@@ -212,7 +216,7 @@ function draw() {
     g.restore();
     g.fillStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.35)'; g.beginPath(); areaRect(); g.fill();
   }
-  g.fillStyle = '#FCFBF8'; g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k);   // the white canvas
+  g.fillStyle = groundFill(); g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k);   // the canvas: white, or in Result its ground
   g.save(); g.beginPath(); g.rect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); g.clip();   // past the walls: hatched
   g.beginPath(); g.rect(0, 0, W, H); areaRect(); g.clip('evenodd');
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
@@ -293,6 +297,18 @@ function drawTrace(alpha = 1) {
     for (const t of P_.trace) { g.beginPath(); t.pts.forEach((p, j) => j ? g.lineTo(sx(p), sy(p)) : g.moveTo(sx(p), sy(p))); g.stroke(); }
   }
   g.restore();
+}
+// The ground under the paint, by the owner's hand (2026-10-07: "the ground a
+// light gradient, I am not afraid of the brush; or black — depth appears,
+// mystery, magic: no longer a drawing but conceptual art"): in Result, Play
+// the run and the Library's picture; the passes' views keep the white, so
+// their lines read. A gradient top to bottom.
+function groundFill() {
+  if (S.view !== 'result' || S.ground === 'white') return '#FCFBF8';
+  if (S.ground === 'black') return BLACK;
+  const gr = g.createLinearGradient(0, sy([0, -S.boardH / 2]), 0, sy([0, S.boardH / 2]));
+  gr.addColorStop(0, S.groundTop); gr.addColorStop(1, S.groundBottom);
+  return gr;
 }
 const hexOf = i => S.paints[i]?.hex || '#000000';
 const line = pts => { g.beginPath(); pts.forEach((p, j) => j ? g.lineTo(sx(p), sy(p)) : g.moveTo(sx(p), sy(p))); g.stroke(); };
@@ -381,10 +397,11 @@ function drawResult() {
     if (SIM?.key !== vkey || SIM.g !== g) { const L2 = layersOf(Wk.sessions.length); Wk.sessions.forEach((w, ss) => w.shades.forEach(sh => shade(L2[ss], sh))); SIM = { key: vkey, g, lgs: L2 }; }
     lgs = SIM.lgs;
   }
-  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'multiply';
+  const blend = S.ground === 'black' ? 'source-over' : 'multiply';                  // over black the paint lies on top: multiplied, it would vanish
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = blend;
   for (const lg of lgs) g.drawImage(lg.canvas, 0, 0);
   g.restore();
-  if (part) { g.save(); inMM(g); g.globalCompositeOperation = 'multiply'; shade(g, part.sh, part.pts); g.restore(); }
+  if (part) { g.save(); inMM(g); g.globalCompositeOperation = blend; shade(g, part.sh, part.pts); g.restore(); }
   if (PLAY?.brush && g === ctx) {                                                    // the brush, its true width
     const b = PLAY.brush;
     g.save(); g.strokeStyle = INK_DARK; g.fillStyle = INK_DARK; g.lineWidth = 1.2;
@@ -467,7 +484,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['text', 'H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'overlap', 'width', 'speed', 'brush', 'rings', 'through', 'rails', 'drag', 'order', 'spacing', 'per', 'run', 'glaze', 'paints', 'over'];
+const UNDO_KEYS = ['text', 'H', 'band', 'gap', 'lead', 'margin', 'x', 'y', 'overlap', 'width', 'speed', 'brush', 'rings', 'through', 'rails', 'ground', 'groundTop', 'groundBottom', 'drag', 'order', 'spacing', 'per', 'run', 'glaze', 'paints', 'over'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(k => [k, S[k]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -640,6 +657,9 @@ $('#throughOn').onclick = () => { if (S.through) return; undoPush(); S.through =
 $('#rails').onchange = e => { undoPush(); S.rails = e.target.checked; S.session = 0; settle(); };
 $('#railsOff').onclick = () => { if (!S.rails) return; undoPush(); S.rails = false; S.session = 0; settle(); };
 $('#railsOn').onclick = () => { if (S.rails) return; undoPush(); S.rails = true; S.session = 0; settle(); };
+// The ground: a click shows it in Result; a gradient's colours as the paints' (a click on the chip)
+document.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { if (S.ground === b.dataset.ground && S.view === 'result') return; undoPush(); S.ground = b.dataset.ground; S.view = 'result'; settle(); });
+for (const [id, key] of [['#gTop', 'groundTop'], ['#gBottom', 'groundBottom']]) { const inp = $(id); inp.oninput = () => { if (!busy) undoPush(); busy = true; S[key] = inp.value; showPanel(); kick(); }; inp.onchange = () => settle(); }
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
 function showPanel() {
@@ -656,6 +676,9 @@ function showPanel() {
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
   $('#through').checked = S.through; $('#throughOff').classList.toggle('on', !S.through); $('#throughOn').classList.toggle('on', S.through);
   $('#rails').checked = S.rails; $('#railsOff').classList.toggle('on', !S.rails); $('#railsOn').classList.toggle('on', S.rails);
+  document.querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === S.ground));
+  $('#groundCols').hidden = S.ground !== 'gradient';
+  for (const [id, key] of [['#gTop', 'groundTop'], ['#gBottom', 'groundBottom']]) { if (document.activeElement !== $(id)) $(id).value = S[key]; $(id + 'Sw').style.background = S[key]; }
 }
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
@@ -765,7 +788,7 @@ function svgOf() {
 <!-- Rembrandt v.1.0.1 · ${esc(label())}; 1 unit = 1 mm; TRACE, each outline with its lap -->
 <desc>Paints in stock: ${esc(paints)}</desc>
 <metadata id="rembrandt-test">${meta}</metadata>
-<rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
+${S.ground === 'gradient' ? `<defs><linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.groundTop}"/><stop offset="1" stop-color="${S.groundBottom}"/></linearGradient></defs>\n` : ''}<rect width="${W}" height="${H}" fill="${S.ground === 'gradient' ? 'url(#ground)' : S.ground === 'black' ? BLACK : '#FCFBF8'}" stroke="#24221F" stroke-width="0.5"/>
 <g fill="none" stroke="#4A108C" stroke-opacity="0.5" stroke-width="${f(S.width)}" stroke-linejoin="round">
 ${lines}
 </g>
