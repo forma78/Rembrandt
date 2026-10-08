@@ -32,7 +32,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **LOVE** | TYPE's copy, after it in the top row since 2026-10-07 (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
-| **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, the brush not washed between them. Segments: the pipe cut by seams, each segment brushed along the line or across it; fan ends. |
+| **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests. |
 | **Band (on TYPE)** | A letter's stroke as the brush fills it: its skeleton (New Yuri's set) a share of the letter's height wide, round at its ends; split at every corner sharper than 25°, so V, M, Z, L are overlapping bands; O, 0, 8 closed bands; the dots of ! and % discs. Not Create's band. |
 | **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number as on an abacus — a long one five, a short one one — from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
@@ -316,6 +316,16 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   Brushed aluminium, I do not plan it at all" — the grounds White and
   Paper. The panel is the canvas from home, not the prototype's formats, as
   on TYPE (*Claude's choice*); Paper test, 8 Oct makes it 148 × 210.
+  **Master Flo's marks right across the whole pipe** (the owner, the same
+  day, `ALU-Claude/Screenshot 2026-10-08 at 2.55.56 PM.png`: "Whole lanes,
+  Master Flo and Segments, Alu — that is all the Australian style, Alu. I
+  did not notice at first; it came over from chat-Claude, the prototype had
+  the error from the start. But it can be fixed. The principle of Master Flo
+  is as on 02_marks_black_white.jpg: the lines always across the whole
+  sausage, they make no gradient at once"): a mark one paint, edge to edge,
+  the paints in turn along the pipe — never cut into a dash a paint across
+  it. The paints across, Lett's tubes, are Segments, Alu's. New composition
+  draws Master Flo's: a tube's paints along each pipe.
 - **TYPE first; Job and New Yuri off the top row** (the owner, 2026-10-06:
   "remove the JOB and NEW YURI tabs, please; put TYPE first, it is the new
   index.html"): TYPE · NOLAN · Test · Ink · Calibration · Library. TYPE's
@@ -655,8 +665,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   bottom to top, and the chosen one's brush, inside or outside lane first,
   Reverse the way, marks by hand, Width, Corners, Largest corner radius,
   the fans, Bring up · Send down · Delete — or ⌫ (the owner, 2026-10-08:
-  "the sausage could simply go with the delete key"); its segment's paints, across the
-  pipe or along it; the brush, the marks, the simulation (est.); the canvas;
+  "the sausage could simply go with the delete key"); its segment's paints —
+  on Whole lanes along the pipe, a mark right across in each, on Segments'
+  Along across it; the brush, the marks, the simulation (est.); the canvas;
   the prototype's files. TRACE: every pipe's outline, the line's outer edge
   on the pipe's, cut to the canvas, one whole on it a loop on 60 % over its
   start. MARKS: every dash and its ticks, TYPE's abacus, a dip every 4 marks

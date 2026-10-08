@@ -22,7 +22,7 @@ Port the logic; do not call the prototype.
 
 Bring it up to this version. Here is what changed since the first ALU prototype:
 
-- **Whole lanes, Master Flo**: the new brush mode and the default. Every lane is the whole pipe in one run, inside lane first, with a lift after each. Marks go right across the pipe, by hand (the **Marks** tool) or every spacing. Paints lie across the pipe as a tube, or along it.
+- **Whole lanes, Master Flo**: the new brush mode and the default. Every lane is the whole pipe in one run, inside lane first, with a lift after each. Marks go right across the pipe, by hand (the **Marks** tool) or every spacing. Paints lie along the pipe, a mark right across in each; never across it (corrected by the owner on 2026-10-08: the paints across are Segments, Alu's — `ALU.md`, Marks across).
 - **Segments, Alu**: the old mode, formerly "Segments, Lett". Seams, Along and Across, fan ends.
 - **Result**: paint now mixes as pigment, with strength by lightness. The brush is not washed between lanes. Wet paint is loaded into the brush. The brush's own track is laid behind it, which fixes lanes passing a wet crossing without taking paint. Tuned on the paper test.
 - **New composition**: draws parallel whole-lane pipes only, in tubes. No Across segments and no fans.

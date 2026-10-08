@@ -7,9 +7,14 @@
 //   only one): every lane the whole pipe in one run, the inside lane first,
 //   a lift after each — the owner's paper test of 2026-10-08,
 //   ALU-Claude/paper-test/, "repeating the brush's way with absolute
-//   precision": where a pipe crosses itself, one lane per step.
+//   precision": where a pipe crosses itself, one lane per step. Every mark
+//   right across the whole pipe, one paint: the paints along the pipe,
+//   never across it (the owner, 2026-10-08, ALU-Claude/paper-test/
+//   02_marks_black_white.jpg: "the lines always across the whole sausage,
+//   they make no gradient at once"; the paints across are Alu's).
 // - Segments, Alu (formerly "Segments, Lett"): cut by seams, each segment
-//   brushed along the line or across it, fan ends.
+//   brushed along the line — its paints across the pipe, Lett's tubes, "the
+//   Australian style" — or across it; fan ends.
 //
 // The passes are TYPE's: TRACE, the pipes' outlines in watercolour from the
 // cup; MARKS, a mark across the pipe where each paint goes, its ticks the
@@ -130,7 +135,7 @@ export function offsetRange(sp, a, b, d) {
   const f1 = frameAt(sp, b), e = add(f1.p, mul(f1.N, d)); if (dot(sub(e, last), f1.T) > 0.05 || out.length === 1) out.push(e);
   return out;
 }
-// a pipe's segments between its seams: { mode, lay, stops, a, b, j }
+// a pipe's segments between its seams: { mode, stops, a, b, j }
 export const segsOf = st => { const L = st.sp.L, cuts = [0, ...st.seams.map(f => f * L), L]; return st.segs.map((g, j) => ({ ...g, a: cuts[j], b: cuts[j + 1], j })); };
 export const isLanes = st => st.brush === 'lanes';
 export const handMarks = st => isLanes(st) && st.marks && st.marks.length > 0;
@@ -147,7 +152,9 @@ export function pipesOf(pipes) {
 // ---------- New composition: pipes from a seed ----------
 // The owner, 2026-10-08, after the earlier generator gave across strokes and
 // fans: "take out the across ones, just stripes in parallel"; his references,
-// Belem Lett 2021. Whole lanes only, paints across the pipe, no Across
+// Belem Lett 2021. Whole lanes only — Master Flo's, so a tube's paints a, b,
+// c, b, a lie along the pipe, a mark right across in each (the owner,
+// 2026-10-08: the paints across are Alu's, not Master Flo's) — no Across
 // segments, no fan ends. Wide pipes on the 45° grid with tight corners and
 // hairpins, each coming in over an edge of the panel and going out over one;
 // a pipe that would lie too much on the ones before it is drawn again. A
@@ -160,10 +167,10 @@ function family(r, fams = FAMILIES) {
   return f;
 }
 export const lettFamily = (r, fams = FAMILIES) => { let f = fams[Math.floor(r() * fams.length)].slice(); if (r() < 0.5) f.reverse(); return r() < 0.65 ? [f[0], f[1], f[2], f[1], f[0]] : f; };
-// New colours: the families picked again, the lines kept; Lett's tubes on whole-lane pipes laid across
+// New colours: the families picked again, the lines kept; a tube on a whole-lane pipe, its paints along it
 export function recolour(pipes, seed) {
   const r = rng(seed), fams = familiesOf(r);
-  for (const st of pipes) st.segs = st.segs.map(g => ({ mode: g.mode, lay: g.lay, stops: isLanes(st) && g.lay === 'across' ? lettFamily(r, fams) : family(r, fams) }));
+  for (const st of pipes) st.segs = st.segs.map(g => ({ mode: g.mode, stops: isLanes(st) ? lettFamily(r, fams) : family(r, fams) }));
   return pipes;
 }
 export function compose(seed, o) {
@@ -231,20 +238,20 @@ export function compose(seed, o) {
     st.sp = spineOf(st); if (!st.sp || tooClose(st.sp, w)) continue;
     // the colours change along a pipe once or twice at most, and stay in the family: the tube turned inside out, or a new paint in its middle
     if (r() < 0.6) { let s0 = (0.3 + 0.25 * r()) * st.sp.L; while (s0 < st.sp.L - 120 && st.seams.length < 2) { st.seams.push(s0 / st.sp.L); s0 += 220 + r() * 200; } }
-    st.segs = [{ mode: 'along', lay: 'across', stops: lettFamily(r, fams) }];
+    st.segs = [{ mode: 'along', stops: lettFamily(r, fams) }];
     for (let k = 0; k < st.seams.length; k++) {
       const prev = st.segs.at(-1).stops, K = prev.length, mid = Math.floor(K / 2);
       let next;
       if (r() < 0.5 && K >= 3) next = K === 5 ? [prev[2], prev[1], prev[0], prev[1], prev[2]] : prev.slice().reverse();
       else { const f = fams[Math.floor(r() * fams.length)], c = f.find(x => !prev.includes(x)) || f[0]; next = prev.slice(); next[mid] = c; }
-      st.segs.push({ mode: 'along', lay: 'across', stops: next });
+      st.segs.push({ mode: 'along', stops: next });
     }
     out.push(st);
   }
   return out.map(({ sp, ...st }) => st);
 }
-// A pipe drawn by hand: Whole lanes, inside first, a tube laid across
-export const newPipe = (w, seed) => ({ pts: [], w, round: 0.8, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', lay: 'across', stops: lettFamily(rng(seed)) }], brush: 'lanes', first: 'in', marks: [] });
+// A pipe drawn by hand: Whole lanes, inside first, a tube's paints along it
+export const newPipe = (w, seed) => ({ pts: [], w, round: 0.8, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: lettFamily(rng(seed)) }], brush: 'lanes', first: 'in', marks: [] });
 
 // The owner's paper test, 2026-10-08, 1 : 1 on an A5 page (ALU-Claude/
 // paper-test/): a band of eight lanes, 47 mm, a 6 mm brush, comes in from the
@@ -323,34 +330,21 @@ export function lanesOf(st, o) {
   const num = {}; byIn.slice().reverse().forEach((i, r) => { num[i] = r + 1; });
   return { e, pitch, d, num, order: st.first === 'out' ? byIn.slice().reverse() : byIn };
 }
-// A whole-lane segment lays its paints across the pipe (lay 'across', Lett's
-// tubes, edge to edge: lane i takes stop round(i·(K−1)/(n−1)), so a, b, c, b,
-// a sits symmetric) or along it (lay 'along': each mark right across in one
-// paint, the paints in turn along the segment).
-export const laneGroup = (i, n, K) => n > 1 ? Math.min(K - 1, Math.round(i * (K - 1) / (n - 1))) : 0;
-export function paintAtLane(st, s, off, o) {
-  if (handMarks(st)) return paintAt(st, s);
-  const g = segsOf(st).find(x => s >= x.a && s <= x.b) || segsOf(st).at(-1);
-  if (g.lay !== 'across') return paintAt(st, s);
-  const n = o.lanes, e = Math.max(0, st.w / 2 - o.brush / 2), pitch = n > 1 ? 2 * e / (n - 1) : 0, i = n > 1 && pitch > 0 ? Math.max(0, Math.min(n - 1, Math.round((off + e) / pitch))) : 0;
-  return g.stops[laneGroup(i, n, g.stops.length)];
-}
+// Master Flo's marks: every one right across the whole pipe, edge to edge
+// less 0.5 mm, one paint — by hand, or every spacing from the segment's
+// paints in turn along it (paintAt). Never cut into a dash a paint across
+// the pipe: that is a gradient across, Lett's tubes, Alu's (the owner,
+// 2026-10-08: "the lines always across the whole sausage, they make no
+// gradient at once"; the prototype had laid them across, lay 'across').
 // a run's points carry their lane and way: [x, y, lane, ±1]
 function lanesPipeOf(st, si, o) {
-  const sp = st.sp, W = st.w, n = o.lanes, { e, pitch, d, num, order } = lanesOf(st, o), runs = [], marks = [], half = W / 2 - 0.5;
+  const sp = st.sp, W = st.w, { e, pitch, d, num, order } = lanesOf(st, o), runs = [], marks = [], half = W / 2 - 0.5;
   for (const i of order) runs.push({ si, j: 0, mode: 'lanes', pitch, lane: i, num: num[i], pts: offsetRange(sp, 0, sp.L, d(i)).map(q => [q[0], q[1], i, 1]) });
-  const across = (s, paint, kind, lo = -half, hi = half) => { const f = frameAt(sp, s), j = Math.max(0, segsOf(st).findIndex(x => s >= x.a && s <= x.b)); marks.push({ si, j, mode: 'lanes', s, pts: [add(f.p, mul(f.N, lo)), add(f.p, mul(f.N, hi))], paint, kind }); };
+  const across = (s, paint, kind) => { const f = frameAt(sp, s), j = Math.max(0, segsOf(st).findIndex(x => s >= x.a && s <= x.b)); marks.push({ si, j, mode: 'lanes', s, pts: [add(f.p, mul(f.N, -half)), add(f.p, mul(f.N, half))], paint, kind }); };
   if (handMarks(st)) for (const m of st.marks) across(m.f * sp.L, m.paint, 'hand');
   else for (const g of segsOf(st)) {
     if (g.b - g.a < 1) continue;
-    for (const s of markStops(sp, g.a, g.b, e, o.spacing)) {
-      if (g.lay !== 'across') { across(s, paintAt(st, s), 'across'); continue; }
-      const K = g.stops.length;   // one dash a paint, over the lanes that take it
-      for (let k = 0; k < K; k++) {
-        const ids = Array.from({ length: n }, (_, i) => i).filter(i => laneGroup(i, n, K) === k); if (!ids.length) continue;
-        across(s, g.stops[k], 'across', ids[0] === 0 ? -half : Math.max(-half, d(ids[0]) - pitch / 2), ids.at(-1) === n - 1 ? half : Math.min(half, d(ids.at(-1)) + pitch / 2));
-      }
-    }
+    for (const s of markStops(sp, g.a, g.b, e, o.spacing)) across(s, paintAt(st, s), 'across');
   }
   return { runs, marks, pitch, e };
 }
@@ -431,7 +425,7 @@ function edgeMarks(st, si, pipe, o) {
       if (!h) { flush(); continue; }
       const s = sp.s[h.i], g = segs.find(x => s >= x.a && s <= x.b) || segs.at(-1), K = g.stops.length;
       let paint;
-      if (isLanes(st)) paint = paintAtLane(st, s, dot(sub(q, sp.P[h.i]), sp.N[h.i]), o);
+      if (isLanes(st)) paint = paintAt(st, s);
       else if (g.mode === 'along') { const d = dot(sub(q, sp.P[h.i]), sp.N[h.i]), i = n > 1 ? Math.round((d + pipe.e) / pipe.pitch) : 0; paint = g.stops[groupOf(Math.max(0, Math.min(n - 1, i)), n, K)]; }
       else paint = g.stops[ringOf(g, s, o)];
       if (!cur || cur.paint !== paint || cur.j !== g.j) { flush(); cur = { si, j: g.j, mode: g.mode, s, pts: [], paint, kind: 'edge of panel' }; }
@@ -736,6 +730,6 @@ export function planJson(pl, o) {
   return JSON.stringify({ tab: 'ALU', seed: o.seed, panel: { w: o.cw, h: o.ch, units: 'mm', origin: 'top left, y down' }, ground: o.ground,
     brush_mm: o.brush, lanes_along: o.lanes, step_across_mm: o.xstep, along: o.aorder, mark_spacing_mm: o.spacing, dense_run_mm: o.run, dry_tail_mm: o.tail, crossings: o.overlap, past_edge_mm: o.over,
     paints: pl.nums.map((k, i) => ({ n: i + 1, key: k, name: NAME[k], hex: HEX[k] })),
-    pipes: pl.pipes.map((st, i) => ({ n: i + 1, brush: isLanes(st) ? 'whole lanes' : 'segments', ...(isLanes(st) ? { first: st.first === 'out' ? 'outside' : 'inside', marks_by_hand: handMarks(st) ? st.marks.map(m => ({ at_mm: Number(f2(m.f * (st.sp?.L || 0))), paint: pl.nums.indexOf(m.paint) + 1 })) : null } : {}), points: st.pts.map(p => p.map(v => Number(f2(v)))), width_mm: st.w, round: Number(f2(st.round)), largest_radius_mm: st.rad || null, ends: [st.capA, st.capB], seams: st.seams.map(v => Number(v.toFixed(4))), segments: st.segs.map(sg => ({ mode: sg.mode, lay: sg.lay || null, paints: sg.stops.map(k => pl.nums.indexOf(k) + 1) })) })),
+    pipes: pl.pipes.map((st, i) => ({ n: i + 1, brush: isLanes(st) ? 'whole lanes' : 'segments', ...(isLanes(st) ? { first: st.first === 'out' ? 'outside' : 'inside', marks_by_hand: handMarks(st) ? st.marks.map(m => ({ at_mm: Number(f2(m.f * (st.sp?.L || 0))), paint: pl.nums.indexOf(m.paint) + 1 })) : null } : {}), points: st.pts.map(p => p.map(v => Number(f2(v)))), width_mm: st.w, round: Number(f2(st.round)), largest_radius_mm: st.rad || null, ends: [st.capA, st.capB], seams: st.seams.map(v => Number(v.toFixed(4))), segments: st.segs.map(sg => ({ mode: sg.mode, paints: sg.stops.map(k => pl.nums.indexOf(k) + 1) })) })),
     sessions: pl.sessions.map(s => ({ n: s.n, runs: s.runs.length, marks: s.marks.length })) }, null, 1);
 }

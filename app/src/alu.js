@@ -20,7 +20,7 @@ import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } 
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP } from './band.js';
 import {
   TUBES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe, paperTest,
-  planOf, paintWalk, lanesOf, paintAt, laneGroup, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, tickPaths, rgbOf, mixRGB,
+  planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, tickPaths, rgbOf, mixRGB,
   traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS,
 } from './aluplan.js';
 import { drawWash } from './wash.js';
@@ -65,9 +65,9 @@ function cleanPipe(st) {
   if (!st || !Array.isArray(st.pts)) return null;
   const tube = k => k in HEX, pts = st.pts.filter(p => Array.isArray(p) && fin(p[0]) && fin(p[1])).map(p => [p[0], p[1]]);
   const seams = (Array.isArray(st.seams) ? st.seams : []).filter(f => fin(f) && f > 0 && f < 1).sort((a, b) => a - b);
-  const segs = (Array.isArray(st.segs) ? st.segs : []).map(g => ({ mode: g?.mode === 'across' ? 'across' : 'along', ...(g?.lay === 'across' || g?.lay === 'along' ? { lay: g.lay } : {}), stops: (Array.isArray(g?.stops) ? g.stops : []).filter(tube).slice(0, 5) }))
+  const segs = (Array.isArray(st.segs) ? st.segs : []).map(g => ({ mode: g?.mode === 'across' ? 'across' : 'along', stops: (Array.isArray(g?.stops) ? g.stops : []).filter(tube).slice(0, 5) }))
     .map(g => g.stops.length ? g : { ...g, stops: ['navy', 'blue', 'ice'] });
-  while (segs.length < seams.length + 1) segs.push({ mode: 'along', lay: 'across', stops: ['navy', 'blue', 'ice'] });
+  while (segs.length < seams.length + 1) segs.push({ mode: 'along', stops: ['navy', 'blue', 'ice'] });
   segs.length = seams.length + 1;
   return { pts, w: fin(st.w) ? Math.max(4, Math.min(300, st.w)) : 50, round: fin(st.round) ? Math.max(0, Math.min(1, st.round)) : 0.8, ...(fin(st.rad) && st.rad > 0 ? { rad: st.rad } : {}),
     capA: st.capA === 'fan' ? 'fan' : 'flat', capB: st.capB === 'fan' ? 'fan' : 'flat', seams, segs, brush: st.brush === 'segments' ? 'segments' : 'lanes', first: st.first === 'out' ? 'out' : 'in',
@@ -298,12 +298,8 @@ function drawDesign(c, pipes, alpha = 1) {
       }
     };
     const quad = (s0, s1, col) => { const f0 = frameAt(sp, s0), f1 = frameAt(sp, s1 + 0.3); c.fillStyle = col; ln(c, [add(f0.p, mul(f0.N, -W / 2)), add(f0.p, mul(f0.N, W / 2)), add(f1.p, mul(f1.N, W / 2)), add(f1.p, mul(f1.N, -W / 2))]); c.closePath(); c.fill(); };
-    if (isLanes(st)) {
-      if (!handMarks(st)) for (const sg of segs) if (sg.lay === 'across') lanesIn(sg, laneGroup, sg.b + 0.3);
-      for (let s0 = 0; s0 < sp.L; s0 += 1) {
-        if (!handMarks(st) && (segs.find(x => s0 + 0.5 >= x.a && s0 + 0.5 <= x.b) || {}).lay === 'across') continue;
-        const s1 = Math.min(sp.L, s0 + 1); quad(s0, s1, HEX[paintAt(st, (s0 + s1) / 2)]);
-      }
+    if (isLanes(st)) {                                                                // Master Flo: the paints along the pipe, each right across it
+      for (let s0 = 0; s0 < sp.L; s0 += 1) { const s1 = Math.min(sp.L, s0 + 1); quad(s0, s1, HEX[paintAt(st, (s0 + s1) / 2)]); }
       c.strokeStyle = 'rgba(36,34,31,.25)'; c.lineWidth = 0.3;                         // the lanes' seams, faint
       for (let i = 1; i < n; i++) { ln(c, offsetRange(sp, 0, sp.L, -e + (i - 0.5) * pitch)); c.stroke(); }
       continue;
@@ -616,7 +612,7 @@ cv.addEventListener('pointerdown', e => {
       undoPush();
       const j = segsOf(h.st).findIndex(x => h.s >= x.a && h.s <= x.b), was = st.segs[j];
       st.seams.splice(j, 0, h.s / L);
-      st.segs.splice(j + 1, 0, isLanes(st) ? { mode: 'along', lay: was.lay, stops: was.stops.slice().reverse() } : { mode: was.mode === 'along' ? 'across' : 'along', stops: was.stops.slice().reverse() });
+      st.segs.splice(j + 1, 0, isLanes(st) ? { mode: 'along', stops: was.stops.slice().reverse() } : { mode: was.mode === 'along' ? 'across' : 'along', stops: was.stops.slice().reverse() });
       S.seg = j + 1;
     }
     S.sel = h.i; settle(); return;
@@ -793,16 +789,15 @@ function showSeg() {
   if (wl && handMarks(st)) { box.innerHTML = '<p class="read">This pipe\'s marks are laid by hand, each with its own paint — a tube in the strip is the next one\'s; the segments\' paints wait until it goes back to marks every spacing.</p>'; return; }
   box.innerHTML = `
     <h4>Segment ${S.seg + 1} of ${st.segs.length}${st.segs.length > 1 ? ' · a click on the pipe chooses one' : ''}</h4>
-    ${wl ? `<div class="toggles looks"><button class="tog${sg.lay === 'across' ? ' on' : ''}" data-lay="across" title="Lett's tubes: the paints across the pipe, edge to edge, a dash each">Paints across the pipe</button><button class="tog${sg.lay === 'across' ? '' : ' on'}" data-lay="along" title="A mark right across in one paint, the paints in turn along the segment">Paints along it</button></div>`
-      : `<div class="toggles looks"><button class="tog${sg.mode === 'along' ? ' on' : ''}" data-mode="along" title="Lanes along the line, the paints across the pipe">Along the line</button><button class="tog${sg.mode === 'across' ? ' on' : ''}" data-mode="across" title="Strokes across the pipe, back and forth, the paints along it in rings">Across it</button></div>`}
+    ${wl ? '<p class="read">Master Flo: a mark right across the whole pipe in one paint, the paints in turn along the segment — never across it.</p>'
+      : `<div class="toggles looks"><button class="tog${sg.mode === 'along' ? ' on' : ''}" data-mode="along" title="Lanes along the line, the paints across the pipe — Lett's tubes, the Australian style">Along the line</button><button class="tog${sg.mode === 'across' ? ' on' : ''}" data-mode="across" title="Strokes across the pipe, back and forth, the paints along it in rings">Across it</button></div>`}
     <div class="stops" title="The segment's paints in their order; a tube in the strip puts one in or takes it out, five at most">${sg.stops.map((q, i) => `<span class="stop" style="background:${HEX[q]};color:${inkOn(HEX[q])}" title="${NAME[q]}">${i + 1}</span>`).join('')}<span class="hint">tubes in the strip, up to five</span></div>
     <div class="grid4 keys three"><button class="btn" id="gTube" title="a, b, c, b, a: the first three as a tube">Make it a tube</button><button class="btn" id="gFlip" title="The paints the other way">Reverse</button><button class="btn" id="gAll" title="These paints on every segment of the pipe">Same on the whole pipe</button></div>`;
   const act = (sel, fn) => box.querySelectorAll(sel).forEach(b => b.onclick = () => { undoPush(); fn(b); settle(); });
   act('[data-mode]', b => { sg.mode = b.dataset.mode; });
-  act('[data-lay]', b => { sg.lay = b.dataset.lay; });
   act('#gTube', () => { const s = sg.stops.slice(0, 3); sg.stops = s.length >= 2 ? [...s, ...s.slice(0, -1).reverse()] : s; });
   act('#gFlip', () => { sg.stops.reverse(); });
-  act('#gAll', () => { st.segs = st.segs.map(() => ({ mode: sg.mode, ...(sg.lay ? { lay: sg.lay } : {}), stops: sg.stops.slice() })); });
+  act('#gAll', () => { st.segs = st.segs.map(() => ({ mode: sg.mode, stops: sg.stops.slice() })); });
 }
 document.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { if (S.ground === b.dataset.ground) return; undoPush(); S.ground = b.dataset.ground; settle(); });
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; if (S.view !== 'result') stopPlay(); settle(); });

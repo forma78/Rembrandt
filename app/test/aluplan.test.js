@@ -58,18 +58,39 @@ test('the paper test\'s paint: lane 1 comes out of the crossing black, lane 8 li
   }
 });
 
-test('New composition: whole lanes only, paints across, no Across segments, no fans; in over an edge and out over one', () => {
+test('New composition: whole lanes only, no Across segments, no fans; in over an edge and out over one', () => {
   for (let seed = 1; seed <= 9; seed++) {
     const P = compose(seed, O);
     assert.ok(P.length >= 3 && P.length <= 6, `${P.length} pipes`);
     for (const st of P) {
       assert.equal(st.brush, 'lanes'); assert.equal(st.capA, 'flat'); assert.equal(st.capB, 'flat');
-      assert.ok(st.segs.every(g => g.mode === 'along' && g.lay === 'across'));
+      assert.ok(st.segs.every(g => g.mode === 'along'));
       const out = p => p[0] < 0 || p[0] > O.cw || p[1] < 0 || p[1] > O.ch;
       assert.ok(out(st.pts[0]) && out(st.pts.at(-1)), 'it starts and ends past the panel');
     }
   }
   assert.deepEqual(compose(4, O), compose(4, O), 'a seed, the same composition');
+});
+
+test('Master Flo: every mark right across the whole pipe, one paint — no gradient across', () => {
+  // the owner, 2026-10-08, ALU-Claude/paper-test/02_marks_black_white.jpg: "the lines always across the whole sausage"
+  const drawn = { pts: [[80, 120], [420, 120], [420, 560], [120, 600]], w: 70, round: 0.9, capA: 'flat', capB: 'flat', seams: [0.5], segs: [{ mode: 'along', stops: ['navy', 'blue', 'ice', 'blue', 'navy'] }, { mode: 'along', stops: ['maroon', 'red'] }], brush: 'lanes', first: 'in', marks: [] };
+  const edge = p => p[0] <= 1 + 1e-6 || p[0] >= O.cw - 1 - 1e-6 || p[1] <= 1 + 1e-6 || p[1] >= O.ch - 1 - 1e-6;
+  let n = 0;
+  for (const pipes of [[drawn], ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map(seed => compose(seed, O))]) {
+    const pl = planOf(pipes, O);
+    for (const m of pl.sessions.flatMap(s => s.marks)) {
+      if (m.kind === 'edge of panel') continue;
+      const L = dist(m.pts[0], m.pts.at(-1)), w = pl.pipes[m.si].w;
+      assert.ok(Math.abs(L - (w - 1)) < 1e-6 || m.pts.some(edge), `pipe ${m.si + 1}: a mark ${L.toFixed(1)} mm across a pipe ${w} wide`);
+      n++;
+    }
+    const at = new Map();
+    for (const m of pl.sessions.flatMap(s => s.marks)) if (m.kind !== 'edge of panel') { const key = `${m.si}:${m.s.toFixed(3)}`; assert.ok(!at.has(key) || at.get(key) === m.paint, 'one paint across'); at.set(key, m.paint); }
+  }
+  assert.ok(n > 100);
+  const marks = planOf([drawn], O).sessions[0].marks;
+  assert.deepEqual([...new Set(marks.map(m => m.paint))].sort(), ['blue', 'ice', 'maroon', 'navy', 'red'], 'the paints in turn along the pipe');
 });
 
 test('every lane meets a dash at least every spacing, the outer one on a bend included', () => {
@@ -102,14 +123,14 @@ test('Segments, Alu: every Across stroke crosses its starting edge\'s dash withi
 });
 
 test('a corner tighter than half the pipe is counted; a pipe off the panel gets a dash along that edge', () => {
-  const tight = { pts: [[100, 100], [300, 100], [300, 120]], w: 60, round: 1, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', lay: 'across', stops: ['navy', 'ice'] }], brush: 'lanes', first: 'in', marks: [] };
+  const tight = { pts: [[100, 100], [300, 100], [300, 120]], w: 60, round: 1, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: ['navy', 'ice'] }], brush: 'lanes', first: 'in', marks: [] };
   assert.equal(spineOf(tight).tight, 1);
   assert.equal(planOf([tight], O).tight, 1);
   assert.equal(spineOf({ ...tight, pts: [[100, 100], [300, 100], [300, 300]] }).tight, 0);
   const off = { ...tight, pts: [[-40, 300], [250, 300]] }, marks = planOf([off], O).sessions[0].marks.filter(m => m.kind === 'edge of panel');
-  assert.ok(marks.length >= 2, 'the edge dashes, a paint each');
+  assert.ok(marks.length >= 1, 'a dash along the edge');
   assert.ok(marks.every(m => m.pts.every(p => Math.abs(p[0] - EDGE_IN) < 1e-9 && Math.abs(p[1] - 300) < 30)));
-  assert.deepEqual([...new Set(marks.map(m => m.paint))].sort(), ['ice', 'navy']);
+  assert.deepEqual([...new Set(marks.map(m => m.paint))], ['navy'], 'the paint the pipe has there, right across');
 });
 
 test('the passes run on the machine: lines and arcs, TRACE and MARKS from the cup, DRAG dry and a landing a run', () => {

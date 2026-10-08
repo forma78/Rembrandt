@@ -5,6 +5,25 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU: Master Flo's marks right across the whole pipe** (the owner,
+  2026-10-08, `ALU-Claude/Screenshot 2026-10-08 at 2.55.56 PM.png`: "Whole
+  lanes, Master Flo and Segments, Alu — that is all the Australian style,
+  Alu. I did not notice at first; it came over from chat-Claude, the
+  prototype had the error from the start. But it can be fixed. The
+  principle of Master Flo is as on 02_marks_black_white.jpg: the lines
+  always across the whole sausage, they make no gradient at once"; then,
+  of the plan: "yes, exactly so"). A whole-lane pipe's every mark is one
+  paint edge to edge, the paints in turn along the segment; the
+  prototype's "Paints across the pipe" — each mark cut into a dash a paint,
+  a gradient across — is gone from Whole lanes (`lay` no longer read). The
+  paints across stay Segments, Alu's, its Along segments. New composition
+  and New colours lay a tube's paints along each pipe; composition 1 has 59
+  marks now, not 248. Its edge dashes one paint, the pipe's there. The
+  segment editor of a whole-lane pipe says so instead of the two keys;
+  Design draws its paints along. `ALU-Claude/ALU.md` corrected. Tested:
+  every mark of a drawn pipe and of compositions 1–9 the pipe's whole width
+  or cut by the canvas's edge, one paint at a place.
+
 - **ALU: ⌫ takes the chosen pipe away** (the owner, 2026-10-08: "great
   result! There is Delete pipe, but the sausage could simply go with a
   press of the delete key"). ⌫ or Delete, with the board or a key in
