@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rembrandt · ALU</title>
+<style>
+/* Rembrandt's Braun style (Rembrandt.md §1): cream, panel, stage, line, ink, one orange accent.
+   Layout: settings rail on the left; the panel on the stage with a margin the pipes may run into; readout and files below. */
+:root {
+  --bg: #EDEAE4; --panel: #F5F3EF; --stage: #E2DED6; --line: #D5CFC4; --ink: #24221F; --mute: #7D776D; --accent: #EB7A25;
+  --key: linear-gradient(#FBFAF7, #ECE8E1); --key-on: #E4DFD6; --slider: #57544F;
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif; --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1F1E1C; --panel: #292825; --stage: #181715; --line: #3B3935; --ink: #ECE8E1; --mute: #A39D93;
+  --key: linear-gradient(#3A3834, #2E2C29); --key-on: #22211F; --slider: #A39D93; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #1F1E1C; --panel: #292825; --stage: #181715; --line: #3B3935; --ink: #ECE8E1; --mute: #A39D93;
+  --key: linear-gradient(#3A3834, #2E2C29); --key-on: #22211F; --slider: #A39D93; color-scheme: dark }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--sans); padding: 18px 16px 28px; }
+.wrap { max-width: 1320px; margin: 0 auto; display: grid; gap: 14px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.logo { letter-spacing: .32em; font-weight: 600; font-size: 15px; }
+.tab { font: 600 12px var(--mono); color: #fff; background: var(--accent); border-radius: 4px; padding: 2px 7px; letter-spacing: .08em; }
+header p { margin: 0; color: var(--mute); min-width: 0; }
+.grid { display: grid; grid-template-columns: minmax(270px, 330px) minmax(0, 1fr); gap: 14px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 16px; min-width: 0; }
+.blk { display: grid; gap: 7px; min-width: 0; }
+.lab { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.keys { display: flex; flex-wrap: wrap; gap: 4px; }
+button.k { font: 600 11.5px var(--sans); letter-spacing: .04em; color: var(--ink); background: var(--key); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; position: relative; }
+button.k.on { background: var(--key-on); box-shadow: inset 0 1px 3px rgba(0,0,0,.18); }
+button.k.on::after { content: ""; position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+button.k:disabled { opacity: .45; cursor: default; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sl { display: grid; gap: 1px; }
+.slh { display: flex; justify-content: space-between; gap: 8px; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.slh b { font: 500 12px var(--mono); letter-spacing: 0; text-transform: none; color: var(--ink); font-variant-numeric: tabular-nums; }
+input[type=range] { width: 100%; accent-color: var(--slider); margin: 2px 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { width: 26px; height: 22px; border-radius: 4px; border: 1px solid var(--line); cursor: pointer; position: relative; padding: 0; }
+.chip.on { box-shadow: 0 0 0 2px var(--panel), 0 0 0 3.5px var(--ink); }
+.chip span { position: absolute; top: -7px; right: -7px; min-width: 15px; height: 15px; border-radius: 8px; background: var(--ink); color: var(--panel); font: 600 9.5px/15px var(--mono); text-align: center; }
+.list { display: flex; flex-wrap: wrap; gap: 4px; }
+.list button.k { font-weight: 500; }
+.list button.k i { display: inline-block; width: 18px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.edit { display: grid; gap: 9px; border-top: 1px solid var(--line); padding-top: 10px; }
+.main { display: grid; gap: 10px; min-width: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; }
+.sheet { background: var(--stage); border: 1px solid var(--line); border-radius: 6px; padding: 10px; display: grid; place-items: center; overflow: hidden; }
+canvas#cv { display: block; touch-action: none; max-width: 100%; }
+canvas#cv.draw { cursor: crosshair; } canvas#cv.edit { cursor: pointer; } canvas#cv.seam { cursor: col-resize; }
+.readout { font: 12px var(--mono); color: var(--mute); font-variant-numeric: tabular-nums; display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
+.readout b { color: var(--ink); font-weight: 500; }
+.warn { color: var(--accent); }
+#msg { font: 12px var(--mono); color: var(--accent); min-height: 1em; }
+.note { color: var(--mute); font-size: 13px; max-width: 72ch; margin: 0; }
+.hint { font: 12px var(--mono); color: var(--mute); }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <span class="logo">REMBRANDT</span><span class="tab">ALU</span>
+    <p>Pipes of paint in whole lanes, Master Flo's way: every lane the whole pipe in one run, inside lane first, so a pipe crossing itself steps one lane at a time. Paints across the pipe, a tube edge to edge.</p>
+  </header>
+  <div class="grid">
+    <section class="panel" aria-label="Settings">
+      <div class="blk">
+        <span class="lab">Panel, mm</span>
+        <div class="keys" id="panels"></div>
+        <div class="keys" id="grounds">
+          <button class="k" data-ground="white">White</button>
+          <button class="k" data-ground="paper">Paper</button>
+        </div>
+      </div>
+      <div class="blk">
+        <span class="lab">Composition</span>
+        <div class="keys"><button class="k" id="compose">New composition</button><button class="k" id="recolour">New colours</button><button class="k" id="clear">Clear</button></div>
+        <div class="keys"><button class="k" id="paper">Paper test, 8 Oct</button></div>
+        <span class="hint" id="seedline"></span>
+      </div>
+      <div class="blk">
+        <span class="lab">Pipes, bottom to top</span>
+        <div class="list" id="strokes"></div>
+        <div class="keys"><button class="k" id="newStroke">New pipe</button><button class="k" id="undoPt">Remove last point</button></div>
+        <div class="edit" id="sedit"></div>
+        <div class="edit" id="gedit"></div>
+      </div>
+      <div class="blk">
+        <span class="lab">Brush</span>
+        <label class="sl"><span class="slh">Brush width <b id="o-brush"></b></span><input id="brush" type="range" min="4" max="24" step="0.5"></label>
+        <label class="sl"><span class="slh">Lanes along <b id="o-lanes"></b></span><input id="lanes" type="range" min="2" max="12" step="1"></label>
+        <label class="sl"><span class="slh">Step across <b id="o-xstep"></b></span><input id="xstep" type="range" min="3" max="20" step="0.5"></label>
+        <div class="keys" id="aorders">
+          <button class="k" data-aorder="snake">Segments: back and forth</button>
+          <button class="k" data-aorder="one">Segments: one way, lift</button>
+        </div>
+      </div>
+      <div class="blk">
+        <span class="lab">Paint</span>
+        <label class="sl"><span class="slh">Mark spacing <b id="o-spacing"></b></span><input id="spacing" type="range" min="30" max="120" step="5"></label>
+        <label class="sl"><span class="slh">Dense run <b id="o-run"></b></span><input id="run" type="range" min="30" max="150" step="5"></label>
+        <label class="sl"><span class="slh">Dry tail <b id="o-tail"></b></span><input id="tail" type="range" min="0" max="300" step="10"></label>
+        <span class="lab">Where pipes cross</span>
+        <div class="keys" id="overlaps">
+          <button class="k" data-ov="wet">Wet on wet</button>
+          <button class="k" data-ov="dry">Dry between pipes</button>
+        </div>
+        <label class="sl"><span class="slh">A mark's share in the brush <b id="o-mix"></b></span><input id="mix" type="range" min="0.1" max="0.9" step="0.05"></label>
+        <label class="sl"><span class="slh">Wet paint loads the brush in <b id="o-pick"></b></span><input id="pick" type="range" min="5" max="120" step="1"></label>
+        <span class="lab">Result</span>
+        <div class="keys" id="looks">
+          <button class="k" data-look="relief">Beads</button>
+          <button class="k" data-look="flat">Flat</button>
+        </div>
+        <label class="sl"><span class="slh">Past the panel edge <b id="o-over"></b></span><input id="over" type="range" min="0" max="30" step="1"></label>
+      </div>
+    </section>
+    <section class="main" aria-label="Panel">
+      <div class="bar">
+        <div class="keys" id="tools">
+          <button class="k" data-tool="draw">Draw</button>
+          <button class="k" data-tool="edit">Edit</button>
+          <button class="k" data-tool="seam">Seams</button>
+          <button class="k" data-tool="mark">Marks</button>
+        </div>
+        <div class="keys" id="views">
+          <button class="k" data-view="design">Design</button>
+          <button class="k" data-view="lanes">Brush path</button>
+          <button class="k" data-view="marks">Marks</button>
+          <button class="k" data-view="result">Result</button>
+          <button class="k" id="play">Play the run</button>
+        </div>
+      </div>
+      <span class="hint" id="toolhint"></span>
+      <div class="chips" id="markChips" hidden></div>
+      <div class="sheet" id="sheet"><canvas id="cv" aria-label="Panel preview"></canvas></div>
+      <div class="readout" id="readout"></div>
+      <div class="blk">
+        <span class="lab">Files for the machine</span>
+        <div class="keys" id="files"></div>
+        <div id="msg" role="status"></div>
+      </div>
+      <p class="note">Whole lanes: each lane is one run from the start of the pipe to its end, always the same way, the inside lane first; the brush lifts at the end and flies back. It is not washed between lanes, so it starts the next lane with what it carried out of the last. Where it passes wet paint it loads some of it and carries it on, so where a pipe crosses itself the later lane lies on top, one lane per step. Marks go right across the pipe, one paint each, by hand with the Marks tool or every spacing from the segments' paints. A pipe is a line of points with rounded corners: lines and arcs only. Seams cut it into segments. An Along segment is brushed in lanes that follow the line, each lane with its own paint, so the colours run across the pipe like light on a tube. An Across segment is brushed in short strokes over the pipe, back and forth, so the colours change along it in rings. At a seam the brush stops and starts again. A Fan end is brushed in rays towards the end of the line. Marks are split into dashes, one paint each; the paint map shows which.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+// ============================================================ tubes
+const TUBES = [['white', 'Titanium white', '#F4F2EE'], ['ice', 'Pale blue', '#BFE3EC'], ['lilac', 'Lilac', '#B9A6D9'], ['violet', 'Violet', '#6A3FA0'],
+  ['pink', 'Fluo pink', '#FF4FA0'], ['rose', 'Pink', '#F2A3C0'], ['magenta', 'Magenta', '#D0207A'], ['red', 'Red', '#E0242E'],
+  ['orange', 'Fluo orange', '#FF6A1F'], ['yellow', 'Yellow', '#FFD23A'], ['acid', 'Acid green', '#C8F03C'], ['green', 'Green', '#2E9E5A'],
+  ['teal', 'Teal', '#1E9AA8'], ['blue', 'Ultramarine', '#2A3FB8'], ['navy', 'Navy', '#16205A'], ['maroon', 'Maroon', '#6E1424'], ['black', 'Black', '#151515']];
+const HEX = Object.fromEntries(TUBES.map(([k, , h]) => [k, h])), NAME = Object.fromEntries(TUBES.map(([k, n]) => [k, n]));
+const FAMILIES = [['navy', 'blue', 'ice'], ['maroon', 'red', 'rose'], ['violet', 'magenta', 'pink'], ['black', 'teal', 'ice'], ['orange', 'pink', 'white'],
+  ['green', 'acid', 'yellow'], ['navy', 'violet', 'lilac'], ['red', 'orange', 'yellow'], ['teal', 'green', 'acid'], ['magenta', 'pink', 'lilac'],
+  ['black', 'navy', 'blue'], ['maroon', 'violet', 'lilac'], ['navy', 'teal', 'ice'], ['maroon', 'magenta', 'rose'],
+  // after Belem Lett's 2021 works: Sunsets From My Window, Drainage, Burnouts in Blue, Burnouts
+  ['pink', 'yellow', 'ice'], ['red', 'maroon', 'acid'], ['navy', 'pink', 'ice'], ['rose', 'magenta', 'navy']];
+const M = 60;   // mm of stage round the panel, where pipes may start and end
+
+// ============================================================ state
+const DEF = { cw: 500, ch: 700, ground: 'white', strokes: [], sel: 0, seg: 0, tool: 'edit', brush: 12, lanes: 7, xstep: 8, aorder: 'snake',
+  spacing: 60, run: 70, tail: 180, overlap: 'wet', over: 10, view: 'result', seed: 1, look: 'relief', pick: 40, mix: 0.7, markPaint: 'black' };
+const KEY = 'rembrandt.alu.v1', S = { ...DEF };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S, (k, v) => k === 'sp' ? undefined : v)); } catch (e) { } };
+
+// ============================================================ helpers
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]], mul = (a, k) => [a[0] * k, a[1] * k];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1], crs = (a, b) => a[0] * b[1] - a[1] * b[0], len = a => Math.hypot(a[0], a[1]);
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]), lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+const norm = a => { const l = len(a) || 1; return [a[0] / l, a[1] / l]; }, perp = a => [-a[1], a[0]];
+const cumOf = P => { const c = [0]; for (let i = 1; i < P.length; i++) c.push(c[i - 1] + dist(P[i], P[i - 1])); return c; };
+const lengthOf = P => { let l = 0; for (let i = 1; i < P.length; i++) l += dist(P[i], P[i - 1]); return l; };
+function segDist(p, a, b) { const ab = sub(b, a), l2 = dot(ab, ab); let t = l2 ? dot(sub(p, a), ab) / l2 : 0; t = Math.max(0, Math.min(1, t)); return dist(p, add(a, mul(ab, t))); }
+function rdp(P, eps) {
+  if (P.length < 3) return P; const keep = new Uint8Array(P.length); keep[0] = keep[P.length - 1] = 1; const st = [[0, P.length - 1]];
+  while (st.length) { const [a, b] = st.pop(); let md = 0, mi = -1; for (let i = a + 1; i < b; i++) { const d = segDist(P[i], P[a], P[b]); if (d > md) { md = d; mi = i; } } if (md > eps) { keep[mi] = 1; st.push([a, mi], [mi, b]); } }
+  return P.filter((_, i) => keep[i]);
+}
+function lb(a, b, R) {
+  let t0 = 0, t1 = 1; const dx = b[0] - a[0], dy = b[1] - a[1], p = [-dx, dx, -dy, dy], q = [a[0] - R[0], R[2] - a[0], a[1] - R[1], R[3] - a[1]];
+  for (let k = 0; k < 4; k++) { if (p[k] === 0) { if (q[k] < 0) return null; continue; } const r = q[k] / p[k]; if (p[k] < 0) { if (r > t1) return null; if (r > t0) t0 = r; } else { if (r < t0) return null; if (r < t1) t1 = r; } }
+  return t1 - t0 > 1e-9 ? [t0, t1] : null;
+}
+function clipOpen(P, R) {   // an open polyline cut to R → pieces; a point's lane, if it has one, goes with it
+  const out = []; let cur = null;
+  const at = (a, b, t) => { const q = lerp(a, b, t); if (b.length > 2) q.push(b[2], b[3]); return q; };
+  for (let i = 0; i < P.length - 1; i++) {
+    const a = P[i], b = P[i + 1], c = lb(a, b, R);
+    if (!c) { if (cur) { out.push(cur); cur = null; } continue; }
+    if (!cur || c[0] > 1e-9) { if (cur) out.push(cur); cur = [at(a, b, c[0])]; }
+    cur.push(at(a, b, c[1]));
+    if (c[1] < 1 - 1e-9) { out.push(cur); cur = null; }
+  }
+  if (cur) out.push(cur);
+  return out.filter(r => lengthOf(r) > 1);
+}
+function rng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+// ============================================================ the spine: points, corners rounded with arcs (lines and arcs only)
+// → { P: points about every mm, T tangents, N normals (to the right of the way), s arc length, R the signed radius there (Infinity on a line), L, tight: corners rounder than half the pipe }
+function spineOf(st) {
+  const V = st.pts; if (V.length < 2) return null;
+  const n = V.length, Ls = [], U = [];
+  for (let i = 0; i < n - 1; i++) { const d = sub(V[i + 1], V[i]), l = len(d); Ls.push(l); U.push(l > 1e-9 ? mul(d, 1 / l) : (U.at(-1) || [1, 0])); }
+  const out = { P: [], T: [], N: [], s: [], R: [], tight: 0, turn: 0 };   // turn: the signed turning of the whole pipe; its sign is the side of N the pipe turns to
+  const push = (p, t, r) => { if (out.P.length) { const d = dist(p, out.P.at(-1)); if (d < 1e-6) return; out.s.push(out.s.at(-1) + d); } else out.s.push(0); out.P.push(p); out.T.push(t); out.N.push(perp(t)); out.R.push(r); };
+  const line = (a, b, t) => { const l = dist(a, b), k = Math.max(1, Math.ceil(l)); for (let j = out.P.length ? 1 : 0; j <= k; j++) push(lerp(a, b, j / k), t, Infinity); };
+  let cur = V[0];
+  for (let i = 1; i < n - 1; i++) {
+    const u = U[i - 1], v = U[i], th = Math.acos(Math.max(-1, Math.min(1, dot(u, v))));
+    if (th < 1e-3) continue;
+    const tin = i === 1 ? Ls[0] : Ls[i - 1] / 2, tout = i === n - 2 ? Ls[n - 2] : Ls[i] / 2;
+    const t = Math.min(st.round * Math.min(tin, tout), st.rad ? st.rad * Math.tan(th / 2) : Infinity), R = t / Math.tan(th / 2), sg = Math.sign(crs(u, v)) || 1;   // st.rad: the largest corner radius, mm (Lett's tight corners)
+    out.turn += sg * th;
+    if (R < 0.5) { line(cur, V[i], u); cur = V[i]; continue; }
+    if (R < st.w / 2 - 0.5) out.tight++;
+    const Tin = sub(V[i], mul(u, t)), C = add(Tin, mul(perp(u), R * sg));
+    line(cur, Tin, u);
+    const a0 = Math.atan2(Tin[1] - C[1], Tin[0] - C[0]), k = Math.max(4, Math.ceil(R * th));
+    for (let j = 1; j <= k; j++) { const a = a0 + sg * th * j / k, p = [C[0] + R * Math.cos(a), C[1] + R * Math.sin(a)]; const tg = [-Math.sin(a) * sg, Math.cos(a) * sg]; push(p, tg, R * sg); }
+    cur = add(V[i], mul(v, t));
+  }
+  line(cur, V[n - 1], U[n - 2]);
+  out.L = out.s.at(-1);
+  return out.L > 2 ? out : null;
+}
+function frameAt(sp, s) {
+  s = Math.max(0, Math.min(sp.L, s));
+  let lo = 0, hi = sp.s.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (sp.s[m] <= s) lo = m; else hi = m; }
+  const d = sp.s[hi] - sp.s[lo], t = d > 0 ? (s - sp.s[lo]) / d : 0;
+  return { p: lerp(sp.P[lo], sp.P[hi], t), T: sp.T[lo], N: sp.N[lo] };
+}
+// the line at offset d from the spine between a and b; where it would fold back (inside a tight corner) the points are dropped
+function offsetRange(sp, a, b, d) {
+  const out = [], f0 = frameAt(sp, a); out.push(add(f0.p, mul(f0.N, d)));
+  let last = out[0];
+  for (let i = 0; i < sp.P.length; i++) {
+    if (sp.s[i] <= a || sp.s[i] >= b) continue;
+    const q = add(sp.P[i], mul(sp.N[i], d));
+    if (dot(sub(q, last), sp.T[i]) <= 0.05) continue;
+    out.push(q); last = q;
+  }
+  const f1 = frameAt(sp, b), e = add(f1.p, mul(f1.N, d)); if (dot(sub(e, last), f1.T) > 0.05 || out.length === 1) out.push(e);
+  return out;
+}
+const segsOf = st => { const L = st.sp.L, cuts = [0, ...st.seams.map(f => f * L), L]; return st.segs.map((g, j) => ({ ...g, a: cuts[j], b: cuts[j + 1], j })); };
+
+// ============================================================ composition: new pipes from a seed
+function familiesOf(r) { const out = []; while (out.length < 3) { const f = FAMILIES[Math.floor(r() * FAMILIES.length)]; if (!out.includes(f)) out.push(f); } return out; }
+function family(r, fams = FAMILIES) {
+  if (r() < 0.1) return r() < 0.5 ? ['black'] : ['navy', 'black'];
+  let f = fams[Math.floor(r() * fams.length)].slice(); if (r() < 0.5) f.reverse();
+  if (r() < 0.4) f = [f[0], f[1], f[2], f[1], f[0]];   // a tube: dark, colour, light, colour, dark
+  return f;
+}
+function paintSegs(st, r, fams) { st.segs = st.segs.map(g => ({ mode: g.mode, lay: g.lay, stops: isLanes(st) && g.lay === 'across' ? lettFamily(r, fams) : family(r, fams) })); }
+// New composition (the owner, 2026-10-08: "take out the across strokes, just stripes in parallel"; his references:
+// Belem Lett, 2021). Whole lanes only, paints laid across the pipe, no seams that stop the brush, no fan ends. Wide
+// pipes on the 45° grid with tight corners and hairpins, each coming in over an edge of the panel and going out over
+// one; a pipe that would lie too much on the ones before it is drawn again. A proposal to start from, never the painting.
+const lettFamily = (r, fams) => { let f = fams[Math.floor(r() * fams.length)].slice(); if (r() < 0.5) f.reverse(); return r() < 0.65 ? [f[0], f[1], f[2], f[1], f[0]] : f; };
+function compose(seed) {
+  const r = rng(seed), out = [], fams = familiesOf(r), n = 3 + (r() < 0.35 ? 1 : 0);
+  const wMax = Math.max(16, Math.round(S.brush + (S.lanes - 1) * S.brush * 0.92));   // the widest pipe the lanes cover without gaps
+  const dir = a => [Math.cos(a * Math.PI / 4), Math.sin(a * Math.PI / 4)];
+  const inPanel = (q, m) => q[0] >= m && q[0] <= S.cw - m && q[1] >= m && q[1] <= S.ch - m;
+  let lim0 = 0.22;
+  const tooClose = (sp, w) => {
+    const P = sp.P.filter((_, i) => i % 4 === 0); if (!P.length) return true;
+    if (P.filter(q => inPanel(q, 0)).length < 0.55 * P.length) return true;
+    for (const o of out) { const lim = (w + o.w) / 2 * 0.85, Q = o.sp.P.filter((_, i) => i % 4 === 0); if (P.filter(q => Q.some(z => dist(q, z) < lim)).length > lim0 * P.length) return true; }
+    return false;
+  };
+  // how much of the panel the pipes cover, on a 10 mm grid: pipes are added past n until it is about 45 %, six at most
+  const cover = () => { let c = 0, t = 0; for (let x = 5; x < S.cw; x += 10) for (let y = 5; y < S.ch; y += 10) { t++; if (out.some(o => o.sp.P.some((q, i) => i % 3 === 0 && dist(q, [x, y]) < o.w / 2))) c++; } return c / t; };
+  let full = 0;
+  for (let tries = 0; (out.length < n || (out.length < 6 && (full = cover()) < 0.45)) && tries < 120; tries++) {
+    lim0 = 0.22 + 0.015 * Math.max(0, tries - 25);   // more of a crossing is let through the longer it takes
+    const w = Math.round(wMax * (0.72 + 0.28 * r())), off = w / 2 + 12, side = Math.floor(r() * 4), u = 0.12 + 0.76 * r();
+    let p, a;
+    if (side === 0) { p = [-off, S.ch * u]; a = [0, 1, 7][Math.floor(r() * 3)]; }
+    else if (side === 1) { p = [S.cw + off, S.ch * u]; a = [4, 3, 5][Math.floor(r() * 3)]; }
+    else if (side === 2) { p = [S.cw * u, -off]; a = [2, 1, 3][Math.floor(r() * 3)]; }
+    else { p = [S.cw * u, S.ch + off]; a = [6, 5, 7][Math.floor(r() * 3)]; }
+    const pts = [p], legs = 2 + Math.floor(r() * 3);
+    for (let j = 0; j < legs; j++) {
+      let placed = false;
+      for (let k = 0; k < 12 && !placed; k++) {
+        const turn = j === 0 ? 0 : [2, -2, 2, -2, 1, -1, 3, -3, 4, 4][Math.floor(r() * 10)];
+        if (turn === 4) {   // a hairpin: two right angles round a leg one width long, the pipe folding back beside itself
+          const sg = r() < 0.5 ? 1 : -1, q1 = add(pts.at(-1), mul(dir((a + 2 * sg + 8) % 8), w * 1.05)), b = (a + 4) % 8, q2 = add(q1, mul(dir(b), (0.2 + 0.3 * r()) * S.ch));
+          if (!inPanel(q1, w * 0.6) || !inPanel(q2, w * 0.6)) continue;
+          pts.push(q1, q2); a = b; placed = true; continue;
+        }
+        const b = (a + turn + 8) % 8, q = add(pts.at(-1), mul(dir(b), (0.18 + 0.32 * r()) * S.ch * (b % 2 ? 1.2 : 1)));
+        if (!inPanel(q, w * 0.6)) continue;
+        pts.push(q); a = b; placed = true;
+      }
+      if (!placed) break;
+    }
+    if (pts.length < 2) continue;
+    // out over the nearest edge the pipe can reach without turning back
+    let best = null;
+    for (const turn of [0, 2, -2, 1, -1]) {
+      const b = (a + turn + 8) % 8, v = dir(b); let t = 0;
+      while (t < 3000 && inPanel(add(pts.at(-1), mul(v, t)), -off)) t += 2;
+      if (!best || t < best.t * (0.7 + 0.6 * r())) best = { b, t };
+    }
+    pts.push(add(pts.at(-1), mul(dir(best.b), best.t)));
+    const st = { pts, w, round: 1, rad: Math.round(w * (0.55 + 0.45 * r())), capA: 'flat', capB: 'flat', seams: [], segs: [], brush: 'lanes', first: 'in', marks: [] };
+    st.sp = spineOf(st); if (!st.sp || tooClose(st.sp, w)) continue;
+    // the colours change along a pipe at most once or twice, and stay in the family: the tube turned inside out, or one paint swapped
+    if (r() < 0.6) { let s0 = (0.3 + 0.25 * r()) * st.sp.L; while (s0 < st.sp.L - 120 && st.seams.length < 2) { st.seams.push(s0 / st.sp.L); s0 += 220 + r() * 200; } }
+    const first = lettFamily(r, fams); st.segs = [{ mode: 'along', lay: 'across', stops: first }];
+    for (let k = 0; k < st.seams.length; k++) {
+      const prev = st.segs.at(-1).stops, K = prev.length, mid = Math.floor(K / 2);
+      let next;
+      if (r() < 0.5 && K >= 3) next = K === 5 ? [prev[2], prev[1], prev[0], prev[1], prev[2]] : prev.slice().reverse();   // inside out
+      else { const f = fams[Math.floor(r() * fams.length)], c = f.find(x => !prev.includes(x)) || f[0]; next = prev.slice(); next[mid] = c; }   // a new paint in the middle
+      st.segs.push({ mode: 'along', lay: 'across', stops: next });
+    }
+    out.push(st);
+  }
+  return out.map(({ sp, ...st }) => st);
+}
+try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && Array.isArray(o.strokes)) { if (!o.look) { o.overlap = 'wet'; o.look = 'relief'; } if (o.pick === undefined || o.pick < 20) o.pick = 40; if (o.mix === undefined) o.mix = 0.7; delete o.smear; if (o.ground !== 'white' && o.ground !== 'paper') o.ground = 'white'; /* no brushed aluminium (the owner, 2026-10-08) */ Object.assign(S, o); } else S.strokes = compose(S.seed); } catch (e) { S.strokes = compose(S.seed); }
+
+// ============================================================ the plan
+const LAND = 4, SPEED = 60, MARK_END = 2, EDGE_IN = 3;
+function groupOf(i, n, K) { return Math.min(K - 1, Math.floor(i * K / n)); }
+const RING_STROKES = 3;   // an across segment's ring: this many strokes of one paint, est.
+const ringLen = () => RING_STROKES * S.xstep;
+function ringOf(sg, s) { const K = sg.stops.length; if (K < 2) return 0; const i = Math.floor(Math.max(0, s - sg.a) / ringLen()), per = 2 * K - 2, m = i % per; return m < K ? m : per - m; }
+function markIndex() {
+  const cell = 6, map = new Map();
+  const cells = (a, b, fn) => { const x0 = Math.floor(Math.min(a[0], b[0]) / cell), x1 = Math.floor(Math.max(a[0], b[0]) / cell), y0 = Math.floor(Math.min(a[1], b[1]) / cell), y1 = Math.floor(Math.max(a[1], b[1]) / cell); for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) fn(x + ',' + y); };
+  return {
+    add(m) { for (let i = 1; i < m.pts.length; i++) { const e = { m, a: m.pts[i - 1], b: m.pts[i] }; cells(e.a, e.b, k => { let l = map.get(k); if (!l) map.set(k, l = []); l.push(e); }); } },
+    query(a, b) { const out = new Set(); cells(a, b, k => { const l = map.get(k); if (l) for (const e of l) out.add(e); }); return out; },
+  };
+}
+function crossT(a, b, c, d) {
+  const r = sub(b, a), q = sub(d, c), den = crs(r, q); if (Math.abs(den) < 1e-12) return null;
+  const ca = sub(c, a), t = crs(ca, q) / den, u = crs(ca, r) / den;
+  return t >= 0 && t < 1 && u >= 0 && u <= 1 ? t : null;
+}
+function crossingsOf(P, cum, idx) {
+  const out = [];
+  for (let i = 0; i < P.length - 1; i++) for (const e of idx.query(P[i], P[i + 1])) { const t = crossT(P[i], P[i + 1], e.a, e.b); if (t !== null) out.push({ s: cum[i] + t * (cum[i + 1] - cum[i]), m: e.m }); }
+  out.sort((x, y) => x.s - y.s);
+  return out.filter((c, i) => !out.slice(Math.max(0, i - 4), i).some(o => o.m === c.m && c.s - o.s < 2));
+}
+// where marks go across a stretch a..b: 2 mm in from both ends, and each time the longer of the two edge lanes has run the spacing
+function markStops(sp, a, b, e) {
+  const span = b - a, at = [];
+  if (span < 3 * MARK_END + 2) return [(a + b) / 2];
+  let pa = null, pb = null, acc = 0; const lim = S.spacing * 0.97;
+  at.push(a + MARK_END);
+  for (let s = a + MARK_END; s <= b - MARK_END; s += 0.5) {
+    const f = frameAt(sp, s), A = add(f.p, mul(f.N, -e)), B = add(f.p, mul(f.N, e));
+    if (pa) acc += Math.max(dist(A, pa), dist(B, pb));
+    pa = A; pb = B;
+    if (acc >= lim) { at.push(s); acc = 0; }
+  }
+  if (b - MARK_END - at.at(-1) > 4) at.push(b - MARK_END); else at[at.length - 1] = b - MARK_END;
+  return at;
+}
+const isLanes = st => st.brush === 'lanes';
+const handMarks = st => isLanes(st) && st.marks && st.marks.length > 0;
+// the paint a whole-lane pipe takes at s: the mark by hand last passed (the first one before any), or the segment's paints in turn along it
+function paintAt(st, s) {
+  if (handMarks(st)) { const L = st.sp.L; let k = st.marks[0].paint; for (const m of st.marks) if (m.f * L <= s) k = m.paint; return k; }
+  const g = segsOf(st).find(x => s >= x.a && s <= x.b) || segsOf(st).at(-1), K = g.stops.length;
+  return g.stops[Math.min(K - 1, Math.max(0, Math.floor((s - g.a) / Math.max(1e-6, g.b - g.a) * K)))];
+}
+// Whole lanes, Master Flo's way (the owner's paper test, 2026-10-08): each lane one run from the start of the pipe to its end,
+// always the same way, the brush lifting at the end; the inside lane first (the side the pipe turns to), then out.
+// The owner's numbers: 1 the outside lane, n the inside one, so the order is n … 1. Marks right across the pipe, one
+// paint each: by hand, or every spacing from the segments' paints.
+function lanesOf(st) {
+  const sp = st.sp, W = st.w, e = Math.max(0, W / 2 - S.brush / 2), n = S.lanes, pitch = n > 1 ? 2 * e / (n - 1) : 0, sig = Math.sign(sp.turn) || 1;
+  const d = i => n > 1 ? -e + i * pitch : 0, inward = i => d(i) * sig;
+  const byIn = Array.from({ length: n }, (_, i) => i).sort((p, q) => inward(q) - inward(p));
+  const num = {}; byIn.slice().reverse().forEach((i, r) => { num[i] = r + 1; });
+  return { e, pitch, d, num, order: st.first === 'out' ? byIn.slice().reverse() : byIn };
+}
+// A whole-lane segment lays its paints across the pipe (lay 'across', New composition's: Lett's tubes, edge to edge,
+// lane i taking stop round(i·(K−1)/(n−1)), so a tube a, b, c, b, a sits symmetric) or along it (lay 'along': a mark
+// right across in one paint, the paints in turn along the segment).
+const laneGroup = (i, n, K) => n > 1 ? Math.min(K - 1, Math.round(i * (K - 1) / (n - 1))) : 0;
+// the paint a whole-lane pipe has at s, offset off from its centre line
+function paintAtLane(st, s, off) {
+  if (handMarks(st)) return paintAt(st, s);
+  const g = segsOf(st).find(x => s >= x.a && s <= x.b) || segsOf(st).at(-1);
+  if (g.lay !== 'across') return paintAt(st, s);
+  const n = S.lanes, e = Math.max(0, st.w / 2 - S.brush / 2), pitch = n > 1 ? 2 * e / (n - 1) : 0, i = n > 1 && pitch > 0 ? Math.max(0, Math.min(n - 1, Math.round((off + e) / pitch))) : 0;
+  return g.stops[laneGroup(i, n, g.stops.length)];
+}
+function lanesPipeOf(st, si) {
+  const sp = st.sp, W = st.w, n = S.lanes, { e, pitch, d, num, order } = lanesOf(st), runs = [], marks = [], half = W / 2 - 0.5;
+  for (const i of order) runs.push({ si, j: 0, mode: 'lanes', pitch, lane: i, num: num[i], pts: offsetRange(sp, 0, sp.L, d(i)).map(q => [q[0], q[1], i, 1]) });
+  const across = (s, paint, kind, lo = -half, hi = half) => { const f = frameAt(sp, s), j = Math.max(0, segsOf(st).findIndex(x => s >= x.a && s <= x.b)); marks.push({ si, j, mode: 'lanes', s, pts: [add(f.p, mul(f.N, lo)), add(f.p, mul(f.N, hi))], paint, kind }); };
+  if (handMarks(st)) for (const m of st.marks) across(m.f * sp.L, m.paint, 'hand');
+  else for (const g of segsOf(st)) {
+    if (g.b - g.a < 1) continue;
+    for (const s of markStops(sp, g.a, g.b, e)) {
+      if (g.lay !== 'across') { across(s, paintAt(st, s), 'across'); continue; }
+      const K = g.stops.length;   // one dash a paint, over the lanes that take it
+      for (let k = 0; k < K; k++) {
+        const ids = Array.from({ length: n }, (_, i) => i).filter(i => laneGroup(i, n, K) === k); if (!ids.length) continue;
+        across(s, g.stops[k], 'across', ids[0] === 0 ? -half : Math.max(-half, d(ids[0]) - pitch / 2), ids.at(-1) === n - 1 ? half : Math.min(half, d(ids.at(-1)) + pitch / 2));
+      }
+    }
+  }
+  return { runs, marks, pitch, e };
+}
+// one pipe's brush runs and marks, before cutting to the panel
+function pipeOf(st, si) {
+  if (isLanes(st)) return lanesPipeOf(st, si);
+  const sp = st.sp, W = st.w, b = S.brush, e = Math.max(0, W / 2 - b / 2), n = S.lanes, pitch = n > 1 ? 2 * e / (n - 1) : 0;
+  const offs = Array.from({ length: n }, (_, i) => n > 1 ? -e + i * pitch : 0), runs = [], marks = [];
+  for (const g of segsOf(st)) {
+    const K = g.stops.length, base = { si, j: g.j, mode: g.mode, pitch };
+    if (g.b - g.a < 1) continue;
+    if (g.mode === 'along') {
+      const lanes = offs.map(d => offsetRange(sp, g.a, g.b, d));
+      if (S.aorder === 'snake') { const run = []; lanes.forEach((l, i) => { const dir = i % 2 ? -1 : 1; for (const q of dir < 0 ? l.slice().reverse() : l) run.push([q[0], q[1], i, dir]); }); runs.push({ ...base, pts: run, lanes: n }); }
+      else lanes.forEach((l, i) => runs.push({ ...base, pts: l.map(q => [q[0], q[1], i, 1]), lanes: 1, lane: i }));
+      // marks across the pipe, one dash a paint, at both ends of the segment and every spacing between
+      for (const s of markStops(sp, g.a, g.b, e)) {
+        const f = frameAt(sp, s);
+        for (let k = 0; k < K; k++) {
+          const ids = offs.map((d, i) => i).filter(i => groupOf(i, n, K) === k); if (!ids.length) continue;
+          const lo = Math.max(-(W / 2 - 2), offs[ids[0]] - pitch / 2), hi = Math.min(W / 2 - 2, offs[ids.at(-1)] + pitch / 2);
+          marks.push({ ...base, pts: [add(f.p, mul(f.N, n > 1 ? lo : -(W / 2 - 2))), add(f.p, mul(f.N, n > 1 ? hi : W / 2 - 2))], paint: g.stops[k], kind: 'across' });
+        }
+      }
+    } else {
+      // strokes across the pipe, back and forth, a step apart at the pipe's edges
+      const strokes = [], a0 = g.a + Math.min(b / 2, (g.b - g.a) / 2), a1 = g.b - Math.min(b / 2, (g.b - g.a) / 2);
+      let lastA = null, lastB = null;
+      for (let s = a0; s <= a1 + 1e-6; s += 0.5) {
+        const f = frameAt(sp, s), A = add(f.p, mul(f.N, -e)), B = add(f.p, mul(f.N, e));
+        if (!lastA || Math.max(dist(A, lastA), dist(B, lastB)) >= S.xstep) { strokes.push([A, B, s]); lastA = A; lastB = B; }
+      }
+      if (!strokes.length) { const f = frameAt(sp, (g.a + g.b) / 2); strokes.push([add(f.p, mul(f.N, -e)), add(f.p, mul(f.N, e)), (g.a + g.b) / 2]); }
+      const run = []; strokes.forEach(([A, B], k) => { if (k % 2) run.push(B, A); else run.push(A, B); });
+      runs.push({ ...base, pts: run, strokes: strokes.length });
+      // marks along both edges, the paints in turn along the segment
+      const rl = K > 1 ? ringLen() : g.b - g.a, sides = e > EDGE_IN + 1 ? [-(e - EDGE_IN), e - EDGE_IN] : [0];
+      for (const off of sides) for (let sa = g.a; sa < g.b - 0.5; sa += rl) {
+        const sb = Math.min(g.b, sa + rl);
+        marks.push({ ...base, pts: rdp(offsetRange(sp, sa, sb, off), 0.2), paint: g.stops[ringOf(g, (sa + sb) / 2)], kind: 'edge' });
+      }
+    }
+  }
+  // Fan ends: rays from the rim to the end of the line, a step apart at the rim, a lift each; a mark round the rim
+  const fan = (atEnd) => {
+    const g = segsOf(st)[atEnd ? st.segs.length - 1 : 0], f = frameAt(sp, atEnd ? sp.L : 0), out = atEnd ? f.T : mul(f.T, -1), K = g.stops.length;
+    if (e < 2) return;
+    const m = Math.max(3, Math.ceil(Math.PI * e / S.xstep) + 1), rIn = Math.min(e, b / 2) * 0.5;
+    for (let k = 0; k < m; k++) {
+      const ph = -Math.PI / 2 + Math.PI * k / (m - 1), d = add(mul(out, Math.cos(ph)), mul(f.N, Math.sin(ph)));
+      runs.push({ si, j: g.j, mode: 'fan', pts: [add(f.p, mul(d, e)), add(f.p, mul(d, rIn))] });
+    }
+    const rr = Math.max(1, e - EDGE_IN);
+    for (let k = 0; k < K; k++) {
+      const arc = [], over = 0.12; for (let q = 0; q <= 24; q++) { const ph = -Math.PI / 2 - (k === 0 ? over * (1 - q / 24) : 0) + (k === K - 1 ? over * q / 24 : 0) + Math.PI * (k + q / 24) / K, d = add(mul(out, Math.cos(ph)), mul(f.N, Math.sin(ph))); arc.push(add(f.p, mul(d, rr))); }
+      marks.push({ si, j: g.j, mode: 'fan', pts: arc, paint: g.stops[k], kind: 'rim' });
+    }
+  };
+  if (st.capA === 'fan' && !isLanes(st)) fan(false);
+  if (st.capB === 'fan' && !isLanes(st)) fan(true);
+  return { runs, marks, pitch, e };
+}
+// where a pipe runs off the panel: a mark along the edge, 3 mm in, over the stretch the segment covers, a dash a paint
+function edgeMarks(st, si, pipe) {
+  const out = [], sp = st.sp, W = st.w, n = S.lanes;
+  const sides = [['l', u => [EDGE_IN, u], S.ch], ['r', u => [S.cw - EDGE_IN, u], S.ch], ['t', u => [u, EDGE_IN], S.cw], ['b', u => [u, S.ch - EDGE_IN], S.cw]];
+  const off = q => { let best = null; for (let i = 0; i < sp.P.length; i += 1) { const d = dist(q, sp.P[i]); if (d < W / 2 && (!best || d < best.d)) best = { d, i }; } return best; };
+  const out1 = p => p[0] < 0 || p[0] > S.cw || p[1] < 0 || p[1] > S.ch;
+  if (!sp.P.some(out1)) return out;
+  const segs = segsOf(st);
+  const nearSide = { l: p => p[0] < W / 2 + EDGE_IN, r: p => p[0] > S.cw - W / 2 - EDGE_IN, t: p => p[1] < W / 2 + EDGE_IN, b: p => p[1] > S.ch - W / 2 - EDGE_IN };
+  for (const [side, at, Ls] of sides) {
+    if (!sp.P.some(nearSide[side])) continue;
+    let cur = null;
+    const flush = () => { if (cur && cur.pts.length > 1 && lengthOf(cur.pts) > 3) out.push(cur); cur = null; };
+    for (let u = 1; u <= Ls - 1; u += 1) {
+      const q = at(u), h = off(q);
+      if (!h) { flush(); continue; }
+      const s = sp.s[h.i], g = segs.find(x => s >= x.a && s <= x.b) || segs.at(-1), K = g.stops.length;
+      let paint;
+      if (isLanes(st)) paint = paintAtLane(st, s, dot(sub(q, sp.P[h.i]), sp.N[h.i]));
+      else if (g.mode === 'along') { const d = dot(sub(q, sp.P[h.i]), sp.N[h.i]), i = n > 1 ? Math.round((d + pipe.e) / pipe.pitch) : 0; paint = g.stops[groupOf(Math.max(0, Math.min(n - 1, i)), n, K)]; }
+      else paint = g.stops[ringOf(g, s)];
+      if (!cur || cur.paint !== paint || cur.j !== g.j) { flush(); cur = { si, j: g.j, mode: g.mode, pts: [], paint, kind: 'edge of panel' }; }
+      cur.pts.push(q);
+    }
+    flush();
+  }
+  return out;
+}
+// where a pipe crosses itself: pairs of its stretches more than two widths apart along it whose centre lines cross
+function selfCrossings(sp, W) {
+  const Q = []; for (let i = 0; i < sp.P.length; i += 3) Q.push([sp.P[i], sp.s[i]]); Q.push([sp.P.at(-1), sp.L]);
+  const hits = [];
+  for (let i = 0; i < Q.length - 1; i++) for (let j = i + 2; j < Q.length - 1; j++) {
+    if (Q[j][1] - Q[i][1] < 2 * W || crossT(Q[i][0], Q[i + 1][0], Q[j][0], Q[j + 1][0]) === null) continue;
+    if (!hits.some(h => Math.abs(h[0] - Q[i][1]) < W && Math.abs(h[1] - Q[j][1]) < W)) hits.push([Q[i][1], Q[j][1], Q[i][0]]);
+  }
+  return hits;
+}
+function plan() {
+  const t0 = performance.now(), R = [-S.over, -S.over, S.cw + S.over, S.ch + S.over], PAN = [1, 1, S.cw - 1, S.ch - 1];
+  const pipes = [];
+  S.strokes.forEach((st, si) => { st.sp = spineOf(st); if (!st.sp) return; while (st.segs.length < st.seams.length + 1) st.segs.push({ mode: 'along', stops: ['navy', 'blue', 'ice'] }); st.segs.length = st.seams.length + 1; pipes.push({ st, si }); });
+  // sessions: a pipe over an earlier one it touches goes a session later, unless wet on wet
+  const ses = {};
+  for (const { st, si } of pipes) {
+    ses[si] = 1;
+    if (S.overlap === 'dry') for (const o of pipes) { if (o.si >= si) break; const lim = (st.w + o.st.w) / 2; let hit = false;
+      for (let i = 0; i < st.sp.P.length && !hit; i += 4) for (let j = 0; j < o.st.sp.P.length && !hit; j += 4) hit = dist(st.sp.P[i], o.st.sp.P[j]) < lim;
+      if (hit) ses[si] = Math.max(ses[si], ses[o.si] + 1); }
+  }
+  const nSes = Math.max(1, ...Object.values(ses)), sessions = [];
+  for (let n = 1; n <= nSes; n++) sessions.push({ n, runs: [], marks: [], idx: markIndex() });
+  let tight = 0;
+  for (const { st, si } of pipes) {
+    const s = sessions[ses[si] - 1], pp = pipeOf(st, si); tight += st.sp.tight;
+    for (const m of [...pp.marks, ...edgeMarks(st, si, pp)]) for (const piece of clipOpen(m.pts, PAN)) { const mk = { ...m, pts: piece, session: s.n }; s.marks.push(mk); s.idx.add(mk); }
+    for (const r of pp.runs) for (const piece of clipOpen(r.pts, R)) s.runs.push({ ...r, pts: piece });
+  }
+  const nums = [];
+  for (const s of sessions) for (const m of s.marks) if (!nums.includes(m.paint)) nums.push(m.paint);
+  let dry = 0;
+  for (const s of sessions) for (const r of s.runs) {
+    r.cum = cumOf(r.pts); r.cross = crossingsOf(r.pts, r.cum, s.idx);
+    // a stretch on the panel longer than the dense run with no mark behind it
+    let first = null;
+    for (let i = 0; i < r.pts.length; i++) { const p = r.pts[i]; if (p[0] < 4 || p[0] > S.cw - 4 || p[1] < 4 || p[1] > S.ch - 4) continue; if (first === null) first = r.cum[i]; const before = r.cross.filter(c => c.s <= r.cum[i]); const ls = before.length ? before.at(-1).s : null; if (ls === null ? r.cum[i] - first > EDGE_IN + 8 : r.cum[i] - ls > S.run + 1) { dry++; r.dry = true; break; } }
+  }
+  const crossings = {}; for (const { st, si } of pipes) if (isLanes(st)) crossings[si] = selfCrossings(st.sp, st.w);
+  return { sessions, nums, tight, dry, crossings, ms: performance.now() - t0 };
+}
+
+// ============================================================ simulation (RIBBON.md's measured step model)
+const rgbOf = h => { const v = parseInt(h.slice(1), 16); return [v >> 16 & 255, v >> 8 & 255, v & 255]; };
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+// Paint mixes as pigment, not light: in linear light, geometrically, so black takes over white quickly and white
+// lightens black only step by step (the paper test: black, then grey after a white mark, lighter after the next).
+const toLin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+const toSrgb = v => 255 * (v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055);
+const pmix = (a, b, t) => a.map((v, i) => toSrgb(Math.exp(Math.log(Math.max(0.003, toLin(v))) * (1 - t) + Math.log(Math.max(0.003, toLin(b[i]))) * t)));
+// Wet on wet: the panel is kept as a grid of the paint last laid, with its run and session. A brush passing over wet
+// paint of another lane, or of its own lane further back, loads some of it (half of it in 0.7 × "Wet paint loads the
+// brush in" mm) and carries it on. So a lane crossing a wet pipe comes out in that pipe's colour, and where a pipe
+// crosses itself the lane painted later lies on top: one lane per step, as on the owner's paper test (2026-10-08).
+// A lane leaves a track as wide as 0.4 of its pitch, so the lane beside it does not count as wet paint under it.
+// The brush is not washed between the lanes of a pipe: it starts the next lane with what it carried out of the last.
+const SOLID = 0.9;   // the opacity of solid paint, est.
+// Dark paint tints harder than light: black takes over a white brush at once, white lightens a black one step by step.
+// A paint's strength goes from 0.5 (white) to 3 (black) with its lightness, est.
+const strength = c => 0.5 + 2.5 * (1 - (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255);
+const share = (f, add, into) => into ? f * strength(add) / (f * strength(add) + (1 - f) * strength(into)) : 1;
+
+function simulate(pl) {
+  const all = [], GR_ = Math.min(S.cw, S.ch) < 300 ? 2 : 1, gx = Math.ceil((S.cw + 2 * M) * GR_), gy = Math.ceil((S.ch + 2 * M) * GR_), n = gx * gy;
+  const GC = new Float32Array(n * 3), GR = new Int32Array(n).fill(-1), GS = new Float32Array(n), GE = new Int16Array(n);
+  const cellOf = p => { const x = Math.floor((p[0] + M) * GR_), y = Math.floor((p[1] + M) * GR_); return x < 0 || y < 0 || x >= gx || y >= gy ? -1 : y * gx + x; };
+  const stamp = (p, rad, rgb, run, at, ses) => {
+    const cx = (p[0] + M) * GR_, cy = (p[1] + M) * GR_, rr = rad * GR_;
+    for (let y = Math.max(0, Math.floor(cy - rr)); y <= Math.min(gy - 1, Math.floor(cy + rr)); y++) for (let x = Math.max(0, Math.floor(cx - rr)); x <= Math.min(gx - 1, Math.floor(cx + rr)); x++) {
+      const dx = x + 0.5 - cx, dy = y + 0.5 - cy; if (dx * dx + dy * dy > rr * rr) continue;
+      const c = y * gx + x; GC[c * 3] = rgb[0]; GC[c * 3 + 1] = rgb[1]; GC[c * 3 + 2] = rgb[2]; GR[c] = run; GS[c] = at; GE[c] = ses;
+    }
+  };
+  const bw = S.brush, nl = S.lanes, DRY = S.run + S.tail + 1;
+  const laned = r => r.mode === 'along' || r.mode === 'lanes';
+  const beadOf = (r, lane, dir) => {
+    if (!laned(r) || lane === undefined) return { w: Math.min(S.xstep, bw) * 0.96, sh: 0 };
+    if (nl < 2) return { w: bw, sh: 0 };
+    const p = r.pitch || bw, inner = Math.min(p, bw) * 0.96;
+    if ((lane === 0 || lane === nl - 1) && bw > inner) return { w: inner / 2 + bw / 2, sh: (lane === 0 ? -1 : 1) * dir * (bw - inner) / 4 };
+    return { w: inner, sh: 0 };
+  };
+  let runId = 0, col = null, load = DRY, pipe = null;
+  for (const s of pl.sessions) for (const r of s.runs) {
+    runId++;
+    if (r.si !== pipe || !isLanes(S.strokes[r.si])) { col = null; load = DRY; }   // a new pipe, a fresh brush; Alu's segments each start clean
+    pipe = r.si;
+    const segs = [], track = Math.max(0.8, (laned(r) && r.pitch ? r.pitch : S.xstep) * 0.4);
+    let ci = 0, last = null;   // last: the end of the piece before, shared, so a bead runs on unbroken
+    const pending = [];        // the brush's own track is laid behind it, once it has moved on past it, so it never hides the wet paint just ahead
+    for (let i = 1; i < r.pts.length; i++) {
+      const s0 = r.cum[i - 1], s1 = r.cum[i];
+      while (ci < r.cross.length && r.cross[ci].s <= s1) { if (r.cross[ci].s >= s0 - 1e-9) { const pc = rgbOf(HEX[r.cross[ci].m.paint]); col = col && load <= S.run ? pmix(col, pc, share(S.mix, pc, col)) : pc; load = 0; } ci++; }
+      const a = r.pts[i - 1], b = r.pts[i], L = s1 - s0, k = Math.max(1, Math.ceil(L / (GR_ > 1 ? 1 : 2)));   // the long straight strokes in pieces, so a stroke can run dry along itself
+      const bead = beadOf(r, b[2], b[3] || 1);
+      for (let q = 0; q < k; q++) {
+        const pa = last || lerp(a, b, q / k), pb = lerp(a, b, (q + 1) / k), at = s0 + L * (q + 0.5) / k, mid = lerp(pa, pb, 0.5); last = pb;
+        load += L / k;
+        const c = cellOf(mid);
+        const l = L / k;
+        if (c >= 0 && GR[c] >= 0 && GE[c] === s.n && (GR[c] !== runId || Math.abs(GS[c] - at) > 30)) {
+          const wc = [GC[c * 3], GC[c * 3 + 1], GC[c * 3 + 2]], f = 1 - Math.exp(-l / Math.max(1, S.pick));
+          col = col ? pmix(col, wc, share(f, wc, col)) : wc; load = Math.min(load, DRY) * (1 - f);
+        }
+        const dry = col ? (load - S.run) / Math.max(1, S.tail) : 2, hash = Math.abs(Math.sin(pa[0] * 12.9898 + pa[1] * 78.233) * 43758.5453) % 1;
+        let out = null, alpha = 0, thin;
+        if (dry <= 0) { out = col; alpha = SOLID; }
+        else if (dry < 1 && hash > dry) { out = col; alpha = 0.7 * (1 - dry); thin = 1 - 0.5 * dry; }
+
+        if (out) { segs.push({ a: pa, b: pb, col: out, alpha, thin, lane: b[2], bw: bead.w, sh: bead.sh }); pending.push([mid, out, at]); }
+        else segs.push({ a: pa, b: pb, col: null });
+        while (pending.length && at - pending[0][2] > track + 1) { const [pm, pc, pat] = pending.shift(); stamp(pm, track, pc, runId, pat, s.n); }
+      }
+    }
+    for (const [pm, pc, pat] of pending) stamp(pm, track, pc, runId, pat, s.n);
+    all.push(segs);
+  }
+  return all;
+}
+
+// ============================================================ render
+const $ = q => document.querySelector(q), cv = $('#cv'), g = cv.getContext('2d');
+let PL = null, SIM = null, SCALE = 1, anim = null;
+function frame() {
+  const box = $('#sheet'), W = S.cw + 2 * M, H = S.ch + 2 * M, availW = Math.max(200, box.clientWidth - 22), availH = Math.max(320, innerHeight * 0.84);
+  SCALE = Math.min(availW / W, availH / H);
+  const dpr = devicePixelRatio || 1, k = SCALE * dpr;
+  cv.style.width = Math.round(W * SCALE) + 'px'; cv.style.height = Math.round(H * SCALE) + 'px';
+  cv.width = Math.round(W * k); cv.height = Math.round(H * k);
+  g.setTransform(k, 0, 0, k, M * k, M * k);
+  g.clearRect(-M, -M, W, H);
+  g.save(); g.shadowColor = 'rgba(0,0,0,.18)'; g.shadowBlur = 8; g.shadowOffsetY = 2; g.fillStyle = '#FBFAF7'; g.fillRect(0, 0, S.cw, S.ch); g.restore();
+  if (S.ground === 'paper') { g.fillStyle = '#F1ECE1'; g.fillRect(0, 0, S.cw, S.ch); }
+  g.lineJoin = 'round';
+}
+const line = pts => { g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); };
+const clipPanel = () => { g.save(); g.beginPath(); g.rect(0, 0, S.cw, S.ch); g.clip(); };
+function laneDrawW(r) { return r.mode === 'across' || r.mode === 'fan' ? S.brush : S.brush; }
+// Design: every segment as its paints laid flat, along in lanes, across in rings
+function drawDesign(alpha = 1) {
+  g.save(); g.globalAlpha = alpha; g.lineCap = 'butt';
+  for (const st of S.strokes) {
+    if (!st.sp) continue;
+    const sp = st.sp, W = st.w, n = S.lanes, e = Math.max(0, W / 2 - S.brush / 2), pitch = n > 1 ? 2 * e / (n - 1) : 0;
+    if (isLanes(st)) {
+      if (!handMarks(st)) for (const sg of segsOf(st)) if (sg.lay === 'across') {
+        const K = sg.stops.length, w = n > 1 ? Math.max(pitch, 0.5) * 1.02 : W;
+        for (let i = 0; i < n; i++) { const d = n > 1 ? -e + i * pitch : 0, edge = n > 1 && (i === 0 || i === n - 1), ww = n === 1 ? W : edge ? W / 2 - e + pitch / 2 : w, dd = edge ? Math.sign(d) * (W / 2 - ww / 2) : d;
+          g.strokeStyle = HEX[sg.stops[laneGroup(i, n, K)]]; g.lineWidth = ww; line(offsetRange(sp, sg.a, sg.b + 0.3, dd)); g.stroke(); }
+      }
+      for (let s0 = 0; s0 < sp.L; s0 += 1) {
+        if (!handMarks(st) && (segsOf(st).find(x => s0 + 0.5 >= x.a && s0 + 0.5 <= x.b) || {}).lay === 'across') continue; const s1 = Math.min(sp.L, s0 + 1), f0 = frameAt(sp, s0), f1 = frameAt(sp, s1 + 0.3); g.fillStyle = HEX[paintAt(st, (s0 + s1) / 2)];
+        line([add(f0.p, mul(f0.N, -W / 2)), add(f0.p, mul(f0.N, W / 2)), add(f1.p, mul(f1.N, W / 2)), add(f1.p, mul(f1.N, -W / 2))]); g.closePath(); g.fill(); }
+      g.strokeStyle = 'rgba(36,34,31,.25)'; g.lineWidth = 0.3;
+      for (let i = 1; i < n; i++) { line(offsetRange(sp, 0, sp.L, -e + (i - 0.5) * pitch)); g.stroke(); }
+      continue;
+    }
+    for (const sg of segsOf(st)) {
+      const K = sg.stops.length;
+      if (sg.mode === 'along') {
+        const w = n > 1 ? Math.max(pitch, 0.5) * 1.02 : W;
+        for (let i = 0; i < n; i++) { const d = n > 1 ? -e + i * pitch : 0, edge = n > 1 && (i === 0 || i === n - 1), ww = n === 1 ? W : edge ? W / 2 - e + pitch / 2 : w, dd = edge ? Math.sign(d) * (W / 2 - ww / 2) : d;
+          g.strokeStyle = HEX[sg.stops[groupOf(i, n, K)]]; g.lineWidth = ww; line(offsetRange(sp, sg.a, sg.b, dd)); g.stroke(); }
+      } else {
+        const L = sg.b - sg.a, steps = Math.max(1, Math.ceil(L));
+        for (let q = 0; q < steps; q++) { const s0 = sg.a + L * q / steps, s1 = sg.a + L * (q + 1) / steps, k = ringOf(sg, (s0 + s1) / 2);
+          const f0 = frameAt(sp, s0), f1 = frameAt(sp, s1 + 0.3); g.fillStyle = HEX[sg.stops[k]];
+          line([add(f0.p, mul(f0.N, -W / 2)), add(f0.p, mul(f0.N, W / 2)), add(f1.p, mul(f1.N, W / 2)), add(f1.p, mul(f1.N, -W / 2))]); g.closePath(); g.fill(); }
+      }
+    }
+    for (const [atEnd, cap] of [[false, st.capA], [true, st.capB]]) if (cap === 'fan') {
+      // from the -N side (lane 0's) round through the outward tangent to the +N side
+      const sg = segsOf(st)[atEnd ? st.segs.length - 1 : 0], f = frameAt(sp, atEnd ? sp.L : 0), out = atEnd ? f.T : mul(f.T, -1), K = sg.stops.length;
+      const a0 = Math.atan2(-f.N[1], -f.N[0]), del = (Math.sign(crs(mul(f.N, -1), out)) || 1) * Math.PI;
+      for (let k = 0; k < K; k++) { g.fillStyle = HEX[sg.stops[k]]; g.beginPath(); g.moveTo(f.p[0], f.p[1]); g.arc(f.p[0], f.p[1], W / 2, a0 + del * k / K, a0 + del * (k + 1) / K, del < 0); g.closePath(); g.fill(); }
+    }
+  }
+  g.restore();
+}
+const LIGHT = norm([-0.55, -0.83]);   // light from the top left
+const rgba = (c, a) => `rgba(${c.map(Math.round).join(',')},${a.toFixed(3)})`;
+function normalsOf(P) { return P.map((p, i) => perp(norm(sub(P[Math.min(P.length - 1, i + 1)], P[Math.max(0, i - 1)])))); }
+function drawBead(pts, w, sh, rgb, alpha) {
+  const N = normalsOf(pts), P = sh ? pts.map((p, i) => add(p, mul(N[i], sh))) : pts, dark = mix(rgb, [0, 0, 0], 0.42), lite = mix(rgb, [255, 255, 255], 0.55);
+  g.strokeStyle = rgba(dark, alpha); g.lineWidth = w; line(P); g.stroke();
+  g.strokeStyle = rgba(rgb, alpha); g.lineWidth = w * 0.7; line(P); g.stroke();
+  g.strokeStyle = rgba(mix(rgb, [0, 0, 0], 0.18), alpha * 0.35); g.lineWidth = Math.min(0.35, w * 0.06);   // two bristle hairlines in the bead
+  for (const f of [-0.2, 0.2]) { line(P.map((p, i) => add(p, mul(N[i], w * f)))); g.stroke(); }
+  g.strokeStyle = rgba(lite, alpha * 0.9); g.lineWidth = w * 0.16; line(P.map((p, i) => add(p, mul(N[i], dot(N[i], LIGHT) * w * 0.2)))); g.stroke();
+}
+function drawRunGrooves(segs, w, square) {
+  g.lineCap = 'butt'; g.lineJoin = 'round';
+  const q6 = c => c.map(v => Math.round(v / 6) * 6);
+  let cur = null, pts = [];
+  const flush = () => {
+    if (cur && pts.length > 1) {
+      if (square) { const t0 = norm(sub(pts[1], pts[0])), t1 = norm(sub(pts.at(-1), pts.at(-2))); pts[0] = sub(pts[0], mul(t0, w / 2)); pts[pts.length - 1] = add(pts.at(-1), mul(t1, w / 2)); }
+      drawBead(pts, (cur.bw || w) * (cur.thin || 1), cur.sh || 0, cur.col, cur.alpha);
+    }
+    cur = null; pts = [];
+  };
+  for (const sg of segs) {
+    if (!sg.col) { flush(); continue; }
+    const c = q6(sg.col), same = cur && sg.alpha === cur.alpha && sg.thin === cur.thin && sg.lane === cur.lane && c.every((v, i) => v === cur.col[i]) && pts.length && pts.at(-1) === sg.a;
+    if (!same) { flush(); cur = { ...sg, col: c }; pts = [sg.a]; }
+    pts.push(sg.b);
+  }
+  flush();
+}
+function drawRun(segs, w, square = false) {
+  g.lineCap = square ? 'square' : 'butt'; g.lineJoin = square ? 'miter' : 'round';
+  let cur = null, pts = [];
+  const flush = () => {
+    if (cur && pts.length > 1) {
+      g.strokeStyle = `rgba(${cur.col.map(Math.round).join(',')},${cur.alpha.toFixed(3)})`; g.lineWidth = w * (cur.thin || 1); line(pts); g.stroke();
+      g.strokeStyle = `rgba(${mix(cur.col, [0, 0, 0], .35).map(Math.round).join(',')},${(cur.alpha * .28).toFixed(3)})`; g.lineWidth = w * .12; line(pts); g.stroke();
+    }
+    cur = null; pts = [];
+  };
+  for (const sg of segs) {
+    if (!sg.col) { flush(); continue; }
+    const same = cur && sg.alpha === cur.alpha && sg.thin === cur.thin && sg.col.every((v, i) => Math.round(v) === Math.round(cur.col[i])) && pts.length && pts.at(-1) === sg.a;
+    if (!same) { flush(); cur = sg; pts = [sg.a]; }
+    pts.push(sg.b);
+  }
+  flush();
+}
+// the marks as squeezed: a raised line of paint, under the brush runs; what the brush leaves of them shows between lanes and past the edges
+const MARK_W = 3;   // mm, a squeezed line of paint, est.
+function drawMarks(s) {
+  g.lineCap = 'round';
+  for (const m of s.marks) { if (S.look === 'relief') drawBead(m.pts, MARK_W, 0, rgbOf(HEX[m.paint]), 0.95); else { g.strokeStyle = HEX[m.paint]; g.lineWidth = MARK_W; line(m.pts); g.stroke(); } }
+}
+function ticksOf(n) { return [...Array(Math.floor(n / 5)).fill(true), ...Array(n % 5).fill(false)]; }
+function tickPaths(m, n) {
+  const P = m.pts, cum = cumOf(P), out = [];
+  ticksOf(n).forEach((long, j) => {
+    const s = 2 + j * 4; if (s > cum.at(-1) - 0.5) return;
+    let i = cum.findIndex(c => c >= s); if (i < 1) i = 1;
+    const a = lerp(P[i - 1], P[i], (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1])), t = norm(sub(P[i], P[i - 1])), nn = perp(t);
+    out.push({ pts: [a, add(a, mul(nn, long ? 7 : 3.5))], long });
+  });
+  return out;
+}
+function guides() {
+  const st = S.strokes[S.sel];
+  g.save(); g.lineCap = 'round';
+  S.strokes.forEach((o, i) => {
+    if (!o.sp) { if (o.pts.length === 1) { g.fillStyle = '#EB7A25'; g.beginPath(); g.arc(o.pts[0][0], o.pts[0][1], 3, 0, 7); g.fill(); } return; }
+    const on = i === S.sel;
+    g.strokeStyle = on ? 'rgba(235,122,37,.95)' : 'rgba(36,34,31,.35)'; g.lineWidth = on ? 0.9 : 0.6; g.setLineDash(on ? [] : [3, 3]); line(o.sp.P); g.stroke(); g.setLineDash([]);
+    if (on) { g.strokeStyle = 'rgba(235,122,37,.45)'; g.lineWidth = 0.6; line(o.pts); g.stroke(); }
+    for (const sg of segsOf(o)) if (sg.j > 0) { const f = frameAt(o.sp, sg.a); g.strokeStyle = on ? '#EB7A25' : 'rgba(36,34,31,.5)'; g.lineWidth = 1.2; line([add(f.p, mul(f.N, -o.w / 2 - 4)), add(f.p, mul(f.N, o.w / 2 + 4))]); g.stroke(); }
+    if (on) {
+      const sg = segsOf(o)[S.seg]; if (sg) { g.strokeStyle = '#EB7A25'; g.lineWidth = 1.4; g.setLineDash([4, 3]); line(offsetRange(o.sp, sg.a, sg.b, -o.w / 2 - 2)); g.stroke(); line(offsetRange(o.sp, sg.a, sg.b, o.w / 2 + 2)); g.stroke(); g.setLineDash([]); }
+      for (const p of o.pts) { g.fillStyle = '#FBFAF7'; g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2; g.beginPath(); g.arc(p[0], p[1], 3.2, 0, 7); g.fill(); g.stroke(); }
+    }
+  });
+  g.restore();
+}
+function draw() {
+  if (anim) { cancelAnimationFrame(anim); anim = null; }
+  frame();
+  clipPanel();
+  if (S.view === 'design' || !PL) drawDesign();
+  if (PL && S.view === 'lanes') {
+    drawDesign(0.18); g.lineCap = 'round';
+    let prev = null;
+    for (const s of PL.sessions) for (const r of s.runs) {
+      if (prev) { g.save(); g.strokeStyle = 'rgba(36,34,31,.3)'; g.lineWidth = 0.5; g.setLineDash([2, 3]); line([prev, r.pts[0]]); g.stroke(); g.restore(); }
+      g.strokeStyle = r.mode === 'lanes' ? `hsla(${(205 + r.num * 37) % 360},55%,36%,.9)` : r.mode === 'along' ? 'rgba(30,80,150,.85)' : r.mode === 'across' ? 'rgba(170,40,90,.85)' : 'rgba(40,120,60,.85)'; g.lineWidth = r.mode === 'lanes' ? Math.max(0.6, S.brush * 0.08) : 0.6; line(r.pts); g.stroke();
+      g.fillStyle = '#EB7A25'; g.beginPath(); g.arc(r.pts[0][0], r.pts[0][1], Math.max(0.6, Math.min(1.4, S.brush * 0.15)), 0, 7); g.fill(); prev = r.pts.at(-1);
+      if (r.mode === 'lanes' && r.pts.length > 1) {   // the owner's numbers, 1 outside … n inside, at the start of each lane
+        const t = norm(sub(r.pts[1], r.pts[0])), fs = Math.max(2.4, Math.min(8, (r.pitch || S.brush) * 0.75)), q = sub(r.pts[0], mul(t, fs * 0.9));
+        g.fillStyle = 'rgba(36,34,31,.85)'; g.font = `${fs}px "Helvetica Neue", Helvetica, Arial, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(r.num), q[0], q[1]);
+      }
+    }
+  }
+  if (PL && S.view === 'marks') {
+    drawDesign(0.14); g.lineCap = 'round';
+    for (const st of S.strokes) if (st.sp) { g.strokeStyle = '#6E8EB0'; g.lineWidth = 0.8; line(offsetRange(st.sp, 0, st.sp.L, -st.w / 2 + 1)); g.stroke(); line(offsetRange(st.sp, 0, st.sp.L, st.w / 2 - 1)); g.stroke(); }
+    for (const s of PL.sessions) for (const m of s.marks) {
+      g.strokeStyle = HEX[m.paint]; g.lineWidth = 3.2; line(m.pts); g.stroke();
+      g.strokeStyle = 'rgba(36,34,31,.8)'; g.lineWidth = 0.8; for (const t of tickPaths(m, PL.nums.indexOf(m.paint) + 1)) { line(t.pts); g.stroke(); }
+    }
+  }
+  if (PL && S.view === 'result') { let i = 0; for (const s of PL.sessions) { drawMarks(s); for (const r of s.runs) (S.look === 'relief' ? drawRunGrooves : drawRun)(SIM[i++], S.brush, !(r.mode === 'along' || r.mode === 'lanes')); } g.lineJoin = 'round'; }
+  g.restore();
+  if (S.view !== 'result' || grab) guides();
+}
+function play() {
+  if (!PL) return;
+  if (anim) cancelAnimationFrame(anim);
+  S.view = 'result'; syncKeys(); frame();
+  clipPanel(); for (const s of PL.sessions) drawMarks(s); g.restore();
+  const flat = SIM.flat(), total = flat.length, dur = Math.min(26000, 6000 + total / 8), t0 = performance.now(); let done = 0;
+  const tick = now => {
+    const upto = Math.min(total, Math.floor((now - t0) / dur * total));
+    clipPanel(); g.lineCap = 'round';
+    for (; done < upto; done++) { const sg = flat[done]; if (!sg.col) continue; g.strokeStyle = `rgba(${sg.col.map(Math.round).join(',')},${sg.alpha.toFixed(3)})`; g.lineWidth = S.brush * (sg.thin || 1); line([sg.a, sg.b]); g.stroke(); }
+    g.restore();
+    if (done < total) anim = requestAnimationFrame(tick); else { anim = null; draw(); }
+  };
+  anim = requestAnimationFrame(tick);
+}
+
+// ============================================================ readout
+function readout() {
+  const el = $('#readout'); if (!PL) { el.innerHTML = ''; return; }
+  const runs = PL.sessions.flatMap(s => s.runs), marks = PL.sessions.flatMap(s => s.marks), path = runs.reduce((a, r) => a + r.cum.at(-1), 0);
+  const segs = S.strokes.filter(st => st.sp && !isLanes(st)).flatMap(st => st.segs), nA = segs.filter(x => x.mode === 'along').length, nX = segs.length - nA, nW = S.strokes.filter(st => st.sp && isLanes(st)).length;
+  const lifts = PL.sessions.reduce((a, s) => a + Math.max(0, s.runs.length - 1), 0), pitch = S.lanes > 1 ? 2 * Math.max(0, (S.strokes[S.sel]?.w || 50) / 2 - S.brush / 2) / (S.lanes - 1) : 0;
+  const lines = [];
+  lines.push(`${S.strokes.filter(st => st.sp).length} pipes${nW ? ` · <b>${nW}</b> in whole lanes` : ''}${segs.length ? ` · ${segs.length} segments, <b>${nA}</b> along, <b>${nX}</b> across` : ''} · brush path <b>${(path / 1000).toFixed(1)} m</b>, about <b>${(path / SPEED / 60).toFixed(0)} min</b> at ${SPEED} mm/s · lifts <b>${lifts}</b>`);
+  S.strokes.forEach((st, i) => {
+    if (!st.sp || !isLanes(st)) return;
+    const o = lanesOf(st), seq = o.order.map(j => o.num[j]), k = (PL.crossings[i] || []).length;
+    lines.push(`Pipe ${i + 1}, whole lanes, ${st.first === 'out' ? 'outside' : 'inside'} lane first: <b>${seq.join(' → ')}</b> · marks ${handMarks(st) ? `by hand, <b>${st.marks.length}</b>` : 'from the segments'} · ${k ? `crosses itself <b>${k}</b>×: one lane per step` : 'does not cross itself'}`);
+  });
+  lines.push(`<b>${marks.length}</b> dashes of paint · ` + PL.nums.map((k, i) => `<span style="color:${HEX[k]}">■</span> ${i + 1} ${NAME[k]}: ${marks.filter(m => m.paint === k).length}×`).join(' · '));
+  lines.push(`${PL.sessions.length === 1 ? 'one session, everything wet' : `${PL.sessions.length} sessions: a pipe that crosses an earlier one waits for it to dry`} · planned in ${PL.ms.toFixed(0)} ms`);
+  if (S.spacing > S.run) lines.push(`<span class="warn">Mark spacing ${S.spacing} mm is longer than the dense run ${S.run} mm: dry patches before every mark.</span>`);
+  if (pitch > S.brush) lines.push(`<span class="warn">Along, the lanes are ${pitch.toFixed(1)} mm apart, wider than the brush: white gaps between them. Add lanes or take a wider brush.</span>`);
+  if (S.xstep > S.brush && nX) lines.push(`<span class="warn">Across, the step is wider than the brush: white gaps between the strokes.</span>`);
+  if (PL.tight) lines.push(`${PL.tight} corner${PL.tight > 1 ? 's' : ''} tighter than half the pipe: the inner lanes pinch there.`);
+  if (PL.dry) lines.push(`<span class="warn">${PL.dry} run${PL.dry > 1 ? 's' : ''} cross the panel dry for longer than the dense run.</span>`);
+  el.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+}
+
+// ============================================================ files (TYPE.md's format)
+const f2 = v => (Math.round(v * 100) / 100).toString(), dd = (pts, closed) => 'M' + pts.map(p => f2(p[0]) + ' ' + f2(p[1])).join(' L') + (closed ? ' Z' : '');
+const slug = () => `alu_${S.seed}`;   // 'paper' for the paper test
+const svg = (title, body) => `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt ALU · ${title} · panel ${S.cw}x${S.ch} mm, y down, origin top left. Each <path> is one brush-down run, in drawing order. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${S.cw}mm" height="${S.ch}mm" viewBox="0 0 ${S.cw} ${S.ch}">\n${body}\n</svg>\n`;
+function outlineOf(st) {
+  const sp = st.sp, a = offsetRange(sp, 0, sp.L, -(st.w / 2 - 1)), b = offsetRange(sp, 0, sp.L, st.w / 2 - 1).reverse();
+  const capPts = (atEnd) => { const f = frameAt(sp, atEnd ? sp.L : 0), out = atEnd ? f.T : mul(f.T, -1), r = st.w / 2 - 1, pts = [];
+    for (let q = 0; q <= 24; q++) { const ph = (atEnd ? -1 : 1) * (Math.PI / 2 - Math.PI * q / 24), d = add(mul(out, Math.cos(ph)), mul(f.N, Math.sin(ph))); pts.push(add(f.p, mul(d, r))); } return pts; };
+  return [...a, ...(st.capB === 'fan' ? capPts(true) : []), ...b, ...(st.capA === 'fan' ? capPts(false) : []), a[0]];
+}
+function traceSvg() {
+  const rows = [];
+  S.strokes.forEach((st, si) => { if (!st.sp) return; for (const piece of clipOpen(outlineOf(st), [0, 0, S.cw, S.ch])) rows.push(`  <path d="${dd(rdp(piece, 0.15))}" data-pipe="${si + 1}"/>`); });
+  return svg('pass 1 trace', `<g id="pass1-trace" data-pass="1" data-ink="INK-1" data-dip-every-mm="400" fill="none" stroke="#6E8EB0" stroke-width="2">\n${rows.join('\n')}\n</g>`);
+}
+function marksSvg(s) {
+  const rows = [];
+  for (const m of s.marks) { const n = PL.nums.indexOf(m.paint) + 1; rows.push(`  <path d="${dd(rdp(m.pts, 0.15))}" data-paint="${n}" data-pipe="${m.si + 1}" data-segment="${m.j + 1}" data-kind="${m.kind}"/>`); for (const t of tickPaths(m, n)) rows.push(`  <path d="${dd(t.pts)}" data-paint="${n}" data-tick="${t.long ? 'long' : 'short'}"/>`); }
+  return svg(`pass 2 marks, session ${s.n}`, `<g id="pass2-marks-s${s.n}" data-pass="2" data-ink="INK-1" data-dip-every-marks="4" fill="none" stroke="#8A8A8A" stroke-width="2">\n${rows.join('\n')}\n</g>`);
+}
+function dragSvg(s) {
+  const rows = s.runs.map(r => r.mode === 'lanes' ? `  <path d="${dd(rdp(r.pts, 0.1))}" data-pipe="${r.si + 1}" data-mode="lanes" data-lane="${r.num}"/>` : `  <path d="${dd(rdp(r.pts, 0.1))}" data-pipe="${r.si + 1}" data-segment="${r.j + 1}" data-mode="${r.mode}"/>`);
+  return svg(`pass 3 drag, session ${s.n}`, `<g id="pass3-drag-s${s.n}" data-pass="3" data-ink="none" data-brush-mm="${S.brush}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>`);
+}
+function paintMapSvg() {
+  const rows = [];
+  S.strokes.forEach(st => { if (!st.sp) return; for (const piece of clipOpen(outlineOf(st), [0, 0, S.cw, S.ch])) rows.push(`<path d="${dd(rdp(piece, 0.2))}" fill="none" stroke="#24221F" stroke-width="0.6" opacity="0.5"/>`); });
+  for (const s of PL.sessions) for (const m of s.marks) { const n = PL.nums.indexOf(m.paint) + 1; rows.push(`<path d="${dd(rdp(m.pts, 0.2))}" stroke="${HEX[m.paint]}" stroke-width="4.5" stroke-linecap="round" fill="none"/>`); for (const t of tickPaths(m, n)) rows.push(`<path d="${dd(t.pts)}" stroke="#24221F" stroke-width="0.9" fill="none"/>`); }
+  const legend = PL.nums.map((k, i) => `<rect x="10" y="${10 + i * 15}" width="11" height="11" fill="${HEX[k]}" stroke="#24221F" stroke-width="0.3"/><text x="27" y="${19 + i * 15}" font-family="Helvetica, Arial" font-size="10" fill="#24221F">${i + 1} ${NAME[k]}</text>`).join('');
+  return svg('paint map, for the painter, not for the machine', `<rect width="100%" height="100%" fill="${S.ground === 'paper' ? '#F1ECE1' : '#FBFAF7'}"/>\n${rows.join('\n')}\n<rect x="5" y="5" width="120" height="${PL.nums.length * 15 + 8}" fill="#FBFAF7" opacity="0.92"/>${legend}`);
+}
+function planJson() {
+  return JSON.stringify({ tab: 'ALU', seed: S.seed, panel: { w: S.cw, h: S.ch, units: 'mm', origin: 'top left, y down' }, ground: S.ground,
+    brush_mm: S.brush, lanes_along: S.lanes, step_across_mm: S.xstep, along: S.aorder, mark_spacing_mm: S.spacing, dense_run_mm: S.run, dry_tail_mm: S.tail, crossings: S.overlap, past_edge_mm: S.over,
+    paints: PL.nums.map((k, i) => ({ n: i + 1, key: k, name: NAME[k], hex: HEX[k] })),
+    pipes: S.strokes.map((st, i) => ({ n: i + 1, brush: isLanes(st) ? 'whole lanes' : 'segments', ...(isLanes(st) ? { first: st.first === 'out' ? 'outside' : 'inside', marks_by_hand: handMarks(st) ? st.marks.map(m => ({ at_mm: Number(f2(m.f * (st.sp?.L || 0))), paint: PL.nums.indexOf(m.paint) + 1 })) : null } : {}), points: st.pts.map(p => p.map(v => Number(f2(v)))), width_mm: st.w, round: Number(f2(st.round)), ends: [st.capA, st.capB], seams: st.seams.map(v => Number(v.toFixed(4))), segments: st.segs.map(sg => ({ mode: sg.mode, paints: sg.stops.map(k => PL.nums.indexOf(k) + 1) })) })),
+    sessions: PL.sessions.map(s => ({ n: s.n, runs: s.runs.length, marks: s.marks.length })) }, null, 1);
+}
+function files() {
+  const box = $('#files'); box.innerHTML = ''; if (!PL) return;
+  const many = PL.sessions.length > 1, list = [['1 Trace', `${slug()}_1_trace.svg`, traceSvg]];
+  for (const s of PL.sessions) list.push([`2 Marks${many ? ' s' + s.n : ''}`, `${slug()}_2_marks${many ? '_s' + s.n : ''}.svg`, () => marksSvg(s)]);
+  for (const s of PL.sessions) list.push([`3 Drag${many ? ' s' + s.n : ''}`, `${slug()}_3_drag${many ? '_s' + s.n : ''}.svg`, () => dragSvg(s)]);
+  list.push(['Paint map', `${slug()}_paint_map.svg`, paintMapSvg], ['Plan', `${slug()}_plan.json`, planJson]);
+  for (const [label, name, make] of list) { const b = document.createElement('button'); b.className = 'k'; b.textContent = label; b.onclick = () => saveFile(name, make()); box.appendChild(b); }
+}
+let DL;
+async function saveFile(name, data) {
+  const msg = $('#msg'); msg.textContent = '';
+  if (window.claude?.use) {
+    if (DL === undefined) { try { DL = await claude.use('downloads'); } catch (e) { DL = null; } }
+    if (!DL) { msg.textContent = 'Saving files is not available in this view.'; return; }
+    try { await DL.save({ filename: name, data }); msg.textContent = `Saved ${name}`; } catch (e) { msg.textContent = e?.code === 'declined' ? '' : `Could not save ${name}`; }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: name.endsWith('.json') ? 'application/json' : 'image/svg+xml' })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000); msg.textContent = `Saved ${name}`;
+}
+
+// ============================================================ controls
+const SL = { brush: v => `${v} mm`, lanes: v => `${v}`, xstep: v => `${v} mm`, spacing: v => `${v} mm`, run: v => `${v} mm`, tail: v => `${v} mm`, over: v => `${v} mm`, pick: v => `${v} mm est.`, mix: v => `${Math.round(v * 100)} % est.` };
+let timer = null;
+function rebuild(delay = 0) {
+  clearTimeout(timer);
+  timer = setTimeout(() => requestAnimationFrame(() => { PL = plan(); SIM = simulate(PL); draw(); readout(); files(); save(); }), delay);
+}
+const HINTS = { draw: 'Draw: click to add a point to the chosen pipe. New pipe starts another.', edit: 'Edit: drag a point to move it, double-click a point to remove it, click a pipe to choose it and its segment.', seam: 'Seams: click on a pipe to cut it there; click a seam to remove it.', mark: 'Marks: click on a pipe to lay a mark of this paint right across it; click a mark to take it away. The pipe then runs in whole lanes.' };
+function syncKeys() {
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
+  document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
+  document.querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === S.ground));
+  document.querySelectorAll('[data-ov]').forEach(b => b.classList.toggle('on', b.dataset.ov === S.overlap));
+  document.querySelectorAll('[data-look]').forEach(b => b.classList.toggle('on', b.dataset.look === S.look));
+  document.querySelectorAll('[data-aorder]').forEach(b => b.classList.toggle('on', b.dataset.aorder === S.aorder));
+  document.querySelectorAll('[data-cv]').forEach(b => b.classList.toggle('on', b.dataset.cv === `${S.cw}x${S.ch}`));
+  for (const id of Object.keys(SL)) { $('#' + id).value = S[id]; $('#o-' + id).textContent = SL[id](S[id]); }
+  cv.className = S.tool === 'mark' ? 'seam' : S.tool; $('#toolhint').textContent = HINTS[S.tool]; $('#seedline').textContent = S.seed === 'paper' ? 'The paper test of 8 October, 1 : 1 on A5' : `Composition ${S.seed}`;
+  const mc = $('#markChips'); mc.hidden = S.tool !== 'mark';
+  if (!mc.hidden) {
+    mc.innerHTML = TUBES.map(([k, n, h]) => `<button class="chip${k === S.markPaint ? ' on' : ''}" style="background:${h}" data-mpaint="${k}" title="${n}" aria-label="Marks in ${n}"></button>`).join('');
+    mc.querySelectorAll('[data-mpaint]').forEach(b => b.onclick = () => { S.markPaint = b.dataset.mpaint; syncKeys(); save(); });
+  }
+}
+function ui() {
+  syncKeys();
+  $('#strokes').innerHTML = S.strokes.map((st, i) => { const c = (st.segs[0]?.stops || ['white']).map(k => HEX[k]); return `<button class="k${i === S.sel ? ' on' : ''}" data-sel="${i}"><i style="background:linear-gradient(90deg,${c.join(',')})"></i>Pipe ${i + 1}</button>`; }).join('');
+  $('#strokes').querySelectorAll('[data-sel]').forEach(b => b.onclick = () => { S.sel = +b.dataset.sel; S.seg = 0; ui(); draw(); save(); });
+  pipeEditor(); segEditor();
+}
+function pipeEditor() {
+  const box = $('#sedit'), st = S.strokes[S.sel];
+  if (!st) { box.innerHTML = '<p class="note">No pipes. Press New composition, or New pipe and draw.</p>'; return; }
+  box.innerHTML = `
+    <span class="lab">Pipe ${S.sel + 1} · ${st.pts.length} points</span>
+    <div class="keys"><button class="k${isLanes(st) ? ' on' : ''}" data-pbrush="lanes">Whole lanes, Master Flo</button><button class="k${isLanes(st) ? '' : ' on'}" data-pbrush="segments">Segments, Alu</button></div>
+    ${isLanes(st) ? `<div class="keys"><button class="k${st.first === 'out' ? '' : ' on'}" data-first="in">Inside lane first</button><button class="k${st.first === 'out' ? ' on' : ''}" data-first="out">Outside lane first</button><button class="k" id="pRev">Reverse the way</button></div>
+    <span class="lab">Marks · ${handMarks(st) ? `${st.marks.length} by hand` : 'every spacing, from the segments\' paints'}</span>
+    <div class="keys"><button class="k" id="pHand">Lay marks by hand</button>${handMarks(st) ? '<button class="k" id="pAuto">Back to marks every spacing</button>' : ''}</div>` : ''}
+    <label class="sl"><span class="slh">Width <b id="o-pW">${st.w} mm</b></span><input id="pW" type="range" min="20" max="120" step="1" value="${st.w}"></label>
+    <label class="sl"><span class="slh">Corners <b id="o-pR">${st.round.toFixed(2)}</b></span><input id="pR" type="range" min="0" max="1" step="0.01" value="${st.round}"></label>
+    <label class="sl"><span class="slh">Largest corner radius <b id="o-pK">${st.rad ? st.rad + ' mm' : 'any'}</b></span><input id="pK" type="range" min="5" max="300" step="1" value="${st.rad || 300}"></label>
+    ${isLanes(st) ? '' : `<div class="keys"><button class="k${st.capA === 'fan' ? ' on' : ''}" id="pA">Start: fan</button><button class="k${st.capB === 'fan' ? ' on' : ''}" id="pB">End: fan</button></div>`}
+    <div class="keys"><button class="k" id="pUp"${S.sel === S.strokes.length - 1 ? ' disabled' : ''}>Bring up</button><button class="k" id="pDown"${S.sel === 0 ? ' disabled' : ''}>Send down</button><button class="k" id="pDel">Delete pipe</button></div>`;
+  $('#pW').oninput = e => { st.w = +e.target.value; $('#o-pW').textContent = `${st.w} mm`; rebuild(60); };
+  $('#pR').oninput = e => { st.round = +e.target.value; $('#o-pR').textContent = st.round.toFixed(2); rebuild(60); };
+  $('#pK').oninput = e => { const v = +e.target.value; st.rad = v >= 300 ? undefined : v; $('#o-pK').textContent = st.rad ? st.rad + ' mm' : 'any'; rebuild(60); };
+  if ($('#pA')) { $('#pA').onclick = () => { st.capA = st.capA === 'fan' ? 'flat' : 'fan'; ui(); rebuild(); }; $('#pB').onclick = () => { st.capB = st.capB === 'fan' ? 'flat' : 'fan'; ui(); rebuild(); }; }
+  box.querySelectorAll('[data-pbrush]').forEach(b => b.onclick = () => { st.brush = b.dataset.pbrush; ui(); rebuild(); });
+  box.querySelectorAll('[data-first]').forEach(b => b.onclick = () => { st.first = b.dataset.first; ui(); rebuild(); });
+  if ($('#pRev')) $('#pRev').onclick = () => { st.pts.reverse(); st.seams = st.seams.map(f => 1 - f).reverse(); st.segs.reverse(); if (st.marks) st.marks = st.marks.map(m => ({ ...m, f: 1 - m.f })).reverse(); [st.capA, st.capB] = [st.capB, st.capA]; S.seg = 0; ui(); rebuild(); };
+  if ($('#pHand')) $('#pHand').onclick = () => { S.tool = 'mark'; S.view = 'marks'; syncKeys(); draw(); save(); };
+  if ($('#pAuto')) $('#pAuto').onclick = () => { st.marks = []; ui(); rebuild(); };
+  $('#pUp').onclick = () => { const i = S.sel; [S.strokes[i], S.strokes[i + 1]] = [S.strokes[i + 1], S.strokes[i]]; S.sel++; ui(); rebuild(); };
+  $('#pDown').onclick = () => { const i = S.sel; [S.strokes[i], S.strokes[i - 1]] = [S.strokes[i - 1], S.strokes[i]]; S.sel--; ui(); rebuild(); };
+  $('#pDel').onclick = () => { S.strokes.splice(S.sel, 1); S.sel = Math.max(0, S.sel - 1); S.seg = 0; ui(); rebuild(); };
+}
+function segEditor() {
+  const box = $('#gedit'), st = S.strokes[S.sel], sg = st?.segs[S.seg];
+  if (!sg) { box.innerHTML = ''; return; }
+  const wl = isLanes(st);
+  if (wl && handMarks(st)) { box.innerHTML = '<p class="note">This pipe\'s marks are laid by hand, each with its own paint; the segments\' paints wait until it goes back to marks every spacing.</p>'; return; }
+  box.innerHTML = `
+    <span class="lab">Segment ${S.seg + 1} of ${st.segs.length} · click a segment to choose it</span>
+    ${wl ? `<div class="keys"><button class="k${sg.lay === 'across' ? ' on' : ''}" data-lay="across">Paints across the pipe</button><button class="k${sg.lay === 'across' ? '' : ' on'}" data-lay="along">Paints along it</button></div>` : `<div class="keys"><button class="k${sg.mode === 'along' ? ' on' : ''}" data-mode="along">Along the line</button><button class="k${sg.mode === 'across' ? ' on' : ''}" data-mode="across">Across it</button></div>`}
+    <span class="lab">${wl ? (sg.lay === 'across' ? 'Paints across the pipe, edge to edge, a dash each' : 'Paints along the segment, a mark each in turn') : sg.mode === 'along' ? 'Paints across the pipe, edge to edge' : 'Paints along the segment, in rings back and forth'} · up to five</span>
+    <div class="chips">${TUBES.map(([k, n, h]) => { const idx = sg.stops.map((x, i) => x === k ? i + 1 : 0).filter(Boolean); return `<button class="chip${idx.length ? ' on' : ''}" style="background:${h}" data-tube="${k}" title="${n}" aria-label="${n}">${idx.length && sg.stops.length > 1 ? `<span>${idx.join('')}</span>` : ''}</button>`; }).join('')}</div>
+    <div class="keys"><button class="k" id="gTube">Make it a tube</button><button class="k" id="gFlip">Reverse</button><button class="k" id="gAll">Same on the whole pipe</button></div>`;
+  box.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { sg.mode = b.dataset.mode; ui(); rebuild(); });
+  box.querySelectorAll('[data-lay]').forEach(b => b.onclick = () => { sg.lay = b.dataset.lay; ui(); rebuild(); });
+  box.querySelectorAll('[data-tube]').forEach(b => b.onclick = () => {
+    const k = b.dataset.tube, i = sg.stops.lastIndexOf(k);
+    if (i >= 0 && sg.stops.length > 1) sg.stops.splice(i, 1); else if (i < 0) { if (sg.stops.length >= 5) sg.stops.shift(); sg.stops.push(k); }
+    ui(); rebuild();
+  });
+  $('#gTube').onclick = () => { const s = sg.stops.slice(0, 3); sg.stops = s.length >= 2 ? [...s, ...s.slice(0, -1).reverse()] : s; ui(); rebuild(); };
+  $('#gFlip').onclick = () => { sg.stops.reverse(); ui(); rebuild(); };
+  $('#gAll').onclick = () => { st.segs = st.segs.map(() => ({ mode: sg.mode, lay: sg.lay, stops: sg.stops.slice() })); ui(); rebuild(); };
+}
+$('#panels').innerHTML = [[148, 210], [400, 500], [500, 700], [560, 800]].map(([w, h]) => `<button class="k" data-cv="${w}x${h}">${w}×${h}${w === 148 ? ' A5' : ''}</button>`).join('');
+document.querySelectorAll('[data-cv]').forEach(b => b.onclick = () => { const [w, h] = b.dataset.cv.split('x').map(Number), kx = w / S.cw, ky = h / S.ch; S.strokes.forEach(st => st.pts = st.pts.map(p => [p[0] * kx, p[1] * ky])); S.cw = w; S.ch = h; ui(); rebuild(); });
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; syncKeys(); draw(); save(); });
+document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { S.tool = b.dataset.tool; if (S.tool === 'mark' && S.view === 'result') S.view = 'marks'; syncKeys(); draw(); save(); });
+document.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { S.ground = b.dataset.ground; syncKeys(); draw(); save(); });
+document.querySelectorAll('[data-ov]').forEach(b => b.onclick = () => { S.overlap = b.dataset.ov; syncKeys(); rebuild(); });
+document.querySelectorAll('[data-look]').forEach(b => b.onclick = () => { S.look = b.dataset.look; syncKeys(); draw(); save(); });
+document.querySelectorAll('[data-aorder]').forEach(b => b.onclick = () => { S.aorder = b.dataset.aorder; syncKeys(); rebuild(); });
+for (const id of Object.keys(SL)) $('#' + id).oninput = e => { S[id] = +e.target.value; $('#o-' + id).textContent = SL[id](S[id]); rebuild(80); };
+$('#compose').onclick = () => { S.seed = 1 + Math.floor(Math.random() * 9999); S.strokes = compose(S.seed); S.sel = 0; S.seg = 0; ui(); rebuild(); };
+$('#recolour').onclick = () => { const r = rng(Math.floor(Math.random() * 1e9)), fams = familiesOf(r); S.strokes.forEach(st => paintSegs(st, r, fams)); ui(); rebuild(); };
+$('#clear').onclick = () => { S.strokes = []; S.sel = 0; S.seg = 0; S.tool = 'draw'; ui(); rebuild(); };
+$('#newStroke').onclick = () => { S.strokes.push({ pts: [], w: Math.round(Math.min(50, S.cw / 3)), round: 0.8, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', lay: 'across', stops: lettFamily(rng(Date.now() >>> 0), FAMILIES) }], brush: 'lanes', first: 'in', marks: [] }); S.sel = S.strokes.length - 1; S.seg = 0; S.tool = 'draw'; ui(); rebuild(); };
+$('#undoPt').onclick = () => { const st = S.strokes[S.sel]; if (!st) return; st.pts.pop(); ui(); rebuild(); };
+$('#play').onclick = play;
+// The owner's paper test, 2026-10-08, 1 : 1 on an A5 page: a band of eight lanes comes in from the left, turns up into a
+// loop and comes down across itself. Black marks on the way in and at the turn, white round the loop and on the way down.
+// Lanes 8 (inside) to 1 (outside), each the whole way, left to right, round and down. Marks at mm along the centre line,
+// read off the photographs of the page (est.).
+function paperTest() {
+  Object.assign(S, { cw: 148, ch: 210, ground: 'paper', brush: 6, lanes: 8, spacing: 60, run: 70, tail: 180, overlap: 'wet', over: 3, look: 'relief', view: 'result', pick: 40, mix: 0.7, seed: 'paper', tool: 'edit', sel: 0, seg: 0 });
+  const st = { pts: [[5, 126], [115, 126], [115, 40], [58, 40], [58, 197]], w: 47, round: 1, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: ['black', 'white'] }], brush: 'lanes', first: 'in', marks: [] };
+  const L = spineOf(st).L;
+  st.marks = [[5, 'black'], [30, 'black'], [88.8, 'black'], [123.3, 'white'], [157, 'white'], [193.8, 'white'], [216.2, 'white'], [266.6, 'white'], [329.1, 'white'], [354.1, 'white']].map(([at, paint]) => ({ f: at / L, paint }));
+  S.strokes = [st];
+}
+$('#paper').onclick = () => { paperTest(); ui(); rebuild(); };
+
+// the canvas: draw, edit, seams
+const mmAt = e => { const r = cv.getBoundingClientRect(), W = S.cw + 2 * M, H = S.ch + 2 * M; return [(e.clientX - r.left) / r.width * W - M, (e.clientY - r.top) / r.height * H - M]; };
+function nearPoint(p) { let best = null; S.strokes.forEach((st, i) => st.pts.forEach((q, j) => { const d = dist(p, q); if (d < 7 && (!best || d < best.d)) best = { i, j, d }; })); return best; }
+function nearPipe(p) {
+  let best = null;
+  S.strokes.forEach((st, i) => { if (!st.sp) return; for (let k = 0; k < st.sp.P.length; k++) { const d = dist(p, st.sp.P[k]); if (d < st.w / 2 + 3 && (!best || d < best.d)) best = { i, d, s: st.sp.s[k] }; } });
+  if (best) { const st = S.strokes[best.i]; best.seg = Math.max(0, segsOf(st).findIndex(x => best.s >= x.a && best.s <= x.b)); }
+  return best;
+}
+let grab = null;
+cv.addEventListener('pointerdown', e => {
+  const p = mmAt(e);
+  if (S.tool === 'draw') {
+    let st = S.strokes[S.sel];
+    if (!st) { $('#newStroke').click(); st = S.strokes[S.sel]; }
+    const q = [Math.max(-M + 2, Math.min(S.cw + M - 2, p[0])), Math.max(-M + 2, Math.min(S.ch + M - 2, p[1]))];
+    st.pts.push(q); ui(); rebuild(); return;
+  }
+  if (S.tool === 'mark') {
+    const h = nearPipe(p); if (!h) return;
+    const st = S.strokes[h.i], L = st.sp.L; st.brush = 'lanes'; st.marks = (st.marks || []).slice();
+    const near = st.marks.findIndex(m => Math.abs(m.f * L - h.s) < Math.max(4, S.brush * 0.6));
+    if (near >= 0) st.marks.splice(near, 1); else { st.marks.push({ f: h.s / L, paint: S.markPaint }); st.marks.sort((a, b) => a.f - b.f); }
+    S.sel = h.i; ui(); rebuild(); return;
+  }
+  if (S.tool === 'seam') {
+    const h = nearPipe(p); if (!h) return;
+    const st = S.strokes[h.i], L = st.sp.L, near = st.seams.findIndex(f => Math.abs(f * L - h.s) < 10);
+    if (near >= 0) { st.seams.splice(near, 1); st.segs.splice(near + 1, 1); }
+    else if (h.s > 15 && h.s < L - 15) { const segs = segsOf(st), j = segs.findIndex(x => h.s >= x.a && h.s <= x.b); st.seams.splice(j, 0, h.s / L); st.segs.splice(j + 1, 0, isLanes(st) ? { mode: 'along', lay: st.segs[j].lay, stops: st.segs[j].stops.slice().reverse() } : { mode: st.segs[j].mode === 'along' ? 'across' : 'along', stops: st.segs[j].stops.slice().reverse() }); }
+    S.sel = h.i; ui(); rebuild(); return;
+  }
+  const pt = nearPoint(p);
+  if (pt) { S.sel = pt.i; grab = { ...pt }; cv.setPointerCapture(e.pointerId); ui(); draw(); return; }
+  const h = nearPipe(p); if (h) { S.sel = h.i; S.seg = h.seg; ui(); draw(); save(); }
+});
+cv.addEventListener('pointermove', e => {
+  if (!grab) return; const st = S.strokes[grab.i], p = mmAt(e);
+  st.pts[grab.j] = [Math.max(-M + 2, Math.min(S.cw + M - 2, p[0])), Math.max(-M + 2, Math.min(S.ch + M - 2, p[1]))];
+  st.sp = spineOf(st); frame(); clipPanel(); drawDesign(); g.restore(); guides();
+});
+const drop = () => { if (!grab) return; grab = null; rebuild(); };
+cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
+cv.addEventListener('dblclick', e => { if (S.tool !== 'edit') return; const pt = nearPoint(mmAt(e)); if (!pt) return; S.strokes[pt.i].pts.splice(pt.j, 1); ui(); rebuild(); });
+new ResizeObserver(() => { if (!anim && !grab) draw(); }).observe($('#sheet'));
+S.strokes.forEach(st => st.sp = spineOf(st));
+ui(); rebuild();
+</script>
+
+</body>
+</html>

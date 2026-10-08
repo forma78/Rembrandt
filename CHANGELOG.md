@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU-Claude: the prototype, the spec and the paper test** (Claude in
+  chat with the owner, 2026-10-08): `ALU.md`, the ALU tab's spec; the
+  prototype, `Rembrandt · ALU.html`; `paper-test/`, the owner's hand-made
+  run of the machine on an A5 page in black and white acrylic, "repeating
+  the brush's way with absolute precision" — fifteen photographs and their
+  README, the reference for Whole lanes, Master Flo; New composition 1–9 as
+  the prototype draws them. In git as `TYPE-Claude/` is; the other artists'
+  works `ALU.md` names are not in it.
+
 - **LOVE: the Ground in the Tools** (the owner, 2026-10-07, on a cyan to
   pink gradient, `TYPE-Claude/Screenshot 2026-10-07 at 2.55.30 AM.png`:
   "Wow! Beauty. Maybe put the gradients in the left corner, closer to the
