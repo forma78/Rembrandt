@@ -654,7 +654,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   the run; New composition · New colours · Paper test, 8 Oct; the pipes,
   bottom to top, and the chosen one's brush, inside or outside lane first,
   Reverse the way, marks by hand, Width, Corners, Largest corner radius,
-  the fans, Bring up · Send down · Delete; its segment's paints, across the
+  the fans, Bring up · Send down · Delete — or ⌫ (the owner, 2026-10-08:
+  "the sausage could simply go with the delete key"); its segment's paints, across the
   pipe or along it; the brush, the marks, the simulation (est.); the canvas;
   the prototype's files. TRACE: every pipe's outline, the line's outer edge
   on the pipe's, cut to the canvas, one whole on it a loop on 60 % over its

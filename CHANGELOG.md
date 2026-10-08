@@ -3,6 +3,14 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **ALU: ⌫ takes the chosen pipe away** (the owner, 2026-10-08: "great
+  result! There is Delete pipe, but the sausage could simply go with a
+  press of the delete key"). ⌫ or Delete, with the board or a key in
+  focus — not in a field, where it still rubs out a figure; ⌘Z brings it
+  back. Delete pipe stays.
+
 ## v.1.0.2 — 2026-10-08
 
 - **v.1.0.2 after the name** (the owner, 2026-10-08, as ALU came in: "this

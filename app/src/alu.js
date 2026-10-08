@@ -639,11 +639,13 @@ cv.addEventListener('dblclick', e => {
   undoPush(); S.pipes[pt.i].pts.splice(pt.j, 1); settle();
 });
 function movePipe(dx, dy) { const st = S.pipes[S.sel]; if (!st?.pts.length) return; undoPush(); st.pts = st.pts.map(p => [p[0] + dx, p[1] + dy]); settle(); }
+// the chosen pipe taken away (the owner, 2026-10-08: "there is Delete pipe, but the sausage could simply go with the delete key"): ⌫ or Delete, ⌘Z brings it back
+function deletePipe() { if (!S.pipes[S.sel]) return; undoPush(); S.pipes.splice(S.sel, 1); S.sel = Math.max(0, S.sel - 1); S.seg = 0; settle(); }
 function clearAll() { if (!S.pipes.length) return; undoPush(); S.pipes = []; S.sel = 0; S.seg = 0; S.tool = 'draw'; settle(); }
 function setTool(t) { S.tool = t; if (t === 'mark' && S.view === 'result') S.view = 'marks'; settle(); }
 
 const HINT = {
-  edit: 'Edit: drag a point to move it, double-click a point to take it away, click a pipe to choose it and its segment; the arrows move the chosen pipe a mm, with ⇧ ten.',
+  edit: 'Edit: drag a point to move it, double-click a point to take it away, click a pipe to choose it and its segment; the arrows move the chosen pipe a mm, with ⇧ ten; ⌫ takes it away.',
   draw: 'Draw: a click adds a point to the chosen pipe; New pipe starts another. Lines and arcs only: the corners rounded by Corners.',
   seam: 'Seams: a click on a pipe cuts it there; a click on a seam takes it away.',
   mark: 'Marks: a click on a pipe lays a mark of the chosen tube right across it — pick the tube in the strip; a click on a mark takes it away. The pipe then runs in whole lanes.',
@@ -656,6 +658,7 @@ addEventListener('keydown', e => {
   const cmd = e.metaKey || e.ctrlKey;
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (cmd) return;
+  if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); deletePipe(); return; }
   const tool = { v: 'edit', p: 'draw', s: 'seam', m: 'mark' }[e.key.toLowerCase()];
   if (tool) { setTool(tool); return; }
   const arrow = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
@@ -766,7 +769,7 @@ function showPipe() {
       ${slider('pK', 'Largest corner radius', 5, 300, 1, st.rad || 300, st.rad ? `${st.rad} mm` : 'any', 'No corner rounder than this; at the end of the slider, any')}
     </div>
     ${wl ? '' : `<div class="toggles looks"><button class="tog${st.capA === 'fan' ? ' on' : ''}" id="pA" title="The start brushed in rays to the end of the line">Start: fan</button><button class="tog${st.capB === 'fan' ? ' on' : ''}" id="pB" title="The end brushed in rays to the end of the line">End: fan</button></div>`}
-    <div class="grid4 keys three"><button class="btn" id="pUp"${S.sel === S.pipes.length - 1 ? ' disabled' : ''} title="Painted later, over the one above it">Bring up</button><button class="btn" id="pDown"${S.sel === 0 ? ' disabled' : ''} title="Painted earlier, under the one below it">Send down</button><button class="btn" id="pDel" title="Take the pipe away (⌘Z brings it back)">Delete pipe</button></div>`;
+    <div class="grid4 keys three"><button class="btn" id="pUp"${S.sel === S.pipes.length - 1 ? ' disabled' : ''} title="Painted later, over the one above it">Bring up</button><button class="btn" id="pDown"${S.sel === 0 ? ' disabled' : ''} title="Painted earlier, under the one below it">Send down</button><button class="btn" id="pDel" title="Take the pipe away — or ⌫ on the keyboard; ⌘Z brings it back">Delete pipe</button></div>`;
   const live = (id, fn, out) => { const inp = $('#' + id); inp.oninput = () => { if (!busy) undoPush(); busy = true; fn(+inp.value); $('#o-' + id).textContent = out(); kick(); }; inp.onchange = () => settle(); };
   live('pW', v => { st.w = v; }, () => `${st.w} mm`);
   live('pR', v => { st.round = v; }, () => st.round.toFixed(2));
@@ -780,7 +783,7 @@ function showPipe() {
   act('#pB', () => { st.capB = st.capB === 'fan' ? 'flat' : 'fan'; });
   act('#pUp', () => { const i = S.sel; [S.pipes[i], S.pipes[i + 1]] = [S.pipes[i + 1], S.pipes[i]]; S.sel++; });
   act('#pDown', () => { const i = S.sel; [S.pipes[i], S.pipes[i - 1]] = [S.pipes[i - 1], S.pipes[i]]; S.sel--; });
-  act('#pDel', () => { S.pipes.splice(S.sel, 1); S.sel = Math.max(0, S.sel - 1); S.seg = 0; });
+  $('#pDel').onclick = deletePipe;
   if ($('#pHand')) $('#pHand').onclick = () => { S.tool = 'mark'; S.view = 'marks'; settle(); };
 }
 function showSeg() {
