@@ -5,6 +5,30 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU: the plan, `aluplan.js`** (`ALU-Claude/ALU.md`: "port the logic;
+  do not call the prototype"). The pipes, their spines of lines and corner
+  arcs, Whole lanes, Master Flo and Segments, Alu, the marks across, the
+  edge dashes, New composition and New colours, the paper test, sessions,
+  and Result — paint mixed as pigment, the brush not washed between lanes,
+  wet paint loaded where a lane passes over it, its own track laid behind
+  it — then the passes as rows of the run, TYPE's shapes: `traceRows`,
+  `marksRows`, `dragRows` (a run cut at its sharp turns before `fitPieces`,
+  so no arc rounds a corner the brush takes). Checked against the
+  prototype's own code: compositions 1–9, their plan and their Result the
+  same to the colour. The paper test the fixture (`test/aluplan.test.js`):
+  eight whole lanes, 8 … 1; where the band crosses itself the lane painted
+  later lies on top, one lane per step; lane 1 comes out of the crossing
+  black, lane 8 light; white at the left ends of 7 … 1. And `ALU.md`'s
+  checks: a dash at least every spacing on every lane, the outer one on a
+  bend too; every Across stroke over its edge's dash within 4 mm of
+  landing; every fan ray over the rim's arc; a tight corner counted; a pipe
+  off the panel its dash along that edge; `data-ink` in every file. Claude's
+  choices: TRACE's line with its outer edge on the pipe's (the owner's rule
+  of 2026-10-06 on TYPE: "the brush is the same, in paint and dry"), not
+  1 mm inside; the ticks TYPE's, two line widths apart, not 4 mm; New
+  composition's count of what the pipes cover laid out on its grid, the
+  same compositions in 0.1 s, not 2.5.
+
 - **ALU-Claude: the prototype, the spec and the paper test** (Claude in
   chat with the owner, 2026-10-08): `ALU.md`, the ALU tab's spec; the
   prototype, `Rembrandt · ALU.html`; `paper-test/`, the owner's hand-made
