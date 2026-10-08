@@ -3,7 +3,11 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v.1.0.2 — 2026-10-08
+
+- **v.1.0.2 after the name** (the owner, 2026-10-08, as ALU came in: "this
+  will already be REMBRANDT v.1.0.2 :)"), on every tab and in the saved
+  SVGs (`rembrandt: '1.0.2'` in their metadata).
 
 - **ALU, the tab: pipes of paint** (the owner, 2026-10-08: "we have a new
   tab, ALU-Claude, in the root of Rembrandt — study it, please, and let's

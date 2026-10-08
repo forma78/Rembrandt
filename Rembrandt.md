@@ -210,7 +210,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   same evening (the owner: "publish the update on GitHub and make it
   v0.4 :)"); **v.1.0.1** on 2026-10-06, with TYPE first (the owner:
   "replace REMBRANDT v0.4 with v.1.0.1; push it to GitHub and make the
-  update today's date").
+  update today's date"); **v.1.0.2** on 2026-10-08, with ALU (the owner:
+  "this will already be REMBRANDT v.1.0.2 :)").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -496,7 +497,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.1**, then the tabs **TYPE · LOVE · ALU · NOLAN · Test · Ink ·
+  **v.1.0.2**, then the tabs **TYPE · LOVE · ALU · NOLAN · Test · Ink ·
   Calibration · Library** (LOVE since 2026-10-07, ALU since 2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
   Create the green **Open Job**. The second
