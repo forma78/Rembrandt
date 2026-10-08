@@ -30,6 +30,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Rings · Coil** | New Yuri's two ways to draw a stroke: every circle a ring of its own — it lands, goes round, on 60 % over its start, lifts; or one line a stroke, a whole turn from circle to circle. |
 | **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` since 2026-10-06 (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
 | **LOVE** | TYPE's copy, after it in the top row since 2026-10-07 (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
+| **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
+| **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
+| **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, the brush not washed between them. Segments: the pipe cut by seams, each segment brushed along the line or across it; fan ends. |
+| **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests. |
 | **Band (on TYPE)** | A letter's stroke as the brush fills it: its skeleton (New Yuri's set) a share of the letter's height wide, round at its ends; split at every corner sharper than 25°, so V, M, Z, L are overlapping bands; O, 0, 8 closed bands; the dots of ! and % discs. Not Create's band. |
 | **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number as on an abacus — a long one five, a short one one — from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
 | **Session** | On TYPE: the bands marked and dragged together. A band over a band of an earlier session goes to a later one, the earlier dry first; OVERLAPS: wet on wet, dry between letters, dry every overlap. |
@@ -294,6 +298,23 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   owner: "can we go through twice?"). The look wanted: abstractions of
   overlapping 0 and O, not words (the owner: "LOVE or AMOUR is a cheap
   poster for 50 euros, the magic is gone").
+- **ALU, a tab of its own: pipes of paint** (the owner, 2026-10-08: "we
+  have a new tab, ALU-Claude, in the root of Rembrandt — study it, please,
+  and let's add it in our style next to TYPE and YURI"). The spec and the
+  prototype of Claude in chat, `ALU-Claude/`, ported into `aluplan.js` and
+  LOVE's page; after LOVE in the top row: TYPE · LOVE · ALU · NOLAN · Test ·
+  Ink · Calibration · Library. The owner's words of the day, said to Claude
+  in chat (`ALU-Claude/README.md`): "We do everything inside Rembrandt,
+  that is what it was made for" — no Illustrator; "The configuration we
+  have now: three servos and two NEMA17. If it sells, I will build a second
+  machine" — no servo turns the brush; "I will drive the brush as Florian
+  does": the beads, and the crossings as stairs; on the paper test, one
+  lane per step where the pipe crosses itself, "not in twos"; New
+  composition: "take out the across ones, just stripes in parallel"; the
+  brushes named **Whole lanes, Master Flo** and **Segments, Alu**; "Remove
+  Brushed aluminium, I do not plan it at all" — the grounds White and
+  Paper. The panel is the canvas from home, not the prototype's formats, as
+  on TYPE (*Claude's choice*); Paper test, 8 Oct makes it 148 × 210.
 - **TYPE first; Job and New Yuri off the top row** (the owner, 2026-10-06:
   "remove the JOB and NEW YURI tabs, please; put TYPE first, it is the new
   index.html"): TYPE · NOLAN · Test · Ink · Calibration · Library. TYPE's
@@ -475,8 +496,8 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.1**, then the tabs **TYPE · LOVE · NOLAN · Test · Ink · Calibration ·
-  Library** (LOVE since 2026-10-07; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
+  **v.1.0.1**, then the tabs **TYPE · LOVE · ALU · NOLAN · Test · Ink ·
+  Calibration · Library** (LOVE since 2026-10-07, ALU since 2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
   Create the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
@@ -617,6 +638,29 @@ this section disagree, this section wins: the owner corrected the sketch on
   read. Over black the paint lies on top (multiplied, it would vanish).
   Open: the ground before the rails or after them — on black, the
   watercolour TRACE and the cup's marks would not show.
+- **ALU**, after LOVE (2026-10-08, §1): pipes of paint (`app/alu.html`,
+  `app/src/aluplan.js`; `ALU-Claude/ALU.md`). LOVE's page — its board, the
+  canvas from home, PROGRESS, the deck (TEST · PAUSE, TRACE · MARKS · DRAG,
+  the stops), INK and the cup, the zoom, the Reference, 💾 SAVE ALU (the
+  Library opens it here) — with the prototype's tools on the left: **Edit
+  (V)**, **Draw (P)**, **Seams (S)**, **Marks (M)**, Undo, Redo, Clear,
+  and the ground, White · Paper. The tubes a strip by the Tools, as LOVE's
+  paints: the prototype's seventeen, a name on hover, the number their ticks
+  carry once they have marks and the marks under it; a click puts one in
+  the chosen segment or takes it out, or, with Marks, is the next mark's
+  paint. The panel: Where pipes cross (Wet on wet · Dry between pipes), INK,
+  the view — **Design · 1 Trace · 2 Marks · 3 Drag · Result** — and ▶ Play
+  the run; New composition · New colours · Paper test, 8 Oct; the pipes,
+  bottom to top, and the chosen one's brush, inside or outside lane first,
+  Reverse the way, marks by hand, Width, Corners, Largest corner radius,
+  the fans, Bring up · Send down · Delete; its segment's paints, across the
+  pipe or along it; the brush, the marks, the simulation (est.); the canvas;
+  the prototype's files. TRACE: every pipe's outline, the line's outer edge
+  on the pipe's, cut to the canvas, one whole on it a loop on 60 % over its
+  start. MARKS: every dash and its ticks, TYPE's abacus, a dip every 4 marks
+  (est.). DRAG: every run a row — whole lanes n … 1, each the whole pipe, a
+  landing and a lift each — the dry brush, no dip. 3 Drag numbers the lanes
+  at their starts as the owner's page does. Not run on the machine yet.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

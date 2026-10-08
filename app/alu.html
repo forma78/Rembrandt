@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · ALU</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+</head>
+<body class="adjust arm3 nolan type love alu">
+<!-- Rembrandt · ALU — pipes of paint (ALU-Claude/ALU.md; the prototype of
+     Claude in chat, ported, not called). Each pipe a wide band along a line
+     drawn here, brushed in whole lanes, Master Flo's way — every lane the
+     whole pipe in one run, the inside lane first, as the owner's paper test
+     of 2026-10-08 — or in Segments, Alu. LOVE's page: its board, the canvas
+     from home, PROGRESS, the cassette deck, INK, the cup. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.0.1</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="index.html">TYPE</a>
+      <a href="love.html">LOVE</a>
+      <a href="alu.html" class="on">ALU</a>
+      <a href="nolan.html">NOLAN</a>
+      <a href="test.html">Test</a>
+      <a href="ink.html">Ink</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+    </nav>
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <nav class="tools" aria-label="Tools">
+    <button class="tool" data-tool="edit" title="Edit — drag a point to move it, double-click a point to take it away, click a pipe to choose it and its segment; the arrows move the chosen pipe a mm, with ⇧ ten (V)">
+      <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
+      <span>V</span>
+    </button>
+    <button class="tool" data-tool="draw" title="Draw — a click adds a point to the chosen pipe; New pipe in the panel starts another (P)">
+      <svg viewBox="0 0 24 24"><path d="M4 20l1.5-5L16 4.5l3.5 3.5L9 18.5z"/><path d="M14 6.5l3.5 3.5"/></svg>
+      <span>P</span>
+    </button>
+    <button class="tool" data-tool="seam" title="Seams — a click on a pipe cuts it there, the new segment the other way and its paints reversed; a click on a seam takes it away (S)">
+      <svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18"/><path d="M12 4v16" class="dash"/></svg>
+      <span>S</span>
+    </button>
+    <button class="tool" data-tool="mark" title="Marks — a click on a pipe lays a mark of the chosen paint right across it, a click on a mark takes it away; the pipe then runs in whole lanes. The paint: a tube in the strip (M)">
+      <svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18"/><path d="M9 5v14M15 5v14" class="bold"/></svg>
+      <span>M</span>
+    </button>
+    <div class="sep"></div>
+    <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
+    <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
+    <div class="sep"></div>
+    <button class="tool" id="btnClear" title="Clear the panel: no pipes (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+    <div class="sep"></div>
+    <!-- the ground (ALU.md: White and Paper; no brushed aluminium, the owner, 2026-10-08) -->
+    <div class="ground" title="The ground under the paint">
+      <span class="glab">ground</span>
+      <button class="gk" data-ground="white" title="Ground: the white canvas" aria-label="White ground"></button>
+      <button class="gk" data-ground="paper" title="Ground: paper, as the owner's paper test" aria-label="Paper ground"></button>
+    </div>
+  </nav>
+
+  <!-- the zoom, over the board, as on TYPE and LOVE -->
+  <div class="zoombar" id="zoombar">
+    <button class="zk" id="zoomOut" title="Zoom out (⌘−)" aria-label="Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button class="zk pct" id="zoomFit" title="Back to 100 %: the whole table (⌘0)">100%</button>
+    <button class="zk" id="zoomIn" title="Zoom in (⌘+). A pinch on the trackpad zooms where it is; two fingers move the board" aria-label="Zoom in"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+  </div>
+
+  <section class="stage" id="stage">
+    <!-- the tubes, a strip by the Tools as LOVE's paints: a chip a tube, its name on hover, the number its ticks
+         carry once it has marks, the marks under it; a click puts it in the chosen segment, or picks it for Marks -->
+    <div class="paintstrip" id="paints" aria-label="Tubes"></div>
+    <div class="board" id="board"><canvas id="cv"></canvas></div>
+  </section>
+
+  <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <!-- the cassette deck, TYPE's: TEST and PAUSE, the passes in their order, the stops -->
+      <div class="runkeys deck">
+        <button class="btn" id="btnTest" title="TEST, before the passes: one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <button class="btn" id="btnPause" title="PAUSE the run; pressed, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
+      </div>
+      <div class="runkeys deck passes">
+        <button class="btn pass" id="btnTrace" data-pass="trace" title="TRACE, pass 1: the outline of every pipe in watercolour, from the cup"><svg viewBox="0 0 24 24"><path d="M2.5 9.5h12a3 3 0 0 1 3 3v9M2.5 15.5h6a3 3 0 0 1 3 3v3"/></svg><span>Trace</span></button>
+        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS, pass 2: a mark across the pipe where each paint goes, its ticks the paint's number, from the same cup as TRACE"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" class="thin"/><path d="M8 5v14M14 5v14"/></svg><span>Marks</span></button>
+        <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG, pass 3: the dry brush through the paint, every lane the whole pipe, no dip"><svg viewBox="0 0 24 24"><path d="M3 7h13M3 12h16M3 17h13"/><path d="M16 9l3 3-3 3"/></svg><span>Drag</span></button>
+      </div>
+      <div class="stops">
+        <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
+        <button class="btn danger" id="btnKill" title="Stop the carriage at once and the arm where it is">HARD STOP</button>
+      </div>
+    </section>
+
+    <div class="savebar">
+      <button class="btn save" id="btnSave" title="Save the pipes in the Library, as a new save named by the date and time">💾 SAVE ALU</button>
+      <span class="save-state" id="saveState">to the Library</span>
+    </div>
+    <section class="sec">
+      <h3>ALU</h3>
+      <h4 class="first">Where pipes cross</h4>
+      <div class="toggles looks" id="overlaps">
+        <button class="tog" data-overlap="wet" title="One session: every pipe marked and dragged wet on wet; a lane passing wet paint loads it and carries it on">Wet on wet</button>
+        <button class="tog" data-overlap="dry" title="A pipe that touches an earlier one waits for it to dry: a session later">Dry between pipes</button>
+      </div>
+      <!-- INK as on LOVE: ON the brush dips in the cup of the Ink tab for TRACE and MARKS; DRAG never -->
+      <div class="inkrow" title="ON: TRACE and MARKS dip in the cup of the Ink tab; OFF: no dip. DRAG never dips">
+        <span class="slh"><span>Ink</span></span>
+        <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
+      </div>
+      <!-- the passes as they will look, and the design; a view only -->
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="design" title="The design: each segment's paints laid flat, across the pipe or along it">Design</button>
+        <button class="tog" data-view="trace" title="TRACE: the pipes' outlines in watercolour, as they lie on the paper">1 Trace</button>
+        <button class="tog" data-view="marks" title="MARKS: a mark across the pipe where each paint goes, its ticks the paint's number, the colour the paint's">2 Marks</button>
+        <button class="tog" data-view="drag" title="DRAG: the brush's path, a colour a lane, its number at its start as on the owner's page, an orange dot where it lands">3 Drag</button>
+        <button class="tog" data-view="result" title="The painting: the paint mixed as pigment, the brush not washed between lanes, wet paint loaded into it where a lane passes over it">Result</button>
+      </div>
+      <div class="grid4 keys"><button class="btn" id="btnPlay" title="Result laid again in the order the brush goes, lane after lane; pressed again, it stops. A view: it moves nothing on the machine">▶ Play the run</button></div>
+      <div class="toggles looks" id="sessions" hidden></div>
+      <h4>Composition</h4>
+      <div class="grid4 keys compose">
+        <button class="btn" id="btnCompose" title="New composition (the owner, 2026-10-08: &quot;just stripes in parallel&quot;): pipes in whole lanes from a new seed, Lett's tubes laid across — a proposal to start from">New composition</button>
+        <button class="btn" id="btnRecolour" title="New colours: the families picked again, the lines kept">New colours</button>
+        <button class="btn" id="btnPaper" title="The owner's paper test of 8 October, 1 : 1 on an A5 page: the canvas becomes 148 × 210 mm">Paper test, 8 Oct</button>
+      </div>
+      <p class="read" id="seedRead"></p>
+      <h4>Pipes, bottom to top</h4>
+      <div class="toggles looks wrap" id="pipes"></div>
+      <div class="grid4 keys">
+        <button class="btn" id="btnNewPipe" title="A new pipe on top, in whole lanes; the Draw tool to lay its points">New pipe</button>
+        <button class="btn" id="btnUndoPt" title="Take the chosen pipe's last point away">Remove last point</button>
+      </div>
+      <div class="edit" id="pipeEdit"></div>
+      <div class="edit" id="segEdit"></div>
+      <h4>Brush, pass 3</h4>
+      <div class="sliders" id="slBrush"></div>
+      <div class="toggles looks" id="aorders" title="Segments, Alu: how an Along segment's lanes run">
+        <button class="tog" data-aorder="snake" title="Back and forth, a step across at each end with the brush down">Segments: back and forth</button>
+        <button class="tog" data-aorder="one" title="One way, a lift after each lane">One way, lift</button>
+      </div>
+      <h4>Marks, pass 2</h4>
+      <div class="sliders" id="slPaint"></div>
+      <h4>Simulation</h4>
+      <div class="sliders" id="slSim"></div>
+      <div class="toggles looks" id="looks">
+        <button class="tog" data-look="relief" title="Beads (the owner, 2026-10-08: &quot;the sausages, as Florian's&quot;): every lane a rounded bead of paint, a light ridge towards the light">Beads</button>
+        <button class="tog" data-look="flat" title="Plain strips">Flat</button>
+      </div>
+      <h4>Canvas <button class="info" id="planInfo" title="The plan: the pipes, their lanes, the marks, the trace, where the canvas lies from home">i</button></h4>
+      <div class="grid4" id="fields"></div>
+      <p class="read" id="planRead" hidden></p>
+      <p class="read" id="planWarn" hidden></p>
+      <h4>Files for the machine</h4>
+      <div class="filekeys" id="files"></div>
+      <p class="read" id="fileRead"></p>
+    </section>
+
+    <section class="sec">
+      <h3>Reference <span class="hint">over the canvas, as tracing paper</span></h3>
+      <div class="refrow">
+        <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
+        <div class="refctl">
+          <button class="btn" id="btnRef" title="An image over the canvas, to draw the pipes to: never painted as is">📎 Add new reference</button>
+          <p class="read" id="refRead"></p>
+          <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+        </div>
+      </div>
+      <input type="file" id="refIn" accept="image/*" hidden>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint"></span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/alu.js"></script>
+</body>
+</html>

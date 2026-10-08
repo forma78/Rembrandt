@@ -615,3 +615,29 @@ body.type .status{grid-column:1/4;grid-row:4}
 .type .zk.pct{min-width:78px;font:600 12px var(--mono);letter-spacing:.02em;background:var(--key-on);box-shadow:var(--press)}
 .type .zk:disabled{opacity:.4;cursor:default}
 
+/* ALU (2026-10-08): LOVE's page; the tubes a strip by the Tools, the pipes and their editors in the panel */
+.alu .tool svg .dash{stroke-dasharray:2 2.6}
+.alu .tool svg .bold{stroke-width:2.6}
+.alu .gk[data-ground=paper]{background:#F1ECE1}
+.alu .paintstrip{gap:3px;padding:8px 0}
+.alu .chip .sw{width:30px;height:24px;border:0;padding:0;cursor:pointer;border-radius:6px}
+.alu .chip.in .sw{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--ink)}
+.alu .chip.pick .sw{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--orange)}
+.alu .chip .cnt{height:10px;font-size:8.5px;line-height:10px}
+.alu .toggles.wrap{flex-wrap:wrap}
+.alu #pipes .tog{flex:0 0 auto;padding-left:8px;padding-right:8px}
+.alu #pipes .tog i{display:inline-block;width:16px;height:8px;border-radius:2px;margin-right:6px;vertical-align:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.alu #pipes .none{font-size:12px;color:var(--mute);padding:5px 6px}
+.alu .edit{margin-top:4px}
+.alu .edit:empty{display:none}
+.alu .edit .toggles{margin-top:6px}
+.alu .edit .sliders{margin:2px 0 0}
+.alu .grid4.keys.three{margin:8px 0 0}
+.alu .grid4.keys.three .btn{white-space:normal;line-height:1.2;padding-left:4px;padding-right:4px}
+.alu .stops{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 0}
+.alu .stops .stop{width:24px;height:20px;border-radius:5px;display:grid;place-items:center;font:600 10px var(--mono);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.alu .stops .hint{font-size:11px;color:var(--mute);margin-left:4px}
+.alu .filekeys{display:flex;flex-wrap:wrap;gap:4px}
+.alu .filekeys .tog{font-size:11px;padding:5px 8px}
+.alu #seedRead{margin:6px 0 0}
+.alu .grid4.keys.compose #btnPaper{grid-column:1/-1}

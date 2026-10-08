@@ -38,6 +38,7 @@ Rembrandt/
     glyphs.json      the owner's letters: skeletons of lines and arcs
     index.html       TYPE, letters as bands in three passes, the first tab (new; Rembrandt.md §8)
     love.html        LOVE, TYPE's copy for the new things; TYPE kept to go back to (new, 2026-10-07)
+    alu.html         ALU, pipes of paint in whole lanes (new, 2026-10-08; ALU-Claude/)
     create.html      Create (hidden from the top row since 2026-10-04)
     job.html         Job (from RUBENS, plus pointer mode; off the top row since 2026-10-06)
     test.html        Test, the test bench (new)
@@ -71,7 +72,7 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 `pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
-Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `wash.js`
+Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `wash.js`
 (the watercolour on the board, NOLAN's and TYPE's), and pointer mode in
 `jobpage.js`.
 

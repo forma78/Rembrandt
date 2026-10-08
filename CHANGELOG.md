@@ -5,6 +5,29 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU, the tab: pipes of paint** (the owner, 2026-10-08: "we have a new
+  tab, ALU-Claude, in the root of Rembrandt — study it, please, and let's
+  add it in our style next to TYPE and YURI"). After LOVE in the top row,
+  as `ALU.md` has it: TYPE · LOVE · ALU · NOLAN · Test · Ink · Calibration ·
+  Library; on every page. `alu.html` and `src/alu.js` from LOVE's page —
+  the board, the canvas from home, PROGRESS and the LCD, the cassette deck,
+  INK and the cup, the zoom, the Reference — the run, the canvas, the cup
+  and the LCD shared. The prototype's tools on the left (Edit, Draw, Seams,
+  Marks; Undo, Redo, Clear; the ground, White · Paper); its tubes a strip by
+  the Tools, as LOVE's paints; its settings in LOVE's panel, the pipe and
+  segment editors under the pipes; the views Design · 1 Trace · 2 Marks ·
+  3 Drag · Result and ▶ Play the run; the files it wrote. TRACE, MARKS
+  (a dip every 4 marks, est.) and DRAG (whole lanes n … 1, a lift after
+  each) run on the deck, session by session. 💾 SAVE ALU puts it in the
+  Library, labelled ALU, and the Library opens it here. The prototype's
+  panel keys left out, as on TYPE: the panel is the canvas from home, and
+  its points follow it when it changes; Paper test, 8 Oct makes it
+  148 × 210, the canvas of every tab, as a save opened from the Library
+  does. Tried in a headless browser — composition 1 and the paper test in
+  every view, Play, a Segments pipe with a fan and an Across segment, a save
+  through the server's `library_save` in a scratch folder and back on the
+  tab; not run on the machine: air first.
+
 - **ALU: the plan, `aluplan.js`** (`ALU-Claude/ALU.md`: "port the logic;
   do not call the prototype"). The pipes, their spines of lines and corner
   arcs, Whole lanes, Master Flo and Segments, Alu, the marks across, the
