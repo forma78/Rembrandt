@@ -5,6 +5,32 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "Great!
+  Now everything is right! We only need to make a real palette with the
+  colours we have in stock, but the existing tab must stay too. Let's call
+  the second tab SMKN — it is the palette of my brand Soumkine, so the
+  colours are unusual :)"; his photographs, `ALU-Claude/Screenshot
+  2026-10-08 at 3.12.15 PM.png` and `3.12.23 PM.png`, now in git). After
+  ALU in the top row, on every page. Fourteen tubes: Sennelier Abstract 116
+  Titanium White, 029 Iridescent Silver, 250 Light Rose Ochre, 543 Cadmium
+  Yellow Deep Hue, 640 Saturn Orange, 208 Raw Sienna, 645 Chinese Orange,
+  613 Cadmium Red Light Hue, 686 Primary Red, 921 Light Violet, 323
+  Cerulean Blue Hue, 070 Iridescent Black; Lukas Cryl Terzia 4982 Ivory
+  Black; Pébéo Studio Acrylics Azo Pink. Their colours est.: the mean of a
+  patch of each swatch on the photographs, the light ones put right by the
+  white wall behind them (it came out grey), the strong ones as they are;
+  the iridescent two as their colour, no shine. Fourteen families of three
+  for New composition and New colours, Claude's by eye; the paper test in
+  Ivory Black and Titanium White. ALU's page and plan shared, not copied —
+  only the palette differs, so a fix reaches both: `aluplan.js` keeps a
+  palette a tab (PALETTES), `alu.js` reads `smkn.html`'s `data-tab`; its
+  own keep in this browser, 💾 SAVE SMKN labelled SMKN and opened on it.
+  ALU checked unchanged: compositions 1–9, their plans and Results, New
+  colours, the paper test, the same to the byte. Tested: SMKN's
+  compositions, colours, new pipes and paper test only in its tubes; in a
+  headless browser, a save through `library_save` and back on SMKN, and
+  ALU refusing it.
+
 - **ALU: Master Flo's marks right across the whole pipe** (the owner,
   2026-10-08, `ALU-Claude/Screenshot 2026-10-08 at 2.55.56 PM.png`: "Whole
   lanes, Master Flo and Segments, Alu — that is all the Australian style,

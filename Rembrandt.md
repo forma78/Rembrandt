@@ -31,6 +31,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` since 2026-10-06 (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
 | **LOVE** | TYPE's copy, after it in the top row since 2026-10-07 (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
+| **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests. |
@@ -326,6 +327,17 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the paints in turn along the pipe — never cut into a dash a paint across
   it. The paints across, Lett's tubes, are Segments, Alu's. New composition
   draws Master Flo's: a tube's paints along each pipe.
+- **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
+  only need to make a real palette with the colours we have in stock, but
+  the existing tab must stay too. Let's call the second tab SMKN — it is the
+  palette of my brand Soumkine, so the colours are unusual :)";
+  `ALU-Claude/Screenshot 2026-10-08 at 3.12.15 PM.png`, `3.12.23 PM.png`).
+  After ALU: TYPE · LOVE · ALU · SMKN · NOLAN · Test · Ink · Calibration ·
+  Library. Its fourteen tubes in place of the prototype's seventeen; its
+  families of three, and its black and white for the paper test (Ivory
+  Black, Titanium White), Claude's by eye. ALU's page and plan shared, not
+  copied (*Claude's choice*: only the palette differs), so a fix reaches
+  both; ALU as it was.
 - **TYPE first; Job and New Yuri off the top row** (the owner, 2026-10-06:
   "remove the JOB and NEW YURI tabs, please; put TYPE first, it is the new
   index.html"): TYPE · NOLAN · Test · Ink · Calibration · Library. TYPE's
@@ -507,8 +519,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.2**, then the tabs **TYPE · LOVE · ALU · NOLAN · Test · Ink ·
-  Calibration · Library** (LOVE since 2026-10-07, ALU since 2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
+  **v.1.0.2**, then the tabs **TYPE · LOVE · ALU · SMKN · NOLAN · Test ·
+  Ink · Calibration · Library** (LOVE since 2026-10-07, ALU and SMKN since
+  2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
   Create the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
@@ -674,6 +687,17 @@ this section disagree, this section wins: the owner corrected the sketch on
   (est.). DRAG: every run a row — whole lanes n … 1, each the whole pipe, a
   landing and a lift each — the dry brush, no dip. 3 Drag numbers the lanes
   at their starts as the owner's page does. Not run on the machine yet.
+- **SMKN**, after ALU (2026-10-08, §1): ALU's page with the paints in stock
+  (`app/smkn.html`, its body `data-tab="smkn"`; `aluplan.js`, SMKN_TUBES):
+  the strip the fourteen tubes, light to dark — 116 Titanium White, 029
+  Iridescent Silver, 250 Light Rose Ochre, 543 Cadmium Yellow Deep Hue, 640
+  Saturn Orange, 208 Raw Sienna, 645 Chinese Orange, 613 Cadmium Red Light
+  Hue, 686 Primary Red (Sennelier Abstract), Azo Pink (Pébéo), 921 Light
+  Violet, 323 Cerulean Blue Hue, 070 Iridescent Black (Sennelier), 4982
+  Ivory Black (Lukas) — a name and maker on hover; their colours est., the
+  iridescent two drawn as their colour, no shine. New composition, New
+  colours, New pipe and the paper test in them; 💾 SAVE SMKN, the Library
+  opens it here.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line

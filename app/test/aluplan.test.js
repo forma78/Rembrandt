@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS } from '../src/aluplan.js';
+import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS } from '../src/aluplan.js';
 import { plotRun, DEFAULTS } from '../src/strokes.js';
 
 // ALU's plan (ALU-Claude/ALU.md): the prototype's logic, ported. Whole lanes,
@@ -169,4 +169,23 @@ test('every file carries data-ink', () => {
   for (const s of pl.sessions) { assert.match(marksSvg(pl, s, o), /data-ink="INK-1"/); assert.match(dragSvg(s, o), /data-ink="none"/); }
   assert.match(paintMapSvg(pl, o), /<svg /);
   assert.equal(JSON.parse(planJson(pl, o)).tab, 'ALU');
+});
+
+test('SMKN: the paints in stock — its compositions, colours, paper test and new pipes only in them; ALU\'s untouched', () => {
+  const P = PALETTES.smkn, own = new Set(P.tubes.map(t => t[0])), alu = new Set(PALETTES.alu.tubes.map(t => t[0]));
+  assert.equal(P.tubes.length, 14);
+  assert.ok(P.tubes.every(([k, name, hex]) => /^#[0-9A-F]{6}$/.test(hex) && HEX[k] === hex && name.length && !alu.has(k)), 'its own keys and colours');
+  assert.ok(P.families.every(f => f.length === 3 && f.every(k => own.has(k))) && P.solo.flat().every(k => own.has(k)));
+  const o = { ...O, pal: P }, stops = pipes => pipes.flatMap(st => st.segs.flatMap(g => g.stops));
+  for (let seed = 1; seed <= 9; seed++) {
+    const C = compose(seed, o);
+    assert.ok(stops(C).every(k => own.has(k)), `composition ${seed}`);
+    assert.ok(stops(recolour(C, seed * 7, P)).every(k => own.has(k)), `new colours ${seed}`);
+    assert.ok(planOf(C, o).nums.every(k => own.has(k)));
+  }
+  assert.ok(stops([newPipe(40, 3, P)]).every(k => own.has(k)));
+  const t = paperTest(P);
+  assert.deepEqual([...new Set(t.pipes[0].marks.map(m => m.paint))], ['lk4982', 'sa116'], 'the paper test in Ivory Black and Titanium White');
+  assert.deepEqual(planOf(t.pipes, { ...PAPER.o, pal: P }).sessions[0].runs.map(r => r.num), [8, 7, 6, 5, 4, 3, 2, 1]);
+  assert.ok(stops(compose(1, O)).every(k => alu.has(k)), 'ALU keeps its tubes');
 });

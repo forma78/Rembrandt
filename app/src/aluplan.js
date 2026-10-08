@@ -42,11 +42,38 @@ export const TUBES = [['white', 'Titanium white', '#F4F2EE'], ['ice', 'Pale blue
   ['pink', 'Fluo pink', '#FF4FA0'], ['rose', 'Pink', '#F2A3C0'], ['magenta', 'Magenta', '#D0207A'], ['red', 'Red', '#E0242E'],
   ['orange', 'Fluo orange', '#FF6A1F'], ['yellow', 'Yellow', '#FFD23A'], ['acid', 'Acid green', '#C8F03C'], ['green', 'Green', '#2E9E5A'],
   ['teal', 'Teal', '#1E9AA8'], ['blue', 'Ultramarine', '#2A3FB8'], ['navy', 'Navy', '#16205A'], ['maroon', 'Maroon', '#6E1424'], ['black', 'Black', '#151515']];
-export const HEX = Object.fromEntries(TUBES.map(([k, , h]) => [k, h])), NAME = Object.fromEntries(TUBES.map(([k, n]) => [k, n]));
 export const FAMILIES = [['navy', 'blue', 'ice'], ['maroon', 'red', 'rose'], ['violet', 'magenta', 'pink'], ['black', 'teal', 'ice'], ['orange', 'pink', 'white'],
   ['green', 'acid', 'yellow'], ['navy', 'violet', 'lilac'], ['red', 'orange', 'yellow'], ['teal', 'green', 'acid'], ['magenta', 'pink', 'lilac'],
   ['black', 'navy', 'blue'], ['maroon', 'violet', 'lilac'], ['navy', 'teal', 'ice'], ['maroon', 'magenta', 'rose'],
   ['pink', 'yellow', 'ice'], ['red', 'maroon', 'acid'], ['navy', 'pink', 'ice'], ['rose', 'magenta', 'navy']];
+// SMKN's: the paints in stock, the owner's brand Soumkine's palette (the
+// owner, 2026-10-08, ALU-Claude/Screenshot 2026-10-08 at 3.12.15 PM.png and
+// 3.12.23 PM.png: "a real palette with the colours we have now in stock …
+// it is the palette of my brand Soumkine, so the colours are unusual").
+// Sennelier Abstract, 120 ml and 500 ml; Lukas Cryl Terzia; Pébéo Studio
+// Acrylics. The colours est.: read off the photographs, the light ones put
+// right by the white wall behind them, the strong ones as they are; the
+// iridescent two as their colour, their shine not drawn.
+export const SMKN_TUBES = [['sa116', '116 Titanium White · Sennelier Abstract', '#F3F2EC'], ['sa029', '029 Iridescent Silver · Sennelier Abstract', '#C6C8BE'],
+  ['sa250', '250 Light Rose Ochre · Sennelier Abstract', '#F3D7A6'], ['sa543', '543 Cadmium Yellow Deep Hue · Sennelier Abstract', '#FBA400'],
+  ['sa640', '640 Saturn Orange · Sennelier Abstract', '#FE8000'], ['sa208', '208 Raw Sienna · Sennelier Abstract', '#C47A55'],
+  ['sa645', '645 Chinese Orange · Sennelier Abstract', '#6E2C1C'], ['sa613', '613 Cadmium Red Light Hue · Sennelier Abstract', '#E01B33'],
+  ['sa686', '686 Primary Red · Sennelier Abstract', '#D02848'], ['pbazo', 'Azo Pink, transparent · Pébéo Studio Acrylics', '#D6377E'],
+  ['sa921', '921 Light Violet · Sennelier Abstract', '#8790DC'], ['sa323', '323 Cerulean Blue Hue · Sennelier Abstract', '#0B66AC'],
+  ['sa070', '070 Iridescent Black · Sennelier Abstract', '#3C3E3E'], ['lk4982', '4982 Ivory Black · Lukas Cryl Terzia', '#1D1C1B']];
+// three paints a pipe's tube is made of, dark to light (Claude's choice, by eye)
+export const SMKN_FAMILIES = [['sa323', 'sa921', 'sa116'], ['sa645', 'sa640', 'sa543'], ['sa686', 'sa613', 'sa250'], ['lk4982', 'sa070', 'sa029'], ['sa645', 'sa208', 'sa250'],
+  ['sa323', 'sa029', 'sa116'], ['sa686', 'pbazo', 'sa250'], ['sa921', 'pbazo', 'sa116'], ['lk4982', 'sa323', 'sa921'], ['sa070', 'sa613', 'sa640'],
+  ['sa208', 'sa543', 'sa116'], ['lk4982', 'sa645', 'sa543'], ['sa323', 'sa921', 'pbazo'], ['sa070', 'sa029', 'sa250']];
+// A palette: its tubes, its families, the plain pipes now and then (solo),
+// its black and its white (the paper test's). ALU's the prototype's.
+export const PALETTES = {
+  alu: { tubes: TUBES, families: FAMILIES, solo: [['black'], ['navy', 'black']], black: 'black', white: 'white' },
+  smkn: { tubes: SMKN_TUBES, families: SMKN_FAMILIES, solo: [['lk4982'], ['sa070', 'lk4982']], black: 'lk4982', white: 'sa116' },
+};
+// every tube of every palette by its key: their keys never meet
+export const HEX = Object.fromEntries(Object.values(PALETTES).flatMap(q => q.tubes.map(([k, , h]) => [k, h])));
+export const NAME = Object.fromEntries(Object.values(PALETTES).flatMap(q => q.tubes.map(([k, n]) => [k, n])));
 export const M = 60;   // mm round the panel where a pipe's points may lie, so it comes in over an edge
 
 // ---------- helpers ----------
@@ -141,10 +168,10 @@ export const isLanes = st => st.brush === 'lanes';
 export const handMarks = st => isLanes(st) && st.marks && st.marks.length > 0;
 // the pipes as the plan takes them: each with its spine (null for fewer than
 // two points) and a segment for every stretch between its seams
-export function pipesOf(pipes) {
+export function pipesOf(pipes, fill = FAMILIES[0]) {
   return pipes.map(st => {
     const segs = st.segs.slice(0, st.seams.length + 1);
-    while (segs.length < st.seams.length + 1) segs.push({ mode: 'along', stops: ['navy', 'blue', 'ice'] });
+    while (segs.length < st.seams.length + 1) segs.push({ mode: 'along', stops: fill.slice() });
     return { ...st, segs, sp: spineOf(st) };
   });
 }
@@ -159,22 +186,22 @@ export function pipesOf(pipes) {
 // hairpins, each coming in over an edge of the panel and going out over one;
 // a pipe that would lie too much on the ones before it is drawn again. A
 // proposal to start from, never the painting. o: { cw, ch, brush, lanes }.
-export function familiesOf(r) { const out = []; while (out.length < 3) { const f = FAMILIES[Math.floor(r() * FAMILIES.length)]; if (!out.includes(f)) out.push(f); } return out; }
-function family(r, fams = FAMILIES) {
-  if (r() < 0.1) return r() < 0.5 ? ['black'] : ['navy', 'black'];
+export function familiesOf(r, pal = PALETTES.alu) { const F = pal.families, out = []; while (out.length < 3) { const f = F[Math.floor(r() * F.length)]; if (!out.includes(f)) out.push(f); } return out; }
+function family(r, fams = FAMILIES, pal = PALETTES.alu) {
+  if (r() < 0.1) return (r() < 0.5 ? pal.solo[0] : pal.solo[1]).slice();
   let f = fams[Math.floor(r() * fams.length)].slice(); if (r() < 0.5) f.reverse();
   if (r() < 0.4) f = [f[0], f[1], f[2], f[1], f[0]];   // a tube: dark, colour, light, colour, dark
   return f;
 }
 export const lettFamily = (r, fams = FAMILIES) => { let f = fams[Math.floor(r() * fams.length)].slice(); if (r() < 0.5) f.reverse(); return r() < 0.65 ? [f[0], f[1], f[2], f[1], f[0]] : f; };
 // New colours: the families picked again, the lines kept; a tube on a whole-lane pipe, its paints along it
-export function recolour(pipes, seed) {
-  const r = rng(seed), fams = familiesOf(r);
-  for (const st of pipes) st.segs = st.segs.map(g => ({ mode: g.mode, stops: isLanes(st) ? lettFamily(r, fams) : family(r, fams) }));
+export function recolour(pipes, seed, pal = PALETTES.alu) {
+  const r = rng(seed), fams = familiesOf(r, pal);
+  for (const st of pipes) st.segs = st.segs.map(g => ({ mode: g.mode, stops: isLanes(st) ? lettFamily(r, fams) : family(r, fams, pal) }));
   return pipes;
 }
 export function compose(seed, o) {
-  const r = rng(seed), out = [], fams = familiesOf(r), n = 3 + (r() < 0.35 ? 1 : 0);
+  const r = rng(seed), out = [], fams = familiesOf(r, o.pal), n = 3 + (r() < 0.35 ? 1 : 0);
   const wMax = Math.max(16, Math.round(o.brush + (o.lanes - 1) * o.brush * 0.92));   // the widest pipe the lanes cover without gaps
   const dir = a => [Math.cos(a * Math.PI / 4), Math.sin(a * Math.PI / 4)];
   const inPanel = (q, m) => q[0] >= m && q[0] <= o.cw - m && q[1] >= m && q[1] <= o.ch - m;
@@ -251,19 +278,20 @@ export function compose(seed, o) {
   return out.map(({ sp, ...st }) => st);
 }
 // A pipe drawn by hand: Whole lanes, inside first, a tube's paints along it
-export const newPipe = (w, seed) => ({ pts: [], w, round: 0.8, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: lettFamily(rng(seed)) }], brush: 'lanes', first: 'in', marks: [] });
+export const newPipe = (w, seed, pal = PALETTES.alu) => ({ pts: [], w, round: 0.8, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: lettFamily(rng(seed), pal.families) }], brush: 'lanes', first: 'in', marks: [] });
 
 // The owner's paper test, 2026-10-08, 1 : 1 on an A5 page (ALU-Claude/
 // paper-test/): a band of eight lanes, 47 mm, a 6 mm brush, comes in from the
 // left, turns up into a loop and comes down across itself. Black marks on the
 // way in and at the turn, white round the loop and on the way down, at mm
 // along the centre line read off the photographs (est.). Lanes 8 (inside) to
-// 1 (outside), each the whole way. → { cw, ch, settings, pipes }
+// 1 (outside), each the whole way. In a palette's own black and white.
+// → { cw, ch, settings, pipes }
 export const PAPER_MARKS = [[5, 'black'], [30, 'black'], [88.8, 'black'], [123.3, 'white'], [157, 'white'], [193.8, 'white'], [216.2, 'white'], [266.6, 'white'], [329.1, 'white'], [354.1, 'white']];   // mm along the centre line, est.
-export function paperTest() {
-  const st = { pts: [[5, 126], [115, 126], [115, 40], [58, 40], [58, 197]], w: 47, round: 1, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: ['black', 'white'] }], brush: 'lanes', first: 'in', marks: [] };
+export function paperTest(pal = PALETTES.alu) {
+  const st = { pts: [[5, 126], [115, 126], [115, 40], [58, 40], [58, 197]], w: 47, round: 1, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: [pal.black, pal.white] }], brush: 'lanes', first: 'in', marks: [] };
   const L = spineOf(st).L;
-  st.marks = PAPER_MARKS.map(([at, paint]) => ({ f: at / L, paint }));
+  st.marks = PAPER_MARKS.map(([at, paint]) => ({ f: at / L, paint: pal[paint] }));
   return { cw: 148, ch: 210, settings: { ground: 'paper', brush: 6, lanes: 8, spacing: 60, run: 70, dryTail: 180, overlap: 'wet', over: 3, look: 'relief', pick: 40, mix: 0.7 }, pipes: [st] };
 }
 
@@ -452,7 +480,7 @@ export function selfCrossings(sp, W) {
 export const OVERLAPS = ['wet', 'dry'];
 export function planOf(pipesIn, o) {
   const R = [-o.over, -o.over, o.cw + o.over, o.ch + o.over], PAN = [1, 1, o.cw - 1, o.ch - 1];
-  const all = pipesOf(pipesIn), pipes = [];
+  const all = pipesOf(pipesIn, o.pal?.families[0]), pipes = [];
   all.forEach((st, si) => { if (st.sp) pipes.push({ st, si }); });
   // sessions: a pipe over an earlier one it touches goes a session later, unless wet on wet
   const ses = {};
@@ -696,8 +724,8 @@ export function dragRows(pl, session, o) {
 // in drawing order; the paint map for the painter only; the plan as JSON.
 // o: the settings, as planOf's, with seed, ground, width, tail.
 const f2 = v => (Math.round(v * 100) / 100).toString(), dd = (pts, closed) => 'M' + pts.map(p => f2(p[0]) + ' ' + f2(p[1])).join(' L') + (closed ? ' Z' : '');
-const svgDoc = (o, title, body) => `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt ALU · ${title} · panel ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one brush-down run, in drawing order. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n${body}\n</svg>\n`;
-export const slugOf = o => `alu_${o.seed}`;
+const svgDoc = (o, title, body) => `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt ${(o.tab || 'alu').toUpperCase()} · ${title} · panel ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one brush-down run, in drawing order. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n${body}\n</svg>\n`;
+export const slugOf = o => `${o.tab || 'alu'}_${o.seed}`;
 export function traceSvg(pl, o) {
   const rows = traceOf(pl, o, o.width / 2).map(t => `  <path d="${dd(rdp(t.pts, 0.15))}" data-pipe="${t.si + 1}"/>`);
   return svgDoc(o, 'pass 1 trace', `<g id="pass1-trace" data-pass="1" data-ink="INK-1" data-dip-every-mm="${DIP_RUN}" fill="none" stroke="#6E8EB0" stroke-width="${o.width}">\n${rows.join('\n')}\n</g>`);
@@ -727,7 +755,7 @@ export function paintMapSvg(pl, o) {
   return svgDoc(o, 'paint map, for the painter, not for the machine', `<rect width="100%" height="100%" fill="${o.ground === 'paper' ? '#F1ECE1' : '#FBFAF7'}"/>\n${rows.join('\n')}\n<rect x="5" y="5" width="120" height="${pl.nums.length * 15 + 8}" fill="#FBFAF7" opacity="0.92"/>${legend}`);
 }
 export function planJson(pl, o) {
-  return JSON.stringify({ tab: 'ALU', seed: o.seed, panel: { w: o.cw, h: o.ch, units: 'mm', origin: 'top left, y down' }, ground: o.ground,
+  return JSON.stringify({ tab: (o.tab || 'alu').toUpperCase(), seed: o.seed, panel: { w: o.cw, h: o.ch, units: 'mm', origin: 'top left, y down' }, ground: o.ground,
     brush_mm: o.brush, lanes_along: o.lanes, step_across_mm: o.xstep, along: o.aorder, mark_spacing_mm: o.spacing, dense_run_mm: o.run, dry_tail_mm: o.tail, crossings: o.overlap, past_edge_mm: o.over,
     paints: pl.nums.map((k, i) => ({ n: i + 1, key: k, name: NAME[k], hex: HEX[k] })),
     pipes: pl.pipes.map((st, i) => ({ n: i + 1, brush: isLanes(st) ? 'whole lanes' : 'segments', ...(isLanes(st) ? { first: st.first === 'out' ? 'outside' : 'inside', marks_by_hand: handMarks(st) ? st.marks.map(m => ({ at_mm: Number(f2(m.f * (st.sp?.L || 0))), paint: pl.nums.indexOf(m.paint) + 1 })) : null } : {}), points: st.pts.map(p => p.map(v => Number(f2(v)))), width_mm: st.w, round: Number(f2(st.round)), largest_radius_mm: st.rad || null, ends: [st.capA, st.capB], seams: st.seams.map(v => Number(v.toFixed(4))), segments: st.segs.map(sg => ({ mode: sg.mode, paints: sg.stops.map(k => pl.nums.indexOf(k) + 1) })) })),

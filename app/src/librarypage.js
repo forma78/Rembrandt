@@ -30,14 +30,16 @@ async function load() {
 // on NOLAN (it sits with the tests: its label says NOLAN, 2026-10-04), a New
 // Yuri save on New Yuri (its label NEW YURI, 2026-10-06), a TYPE save on TYPE
 // (its label TYPE, 2026-10-06), a LOVE save on LOVE (its label LOVE, 2026-10-07),
-// an ALU save on ALU (its label ALU, 2026-10-08).
+// an ALU save on ALU (its label ALU, 2026-10-08), an SMKN save on SMKN (its
+// label SMKN, the same day).
 const isNolan = d => d.kind === 'test' && /^NOLAN\b/.test(d.label || '');
 const isNewYuri = d => d.kind === 'test' && /^NEW YURI\b/.test(d.label || '');
 const isType = d => d.kind === 'test' && /^TYPE\b/.test(d.label || '');
 const isLove = d => d.kind === 'test' && /^LOVE\b/.test(d.label || '');
 const isAlu = d => d.kind === 'test' && /^ALU\b/.test(d.label || '');
-const kindOf = d => isNolan(d) ? 'nolan' : isNewYuri(d) ? 'newyuri' : isType(d) ? 'type' : isLove(d) ? 'love' : isAlu(d) ? 'alu' : d.kind || 'painting';
-const tabOf = d => isNolan(d) ? 'NOLAN' : isNewYuri(d) ? 'New Yuri' : isType(d) ? 'TYPE' : isLove(d) ? 'LOVE' : isAlu(d) ? 'ALU' : d.kind === 'test' ? 'Test' : 'Create';
+const isSmkn = d => d.kind === 'test' && /^SMKN\b/.test(d.label || '');
+const kindOf = d => isNolan(d) ? 'nolan' : isNewYuri(d) ? 'newyuri' : isType(d) ? 'type' : isLove(d) ? 'love' : isAlu(d) ? 'alu' : isSmkn(d) ? 'smkn' : d.kind || 'painting';
+const tabOf = d => isNolan(d) ? 'NOLAN' : isNewYuri(d) ? 'New Yuri' : isType(d) ? 'TYPE' : isLove(d) ? 'LOVE' : isAlu(d) ? 'ALU' : isSmkn(d) ? 'SMKN' : d.kind === 'test' ? 'Test' : 'Create';
 function card(d) {
   const fmt = d.kind === 'test' ? (d.label || 'test') : FORMATS[d.format]?.label || '';
   const strokes = d.strokes == null ? '' : `${d.strokes} stroke${d.strokes === 1 ? '' : 's'}`;
@@ -58,7 +60,7 @@ async function onCard(e) {
     if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();
   }
-  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'index.html', love: 'love.html', alu: 'alu.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
+  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'index.html', love: 'love.html', alu: 'alu.html', smkn: 'smkn.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
 }
 $('#grid').addEventListener('click', onCard);
 $('#tests').addEventListener('click', onCard);

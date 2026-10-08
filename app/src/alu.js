@@ -10,6 +10,12 @@
 // the deck, INK and the cup, the LCD, the zoom; the shared modules imported,
 // so a fix reaches every tab.
 //
+// SMKN (the owner, 2026-10-08: "a real palette with the colours we have now
+// in stock, but the existing tab must stay too; let's call the second tab
+// SMKN — the palette of my brand Soumkine"): this page and this plan with
+// the paints in stock (aluplan.js, SMKN_TUBES), smkn.html's body naming it;
+// its own keep in this browser and its own Library label.
+//
 // The panel's mm as the prototype's and its files: origin top left, x right,
 // y down. The board's canvas mm from its centre, as LOVE's: x right, y down;
 // the board, as on Test: mm from Here — the canvas's centre — X up, Y right.
@@ -19,7 +25,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } from './strokes.js';
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP } from './band.js';
 import {
-  TUBES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe, paperTest,
+  PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe, paperTest,
   planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, tickPaths, rgbOf, mixRGB,
   traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS,
 } from './aluplan.js';
@@ -32,7 +38,9 @@ import { rng } from './util.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const KEY = 'rembrandt.alu.v01', REF_KEY = 'rembrandt.alu.ref';
+const TAB = document.body.dataset.tab === 'smkn' ? 'smkn' : 'alu', TAB_NAME = TAB.toUpperCase(), PAL = PALETTES[TAB];   // ALU, or SMKN: the paints in stock
+const OWN = new Set(PAL.tubes.map(t => t[0]));                                     // this tab's tubes
+const KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const add = (a, b) => [a[0] + b[0], a[1] + b[1]], sub = (a, b) => [a[0] - b[0], a[1] - b[1]], mul = (a, k) => [a[0] * k, a[1] * k];
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]), norm = a => { const l = Math.hypot(a[0], a[1]) || 1; return [a[0] / l, a[1] / l]; }, perp = a => [-a[1], a[0]];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
@@ -51,7 +59,7 @@ const S = {
   brush: 12, lanes: 7, xstep: 8, aorder: 'snake', over: 10, drag: 60,
   spacing: 60, width: 4, speed: 150, travel: 180, tail: 3, ink: true,
   run: 70, dryTail: 180, mix: 0.7, pick: 40, overlap: 'wet', look: 'relief',
-  ground: 'white', markPaint: 'black',
+  ground: 'white', markPaint: PAL.black,
   view: 'result', session: 0, next: { marks: 1, drag: 1 },
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
@@ -63,11 +71,11 @@ const fin = v => Number.isFinite(v);
 // a pipe as it may be kept: whatever is wrong in it put right, or null
 function cleanPipe(st) {
   if (!st || !Array.isArray(st.pts)) return null;
-  const tube = k => k in HEX, pts = st.pts.filter(p => Array.isArray(p) && fin(p[0]) && fin(p[1])).map(p => [p[0], p[1]]);
+  const tube = k => OWN.has(k), pts = st.pts.filter(p => Array.isArray(p) && fin(p[0]) && fin(p[1])).map(p => [p[0], p[1]]);
   const seams = (Array.isArray(st.seams) ? st.seams : []).filter(f => fin(f) && f > 0 && f < 1).sort((a, b) => a - b);
   const segs = (Array.isArray(st.segs) ? st.segs : []).map(g => ({ mode: g?.mode === 'across' ? 'across' : 'along', stops: (Array.isArray(g?.stops) ? g.stops : []).filter(tube).slice(0, 5) }))
-    .map(g => g.stops.length ? g : { ...g, stops: ['navy', 'blue', 'ice'] });
-  while (segs.length < seams.length + 1) segs.push({ mode: 'along', stops: ['navy', 'blue', 'ice'] });
+    .map(g => g.stops.length ? g : { ...g, stops: PAL.families[0].slice() });
+  while (segs.length < seams.length + 1) segs.push({ mode: 'along', stops: PAL.families[0].slice() });
   segs.length = seams.length + 1;
   return { pts, w: fin(st.w) ? Math.max(4, Math.min(300, st.w)) : 50, round: fin(st.round) ? Math.max(0, Math.min(1, st.round)) : 0.8, ...(fin(st.rad) && st.rad > 0 ? { rad: st.rad } : {}),
     capA: st.capA === 'fan' ? 'fan' : 'flat', capB: st.capB === 'fan' ? 'fan' : 'flat', seams, segs, brush: st.brush === 'segments' ? 'segments' : 'lanes', first: st.first === 'out' ? 'out' : 'in',
@@ -87,7 +95,7 @@ function load() {
     if (['snake', 'one'].includes(o.aorder)) S.aorder = o.aorder;
     if (['relief', 'flat'].includes(o.look)) S.look = o.look;
     S.ground = GROUNDS.includes(o.ground) ? o.ground : 'white';   // a save made on the brushed aluminium opens on White (ALU.md)
-    if (o.markPaint in HEX) S.markPaint = o.markPaint;
+    if (OWN.has(o.markPaint)) S.markPaint = o.markPaint;
     if (VIEWS.includes(o.view)) S.view = o.view;
     if (TOOLS.includes(o.tool)) S.tool = o.tool;
     for (const k of ['marks', 'drag']) if (Number.isInteger(o.next?.[k]) && o.next[k] >= 1) S.next[k] = o.next[k];
@@ -105,7 +113,7 @@ function fitPanel() {
 }
 
 // ---------- the plan (aluplan.js) ----------
-const po = () => ({ cw: S.cw, ch: S.ch, brush: S.brush, lanes: S.lanes, xstep: S.xstep, aorder: S.aorder, spacing: S.spacing, run: S.run, tail: S.dryTail, overlap: S.overlap, over: S.over,
+const po = () => ({ tab: TAB, pal: PAL, cw: S.cw, ch: S.ch, brush: S.brush, lanes: S.lanes, xstep: S.xstep, aorder: S.aorder, spacing: S.spacing, run: S.run, tail: S.dryTail, overlap: S.overlap, over: S.over,
   pick: S.pick, mix: S.mix, width: S.width, seed: S.seed, ground: S.ground });
 let PL = null, plKey = '', WK = null, SP = null, spKey = '';
 function planNow() {
@@ -119,7 +127,7 @@ function planNow() {
 function spinesNow() {
   const key = JSON.stringify([S.pipes, S.cw, S.ch]);
   if (SP && key === spKey) return SP;
-  spKey = key; SP = pipesOf(S.pipes);
+  spKey = key; SP = pipesOf(S.pipes, PAL.families[0]);
   return SP;
 }
 function walkNow() {
@@ -593,7 +601,7 @@ cv.addEventListener('pointerdown', e => {
   const p = toPanel(e);
   if (S.tool === 'draw') {
     undoPush();
-    if (!S.pipes[S.sel]) { S.pipes.push(newPipe(Math.round(Math.min(50, S.cw / 3)), Date.now() >>> 0)); S.sel = S.pipes.length - 1; S.seg = 0; }
+    if (!S.pipes[S.sel]) { S.pipes.push(newPipe(Math.round(Math.min(50, S.cw / 3)), Date.now() >>> 0, PAL)); S.sel = S.pipes.length - 1; S.seg = 0; }
     S.pipes[S.sel].pts.push(clampPt(p)); settle(); return;
   }
   if (S.tool === 'mark') {
@@ -722,7 +730,7 @@ for (const [box, list] of ALL_SL) {
 // it out (five at most), as the prototype's chips; with Marks, or on a pipe
 // whose marks are laid by hand, it is the paint the next mark takes.
 const inkOn = hex => { const [r, gg, b] = rgbOf(hex); return 0.299 * r + 0.587 * gg + 0.114 * b > 150 ? '#24221F' : '#FFFFFF'; };
-$('#paints').innerHTML = TUBES.map(([key, name, hex]) => `<div class="chip" data-tube="${key}"><button class="sw" style="background:${hex};color:${inkOn(hex)}" aria-label="${name}"></button><span class="cnt"></span></div>`).join('');
+$('#paints').innerHTML = PAL.tubes.map(([key, name, hex]) => `<div class="chip" data-tube="${key}"><button class="sw" style="background:${hex};color:${inkOn(hex)}" aria-label="${name}"></button><span class="cnt"></span></div>`).join('');
 $('#paints').querySelectorAll('[data-tube]').forEach(chip => chip.querySelector('.sw').onclick = () => {
   const key = chip.dataset.tube, st = S.pipes[S.sel], sg = st?.segs[S.seg];
   undoPush();
@@ -817,15 +825,15 @@ $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
 // the composition: a new seed, the families again, the paper test
 $('#btnCompose').onclick = () => { undoPush(); S.seed = 1 + Math.floor(Math.random() * 9999); S.pipes = compose(S.seed, po()); S.sel = 0; S.seg = 0; settle(); };
-$('#btnRecolour').onclick = () => { if (!S.pipes.length) return; undoPush(); recolour(S.pipes, Math.floor(Math.random() * 1e9)); settle(); };
+$('#btnRecolour').onclick = () => { if (!S.pipes.length) return; undoPush(); recolour(S.pipes, Math.floor(Math.random() * 1e9), PAL); settle(); };
 $('#btnPaper').onclick = () => {
   undoPush();
-  const t = paperTest();
+  const t = paperTest(PAL);
   Object.assign(S, t.settings, { pipes: t.pipes, cw: t.cw, ch: t.ch, seed: 'paper', view: 'result', tool: 'edit', sel: 0, seg: 0, session: 0 });
   setCanvas({ boardW: t.cw, boardH: t.ch }); Object.assign(S, canvasNow(S));      // the A5 page, the canvas of every tab
   settle();
 };
-$('#btnNewPipe').onclick = () => { undoPush(); S.pipes.push(newPipe(Math.round(Math.min(50, S.cw / 3)), Date.now() >>> 0)); S.sel = S.pipes.length - 1; S.seg = 0; S.tool = 'draw'; settle(); };
+$('#btnNewPipe').onclick = () => { undoPush(); S.pipes.push(newPipe(Math.round(Math.min(50, S.cw / 3)), Date.now() >>> 0, PAL)); S.sel = S.pipes.length - 1; S.seg = 0; S.tool = 'draw'; settle(); };
 $('#btnUndoPt').onclick = () => { const st = S.pipes[S.sel]; if (!st?.pts.length) return; undoPush(); st.pts.pop(); settle(); };
 function showPanel() {
   for (const [box, list] of ALL_SL) for (const [key] of list) {
@@ -939,14 +947,14 @@ $('#refIn').onchange = e => { const f = e.target.files[0]; if (!f) return; const
 $('#refOp').oninput = e => { S.refOpacity = +e.target.value; syncRef(); save(); kick(); };
 function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) setRef(o.src, o.name || 'reference', false); } catch { } }
 
-// ---------- 💾 SAVE ALU ----------
+// ---------- 💾 SAVE ALU, SAVE SMKN ----------
 // As SAVE LOVE: an SVG of the canvas in mm — the trace's outlines, the marks
 // in their tubes' colours — the whole state in its metadata, a PNG preview of
-// the Result; on the tests' shelf, its label ALU — the Library opens it here.
-const label = () => `ALU · ${S.seed === 'paper' ? 'the paper test' : `composition ${S.seed}`} · ${S.pipes.length} pipe${S.pipes.length === 1 ? '' : 's'} · ${S.boardW} × ${S.boardH} mm · ${planNow().nums.length} paints${S.ink ? ' · ink' : ''}`;
+// the Result; on the tests' shelf, its label ALU or SMKN — the Library opens it on its tab.
+const label = () => `${TAB_NAME} · ${S.seed === 'paper' ? 'the paper test' : `composition ${S.seed}`} · ${S.pipes.length} pipe${S.pipes.length === 1 ? '' : 's'} · ${S.boardW} × ${S.boardH} mm · ${planNow().nums.length} paints${S.ink ? ' · ink' : ''}`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
-  const meta = JSON.stringify({ rembrandt: '1.0.2', alu: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.0.2', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const pts = q => q.map(p => `${f(p[0])},${f(p[1])}`).join(' ');
   const lines = (plan().trace || []).map(t => `  <polyline points="${pts(t.pts)}"/>`).join('\n');
   const marks = P.sessions.flatMap(s => s.marks).map(m => `  <polyline points="${pts(m.pts)}" stroke="${HEX[m.paint]}" data-paint="${paintNo(m.paint)}"/>`).join('\n');
@@ -990,7 +998,7 @@ async function openFromLibrary(file) {
     if (!r.ok) throw new Error(r.status);
     const meta = new DOMParser().parseFromString(await r.text(), 'image/svg+xml').querySelector('metadata#rembrandt-test');
     const o = meta ? JSON.parse(meta.textContent.replace(/- -/g, '--')) : null;
-    if (!o?.alu) { $('#saveState').textContent = 'not an ALU save: open it on its own tab'; return; }
+    if (!o?.[TAB]) { $('#saveState').textContent = `not an ${TAB_NAME} save: open it on its own tab`; return; }
     undoPush();
     localStorage.setItem(KEY, JSON.stringify(o.settings)); setCanvas(o.settings); load(); Object.assign(S, canvasNow(S)); settle();   // the save's canvas becomes the base
     $('#saveState').textContent = `opened · ${file.slice(0, 13)}:${file.slice(14)}`;
@@ -1015,10 +1023,10 @@ $('#btnTrace').onclick = async () => {
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">Ink ON: ${cupProblem(cup())}</span>`; return; }
   if (walls()) { $('#runState').innerHTML = `<span class="warn">${walls()}</span>`; return; }
   if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
-  if (!confirm(`TRACE ALU, ${what()}: ${P_.outlines} outlines in watercolour will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ', no dip'}, ≈ ${fmt(P_.seconds / 60, 0)} min (est.)`)) return;
+  if (!confirm(`TRACE ${TAB_NAME}, ${what()}: ${P_.outlines} outlines in watercolour will be run on the machine${S.ink ? `, ${P_.dips} dips in the cup` : ', no dip'}, ≈ ${fmt(P_.seconds / 60, 0)} min (est.)`)) return;
   S.view = 'trace'; settle();
   await start('trace', P_.blocks, { seconds: P_.seconds, rows: P_.rows },
-    { page: 'alu', pass: 'trace', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) });
+    { page: TAB, pass: 'trace', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) });
 };
 // MARKS and DRAG, a session a press, as on LOVE: MARKS from the cup as TRACE,
 // a dip every MARKS_DIP marks; DRAG dry, never a dip, at its own speed.
@@ -1050,10 +1058,10 @@ async function runPass(key) {
   const min = fmt(P_.seconds / 60, 0), text = key === 'marks'
     ? `${P_.marks} marks and their ticks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => paintNo(a[0]) - paintNo(b[0])).map(([q, c]) => `${paintNo(q)} ${NAME[q]} × ${c}`).join(', ')} — and press DRAG.`
     : `${P_.runs} runs, each lane the whole pipe, the brush landing ${P_.runs} times and lifting at each end, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
-  if (!confirm(`${key.toUpperCase()} ALU, ${what()}${of}: ${text}`)) return;
+  if (!confirm(`${key.toUpperCase()} ${TAB_NAME}, ${what()}${of}: ${text}`)) return;
   S.view = key; S.session = n > 1 ? ses : 0; RUN_SES = ses; settle();                // the board shows the pass running
   await start(key, P_.blocks, { seconds: P_.seconds, rows: P_.rows },
-    { page: 'alu', pass: key, session: ses, sessions: n, label: label(), settings: S, here: hereNow(), ...(key === 'marks' && S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) });
+    { page: TAB, pass: key, session: ses, sessions: n, label: label(), settings: S, here: hereNow(), ...(key === 'marks' && S.ink ? { cup: cup() } : {}), estimate_s: Math.round(P_.seconds) });
 }
 $('#btnMarks').onclick = () => runPass('marks');
 $('#btnDrag').onclick = () => runPass('drag');
@@ -1073,7 +1081,7 @@ $('#btnTest').onclick = async () => {
   if (!confirm(`TEST: one dip in the cup, then a dot ${TEST_MARGIN} mm in from each corner of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
     + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
-    { page: 'alu', label: 'ALU · TEST · the corners', here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), cup: cup(), estimate_s: Math.round(T.seconds) });
+    { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), cup: cup(), estimate_s: Math.round(T.seconds) });
 };
 let paused = false;
 $('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
