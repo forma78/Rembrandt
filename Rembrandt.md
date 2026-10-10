@@ -34,7 +34,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
-| **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests. |
+| **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
 | **Band (on TYPE)** | A letter's stroke as the brush fills it: its skeleton (New Yuri's set) a share of the letter's height wide, round at its ends; split at every corner sharper than 25°, so V, M, Z, L are overlapping bands; O, 0, 8 closed bands; the dots of ! and % discs. Not Create's band. |
 | **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number as on an abacus — a long one five, a short one one — from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
 | **Session** | On TYPE: the bands marked and dragged together. A band over a band of an earlier session goes to a later one, the earlier dry first; OVERLAPS: wet on wet, dry between letters, dry every overlap. |
@@ -316,7 +316,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   brushes named **Whole lanes, Master Flo** and **Segments, Alu**; "Remove
   Brushed aluminium, I do not plan it at all" — the grounds White and
   Paper. The panel is the canvas from home, not the prototype's formats, as
-  on TYPE (*Claude's choice*); Paper test, 8 Oct makes it 148 × 210.
+  on TYPE (*Claude's choice*); Paper test, 8 Oct made it 148 × 210, until
+  the key went on 2026-10-10.
   **Master Flo's marks right across the whole pipe** (the owner, the same
   day, `ALU-Claude/Screenshot 2026-10-08 at 2.55.56 PM.png`: "Whole lanes,
   Master Flo and Segments, Alu — that is all the Australian style, Alu. I
@@ -674,7 +675,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   the chosen segment or takes it out, or, with Marks, is the next mark's
   paint. The panel: Where pipes cross (Wet on wet · Dry between pipes), INK,
   the view — **Design · 1 Trace · 2 Marks · 3 Drag · Result** — and ▶ Play
-  the run; New composition · New colours · Paper test, 8 Oct; the pipes,
+  the run; New composition · New colours (Paper test, 8 Oct gone since
+  2026-10-10: "Remove Paper test. What 8 Oct? I do not need this key :)"); the pipes,
   bottom to top, and the chosen one's brush, inside or outside lane first,
   Reverse the way, marks by hand, Width, Corners, Largest corner radius,
   the fans, Bring up · Send down · Delete — or ⌫ (the owner, 2026-10-08:
@@ -710,8 +712,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   the lanes are cut (within 3 pitches, est.; farther, where a pipe leaves
   the canvas and comes back, it lifts). A pipe a landing. OFF, every lane
   one way, a lift after each, as before. Segments' Along follows the same
-  switch, its two keys under the brush's sliders gone (*Claude's choice*);
-  Paper test, 8 Oct turns it OFF, as the paper was brushed. Run on the
+  switch, its two keys under the brush's sliders gone (*Claude's choice*).
+  Run on the
   machine since 2026-10-10.
 - **SMKN**, after ALU (2026-10-08, §1): ALU's page with the paints in stock
   (`app/smkn.html`, its body `data-tab="smkn"`; `aluplan.js`, SMKN_TUBES):
@@ -722,7 +724,7 @@ this section disagree, this section wins: the owner corrected the sketch on
   Violet, 323 Cerulean Blue Hue, 070 Iridescent Black (Sennelier), 4982
   Ivory Black (Lukas) — a name and maker on hover; their colours est., the
   iridescent two drawn as their colour, no shine. New composition, New
-  colours, New pipe and the paper test in them; 💾 SAVE SMKN, the Library
+  colours and New pipe in them; 💾 SAVE SMKN, the Library
   opens it here.
 - **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;

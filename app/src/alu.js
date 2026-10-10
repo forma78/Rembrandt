@@ -25,7 +25,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } from './strokes.js';
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP } from './band.js';
 import {
-  PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe, paperTest,
+  PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe,
   planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, tickPaths, rgbOf, mixRGB,
   traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS,
 } from './aluplan.js';
@@ -836,16 +836,10 @@ $('#planInfo').onclick = () => { $('#planRead').hidden = !$('#planRead').hidden;
 $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
-// the composition: a new seed, the families again, the paper test
+// the composition: a new seed, the families again. No Paper test key since 2026-10-10 (the owner: "I do not need this key");
+// a save of it still opens, and paperTest stays the tests' fixture
 $('#btnCompose').onclick = () => { undoPush(); S.seed = 1 + Math.floor(Math.random() * 9999); S.pipes = compose(S.seed, po()); S.sel = 0; S.seg = 0; settle(); };
 $('#btnRecolour').onclick = () => { if (!S.pipes.length) return; undoPush(); recolour(S.pipes, Math.floor(Math.random() * 1e9), PAL); settle(); };
-$('#btnPaper').onclick = () => {
-  undoPush();
-  const t = paperTest(PAL);
-  Object.assign(S, t.settings, { pipes: t.pipes, cw: t.cw, ch: t.ch, seed: 'paper', view: 'result', tool: 'edit', sel: 0, seg: 0, session: 0 });
-  setCanvas({ boardW: t.cw, boardH: t.ch }); Object.assign(S, canvasNow(S));      // the A5 page, the canvas of every tab
-  settle();
-};
 $('#btnNewPipe').onclick = () => { undoPush(); S.pipes.push(newPipe(Math.round(Math.min(50, S.cw / 3)), Date.now() >>> 0, PAL)); S.sel = S.pipes.length - 1; S.seg = 0; S.tool = 'draw'; settle(); };
 $('#btnUndoPt').onclick = () => { const st = S.pipes[S.sel]; if (!st?.pts.length) return; undoPush(); st.pts.pop(); settle(); };
 function showPanel() {

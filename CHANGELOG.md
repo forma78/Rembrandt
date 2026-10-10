@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU and SMKN: no Paper test key** (the owner, 2026-10-10: "Remove
+  Paper test. What 8 Oct? I do not need this key :)"). New composition and
+  New colours stay; a save of the paper test still opens, and `paperTest`
+  stays the fixture of the tests, the snake off as the paper was brushed.
+  The Paper ground in the Tools is another thing and stays.
+
 - **ALU and SMKN: STOP alone, the snake's Off and On** (the owner,
   2026-10-10: "remove the dots of • STOP and •• HARD STOP — they give you
   room for on / off as on INK. No green highlight, the knob there is
