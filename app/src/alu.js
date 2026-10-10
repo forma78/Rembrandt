@@ -820,7 +820,11 @@ document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view
 $('#btnPlay').onclick = play;
 document.querySelectorAll('[data-overlap]').forEach(b => b.onclick = () => { if (S.overlap === b.dataset.overlap) return; undoPush(); S.overlap = b.dataset.overlap; S.session = 0; settle(); });
 // the snake, under DRAG (the owner, 2026-10-10): ON a pipe's lanes back and forth, the brush down; OFF one way, a lift each. Segments' Along too
-$('#snake').onchange = e => { undoPush(); S.aorder = e.target.checked ? 'snake' : 'one'; settle(); };
+const setSnake = on => { if ((S.aorder === 'snake') === on) return showPanel(); undoPush(); S.aorder = on ? 'snake' : 'one'; settle(); };
+$('#snake').onchange = e => setSnake(e.target.checked);
+$('#snakeOff').onclick = () => setSnake(false);
+$('#snakeOn').onclick = () => setSnake(true);
+$('#snakeIcon').onclick = () => setSnake(S.aorder !== 'snake');
 document.querySelectorAll('[data-look]').forEach(b => b.onclick = () => { if (S.look === b.dataset.look) return; S.look = b.dataset.look; settle(); });
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
@@ -852,7 +856,7 @@ function showPanel() {
   document.querySelectorAll('[data-overlap]').forEach(b => b.classList.toggle('on', b.dataset.overlap === S.overlap));
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
-  $('#snake').checked = S.aorder === 'snake';
+  $('#snake').checked = S.aorder === 'snake'; $('#snakeOff').classList.toggle('on', S.aorder !== 'snake'); $('#snakeOn').classList.toggle('on', S.aorder === 'snake');
   document.querySelectorAll('[data-look]').forEach(b => b.classList.toggle('on', b.dataset.look === S.look));
   document.querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === S.ground));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
@@ -1094,7 +1098,6 @@ $('#btnTest').onclick = async () => {
 let paused = false;
 $('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
 $('#btnStop').onclick = () => post('/run/stop');
-$('#btnKill').onclick = () => post('/run/kill');
 
 // The LCD, as on LOVE.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };

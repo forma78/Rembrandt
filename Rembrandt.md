@@ -698,8 +698,12 @@ this section disagree, this section wins: the owner corrected the sketch on
   to the right of them … shaped like INK on / off, so it is near the DRAG
   key; no words, just an icon as in iTunes, ↻, the loop, ON by default";
   "🔁, that is the icon I meant — maybe you can draw it yourself"): a
-  switch right of the stops, under DRAG, INK's switch with the repeat icon
-  drawn in the deck's lines, ON by default, kept with the save. ON, a
+  switch right of STOP, under DRAG — the repeat icon drawn in the deck's
+  lines, Off and On as INK's, the knob's dot orange, not INK's green — ON by
+  default, kept with the save. **STOP without its dot, and no HARD STOP**
+  on ALU and SMKN (the owner, the same evening: "remove the dots of • STOP
+  and •• HARD STOP — they give you room for on / off as on INK … or let us
+  remove HARD STOP altogether! I do not use it"); Esc is STOP still. ON, a
   pipe's lanes back and forth in one row, the brush down, a step across from
   a lane's end to the next one's start: across the pipe's flat end on the
   canvas, on the trace's line there; along the edge past the canvas where

@@ -96,9 +96,8 @@
       </div>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
-        <button class="btn danger" id="btnKill" title="Stop the carriage at once and the arm where it is">HARD STOP</button>
-        <!-- the snake (the owner, 2026-10-10): a switch as INK's, no words, the repeat icon 🔁, ON by default -->
-        <label class="inline check loopsw" title="The snake, for DRAG: ON, a pipe's lanes back and forth with the brush down, a step across at each end, no flight back to the start; OFF, each lane one way, a lift after each"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5V10a4 4 0 0 1 4-4h11.5"/><path d="M16.5 3l3 3-3 3"/><path d="M20 12.5V14a4 4 0 0 1-4 4H4.5"/><path d="M7.5 15l-3 3 3 3"/></svg><input id="snake" type="checkbox" aria-label="Snake"></label>
+        <!-- the snake (the owner, 2026-10-10): the repeat icon 🔁, Off and On as INK's, ON by default; HARD STOP gone ("I do not use it") -->
+        <div class="inline check loopsw" title="The snake, for DRAG: ON, a pipe's lanes back and forth with the brush down, a step across at each end, no flight back to the start; OFF, each lane one way, a lift after each"><svg id="snakeIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5V10a4 4 0 0 1 4-4h11.5"/><path d="M16.5 3l3 3-3 3"/><path d="M20 12.5V14a4 4 0 0 1-4 4H4.5"/><path d="M7.5 15l-3 3 3 3"/></svg><span class="side" id="snakeOff">Off</span><input id="snake" type="checkbox" aria-label="Snake"><span class="side" id="snakeOn">On</span></div>
       </div>
     </section>
 

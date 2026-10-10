@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU and SMKN: STOP alone, the snake's Off and On** (the owner,
+  2026-10-10: "remove the dots of • STOP and •• HARD STOP — they give you
+  room for on / off as on INK. No green highlight, the knob there is
+  orange. Or let us remove HARD STOP altogether! I do not use it"). HARD
+  STOP gone from the deck; STOP without its orange dot, the row's width
+  left of the switch; the switch the repeat icon, then Off and On as INK's
+  — a click on a word sets it, on the icon turns it over — its knob's dot
+  orange. Esc is STOP still; the other tabs keep both stops.
+
 - **ALU and SMKN: the snake for DRAG** (the owner, 2026-10-10: "I need a
   run as a snake, back and forth, the brush going non-stop, without flying
   back to the start through the air. This one is needed too, but let there
