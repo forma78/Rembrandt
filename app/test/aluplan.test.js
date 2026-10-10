@@ -135,7 +135,7 @@ test('a corner tighter than half the pipe is counted; a pipe off the panel gets 
 
 test('the passes run on the machine: lines and arcs, TRACE and MARKS from the cup, DRAG dry and a landing a run', () => {
   const pl = planOf(compose(5, O), O), lines = R => R.ps.every(p => p.every(g => (g.t === 'L' || g.t === 'A') && Number.isFinite(g.a.x) && Number.isFinite(g.b.y)));
-  const T = traceRows(traceOf(pl, O, O.width / 2), true, O);
+  const T = traceRows(traceOf(pl, O), true, O);
   assert.ok(T.ps.length && lines(T));
   let r = plotRun({ ...RUN, ink: true, rows: T.ps.length, noDipUnder: 0 }, [{ key: 'TRACE', ps: T.ps, why: null }]);
   assert.equal(r.fault, '');
@@ -156,11 +156,25 @@ test('the passes run on the machine: lines and arcs, TRACE and MARKS from the cu
 });
 
 test('the paper test\'s loop: an outline whole on the panel runs round clockwise and on 60 % over its start', () => {
-  const pl = planOf(PAPER.pipes, PAPER.o), [t] = traceOf(pl, PAPER.o, 2);
+  const pl = planOf(PAPER.pipes, PAPER.o), [t] = traceOf(pl, PAPER.o);
   assert.ok(t.closed && t.lap > 0);
   const R = traceRows([t], false, PAPER.o);
   assert.equal(R.ps.length, 1);
   assert.ok(Math.abs(R.ps[0].at(-1).tailOut - t.lap) < 1e-9, 'the brush lifts off over the lap');
+});
+
+test('TRACE lies on lanes 1 and n, DRAG\'s own lines, whatever the brush and the line (the owner, 2026-10-10)', () => {
+  const seg = (p, a, b) => { const ab = [b[0] - a[0], b[1] - a[1]], l2 = ab[0] ** 2 + ab[1] ** 2, t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1]) / l2)) : 0; return dist(p, [a[0] + ab[0] * t, a[1] + ab[1] * t]); };
+  const off = (p, lines) => Math.min(...lines.flatMap(P => P.slice(1).map((q, i) => seg(p, P[i], q))));
+  for (const [brush, width] of [[12, 4], [8, 2.5], [4.5, 1], [4, 12]]) {
+    const o = { ...PAPER.o, brush, width, lanes: 12 }, pl = planOf(PAPER.pipes, o), [t] = traceOf(pl, o), runs = pl.sessions[0].runs;
+    const [one, n] = [1, 12].map(k => runs.find(r => r.num === k).pts);
+    assert.ok(t.closed);
+    const lines = [one, n, [one[0], n[0]], [one.at(-1), n.at(-1)]];   // the two edge lanes, and across the pipe's two ends
+    const worst = Math.max(...t.pts.map(p => off(p, lines)));
+    assert.ok(worst < 1e-6, `brush ${brush}, line ${width}: the trace ${worst} mm off the lanes`);
+    assert.ok(t.pts.some(p => off(p, [one]) < 1e-6) && t.pts.some(p => off(p, [n]) < 1e-6), 'along both edge lanes');
+  }
 });
 
 test('every file carries data-ink', () => {

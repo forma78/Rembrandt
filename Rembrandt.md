@@ -681,9 +681,14 @@ this section disagree, this section wins: the owner corrected the sketch on
   "the sausage could simply go with the delete key"); its segment's paints —
   on Whole lanes along the pipe, a mark right across in each, on Segments'
   Along across it; the brush, the marks, the simulation (est.); the canvas;
-  the prototype's files. TRACE: every pipe's outline, the line's outer edge
-  on the pipe's, cut to the canvas, one whole on it a loop on 60 % over its
-  start. MARKS: every dash and its ticks, TYPE's abacus, a dip every 4 marks
+  the prototype's files. TRACE: every pipe's outline on its lanes 1 and n,
+  DRAG's own lines, so the dry brush runs over the trace exactly (the owner,
+  2026-10-10, `alu-result/`: "I brush first, do the trace, and think Drag
+  will go along this outline, but it goes quite otherwise, inside the
+  trace's outline … remove the slider and make a strict correspondence";
+  before, the line's outer edge on the pipe's, TYPE's way, (Brush width −
+  Line width) / 2 outside the lanes, no slider of its own); cut to the
+  canvas, one whole on it a loop on 60 % over its start. MARKS: every dash and its ticks, TYPE's abacus, a dip every 4 marks
   (est.). DRAG: every run a row — whole lanes n … 1, each the whole pipe, a
   landing and a lift each — the dry brush, no dip. 3 Drag numbers the lanes
   at their starts as the owner's page does. Not run on the machine yet.

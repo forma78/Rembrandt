@@ -148,7 +148,7 @@ const hereNow = () => { const R = reach(); return { x: R.x.min + S.edgeBottom + 
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
 
 // ---------- the run: TRACE ----------
-// Every pipe's outline, its line's outer edge on the pipe's, cut to the panel
+// Every pipe's outline on its lanes 1 and n, DRAG's own lines, cut to the panel
 // (aluplan.js, traceOf); an outline whole on the panel round clockwise, on
 // 60 % over its start. INK ON: a dip, then outlines on what the brush holds
 // while they keep within a dip run, a loop never split, a long line cut where
@@ -160,7 +160,7 @@ function plan() {
   const here = hereNow(), P = planNow(), key = JSON.stringify([plKey, S.width, S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null]);
   if (PLAN && key === planKey) return PLAN;
   planKey = key;
-  const trace = traceOf(P, po(), S.width / 2), R = traceRows(trace, S.ink, po());
+  const trace = traceOf(P, po()), R = traceRows(trace, S.ink, po());
   if (!R.ps.length) { PLAN = { ...EMPTY, trace }; return PLAN; }
   const o = runOpts(R.ps.length);
   PLAN = { ...plotRun(o, [{ key: 'TRACE', ps: R.ps, why: null }]), rows: R.info, outlines: R.ps.length, trace, ink: S.ink, opts: o };

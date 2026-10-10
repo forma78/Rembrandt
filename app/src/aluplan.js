@@ -623,9 +623,14 @@ export function fitRun(pts) {
   parts.push(cur);
   return parts.flatMap(q => fitPieces(q));
 }
-// TRACE: every pipe's outline, its line's outer edge on the pipe's (the
-// owner, 2026-10-06, of TYPE: "the brush is the same, in paint and dry"),
-// fan ends round, cut to the panel. An outline whole on the panel is a loop:
+// TRACE: every pipe's outline on its outermost lanes, lane 1 and lane n — the
+// very lines DRAG runs, offset as they are (the owner, 2026-10-10,
+// alu-result/: "I brush first, do the trace, and think Drag will go along this
+// outline, but it goes quite otherwise, inside the trace's outline … remove
+// the slider and make a strict correspondence"). Before, the line's outer
+// edge lay on the pipe's, TYPE's way, so the outline ran (Brush width − Line
+// width) / 2 outside the lanes: 1.75 mm at 4.5 and 1, 4 mm at 12 and 4. Fan
+// ends round, cut to the panel. An outline whole on the panel is a loop:
 // round clockwise and on LOOP_SHARE of itself over its start, as every loop
 // of Rembrandt. → [{ pts, si, lap, closed }]
 export function outlineOf(st, r) {
@@ -635,11 +640,11 @@ export function outlineOf(st, r) {
   return [...a, ...(st.capB === 'fan' && !isLanes(st) ? capPts(true) : []), ...b, ...(st.capA === 'fan' && !isLanes(st) ? capPts(false) : []), a[0]];
 }
 const areaOf = P => P.reduce((s, p, i) => { const q = P[(i + 1) % P.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
-export function traceOf(pl, o, inset = 1) {
+export function traceOf(pl, o) {
   const out = [];
   pl.pipes.forEach((st, si) => {
     if (!st.sp) return;
-    const loop = outlineOf(st, Math.max(0.5, st.w / 2 - inset)), pieces = clipOpen(loop, [0, 0, o.cw, o.ch]);
+    const loop = outlineOf(st, Math.max(0.5, lanesOf(st, o).e)), pieces = clipOpen(loop, [0, 0, o.cw, o.ch]);   // e: lanes 1 and n's offset, Segments' too
     if (pieces.length === 1 && dist(pieces[0][0], loop[0]) < 1e-6 && Math.abs(lengthOf(pieces[0]) - lengthOf(loop)) < 1e-3) {
       let P = loop.slice(0, -1); if (areaOf(P) < 0) P = P.reverse();   // clockwise on the canvas, y down
       let i0 = 0; P.forEach((p, i) => { if (p[1] < P[i0][1] - 1e-9) i0 = i; });   // from its top, 12 o'clock
@@ -727,7 +732,7 @@ const f2 = v => (Math.round(v * 100) / 100).toString(), dd = (pts, closed) => 'M
 const svgDoc = (o, title, body) => `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt ${(o.tab || 'alu').toUpperCase()} · ${title} · panel ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one brush-down run, in drawing order. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n${body}\n</svg>\n`;
 export const slugOf = o => `${o.tab || 'alu'}_${o.seed}`;
 export function traceSvg(pl, o) {
-  const rows = traceOf(pl, o, o.width / 2).map(t => `  <path d="${dd(rdp(t.pts, 0.15))}" data-pipe="${t.si + 1}"/>`);
+  const rows = traceOf(pl, o).map(t => `  <path d="${dd(rdp(t.pts, 0.15))}" data-pipe="${t.si + 1}"/>`);
   return svgDoc(o, 'pass 1 trace', `<g id="pass1-trace" data-pass="1" data-ink="INK-1" data-dip-every-mm="${DIP_RUN}" fill="none" stroke="#6E8EB0" stroke-width="${o.width}">\n${rows.join('\n')}\n</g>`);
 }
 export function marksSvg(pl, s, o) {

@@ -5,6 +5,23 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU and SMKN: TRACE on the lanes DRAG runs** (the owner, 2026-10-10,
+  `alu-result/`: "Trace goes a few millimetres further, outside the
+  sausage's outline, and makes a fat frame. Drag goes inside this frame,
+  not touching the outline, though it should lie on top of it … I brush
+  first, do the trace, and think Drag will go along this outline, but it
+  goes quite otherwise, inside the trace's outline … if there are settings
+  somewhere to make the gap between trace and drag smaller or bigger, they
+  only distract: remove the slider and make a strict correspondence").
+  The outline now runs on lanes 1 and n, the same offset from the spine as
+  DRAG's edge lanes, `lanesOf`'s e; before, the line's outer edge lay on the
+  pipe's, TYPE's way, so it ran (Brush width − Line width) / 2 outside them:
+  1.75 mm at 4.5 and 1, the settings of the day in the run journal, 4 mm
+  at 12 and 4. No slider of its own; now neither Brush width nor Line width
+  moves them apart. Tested: the trace on the edge lanes to 1e-6 mm at four
+  brushes and lines; on the day's composition from `logs/runs.jsonl`, 0 mm
+  off the nearest lane (1.75 before). TYPE and LOVE keep their way.
+
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "Great!
   Now everything is right! We only need to make a real palette with the
   colours we have in stock, but the existing tab must stay too. Let's call
