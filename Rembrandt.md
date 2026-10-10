@@ -33,7 +33,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
-| **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
+| **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests. |
 | **Band (on TYPE)** | A letter's stroke as the brush fills it: its skeleton (New Yuri's set) a share of the letter's height wide, round at its ends; split at every corner sharper than 25°, so V, M, Z, L are overlapping bands; O, 0, 8 closed bands; the dots of ! and % discs. Not Create's band. |
 | **TRACE · MARKS · DRAG** | TYPE's three passes and their keys. TRACE: the outline of every band in watercolour from the cup. MARKS: a stroke across a band where a paint goes, its ticks (the owner's "grooves") the paint's number as on an abacus — a long one five, a short one one — from the same cup; the owner squeezes the paints onto them by hand. DRAG: the dry brush through the paint, every lane non-stop, no dip — Florian Markus's way. |
@@ -691,7 +691,24 @@ this section disagree, this section wins: the owner corrected the sketch on
   canvas, one whole on it a loop on 60 % over its start. MARKS: every dash and its ticks, TYPE's abacus, a dip every 4 marks
   (est.). DRAG: every run a row — whole lanes n … 1, each the whole pipe, a
   landing and a lift each — the dry brush, no dip. 3 Drag numbers the lanes
-  at their starts as the owner's page does. Not run on the machine yet.
+  at their starts as the owner's page does. **The snake** (the owner,
+  2026-10-10: "I need a run as a snake, back and forth, the brush going
+  non-stop, without flying back to the start through the air. This one is
+  needed too, but let there be a switch"; "STOP, HARD STOP — there is room
+  to the right of them … shaped like INK on / off, so it is near the DRAG
+  key; no words, just an icon as in iTunes, ↻, the loop, ON by default";
+  "🔁, that is the icon I meant — maybe you can draw it yourself"): a
+  switch right of the stops, under DRAG, INK's switch with the repeat icon
+  drawn in the deck's lines, ON by default, kept with the save. ON, a
+  pipe's lanes back and forth in one row, the brush down, a step across from
+  a lane's end to the next one's start: across the pipe's flat end on the
+  canvas, on the trace's line there; along the edge past the canvas where
+  the lanes are cut (within 3 pitches, est.; farther, where a pipe leaves
+  the canvas and comes back, it lifts). A pipe a landing. OFF, every lane
+  one way, a lift after each, as before. Segments' Along follows the same
+  switch, its two keys under the brush's sliders gone (*Claude's choice*);
+  Paper test, 8 Oct turns it OFF, as the paper was brushed. Run on the
+  machine since 2026-10-10.
 - **SMKN**, after ALU (2026-10-08, §1): ALU's page with the paints in stock
   (`app/smkn.html`, its body `data-tab="smkn"`; `aluplan.js`, SMKN_TUBES):
   the strip the fourteen tubes, light to dark — 116 Titanium White, 029

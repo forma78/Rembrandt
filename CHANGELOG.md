@@ -5,6 +5,34 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU and SMKN: the snake for DRAG** (the owner, 2026-10-10: "I need a
+  run as a snake, back and forth, the brush going non-stop, without flying
+  back to the start through the air. This one is needed too, but let there
+  be a switch … STOP, HARD STOP — there is room to the right of them …
+  shaped like INK on / off, so it is near the DRAG key; no words, just an
+  icon as in iTunes, ↻, the loop, ON by default"; "🔁, that is the icon I
+  meant — maybe you can draw it yourself"). A switch right of the stops,
+  under DRAG: INK's shape, the repeat icon drawn as an SVG in the deck's
+  lines, grey when off; ON by default (the old `aorder`, 'snake' already).
+  ON, a whole-lane pipe's lanes alternate their way and `snakeOf` joins a
+  lane's end to the next one's start, within 3 pitches (est.), with a step
+  across, the brush down: across the flat end on the canvas, on the trace's
+  line; along the edge past the canvas where the lanes are cut. So a pipe
+  is one DRAG row, one landing: the day's "6", 12 lanes, 1 run for 12.
+  Where a lane leaves the canvas and comes back, a lift there as before.
+  3 Drag colours and numbers each lane of a snake at its own start and
+  draws no flight; Result and Play the run walk it as the brush goes; the
+  DRAG confirm and the SVG (`data-lane="8 7 … 1"`) say so. The switch is
+  the old "Segments: back and forth · One way, lift" keys, gone from under
+  the brush's sliders (*Claude's choice*: one setting, one control).
+  Paper test, 8 Oct turns it off, as the paper was brushed. On ALU the deck's
+  stops lay in `.alu .stops`, the segment paints' rule — why they were
+  narrow, leaving the room; now `.deckstops` of their own. Tested: the
+  paper test's pipe one run, its lanes on their lines back and forth, each
+  step one pitch, one landing on the machine; compositions 1–6, fewer
+  landings, every lane run once, every step past the canvas's edge; OFF as
+  before; in a headless browser, the switch both ways and Result.
+
 - **ALU and SMKN: TRACE on the lanes DRAG runs** (the owner, 2026-10-10,
   `alu-result/`: "Trace goes a few millimetres further, outside the
   sausage's outline, and makes a fat frame. Drag goes inside this frame,

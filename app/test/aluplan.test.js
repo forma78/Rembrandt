@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS } from '../src/aluplan.js';
+import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS, SNAKE_STEP } from '../src/aluplan.js';
 import { plotRun, DEFAULTS } from '../src/strokes.js';
 
 // ALU's plan (ALU-Claude/ALU.md): the prototype's logic, ported. Whole lanes,
@@ -174,6 +174,40 @@ test('TRACE lies on lanes 1 and n, DRAG\'s own lines, whatever the brush and the
     const worst = Math.max(...t.pts.map(p => off(p, lines)));
     assert.ok(worst < 1e-6, `brush ${brush}, line ${width}: the trace ${worst} mm off the lanes`);
     assert.ok(t.pts.some(p => off(p, [one]) < 1e-6) && t.pts.some(p => off(p, [n]) < 1e-6), 'along both edge lanes');
+  }
+});
+
+test('the snake (the owner, 2026-10-10): a pipe whole on the canvas one run, its lanes back and forth, a step across its end each', () => {
+  const o = { ...PAPER.o, aorder: 'snake' }, one = planOf(PAPER.pipes, PAPER.o).sessions[0].runs, [r, ...rest] = planOf(PAPER.pipes, o).sessions[0].runs;
+  assert.equal(rest.length, 0, 'one run, one landing');
+  assert.deepEqual(r.nums, [8, 7, 6, 5, 4, 3, 2, 1]);
+  const { pitch } = lanesOf(planOf(PAPER.pipes, o).pipes[0], o);
+  r.starts.forEach((at, k) => {
+    const end = r.starts[k + 1] ?? r.pts.length, lane = r.pts.slice(at, end), was = one[k].pts.map(p => p.slice(0, 2));
+    assert.deepEqual(lane.map(p => p.slice(0, 2)), k % 2 ? was.slice().reverse() : was, `lane ${r.nums[k]} on its line, ${k % 2 ? 'back' : 'forth'}`);
+    assert.ok(lane.every(p => p[3] === (k % 2 ? -1 : 1)));
+    if (k) assert.ok(Math.abs(dist(r.pts[at - 1], r.pts[at]) - pitch) < 1e-6, 'the step across one pitch');
+  });
+  const D = dragRows(planOf(PAPER.pipes, o), 0, o), run = plotRun({ ...RUN, ink: false, speed: 60, rows: D.ps.length }, [{ key: 'DRAG', ps: D.ps, why: null }]);
+  assert.equal(run.fault, '');
+  assert.equal(run.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, 1, 'the brush lands once');
+  assert.match(D.info[0].label, /lanes 8 → 7 → .* → 1, back and forth/);
+  assert.match(dragSvg(planOf(PAPER.pipes, o).sessions[0], o), /data-lane="8 7 6 5 4 3 2 1"/);
+});
+
+test('the snake on pipes cut by the canvas: the steps past its edge, never over it; OFF as before, a lift a lane', () => {
+  const inside = (p, o) => p[0] > 0.5 && p[0] < o.cw - 0.5 && p[1] > 0.5 && p[1] < o.ch - 0.5;
+  for (let seed = 1; seed <= 6; seed++) {
+    const pipes = compose(seed, O), snake = planOf(pipes, { ...O, aorder: 'snake' }), one = planOf(pipes, { ...O, aorder: 'one' });
+    const runs = snake.sessions.flatMap(s => s.runs), ones = one.sessions.flatMap(s => s.runs);
+    assert.ok(ones.every(r => !r.nums && r.pts.every(p => p[3] === 1)), 'OFF: every lane one way, a run of its own');
+    assert.equal(runs.reduce((a, r) => a + r.nums.length, 0), ones.length, 'every lane piece run once');
+    assert.ok(runs.length < ones.length, `seed ${seed}: fewer landings, ${runs.length} for ${ones.length}`);
+    for (const r of runs) for (const at of r.starts.slice(1)) {
+      const a = r.pts[at - 1], b = r.pts[at], { pitch } = lanesOf(snake.pipes[r.si], O);
+      assert.ok(dist(a, b) <= SNAKE_STEP * pitch + 0.5, 'a short step');
+      assert.ok(!inside(a, O) && !inside(b, O), `seed ${seed}: the step past the canvas's edge`);
+    }
   }
 });
 

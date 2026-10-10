@@ -637,6 +637,11 @@ body.type .status{grid-column:1/4;grid-row:4}
 .alu .stops{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:8px 0 0}
 .alu .stops .stop{width:24px;height:20px;border-radius:5px;display:grid;place-items:center;font:600 10px var(--mono);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 .alu .stops .hint{font-size:11px;color:var(--mute);margin-left:4px}
+/* the deck's stops and the snake's switch at their right, under DRAG (the owner, 2026-10-10): INK's switch, the repeat icon, no words */
+.alu .stops.deckstops{flex-wrap:nowrap;gap:8px;margin-top:10px}
+.alu .loopsw{margin:0 2px 0 auto;gap:8px;cursor:pointer}
+.alu .loopsw svg{width:22px;height:22px;fill:none;stroke:var(--mute);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.alu .loopsw:has(input:checked) svg{stroke:var(--ink)}
 .alu .filekeys{display:flex;flex-wrap:wrap;gap:4px}
 .alu .filekeys .tog{font-size:11px;padding:5px 8px}
 .alu #seedRead{margin:6px 0 0}

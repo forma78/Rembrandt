@@ -99,9 +99,11 @@
         <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS, pass 2: a mark across the pipe where each paint goes, its ticks the paint's number, from the same cup as TRACE"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" class="thin"/><path d="M8 5v14M14 5v14"/></svg><span>Marks</span></button>
         <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG, pass 3: the dry brush through the paint, every lane the whole pipe, no dip"><svg viewBox="0 0 24 24"><path d="M3 7h13M3 12h16M3 17h13"/><path d="M16 9l3 3-3 3"/></svg><span>Drag</span></button>
       </div>
-      <div class="stops">
+      <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
         <button class="btn danger" id="btnKill" title="Stop the carriage at once and the arm where it is">HARD STOP</button>
+        <!-- the snake (the owner, 2026-10-10): a switch as INK's, no words, the repeat icon 🔁, ON by default -->
+        <label class="inline check loopsw" title="The snake, for DRAG: ON, a pipe's lanes back and forth with the brush down, a step across at each end, no flight back to the start; OFF, each lane one way, a lift after each"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5V10a4 4 0 0 1 4-4h11.5"/><path d="M16.5 3l3 3-3 3"/><path d="M20 12.5V14a4 4 0 0 1-4 4H4.5"/><path d="M7.5 15l-3 3 3 3"/></svg><input id="snake" type="checkbox" aria-label="Snake"></label>
       </div>
     </section>
 
@@ -148,10 +150,6 @@
       <div class="edit" id="segEdit"></div>
       <h4>Brush, pass 3</h4>
       <div class="sliders" id="slBrush"></div>
-      <div class="toggles looks" id="aorders" title="Segments, Alu: how an Along segment's lanes run">
-        <button class="tog" data-aorder="snake" title="Back and forth, a step across at each end with the brush down">Segments: back and forth</button>
-        <button class="tog" data-aorder="one" title="One way, a lift after each lane">One way, lift</button>
-      </div>
       <h4>Marks, pass 2</h4>
       <div class="sliders" id="slPaint"></div>
       <h4>Simulation</h4>

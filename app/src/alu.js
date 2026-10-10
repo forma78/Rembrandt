@@ -353,21 +353,29 @@ function drawMarkMap(c) {
 }
 // DRAG: the brush's path, a colour a lane (the prototype's), dashed between
 // the runs where it flies; an orange dot where it lands, the owner's lane
-// numbers at the starts, 1 outside … n inside
+// numbers at the starts, 1 outside … n inside — a snake's at each lane's
+// start, its step across in the colour of the lane it leads to
 function drawLanes(c) {
   const P = planNow();
   c.lineCap = 'round';
   let prev = null;
   for (const s of P.sessions) if (shown(s.n)) for (const r of s.runs) {
     if (prev) { c.save(); c.strokeStyle = 'rgba(36,34,31,.3)'; c.lineWidth = 0.5; c.setLineDash([2, 3]); ln(c, [prev, r.pts[0]]); c.stroke(); c.restore(); }
-    c.strokeStyle = r.mode === 'lanes' ? `hsla(${(205 + r.num * 37) % 360},55%,36%,.9)` : r.mode === 'along' ? 'rgba(30,80,150,.85)' : r.mode === 'across' ? 'rgba(170,40,90,.85)' : 'rgba(40,120,60,.85)';
-    c.lineWidth = r.mode === 'lanes' ? Math.max(0.6, S.brush * 0.08) : 0.6; ln(c, r.pts); c.stroke();
-    c.fillStyle = ORANGE; c.beginPath(); c.arc(r.pts[0][0], r.pts[0][1], Math.max(0.6, Math.min(1.4, S.brush * 0.15)), 0, 7); c.fill(); prev = r.pts.at(-1);
-    if (r.mode === 'lanes' && r.pts.length > 1) {
-      const t = norm(sub(r.pts[1], r.pts[0])), fs = Math.max(2.4, Math.min(8, (r.pitch || S.brush) * 0.75)), q = sub(r.pts[0], mul(t, fs * 0.9));
-      c.fillStyle = 'rgba(36,34,31,.85)'; c.font = `${fs}px "Helvetica Neue", Helvetica, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(r.num), q[0], q[1]);
+    if (r.mode === 'lanes') {
+      const starts = r.starts || [0], fs = Math.max(2.4, Math.min(8, (r.pitch || S.brush) * 0.75));
+      starts.forEach((at, k) => {
+        const num = r.nums?.[k] ?? r.num, lane = r.pts.slice(Math.max(0, at - 1), starts[k + 1] ?? r.pts.length);
+        c.strokeStyle = `hsla(${(205 + num * 37) % 360},55%,36%,.9)`; c.lineWidth = Math.max(0.6, S.brush * 0.08); ln(c, lane); c.stroke();
+        if (at + 1 >= r.pts.length) return;
+        const t = norm(sub(r.pts[at + 1], r.pts[at])), q = sub(r.pts[at], mul(t, fs * 0.9));
+        c.fillStyle = 'rgba(36,34,31,.85)'; c.font = `${fs}px "Helvetica Neue", Helvetica, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(num), q[0], q[1]);
+      });
+    } else {
+      c.strokeStyle = r.mode === 'along' ? 'rgba(30,80,150,.85)' : r.mode === 'across' ? 'rgba(170,40,90,.85)' : 'rgba(40,120,60,.85)';
+      c.lineWidth = 0.6; ln(c, r.pts); c.stroke();
     }
   }
+    c.fillStyle = ORANGE; c.beginPath(); c.arc(r.pts[0][0], r.pts[0][1], Math.max(0.6, Math.min(1.4, S.brush * 0.15)), 0, 7); c.fill(); prev = r.pts.at(-1);
 }
 // The guides (the prototype's): every pipe's centre line, the chosen one
 // orange with its points and its segment's edges dashed; the seams across.
@@ -763,7 +771,7 @@ function showPipe() {
   const wl = isLanes(st), hand = handMarks(st), slider = (id, label, min, max, step, v, val, title) => `<label class="sl" title="${title}"><span class="slh"><span>${label}</span><span class="val" id="o-${id}">${val}</span></span><input class="slider" type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${v}"></label>`;
   box.innerHTML = `
     <h4>Pipe ${S.sel + 1} · ${st.pts.length} point${st.pts.length === 1 ? '' : 's'}</h4>
-    <div class="toggles looks"><button class="tog${wl ? ' on' : ''}" data-pbrush="lanes" title="Every lane the whole pipe in one run, the inside lane first, a lift after each — the owner's paper test">Whole lanes, Master Flo</button><button class="tog${wl ? '' : ' on'}" data-pbrush="segments" title="Cut by seams, each segment along the line or across it; fan ends">Segments, Alu</button></div>
+    <div class="toggles looks"><button class="tog${wl ? ' on' : ''}" data-pbrush="lanes" title="Every lane the whole pipe in one run, the inside lane first — a lift after each, as on the owner's paper test, or back and forth with the snake under DRAG">Whole lanes, Master Flo</button><button class="tog${wl ? '' : ' on'}" data-pbrush="segments" title="Cut by seams, each segment along the line or across it; fan ends">Segments, Alu</button></div>
     ${wl ? `<div class="toggles looks"><button class="tog${st.first === 'out' ? '' : ' on'}" data-first="in" title="The lane on the side the pipe turns to first, then out: n … 1">Inside lane first</button><button class="tog${st.first === 'out' ? ' on' : ''}" data-first="out" title="The outside lane first, then in: 1 … n">Outside lane first</button></div>
     <div class="grid4 keys"><button class="btn" id="pRev" title="The pipe turned round: its points, seams, segments and marks">Reverse the way</button>${hand ? '<button class="btn" id="pAuto" title="The marks laid by hand cleared: a mark every spacing from the segments\' paints">Back to marks every spacing</button>' : '<button class="btn" id="pHand" title="The Marks tool, to lay marks across this pipe by hand, each with its own paint">Lay marks by hand</button>'}</div>
     <p class="read">Marks: ${hand ? `<b>${st.marks.length}</b> by hand` : 'every spacing, from the segments\' paints'}</p>` : ''}
@@ -811,7 +819,8 @@ document.querySelectorAll('[data-ground]').forEach(b => b.onclick = () => { if (
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; if (S.view !== 'result') stopPlay(); settle(); });
 $('#btnPlay').onclick = play;
 document.querySelectorAll('[data-overlap]').forEach(b => b.onclick = () => { if (S.overlap === b.dataset.overlap) return; undoPush(); S.overlap = b.dataset.overlap; S.session = 0; settle(); });
-document.querySelectorAll('[data-aorder]').forEach(b => b.onclick = () => { if (S.aorder === b.dataset.aorder) return; undoPush(); S.aorder = b.dataset.aorder; settle(); });
+// the snake, under DRAG (the owner, 2026-10-10): ON a pipe's lanes back and forth, the brush down; OFF one way, a lift each. Segments' Along too
+$('#snake').onchange = e => { undoPush(); S.aorder = e.target.checked ? 'snake' : 'one'; settle(); };
 document.querySelectorAll('[data-look]').forEach(b => b.onclick = () => { if (S.look === b.dataset.look) return; S.look = b.dataset.look; settle(); });
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
@@ -840,11 +849,10 @@ function showPanel() {
     const inp = $(`${box} input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
     $(`${box} [data-v="${key}"]`).textContent = valOf(key);
   }
-  const has = q => S.pipes.some(q);
   document.querySelectorAll('[data-overlap]').forEach(b => b.classList.toggle('on', b.dataset.overlap === S.overlap));
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
-  document.querySelectorAll('[data-aorder]').forEach(b => { b.classList.toggle('on', b.dataset.aorder === S.aorder); b.disabled = !has(st => !isLanes(st)); });
+  $('#snake').checked = S.aorder === 'snake';
   document.querySelectorAll('[data-look]').forEach(b => b.classList.toggle('on', b.dataset.look === S.look));
   document.querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === S.ground));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
@@ -1057,7 +1065,7 @@ async function runPass(key) {
   if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
   const min = fmt(P_.seconds / 60, 0), text = key === 'marks'
     ? `${P_.marks} marks and their ticks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => paintNo(a[0]) - paintNo(b[0])).map(([q, c]) => `${paintNo(q)} ${NAME[q]} × ${c}`).join(', ')} — and press DRAG.`
-    : `${P_.runs} runs, each lane the whole pipe, the brush landing ${P_.runs} times and lifting at each end, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
+    : `${P_.runs} runs, ${S.aorder === 'snake' ? 'the snake: a pipe\'s lanes back and forth with the brush down, a step across at each end' : 'each lane the whole pipe'}, the brush landing ${P_.runs} times and lifting at each end, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
   if (!confirm(`${key.toUpperCase()} ${TAB_NAME}, ${what()}${of}: ${text}`)) return;
   S.view = key; S.session = n > 1 ? ses : 0; RUN_SES = ses; settle();                // the board shows the pass running
   await start(key, P_.blocks, { seconds: P_.seconds, rows: P_.rows },

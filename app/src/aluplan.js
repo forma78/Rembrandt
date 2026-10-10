@@ -5,7 +5,8 @@
 //
 // - Whole lanes, Master Flo (a new pipe's default, and New composition's
 //   only one): every lane the whole pipe in one run, the inside lane first,
-//   a lift after each — the owner's paper test of 2026-10-08,
+//   a lift after each — or, the snake, back and forth with the brush down
+//   (the owner, 2026-10-10; snakeOf) — the owner's paper test of 2026-10-08,
 //   ALU-Claude/paper-test/, "repeating the brush's way with absolute
 //   precision": where a pipe crosses itself, one lane per step. Every mark
 //   right across the whole pipe, one paint: the paints along the pipe,
@@ -285,14 +286,15 @@ export const newPipe = (w, seed, pal = PALETTES.alu) => ({ pts: [], w, round: 0.
 // left, turns up into a loop and comes down across itself. Black marks on the
 // way in and at the turn, white round the loop and on the way down, at mm
 // along the centre line read off the photographs (est.). Lanes 8 (inside) to
-// 1 (outside), each the whole way. In a palette's own black and white.
+// 1 (outside), each the whole way, a lift after each: the snake off. In a
+// palette's own black and white.
 // → { cw, ch, settings, pipes }
 export const PAPER_MARKS = [[5, 'black'], [30, 'black'], [88.8, 'black'], [123.3, 'white'], [157, 'white'], [193.8, 'white'], [216.2, 'white'], [266.6, 'white'], [329.1, 'white'], [354.1, 'white']];   // mm along the centre line, est.
 export function paperTest(pal = PALETTES.alu) {
   const st = { pts: [[5, 126], [115, 126], [115, 40], [58, 40], [58, 197]], w: 47, round: 1, capA: 'flat', capB: 'flat', seams: [], segs: [{ mode: 'along', stops: [pal.black, pal.white] }], brush: 'lanes', first: 'in', marks: [] };
   const L = spineOf(st).L;
   st.marks = PAPER_MARKS.map(([at, paint]) => ({ f: at / L, paint: pal[paint] }));
-  return { cw: 148, ch: 210, settings: { ground: 'paper', brush: 6, lanes: 8, spacing: 60, run: 70, dryTail: 180, overlap: 'wet', over: 3, look: 'relief', pick: 40, mix: 0.7 }, pipes: [st] };
+  return { cw: 148, ch: 210, settings: { ground: 'paper', aorder: 'one', brush: 6, lanes: 8, spacing: 60, run: 70, dryTail: 180, overlap: 'wet', over: 3, look: 'relief', pick: 40, mix: 0.7 }, pipes: [st] };
 }
 
 // ---------- the plan: runs and marks ----------
@@ -365,9 +367,14 @@ export function lanesOf(st, o) {
 // 2026-10-08: "the lines always across the whole sausage, they make no
 // gradient at once"; the prototype had laid them across, lay 'across').
 // a run's points carry their lane and way: [x, y, lane, ±1]
+// With the snake (o.aorder 'snake') every other lane runs back, the way
+// reversed, so snakeOf can join it to the one before.
 function lanesPipeOf(st, si, o) {
   const sp = st.sp, W = st.w, { e, pitch, d, num, order } = lanesOf(st, o), runs = [], marks = [], half = W / 2 - 0.5;
-  for (const i of order) runs.push({ si, j: 0, mode: 'lanes', pitch, lane: i, num: num[i], pts: offsetRange(sp, 0, sp.L, d(i)).map(q => [q[0], q[1], i, 1]) });
+  order.forEach((i, k) => {
+    const back = o.aorder === 'snake' && k % 2 === 1, P = offsetRange(sp, 0, sp.L, d(i));
+    runs.push({ si, j: 0, mode: 'lanes', pitch, lane: i, num: num[i], pts: (back ? P.reverse() : P).map(q => [q[0], q[1], i, back ? -1 : 1]) });
+  });
   const across = (s, paint, kind) => { const f = frameAt(sp, s), j = Math.max(0, segsOf(st).findIndex(x => s >= x.a && s <= x.b)); marks.push({ si, j, mode: 'lanes', s, pts: [add(f.p, mul(f.N, -half)), add(f.p, mul(f.N, half))], paint, kind }); };
   if (handMarks(st)) for (const m of st.marks) across(m.f * sp.L, m.paint, 'hand');
   else for (const g of segsOf(st)) {
@@ -473,9 +480,30 @@ export function selfCrossings(sp, W) {
   }
   return hits;
 }
+// Whole lanes as a snake (the owner, 2026-10-10: "I need a run as a snake,
+// back and forth, the brush going non-stop, without flying back to the start
+// through the air; this one is needed too — a switch"): a lane's end joined
+// to the next lane's start, run back, by a step across with the brush down,
+// where they lie within SNAKE_STEP pitches — across the pipe's flat end on
+// the canvas, on the trace's line there; along the edge past it, where the
+// lanes are cut — so a pipe is one run. Where a lane leaves the canvas and
+// comes back, it lifts there as before. A joined run: nums its lanes' numbers
+// in order, starts the index each begins at.
+export const SNAKE_STEP = 3;   // pitches: farther apart, no step across, est.
+export function snakeOf(runs, pitch) {
+  const out = [];
+  for (const r of runs) {
+    const last = out.at(-1);
+    if (last && pitch > 0 && last.si === r.si && dist(last.pts.at(-1), r.pts[0]) <= SNAKE_STEP * pitch + 0.5) {
+      last.starts.push(last.pts.length); last.nums.push(r.num); last.pts = [...last.pts, ...r.pts]; last.lanes = last.nums.length;
+    } else out.push({ ...r, nums: [r.num], starts: [0], lanes: 1 });
+  }
+  return out;
+}
 // → { pipes (with spines), sessions: [{ n, runs, marks }], nums: the paints
 // in order of their marks — the ticks' numbers, 1 the first — tight, dry,
-// crossings }. A run: { si, j, mode, pitch, lane, num, pts, cum, cross };
+// crossings }. A run: { si, j, mode, pitch, lane, num, pts, cum, cross },
+// a snake's its nums and starts too (snakeOf);
 // a mark: { si, j, mode, s, pts, paint, kind, session }.
 export const OVERLAPS = ['wet', 'dry'];
 export function planOf(pipesIn, o) {
@@ -499,7 +527,8 @@ export function planOf(pipesIn, o) {
   for (const { st, si } of pipes) {
     const s = sessions[ses[si] - 1], pp = pipeOf(st, si, o); tight += st.sp.tight;
     for (const m of [...pp.marks, ...edgeMarks(st, si, pp, o)]) for (const piece of clipOpen(m.pts, PAN)) { const mk = { ...m, pts: piece, session: s.n }; s.marks.push(mk); s.idx.add(mk); }
-    for (const r of pp.runs) for (const piece of clipOpen(r.pts, R)) s.runs.push({ ...r, pts: piece, session: s.n });
+    const runs = pp.runs.flatMap(r => clipOpen(r.pts, R).map(piece => ({ ...r, pts: piece, session: s.n })));
+    s.runs.push(...(isLanes(st) && o.aorder === 'snake' ? snakeOf(runs, pp.pitch) : runs));
   }
   const nums = [];
   for (const s of sessions) for (const m of s.marks) if (!nums.includes(m.paint)) nums.push(m.paint);
@@ -710,7 +739,8 @@ export function marksRows(pl, session, o) {
 }
 // DRAG: the session's runs one after another, a row a run, the dry brush, no
 // dip ever: Whole lanes in their order, n … 1 inside first, each the whole
-// pipe, the brush lifting at its end and going back in the air.
+// pipe, the brush lifting at its end and going back in the air — or, the
+// snake, a pipe's lanes back and forth in one row, the brush down.
 export function dragRows(pl, session, o) {
   const ps = [], info = [], c = centred(o), s = pl.sessions[session];
   let length = 0, lanes = 0;
@@ -718,7 +748,7 @@ export function dragRows(pl, session, o) {
     const pieces = fitRun(r.pts.map(c)); if (!pieces.length) continue;
     const row = ps.length + 1, L = pieces.reduce((a, g) => a + pieceLen(g), 0);
     ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
-    info.push({ label: r.mode === 'lanes' ? `Pipe ${r.si + 1} · lane ${r.num}, the whole pipe` : `Pipe ${r.si + 1} · segment ${r.j + 1}, ${r.mode === 'fan' ? 'a fan ray' : r.mode === 'across' ? `${r.strokes} strokes across` : `${r.lanes > 1 ? `${r.lanes} lanes back and forth` : `lane ${r.lane + 1}`}`}`, si: r.si, L });
+    info.push({ label: r.mode === 'lanes' ? `Pipe ${r.si + 1} · ${r.nums?.length > 1 ? `lanes ${r.nums.join(' → ')}, back and forth` : `lane ${r.num}, the whole pipe`}` : `Pipe ${r.si + 1} · segment ${r.j + 1}, ${r.mode === 'fan' ? 'a fan ray' : r.mode === 'across' ? `${r.strokes} strokes across` : `${r.lanes > 1 ? `${r.lanes} lanes back and forth` : `lane ${r.lane + 1}`}`}`, si: r.si, L });
     length += L; lanes += r.mode === 'lanes' || r.mode === 'along' ? (r.lanes || 1) : 0;
   }
   return { ps, info, lanes, runs: ps.length, length };
@@ -745,7 +775,7 @@ export function marksSvg(pl, s, o) {
   return svgDoc(o, `pass 2 marks, session ${s.n}`, `<g id="pass2-marks-s${s.n}" data-pass="2" data-ink="INK-1" data-dip-every-marks="${MARKS_DIP}" fill="none" stroke="#8A8A8A" stroke-width="${o.width}">\n${rows.join('\n')}\n</g>`);
 }
 export function dragSvg(s, o) {
-  const rows = s.runs.map(r => r.mode === 'lanes' ? `  <path d="${dd(rdp(r.pts, 0.1))}" data-pipe="${r.si + 1}" data-mode="lanes" data-lane="${r.num}"/>` : `  <path d="${dd(rdp(r.pts, 0.1))}" data-pipe="${r.si + 1}" data-segment="${r.j + 1}" data-mode="${r.mode}"/>`);
+  const rows = s.runs.map(r => r.mode === 'lanes' ? `  <path d="${dd(rdp(r.pts, 0.1))}" data-pipe="${r.si + 1}" data-mode="lanes" data-lane="${r.nums ? r.nums.join(' ') : r.num}"/>` : `  <path d="${dd(rdp(r.pts, 0.1))}" data-pipe="${r.si + 1}" data-segment="${r.j + 1}" data-mode="${r.mode}"/>`);
   return svgDoc(o, `pass 3 drag, session ${s.n}`, `<g id="pass3-drag-s${s.n}" data-pass="3" data-ink="none" data-brush-mm="${o.brush}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>`);
 }
 export function paintMapSvg(pl, o) {
