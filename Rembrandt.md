@@ -32,6 +32,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
 | **ALU-CUT** | ALU with the new things, the first tab since 2026-10-11, in TYPE's and LOVE's place (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `index.html`, its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
+| **Cut · part** | On ALU-CUT: a seam made with the scissors, ✂ (C), where DRAG stops — the brush lifted, wiped or washed, the next part's paints squeezed, Continue; a part, the pipe between two cuts or a cut and an end, painted on its own with a clean brush, its lanes half a brush clear of a cut, the pipe's lane numbers going on across it (2026-10-11, §8). A seam (S) only changes the paints. |
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -743,6 +744,33 @@ this section disagree, this section wins: the owner corrected the sketch on
   switch, its two keys under the brush's sliders gone (*Claude's choice*).
   Run on the
   machine since 2026-10-10.
+- **ALU-CUT**, the first tab (2026-10-11, §1; chat-Claude's task,
+  `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
+  page and plan with cuts. Master Flo's one drag through every paint at once
+  muddies where dark runs into white — Florian Markus's way, and Plot Bot
+  Studio's, a clone at €225 — and the owner wants Belem Lett's clean
+  palettes (the owner: "it may not be very Instagram-friendly… but this way
+  we move away from Florian and his American clone"). **✂ Cut (C)** in the
+  Tools under the pencil (the owner: "the scissors I would rather see in the
+  Tools under the pencil; S is taken, but C — cut"; "A — it is simpler",
+  chat-Claude agreeing; no switch on the deck): a click on a pipe puts a cut,
+  the next part a family of paints of its own; on a seam it makes a cut, on
+  a cut takes it away; with S a click on a cut makes it a seam again, to
+  compare with Florian's one run. DRAG paints part by part, in the pipe's
+  way, every part as the snake or one way, the pipe's lane numbers and order
+  going on across a cut; every lane, and the snake's step across, half a
+  brush clear of the cut's line, on a bend too. **A stop before every part
+  but the first** — at each cut and before every next pipe ("if such a design
+  is made at all, then yes — a good idea") — the brush up at the part's end
+  right over the canvas ("I am careful; if it does not work, I will ask for
+  it over home"), a pause block, the LCD: "Pipe 1, part 2 of 3: wipe or wash
+  the brush, squeeze its paints, then Continue"; none after the last. MARKS
+  one pass as before; **Marks from a cut**, 0 … 3 mm, 2 by default (est.;
+  "a slider from 0 to 3 mm? If I go on when the paint has dried, neither 2
+  nor 3 mm is needed"). Result: a clean brush every part, wet on wet; a part
+  over another's wet paint, or another pipe's, picked up, and one ⚠ in the
+  reading ("yes, OK!"). The DRAG confirm counts the stops; the time leaves
+  them out. 3 Drag and the other views draw a cut solid with ❚❚ by it.
 - **SMKN**, after ALU (2026-10-08, §1): ALU's page with the paints in stock
   (`app/smkn.html`, its body `data-tab="smkn"`; `aluplan.js`, SMKN_TUBES):
   the strip the fourteen tubes, light to dark — 116 Titanium White, 029

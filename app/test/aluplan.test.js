@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS, SNAKE_STEP } from '../src/aluplan.js';
+import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS, SNAKE_STEP, dragPasses, frameAt } from '../src/aluplan.js';
 import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
 // ALU's plan (ALU-Claude/ALU.md): the prototype's logic, ported. Whole lanes,
@@ -244,6 +244,68 @@ test('up to 18 lanes along (the owner, 2026-10-11: a finer brush, "14 or 16 most
     assert.deepEqual(runs.map(r => r.num), Array.from({ length: lanes }, (_, i) => lanes - i));
     assert.ok(Math.abs(pitch - (47 - 3) / (lanes - 1)) < 1e-9);
   }
+});
+
+// ALU-CUT (the owner, 2026-10-11; ALU-cut-Claude/01-02-03_seams.png): his composition of that night, one pipe 45 wide,
+// 12 lanes of a 4 mm brush, cut where his sketch's two pink seams are — every crossing of the pipe inside one part
+const CUT_PIPE = { pts: [[304.62, -35.35], [204.64, 137.41], [373.27, 214.19], [400.19, 114.22], [312.15, 72.55], [206.57, 378.18], [350.21, 379.53], [368.96, 300.73], [182.19, 219.9], [31.95, 242.23], [52.93, 321.06], [121.41, 322.66], [89.64, 31.18], [193.24, 44.96], [171.1, 112.17], [-5.77, 109.8]], w: 45, round: 0.8, capA: 'flat', capB: 'flat', seams: [0.3088, 0.7866], cuts: [true, true],
+  segs: [{ mode: 'along', stops: ['red', 'maroon'] }, { mode: 'along', stops: ['navy', 'violet'] }, { mode: 'along', stops: ['ice', 'yellow'] }], brush: 'lanes', first: 'in', marks: [] };
+const CUT_O = { ...O, cw: 420, ch: 420, brush: 4, lanes: 12, spacing: 30, run: 55, tail: 100, over: 2, pick: 20, mix: 0.3, width: 1, cutMark: 2 };
+const dragBlocks = (pipes, o) => { const pl = planOf(pipes, o), R = dragRows(pl, 0, o); return plotRun({ ...RUN, ink: false, speed: 40, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R)).blocks; };
+
+test('ALU-CUT, the 01-02-03 shape: a cut stops DRAG — 3 landings, 2 pauses, none at the end; ALU, the cuts seams, to the byte', () => {
+  const noCut = { ...CUT_PIPE, cuts: [false, false] };
+  for (const aorder of ['snake', 'one']) {
+    const alu = JSON.stringify(dragBlocks([CUT_PIPE], { ...CUT_O, aorder }));
+    assert.equal(alu, JSON.stringify(dragBlocks([{ ...CUT_PIPE, cuts: undefined }], { ...CUT_O, aorder })), 'ALU ignores cuts');
+    assert.equal(alu, JSON.stringify(dragBlocks([noCut], { ...CUT_O, aorder, cuts: true })), 'ALU-CUT with seams only: today\'s blocks');
+  }
+  const B = dragBlocks([CUT_PIPE], { ...CUT_O, aorder: 'snake', cuts: true }), pauses = B.map((b, i) => b.kind === 'pause' ? i : -1).filter(i => i >= 0);
+  assert.equal(new Set(B.filter(b => b.kind === 'move' && b.paintMM > 0).map(b => b.row)).size, 3, 'a landing a part');
+  assert.equal(pauses.length, 2);
+  assert.deepEqual(B.filter(b => b.kind === 'pause').map(b => b.why), ['Pipe 1, part 2 of 3: wipe or wash the brush, squeeze its paints, then Continue', 'Pipe 1, part 3 of 3: wipe or wash the brush, squeeze its paints, then Continue']);
+  assert.ok(B.slice(pauses.at(-1)).filter(b => b.kind === 'move' && b.paintMM > 0).length > 0, 'no pause after the last part');
+  for (const i of pauses) assert.ok(B[i - 1].kind === 'arm' && /^J 2 /.test(B[i - 1].cmd), 'the brush up before each stop');
+  const one = dragBlocks([CUT_PIPE], { ...CUT_O, aorder: 'one', cuts: true });
+  assert.equal(new Set(one.filter(b => b.kind === 'move' && b.paintMM > 0).map(b => b.row)).size, 36);
+  assert.equal(one.filter(b => b.kind === 'pause').length, 2);
+});
+
+test('ALU-CUT: no brush centre within half a brush of a cut from the wrong side; lane k goes on as lane k; the paint less n × b a cut', () => {
+  const o = { ...CUT_O, aorder: 'one', cuts: true }, pl = planOf([CUT_PIPE], o), st = pl.pipes[0], r = o.brush / 2, runs = pl.sessions[0].runs, { d } = lanesOf(st, o);
+  st.cutS.forEach((c, ci) => {
+    const f = frameAt(st.sp, c);
+    for (const run of runs) for (const p of run.pts) {
+      const v = [p[0] - f.p[0], p[1] - f.p[1]]; if (Math.hypot(v[0], v[1]) > st.w) continue;
+      const along = v[0] * f.T[0] + v[1] * f.T[1];
+      assert.ok((run.part > ci ? along : -along) >= r - 1e-6, `part ${run.part + 1}, ${(run.part > ci ? along : -along).toFixed(3)} mm from cut ${ci + 1}`);
+    }
+    for (const run of runs.filter(q => q.part === ci)) {
+      const next = runs.find(q => q.part === ci + 1 && q.lane === run.lane), a = run.pts.at(-1), b = next.pts[0];
+      const offA = (a[0] - f.p[0]) * f.N[0] + (a[1] - f.p[1]) * f.N[1], offB = (b[0] - f.p[0]) * f.N[0] + (b[1] - f.p[1]) * f.N[1];
+      assert.ok(Math.abs(offA - d(run.lane)) < 1e-6 && Math.abs(offB - d(run.lane)) < 1e-6, `lane ${run.num} at its own offset on both sides`);
+      assert.ok(dist(a, b) >= o.brush - 1e-6 && dist(a, b) < o.brush + 0.11, `lane ${run.num}: a brush apart across the cut, ${dist(a, b).toFixed(3)}`);   // offsetRange ends a lane on its last sample within 0.05 mm: short of the cut, never past
+    }
+  });
+  const whole = planOf([{ ...CUT_PIPE, cuts: [false, false] }], o).sessions[0].runs.reduce((a, q) => a + q.cum.at(-1), 0), cut = runs.reduce((a, q) => a + q.cum.at(-1), 0);
+  const less = whole - cut, n = 2 * 12;   // 2 cuts, 12 lanes, a brush each — a lane end at most 0.05 mm shorter still (offsetRange's last sample)
+  assert.ok(less >= n * o.brush - 1e-6 && less <= n * (o.brush + 0.05), `${whole.toFixed(2)} − ${cut.toFixed(2)} = ${less.toFixed(2)}: 2 cuts × 12 lanes × ${o.brush} mm`);
+  // the snake: its steps across at a cut lie half a brush inside, every part one row
+  const sn = planOf([CUT_PIPE], { ...o, aorder: 'snake' }).sessions[0].runs;
+  assert.deepEqual(sn.map(q => [q.part, q.nums.length]), [[0, 12], [1, 12], [2, 12]]);
+});
+
+test('ALU-CUT: marks from a cut by the slider; a part starts clean in the Result; mud where a part runs over another\'s wet paint', () => {
+  for (const cutMark of [0, 1.5, 3]) {
+    const o = { ...CUT_O, cuts: true, cutMark }, pl = planOf([CUT_PIPE], o), st = pl.pipes[0];
+    for (const c of st.cutS) { const near = pl.sessions[0].marks.filter(m => m.kind === 'across' && Math.abs(m.s - c) < 10).map(m => Math.abs(m.s - c)); assert.deepEqual(near.map(x => +x.toFixed(6)), [cutMark, cutMark], `marks ${cutMark} mm either side`); }
+  }
+  const o = { ...CUT_O, cuts: true };
+  assert.deepEqual(paintWalk(planOf([CUT_PIPE], o), o).mud, [], 'the owner\'s cuts keep every crossing inside one part');
+  const across = { ...CUT_PIPE, seams: [0.2], cuts: [true], segs: CUT_PIPE.segs.slice(0, 2) };   // a cut before the first crossing: the later part runs over the earlier one
+  const mud = paintWalk(planOf([across], o), o).mud;
+  assert.ok(mud.some(q => q.si === 0 && q.part === 1 && q.from.part === 0), JSON.stringify(mud));
+  assert.deepEqual(paintWalk(planOf([across], { ...o, cuts: false }), { ...o, cuts: false }).mud, [], 'ALU: no mud named');
 });
 
 test('every file carries data-ink', () => {

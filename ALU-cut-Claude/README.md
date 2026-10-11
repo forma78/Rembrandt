@@ -41,11 +41,15 @@ move away from Florian and his American clone."
 
 ## What to build
 
-- **A switch** on ALU's deck beside the snake's, the same shape (Off / On, its
-  dot): **STOP AT SEAMS**. Confirm the name with the owner before you commit.
-  Off is today's Master Flo, where seams change the paints only. On works as
-  below. Default Off, so nothing he has saved changes.
-- **On:** DRAG runs a Whole lanes pipe segment by segment, in the pipe's order.
+- ~~A switch STOP AT SEAMS on the deck~~ — dropped, 2026-10-11 (the owner and
+  chat-Claude chose A): **✂ is a tool under the pencil, C its key**: a click on
+  a pipe puts a cut there, the brush always stops at a cut and starts the next
+  part clean. S seams stay as they are now: the paints change, the brush goes
+  on. With ✂ chosen, a click on an existing S seam turns it into a cut, and
+  with S chosen, a click on a cut turns it back into a seam — the way to
+  compare with Florian's one run, no switch needed. A new tab, ALU-CUT, in
+  TYPE's and LOVE's place, carries it; ALU and SMKN stay as they are.
+- **At a cut:** DRAG runs a Whole lanes pipe segment by segment, in the pipe's order.
   Each segment is one snake (or one-way lanes with the snake Off), from its start
   seam to its end seam. The lane numbering and the inside-first order are the
   **pipe's**, not the segment's, so lane k on one side of a seam continues as
@@ -67,7 +71,7 @@ move away from Florian and his American clone."
   squeezes the real paint by hand, one segment at a time.
 - **Time estimate:** the pauses are not counted (he is the one waiting), but the
   estimate says "+ N stops".
-- **Saves:** the switch is kept with the pipe/plan; an old save opens with it Off.
+- **Saves:** the cuts are kept with the pipe (`cuts` beside `seams`); an old save has none.
 
 ## Tests
 

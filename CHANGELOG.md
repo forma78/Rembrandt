@@ -5,6 +5,37 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU-CUT: cuts with the scissors, the brush stopping at each** (the
+  owner, 2026-10-11, chat-Claude's task `ALU-cut-Claude/README.md`, his
+  sketch `01-02-03_seams.png`: "it may not be very Instagram-friendly… but
+  this way we move away from Florian and his American clone"; then, of the
+  ways offered: "A — it is simpler", chat-Claude agreeing). ✂ **Cut (C)** in
+  the Tools under the pencil ("S is taken, but C — cut"): a click puts a cut,
+  the next part a family of its own; on a seam it makes a cut, on a cut takes
+  it away; with S a click on a cut makes it a seam. A pipe's `cuts` beside
+  its `seams`; ALU and SMKN keep them and read them as seams. DRAG on ALU-CUT
+  paints part by part (`partsOf`), the pipe's lane numbers and order going on
+  across a cut, the snake within a part; every lane and step across half a
+  brush clear of the cut's line (`clearOf`, on a bend too). Before every part
+  but the first — at a cut and before every next pipe ("a good idea") — the
+  brush up over the canvas ("right over the canvas, I am careful") and a
+  pause block (`dragRows`' stops, `dragPasses`), the LCD: "Pipe 1, part 2 of
+  3: wipe or wash the brush, squeeze its paints, then Continue"; none after
+  the last; no server change, the pause block is the runner's own. MARKS one
+  pass; **Marks from a cut** 0 … 3 mm, 2 by default (est.; "if I go on when
+  the paint has dried, neither 2 nor 3 mm is needed"). Result: a clean brush
+  every part; a part over another's wet paint flagged by one ⚠ ("yes, OK!").
+  The DRAG confirm: the parts, the stops, the first part's paints only. A
+  cut drawn solid with ❚❚. Tested on the owner's composition of that night,
+  cut where his sketch's seams are: ALU, and ALU-CUT with seams only, give
+  today's blocks to the byte; with the cuts, 3 landings and 2 pauses (36 and
+  2 one way); every brush centre half a brush (2.000 mm) from a cut on its
+  own side; lane k on both sides at its offset; the paint 2 × 12 × 4 mm less;
+  Marks from a cut 0, 1.5, 3 mm; no mud there, mud named where a part runs
+  over an earlier one. Its real blocks through the runner on the fake board:
+  held twice, the brush up, the stop named, every piece once, 100 %; in a
+  headless browser the scissors and S both ways. Not run on the machine.
+
 - **ALU-CUT, the first tab; TYPE and LOVE off the top row** (the owner,
   2026-10-11: "remove the TYPE and LOVE tabs — they do not work, they only
   distract; put ALU-CUT in their place, and every new thing there"). ALU-CUT ·

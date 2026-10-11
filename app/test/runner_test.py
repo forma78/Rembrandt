@@ -688,6 +688,28 @@ class ElbowOnPathTest(unittest.TestCase):
         self.assertEqual([c for c in b.log if c.startswith("L")], lanes[0] + lanes[1] + lanes[2], "every lane once, in order")
         self.assertLess(abs(self.elbow(b) - BRUSH_UP_DEG), 1)
 
+    def test_alu_cut_holds_at_the_stop_between_parts_the_brush_up_and_goes_on(self):
+        # ALU-CUT (the owner, 2026-10-11): a part, the brush up, a pause block —
+        # wipe the brush, squeeze the next part's paints — then the next part
+        part = lambda y: {"kind": "move", "cmds": ["F 20", "W 2 0 211"] + [f"L {k}.00 {y}" for k in range(1, 6)] + ["W 2 10 88", f"L 6.00 {y}", "G"],
+                          "paintMM": 6.0, "painted": [1] * 6, "pauseAtEnd": True}
+        why = "Pipe 1, part 2 of 2: wipe or wash the brush, squeeze its paints, then Continue"
+        blocks = [arm(True), travel(0, 50.0), part("50.00"), arm(True), {"kind": "pause", "why": why}, travel(0, 60.0), part("60.00"), arm(True)]
+        b = FakeBoard(rate=2)
+        r = self.runner(b)
+        seen = {}
+
+        def later():
+            if r.state == "paused" and "held" not in seen:
+                seen["held"] = (r.status()["message"], r.brush_on, round(self.elbow(b)), [c for c in b.log if c.startswith("L")][-1])
+                r.resume()
+        b.on_sleep = later
+        r.start(blocks)
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(seen["held"], (why, False, BRUSH_UP_DEG, "L 6.00 50.00"), "held after the first part, the brush up, the stop named")
+        self.assertEqual([c for c in b.log if c.startswith("L")], [f"L {k}.00 50.00" for k in range(1, 7)] + [f"L {k}.00 60.00" for k in range(1, 7)], "each part once")
+
     def test_the_board_without_w_stops_it_before_a_piece_is_queued(self):
         b = FakeBoard(knows_w=False)
         r = self.runner(b)

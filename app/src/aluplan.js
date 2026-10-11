@@ -162,17 +162,45 @@ export function offsetRange(sp, a, b, d) {
   const f1 = frameAt(sp, b), e = add(f1.p, mul(f1.N, d)); if (dot(sub(e, last), f1.T) > 0.05 || out.length === 1) out.push(e);
   return out;
 }
-// a pipe's segments between its seams: { mode, stops, a, b, j }
-export const segsOf = st => { const L = st.sp.L, cuts = [0, ...st.seams.map(f => f * L), L]; return st.segs.map((g, j) => ({ ...g, a: cuts[j], b: cuts[j + 1], j })); };
+// a pipe's segments between its seams: { mode, stops, a, b, j, cutA, cutB }
+// — cutA, cutB: a cut at its start, at its end (ALU-CUT, st.cutS)
+const isCut = (st, s) => (st.cutS || []).some(c => Math.abs(c - s) < 1e-6);
+export const segsOf = st => { const L = st.sp.L, cuts = [0, ...st.seams.map(f => f * L), L]; return st.segs.map((g, j) => ({ ...g, a: cuts[j], b: cuts[j + 1], j, cutA: isCut(st, cuts[j]), cutB: isCut(st, cuts[j + 1]) })); };
+// ALU-CUT (the owner, 2026-10-11; ALU-cut-Claude/): a pipe's parts between its
+// cuts, each painted on its own, a clean brush and its own paints, the brush
+// stopping at a cut: [{ a, b, k, cutA, cutB }]. No cuts: the pipe one part.
+export function partsOf(st) {
+  const L = st.sp.L, at = [0, ...(st.cutS || []), L];
+  return at.slice(0, -1).map((a, k) => ({ a, b: at[k + 1], k, cutA: k > 0, cutB: k < at.length - 2 }));
+}
+const partAt = (st, s) => Math.max(0, partsOf(st).findIndex(q => s >= q.a - 1e-6 && s <= q.b + 1e-6));
+// Where the lane at offset d clears a cut at s0 by r, the half brush, so the
+// brush's edge lies on the cut's line and never past it (ALU-cut-Claude/: "at
+// a seam the brush's edge never crosses it"): the first s from s0 the way dir
+// (+1 after the cut, −1 before it) whose lane point lies r from the cut's
+// line, along the pipe's tangent there — on a bend too, the lanes at their own
+// distances along the spine.
+export function clearOf(sp, s0, d, r, dir) {
+  const f0 = frameAt(sp, s0), gone = s => { const f = frameAt(sp, s); return dir * dot(sub(add(f.p, mul(f.N, d)), f0.p), f0.T); };
+  let s1 = s0, g1 = gone(s0);
+  for (let s = s0 + dir * 0.25; dir > 0 ? s <= sp.L : s >= 0; s += dir * 0.25) {
+    const g2 = gone(s);
+    if (g2 >= r) return g2 - g1 > 1e-9 ? s1 + (s - s1) * (r - g1) / (g2 - g1) + dir * 1e-6 : s;
+    s1 = s; g1 = g2;
+  }
+  return dir > 0 ? sp.L : 0;
+}
 export const isLanes = st => st.brush === 'lanes';
 export const handMarks = st => isLanes(st) && st.marks && st.marks.length > 0;
 // the pipes as the plan takes them: each with its spine (null for fewer than
-// two points) and a segment for every stretch between its seams
-export function pipesOf(pipes, fill = FAMILIES[0]) {
+// two points), a segment for every stretch between its seams, and, with cuts
+// (ALU-CUT), cutS: the mm along it of the seams that are cuts (st.cuts)
+export function pipesOf(pipes, fill = FAMILIES[0], cuts = false) {
   return pipes.map(st => {
     const segs = st.segs.slice(0, st.seams.length + 1);
     while (segs.length < st.seams.length + 1) segs.push({ mode: 'along', stops: fill.slice() });
-    return { ...st, segs, sp: spineOf(st) };
+    const sp = spineOf(st), cutS = cuts && sp ? st.seams.map((f, i) => (st.cuts || [])[i] ? f * sp.L : null).filter(v => v !== null) : [];
+    return { ...st, segs, sp, cutS };
   });
 }
 
@@ -327,21 +355,22 @@ function crossingsOf(P, cum, idx) {   // the marks a run crosses: [{ s mm along 
   out.sort((x, y) => x.s - y.s);
   return out.filter((c, i) => !out.slice(Math.max(0, i - 4), i).some(q => q.m === c.m && c.s - q.s < 2));
 }
-// where marks go across a stretch a..b: MARK_END in from both ends, and each
-// time the longer of the two edge lanes has run 0.97 of the spacing — so the
-// outer lane on a bend meets one at least every spacing
-export function markStops(sp, a, b, e, spacing) {
+// where marks go across a stretch a..b: MARK_END in from both ends — at a cut
+// its own, ea or eb (ALU-CUT's Marks from a cut) — and each time the longer of
+// the two edge lanes has run 0.97 of the spacing, so the outer lane on a bend
+// meets one at least every spacing
+export function markStops(sp, a, b, e, spacing, ea = MARK_END, eb = MARK_END) {
   const span = b - a, at = [];
-  if (span < 3 * MARK_END + 2) return [(a + b) / 2];
+  if (span < ea + eb + MARK_END + 2) return [(a + b) / 2];
   let pa = null, pb = null, acc = 0; const lim = spacing * 0.97;
-  at.push(a + MARK_END);
-  for (let s = a + MARK_END; s <= b - MARK_END; s += 0.5) {
+  at.push(a + ea);
+  for (let s = a + ea; s <= b - eb; s += 0.5) {
     const f = frameAt(sp, s), A = add(f.p, mul(f.N, -e)), B = add(f.p, mul(f.N, e));
     if (pa) acc += Math.max(dist(A, pa), dist(B, pb));
     pa = A; pb = B;
     if (acc >= lim) { at.push(s); acc = 0; }
   }
-  if (b - MARK_END - at.at(-1) > 4) at.push(b - MARK_END); else at[at.length - 1] = b - MARK_END;
+  if (b - eb - at.at(-1) > 4) at.push(b - eb); else at[at.length - 1] = b - eb;
   return at;
 }
 // the paint a whole-lane pipe takes at s: the mark by hand last passed (the
@@ -372,34 +401,40 @@ export function lanesOf(st, o) {
 // gradient at once"; the prototype had laid them across, lay 'across').
 // a run's points carry their lane and way: [x, y, lane, ±1]
 // With the snake (o.aorder 'snake') every other lane runs back, the way
-// reversed, so snakeOf can join it to the one before.
+// reversed, so snakeOf can join it to the one before. With cuts (ALU-CUT) the
+// lanes part by part, in the pipe's numbers and order, each lane clear of a
+// cut by the half brush (clearOf), so lane k on one side goes on as lane k on
+// the other.
 function lanesPipeOf(st, si, o) {
-  const sp = st.sp, W = st.w, { e, pitch, d, num, order } = lanesOf(st, o), runs = [], marks = [], half = Math.max(1, e);
-  order.forEach((i, k) => {
-    const back = o.aorder === 'snake' && k % 2 === 1, P = offsetRange(sp, 0, sp.L, d(i));
-    runs.push({ si, j: 0, mode: 'lanes', pitch, lane: i, num: num[i], pts: (back ? P.reverse() : P).map(q => [q[0], q[1], i, back ? -1 : 1]) });
+  const sp = st.sp, W = st.w, { e, pitch, d, num, order } = lanesOf(st, o), runs = [], marks = [], half = Math.max(1, e), parts = partsOf(st), r = o.brush / 2;
+  for (const q of parts) order.forEach((i, k) => {
+    const sa = q.cutA ? clearOf(sp, q.a, d(i), r, 1) : q.a, sb = q.cutB ? clearOf(sp, q.b, d(i), r, -1) : q.b;
+    if (sb - sa < 1) return;
+    const back = o.aorder === 'snake' && k % 2 === 1, P = offsetRange(sp, sa, sb, d(i));
+    runs.push({ si, j: 0, mode: 'lanes', pitch, lane: i, num: num[i], part: q.k, parts: parts.length, pts: (back ? P.reverse() : P).map(q2 => [q2[0], q2[1], i, back ? -1 : 1]) });
   });
   const across = (s, paint, kind) => { const f = frameAt(sp, s), j = Math.max(0, segsOf(st).findIndex(x => s >= x.a && s <= x.b)); marks.push({ si, j, mode: 'lanes', s, pts: [add(f.p, mul(f.N, -half)), add(f.p, mul(f.N, half))], paint, kind }); };
   if (handMarks(st)) for (const m of st.marks) across(m.f * sp.L, m.paint, 'hand');
   else for (const g of segsOf(st)) {
     if (g.b - g.a < 1) continue;
-    for (const s of markStops(sp, g.a, g.b, e, o.spacing)) across(s, paintAt(st, s), 'across');
+    for (const s of markStops(sp, g.a, g.b, e, o.spacing, g.cutA ? o.cutMark ?? MARK_END : MARK_END, g.cutB ? o.cutMark ?? MARK_END : MARK_END)) across(s, paintAt(st, s), 'across');
   }
-  return { runs, marks, pitch, e };
+  return { runs, marks, pitch, e, parts: parts.length };
 }
 // one pipe's brush runs and marks, before cutting to the panel
 function pipeOf(st, si, o) {
   if (isLanes(st)) return lanesPipeOf(st, si, o);
   const sp = st.sp, W = st.w, b = o.brush, e = Math.max(0, W / 2 - b / 2), n = o.lanes, pitch = n > 1 ? 2 * e / (n - 1) : 0;
   const offs = Array.from({ length: n }, (_, i) => n > 1 ? -e + i * pitch : 0), runs = [], marks = [];
+  const nParts = partsOf(st).length;
   for (const g of segsOf(st)) {
-    const K = g.stops.length, base = { si, j: g.j, mode: g.mode, pitch };
+    const K = g.stops.length, base = { si, j: g.j, mode: g.mode, pitch, part: partAt(st, (g.a + g.b) / 2), parts: nParts };
     if (g.b - g.a < 1) continue;
     if (g.mode === 'along') {
-      const lanes = offs.map(d => offsetRange(sp, g.a, g.b, d));
+      const lanes = offs.map(d => offsetRange(sp, g.cutA ? clearOf(sp, g.a, d, b / 2, 1) : g.a, g.cutB ? clearOf(sp, g.b, d, b / 2, -1) : g.b, d));
       if (o.aorder === 'snake') { const run = []; lanes.forEach((l, i) => { const dir = i % 2 ? -1 : 1; for (const q of dir < 0 ? l.slice().reverse() : l) run.push([q[0], q[1], i, dir]); }); runs.push({ ...base, pts: run, lanes: n }); }
       else lanes.forEach((l, i) => runs.push({ ...base, pts: l.map(q => [q[0], q[1], i, 1]), lanes: 1, lane: i }));
-      for (const s of markStops(sp, g.a, g.b, e, o.spacing)) {   // marks across the pipe, a dash a paint, at both ends of the segment and every spacing between
+      for (const s of markStops(sp, g.a, g.b, e, o.spacing, g.cutA ? o.cutMark ?? MARK_END : MARK_END, g.cutB ? o.cutMark ?? MARK_END : MARK_END)) {   // marks across the pipe, a dash a paint, at both ends of the segment and every spacing between
         const f = frameAt(sp, s);
         for (let k = 0; k < K; k++) {
           const ids = offs.map((d, i) => i).filter(i => groupOf(i, n, K) === k); if (!ids.length) continue;
@@ -433,7 +468,7 @@ function pipeOf(st, si, o) {
     const m = Math.max(3, Math.ceil(Math.PI * e / o.xstep) + 1), rIn = Math.min(e, b / 2) * 0.5;
     for (let k = 0; k < m; k++) {
       const ph = -Math.PI / 2 + Math.PI * k / (m - 1), d = add(mul(out, Math.cos(ph)), mul(f.N, Math.sin(ph)));
-      runs.push({ si, j: g.j, mode: 'fan', pts: [add(f.p, mul(d, e)), add(f.p, mul(d, rIn))] });
+      runs.push({ si, j: g.j, mode: 'fan', part: atEnd ? nParts - 1 : 0, parts: nParts, pts: [add(f.p, mul(d, e)), add(f.p, mul(d, rIn))] });
     }
     const rr = Math.max(1, e - EDGE_IN);
     for (let k = 0; k < K; k++) {
@@ -443,7 +478,7 @@ function pipeOf(st, si, o) {
   };
   if (st.capA === 'fan') fan(false);
   if (st.capB === 'fan') fan(true);
-  return { runs, marks, pitch, e };
+  return { runs, marks, pitch, e, parts: nParts };
 }
 // where a pipe runs off the panel: a dash along the edge, EDGE_IN in, over the
 // stretch its lanes 1 … n cover (2026-10-11; the pipe's whole width before),
@@ -499,7 +534,7 @@ export function snakeOf(runs, pitch) {
   const out = [];
   for (const r of runs) {
     const last = out.at(-1);
-    if (last && pitch > 0 && last.si === r.si && dist(last.pts.at(-1), r.pts[0]) <= SNAKE_STEP * pitch + 0.5) {
+    if (last && pitch > 0 && last.si === r.si && last.part === r.part && dist(last.pts.at(-1), r.pts[0]) <= SNAKE_STEP * pitch + 0.5) {
       last.starts.push(last.pts.length); last.nums.push(r.num); last.pts = [...last.pts, ...r.pts]; last.lanes = last.nums.length;
     } else out.push({ ...r, nums: [r.num], starts: [0], lanes: 1 });
   }
@@ -513,7 +548,7 @@ export function snakeOf(runs, pitch) {
 export const OVERLAPS = ['wet', 'dry'];
 export function planOf(pipesIn, o) {
   const R = [-o.over, -o.over, o.cw + o.over, o.ch + o.over], PAN = [1, 1, o.cw - 1, o.ch - 1];
-  const all = pipesOf(pipesIn, o.pal?.families[0]), pipes = [];
+  const all = pipesOf(pipesIn, o.pal?.families[0], !!o.cuts), pipes = [];
   all.forEach((st, si) => { if (st.sp) pipes.push({ st, si }); });
   // sessions: a pipe over an earlier one it touches goes a session later, unless wet on wet
   const ses = {};
@@ -569,8 +604,11 @@ export function planOf(pipesIn, o) {
 // leaves a track 0.4 of its pitch wide, laid behind the brush once it has
 // moved on past it, so the lane beside it is not wet paint under it and the
 // brush never hides the wet paint just ahead. Tuned on the paper test.
-// o: { cw, ch, brush, lanes, xstep, run, tail (the dry tail), pick, mix }
-// → { runs: [[{ a, b, col, alpha, thin, lane, bw, sh }] a run], length, at(p) → the run on top there, 1 the first, or 0 }
+// With cuts (ALU-CUT) a part starts clean too, and a run taking up wet paint
+// of another part, or of another pipe, is mud: one ⚠ names it (the owner,
+// 2026-10-11, "yes, OK!") — no ban.
+// o: { cw, ch, brush, lanes, xstep, run, tail (the dry tail), pick, mix, cuts }
+// → { runs: [[{ a, b, col, alpha, thin, lane, bw, sh }] a run], length, at(p) → the run on top there, 1 the first, or 0, mud: [{ si, part, from: { si, part } }] }
 export const SOLID = 0.9;          // the opacity of solid paint, est.
 export const TRACK = 0.4;          // of a lane's pitch: the wet track it leaves, est.
 export const OWN_BACK = 30;        // mm: a run's own paint further back than this counts as wet paint under it, est.
@@ -601,11 +639,12 @@ export function paintWalk(pl, o) {
     if ((lane === 0 || lane === nl - 1) && bw > inner) return { w: inner / 2 + bw / 2, sh: (lane === 0 ? -1 : 1) * dir * (bw - inner) / 4 };
     return { w: inner, sh: 0 };
   };
-  let runId = 0, col = null, load = DRY, pipe = null, length = 0;
+  let runId = 0, col = null, load = DRY, pipe = null, part = null, length = 0;
+  const keyOf = [null], mud = new Map();
   for (const s of pl.sessions) for (const r of s.runs) {
-    runId++;
-    if (r.si !== pipe || r.mode !== 'lanes') { col = null; load = DRY; }   // a new pipe, a fresh brush; Alu's segments each start clean
-    pipe = r.si;
+    runId++; keyOf[runId] = { si: r.si, part: r.part ?? 0 };
+    if (r.si !== pipe || r.mode !== 'lanes' || (r.part ?? 0) !== part) { col = null; load = DRY; }   // a new pipe, a fresh brush; Alu's segments each start clean, and ALU-CUT's parts
+    pipe = r.si; part = r.part ?? 0;
     const segs = [], track = Math.max(0.8, (laned(r) && r.pitch ? r.pitch : o.xstep) * TRACK);
     let ci = 0, last = null;
     const pending = [];
@@ -619,7 +658,8 @@ export function paintWalk(pl, o) {
         load += l;
         const c = cellOf(mid);
         if (c >= 0 && GR[c] >= 0 && GE[c] === s.n && (GR[c] !== runId || Math.abs(GS[c] - at) > OWN_BACK)) {
-          const wc = [GC[c * 3], GC[c * 3 + 1], GC[c * 3 + 2]], f = 1 - Math.exp(-l / Math.max(1, o.pick));
+          const wc = [GC[c * 3], GC[c * 3 + 1], GC[c * 3 + 2]], f = 1 - Math.exp(-l / Math.max(1, o.pick)), from = keyOf[GR[c]];
+          if (o.cuts && (from.si !== pipe || from.part !== part)) mud.set(`${pipe}:${part}<${from.si}:${from.part}`, { si: pipe, part, from });
           col = col ? pmix(col, wc, share(f, wc, col)) : wc; load = Math.min(load, DRY) * (1 - f);
         }
         const dry = col ? (load - o.run) / Math.max(1, o.tail) : 2, hash = Math.abs(Math.sin(pa[0] * 12.9898 + pa[1] * 78.233) * 43758.5453) % 1;
@@ -636,7 +676,7 @@ export function paintWalk(pl, o) {
     length += r.cum.at(-1) || 0;
   }
   const at = p => { const c = cellOf(p); return c < 0 || GR[c] < 0 ? 0 : GR[c]; };
-  return { runs: all, length, at };
+  return { runs: all, length, at, mud: [...mud.values()] };
 }
 
 // ---------- the passes, as rows of Test's run ----------
@@ -736,20 +776,34 @@ export function marksRows(pl, session, o) {
 // where each lane ends: plotRun cuts its block there, so a pause falls at a
 // lane's end (the owner, 2026-10-10: "the pause works only at the ends of a
 // line … at the start of the sausage or at its end").
+// With cuts (ALU-CUT, o.cuts) a stop before every part but the first — at a
+// cut, and before every next pipe (the owner, 2026-10-11: "a good idea"): the
+// brush lifted over the canvas at the part's end, a pause the deck and the LCD
+// name, the owner wiping or washing it and squeezing the next part's paints
+// before Continue. stops: [{ at: the row it comes before, why }].
+export const stopWhy = (si, part, parts) => `Pipe ${si + 1}${parts > 1 ? `, part ${part + 1} of ${parts}` : ''}: wipe or wash the brush, squeeze its paints, then Continue`;
 export function dragRows(pl, session, o) {
-  const ps = [], info = [], c = centred(o), s = pl.sessions[session];
-  let length = 0, lanes = 0;
+  const ps = [], info = [], stops = [], c = centred(o), s = pl.sessions[session];
+  let length = 0, lanes = 0, was = null;
   for (const r of s?.runs || []) {
     const chunks = r.starts?.length > 1 ? r.starts.map((at, k) => r.pts.slice(Math.max(0, at - 1), r.starts[k + 1] ?? r.pts.length)) : [r.pts];
     const parts = chunks.map(q => fitRun(q.map(c))), pieces = parts.flat(); if (!pieces.length) continue;
     const stopsAt = []; let acc = 0;
     parts.slice(0, -1).forEach(q => { acc += q.reduce((a, g) => a + pieceLen(g), 0); stopsAt.push(acc); });
-    const row = ps.length + 1, L = pieces.reduce((a, g) => a + pieceLen(g), 0);
+    const row = ps.length + 1, L = pieces.reduce((a, g) => a + pieceLen(g), 0), key = `${r.si}:${r.part ?? 0}`;
+    if (o.cuts && was !== null && key !== was) stops.push({ at: ps.length, why: stopWhy(r.si, r.part ?? 0, r.parts ?? 1) });
+    was = key;
     ps.push(pieces.map((g, i) => ({ ...g, tilt: 0, row, ...(!i && stopsAt.length ? { stopsAt } : {}) })));
-    info.push({ label: r.mode === 'lanes' ? `Pipe ${r.si + 1} · ${r.nums?.length > 1 ? `lanes ${r.nums.join(' → ')}, back and forth` : `lane ${r.num}, the whole pipe`}` : `Pipe ${r.si + 1} · segment ${r.j + 1}, ${r.mode === 'fan' ? 'a fan ray' : r.mode === 'across' ? `${r.strokes} strokes across` : `${r.lanes > 1 ? `${r.lanes} lanes back and forth` : `lane ${r.lane + 1}`}`}`, si: r.si, L });
+    info.push({ label: r.mode === 'lanes' ? `Pipe ${r.si + 1}${o.cuts && (r.parts ?? 1) > 1 ? `, part ${r.part + 1}` : ''} · ${r.nums?.length > 1 ? `lanes ${r.nums.join(' → ')}, back and forth` : `lane ${r.num}, the whole pipe`}` : `Pipe ${r.si + 1} · segment ${r.j + 1}, ${r.mode === 'fan' ? 'a fan ray' : r.mode === 'across' ? `${r.strokes} strokes across` : `${r.lanes > 1 ? `${r.lanes} lanes back and forth` : `lane ${r.lane + 1}`}`}`, si: r.si, L });
     length += L; lanes += r.mode === 'lanes' || r.mode === 'along' ? (r.lanes || 1) : 0;
   }
-  return { ps, info, lanes, runs: ps.length, length };
+  return { ps, info, stops, lanes, runs: ps.length, length };
+}
+// DRAG's rows as plotRun's passes: a pass a stretch between stops, its why the
+// stop's, so plotRun lays a pause block before it — none before the first
+export function dragPasses(R) {
+  const cuts = [0, ...R.stops.map(q => q.at), R.ps.length];
+  return cuts.slice(0, -1).map((a, k) => ({ key: 'DRAG', ps: R.ps.slice(a, cuts[k + 1]), why: k ? R.stops[k - 1].why : null })).filter(q => q.ps.length);
 }
 
 // ---------- the files (TYPE.md's format) ----------

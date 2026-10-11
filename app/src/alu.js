@@ -26,7 +26,7 @@ import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } 
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP } from './band.js';
 import {
   PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe,
-  planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, rgbOf, mixRGB,
+  planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, dragPasses, rgbOf, mixRGB,
   traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS,
 } from './aluplan.js';
 import { drawWash } from './wash.js';
@@ -65,22 +65,24 @@ const S = {
   view: 'result', session: 0, next: { marks: 1, drag: 1 },
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
+  cutMark: 2,                                                                        // ALU-CUT: mm from a cut to its part's end marks, 0 … 3 (est.)
 };
-const NUM = ['sel', 'seg', 'cw', 'ch', 'brush', 'lanes', 'xstep', 'over', 'drag', 'spacing', 'width', 'speed', 'travel', 'tail', 'run', 'dryTail', 'mix', 'pick', 'session', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
-const VIEWS = ['design', 'trace', 'marks', 'drag', 'result'], TOOLS = ['edit', 'draw', 'seam', 'mark'], GROUNDS = ['white', 'paper'];
+const NUM = ['cutMark', 'sel', 'seg', 'cw', 'ch', 'brush', 'lanes', 'xstep', 'over', 'drag', 'spacing', 'width', 'speed', 'travel', 'tail', 'run', 'dryTail', 'mix', 'pick', 'session', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
+const VIEWS = ['design', 'trace', 'marks', 'drag', 'result'], TOOLS = ['edit', 'draw', 'seam', 'mark', ...(CUT ? ['cut'] : [])], GROUNDS = ['white', 'paper'];
 const GROUND = { white: '#FBFAF7', paper: '#F1ECE1' };
 const fin = v => Number.isFinite(v);
 // a pipe as it may be kept: whatever is wrong in it put right, or null
 function cleanPipe(st) {
   if (!st || !Array.isArray(st.pts)) return null;
   const tube = k => OWN.has(k), pts = st.pts.filter(p => Array.isArray(p) && fin(p[0]) && fin(p[1])).map(p => [p[0], p[1]]);
-  const seams = (Array.isArray(st.seams) ? st.seams : []).filter(f => fin(f) && f > 0 && f < 1).sort((a, b) => a - b);
+  const pairs = (Array.isArray(st.seams) ? st.seams : []).map((f, i) => [f, !!(Array.isArray(st.cuts) && st.cuts[i])]).filter(([f]) => fin(f) && f > 0 && f < 1).sort((a, b) => a[0] - b[0]);
+  const seams = pairs.map(q => q[0]), cuts = pairs.map(q => q[1]);                  // cuts: which seams are ALU-CUT's, the brush stopping there
   const segs = (Array.isArray(st.segs) ? st.segs : []).map(g => ({ mode: g?.mode === 'across' ? 'across' : 'along', stops: (Array.isArray(g?.stops) ? g.stops : []).filter(tube).slice(0, 5) }))
     .map(g => g.stops.length ? g : { ...g, stops: PAL.families[0].slice() });
   while (segs.length < seams.length + 1) segs.push({ mode: 'along', stops: PAL.families[0].slice() });
   segs.length = seams.length + 1;
   return { pts, w: fin(st.w) ? Math.max(4, Math.min(300, st.w)) : 50, round: fin(st.round) ? Math.max(0, Math.min(1, st.round)) : 0.8, ...(fin(st.rad) && st.rad > 0 ? { rad: st.rad } : {}),
-    capA: st.capA === 'fan' ? 'fan' : 'flat', capB: st.capB === 'fan' ? 'fan' : 'flat', seams, segs, brush: st.brush === 'segments' ? 'segments' : 'lanes', first: st.first === 'out' ? 'out' : 'in',
+    capA: st.capA === 'fan' ? 'fan' : 'flat', capB: st.capB === 'fan' ? 'fan' : 'flat', seams, cuts, segs, brush: st.brush === 'segments' ? 'segments' : 'lanes', first: st.first === 'out' ? 'out' : 'in',
     marks: (Array.isArray(st.marks) ? st.marks : []).filter(m => fin(m?.f) && tube(m.paint)).map(m => ({ f: m.f, paint: m.paint })).sort((a, b) => a.f - b.f) };
 }
 let FRESH = true;   // nothing kept yet: New composition's first
@@ -90,6 +92,7 @@ function load() {
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     S.tail = tailIn(S.tail);
     S.lanes = Math.round(Math.max(1, Math.min(18, S.lanes)));
+    S.cutMark = Math.max(0, Math.min(3, S.cutMark));
     if (Array.isArray(o.pipes)) S.pipes = o.pipes.map(cleanPipe).filter(Boolean);
     if (fin(o.seed) || o.seed === 'paper') S.seed = o.seed;
     if (OVERLAPS.includes(o.overlap)) S.overlap = o.overlap;
@@ -116,11 +119,11 @@ function fitPanel() {
 
 // ---------- the plan (aluplan.js) ----------
 const po = () => ({ tab: TAB, pal: PAL, cw: S.cw, ch: S.ch, brush: S.brush, lanes: S.lanes, xstep: S.xstep, aorder: S.aorder, spacing: S.spacing, run: S.run, tail: S.dryTail, overlap: S.overlap, over: S.over,
-  pick: S.pick, mix: S.mix, width: S.width, seed: S.seed, ground: S.ground });
+  pick: S.pick, mix: S.mix, width: S.width, seed: S.seed, ground: S.ground, cuts: CUT, cutMark: S.cutMark });
 let PL = null, plKey = '', WK = null, SP = null, spKey = '';
 function planNow() {
   fitPanel();
-  const key = JSON.stringify([S.pipes, S.cw, S.ch, S.brush, S.lanes, S.xstep, S.aorder, S.spacing, S.run, S.overlap, S.over]);
+  const key = JSON.stringify([S.pipes, S.cw, S.ch, S.brush, S.lanes, S.xstep, S.aorder, S.spacing, S.run, S.overlap, S.over, S.cutMark]);
   if (PL && key === plKey) return PL;
   plKey = key; PL = planOf(S.pipes, po());
   return PL;
@@ -129,7 +132,7 @@ function planNow() {
 function spinesNow() {
   const key = JSON.stringify([S.pipes, S.cw, S.ch]);
   if (SP && key === spKey) return SP;
-  spKey = key; SP = pipesOf(S.pipes, PAL.families[0]);
+  spKey = key; SP = pipesOf(S.pipes, PAL.families[0], CUT);
   return SP;
 }
 function walkNow() {
@@ -389,7 +392,13 @@ function guides() {
     const on = i === S.sel;
     g.strokeStyle = on ? 'rgba(235,122,37,.95)' : 'rgba(36,34,31,.35)'; g.lineWidth = px(on ? 1.2 : 1); g.setLineDash(on ? [] : [px(3), px(3)]); ln(g, st.sp.P); g.stroke(); g.setLineDash([]);
     if (on) { g.strokeStyle = 'rgba(235,122,37,.45)'; g.lineWidth = px(1); ln(g, st.pts); g.stroke(); }
-    for (const sg of segsOf(st)) if (sg.j > 0) { const f = frameAt(st.sp, sg.a); g.strokeStyle = on ? ORANGE : 'rgba(36,34,31,.5)'; g.lineWidth = px(1.6); ln(g, [add(f.p, mul(f.N, -st.w / 2 - 4)), add(f.p, mul(f.N, st.w / 2 + 4))]); g.stroke(); }
+    for (const sg of segsOf(st)) if (sg.j > 0 && sg.cutA) {                           // ALU-CUT: a cut — solid, wider, ❚❚ where DRAG stops
+      const f = frameAt(st.sp, sg.a), a = add(f.p, mul(f.N, -st.w / 2 - 7)), b = add(f.p, mul(f.N, st.w / 2 + 7));
+      g.strokeStyle = on ? ORANGE : 'rgba(36,34,31,.85)'; g.lineWidth = px(2.6); ln(g, [a, b]); g.stroke();
+      g.fillStyle = on ? ORANGE : 'rgba(36,34,31,.85)'; g.font = `600 ${px(12)}px "Helvetica Neue", Helvetica, Arial, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const q = add(b, mul(f.N, px(9))); g.fillText('❚❚', q[0], q[1]);
+    }
+    for (const sg of segsOf(st)) if (sg.j > 0 && !sg.cutA) { const f = frameAt(st.sp, sg.a); g.strokeStyle = on ? ORANGE : 'rgba(36,34,31,.5)'; g.lineWidth = px(1.6); ln(g, [add(f.p, mul(f.N, -st.w / 2 - 4)), add(f.p, mul(f.N, st.w / 2 + 4))]); g.stroke(); }
     if (on) {
       const sg = segsOf(st)[S.seg];
       if (sg && st.segs.length > 1) { g.strokeStyle = ORANGE; g.lineWidth = px(1.6); g.setLineDash([px(4), px(3)]); ln(g, offsetRange(st.sp, sg.a, sg.b, -st.w / 2 - 2)); g.stroke(); ln(g, offsetRange(st.sp, sg.a, sg.b, st.w / 2 + 2)); g.stroke(); g.setLineDash([]); }
@@ -573,7 +582,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['pipes', 'sel', 'seg', 'seed', 'cw', 'ch', 'brush', 'lanes', 'xstep', 'aorder', 'over', 'drag', 'spacing', 'width', 'speed', 'run', 'dryTail', 'mix', 'pick', 'overlap', 'look', 'ground', 'markPaint'];
+const UNDO_KEYS = ['cutMark', 'pipes', 'sel', 'seg', 'seed', 'cw', 'ch', 'brush', 'lanes', 'xstep', 'aorder', 'over', 'drag', 'spacing', 'width', 'speed', 'run', 'dryTail', 'mix', 'pick', 'overlap', 'look', 'ground', 'markPaint'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -621,15 +630,24 @@ cv.addEventListener('pointerdown', e => {
     if (near >= 0) st.marks.splice(near, 1); else { st.marks.push({ f: h.s / L, paint: S.markPaint }); st.marks.sort((a, b) => a.f - b.f); }
     S.sel = h.i; settle(); return;
   }
-  if (S.tool === 'seam') {
+  if (S.tool === 'seam' || S.tool === 'cut') {
+    // Seams (S): a click cuts the pipe's paints there, on a seam takes it away. Cuts (C, ALU-CUT; the owner,
+    // 2026-10-11, chat-Claude's way to compare with Florian's one run): a click puts a cut, the brush stopping
+    // there, the next part its own family of paints; on a seam it makes it a cut, on a cut takes it away —
+    // and with S a click on a cut makes it a seam again
     const h = nearPipe(p); if (!h) return;
-    const st = S.pipes[h.i], L = h.st.sp.L, near = st.seams.findIndex(f => Math.abs(f * L - h.s) < 10);
-    if (near >= 0) { undoPush(); st.seams.splice(near, 1); st.segs.splice(near + 1, 1); }
-    else if (h.s > 15 && h.s < L - 15) {
+    const st = S.pipes[h.i], L = h.st.sp.L, near = st.seams.findIndex(f => Math.abs(f * L - h.s) < 10), cut = S.tool === 'cut';
+    st.cuts = st.seams.map((f, i) => !!(st.cuts || [])[i]);
+    if (near >= 0) {
+      undoPush();
+      if (CUT && st.cuts[near] !== cut) st.cuts[near] = cut;                         // a seam made a cut, a cut a seam
+      else { st.seams.splice(near, 1); st.cuts.splice(near, 1); st.segs.splice(near + 1, 1); }
+    } else if (h.s > 15 && h.s < L - 15) {
       undoPush();
       const j = segsOf(h.st).findIndex(x => h.s >= x.a && h.s <= x.b), was = st.segs[j];
-      st.seams.splice(j, 0, h.s / L);
-      st.segs.splice(j + 1, 0, isLanes(st) ? { mode: 'along', stops: was.stops.slice().reverse() } : { mode: was.mode === 'along' ? 'across' : 'along', stops: was.stops.slice().reverse() });
+      st.seams.splice(j, 0, h.s / L); st.cuts.splice(j, 0, cut);
+      const fresh = () => { const r = rng(Date.now() >>> 0), F = PAL.families.filter(f => !f.every(k => was.stops.includes(k))); return lettFamily(r, F.length ? F : PAL.families); };
+      st.segs.splice(j + 1, 0, cut ? { mode: was.mode === 'across' ? 'across' : 'along', stops: fresh() } : isLanes(st) ? { mode: 'along', stops: was.stops.slice().reverse() } : { mode: was.mode === 'along' ? 'across' : 'along', stops: was.stops.slice().reverse() });
       S.seg = j + 1;
     }
     S.sel = h.i; settle(); return;
@@ -660,7 +678,8 @@ function setTool(t) { S.tool = t; if (t === 'mark' && S.view === 'result') S.vie
 const HINT = {
   edit: 'Edit: drag a point to move it, double-click a point to take it away, click a pipe to choose it and its segment; the arrows move the chosen pipe a mm, with ⇧ ten; ⌫ takes it away.',
   draw: 'Draw: a click adds a point to the chosen pipe; New pipe starts another. Lines and arcs only: the corners rounded by Corners.',
-  seam: 'Seams: a click on a pipe cuts it there; a click on a seam takes it away.',
+  seam: CUT ? 'Seams: a click on a pipe changes its paints there, the brush going on; a click on a seam takes it away, on a cut makes it a seam.' : 'Seams: a click on a pipe cuts it there; a click on a seam takes it away.',
+  cut: 'Cut: a click on a pipe cuts it there — DRAG stops, you wipe the brush and squeeze the next part\'s paints; a click on a seam makes it a cut, on a cut takes it away.',
   mark: 'Marks: a click on a pipe lays a mark of the chosen tube right across it — pick the tube in the strip; a click on a mark takes it away. The pipe then runs in whole lanes.',
 };
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
@@ -672,7 +691,7 @@ addEventListener('keydown', e => {
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (cmd) return;
   if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); deletePipe(); return; }
-  const tool = { v: 'edit', p: 'draw', s: 'seam', m: 'mark' }[e.key.toLowerCase()];
+  const tool = { v: 'edit', p: 'draw', s: 'seam', m: 'mark', ...(CUT ? { c: 'cut' } : {}) }[e.key.toLowerCase()];
   if (tool) { setTool(tool); return; }
   const arrow = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; movePipe(arrow[0] * d, arrow[1] * d); }
@@ -716,13 +735,14 @@ addEventListener('keydown', e => {
 // the composition; the pipes and the chosen one's pipe and segment; the
 // brush, the marks, the simulation (est.); the canvas from home; the files.
 const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 4, 24], ['lanes', 'Lanes along', '', 1, 2, 18], ['xstep', 'Step across', 'mm', 0.5, 3, 20], ['over', 'Past the panel edge', 'mm', 1, 0, 30], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX]];
-const PAINT_SL = [['spacing', 'Mark spacing', 'mm', 5, 30, 120], ['width', 'Line width', 'mm', 0.5, 1, 12], ['speed', 'Line speed', 'mm/s', 5, 20, SPEED_MAX]];
+const PAINT_SL = [['spacing', 'Mark spacing', 'mm', 5, 30, 120], ...(CUT ? [['cutMark', 'Marks from a cut', 'mm', 0.5, 0, 3]] : []), ['width', 'Line width', 'mm', 0.5, 1, 12], ['speed', 'Line speed', 'mm/s', 5, 20, SPEED_MAX]];
 const SIM_SL = [['run', 'Dense run', 'mm', 5, 30, 150], ['dryTail', 'Dry tail', 'mm', 10, 0, 300], ['mix', 'A mark\'s share in the brush', '%', 0.05, 0.1, 0.9], ['pick', 'Wet paint loads the brush in', 'mm', 1, 5, 120]];
 const ALL_SL = [['#slBrush', BRUSH_SL], ['#slPaint', PAINT_SL], ['#slSim', SIM_SL]];
 const valOf = key => key === 'lanes' ? `${S.lanes} · ${fmt(S.lanes > 1 ? 2 * Math.max(0, (S.pipes[S.sel]?.w || 50) / 2 - S.brush / 2) / (S.lanes - 1) : 0, 1)} mm apart` : key === 'mix' ? `${Math.round(S.mix * 100)} % (est.)`
   : key === 'pick' ? `${S.pick} mm (est.)` : key === 'run' || key === 'dryTail' ? `${S[key]} mm (est.)` : key === 'speed' || key === 'drag' ? `${S[key]} mm/s` : `${Math.round(S[key] * 100) / 100} mm`;
 const SL_TITLE = { brush: 'The dry brush of DRAG', lanes: 'How many lanes the brush runs along a pipe, edge to edge; the pitch between them follows (on the chosen pipe)', xstep: 'Segments, Alu: the step between the strokes of an Across segment, and between a fan\'s rays at the rim',
   over: 'How far a run goes past the canvas\'s edge, onto the board under it', drag: 'The dry brush along a lane of DRAG', spacing: 'A mark across the pipe every so many mm along it, where no marks are laid by hand',
+  cutMark: 'How far a part\'s first and last mark lie from its cut (est.): 0 when the next part goes on over dry paint (the owner, 2026-10-11: &quot;a slider from 0 to 3 mm? If I go on when the paint has dried, neither 2 nor 3 mm is needed&quot;)',
   width: 'The watercolour line of TRACE and MARKS on the canvas (the owner, 2026-10-04: &quot;the line is 4 mm&quot;)', speed: 'The brush along a line of TRACE and MARKS',
   run: 'How far the brush lays solid paint after a mark (RIBBON.md, measured on paper; est. on the canvas)', dryTail: 'How far it then runs dry, the paint thinning to nothing (est. on the canvas)',
   mix: 'How much of a mark\'s paint goes into what the brush carries, weighted by the paints\' strengths: dark takes over light at once (est.)', pick: 'A lane over wet paint loads half of it in 0.7 × this many mm and carries it on (est.)' };
@@ -790,7 +810,7 @@ function showPipe() {
   const act = (sel, fn) => box.querySelectorAll(sel).forEach(b => b.onclick = () => { undoPush(); fn(b); settle(); });
   act('[data-pbrush]', b => { st.brush = b.dataset.pbrush; });
   act('[data-first]', b => { st.first = b.dataset.first; });
-  act('#pRev', () => { st.pts.reverse(); st.seams = st.seams.map(f => 1 - f).reverse(); st.segs.reverse(); st.marks = (st.marks || []).map(m => ({ ...m, f: 1 - m.f })).reverse(); [st.capA, st.capB] = [st.capB, st.capA]; S.seg = 0; });
+  act('#pRev', () => { st.pts.reverse(); st.seams = st.seams.map(f => 1 - f).reverse(); st.cuts = st.seams.map((f, i) => !!(st.cuts || [])[st.seams.length - 1 - i]); st.segs.reverse(); st.marks = (st.marks || []).map(m => ({ ...m, f: 1 - m.f })).reverse(); [st.capA, st.capB] = [st.capB, st.capA]; S.seg = 0; });
   act('#pAuto', () => { st.marks = []; });
   act('#pA', () => { st.capA = st.capA === 'fan' ? 'flat' : 'fan'; });
   act('#pB', () => { st.capB = st.capB === 'fan' ? 'flat' : 'fan'; });
@@ -877,6 +897,13 @@ function settle() {
   });
   if (marks.length) lines.push(`MARKS <b>${marks.length}</b> dashes from the cup · ` + P.nums.map((q, i) => `${i + 1} ${NAME[q]} × ${marks.filter(m => m.paint === q).length}`).join(' · '));
   lines.push(ses === 1 ? 'One session, everything wet' : `<b>${ses}</b> sessions: a pipe that crosses an earlier one waits for it to dry`);
+  if (CUT && live.length) {                                                          // ALU-CUT: the cuts, DRAG's stops, and mud where a part runs over another's wet paint
+    const nCuts = live.reduce((a, st) => a + st.cutS.length, 0);
+    let stops = 0; for (const sx of P.sessions) sx.runs.forEach((r, i) => { const q = sx.runs[i - 1]; if (q && (q.si !== r.si || (q.part ?? 0) !== (r.part ?? 0))) stops++; });
+    lines.push(`Cuts <b>${nCuts}</b> · DRAG stops <b>${stops}</b> time${stops === 1 ? '' : 's'}, at every cut and before every next pipe: a clean brush and its own paints each part`);
+    const mud = walkNow().mud, nm = q => `pipe ${q.si + 1}${live[q.si]?.cutS.length ? `, part ${q.part + 1}` : ''}`;
+    if (mud.length) lines.push(`⚠ ${mud.map(q => `${nm(q)} runs over the wet paint of ${nm(q.from)}`).join('; ')} — mud there in the Result`);
+  }
   if (P_.outlines) lines.push(`TRACE: <b>${P_.outlines}</b> outlines in watercolour, ${S.ink ? `<b>Ink ON</b>: a dip, then outlines on what the brush holds up to ${DIP_RUN} mm (est.), ${P_.dips} dips; the elbow over the rim +${C.rim}°${est('rim')}, in the cup ${C.dip > 0 ? '+' : ''}${C.dip}°${est('dip')}, ${C.dwell} s in the paint` : 'Ink OFF: no dip'} · ${fmt(P_.length / 1000, 2)} m at ${S.speed} mm/s, ≈ ${fmt(P_.seconds / 60, 1)} min (est.)`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
@@ -1051,7 +1078,8 @@ function marksRun(ses) {
 }
 function dragRun(ses) {
   const R = dragRows(planNow(), ses - 1, po()); if (!R.ps.length) return null;
-  return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag, pauseAtEnds: true }, [{ key: 'DRAG', ps: R.ps, why: null }]), rows: R.info, runs: R.runs, mm: R.length };   // PAUSE at a lane's end, never on the line (the owner, 2026-10-10)
+  // PAUSE at a lane's end, never on the line (the owner, 2026-10-10); on ALU-CUT a stop before every next part and pipe, a pass each
+  return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag, pauseAtEnds: true }, dragPasses(R)), rows: R.info, runs: R.runs, mm: R.length, stops: R.stops.length };
 }
 async function runPass(key) {
   await loadInk(); settle();
@@ -1062,7 +1090,7 @@ async function runPass(key) {
   if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
   const min = fmt(P_.seconds / 60, 0), text = key === 'marks'
     ? `${P_.marks} marks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => paintNo(a[0]) - paintNo(b[0])).map(([q, c]) => `${paintNo(q)} ${NAME[q]} × ${c}`).join(', ')} — and press DRAG.`
-    : `${P_.runs} runs, ${S.aorder === 'snake' ? 'the snake: a pipe\'s lanes back and forth with the brush down, a step across at each end' : 'each lane the whole pipe'}, the brush landing ${P_.runs} times and lifting at each end, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
+    : `${P_.stops ? `${P_.stops + 1} parts, a clean brush each: squeeze the first part\'s paints only now; DRAG stops ${P_.stops} time${P_.stops > 1 ? 's' : ''} — at every cut and before every next pipe — for you to wipe or wash the brush and squeeze the next part\'s paints, then Continue.\n\n` : ''}${P_.runs} runs, ${S.aorder === 'snake' ? 'the snake: a pipe\'s lanes back and forth with the brush down, a step across at each end' : 'each lane the whole pipe'}, the brush landing ${P_.runs} times and lifting at each end, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
   if (!confirm(`${key.toUpperCase()} ${TAB_NAME}, ${what()}${of}: ${text}`)) return;
   S.view = key; S.session = n > 1 ? ses : 0; RUN_SES = ses; settle();                // the board shows the pass running
   await start(key, P_.blocks, { seconds: P_.seconds, rows: P_.rows },
