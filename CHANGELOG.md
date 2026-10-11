@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Private on GitHub again, with ALU-cut-Claude/** (the owner, 2026-10-11:
+  "put all the works in and close access; we will open it later if
+  chat-Claude needs to be shown again"): chat-Claude's task for ALU-CUT, the
+  owner's sketch `01-02-03_seams.png`, his three variants, and the
+  references — Florian Markus, Plot Bot Studio, Belem Lett — in git; the
+  repository private first, then pushed.
+
 - **Public on GitHub** (the owner, 2026-10-11: "unfortunately GitHub
   cannot be closed: private repos do not work for chat-Claude"): README's
   rule says so; it had said private since 2026-10-05.
