@@ -34,6 +34,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **ALU-CUT** | ALU with the new things, the first tab since 2026-10-11, in TYPE's and LOVE's place (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `index.html`, its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
 | **Cut · part** | On ALU-CUT: a seam made with the scissors, ✂ (C), where DRAG stops — the brush lifted, wiped or washed, the next part's paints squeezed, Continue; a part, the pipe between two cuts or a cut and an end, painted on its own with a clean brush, its lanes half a brush clear of a cut, the pipe's lane numbers going on across it (2026-10-11, §8). A seam (S) only changes the paints. |
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
+| **CCD** | The tab of rectangles of straight lanes, after Carlos Cruz-Diez — not the camera's chip — after ALU-CUT in the top row since 2026-10-11 (§1): the paint squeezed by hand along one edge, the dry brush driving it across, one way, lane after lane; DRAG alone, no TRACE, no MARKS. `ccd.html`, its plan `ccdplan.js`, its own page module `ccd.js`; ALU-CUT's untouched. |
+| **Rectangle (on CCD)** | A free-transform box on the canvas — dragged, stretched by its eight handles, or typed by the ruler from the canvas's bottom left corner (Left, Bottom, Width, Height) — Vertical, every lane from its bottom edge up, or Horizontal, from its left edge to the right; 1 … 218 lanes, the outer lanes' brush edges on its sides. DRAG stops before every next one. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -345,6 +347,27 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   module and plan, as SMKN does, the new things on it alone (*Claude's
   choice*: a fix reaches all three, ALU as it was); ALU's palette, the
   owner's sketch's.
+- **CCD, a tab of its own: rectangles of straight lanes** (the owner,
+  2026-10-11, `Cruz-Diez/`: "I happened upon Carlos Cruz-Diez and want to
+  drive the brush that way; it should go especially well on 20 × 20 cm
+  canvases"; "CCD — not as in video cameras, but in honour of Carlos
+  Cruz-Diez :)"; "no trace, no marks are needed here — I just squeeze the
+  paint at the bottom and the brush drives it from the bottom up. Evenly";
+  "the same brush I paint the sausages with, but stretched left and right in
+  width and up and down in height — a free-transform rectangle"; "the lines
+  not 18 at most, but all 218 — that is why a new tab: I do not want to mix
+  up ALU-cut, where the sausages are"; "the direction I want to choose too —
+  horizontal or vertical"; "most likely I will take a flat brush, so its
+  position depends on the direction the machine moves"). After ALU-CUT:
+  ALU-CUT · CCD · ALU · SMKN · NOLAN · Test · Ink · Calibration · Library.
+  Its own page module and plan (*Claude's choice*: ALU-CUT untouched; the
+  run, the canvas from home, the LCD and TEST shared); the deck TEST ·
+  PAUSE, DRAG alone, STOP. Every lane one way, the brush lifting past the
+  far edge and flying back, no snake — the paint lies along one edge only;
+  Vertical from the bottom up, Horizontal from the left; a stop before every
+  next rectangle, the flat brush turned by hand where the direction turns,
+  as no servo turns it (2026-10-08); the board the canvas and home, not the
+  whole image area (all *Claude's*).
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the

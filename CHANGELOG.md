@@ -3,6 +3,29 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **CCD, a new tab after ALU-CUT: rectangles of straight lanes, after
+  Carlos Cruz-Diez** (the owner, 2026-10-11, `Cruz-Diez/`: "no trace, no
+  marks — I just squeeze the paint at the bottom and the brush drives it
+  from the bottom up. Evenly … a free-transform rectangle … the lines not 18
+  at most, but all 218 — that is why a new tab: I do not want to mix up
+  ALU-cut"). `ccd.html`, `src/ccd.js`, `src/ccdplan.js` and its tests. V
+  moves a rectangle and stretches it by its eight handles, its edges
+  snapping to the canvas's and the others'; R lays a new one with a drag.
+  The chosen one's Vertical ↑ · Horizontal →; Lanes 1 … 218, the pitch and
+  the white or the overlap between lanes read under it; Left · Bottom ·
+  Width · Height by the ruler from the canvas's bottom left corner; Whole
+  canvas, Duplicate, Run earlier, Run later, Delete. Brush width up to
+  50 mm, Drag speed, Lands before the paint's edge, Lifts past the far edge.
+  The deck TEST · PAUSE, DRAG alone, STOP: every lane one way, the brush
+  lifting past the far edge and flying back; PAUSE at a lane's end; a stop
+  before every next rectangle, to wipe the brush, squeeze its paint and turn
+  the flat brush where the direction turns. The board the canvas and home,
+  not the whole image area, so a 20 × 20 canvas fills it. 💾 SAVE CCD, the
+  Library opening it there; the lanes as an SVG. CCD in every page's top
+  row; ALU-CUT, ALU and SMKN untouched.
+
 ## v.1.0.5 — 2026-10-11 · Cut
 
 - **ALU-CUT: the orange guides over the Result too; the views without
