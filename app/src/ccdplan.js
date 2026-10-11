@@ -62,9 +62,14 @@ export function planOf(rects, o) {
   return { rects: out, runs, length };
 }
 
-// DRAG's rows for plotRun: a row a lane, one line, mm from the canvas's
-// centre; a stop before every next rectangle — the brush wiped, its paint
-// squeezed along its edge, the flat brush turned when the direction turns
+// DRAG's rows for plotRun, mm from the canvas's centre, in one of two ways
+// (the owner, 2026-10-11: "two DRAG keys — the snake and through the air"):
+// in the air, a row a lane, one way, the brush lifting at the far edge and
+// flying back; the snake (o.snake), a rectangle one row, its lanes back and
+// forth with the brush down, a step across at each end — stopsAt the lanes'
+// ends, so a PAUSE falls there, never on a lane, as ALU's snake. A stop
+// before every next rectangle — the brush wiped, its paint squeezed along
+// its edge, the flat brush turned when the direction turns
 export const stopWhy = (r, prev) => `Rectangle ${r.i + 1}, ${DIR_NAME[r.dir]}: wipe the brush${prev && prev.dir !== r.dir ? `, turn the flat brush — its wide side ${SIDE_NAME[r.dir]}` : ''}, squeeze its paint along its ${EDGE_NAME[r.dir]} edge, then Continue`;
 export function dragRows(pl, o) {
   const ps = [], info = [], stops = [], at = q => toMachine([q[0] - o.cw / 2, o.ch / 2 - q[1]]);
@@ -72,6 +77,23 @@ export function dragRows(pl, o) {
   for (const r of pl.rects) {
     if (!r.runs.length) continue;
     if (ps.length) stops.push({ at: ps.length, why: stopWhy(r, prev) });
+    if (o.snake) {
+      const pieces = [], stopsAt = [], row = ps.length + 1, n = r.runs.length;
+      let acc = 0, end = null;
+      r.runs.forEach((ln, j) => {
+        const [a, b] = j % 2 ? [ln.b, ln.a] : [ln.a, ln.b];
+        for (const [p, q] of [[end, a], [a, b]]) {
+          if (!p || Math.hypot(q[0] - p[0], q[1] - p[1]) < 1e-6) continue;          // no step across when the lanes lie on one line
+          const g = { t: 'L', a: at(p), b: at(q) }; pieces.push(g); acc += pieceLen(g);
+        }
+        if (j < n - 1) stopsAt.push(acc);
+        end = b;
+      });
+      ps.push(pieces.map((g, i) => ({ ...g, tilt: 0, row, ...(!i && stopsAt.length ? { stopsAt } : {}) })));
+      info.push({ label: `Rectangle ${r.i + 1} · ${n > 1 ? `${n} lanes, the snake` : 'one lane'}`, ri: r.i, L: acc });
+      length += acc; prev = r;
+      continue;
+    }
     for (const ln of r.runs) {
       const g = { t: 'L', a: at(ln.a), b: at(ln.b) }, L = pieceLen(g), row = ps.length + 1;
       ps.push([{ ...g, tilt: 0, row }]);

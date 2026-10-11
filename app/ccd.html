@@ -67,13 +67,15 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <!-- the cassette deck: TEST and PAUSE; DRAG alone — no TRACE, no MARKS (the owner, 2026-10-11) -->
+      <!-- the cassette deck: TEST and PAUSE; DRAG alone — no TRACE, no MARKS (the owner, 2026-10-11) — in two keys,
+           the snake and through the air ("two DRAG keys — the snake and through the air; on ALU-CUT we made a switch, here it is all simple") -->
       <div class="runkeys deck">
         <button class="btn" id="btnTest" title="TEST, before DRAG: one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
         <button class="btn" id="btnPause" title="PAUSE the run at the end of the lane; pressed, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
       <div class="runkeys deck passes">
-        <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG: the dry brush through the paint squeezed along each rectangle's edge, every lane one way, no dip"><svg viewBox="0 0 24 24"><path d="M7 21V8M12 21V5M17 21V8"/><path d="M4 8l3-3 3 3M9 5l3-3 3 3M14 8l3-3 3 3" class="thin"/></svg><span>Drag</span></button>
+        <button class="btn pass" id="btnSnake" data-pass="snake" title="DRAG, the snake: a rectangle's lanes back and forth with the brush down, a step across at each end; the brush lands once a rectangle, no dip"><svg viewBox="0 0 24 24"><path d="M5 20V5h4.7v14h4.6V5H19v15"/></svg><span>Snake</span></button>
+        <button class="btn pass" id="btnAir" data-pass="air" title="DRAG through the air: every lane one way from the paint's edge, the brush lifting at the far edge and flying back to the next; no dip"><svg viewBox="0 0 24 24"><path d="M7 21V5M4 8l3-3 3 3"/><path d="M17 4v13" class="dash"/><path d="M14 17l3 3 3-3" class="thin"/></svg><span>Air</span></button>
       </div>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>

@@ -64,6 +64,28 @@ test('DRAG: a row a lane, up the machine (+X) for vertical, to the right (+Y) fo
   assert.ok(painting.every(b => b.pauseAtEnd), 'PAUSE waits for a lane\'s end');
 });
 
+test('the snake: a rectangle one row, its lanes back and forth with the brush down, a step across at each end, PAUSE at the lanes\' ends', () => {
+  const rects = [cleanRect({ x: 0, y: 0, w: 100, h: 200, lanes: 4 }), cleanRect({ x: 0, y: 0, w: 60, h: 40, dir: 'right', lanes: 3 })];
+  const pl = planOf(rects, O), R = dragRows(pl, { ...O, snake: true }), air = dragRows(pl, O);
+  assert.equal(R.ps.length, 2, 'a row a rectangle');
+  assert.deepEqual(R.stops.map(s => s.at), [1]); assert.equal(R.stops[0].why, air.stops[0].why);
+  const p = R.ps[0];
+  assert.equal(p.length, 4 + 3, 'four lanes, three steps across');
+  assert.ok(p[0].b.x > p[0].a.x, 'lane 1 up'); assert.ok(p[2].b.x < p[2].a.x, 'lane 2 down'); assert.ok(p[4].b.x > p[4].a.x, 'lane 3 up');
+  for (const i of [1, 3, 5]) { close(p[i].a.x, p[i].b.x, 'a step across, along the edge'); close(p[i].b.y - p[i].a.y, pl.rects[0].pitch, 'a pitch'); }
+  for (let i = 1; i < p.length; i++) { close(p[i].a.x, p[i - 1].b.x, 'one line'); close(p[i].a.y, p[i - 1].b.y, 'one line'); }
+  assert.deepEqual(p[0].stopsAt.map(v => Math.round(v * 1e6) / 1e6), [200, 200 + 30 + 200, 2 * (200 + 30) + 200]);
+  close(R.length, air.length + 3 * 30 + 2 * pl.rects[1].pitch, 'the lanes and the steps');
+  const run = plotRun({ ...RUN, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R));
+  assert.equal(run.fault, '');
+  assert.equal(run.blocks.filter(b => b.kind === 'pause').length, 1);
+  assert.equal(run.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, 4 + 3, 'a block a lane, cut at the lanes\' ends');
+  const lands = run.blocks.filter(b => b.kind === 'move' && b.paintMM === 0 && !b.home).length;
+  assert.equal(lands, 2, 'the brush lands once a rectangle');
+  const one = dragRows(planOf([cleanRect({ x: 0, y: 0, w: 8, h: 50, lanes: 3 })], O), { ...O, snake: true });
+  assert.equal(one.ps[0].length, 3, 'a brush wider than the rectangle: back and forth on one line, no step');
+});
+
 test('the SVG: a path a lane, y down', () => {
   const pl = planOf([cleanRect({ x: 0, y: 0, w: 200, h: 100, lanes: 2 })], O), s = dragSvg(pl, O);
   assert.equal((s.match(/<path /g) || []).length, 2);

@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **CCD: DRAG in two keys, Snake and Air** (the owner, 2026-10-11: "two
+  DRAG keys — the snake and through the air; on ALU-CUT we made a switch,
+  here it is all simple"). Snake: a rectangle one row, its lanes back and
+  forth with the brush down, a step across at each end, the brush landing
+  once a rectangle; PAUSE at a lane's end, as ALU's snake. Air: as before,
+  every lane one way and a flight back. The plan reads both times; the LCD
+  the key last pressed.
+
 - **CCD, a new tab after ALU-CUT: rectangles of straight lanes, after
   Carlos Cruz-Diez** (the owner, 2026-10-11, `Cruz-Diez/`: "no trace, no
   marks — I just squeeze the paint at the bottom and the brush drives it

@@ -652,7 +652,8 @@ body.type .status{grid-column:1/4;grid-row:4}
 .alu .grid4.keys.compose #btnPaper{grid-column:1/-1}
 
 /* CCD (2026-10-11): ALU-CUT's page, DRAG alone on the deck; the rectangles as ALU's pipes */
-.ccd .runkeys.deck.passes{grid-template-columns:1fr}
+.ccd .runkeys.deck.passes{grid-template-columns:1fr 1fr}   /* DRAG: Snake · Air */
+.ccd .deck svg .dash{stroke-dasharray:2 2.6}
 .ccd .tool svg .thin{stroke-width:1}
 .ccd #rects .tog{flex:0 0 auto;padding-left:8px;padding-right:8px}
 .ccd #rects .none{font-size:12px;color:var(--mute);padding:5px 6px}

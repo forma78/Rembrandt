@@ -37,13 +37,13 @@ const fin = v => Number.isFinite(v);
 // across the run, DRAG's speed, how far before the paint's edge it lands and
 // past the far edge it lifts (est.); the flights and the tail as ALU's.
 const S = {
-  rects: [], sel: 0, tool: 'edit',
+  rects: [], sel: 0, tool: 'edit', mode: 'air',                                      // mode: the DRAG key last pressed, the LCD's numbers
   brush: 10, drag: 60, before: 0, past: 0, travel: 180, tail: 3,
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
 };
 const NUM = ['sel', 'brush', 'drag', 'before', 'past', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
-const TOOLS = ['edit', 'rect'];
+const TOOLS = ['edit', 'rect'], MODES = ['snake', 'air'];
 let FRESH = true;   // nothing kept yet: a rectangle the whole canvas
 function load() {
   try {
@@ -51,6 +51,7 @@ function load() {
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     if (Array.isArray(o.rects)) S.rects = o.rects.map(cleanRect).filter(Boolean);
     if (TOOLS.includes(o.tool)) S.tool = o.tool;
+    if (MODES.includes(o.mode)) S.mode = o.mode;
     S.sel = Math.max(0, Math.min(S.rects.length - 1, Math.round(S.sel)));
     FRESH = false;
   } catch { }
@@ -77,19 +78,22 @@ async function loadInk() {
 const hereNow = () => { const R = reach(); return { x: R.x.min + S.edgeBottom + S.boardH / 2, y: R.y.min + S.edgeLeft + S.boardW / 2 }; };
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
 
-// ---------- the run: DRAG ----------
-// A row a lane, one way; a pause before every next rectangle (ccdplan.js,
+// ---------- the run: DRAG, the snake or through the air ----------
+// Two keys (the owner, 2026-10-11: "two DRAG keys — the snake and through the
+// air; on ALU-CUT we made a switch, here it is all simple"): the snake, a
+// rectangle's lanes back and forth with the brush down; the air, a row a
+// lane, one way. A pause before every next rectangle (ccdplan.js,
 // dragPasses); PAUSE at a lane's end, never on the line, as ALU's DRAG.
-let RUNP = null, runKey = '', busy = false;
+const RUNS = {}, MODE_NAME = { snake: 'snake', air: 'air' };   // the LCD's last line, short
+let busy = false;
 const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, runs: 0, mm: 0, stops: 0, fault: '' };
 const runOpts = rows => ({ ...DEFAULTS, speed: S.drag, travel: S.travel, tail: S.tail, lift: false, ink: false, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
-function dragRun() {
+function dragRun(mode = S.mode) {
   const P = planNow(), here = hereNow(), key = JSON.stringify([plKey, S.drag, S.travel, S.tail, here]);
-  if (RUNP && key === runKey) return RUNP;
-  runKey = key;
-  const R = dragRows(P, po());
-  RUNP = R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), pauseAtEnds: true }, dragPasses(R)), rows: R.info, runs: R.runs, mm: R.length, stops: R.stops.length } : { ...EMPTY };
-  return RUNP;
+  if (RUNS[mode]?.key === key) return RUNS[mode];
+  const R = dragRows(P, { ...po(), snake: mode === 'snake' });
+  RUNS[mode] = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), pauseAtEnds: true }, dragPasses(R)), rows: R.info, runs: R.runs, mm: R.length, stops: R.stops.length } : EMPTY) };
+  return RUNS[mode];
 }
 
 // ---------- the board ----------
@@ -265,7 +269,7 @@ function pathOf(B, i) {                                                         
 function drawTrail() {
   const st = lastSt;
   if (!st || !trailOf || st.started !== trailOf) return;
-  const B = RUN || RUNP?.blocks || [], h = hereNow(), at = st.x_mm !== null && st.y_mm !== null ? { x: st.x_mm, y: st.y_mm } : null;
+  const B = RUN || dragRun().blocks, h = hereNow(), at = st.x_mm !== null && st.y_mm !== null ? { x: st.x_mm, y: st.y_mm } : null;
   const live = ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
   const X = q => (q.y - h.y - V.y0) * k, Y = q => (V.x1 - q.x + h.x) * k;
   g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.lineWidth = 1.2; g.lineJoin = 'round';
@@ -514,16 +518,16 @@ const what = () => `${S.rects.length} rectangle${S.rects.length === 1 ? '' : 's'
 function settle() {
   busy = false;
   if (S.sel >= S.rects.length) S.sel = Math.max(0, S.rects.length - 1);
-  const P = planNow(), D = dragRun(), here = hereNow(), lines = [];
-  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.runs}</b> lanes, each one way, the brush landing ${P.runs} times · DRAG <b>${fmt(D.mm / 1000, 1)} m</b> with the dry brush at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min with the flights back (est.)`);
+  const P = planNow(), D = dragRun('air'), Ds = dragRun('snake'), here = hereNow(), lines = [];
+  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.runs}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, ${fmt(Ds.mm / 1000, 1)} m with the steps across, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>: landing ${D.runs} times, ${fmt(D.mm / 1000, 1)} m, ≈ ${fmt(D.seconds / 60, 0)} min with the flights back (est.)`);
   for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${DIR_NAME[r.dir]}, <b>${r.runs.length}</b> lanes ${fmt(r.pitch, 2)} mm apart, ${gapText(r)}; the paint along its ${EDGE_NAME[r.dir]} edge, ${fmt(acrossOf(r), 1)} mm`);
   if (D.stops) lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paint, Continue`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
-  const warn = [D.fault && `The plan is wrong, DRAG will not run it: ${D.fault}.`, walls(D)].filter(Boolean);
+  const warn = [D.fault && `The plan is wrong, DRAG Air will not run it: ${D.fault}.`, Ds.fault && `The plan is wrong, DRAG Snake will not run it: ${Ds.fault}.`, walls(D)].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.runs} lanes · DRAG ≈ ${fmt(D.seconds / 60, 0)} min (est.)`;
+  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.runs} lanes · DRAG Snake ≈ ${fmt(Ds.seconds / 60, 0)} min · Air ≈ ${fmt(D.seconds / 60, 0)} min (est.)`;
   showFiles();
   showPanel(); showRects(); save(); layout(); lastLcd && lcd(lastLcd);
 }
@@ -640,20 +644,24 @@ async function start(key, blocks, info, log) {
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 }
-$('#btnDrag').onclick = async () => {
+async function runDrag(mode) {
   settle();
-  const D = dragRun(), P = planNow(), first = P.rects[0];
+  const D = dragRun(mode), P = planNow(), first = P.rects[0], snake = mode === 'snake';
   if (!D.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to run: no rectangles on the canvas.</span>'; return; }
   if (walls(D)) { $('#runState').innerHTML = `<span class="warn">${walls(D)}</span>`; return; }
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
   const turns = P.rects.some((r, i) => i && r.dir !== P.rects[i - 1].dir);
   const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paint only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush${turns ? ', turn the flat brush where the direction turns' : ''} and squeeze its paint, then Continue.\n\n` : ''}`
-    + `${D.runs} lanes, each one way: the brush lands at the paint's edge, runs to the far edge, lifts and flies back; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).\n\n`
-    + `The flat brush: its wide side ${SIDE_NAME[first.dir]}. Is the paint squeezed along rectangle 1's ${EDGE_NAME[first.dir]} edge?`;
-  if (!confirm(`DRAG ${TAB_NAME}, ${what()}: ${text}`)) return;
-  await start('drag', D.blocks, { seconds: D.seconds, rows: D.rows },
-    { page: TAB, pass: 'drag', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(D.seconds) });
-};
+    + (snake ? `${P.runs} lanes back and forth with the brush down, a step across at each end: the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a rectangle; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+      : `${P.runs} lanes, each one way: the brush lands at the paint's edge, runs to the far edge, lifts and flies back; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)
+    + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).\n\nThe flat brush: its wide side ${SIDE_NAME[first.dir]}. Is the paint squeezed along rectangle 1's ${EDGE_NAME[first.dir]} edge?`;
+  if (!confirm(`DRAG ${snake ? 'SNAKE' : 'AIR'} ${TAB_NAME}, ${what()}: ${text}`)) return;
+  S.mode = mode; settle();
+  await start(mode, D.blocks, { seconds: D.seconds, rows: D.rows },
+    { page: TAB, pass: 'drag', mode, label: label(), settings: S, here: hereNow(), estimate_s: Math.round(D.seconds) });
+}
+$('#btnSnake').onclick = () => runDrag('snake');
+$('#btnAir').onclick = () => runDrag('air');
 // TEST, before DRAG (ALU's): one dip in the cup, a dot 20 mm in from each corner of the board, and home.
 function testRun() {
   const T = cornerDots(S.boardW, S.boardH);
@@ -681,7 +689,7 @@ const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.f
 let started = null, lastLcd = null;
 function lcd(st) {
   lastLcd = st;
-  const P_ = RUNP || EMPTY, live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
+  const P_ = dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
   const pct = st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
   if (live && !started) started = st.started || Date.now() / 1000;
   if (!live) started = null;
@@ -698,9 +706,9 @@ function lcd(st) {
     : live && b?.home ? 'done · the carriage goes home, the brush off'
     : live && now0 && b?.dip ? `${now0} · the dip in the cup`
     : live && now0 ? now0 + (st.brush_on ? ' · brush on' : ' · brush off')
-    : `${planNow().runs} lanes · ${what()}`;
+    : `${planNow().runs} lanes · ${what()} · ${MODE_NAME[S.mode]}`;
   $('#lcd').innerHTML = `
-    <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${RUN_KEY.toUpperCase()}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
+    <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${RUN_KEY === 'test' ? 'TEST' : `DRAG ${RUN_KEY.toUpperCase()}`}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
       <div class="lcd-times"><span class="k">left</span>${segments(mmss(left), 17)}<span class="k">total</span>${segments(mmss(total), 17)}</div>
