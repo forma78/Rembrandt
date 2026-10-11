@@ -217,7 +217,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   "this will already be REMBRANDT v.1.0.2 :)"); **v.1.0.4**, Snake, on
   2026-10-11, with SMKN, TRACE on the lanes, the snake and PAUSE at a
   lane's end (the owner: "name today's update somehow, v.1.0.4 already —
-  we have not updated for a while").
+  we have not updated for a while"); **v.1.0.5**, Cut, the same day, with
+  ALU-CUT first, its cuts, MARKS on the lanes and up to 18 lanes (the owner:
+  "a small update to v.1.0.5").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -535,7 +537,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.4**, then the tabs **ALU-CUT · ALU · SMKN · NOLAN · Test · Ink ·
+  **v.1.0.5**, then the tabs **ALU-CUT · ALU · SMKN · NOLAN · Test · Ink ·
   Calibration · Library** (ALU-CUT first since 2026-10-11, TYPE and LOVE off
   the row then; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,

@@ -3,7 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v.1.0.5 — 2026-10-11 · Cut
+
+- **v.1.0.5 after the name** (the owner, 2026-10-11: "we will have a small
+  update to v.1.0.5 now … yes, of course 1.0.5!"), on every tab and in the
+  saved SVGs (`rembrandt: '1.0.5'`). Named Cut, after ALU-CUT (*Claude's
+  name*).
 
 - **ALU-CUT: cuts with the scissors, the brush stopping at each** (the
   owner, 2026-10-11, chat-Claude's task `ALU-cut-Claude/README.md`, his
