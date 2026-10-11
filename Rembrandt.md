@@ -705,7 +705,17 @@ this section disagree, this section wins: the owner corrected the sketch on
   default, kept with the save. **STOP without its dot, and no HARD STOP**
   on ALU and SMKN (the owner, the same evening: "remove the dots of • STOP
   and •• HARD STOP — they give you room for on / off as on INK … or let us
-  remove HARD STOP altogether! I do not use it"); Esc is STOP still. ON, a
+  remove HARD STOP altogether! I do not use it"); Esc is STOP still.
+  **PAUSE on DRAG at a lane's end** (the owner, the same evening: "check
+  PAUSE too; it must work while DRAG runs, so as not to use STOP, or
+  everything starts over"; then: "simpler: the pause works only at the ends
+  of a line — it comes on only when the brush stands at the start of the
+  sausage or at its end"): DRAG's blocks go marked `pauseAtEnd`, and
+  `rembrandt.py` never brakes one on its line: a pause asked on a lane waits
+  for its end, lifts the brush there and holds; CONT. presses it and goes on.
+  A snake goes as a block a lane, the brush down between them, cut where each
+  lane ends (`stopsAt`), so it pauses at the pipe's end too. TRACE and MARKS
+  pause on the line as before. ON, a
   pipe's lanes back and forth in one row, the brush down, a step across from
   a lane's end to the next one's start: across the pipe's flat end on the
   canvas, on the trace's line there; along the edge past the canvas where

@@ -5,6 +5,26 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU and SMKN: PAUSE on DRAG at a lane's end** (the owner, 2026-10-10:
+  "check PAUSE too; it must work while DRAG runs, so as not to use STOP, or
+  everything starts over"; then: "simpler: the pause works only at the ends
+  of a line — it comes on only when the brush stands at the start of the
+  sausage or at its end"). `rembrandt.py`, one condition: a move block
+  marked `pauseAtEnd` is never braked on its line — a pause asked on it
+  waits for its end, then holds before the next block, the brush lifted,
+  and Continue presses it again. `plotRun` marks its passes so with
+  `o.pauseAtEnds` (DRAG on ALU only) and cuts a row where its first piece's
+  `stopsAt` says, the next block going on with the brush down; ALU's snake
+  is fitted lane by lane and cut at each lane's end, so it is a block a
+  lane, one landing and one lift still. Other tabs and TRACE and MARKS as
+  before: no stopsAt, no mark, the blocks to the byte. Checked: the server
+  pauses mid-snake today without the mark too, on its own lane (a test
+  now); with it, the day's "6" — 12 lanes, its real blocks — through the
+  runner on the fake board, paused mid-lane: held at that lane's end, the
+  brush up, no braking, every piece once and in order, 100 %. Takes effect
+  once `rembrandt.py` is started again; until then the old one brakes on
+  the line, as it did.
+
 - **ALU and SMKN: no Paper test key** (the owner, 2026-10-10: "Remove
   Paper test. What 8 Oct? I do not need this key :)"). New composition and
   New colours stay; a save of the paper test still opens, and `paperTest`

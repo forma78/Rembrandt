@@ -368,6 +368,9 @@ function pathTime(ps) {
 const travelTime = (L, v) => L > v * v / ACCEL ? L / v + v / ACCEL : 2 * Math.sqrt(L / ACCEL);
 // each brush-down path besides its pieces: the wrist's zero, the brush off at its end, the runner's waits (est.)
 const PATH_S = 2;
+// a row cut into blocks (stopsAt): the board stops at each cut, the runner waits for it (est.); a cut
+// within STOP_EPS mm of where the row's pieces end
+const SPLIT_S = 0.6, STOP_EPS = 0.2;
 // an elbow move in the air, the carriage standing: the runner turns it and waits till it is there (est.)
 const ARM_S = 1;
 
@@ -518,8 +521,12 @@ export function plotRun(o, passes) {
       // when the carriage set off, and the line began 5–10 mm late (2026-10-04, machine/2026-10-04 Nolan-v3-both.png)
       const over = o.hover ?? ELBOW_UP;
       if (up !== over) { blocks.push({ kind: 'arm', cmd: `J 2 ${over}`, row }); seconds += ARM_S; }
-      // one move, the brush landing at its start, lifting at its end and at every turn, on the way
-      const cmds = [`F ${o.speed}`];
+      // one move, the brush landing at its start, lifting at its end and at every turn, on the way —
+      // cut where p[0].stopsAt says, mm along the row, the next block going on from there with the
+      // brush down (ALU's snake at its lanes' ends, 2026-10-10: a pause falls there); o.pauseAtEnds
+      // marks the blocks for rembrandt.py: a pause asked on one waits for its end, never brakes on the line
+      const flag = o.pauseAtEnds ? { pauseAtEnd: true } : {}, stops = p[0].stopsAt || [], lastReal = real(m.pieces).at(-1);
+      let cmds = [`F ${o.speed}`], mark = [], total = 0, along = 0, k = 0;
       let v = o.speed, len = 0, paint = 0;
       const sent = q => pt(+f(X0 + q.x) - X0, +f(Y0 + q.y) - Y0);   // a point as the command carries it, to 0.01 mm
       let on = sent(first);
@@ -538,13 +545,22 @@ export function plotRun(o, passes) {
         if (!fault && Math.abs(Lb - L) > FAULT_MM) fault = `row ${row}: a piece of ${round1(L)} mm would run ${round1(Lb)} mm on the board`;
         on = g2.b;
         len += L; if (q.on) paint += L;
+        mark.push(q.on); along += L;
         car.push(q.g);
+        if (k < stops.length && along >= stops[k] - STOP_EPS && q !== lastReal) {
+          cmds.push('G');
+          blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: mark, row, ...flag });
+          total += len; length += paint; seconds += SPLIT_S;
+          cmds = [`F ${v}`]; len = 0; paint = 0; mark = [];
+          while (k < stops.length && along >= stops[k] - STOP_EPS) k++;
+        }
       }
       cmds.push('G');
+      total += len;
       // pressed into the walls a row only gets shorter: longer is a path the drawing never had
-      if (!fault && len > drawn + FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(len)} mm to the board`;
+      if (!fault && total > drawn + FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(total)} mm to the board`;
       length += paint;
-      blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: real(m.pieces).map(q => q.on), row: p[0].row });   // one mark a piece sent, as rembrandt.py counts them
+      blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: mark, row: p[0].row, ...flag });   // one mark a piece sent, as rembrandt.py counts them
       blocks.push({ kind: 'arm', cmd: `J 2 ${up}`, row: p.at(-1).row });   // at the lift-off already: the brush up, over the cup's rim with INK ON
       if (!o.snake && o.pause && !o.ink && i < ps.length - 1) blocks.push({ kind: 'pause', why: `paint for the brush, then Continue: row ${i + 2} of ${o.rows}`, row: i + 1 });
       m.trace.forEach((l, j) => preview.push(Object.assign(l, { pass: key, dip: dipped && !j })));   // its paint, on the preview; dip: the brush fresh from the cup

@@ -435,6 +435,18 @@ class PauseTest(unittest.TestCase):
         i = b.log.index("S")
         self.assertEqual(b.log[i + 1:i + 3], [OFF, "J 2 5"])           # off, and back to as light as it was
 
+    def test_a_pass_marked_pause_at_end_runs_to_its_end_then_the_pause(self):
+        # ALU's DRAG (the owner, 2026-10-10: "the pause works only at the ends of
+        # a line"): no braking on the line; held, the brush off, before the next
+        whole = lambda n: {**paint(n), "pauseAtEnd": True}
+        r, b = self.paused_run([arm(False), whole(12), whole(5)], when=4)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertNotIn("S", b.log, "not braked on the line")
+        i = b.log.index(OFF, b.log.index("L 12.00 50.00"))
+        self.assertEqual(b.log[i:i + 3], [OFF, ON, "F 20"], "the line done, then off the canvas, back, and on")
+        self.assertEqual([c for c in b.log if c.startswith("L")], [f"L {k}.00 50.00" for k in range(1, 13)] + [f"L {k}.00 50.00" for k in range(1, 6)])
+        self.assertEqual(r.status()["percent"], 100.0)
+
     def test_a_travel_ends_first_then_the_pause(self):
         r, b = self.paused_run([arm(True), travel(100, 20), arm(False), paint(3)], when=2)
         self.assertEqual(r.state, "done", r.message)
@@ -613,6 +625,67 @@ class ElbowOnPathTest(unittest.TestCase):
         again = [c for c in after if c.startswith("W ")]
         self.assertTrue(again and len(again) < 4, f"only the later ones again: {again}")
         self.assertIn("L 6.00 50.00", after)
+        self.assertLess(abs(self.elbow(b) - BRUSH_UP_DEG), 1)
+
+    def test_a_pause_on_a_snake_goes_on_from_its_own_lane_never_the_next_one(self):
+        # A braked pass on a path back and forth (ALU's snake, 2026-10-10, as it
+        # would be without pauseAtEnd): three lanes 3.7 mm apart in one block,
+        # paused on the middle one, run back — it goes on from there
+        lanes = [[f"L {k}.00 50.00" for k in range(1, 11)], [f"L {k}.00 53.70" for k in range(10, 0, -1)], [f"L {k}.00 57.40" for k in range(1, 11)]]
+        path = lanes[0] + lanes[1] + lanes[2]
+        cmds = ["F 20", "W 2 0 211"] + path[:-1] + ["W 2 10 88", path[-1], "G"]
+        blocks = [arm(True), travel(0, 50), {"kind": "move", "cmds": cmds, "paintMM": 66.0, "painted": [1] * len(path)}, arm(True)]
+        b = FakeBoard(rate=1)
+        r = self.runner(b)
+        seen = {}
+
+        def later():
+            if b.running and b.queue and b.queue[0] == "L 5.00 53.70" and "asked" not in seen:
+                seen["asked"] = r.pause()
+            if r.state == "paused" and "held" not in seen:
+                seen["held"] = (r.brush_on, round(self.elbow(b)))
+                r.resume()
+        b.on_sleep = later
+        r.start(blocks)
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertTrue(seen.get("asked"), "paused while on the lane run back")
+        self.assertEqual(seen["held"], (False, BRUSH_UP_DEG), "the brush off the canvas while paused")
+        i = b.log.index("S")
+        self.assertGreaterEqual(len([c for c in b.log[i:b.log.index("F 20", i)] if c.startswith("J 2")]), 2, "up, and pressed again to go on")
+        after = [c for c in b.log[i:] if c.startswith("L")]
+        self.assertTrue(after[0].endswith("53.70"), f"goes on along its own lane: {after[0]}")
+        k = path.index(after[0])
+        self.assertEqual(after, path[k:], "the rest of the snake, nothing skipped, no lane twice")
+        self.assertLessEqual(abs(k - path.index("L 5.00 53.70")), 1)
+        self.assertNotIn("K", b.log)
+        self.assertEqual(r.status()["percent"], 100.0)
+
+    def test_a_snake_cut_at_its_lane_ends_pauses_at_the_next_end_the_brush_lifted_there(self):
+        # ALU's snake as DRAG sends it since 2026-10-10: a block a lane, the brush
+        # down between them, each pauseAtEnd; paused on the middle lane
+        lanes = [[f"L {k}.00 50.00" for k in range(1, 11)], [f"L {k}.00 53.70" for k in range(10, 0, -1)], [f"L {k}.00 57.40" for k in range(1, 11)]]
+        cmds = [["F 20", "W 2 0 211"] + lanes[0] + ["G"], ["F 20"] + lanes[1] + ["G"], ["F 20"] + lanes[2][:-1] + ["W 2 10 88", lanes[2][-1], "G"]]
+        blocks = [arm(True), travel(0, 50)] + [{"kind": "move", "cmds": c, "paintMM": 22.0, "painted": [1] * 10, "pauseAtEnd": True} for c in cmds] + [arm(True)]
+        b = FakeBoard(rate=1)
+        r = self.runner(b)
+        seen = {}
+
+        def later():
+            if b.running and b.queue and b.queue[0] == "L 5.00 53.70" and "asked" not in seen:
+                seen["asked"] = r.pause()
+            if r.state == "paused" and "held" not in seen:
+                seen["held"] = (r.brush_on, round(self.elbow(b)), b.x, b.y)
+                r.resume()
+        b.on_sleep = later
+        r.start(blocks)
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertTrue(seen.get("asked"))
+        self.assertNotIn("S", b.log, "not braked on the line")
+        self.assertEqual(seen["held"][:2], (False, BRUSH_UP_DEG), "the brush off the canvas while paused")
+        self.assertEqual(seen["held"][2:], (round(1 * STEPS_PER_MM[0]), round(53.7 * STEPS_PER_MM[1])), "held at the lane's end")
+        self.assertEqual([c for c in b.log if c.startswith("L")], lanes[0] + lanes[1] + lanes[2], "every lane once, in order")
         self.assertLess(abs(self.elbow(b) - BRUSH_UP_DEG), 1)
 
     def test_the_board_without_w_stops_it_before_a_piece_is_queued(self):

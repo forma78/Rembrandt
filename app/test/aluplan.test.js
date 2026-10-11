@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS, SNAKE_STEP } from '../src/aluplan.js';
-import { plotRun, DEFAULTS } from '../src/strokes.js';
+import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
 // ALU's plan (ALU-Claude/ALU.md): the prototype's logic, ported. Whole lanes,
 // Master Flo first — the owner's paper test of 2026-10-08 is the fixture.
@@ -149,7 +149,8 @@ test('the passes run on the machine: lines and arcs, TRACE and MARKS from the cu
   r = plotRun({ ...RUN, ink: false, speed: 60, rows: D.ps.length }, [{ key: 'DRAG', ps: D.ps, why: null }]);
   assert.equal(r.fault, '');
   assert.equal(r.dips, 0);
-  assert.equal(r.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, D.runs, 'a lift after each lane');
+  assert.equal(new Set(r.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).map(b => b.row)).size, D.runs, 'a landing and a lift a row');
+  assert.equal(r.blocks.filter(b => b.kind === 'arm').length - 2, D.runs, 'the brush up after each row only');
   // a whole lane is lines and arcs exactly: as long fitted as laid
   const run = pl.sessions[0].runs[0], fitted = D.info[0].L;
   assert.ok(Math.abs(fitted - run.cum.at(-1)) < 0.01 * run.cum.at(-1), `${fitted} fitted, ${run.cum.at(-1)} laid`);
@@ -188,9 +189,21 @@ test('the snake (the owner, 2026-10-10): a pipe whole on the canvas one run, its
     assert.ok(lane.every(p => p[3] === (k % 2 ? -1 : 1)));
     if (k) assert.ok(Math.abs(dist(r.pts[at - 1], r.pts[at]) - pitch) < 1e-6, 'the step across one pitch');
   });
-  const D = dragRows(planOf(PAPER.pipes, o), 0, o), run = plotRun({ ...RUN, ink: false, speed: 60, rows: D.ps.length }, [{ key: 'DRAG', ps: D.ps, why: null }]);
+  const D = dragRows(planOf(PAPER.pipes, o), 0, o), run = plotRun({ ...RUN, ink: false, speed: 60, rows: D.ps.length, pauseAtEnds: true }, [{ key: 'DRAG', ps: D.ps, why: null }]);
   assert.equal(run.fault, '');
-  assert.equal(run.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, 1, 'the brush lands once');
+  // a block a lane for rembrandt.py (the owner, 2026-10-10: the pause only at the ends of a line), the brush down between them
+  const B = run.blocks, i0 = B.findIndex(b => b.kind === 'move' && b.paintMM > 0), lanesB = B.slice(i0, i0 + 8);
+  assert.equal(B.filter(b => b.kind === 'move' && b.paintMM > 0).length, 8, 'a block a lane');
+  assert.ok(lanesB.every(b => b.kind === 'move' && b.pauseAtEnd), 'one after another, nothing between them, each paused at its end');
+  const ws = lanesB.map(b => b.cmds.filter(c => c[0] === 'W').length);
+  assert.ok(ws[0] > 0 && ws.at(-1) > 0 && ws.slice(1, -1).every(n => n === 0), `the brush lands in the first, lifts in the last: ${ws}`);
+  const endOf = b => { const c = b.cmds.filter(q => q[0] === 'L' || q[0] === 'A').at(-1).split(' '); return c[0] === 'L' ? c.slice(1, 3).map(Number) : c.slice(3, 5).map(Number); };
+  const P0 = D.ps[0], at = []; let acc = 0;   // where each lane's fitted pieces end, from the row's stopsAt
+  P0.forEach(g => { acc += pieceLen(g); if (P0[0].stopsAt.some(x => Math.abs(x - acc) < 1e-6)) at.push(g.b); });
+  assert.equal(at.length, 7);
+  lanesB.slice(0, -1).map(endOf).forEach((e, k) => assert.ok(Math.hypot(e[0] - RUN.here.x - at[k].x, e[1] - RUN.here.y - at[k].y) < 0.02, `block ${k + 1} ends at lane ${r.nums[k]}'s end`));
+  const whole = plotRun({ ...RUN, ink: false, speed: 60, rows: D.ps.length }, [{ key: 'DRAG', ps: D.ps.map(p => p.map(({ stopsAt, ...g }) => g)), why: null }]);
+  assert.ok(Math.abs(lanesB.reduce((a, b) => a + b.paintMM, 0) - whole.length) < 0.01, 'the same paint, cut or whole');
   assert.match(D.info[0].label, /lanes 8 → 7 → .* → 1, back and forth/);
   assert.match(dragSvg(planOf(PAPER.pipes, o).sessions[0], o), /data-lane="8 7 6 5 4 3 2 1"/);
 });
@@ -203,6 +216,10 @@ test('the snake on pipes cut by the canvas: the steps past its edge, never over 
     assert.ok(ones.every(r => !r.nums && r.pts.every(p => p[3] === 1)), 'OFF: every lane one way, a run of its own');
     assert.equal(runs.reduce((a, r) => a + r.nums.length, 0), ones.length, 'every lane piece run once');
     assert.ok(runs.length < ones.length, `seed ${seed}: fewer landings, ${runs.length} for ${ones.length}`);
+    const D = dragRows(snake, 0, { ...O, aorder: 'snake' }), run = plotRun({ ...RUN, ink: false, speed: 60, rows: D.ps.length, pauseAtEnds: true }, [{ key: 'DRAG', ps: D.ps, why: null }]);
+    assert.equal(run.fault, '');
+    assert.ok(run.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).every(b => b.pauseAtEnd), 'every pass paused at its end');
+    assert.equal(run.blocks.filter(b => b.kind === 'move' && b.paintMM > 0).length, ones.length, 'a block a lane piece');
     for (const r of runs) for (const at of r.starts.slice(1)) {
       const a = r.pts[at - 1], b = r.pts[at], { pitch } = lanesOf(snake.pipes[r.si], O);
       assert.ok(dist(a, b) <= SNAKE_STEP * pitch + 0.5, 'a short step');

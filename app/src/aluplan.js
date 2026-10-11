@@ -740,14 +740,21 @@ export function marksRows(pl, session, o) {
 // DRAG: the session's runs one after another, a row a run, the dry brush, no
 // dip ever: Whole lanes in their order, n … 1 inside first, each the whole
 // pipe, the brush lifting at its end and going back in the air — or, the
-// snake, a pipe's lanes back and forth in one row, the brush down.
+// snake, a pipe's lanes back and forth in one row, the brush down, each lane
+// fitted on its own, its step across before it, and the row's stopsAt the mm
+// where each lane ends: plotRun cuts its block there, so a pause falls at a
+// lane's end (the owner, 2026-10-10: "the pause works only at the ends of a
+// line … at the start of the sausage or at its end").
 export function dragRows(pl, session, o) {
   const ps = [], info = [], c = centred(o), s = pl.sessions[session];
   let length = 0, lanes = 0;
   for (const r of s?.runs || []) {
-    const pieces = fitRun(r.pts.map(c)); if (!pieces.length) continue;
+    const chunks = r.starts?.length > 1 ? r.starts.map((at, k) => r.pts.slice(Math.max(0, at - 1), r.starts[k + 1] ?? r.pts.length)) : [r.pts];
+    const parts = chunks.map(q => fitRun(q.map(c))), pieces = parts.flat(); if (!pieces.length) continue;
+    const stopsAt = []; let acc = 0;
+    parts.slice(0, -1).forEach(q => { acc += q.reduce((a, g) => a + pieceLen(g), 0); stopsAt.push(acc); });
     const row = ps.length + 1, L = pieces.reduce((a, g) => a + pieceLen(g), 0);
-    ps.push(pieces.map(g => ({ ...g, tilt: 0, row })));
+    ps.push(pieces.map((g, i) => ({ ...g, tilt: 0, row, ...(!i && stopsAt.length ? { stopsAt } : {}) })));
     info.push({ label: r.mode === 'lanes' ? `Pipe ${r.si + 1} · ${r.nums?.length > 1 ? `lanes ${r.nums.join(' → ')}, back and forth` : `lane ${r.num}, the whole pipe`}` : `Pipe ${r.si + 1} · segment ${r.j + 1}, ${r.mode === 'fan' ? 'a fan ray' : r.mode === 'across' ? `${r.strokes} strokes across` : `${r.lanes > 1 ? `${r.lanes} lanes back and forth` : `lane ${r.lane + 1}`}`}`, si: r.si, L });
     length += L; lanes += r.mode === 'lanes' || r.mode === 'along' ? (r.lanes || 1) : 0;
   }

@@ -1052,7 +1052,7 @@ function marksRun(ses) {
 }
 function dragRun(ses) {
   const R = dragRows(planNow(), ses - 1, po()); if (!R.ps.length) return null;
-  return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag }, [{ key: 'DRAG', ps: R.ps, why: null }]), rows: R.info, runs: R.runs, mm: R.length };
+  return { ...plotRun({ ...runOpts(R.ps.length), ink: false, speed: S.drag, pauseAtEnds: true }, [{ key: 'DRAG', ps: R.ps, why: null }]), rows: R.info, runs: R.runs, mm: R.length };   // PAUSE at a lane's end, never on the line (the owner, 2026-10-10)
 }
 async function runPass(key) {
   await loadInk(); settle();

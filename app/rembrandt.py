@@ -24,7 +24,8 @@ bridge.py of the old machine repo held it on port 8765.
   stood when the motors were shut down, put back after power-on (class Park).
 - /run: the runner (class Runner) — GET is its state; POST starts the machine
   blocks of job.json, or the blocks in its body (a calibration run); POST /run/stop brakes along the path, /run/kill stops at
-  once; /run/pause and /run/continue pause a run and go on from the same point. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
+  once; /run/pause and /run/continue pause a run and go on from the same point — a block marked
+  pauseAtEnd (ALU's DRAG) runs to its end first. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
   (../firmware/CNCDM-001) fails a start on the first path command, and
@@ -924,7 +925,9 @@ class Runner:
         # brush as the carriage runs, the board turning it where the plan says.
         wrists = [c for c in pieces if c[0] == "W"]
         # A pass (brush on, or landing on the way) can be paused on its line; a travel ends first.
-        pausable = (self.brush_on or bool(wrists)) and any(c[0] == "F" for c in pieces)
+        # So does a pass marked pauseAtEnd (ALU's DRAG, the owner, 2026-10-10: "the pause works
+        # only at the ends of a line"): it runs to its end, the pause held before the next block.
+        pausable = (self.brush_on or bool(wrists)) and any(c[0] == "F" for c in pieces) and not b.get("pauseAtEnd")
         start = self._here() if pausable or share else None
         if wrists:
             pieces = self._arm_steps(pieces)
