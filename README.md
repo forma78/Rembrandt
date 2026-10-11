@@ -36,8 +36,9 @@ Rembrandt/
     nolan.html       NOLAN, the ribbons (new; NOLAN.md)
     newyuri.html     New Yuri, letters as rings (new; off the top row since 2026-10-06)
     glyphs.json      the owner's letters: skeletons of lines and arcs
-    index.html       TYPE, letters as bands in three passes, the first tab (new; Rembrandt.md §8)
-    love.html        LOVE, TYPE's copy for the new things; TYPE kept to go back to (new, 2026-10-07)
+    index.html       ALU-CUT, ALU with the new things, the first tab (new, 2026-10-11; ALU-cut-Claude/)
+    type.html        TYPE, letters as bands in three passes (new; off the top row since 2026-10-11)
+    love.html        LOVE, TYPE's copy for the new things (new, 2026-10-07; off the top row since 2026-10-11)
     alu.html         ALU, pipes of paint in whole lanes (new, 2026-10-08; ALU-Claude/)
     smkn.html        SMKN, ALU with the paints in stock, Soumkine's palette (new, 2026-10-08)
     create.html      Create (hidden from the top row since 2026-10-04)

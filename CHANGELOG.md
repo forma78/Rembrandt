@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU-CUT, the first tab; TYPE and LOVE off the top row** (the owner,
+  2026-10-11: "remove the TYPE and LOVE tabs — they do not work, they only
+  distract; put ALU-CUT in their place, and every new thing there"). ALU-CUT ·
+  ALU · SMKN · NOLAN · Test · Ink · Calibration · Library on every page.
+  ALU-CUT is `index.html`, the server's first page (`start.command` opens
+  it): ALU's page with its body `data-tab="alucut"`, ALU's module and plan
+  and palette, its own keep in this browser, 💾 SAVE ALU-CUT labelled
+  ALU-CUT and opened on it. TYPE's page moved to `type.html`, the Library's
+  TYPE saves going there; LOVE's stays `love.html`; both off the row, kept.
+  The server untouched. Checked in a headless browser: the first page,
+  TYPE, LOVE, ALU, SMKN, NOLAN and the Library open without an error, the
+  same row on each.
+
 - **ALU and SMKN: MARKS from lane 1 to lane n, no ticks** (the owner,
   2026-10-11: "we have not fixed MARKS. It has the same trouble TRACE had —
   the strokes stick out a lot, they do not meet DRAG's way. And while we are

@@ -38,7 +38,9 @@ import { rng } from './util.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const TAB = document.body.dataset.tab === 'smkn' ? 'smkn' : 'alu', TAB_NAME = TAB.toUpperCase(), PAL = PALETTES[TAB];   // ALU, or SMKN: the paints in stock
+// ALU; SMKN, the paints in stock; or ALU-CUT, the first tab since 2026-10-11, ALU's palette and the new things — cuts (CUT)
+const TAB = ['smkn', 'alucut'].includes(document.body.dataset.tab) ? document.body.dataset.tab : 'alu', CUT = TAB === 'alucut';
+const TAB_NAME = { alu: 'ALU', smkn: 'SMKN', alucut: 'ALU-CUT' }[TAB], PAL = PALETTES[TAB === 'smkn' ? 'smkn' : 'alu'];
 const OWN = new Set(PAL.tubes.map(t => t[0]));                                     // this tab's tubes
 const KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const add = (a, b) => [a[0] + b[0], a[1] + b[1]], sub = (a, b) => [a[0] - b[0], a[1] - b[1]], mul = (a, k) => [a[0] * k, a[1] * k];

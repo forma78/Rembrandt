@@ -28,9 +28,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Skeleton** | A letter stroke's centre line, lines and arcs, in a box from the baseline to the capline inset by the Weight; the circles' centres walk along it. |
 | **Weight · Step** | New Yuri: a letter's circle radius, and the distance between neighbouring circles along a skeleton, mm. |
 | **Rings · Coil** | New Yuri's two ways to draw a stroke: every circle a ring of its own — it lands, goes round, on 60 % over its start, lifts; or one line a stroke, a whole turn from circle to circle. |
-| **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` since 2026-10-06 (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
-| **LOVE** | TYPE's copy, after it in the top row since 2026-10-07 (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
+| **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` from 2026-10-06 to 10-11, then off the row, `type.html` (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
+| **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
+| **ALU-CUT** | ALU with the new things, the first tab since 2026-10-11, in TYPE's and LOVE's place (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `index.html`, its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -331,6 +332,16 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the paints in turn along the pipe — never cut into a dash a paint across
   it. The paints across, Lett's tubes, are Segments, Alu's. New composition
   draws Master Flo's: a tube's paints along each pipe.
+- **ALU-CUT first; TYPE and LOVE off the top row** (the owner, 2026-10-11:
+  "remove the TYPE and LOVE tabs — they do not work, they only distract;
+  put ALU-CUT in their place, and every new thing there"): ALU-CUT · ALU ·
+  SMKN · NOLAN · Test · Ink · Calibration · Library. ALU-CUT is
+  `index.html`, the server's first page, `start.command` opens it; TYPE's
+  page `type.html` (as Create's went to `create.html`), LOVE's `love.html`,
+  both kept, the Library opening their saves there. ALU-CUT shares ALU's page
+  module and plan, as SMKN does, the new things on it alone (*Claude's
+  choice*: a fix reaches all three, ALU as it was); ALU's palette, the
+  owner's sketch's.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -523,8 +534,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.4**, then the tabs **TYPE · LOVE · ALU · SMKN · NOLAN · Test ·
-  Ink · Calibration · Library** (LOVE since 2026-10-07, ALU and SMKN since
+  **v.1.0.4**, then the tabs **ALU-CUT · ALU · SMKN · NOLAN · Test · Ink ·
+  Calibration · Library** (ALU-CUT first since 2026-10-11, TYPE and LOVE off
+  the row then; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
   Create the green **Open Job**. The second
