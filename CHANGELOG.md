@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.5 — 2026-10-11 · Cut
 
+- **ALU-CUT: New colours for the chosen segment; no New composition** (the
+  owner, 2026-10-11: "it is not clear now what COMPOSITION is for. New
+  composition — not needed at all; we remove it. New colours is needed, but
+  it changes every colour as before, even when the sausage is cut into three
+  segments; I would rather pick one segment and colour just it"). On ALU-CUT
+  New colours picks the chosen segment's family again (`recolourSeg`), a
+  family it has not, a tube on a whole-lane pipe; the other segments as they
+  are. The line under it names the segment, "For pipe 1, segment 2 of 3"; a
+  click on a pipe chooses its segment and now refreshes the panel at once
+  (on ALU and SMKN too). ALU-CUT's saves no longer say "composition N". ALU
+  and SMKN keep both keys, New colours for every pipe.
+
 - **v.1.0.5 after the name** (the owner, 2026-10-11: "we will have a small
   update to v.1.0.5 now … yes, of course 1.0.5!"), on every tab and in the
   saved SVGs (`rembrandt: '1.0.5'`). Named Cut, after ALU-CUT (*Claude's

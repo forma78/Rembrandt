@@ -228,6 +228,16 @@ export function recolour(pipes, seed, pal = PALETTES.alu) {
   for (const st of pipes) st.segs = st.segs.map(g => ({ mode: g.mode, stops: isLanes(st) ? lettFamily(r, fams) : family(r, fams, pal) }));
   return pipes;
 }
+// New colours for one segment (ALU-CUT; the owner, 2026-10-11: "it changes
+// every colour, even when the sausage is cut into three segments — I would
+// rather pick one segment and colour just it"): a family of its palette picked
+// again, not the one it has, as New colours lays it — a tube along a whole-lane
+// pipe, a family on a Segments one; the rest as they are
+export function recolourSeg(st, j, seed, pal = PALETTES.alu) {
+  const r = rng(seed), g = st.segs[j], F = pal.families.filter(f => !f.every(k => g.stops.includes(k))), fams = F.length ? F : pal.families;
+  st.segs[j] = { mode: g.mode, stops: isLanes(st) ? lettFamily(r, fams) : family(r, fams, pal) };
+  return st;
+}
 export function compose(seed, o) {
   const r = rng(seed), out = [], fams = familiesOf(r, o.pal), n = 3 + (r() < 0.35 ? 1 : 0);
   const wMax = Math.max(16, Math.round(o.brush + (o.lanes - 1) * o.brush * 0.92));   // the widest pipe the lanes cover without gaps

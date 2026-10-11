@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS, SNAKE_STEP, dragPasses, frameAt } from '../src/aluplan.js';
+import { PALETTES, HEX, recolour, newPipe, spineOf, planOf, paintWalk, paperTest, compose, lanesOf, crossT, traceOf, traceRows, marksRows, dragRows, traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, EDGE_IN, MARKS_DIP, PAPER_MARKS, SNAKE_STEP, dragPasses, frameAt, recolourSeg } from '../src/aluplan.js';
 import { plotRun, DEFAULTS, pieceLen } from '../src/strokes.js';
 
 // ALU's plan (ALU-Claude/ALU.md): the prototype's logic, ported. Whole lanes,
@@ -306,6 +306,17 @@ test('ALU-CUT: marks from a cut by the slider; a part starts clean in the Result
   const mud = paintWalk(planOf([across], o), o).mud;
   assert.ok(mud.some(q => q.si === 0 && q.part === 1 && q.from.part === 0), JSON.stringify(mud));
   assert.deepEqual(paintWalk(planOf([across], { ...o, cuts: false }), { ...o, cuts: false }).mud, [], 'ALU: no mud named');
+});
+
+test('ALU-CUT: New colours for the chosen segment only (the owner, 2026-10-11)', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const st = JSON.parse(JSON.stringify(CUT_PIPE)), before = JSON.stringify(st.segs);
+    recolourSeg(st, 1, seed, PALETTES.alu);
+    const was = JSON.parse(before);
+    assert.deepEqual([st.segs[0], st.segs[2]], [was[0], was[2]], 'the other segments as they are');
+    assert.notDeepEqual(st.segs[1].stops, was[1].stops, 'a family it has not');
+    assert.ok(st.segs[1].stops.every(k => PALETTES.alu.tubes.some(t => t[0] === k)) && st.segs[1].mode === 'along');
+  }
 });
 
 test('every file carries data-ink', () => {

@@ -773,6 +773,11 @@ this section disagree, this section wins: the owner corrected the sketch on
   over another's wet paint, or another pipe's, picked up, and one ⚠ in the
   reading ("yes, OK!"). The DRAG confirm counts the stops; the time leaves
   them out. 3 Drag and the other views draw a cut solid with ❚❚ by it.
+  **No New composition; New colours for the chosen segment** (the owner, the
+  same day: "New composition — not needed at all; we remove it. New colours
+  is needed, but it changes every colour … I would rather pick one segment
+  and colour just it"): a click on a pipe chooses its segment, New colours
+  picks its family again, the rest as they are.
 - **SMKN**, after ALU (2026-10-08, §1): ALU's page with the paints in stock
   (`app/smkn.html`, its body `data-tab="smkn"`; `aluplan.js`, SMKN_TUBES):
   the strip the fourteen tubes, light to dark — 116 Titanium White, 029

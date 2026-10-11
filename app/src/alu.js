@@ -25,7 +25,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } from './strokes.js';
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP } from './band.js';
 import {
-  PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe,
+  PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, recolourSeg, lettFamily, newPipe,
   planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, dragPasses, rgbOf, mixRGB,
   traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS,
 } from './aluplan.js';
@@ -654,7 +654,7 @@ cv.addEventListener('pointerdown', e => {
   }
   const pt = nearPoint(p);
   if (pt) { undoPush(); S.sel = pt.i; grab = { ...pt, moved: false }; cv.setPointerCapture(e.pointerId); showPipes(); kick(); return; }
-  const h = nearPipe(p); if (h) { S.sel = h.i; S.seg = h.seg; save(); showPipes(); kick(); }
+  const h = nearPipe(p); if (h) { S.sel = h.i; S.seg = h.seg; settle(); }               // the panel too: its segment, and New colours' readout
 });
 cv.addEventListener('pointermove', e => {
   if (!grab) { cv.style.cursor = S.tool === 'edit' ? (nearPoint(toPanel(e)) ? 'move' : nearPipe(toPanel(e)) ? 'pointer' : '') : S.tool === 'draw' ? 'crosshair' : nearPipe(toPanel(e)) ? 'col-resize' : ''; return; }
@@ -859,8 +859,13 @@ $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
 // the composition: a new seed, the families again. No Paper test key since 2026-10-10 (the owner: "I do not need this key");
 // a save of it still opens, and paperTest stays the tests' fixture
-$('#btnCompose').onclick = () => { undoPush(); S.seed = 1 + Math.floor(Math.random() * 9999); S.pipes = compose(S.seed, po()); S.sel = 0; S.seg = 0; settle(); };
-$('#btnRecolour').onclick = () => { if (!S.pipes.length) return; undoPush(); recolour(S.pipes, Math.floor(Math.random() * 1e9), PAL); settle(); };
+// ALU-CUT: no New composition (the owner, 2026-10-11: "New composition — not needed at all; we remove it"); New colours the chosen segment's only
+if ($('#btnCompose')) $('#btnCompose').onclick = () => { undoPush(); S.seed = 1 + Math.floor(Math.random() * 9999); S.pipes = compose(S.seed, po()); S.sel = 0; S.seg = 0; settle(); };
+$('#btnRecolour').onclick = () => {
+  if (!S.pipes.length) return;
+  if (CUT) { const st = S.pipes[S.sel]; if (!st?.segs[S.seg]) return; undoPush(); recolourSeg(st, S.seg, Math.floor(Math.random() * 1e9), PAL); settle(); return; }
+  undoPush(); recolour(S.pipes, Math.floor(Math.random() * 1e9), PAL); settle();
+};
 $('#btnNewPipe').onclick = () => { undoPush(); S.pipes.push(newPipe(Math.round(Math.min(50, S.cw / 3)), Date.now() >>> 0, PAL)); S.sel = S.pipes.length - 1; S.seg = 0; S.tool = 'draw'; settle(); };
 $('#btnUndoPt').onclick = () => { const st = S.pipes[S.sel]; if (!st?.pts.length) return; undoPush(); st.pts.pop(); settle(); };
 function showPanel() {
@@ -876,7 +881,8 @@ function showPanel() {
   document.querySelectorAll('[data-ground]').forEach(b => b.classList.toggle('on', b.dataset.ground === S.ground));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
-  $('#seedRead').innerHTML = S.seed === 'paper' ? 'The paper test of 8 October, 1 : 1 on A5' : `Composition <b>${S.seed}</b>`;
+  $('#seedRead').innerHTML = CUT ? (S.pipes[S.sel]?.segs[S.seg] ? `For <b>pipe ${S.sel + 1}, segment ${S.seg + 1}</b> of ${S.pipes[S.sel].segs.length} — a click on another chooses it` : 'Choose a segment: a click on a pipe')
+    : S.seed === 'paper' ? 'The paper test of 8 October, 1 : 1 on A5' : `Composition <b>${S.seed}</b>`;
   $('#hint').textContent = HINT[S.tool];
 }
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
@@ -983,7 +989,7 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 // As SAVE LOVE: an SVG of the canvas in mm — the trace's outlines, the marks
 // in their tubes' colours — the whole state in its metadata, a PNG preview of
 // the Result; on the tests' shelf, its label ALU or SMKN — the Library opens it on its tab.
-const label = () => `${TAB_NAME} · ${S.seed === 'paper' ? 'the paper test' : `composition ${S.seed}`} · ${S.pipes.length} pipe${S.pipes.length === 1 ? '' : 's'} · ${S.boardW} × ${S.boardH} mm · ${planNow().nums.length} paints${S.ink ? ' · ink' : ''}`;
+const label = () => `${TAB_NAME} · ${CUT ? '' : `${S.seed === 'paper' ? 'the paper test' : `composition ${S.seed}`} · `}${S.pipes.length} pipe${S.pipes.length === 1 ? '' : 's'} · ${S.boardW} × ${S.boardH} mm · ${planNow().nums.length} paints${S.ink ? ' · ink' : ''}`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
   const meta = JSON.stringify({ rembrandt: '1.0.5', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');

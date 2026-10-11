@@ -58,6 +58,7 @@ Chat-Claude's task, `ALU-cut-Claude/README.md`; the owner's sketch `ALU-cut-Clau
 - **Marks**: one MARKS pass for every part, as before; the owner squeezes the paint by hand a part at a time. A part's marks beside a cut lie **Marks from a cut** from it, 0 … 3 mm, 2 by default (est.; the owner: "a slider from 0 to 3 mm? If I go on when the paint has dried, neither 2 nor 3 mm is needed").
 - **Result**: every part starts with a clean brush; wet on wet stays. A part that runs over another part's wet paint, or another pipe's, picks it up, and one ⚠ names it in the reading — no ban ("yes, OK!").
 - **Time**: the stops are not counted; the DRAG confirm says how many there are.
+- **Colours**: no New composition on ALU-CUT ("not needed at all"); **New colours** picks the chosen segment's family again, the rest as they are ("I would rather pick one segment and colour just it"). A click on a pipe chooses its segment.
 
 ## Drawing on the tab
 
