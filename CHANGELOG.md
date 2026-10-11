@@ -3,7 +3,13 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v.1.0.4 — 2026-10-11 · Snake
+
+- **v.1.0.4 after the name** (the owner, 2026-10-11, sending the day to
+  GitHub: "push it, please … and name today's update somehow, v.1.0.4
+  already — we have not updated for a while"), on every tab and in the
+  saved SVGs (`rembrandt: '1.0.4'`). Named Snake, after DRAG's back and
+  forth (*Claude's name*). v.1.0.3 skipped, as the owner counted.
 
 - **ALU and SMKN: PAUSE on DRAG at a lane's end** (the owner, 2026-10-10:
   "check PAUSE too; it must work while DRAG runs, so as not to use STOP, or
