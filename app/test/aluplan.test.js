@@ -228,6 +228,14 @@ test('the snake on pipes cut by the canvas: the steps past its edge, never over 
   }
 });
 
+test('up to 18 lanes along (the owner, 2026-10-11: a finer brush, "14 or 16 most likely")', () => {
+  for (const lanes of [14, 16, 18]) {
+    const o = { ...PAPER.o, brush: 3, lanes }, pl = planOf(PAPER.pipes, o), runs = pl.sessions[0].runs, { pitch } = lanesOf(pl.pipes[0], o);
+    assert.deepEqual(runs.map(r => r.num), Array.from({ length: lanes }, (_, i) => lanes - i));
+    assert.ok(Math.abs(pitch - (47 - 3) / (lanes - 1)) < 1e-9);
+  }
+});
+
 test('every file carries data-ink', () => {
   const pl = planOf(compose(1, O), O), o = { ...O, seed: 1, ground: 'white' };
   assert.match(traceSvg(pl, o), /data-ink="INK-1"/);

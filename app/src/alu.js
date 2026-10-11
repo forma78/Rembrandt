@@ -87,7 +87,7 @@ function load() {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     S.tail = tailIn(S.tail);
-    S.lanes = Math.round(Math.max(1, Math.min(12, S.lanes)));
+    S.lanes = Math.round(Math.max(1, Math.min(18, S.lanes)));
     if (Array.isArray(o.pipes)) S.pipes = o.pipes.map(cleanPipe).filter(Boolean);
     if (fin(o.seed) || o.seed === 'paper') S.seed = o.seed;
     if (OVERLAPS.includes(o.overlap)) S.overlap = o.overlap;
@@ -714,7 +714,7 @@ addEventListener('keydown', e => {
 // The prototype's settings in LOVE's panel: where pipes cross, INK, the view;
 // the composition; the pipes and the chosen one's pipe and segment; the
 // brush, the marks, the simulation (est.); the canvas from home; the files.
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 4, 24], ['lanes', 'Lanes along', '', 1, 2, 12], ['xstep', 'Step across', 'mm', 0.5, 3, 20], ['over', 'Past the panel edge', 'mm', 1, 0, 30], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX]];
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 4, 24], ['lanes', 'Lanes along', '', 1, 2, 18], ['xstep', 'Step across', 'mm', 0.5, 3, 20], ['over', 'Past the panel edge', 'mm', 1, 0, 30], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX]];
 const PAINT_SL = [['spacing', 'Mark spacing', 'mm', 5, 30, 120], ['width', 'Line width', 'mm', 0.5, 1, 12], ['speed', 'Line speed', 'mm/s', 5, 20, SPEED_MAX]];
 const SIM_SL = [['run', 'Dense run', 'mm', 5, 30, 150], ['dryTail', 'Dry tail', 'mm', 10, 0, 300], ['mix', 'A mark\'s share in the brush', '%', 0.05, 0.1, 0.9], ['pick', 'Wet paint loads the brush in', 'mm', 1, 5, 120]];
 const ALL_SL = [['#slBrush', BRUSH_SL], ['#slPaint', PAINT_SL], ['#slSim', SIM_SL]];

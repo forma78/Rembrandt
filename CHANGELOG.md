@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU and SMKN: up to 18 lanes along** (the owner, 2026-10-11: "I have
+  put on a finer brush; now Lanes along 12 · 3.7 mm apart — a maximum of 12
+  is not enough. It can go right up to 18! But most likely I will use 14 or
+  16 with this brush"). The slider 2 … 18, a save kept to 18.
+
 - **Private on GitHub again, with ALU-cut-Claude/** (the owner, 2026-10-11:
   "put all the works in and close access; we will open it later if
   chat-Claude needs to be shown again"): chat-Claude's task for ALU-CUT, the
