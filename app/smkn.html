@@ -78,8 +78,8 @@
   </div>
 
   <section class="stage" id="stage">
-    <!-- the paints in stock, Soumkine's palette — the tubes, a strip by the Tools as LOVE's paints: a chip a tube, its name on hover, the number its ticks
-         carry once it has marks, the marks under it; a click puts it in the chosen segment, or picks it for Marks -->
+    <!-- the paints in stock, Soumkine's palette — the tubes, a strip by the Tools as LOVE's paints: a chip a tube, its name on hover, its number (its order among the marks)
+         once it has marks, the marks under it; a click puts it in the chosen segment, or picks it for Marks -->
     <div class="paintstrip" id="paints" aria-label="Paints in stock"></div>
     <div class="board" id="board"><canvas id="cv"></canvas></div>
   </section>
@@ -96,7 +96,7 @@
       </div>
       <div class="runkeys deck passes">
         <button class="btn pass" id="btnTrace" data-pass="trace" title="TRACE, pass 1: the outline of every pipe in watercolour, from the cup"><svg viewBox="0 0 24 24"><path d="M2.5 9.5h12a3 3 0 0 1 3 3v9M2.5 15.5h6a3 3 0 0 1 3 3v3"/></svg><span>Trace</span></button>
-        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS, pass 2: a mark across the pipe where each paint goes, its ticks the paint's number, from the same cup as TRACE"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" class="thin"/><path d="M8 5v14M14 5v14"/></svg><span>Marks</span></button>
+        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS, pass 2: a mark across the pipe where each paint goes, lane 1 to lane n, from the same cup as TRACE"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" class="thin"/><path d="M8 5v14M14 5v14"/></svg><span>Marks</span></button>
         <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG, pass 3: the dry brush through the paint, every lane the whole pipe, no dip"><svg viewBox="0 0 24 24"><path d="M3 7h13M3 12h16M3 17h13"/><path d="M16 9l3 3-3 3"/></svg><span>Drag</span></button>
       </div>
       <div class="stops deckstops">
@@ -126,7 +126,7 @@
       <div class="toggles looks" id="views">
         <button class="tog" data-view="design" title="The design: each segment's paints laid flat, across the pipe or along it">Design</button>
         <button class="tog" data-view="trace" title="TRACE: the pipes' outlines in watercolour, as they lie on the paper">1 Trace</button>
-        <button class="tog" data-view="marks" title="MARKS: a mark across the pipe where each paint goes, its ticks the paint's number, the colour the paint's">2 Marks</button>
+        <button class="tog" data-view="marks" title="MARKS: a mark across the pipe where each paint goes, lane 1 to lane n, the colour the paint's">2 Marks</button>
         <button class="tog" data-view="drag" title="DRAG: the brush's path, a colour a lane, its number at its start as on the owner's page, an orange dot where it lands">3 Drag</button>
         <button class="tog" data-view="result" title="The painting: the paint mixed as pigment, the brush not washed between lanes, wet paint loaded into it where a lane passes over it">Result</button>
       </div>

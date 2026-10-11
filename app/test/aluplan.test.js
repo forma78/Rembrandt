@@ -72,8 +72,9 @@ test('New composition: whole lanes only, no Across segments, no fans; in over an
   assert.deepEqual(compose(4, O), compose(4, O), 'a seed, the same composition');
 });
 
-test('Master Flo: every mark right across the whole pipe, one paint — no gradient across', () => {
-  // the owner, 2026-10-08, ALU-Claude/paper-test/02_marks_black_white.jpg: "the lines always across the whole sausage"
+test('Master Flo: every mark right across the whole pipe, lane 1 to lane n, one paint — no gradient across', () => {
+  // the owner, 2026-10-08, ALU-Claude/paper-test/02_marks_black_white.jpg: "the lines always across the whole sausage";
+  // 2026-10-11: from lane 1 to lane n, DRAG's own lines, as TRACE's
   const drawn = { pts: [[80, 120], [420, 120], [420, 560], [120, 600]], w: 70, round: 0.9, capA: 'flat', capB: 'flat', seams: [0.5], segs: [{ mode: 'along', stops: ['navy', 'blue', 'ice', 'blue', 'navy'] }, { mode: 'along', stops: ['maroon', 'red'] }], brush: 'lanes', first: 'in', marks: [] };
   const edge = p => p[0] <= 1 + 1e-6 || p[0] >= O.cw - 1 - 1e-6 || p[1] <= 1 + 1e-6 || p[1] >= O.ch - 1 - 1e-6;
   let n = 0;
@@ -81,8 +82,8 @@ test('Master Flo: every mark right across the whole pipe, one paint — no gradi
     const pl = planOf(pipes, O);
     for (const m of pl.sessions.flatMap(s => s.marks)) {
       if (m.kind === 'edge of panel') continue;
-      const L = dist(m.pts[0], m.pts.at(-1)), w = pl.pipes[m.si].w;
-      assert.ok(Math.abs(L - (w - 1)) < 1e-6 || m.pts.some(edge), `pipe ${m.si + 1}: a mark ${L.toFixed(1)} mm across a pipe ${w} wide`);
+      const L = dist(m.pts[0], m.pts.at(-1)), w = pl.pipes[m.si].w, { e } = lanesOf(pl.pipes[m.si], O);
+      assert.ok(Math.abs(L - 2 * e) < 1e-6 || m.pts.some(edge), `pipe ${m.si + 1}: a mark ${L.toFixed(1)} mm across lanes ${(2 * e).toFixed(1)} apart, a pipe ${w} wide`);
       n++;
     }
     const at = new Map();
@@ -226,6 +227,15 @@ test('the snake on pipes cut by the canvas: the steps past its edge, never over 
       assert.ok(!inside(a, O) && !inside(b, O), `seed ${seed}: the step past the canvas's edge`);
     }
   }
+});
+
+test('MARKS: a stroke a mark, no ticks; the edge lanes still take up its paint (the owner, 2026-10-11)', () => {
+  const pl = planOf(PAPER.pipes, PAPER.o), M = marksRows(pl, 0, { ...PAPER.o, ink: true });
+  assert.equal(M.ps.length, pl.sessions[0].marks.length, 'a stroke a mark');
+  assert.ok(M.info.every(i => !/tick/.test(i.label)));
+  assert.doesNotMatch(marksSvg(pl, pl.sessions[0], { ...PAPER.o, seed: 1 }), /data-tick/);
+  const runs = pl.sessions[0].runs;
+  for (const k of [1, 8]) assert.ok(runs.find(r => r.num === k).cross.length >= PAPER_MARKS.length - 1, `lane ${k} meets the marks at their ends`);
 });
 
 test('up to 18 lanes along (the owner, 2026-10-11: a finer brush, "14 or 16 most likely")', () => {

@@ -26,7 +26,7 @@ import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } 
 import { cornerDots, TEST_MARGIN, washOf, DIP_RUN, NO_DIP } from './band.js';
 import {
   PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, lettFamily, newPipe,
-  planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, tickPaths, rgbOf, mixRGB,
+  planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, rgbOf, mixRGB,
   traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS,
 } from './aluplan.js';
 import { drawWash } from './wash.js';
@@ -136,7 +136,7 @@ function walkNow() {
   return WK;
 }
 const nSes = () => planNow().sessions.length;
-const paintNo = k => planNow().nums.indexOf(k) + 1;   // the paint's number, its ticks', 1 the first; 0 none
+const paintNo = k => planNow().nums.indexOf(k) + 1;   // the paint's number, 1 the first; 0 none
 
 // ---------- the cup, and the canvas from home (LOVE's) ----------
 let INK = {};
@@ -341,14 +341,13 @@ function drawTrace(alpha = 1) {
   }
   g.restore();
 }
-// MARKS: each mark and its ticks in its paint, a fine dark edge so white reads — the painter's map
+// MARKS: each mark in its paint, lane 1 to lane n, a fine dark edge so white reads — the painter's map; no ticks since 2026-10-11
 function drawMarkMap(c) {
   const P = planNow();
   c.lineCap = 'round';
   for (const s of P.sessions) if (shown(s.n)) for (const m of s.marks) {
-    const all = [m.pts, ...tickPaths(m, paintNo(m.paint), S.width).map(t => t.pts)];
-    c.strokeStyle = 'rgba(36,34,31,.55)'; c.lineWidth = S.width + 0.6; for (const p of all) { ln(c, p); c.stroke(); }
-    c.strokeStyle = HEX[m.paint]; c.lineWidth = S.width; for (const p of all) { ln(c, p); c.stroke(); }
+    c.strokeStyle = 'rgba(36,34,31,.55)'; c.lineWidth = S.width + 0.6; ln(c, m.pts); c.stroke();
+    c.strokeStyle = HEX[m.paint]; c.lineWidth = S.width; ln(c, m.pts); c.stroke();
   }
 }
 // DRAG: the brush's path, a colour a lane (the prototype's), dashed between
@@ -733,7 +732,7 @@ for (const [box, list] of ALL_SL) {
   });
 }
 // The tubes, a strip by the Tools (LOVE's paints, the prototype's tubes): a
-// chip a tube, its name on hover; the number its ticks carry once it has
+// chip a tube, its name on hover; its number (its order among the marks) once it has
 // marks, the marks under it. A click puts it in the chosen segment or takes
 // it out (five at most), as the prototype's chips; with Marks, or on a pipe
 // whose marks are laid by hand, it is the paint the next mark takes.
@@ -756,7 +755,7 @@ function showTubes() {
     chip.querySelector('.cnt').textContent = c || '';
     chip.classList.toggle('in', !marks && at.length > 0);
     chip.classList.toggle('pick', marks && key === S.markPaint);
-    chip.title = `${NAME[key]}${n ? ` — paint ${n}, its ticks ${n}, ${c} mark${c === 1 ? '' : 's'}` : ''}${marks ? ' — a click: the paint of the next mark' : at.length ? ` — in the segment, ${at.join(', ')} of ${sg.stops.length}; a click takes it out` : ' — a click puts it in the chosen segment'}`;
+    chip.title = `${NAME[key]}${n ? ` — paint ${n}, ${c} mark${c === 1 ? '' : 's'}` : ''}${marks ? ' — a click: the paint of the next mark' : at.length ? ` — in the segment, ${at.join(', ')} of ${sg.stops.length}; a click takes it out` : ' — a click puts it in the chosen segment'}`;
   });
 }
 // The pipes, bottom to top, a key each; the chosen one's editor and its segment's
@@ -880,14 +879,12 @@ function settle() {
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
   const pitch = S.lanes > 1 ? 2 * Math.max(0, (S.pipes[S.sel]?.w || 50) / 2 - S.brush / 2) / (S.lanes - 1) : 0;
-  const fits = marks.every(m => tickPaths(m, paintNo(m.paint), S.width).every(t => t.fits));
   const warn = [S.ink ? cupProblem(C) : '', P_.fault && `The plan is wrong, TRACE will not run it: ${P_.fault}.`, walls(),
     live.length && S.spacing > S.run && `Mark spacing ${S.spacing} mm is longer than the dense run ${S.run} mm: dry patches before every mark.`,
     live.length && pitch > S.brush && `The lanes are ${fmt(pitch, 1)} mm apart, wider than the brush: white gaps between them — more lanes or a wider brush.`,
     S.xstep > S.brush && segs.some(x => x.mode === 'across') && 'Across, the step is wider than the brush: white gaps between the strokes.',
     P.tight && `${P.tight} corner${P.tight > 1 ? 's' : ''} tighter than half the pipe: the inner lanes pinch there.`,
-    P.dry && `${P.dry} run${P.dry > 1 ? 's' : ''} cross the panel dry for longer than the dense run.`,
-    !fits && 'A paint\'s ticks are longer than its dash: a thinner line, wider pipes, or fewer paints across.'].filter(Boolean);
+    P.dry && `${P.dry} run${P.dry > 1 ? 's' : ''} cross the panel dry for longer than the dense run.`].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
   if (S.session > ses) S.session = 0;                                                // the sessions under the view, in 2 Marks and 3 Drag, when more than one
@@ -1039,7 +1036,7 @@ $('#btnTrace').onclick = async () => {
 const nextOf = key => Math.min(Math.max(1, S.next[key] || 1), nSes());
 function showDeck() {
   const n = nSes();
-  for (const [id, key, name, title] of [['#btnMarks', 'marks', 'Marks', 'MARKS, pass 2: a mark across the pipe where each paint goes, its ticks the paint\'s number, from the same cup as TRACE'],
+  for (const [id, key, name, title] of [['#btnMarks', 'marks', 'Marks', 'MARKS, pass 2: a mark across the pipe where each paint goes, lane 1 to lane n, from the same cup as TRACE'],
     ['#btnDrag', 'drag', 'Drag', 'DRAG, pass 3: the dry brush through the paint, every lane the whole pipe, no dip']]) {
     const el = $(id), ses = nextOf(key);
     el.querySelector('span').textContent = n > 1 ? `${name} ${ses}/${n}` : name;
@@ -1062,7 +1059,7 @@ async function runPass(key) {
   if (walls(P_)) { $('#runState').innerHTML = `<span class="warn">${walls(P_)}</span>`; return; }
   if (P_.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${P_.fault}.</span>`; return; }
   const min = fmt(P_.seconds / 60, 0), text = key === 'marks'
-    ? `${P_.marks} marks and their ticks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => paintNo(a[0]) - paintNo(b[0])).map(([q, c]) => `${paintNo(q)} ${NAME[q]} × ${c}`).join(', ')} — and press DRAG.`
+    ? `${P_.marks} marks, ${P_.rows.length} strokes${S.ink ? `, ${P_.dips} dips in the cup, one every ${MARKS_DIP} marks` : ', no dip'}, ≈ ${min} min (est.).\n\nThen squeeze the paints onto the marks — ${Object.entries(P_.count).sort((a, b) => paintNo(a[0]) - paintNo(b[0])).map(([q, c]) => `${paintNo(q)} ${NAME[q]} × ${c}`).join(', ')} — and press DRAG.`
     : `${P_.runs} runs, ${S.aorder === 'snake' ? 'the snake: a pipe\'s lanes back and forth with the brush down, a step across at each end' : 'each lane the whole pipe'}, the brush landing ${P_.runs} times and lifting at each end, ${fmt(P_.mm / 1000, 1)} m with the dry brush, no dip, at ${S.drag} mm/s, ≈ ${min} min (est.). Are the paints on the marks?`;
   if (!confirm(`${key.toUpperCase()} ${TAB_NAME}, ${what()}${of}: ${text}`)) return;
   S.view = key; S.session = n > 1 ? ses : 0; RUN_SES = ses; settle();                // the board shows the pass running

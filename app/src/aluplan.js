@@ -18,8 +18,8 @@
 //   Australian style" — or across it; fan ends.
 //
 // The passes are TYPE's: TRACE, the pipes' outlines in watercolour from the
-// cup; MARKS, a mark across the pipe where each paint goes, its ticks the
-// paint's number as on an abacus; DRAG, the dry brush through it. Result
+// cup; MARKS, a mark across the pipe where each paint goes, from lane 1 to
+// lane n, no ticks since 2026-10-11; DRAG, the dry brush through it. Result
 // mixes the paint as pigment, the brush not washed between lanes, wet paint
 // loaded into it where a lane passes over it.
 //
@@ -33,7 +33,6 @@
 import { rng } from './util.js';
 import { fitPieces, toMachine, LOOP_SHARE, DIP_RUN, dipParts } from './band.js';
 import { pieceLen } from './strokes.js';
-import { ticksOf } from './loveplan.js';
 
 // ---------- the tubes ----------
 // The prototype's, by eye: [key, name, colour]. FAMILIES: three paints a
@@ -310,10 +309,13 @@ function markIndex() {
   const cell = 6, map = new Map();
   const cells = (a, b, fn) => { const x0 = Math.floor(Math.min(a[0], b[0]) / cell), x1 = Math.floor(Math.max(a[0], b[0]) / cell), y0 = Math.floor(Math.min(a[1], b[1]) / cell), y1 = Math.floor(Math.max(a[1], b[1]) / cell); for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) fn(x + ',' + y); };
   return {
-    add(m) { for (let i = 1; i < m.pts.length; i++) { const e = { m, a: m.pts[i - 1], b: m.pts[i] }; cells(e.a, e.b, k => { let l = map.get(k); if (!l) map.set(k, l = []); l.push(e); }); } },
+    add(q, m = q) { for (let i = 1; i < q.pts.length; i++) { const e = { m, a: q.pts[i - 1], b: q.pts[i] }; cells(e.a, e.b, k => { let l = map.get(k); if (!l) map.set(k, l = []); l.push(e); }); } },
     query(a, b) { const out = new Set(); cells(a, b, k => { const l = map.get(k); if (l) for (const e of l) out.add(e); }); return out; },
   };
 }
+// a mark as the brush meets it: its ends out by r, the half brush — a lane 1
+// or n on a mark's end takes up its paint, as the brush's edge does
+const reach = (P, r) => { if (P.length < 2 || !(r > 0)) return P; const u = norm(sub(P[1], P[0])), v = norm(sub(P.at(-1), P.at(-2))); return [sub(P[0], mul(u, r)), ...P.slice(1, -1), add(P.at(-1), mul(v, r))]; };
 export function crossT(a, b, c, d) {
   const r = sub(b, a), q = sub(d, c), den = crs(r, q); if (Math.abs(den) < 1e-12) return null;
   const ca = sub(c, a), t = crs(ca, q) / den, u = crs(ca, r) / den;
@@ -360,8 +362,10 @@ export function lanesOf(st, o) {
   const num = {}; byIn.slice().reverse().forEach((i, r) => { num[i] = r + 1; });
   return { e, pitch, d, num, order: st.first === 'out' ? byIn.slice().reverse() : byIn };
 }
-// Master Flo's marks: every one right across the whole pipe, edge to edge
-// less 0.5 mm, one paint — by hand, or every spacing from the segment's
+// Master Flo's marks: every one right across the whole pipe, from lane 1 to
+// lane n — DRAG's own lines, as TRACE's (the owner, 2026-10-11: "MARKS has the
+// same trouble TRACE had: the strokes stick out, they do not meet DRAG's
+// way"; before, edge to edge less 0.5 mm) — one paint — by hand, or every spacing from the segment's
 // paints in turn along it (paintAt). Never cut into a dash a paint across
 // the pipe: that is a gradient across, Lett's tubes, Alu's (the owner,
 // 2026-10-08: "the lines always across the whole sausage, they make no
@@ -370,7 +374,7 @@ export function lanesOf(st, o) {
 // With the snake (o.aorder 'snake') every other lane runs back, the way
 // reversed, so snakeOf can join it to the one before.
 function lanesPipeOf(st, si, o) {
-  const sp = st.sp, W = st.w, { e, pitch, d, num, order } = lanesOf(st, o), runs = [], marks = [], half = W / 2 - 0.5;
+  const sp = st.sp, W = st.w, { e, pitch, d, num, order } = lanesOf(st, o), runs = [], marks = [], half = Math.max(1, e);
   order.forEach((i, k) => {
     const back = o.aorder === 'snake' && k % 2 === 1, P = offsetRange(sp, 0, sp.L, d(i));
     runs.push({ si, j: 0, mode: 'lanes', pitch, lane: i, num: num[i], pts: (back ? P.reverse() : P).map(q => [q[0], q[1], i, back ? -1 : 1]) });
@@ -399,8 +403,8 @@ function pipeOf(st, si, o) {
         const f = frameAt(sp, s);
         for (let k = 0; k < K; k++) {
           const ids = offs.map((d, i) => i).filter(i => groupOf(i, n, K) === k); if (!ids.length) continue;
-          const lo = Math.max(-(W / 2 - 2), offs[ids[0]] - pitch / 2), hi = Math.min(W / 2 - 2, offs[ids.at(-1)] + pitch / 2);
-          marks.push({ ...base, s, pts: [add(f.p, mul(f.N, n > 1 ? lo : -(W / 2 - 2))), add(f.p, mul(f.N, n > 1 ? hi : W / 2 - 2))], paint: g.stops[k], kind: 'across' });
+          const ee = Math.max(1, e), lo = Math.max(-ee, offs[ids[0]] - pitch / 2), hi = Math.min(ee, offs[ids.at(-1)] + pitch / 2);   // within lanes 1 … n (2026-10-11)
+          marks.push({ ...base, s, pts: [add(f.p, mul(f.N, n > 1 ? lo : -ee)), add(f.p, mul(f.N, n > 1 ? hi : ee))], paint: g.stops[k], kind: 'across' });
         }
       }
     } else {
@@ -442,11 +446,12 @@ function pipeOf(st, si, o) {
   return { runs, marks, pitch, e };
 }
 // where a pipe runs off the panel: a dash along the edge, EDGE_IN in, over the
-// stretch the pipe covers, in the paint the pipe has there
+// stretch its lanes 1 … n cover (2026-10-11; the pipe's whole width before),
+// in the paint the pipe has there
 function edgeMarks(st, si, pipe, o) {
-  const out = [], sp = st.sp, W = st.w, n = o.lanes;
+  const out = [], sp = st.sp, W = st.w, n = o.lanes, reachOf = Math.max(1, pipe.e);
   const sides = [['l', u => [EDGE_IN, u], o.ch], ['r', u => [o.cw - EDGE_IN, u], o.ch], ['t', u => [u, EDGE_IN], o.cw], ['b', u => [u, o.ch - EDGE_IN], o.cw]];
-  const near = q => { let best = null; for (let i = 0; i < sp.P.length; i++) { const d = dist(q, sp.P[i]); if (d < W / 2 && (!best || d < best.d)) best = { d, i }; } return best; };
+  const near = q => { let best = null; for (let i = 0; i < sp.P.length; i++) { const d = dist(q, sp.P[i]); if (d <= reachOf && (!best || d < best.d)) best = { d, i }; } return best; };
   const out1 = p => p[0] < 0 || p[0] > o.cw || p[1] < 0 || p[1] > o.ch;
   if (!sp.P.some(out1)) return out;
   const segs = segsOf(st);
@@ -501,7 +506,7 @@ export function snakeOf(runs, pitch) {
   return out;
 }
 // → { pipes (with spines), sessions: [{ n, runs, marks }], nums: the paints
-// in order of their marks — the ticks' numbers, 1 the first — tight, dry,
+// in order of their marks, 1 the first — tight, dry,
 // crossings }. A run: { si, j, mode, pitch, lane, num, pts, cum, cross },
 // a snake's its nums and starts too (snakeOf);
 // a mark: { si, j, mode, s, pts, paint, kind, session }.
@@ -526,7 +531,7 @@ export function planOf(pipesIn, o) {
   let tight = 0;
   for (const { st, si } of pipes) {
     const s = sessions[ses[si] - 1], pp = pipeOf(st, si, o); tight += st.sp.tight;
-    for (const m of [...pp.marks, ...edgeMarks(st, si, pp, o)]) for (const piece of clipOpen(m.pts, PAN)) { const mk = { ...m, pts: piece, session: s.n }; s.marks.push(mk); s.idx.add(mk); }
+    for (const m of [...pp.marks, ...edgeMarks(st, si, pp, o)]) for (const piece of clipOpen(m.pts, PAN)) { const mk = { ...m, pts: piece, session: s.n }; s.marks.push(mk); s.idx.add({ ...mk, pts: reach(piece, o.brush / 2) }, mk); }
     const runs = pp.runs.flatMap(r => clipOpen(r.pts, R).map(piece => ({ ...r, pts: piece, session: s.n })));
     s.runs.push(...(isLanes(st) && o.aorder === 'snake' ? snakeOf(runs, pp.pitch) : runs));
   }
@@ -705,35 +710,21 @@ export function traceRows(trace, ink, o, dipRun = DIP_RUN) {
   });
   return { ps, info };
 }
-// MARKS: every mark of the session and its ticks, each a stroke of its own,
-// mark then ticks, from the cup as TRACE, a dip before every MARKS_DIP-th
-// mark. The ticks TYPE's abacus (ticksOf): a long one five, a short one one,
-// across the dash from its start, two line widths apart, so a wet line keeps
-// them apart. n: the paint's number, nums' index + 1.
-export const MARKS_DIP = 4;   // marks a dip carries, each with its ticks, est. (the prototype's)
-export function tickPaths(m, n, width) {
-  const P = m.pts, cum = cumOf(P), L = cum.at(-1), out = [], pitch = Math.max(4, 2 * width);
-  ticksOf(n - 1).forEach((long, j) => {
-    const s = width / 2 + j * pitch;
-    let i = cum.findIndex(c => c >= s); if (i < 1) i = 1; if (i > P.length - 1) i = P.length - 1;
-    const a = lerp(P[i - 1], P[i], Math.min(1, (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]))), nn = perp(norm(sub(P[i], P[i - 1]))), l = (long ? 3 : 1.5) * width;
-    out.push({ pts: [add(a, mul(nn, -l)), add(a, mul(nn, l))], long, fits: s <= L - width / 2 });
-  });
-  return out;
-}
+// MARKS: every mark of the session a stroke of its own, from the cup as
+// TRACE, a dip before every MARKS_DIP-th. No ticks since 2026-10-11 (the
+// owner: "the ticks turned out unnecessary — the lines are enough for me");
+// before, TYPE's abacus, the paint's number across the dash.
+export const MARKS_DIP = 4;   // marks a dip carries, est. (the prototype's)
 export function marksRows(pl, session, o) {
   const ps = [], info = [], count = {}, c = centred(o), s = pl.sessions[session];
   let n = 0;
   for (const m of s?.marks || []) {
     const num = pl.nums.indexOf(m.paint) + 1;
     n++; count[m.paint] = (count[m.paint] || 0) + 1;
-    const strokes = [{ pts: m.pts, label: `mark ${n}, paint ${num}` }, ...tickPaths(m, num, o.width).map((t, k) => ({ pts: t.pts, label: `paint ${num}, its ${t.long ? 'long' : 'short'} tick ${k + 1}` }))];
-    strokes.forEach((q, k) => {
-      const pieces = fitRun(q.pts.map(c)); if (!pieces.length) return;
-      const dip = !k && (n - 1) % MARKS_DIP === 0, row = ps.length + 1;
-      ps.push(pieces.map(g => ({ ...g, tilt: 0, row, ...(o.ink && !dip ? { nodip: true } : {}) })));
-      info.push({ label: `Pipe ${m.si + 1} · ${q.label}`, si: m.si, L: pieces.reduce((a, g) => a + pieceLen(g), 0) });
-    });
+    const pieces = fitRun(m.pts.map(c)); if (!pieces.length) continue;
+    const dip = (n - 1) % MARKS_DIP === 0, row = ps.length + 1;
+    ps.push(pieces.map(g => ({ ...g, tilt: 0, row, ...(o.ink && !dip ? { nodip: true } : {}) })));
+    info.push({ label: `Pipe ${m.si + 1} · mark ${n}, paint ${num}`, si: m.si, L: pieces.reduce((a, g) => a + pieceLen(g), 0) });
   }
   return { ps, info, marks: n, count };
 }
@@ -777,7 +768,6 @@ export function marksSvg(pl, s, o) {
   for (const m of s.marks) {
     const n = pl.nums.indexOf(m.paint) + 1;
     rows.push(`  <path d="${dd(rdp(m.pts, 0.15))}" data-paint="${n}" data-pipe="${m.si + 1}" data-segment="${m.j + 1}" data-kind="${m.kind}"/>`);
-    for (const t of tickPaths(m, n, o.width)) rows.push(`  <path d="${dd(t.pts)}" data-paint="${n}" data-tick="${t.long ? 'long' : 'short'}"/>`);
   }
   return svgDoc(o, `pass 2 marks, session ${s.n}`, `<g id="pass2-marks-s${s.n}" data-pass="2" data-ink="INK-1" data-dip-every-marks="${MARKS_DIP}" fill="none" stroke="#8A8A8A" stroke-width="${o.width}">\n${rows.join('\n')}\n</g>`);
 }
@@ -788,11 +778,7 @@ export function dragSvg(s, o) {
 export function paintMapSvg(pl, o) {
   const rows = [];
   pl.pipes.forEach(st => { if (!st.sp) return; for (const piece of clipOpen(outlineOf(st, st.w / 2 - 1), [0, 0, o.cw, o.ch])) rows.push(`<path d="${dd(rdp(piece, 0.2))}" fill="none" stroke="#24221F" stroke-width="0.6" opacity="0.5"/>`); });
-  for (const s of pl.sessions) for (const m of s.marks) {
-    const n = pl.nums.indexOf(m.paint) + 1;
-    rows.push(`<path d="${dd(rdp(m.pts, 0.2))}" stroke="${HEX[m.paint]}" stroke-width="4.5" stroke-linecap="round" fill="none"/>`);
-    for (const t of tickPaths(m, n, o.width)) rows.push(`<path d="${dd(t.pts)}" stroke="#24221F" stroke-width="0.9" fill="none"/>`);
-  }
+  for (const s of pl.sessions) for (const m of s.marks) rows.push(`<path d="${dd(rdp(m.pts, 0.2))}" stroke="${HEX[m.paint]}" stroke-width="4.5" stroke-linecap="round" fill="none"/>`);
   const legend = pl.nums.map((k, i) => `<rect x="10" y="${10 + i * 15}" width="11" height="11" fill="${HEX[k]}" stroke="#24221F" stroke-width="0.3"/><text x="27" y="${19 + i * 15}" font-family="Helvetica, Arial" font-size="10" fill="#24221F">${i + 1} ${NAME[k]}</text>`).join('');
   return svgDoc(o, 'paint map, for the painter, not for the machine', `<rect width="100%" height="100%" fill="${o.ground === 'paper' ? '#F1ECE1' : '#FBFAF7'}"/>\n${rows.join('\n')}\n<rect x="5" y="5" width="120" height="${pl.nums.length * 15 + 8}" fill="#FBFAF7" opacity="0.92"/>${legend}`);
 }

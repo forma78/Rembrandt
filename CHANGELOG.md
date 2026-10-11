@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ALU and SMKN: MARKS from lane 1 to lane n, no ticks** (the owner,
+  2026-10-11: "we have not fixed MARKS. It has the same trouble TRACE had —
+  the strokes stick out a lot, they do not meet DRAG's way. And while we are
+  at it — the ticks turned out unnecessary; the lines are enough for me, even
+  if they fall 2–3 mm short of the first (outer) and last (inner) lanes").
+  Master Flo's marks and Segments' dashes across end on lanes 1 and n, DRAG's
+  lines, where TRACE runs since yesterday — before, the pipe's edge less
+  0.5 mm (Master Flo) or 2 mm (Segments); the dashes along a canvas edge only
+  where the lanes reach it. A stroke a mark: no abacus ticks on the canvas,
+  in the files or on the map, their warning gone; a dip every 4 marks still
+  (est.). Result takes up a mark's paint where the brush's edge meets its
+  end, half a brush out, so lanes 1 and n are not left dry by a hair.
+
 - **ALU and SMKN: up to 18 lanes along** (the owner, 2026-10-11: "I have
   put on a finer brush; now Lanes along 12 · 3.7 mm apart — a maximum of 12
   is not enough. It can go right up to 18! But most likely I will use 14 or

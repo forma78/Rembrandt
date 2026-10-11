@@ -693,8 +693,11 @@ this section disagree, this section wins: the owner corrected the sketch on
   trace's outline … remove the slider and make a strict correspondence";
   before, the line's outer edge on the pipe's, TYPE's way, (Brush width −
   Line width) / 2 outside the lanes, no slider of its own); cut to the
-  canvas, one whole on it a loop on 60 % over its start. MARKS: every dash and its ticks, TYPE's abacus, a dip every 4 marks
-  (est.). DRAG: every run a row — whole lanes n … 1, each the whole pipe, a
+  canvas, one whole on it a loop on 60 % over its start. MARKS: every dash, a dip every 4 marks
+  (est.), **from lane 1 to lane n, no ticks** (the owner, 2026-10-11: "MARKS
+  has the same trouble TRACE had — the strokes stick out a lot, they do not
+  meet DRAG's way … the ticks turned out unnecessary; the lines are enough
+  for me"; before, the pipe's edge less 0.5 mm, and TYPE's abacus). DRAG: every run a row — whole lanes n … 1, each the whole pipe, a
   landing and a lift each — the dry brush, no dip. 3 Drag numbers the lanes
   at their starts as the owner's page does. **The snake** (the owner,
   2026-10-10: "I need a run as a snake, back and forth, the brush going
