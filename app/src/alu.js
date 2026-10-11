@@ -276,7 +276,7 @@ function draw() {
       drawCup(g, msx(at), msy(at), r); g.fillStyle = ink; g.textAlign = 'left'; g.fillText(`cup ⌀${cup().diameter || 50}`, msx(at) + r * 1.7 + 4, msy(at) + 3);
     }
   }
-  if (g === ctx && (S.view !== 'result' || grab)) guides();
+  if (g === ctx && (S.view !== 'result' || grab || (CUT && !PLAY))) guides();     // ALU-CUT: over the Result too, but for Play the run (the owner, 2026-10-11)
   drawTrail();
 }
 

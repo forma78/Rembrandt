@@ -777,7 +777,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   same day: "New composition — not needed at all; we remove it. New colours
   is needed, but it changes every colour … I would rather pick one segment
   and colour just it"): a click on a pipe chooses its segment, New colours
-  picks its family again, the rest as they are.
+  picks its family again, the rest as they are. The orange guides over the
+  Result too, but for Play the run; the views Design · Trace · Marks · Drag ·
+  Result, no numbers ("only noise").
 - **SMKN**, after ALU (2026-10-08, §1): ALU's page with the paints in stock
   (`app/smkn.html`, its body `data-tab="smkn"`; `aluplan.js`, SMKN_TUBES):
   the strip the fourteen tubes, light to dark — 116 Titanium White, 029

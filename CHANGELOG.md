@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.5 — 2026-10-11 · Cut
 
+- **ALU-CUT: the orange guides over the Result too; the views without
+  numbers** (the owner, 2026-10-11: "with Result on, the same orange guides
+  as in Trace / Marks, please; there are numbers there for some reason, 1
+  Trace, 2 Marks — I would take them out, only noise"). The chosen pipe, its
+  points, its chosen segment and the cuts with ❚❚ drawn over the Result, but
+  for Play the run; Design · Trace · Marks · Drag · Result. ALU and SMKN as
+  they were; the files keep their pass numbers.
+
 - **ALU-CUT: New colours for the chosen segment; no New composition** (the
   owner, 2026-10-11: "it is not clear now what COMPOSITION is for. New
   composition — not needed at all; we remove it. New colours is needed, but
