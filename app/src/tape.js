@@ -28,7 +28,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS as RUN, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
-import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixWalk, spokeLine, spokeHits, nearestSample, TAPE_PAINTS, PAINT, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
+import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixWalk, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, TAPE_PAINTS, PAINT, SPOKE_LANES, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -549,9 +549,11 @@ $('#paints').querySelectorAll('[data-paint]').forEach(ch => ch.querySelector('.s
 document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { S.tool = S.tool === b.dataset.tool ? '' : b.dataset.tool; save(); showPanel(); kick(); });
 $('#btnSpokesClear').onclick = () => { if (!S.spokes.length) return; undoPush(); S.spokes = []; settle(); };
 let grab = null;
-const spokeOfGrab = () => grab && (grab.moved   // a drag: lane to lane; a click: all the lanes
-  ? { u: grab.u, k0: Math.max(0, Math.round(Math.min(grab.l0, grab.l1))), k1: Math.round(Math.max(grab.l0, grab.l1)), paint: S.paint }
-  : { u: grab.u, k0: 0, k1: 999, paint: S.paint });
+const spokeOfGrab = () => {                                                       // a click: the block of six under the pointer; a drag: lane to lane, six at most
+  if (!grab) return null;
+  const [k0, k1] = grab.moved ? dragLanes(grab.l0, grab.l1) : blockOf(grab.l0);
+  return { u: grab.u, k0, k1, paint: S.paint };
+};
 cv.addEventListener('pointerdown', e => {
   if (e.button !== 0 || S.tool !== 'spoke' || PLAY) return;
   const G = planNow(), [x, y] = toCanvas(e);
@@ -559,7 +561,9 @@ cv.addEventListener('pointerdown', e => {
   if (hit >= 0) { undoPush(); S.spokes.splice(hit, 1); settle(); return; }
   const i = nearestSample(G, x, y, Math.max(3, 10 / k));
   if (i < 0) return;
-  grab = { u: G.pts[i].u, l0: G.pts[i].l, l1: G.pts[i].l, moved: false }; cv.setPointerCapture(e.pointerId); kick();
+  // a dash lines up with a spoke lying there, so they run on along one radius
+  const k0 = Math.max(0, Math.round(G.pts[i].l)), near = S.spokes.map(sp => ({ sp, d: Math.hypot(...spokePoint(G, sp.u, k0).map((v, j) => v - [x, y][j])) })).filter(q => q.d < 5).sort((a, b) => a.d - b.d)[0];
+  grab = { u: near ? near.sp.u : G.pts[i].u, l0: G.pts[i].l, l1: G.pts[i].l, moved: false }; cv.setPointerCapture(e.pointerId); kick();
 });
 cv.addEventListener('pointermove', e => {
   cv.style.cursor = S.tool === 'spoke' ? 'crosshair' : '';
@@ -702,7 +706,7 @@ function showPanel() {
   $('#cassRead').innerHTML = !CASS ? '<span class="warn">No cassette: start rembrandt.py, or load an SVG.</span>'
     : `${esc(CASS.name)} · <b>${fmt(cb?.w ?? 0, 1)} × ${fmt(cb?.h ?? 0, 1)} mm</b> on the canvas, ${S.cassScale === 100 ? 'real size' : `${S.cassScale} % of real`} · ${CASS.items.length} outlines`;
   $('#btnCassDefault').classList.toggle('on', !S.cassSvg);
-  $('#hint').textContent = S.tool === 'spoke' ? `M, ${PAINT[S.paint].name}: a click on the tape lays a spoke across all the lanes, a drag from lane to lane a short one; a click on a spoke takes it away. The Result mixes them as the brush goes (est.).` : HINT;
+  $('#hint').textContent = S.tool === 'spoke' ? `M, ${PAINT[S.paint].name}: a click on the tape lays a spoke over the ${SPOKE_LANES} lanes there — 1 … 6, 7 … 12, 13 … 18 — lined up with one lying there; a drag from lane to lane, ${SPOKE_LANES} at most; a click on a spoke takes it away. The Result mixes them as the brush goes (est.).` : HINT;
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
   const count = {}; for (const sp of S.spokes) count[sp.paint] = (count[sp.paint] || 0) + 1;
   $('#paints').querySelectorAll('[data-paint]').forEach(ch => {
@@ -713,7 +717,7 @@ function showPanel() {
   });
   $('#paintRead').innerHTML = S.spokes.length
     ? `<b>${S.spokes.length}</b> spoke${S.spokes.length === 1 ? '' : 's'}: ${Object.entries(count).map(([id, n]) => `${PAINT[id].name}${n > 1 ? ` × ${n}` : ''}`).join(', ')} — the Result mixes them as the brush goes, ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} ${MODE_NAME[S.mode]} (est.)`
-    : 'No spokes: a paint in the strip on the left, then a click on the tape — a spoke across all the lanes; a drag — from lane to lane.';
+    : `No spokes: a paint in the strip on the left, then a click on the tape — a spoke over the ${SPOKE_LANES} lanes there, one after another outwards as a dashed line; a drag — from lane to lane.`;
 }
 const took = s => s < 59.5 ? `${Math.max(1, Math.round(s))} s` : `${fmt(s / 60, 0)} min`;   // a short run in seconds
 // Settled: a slider let go, a key pressed — the plan, the reading, the LCD.

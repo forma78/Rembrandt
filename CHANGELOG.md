@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: a spoke six lanes at most, dash after dash** (the owner,
+  2026-10-12: "I do not lay the colour as an even sausage over the whole
+  length. It wants breaking into 6 lines at most; I will make 12 myself, one
+  after another, as a dashed line — and 18 too; then one fragment at the
+  bottom may have one colour, or two, or three"). A click with M lays the
+  block of six lanes under the pointer — 1 … 6, 7 … 12, 13 … 18 — lined up
+  with a spoke lying within 5 mm there, so the dashes run on along one
+  radius; a drag lane to lane, six at most (`blockOf`, `dragLanes`).
+
 - **TAPE: every paint off its swatch; two columns of 12** (the owner,
   2026-10-12, `colors-004…006.jpg`: the second sheet — "the Chinese are
   circus artists, of course: Green, White, Purple, no fuss" — and "White

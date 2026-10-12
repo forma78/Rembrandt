@@ -35,7 +35,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
 | **Run · overrun (on TAPE)** | A run: the tape whole, from where it comes out from under the cassette to its last lane, the brush down off the canvas too (a closed ring a run of its own). The overrun: how far the brush carries on past the canvas's edge at a run's end before it lifts. No segments and no paint stops since 2026-10-12, the evening (§1). |
-| **Spoke (on TAPE)** | Paint squeezed across the lanes at one spot round the cassette, from it outwards, as the owner laid it on paper (`TAPE-images/` 17:22): one of his paints, all the lanes or from lane to lane, on the canvas only; the tape passes it lap after lap and the brush drags it along. Laid with M; the Result mixes them as the brush goes. A map for the hand, never run on the machine. |
+| **Spoke (on TAPE)** | Paint squeezed across the lanes at one spot round the cassette, from it outwards, as the owner laid it on paper (`TAPE-images/` 17:22): one of his paints over six lanes at most — a click the block of six there (lanes 1 … 6, 7 … 12 …), lined up with a spoke lying there, a drag lane to lane — so a spot may hold one, two or three colours, dash after dash outwards; on the canvas only; the tape passes it lap after lap and the brush drags it along. Laid with M; the Result mixes them as the brush goes. A map for the hand, never run on the machine. |
 | **Snake · Air (on TAPE)** | DRAG's two keys on TAPE: the snake, the run's strokes forward, back, forward … with the brush down; air, forward on the canvas, the brush lifting at the end and flying back to its start, the strokes over. Not CCD's snake, lane after lane. |
 | **ALU-CUT** | ALU with the new things, the first tab from 2026-10-11 to 10-12, in TYPE's and LOVE's place, then after TAPE (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `alucut.html` since 2026-10-12 (`index.html` before), its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
 | **Cut · part** | On ALU-CUT: a seam made with the scissors, ✂ (C), where DRAG stops — the brush lifted, wiped or washed, the next part's paints squeezed, Continue; a part, the pipe between two cuts or a cut and an end, painted on its own with a clean brush, its lanes half a brush clear of a cut, the pipe's lane numbers going on across it (2026-10-11, §8). A seam (S) only changes the paints. |
@@ -489,7 +489,13 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   mixed as pigments (*Claude's*: the walk, not Florian's gradient between
   marks, so Snake, Air and Strokes show; its numbers est.). Play the run
   shows the mixed paint where the brush has been. Not run on the machine:
-  the owner squeezes by hand, "Marks is not needed".
+  the owner squeezes by hand, "Marks is not needed". **A spoke six lanes
+  at most** ("I do not lay the colour as an even sausage over the whole
+  length. It wants breaking into 6 lines at most; I will make 12 myself, one
+  after another, as a dashed line — and 18 too; then one fragment at the
+  bottom may have one colour, or two, or three"): a click lays the block of
+  six under the pointer, lined up with a spoke lying there; a drag six at
+  most.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the

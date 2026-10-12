@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
+import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, blockOf, dragLanes, spokePoint, SPOKE_LANES, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS as RUN_DEFAULTS, pieceLen, sweepOf } from '../src/strokes.js';
 import { toMachine, LOOP_SHARE } from '../src/band.js';
 
@@ -212,4 +212,18 @@ test('the brush mixing the paints: nothing without a spoke; a spoke dragged alon
   const mixed = mixWalk(G, [{ u: 6.5, k0: 0, k1: 999, paint: 'lemon' }, { u: 7.5, k0: 0, k1: 999, paint: 'sky' }], 'snake');
   const i = lane.find(j => G.pts[j].u > 7.6 && mixed.cover[j] > 0.2), [r, g, b] = [0, 1, 2].map(q => mixed.rgb[3 * i + q]);
   assert.ok(g > r && g > b, `lemon carried into sky: a green, ${[r, g, b].map(v => v.toFixed(2))}`);
+});
+
+test('a spoke six lanes at most (the owner, 2026-10-12: "6 lines at most … one after another, as a dashed line"): a click the block of six, a drag six at most', () => {
+  assert.equal(SPOKE_LANES, 6);
+  assert.deepEqual(blockOf(0), [0, 5]); assert.deepEqual(blockOf(5.4), [0, 5]); assert.deepEqual(blockOf(6), [6, 11]); assert.deepEqual(blockOf(13.2), [12, 17]);
+  assert.deepEqual(blockOf(-0.7), [0, 5], 'the tape coming out from under the cassette: the first block');
+  assert.deepEqual(dragLanes(2, 4), [2, 4]); assert.deepEqual(dragLanes(2, 20), [2, 7]); assert.deepEqual(dragLanes(9, 1), [4, 9]);
+  const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity });
+  const dashes = [[0, 5, 'black'], [6, 11, 'oyellow'], [12, 17, 'sky']].map(([k0, k1, paint]) => ({ u: 6.5, k0, k1, paint }));
+  const hits = dashes.map(d => spokeHits(G, d));
+  assert.ok(hits.every(h => h.length === 6) || hits.slice(0, 2).every(h => h.length === 6), 'six lanes a dash');
+  assert.equal(new Set(hits.flat()).size, hits.flat().length, 'the dashes never on one lane twice');
+  const p = spokePoint(G, 6.5, 8), q = spokeLine(G, dashes[1])[2];
+  assert.ok(Math.hypot(p[0] - q[0], p[1] - q[1]) < 1e-9, 'a dash\'s spot on a lane');
 });

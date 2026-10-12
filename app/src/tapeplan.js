@@ -510,6 +510,20 @@ export function spokeHits(G, sp) {
   }
   return out;
 }
+// A spoke at most SPOKE_LANES lanes (the owner, 2026-10-12: "I do not lay
+// the colour as an even sausage over the whole length. It wants breaking
+// into 6 lines at most; I will make 12 myself, one after another, as a
+// dashed line — and 18 too; then one fragment at the bottom may have one
+// colour, or two, or three"): a click the block of six under the pointer,
+// lanes 1 … 6, 7 … 12, 13 … 18 …; a drag lane to lane, six at most.
+export const SPOKE_LANES = 6;
+export const blockOf = l => { const k0 = Math.max(0, Math.floor(Math.max(0, Math.round(l)) / SPOKE_LANES) * SPOKE_LANES); return [k0, k0 + SPOKE_LANES - 1]; };
+export function dragLanes(l0, l1) {
+  const a = Math.max(0, Math.round(l0)), b = Math.max(0, Math.round(l1));
+  return b >= a ? [a, Math.min(b, a + SPOKE_LANES - 1)] : [Math.max(b, a - SPOKE_LANES + 1), a];
+}
+// a spoke's spot on lane k, canvas mm — to line a new dash up with one lying there
+export function spokePoint(G, u, k) { const q = G.F.ring(k), p = rrU(rrGeo(q.a, q.b, q.r), u); return [p.x, p.y * G.sy]; }
 // the spoke as it lies, canvas mm: a point on every lane it crosses
 export function spokeLine(G, sp) {
   const out = [];
