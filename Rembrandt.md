@@ -534,7 +534,17 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   (`ALU-Claude/paper-test/`, ALU's run and spacing) — so the longer outer
   lanes get more spots; along a stripe the paint changes at every spot.
   New colours repaints the spokes in their places; New spokes mixes the
-  stripes anew, the spots as the rule says; 1 · 2 · 6 lanes for M.
+  stripes anew, the spots as the rule says. **The Result after the owner's
+  ideal** (`TAPE-colors/meta-tape-01.jpg`, the same evening: "much better
+  already! but I would take the sausages themselves off the Result, let them
+  be on Drag only"; "and take away 1 lane, 2 lanes, 6 lanes — better an
+  option to add or change a colour among those chosen"): the spokes on Drag
+  only; every lane five grooves, each its own pick and breath, its colour
+  dragged forward 5 … 45 mm, lane by lane, its brightness wandering — the
+  changes torn into streaks (est.); a ring holds its tone, dark and light in
+  turn; an accent a fleck, a third of the paint; the lane keys gone, M laying
+  the pattern's stripe under the pointer, else six; in the paints' list a
+  click and a paint in the strip change one, + adds one, × takes one out.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -961,8 +971,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   ground and tape colours in the Tools; M and Clear the spokes over them;
   the owner's paints a strip by the Tools, two columns of 12, a chip a
   paint, its name on hover, its spokes counted under it; Paints in the
-  panel — **New colours · New spokes**, **1 lane · 2 lanes · 6 lanes**,
-  Density, the paints in use, the palette and the spokes under its i. 💾 SAVE TAPE, the Library opening it
+  panel — **New colours · New spokes**, Density, the paints in use — a
+  click and a paint in the strip to change one, + to add, × to take out —
+  the palette and the spokes under its i. 💾 SAVE TAPE, the Library opening it
   here: an SVG centred on the canvas, its layers cassette (its SVG nested
   as it is), trace-cassette (its outline), trace-tape and drag-tape, lines
   and arcs.

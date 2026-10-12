@@ -24,7 +24,7 @@
 
 import { fitPieces, toMachine, DIP_RUN, LOOP_SHARE } from './band.js';
 import { pieceLen, reverse, sweepOf } from './strokes.js';
-import { linOf, toSrgb, pigmentMix } from './color.js';
+import { linOf, toSrgb, pigmentMix, luminance } from './color.js';
 import { rng } from './util.js';
 
 export const REAL = { tape: 3.81, cassW: 100.4, cassH: 63.8 };   // mm: a compact cassette's tape and shell
@@ -556,7 +556,7 @@ export const PICK = 0.35, SMEAR = 40, SPOKE_MM = 120, SPOKE_W = 5;   // est.
 // need a density of colour slider, to come near the original")
 export const DENSITY = 50;
 export const densityOf = d => 0.5 * Math.pow(128, Math.max(0, Math.min(100, d)) / 100);
-export function mixWalk(G, spokes, mode = G.o.mode, density = DENSITY) {
+export function mixWalk(G, spokes, mode = G.o.mode, density = DENSITY, kk = {}) {   // kk: { pick, smear }, a groove's own
   const n = G.pts.length, amt = new Float32Array(n), col = new Float32Array(n * 3), len = new Float32Array(n);
   for (let i = 1; i < n; i++) len[i] = G.pts[i].brk ? 0 : G.cum[i] - G.cum[i - 1];
   const mm = i => Math.max(0.3, len[i] || len[i + 1] || 0.6);                      // the stretch a sample stands for
@@ -568,14 +568,14 @@ export function mixWalk(G, spokes, mode = G.o.mode, density = DENSITY) {
       for (let j = h; j >= 0 && G.cum[h] - G.cum[j] <= half && !(j < h && G.pts[j + 1].brk); j--) near.push(j);
       for (let j = h + 1; j < n && G.cum[j] - G.cum[h] <= half && !G.pts[j].brk; j++) near.push(j);
       for (const j of near) s += mm(j);
-      for (const j of near) put(j, c, SPOKE_MM * densityOf(density) * mm(j) / s);
+      for (const j of near) put(j, c, SPOKE_MM * densityOf(density) * (sp.thin ? FLECK : 1) * mm(j) / s);   // an accent a fleck: a third of the paint
     }
   }
   const walk = (i0, i1) => {                                                       // one stroke, i0 → i1 either way
     let b = 0, bc = [0, 0, 0];
     const d = i1 >= i0 ? 1 : -1;
     for (let i = i0; ; i += d) {
-      const L = mm(i), take = amt[i] * PICK, give = b * Math.min(1, L / SMEAR);
+      const L = mm(i), take = amt[i] * (kk.pick ?? PICK), give = b * Math.min(1, L / (kk.smear ?? SMEAR));
       const was = [col[3 * i], col[3 * i + 1], col[3 * i + 2]];
       if (give > 0) { const keep = amt[i] - take; amt[i] = keep; put(i, bc, give); }
       else amt[i] -= take;
@@ -589,6 +589,39 @@ export function mixWalk(G, spokes, mode = G.o.mode, density = DENSITY) {
   const rgb = new Float32Array(n * 3), cover = new Float32Array(n);
   for (let i = 0; i < n; i++) { cover[i] = Math.min(1, amt[i] / mm(i)); for (let q = 0; q < 3; q++) rgb[3 * i + q] = amt[i] > 0 ? toSrgb(col[3 * i + q]) : 0; }
   return { rgb, cover };
+}
+// The bristles (the owner's ideal, TAPE-colors/meta-tape-01.jpg: the colours
+// smeared along the lanes, the changes torn into streaks, no beads): a lane
+// GROOVES grooves across, each its own pick and breath, so a new paint
+// reaches farther in some than in others; each a shade lighter or darker.
+// → [{ rgb, cover, off: across the lane −½ … ½, shade: −1 … 1 }]
+export const GROOVES = 5, FLECK = 0.35;                                            // an accent's paint in a spoke, of a core paint's (est.)
+const GROOVE_K = [[0.8, 1.25, 0.06, 5], [1.15, 0.85, -0.05, 12], [0.95, 1.05, 0.02, 20], [1.3, 0.7, -0.08, 30], [0.7, 1.4, 0.05, 45]];   // pick ×, breath ×, shade, its drag mm (Claude's, est.)
+const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+// a groove's colour dragged forward the way the brush first goes, over its
+// own length — longer or shorter lane by lane — and its brightness wandering
+// ±STREAK, about STREAK_MM a wave: the dry brush's streaks
+export const STREAK = 0.12, STREAK_MM = 15;                                       // est.
+function streaked(G, M, j, drag) {
+  const n = G.pts.length, rgb = new Float32Array(n * 3), lin = [0, 0, 0];
+  for (const r of G.segs) {
+    let w = 0; lin[0] = lin[1] = lin[2] = 0;
+    for (let i = r.i0; i <= r.i1; i++) {
+      const lane = Math.round(G.pts[i].l), L = drag * (0.6 + 0.8 * hash(lane, j)), d = i > r.i0 ? G.cum[i] - G.cum[i - 1] : 0, a = Math.exp(-d / L), c = M.cover[i];
+      for (let q = 0; q < 3; q++) { const v = M.rgb[3 * i + q], li = v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; lin[q] = lin[q] * a + li * c * (1 - a); }
+      w = w * a + c * (1 - a);
+      const s = G.cum[i] / STREAK_MM + hash(lane, j + 7) * 50, f = Math.floor(s), t = s - f, nz = hash(f, lane * 13 + j) * (1 - t * t * (3 - 2 * t)) + hash(f + 1, lane * 13 + j) * t * t * (3 - 2 * t);
+      const k = 1 + STREAK * (2 * nz - 1);
+      for (let q = 0; q < 3; q++) { const li = w > 1e-6 ? lin[q] / w : 0; rgb[3 * i + q] = Math.min(1, toSrgb(li) * k); }
+    }
+  }
+  return rgb;
+}
+export function mixGrooves(G, spokes, mode = G.o.mode, density = DENSITY, n = GROOVES) {
+  return Array.from({ length: n }, (_, j) => {
+    const [p, m, sh, drag] = GROOVE_K[j % GROOVE_K.length], M = mixWalk(G, spokes, mode, density, { pick: PICK * p, smear: SMEAR * m });
+    return { rgb: streaked(G, M, j, drag), cover: M.cover, off: (j + 0.5) / n - 0.5, shade: sh };
+  });
 }
 
 // ---------- New colours: a palette and its spokes at random, as ALU's ----------
@@ -657,18 +690,24 @@ function paintPattern(spokes, pal, seed) {
   const r = rng(seed ^ 0x27d4eb2f), byStripe = new Map(), out = spokes.map(s => ({ ...s }));
   out.forEach(s => { const key = `${s.k0}:${s.k1}`; if (!byStripe.has(key)) byStripe.set(key, []); byStripe.get(key).push(s); });
   const stripes = [...byStripe.values()].sort((a, b) => a[0].k0 - b[0].k0);
-  let inner = [];
+  const lum = pal.core.map(id => [id, luminance(PAINT[id].hex)]).sort((a, b) => a[1] - b[1]), half = Math.ceil(lum.length / 2);
+  const tones = [lum.slice(0, half).map(q => q[0]), lum.slice(half).map(q => q[0])];   // dark, light
+  let inner = [], tone = r() < 0.5 ? 0 : 1;
   for (const row of stripes) {
     row.sort((a, b) => a.u - b.u);
     const w = row[0].k1 - row[0].k0 + 1, thin = w <= ACCENT_LANES;
+    // a ring holds its tone, as the ideal's (meta-tape-01.jpg): dark and light rings in turn, now and then two alike
+    tone = r() < 0.25 ? tone : 1 - tone;
+    const own = tones[tone].length ? tones[tone] : pal.core;
     let prev = null;
     for (const s of row) {
       const beside = inner.reduce((best, t) => !best || uGap(t.u, s.u) < uGap(best.u, s.u) ? t : best, null)?.paint;
-      const accent = pal.accent.length && (thin ? r() < 0.6 : r() < ACCENT_P * 0.5), from = accent ? pal.accent : pal.core;
+      const accent = pal.accent.length && (thin ? r() < 0.35 : r() < 0.05), from = accent ? pal.accent : r() < 0.8 ? own : pal.core;   // an accent a fleck
       let ok = from.filter(p => p !== prev && p !== beside);
       if (!ok.length) ok = [...pal.core, ...pal.accent].filter(p => p !== prev && p !== beside);   // an accent alone, and the spot before had it: the whole palette
       if (!ok.length) ok = [...pal.core, ...pal.accent].filter(p => p !== prev);
       s.paint = ok[Math.floor(r() * ok.length)] ?? from[0]; prev = s.paint;
+      if (pal.accent.includes(s.paint) && !pal.core.includes(s.paint)) s.thin = true; else delete s.thin;   // an accent a fleck (mixWalk, FLECK)
     }
     if (row.length > 1 && row[0].paint === row.at(-1).paint) { const alt = pal.core.find(p => p !== row[0].paint && p !== row[1]?.paint); if (alt) row.at(-1).paint = alt; }   // round the lap: the last spot is the first's neighbour
     inner = row;

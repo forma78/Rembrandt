@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: the Result streaky, as the owner's ideal; the spokes on Drag
+  only; the palette in hand** (the owner, 2026-10-12,
+  `TAPE-colors/meta-tape-01.jpg`: "much better already! but I would take the
+  sausages themselves off the Result, let them be on Drag only"; "take away
+  1 lane, 2 lanes, 6 lanes — better an option to add or change a colour
+  among those chosen"). The Result draws every lane as five grooves, each
+  its own pick and breath (`mixGrooves`), its colour dragged forward 5 … 45
+  mm, lane by lane, its brightness wandering ±12 % about every 15 mm: the
+  changes torn into streaks (all est.). The pattern's rings hold their tone,
+  dark and light in turn; an accent a fleck, a third of the paint (`FLECK`).
+  The spokes drawn on Drag only; picking a paint for M goes to Drag. The
+  lane keys gone: M lays the pattern's stripe under the pointer, else six
+  lanes. In the paints' list a click, then a paint in the strip, changes it
+  on every spoke; + then a paint adds it to the palette, the spokes
+  repainted in their places; × takes one out.
+
 - **TAPE: the spokes a pattern, not a daisy** (the owner, 2026-10-12, his
   collage `TAPE-colors/Screenshot-…6.51.00 PM-.png`, the 8 October paper
   test photographed again: "strictly on every corner two spokes"; "the
