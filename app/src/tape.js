@@ -28,7 +28,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS as RUN, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
-import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixWalk, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, newPalette, newSpokes, recolourSpokes, densityOf, TAPE_PAINTS, PAINT, SPOKE_LANES, SPOKE_SIZES, DENSITY, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
+import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixWalk, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, newPalette, newSpokes, recolourSpokes, densityOf, RUN_MM, TAPE_PAINTS, PAINT, SPOKE_LANES, SPOKE_SIZES, DENSITY, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -560,14 +560,14 @@ $('#btnSpokesClear').onclick = () => { if (!S.spokes.length) return; undoPush();
 $('#btnNewColours').onclick = () => {
   undoPush(); stopPlay();
   S.seed = Math.floor(Math.random() * 1e9); S.palette = newPalette(S.seed, S.palette?.name);
-  S.spokes = S.spokes.length ? recolourSpokes(S.spokes, S.palette, S.seed) : newSpokes(planNow(), S.palette, S.seed, S.spokeLanes);
+  S.spokes = S.spokes.length ? recolourSpokes(S.spokes, S.palette, S.seed) : newSpokes(planNow(), S.palette, S.seed);   // the sausages stay in their places
   S.view = 'result'; settle();
 };
-// New spokes: their places at random, in the palette as it is
+// New spokes: the pattern — the corners' spots and the brush's breath — its stripes mixed anew, in the palette as it is
 $('#btnNewSpokes').onclick = () => {
   undoPush(); stopPlay();
   S.seed = Math.floor(Math.random() * 1e9); S.palette ||= newPalette(S.seed);
-  S.spokes = newSpokes(planNow(), S.palette, S.seed, S.spokeLanes);
+  S.spokes = newSpokes(planNow(), S.palette, S.seed);
   S.view = 'result'; settle();
 };
 let grab = null;
@@ -744,7 +744,7 @@ function showPanel() {
   $('#paintList').innerHTML = inUse.map(id => `<span class="pl${count[id] ? '' : ' none'}" title="${PAINT[id].name}${S.palette?.accent.includes(id) ? ', thin' : ''}"><i style="background:${PAINT[id].hex}"></i>${PAINT[id].name}${S.palette?.accent.includes(id) ? ' <em>thin</em>' : ''}${count[id] ? ` <em>×${count[id]}</em>` : ''}</span>`).join('');
   document.querySelectorAll('#laneKeys [data-lanes]').forEach(b => b.classList.toggle('on', +b.dataset.lanes === S.spokeLanes));
   $('#paintRead').innerHTML = [
-    'The spokes, where you squeeze the paints. New colours: a palette at random — the spokes lying there take it, or new ones are laid; New spokes: their places at random, the palette kept. M and a paint in the strip: a click lays a spoke over the Spoke\'s lanes there, a drag from lane to lane, a click on a spoke takes it away.',
+    `The spokes, where you squeeze the paints. New colours: a palette at random, the spokes staying in their places — or, none lying, the pattern laid. New spokes: the pattern, its stripes of lanes mixed anew — two spots at every corner, and more where a lane would go ${RUN_MM} mm without paint, the brush running out there (the paper test of 8 October, ALU-Claude/paper-test/). M and a paint in the strip: a click lays a spoke over 1, 2 or 6 lanes there, a drag from lane to lane, a click on a spoke takes it away.`,
     S.palette && `Palette <b>${S.palette.name}</b>: ${S.palette.core.map(id => PAINT[id].name).join(', ')}; thin: ${S.palette.accent.map(id => PAINT[id].name).join(', ')} · seed ${S.seed}`,
     S.spokes.length ? `<b>${S.spokes.length}</b> spoke${S.spokes.length === 1 ? '' : 's'} — the Result mixes them as the brush goes, ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} ${MODE_NAME[S.mode]}, Density ${S.density} % (est.)` : 'No spokes yet.',
   ].filter(Boolean).join('<br>');

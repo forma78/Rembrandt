@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: the spokes a pattern, not a daisy** (the owner, 2026-10-12, his
+  collage `TAPE-colors/Screenshot-…6.51.00 PM-.png`, the 8 October paper
+  test photographed again: "strictly on every corner two spokes"; "the
+  nearer the cassette, the richer the colours; the farther, the colour comes
+  to nothing. So the number of spokes must not be random. Only the palette
+  changes, the sausages stay in their places … the brush runs out after 7
+  cm; the pattern must be made with that"). New spokes lays stripes of 6,
+  3, 2 or 1 lanes, mixed, each through spots at both ends of every corner
+  and more where its outer lane would go 70 mm without paint, 60 mm apart
+  at most (the paper test's, `ALU-Claude/paper-test/`), so the outer lanes
+  get more; along a stripe the paint changes at every spot, a thin stripe an
+  accent more often. New colours repaints the spokes in their places. The
+  random four to eight radial spots gone; 1 · 2 · 6 lanes for M only.
+
 - **TAPE: Density; spokes of 1, 2 or 6 lanes; the paints in use in sight**
   (the owner, 2026-10-12, `TAPE-colors/Screenshot … 6.49 … 6.52 PM.png`, a
   reference laid beside the Result: "they are somehow thin. The reference

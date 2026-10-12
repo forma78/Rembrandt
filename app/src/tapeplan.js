@@ -615,45 +615,73 @@ export function newPalette(seed, not = '') {
   const r = rng(seed), F = TAPE_FAMILIES.filter(f => f.name !== not), f = F[Math.floor(r() * F.length)];
   return { name: f.name, core: shuffled(r, f.core).slice(0, 3 + Math.floor(r() * Math.min(3, f.core.length - 2))), accent: shuffled(r, f.accent).slice(0, 1 + Math.floor(r() * 2)) };
 }
-export const ACCENT_P = 0.22, ACCENT_LANES = 2;   // a block's chance of a thin accent, and its lanes (Claude's)
-// The spokes' paints: a core paint a dash, never the one of the dash before
-// it on its radius nor the one lying on the same lanes at the spot before; a
-// six now and then giving its last ACCENT_LANES lanes to an accent; a dash of
-// one or two lanes now and then an accent whole, or thin beside wider ones.
-// slots: [{ u, k0, k1 }] in order, position by position → spokes
-function paintSlots(slots, pal, r, accents = true) {
-  const out = [], last = new Map(), widest = Math.max(1, ...slots.map(s => s.k1 - s.k0 + 1));   // block → the paint at the spot before
-  let prevU = null, prev = null;
-  for (const s of slots) {
-    if (s.u !== prevU) { prev = null; prevU = s.u; }
-    const w = s.k1 - s.k0 + 1, short = w <= ACCENT_LANES && (widest > ACCENT_LANES + 1 || r() < ACCENT_P);
-    const from = short && pal.accent.length ? pal.accent : pal.core;
-    const ok = from.filter(p => p !== prev && p !== last.get(s.k0)), choice = ok.length ? ok : from;
-    const paint = choice[Math.floor(r() * choice.length)];
-    if (accents && !short && pal.accent.length && s.k1 - s.k0 + 1 > ACCENT_LANES + 1 && r() < ACCENT_P) {
-      out.push({ u: s.u, k0: s.k0, k1: s.k1 - ACCENT_LANES, paint });
-      out.push({ u: s.u, k0: s.k1 - ACCENT_LANES + 1, k1: s.k1, paint: pal.accent[Math.floor(r() * pal.accent.length)] });
-    } else out.push({ u: s.u, k0: s.k0, k1: s.k1, paint });
-    prev = paint; last.set(s.k0, paint);
+export const ACCENT_P = 0.22, ACCENT_LANES = 2;   // a dash's chance of an accent where no thinner stripe takes it, and an accent's lanes (Claude's)
+// The pattern (the owner, 2026-10-12, his collage `Screenshot-…6.51.00 PM-.png`:
+// "strictly on every corner two spokes"; "the reference is a mix" of widths;
+// "we did not count that the distance from the cassette makes a different
+// drawing … the number of spokes must not be random. Only the palette
+// changes, the sausages stay in their places; and they are built not as a
+// daisy, petals from the cassette, but with what we know from the 8 October
+// tests: the brush runs out after 7 cm"). Stripes of lanes, mixed widths,
+// each through every spot: both ends of every corner (CORNER_U); where the
+// gap between two spots on a stripe's outer lane is more than RUN_MM, more
+// spots, MARK_MM apart at most — the paper test of 2026-10-08
+// (ALU-Claude/paper-test/, aluplan's run and spacing). Outer lanes being
+// longer, they get more spots; the spots are not random, the widths are.
+export const RUN_MM = 70, MARK_MM = 60;                                            // est., the paper test's
+export const CORNER_U = [1, 2, 3, 4, 5, 6, 7, 8];
+export const STRIPE_W = [[6, 0.35], [3, 0.2], [2, 0.25], [1, 0.2]];               // a stripe's lanes and its chance (Claude's)
+export function stripesOf(K, seed) {
+  const r = rng(seed ^ 0x9e3779b9), out = [];
+  for (let k = 0; k < K;) {
+    let x = r(), w = STRIPE_W.at(-1)[0];
+    for (const [n, p] of STRIPE_W) { if (x < p) { w = n; break; } x -= p; }
+    w = Math.min(w, K - k); out.push([k, k + w - 1]); k += w;
   }
   return out;
 }
-// New spokes: four to eight spots round the cassette, about evenly apart; at
-// each a dash a block of `lanes` lanes (six, two or one), out to the
-// canvas's edge, the paints the palette's
-export function newSpokes(G, pal, seed, lanes = SPOKE_LANES) {
+// the spots of a stripe, u round the lanes: the corners' ends, and between them as RUN_MM and MARK_MM say on its outer lane
+export function spotsOf(G, k1) {
+  const q = G.F.ring(Math.min(k1, Math.max(0, G.K - 1))), g = rrGeo(q.a, q.b, q.r), L = CORNER_U.map(u => uToL(g, u)), us = [];
+  L.forEach((a, i) => {
+    const b = i + 1 < L.length ? L[i + 1] : L[0] + g.P, gap = b - a, m = gap > RUN_MM ? Math.ceil(gap / MARK_MM) : 1;
+    for (let j = 0; j < m; j++) us.push(j ? lToU(g, (a + gap * j / m) % g.P) : CORNER_U[i]);
+  });
+  return us.sort((x, y) => x - y);
+}
+// The paints of a pattern: stripe by stripe, spot by spot round it — never
+// the paint of the spot before on the stripe, nor the one beside it on the
+// stripe within; a thin stripe an accent more often than not, as the
+// references' white and blue threads. spokes: { u, k0, k1 } → with paints
+function paintPattern(spokes, pal, seed) {
+  const r = rng(seed ^ 0x27d4eb2f), byStripe = new Map(), out = spokes.map(s => ({ ...s }));
+  out.forEach(s => { const key = `${s.k0}:${s.k1}`; if (!byStripe.has(key)) byStripe.set(key, []); byStripe.get(key).push(s); });
+  const stripes = [...byStripe.values()].sort((a, b) => a[0].k0 - b[0].k0);
+  let inner = [];
+  for (const row of stripes) {
+    row.sort((a, b) => a.u - b.u);
+    const w = row[0].k1 - row[0].k0 + 1, thin = w <= ACCENT_LANES;
+    let prev = null;
+    for (const s of row) {
+      const beside = inner.reduce((best, t) => !best || uGap(t.u, s.u) < uGap(best.u, s.u) ? t : best, null)?.paint;
+      const accent = pal.accent.length && (thin ? r() < 0.6 : r() < ACCENT_P * 0.5), from = accent ? pal.accent : pal.core;
+      let ok = from.filter(p => p !== prev && p !== beside);
+      if (!ok.length) ok = [...pal.core, ...pal.accent].filter(p => p !== prev && p !== beside);   // an accent alone, and the spot before had it: the whole palette
+      if (!ok.length) ok = [...pal.core, ...pal.accent].filter(p => p !== prev);
+      s.paint = ok[Math.floor(r() * ok.length)] ?? from[0]; prev = s.paint;
+    }
+    if (row.length > 1 && row[0].paint === row.at(-1).paint) { const alt = pal.core.find(p => p !== row[0].paint && p !== row[1]?.paint); if (alt) row.at(-1).paint = alt; }   // round the lap: the last spot is the first's neighbour
+    inner = row;
+  }
+  return out;
+}
+// New spokes: the pattern — stripes of mixed widths, through the spots the
+// corners and the brush's breath ask for — in the palette as it is
+export function newSpokes(G, pal, seed) {
   if (!G.fits || !G.K) return [];
-  const r = rng(seed ^ 0x5bd1e995), q = G.F.ring(0), g0 = rrGeo(q.a, q.b, q.r), n = 4 + Math.floor(r() * 5), base = r(), slots = [];
-  for (let i = 0; i < n; i++) {
-    const f = ((i + base + (r() - 0.5) * 0.5) / n + 1) % 1, u = lToU(g0, f * g0.P);
-    for (let k0 = 0; k0 < G.K; k0 += lanes) { const s = { u, k0, k1: k0 + lanes - 1 }; if (spokeHits(G, s).length) slots.push(s); }
-  }
-  return paintSlots(slots, pal, r).filter(s => spokeHits(G, s).length);   // an accent past the canvas's edge: none
+  const slots = [];
+  for (const [k0, k1] of stripesOf(G.K, seed)) for (const u of spotsOf(G, k1)) { const s = { u, k0, k1 }; if (spokeHits(G, s).length) slots.push(s); }
+  return paintPattern(slots, pal, seed);
 }
-// New colours on spokes lying there: their places kept, their paints the palette's
-export function recolourSpokes(spokes, pal, seed) {
-  const order = spokes.map((s, i) => ({ s, i })).sort((a, b) => a.s.u - b.s.u || a.s.k0 - b.s.k0);
-  const painted = paintSlots(order.map(o => o.s), pal, rng(seed ^ 0x27d4eb2f), false), out = spokes.slice();
-  order.forEach((o, j) => { out[o.i] = { ...o.s, paint: painted[j].paint }; });
-  return out;
-}
+// New colours on spokes lying there: their places kept, their paints the palette's, stripe by stripe
+export function recolourSpokes(spokes, pal, seed) { return paintPattern(spokes, pal, seed); }
