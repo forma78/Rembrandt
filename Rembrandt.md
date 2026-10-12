@@ -507,6 +507,17 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   dash a block of six lanes out to the canvas's edge, now and then its last
   two lanes an accent, the palette as it is; two dashes on a radius never
   one paint. The palette and its seed kept with the save.
+  **Density and the spoke's lanes** (the owner, the same evening, his
+  screenshots 6.49 … 6.52 PM in `TAPE-colors/`, a reference beside the
+  Result: "they are somehow thin. The reference has rich colours, grown-up.
+  We need a density of colour slider, to come near the original"; "use the
+  sausages of colour not only over 6 lanes but over 2; I would try 1 lane
+  at all — such paints there are"): **Density**, 0 … 100 %, the paint in a
+  spoke ½ … 64 times SPOKE_MM, 50 % by default (est.; before, about 14 %);
+  **Spoke: 1 lane · 2 lanes · 6 lanes**, for a click and New spokes; **the
+  paints in use in sight**, a chip, a name, its spokes, thin marked ("what
+  is useful to see here is the chosen colours with numbers or names"), the
+  rest under the Paints' i.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -933,7 +944,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   ground and tape colours in the Tools; M and Clear the spokes over them;
   the owner's paints a strip by the Tools, two columns of 12, a chip a
   paint, its name on hover, its spokes counted under it; Paints in the
-  panel — **New colours · New spokes**, the palette and the spokes read. 💾 SAVE TAPE, the Library opening it
+  panel — **New colours · New spokes**, **1 lane · 2 lanes · 6 lanes**,
+  Density, the paints in use, the palette and the spokes under its i. 💾 SAVE TAPE, the Library opening it
   here: an SVG centred on the canvas, its layers cassette (its SVG nested
   as it is), trace-cassette (its outline), trace-tape and drag-tape, lines
   and arcs.

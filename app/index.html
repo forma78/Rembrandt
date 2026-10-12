@@ -114,10 +114,18 @@
       <div class="grid4 keys"><button class="btn" id="btnPlay" title="The brush through the run, segment after segment, about 30 times as fast; pressed again, it stops. A view: it moves nothing on the machine">▶ Play the run</button></div>
       <p class="read" id="playRead"></p>
 
-      <h4>Paints <span class="hint">the spokes, where you squeeze them</span></h4>
+      <h4>Paints <button class="info" id="paintInfo" title="The spokes, where you squeeze the paints: how to lay them, the palette, its seed">i</button></h4>
       <!-- New colours as ALU's (the owner, 2026-10-12, TAPE-colors/: "click a key and the palette changes at random") -->
-      <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random, after the striped canvases of TAPE-colors/, in your paints: the spokes lying there take it, or new ones are laid round the cassette (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="New spokes round the cassette, four to eight spots, a dash a block of six lanes, in the palette as it is (⌘Z goes back)">New spokes</button></div>
-      <p class="read" id="paintRead"></p>
+      <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random, after the striped canvases of TAPE-colors/, in your paints: the spokes lying there take it, or new ones are laid round the cassette (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="New spokes round the cassette, four to eight spots, a dash a block of lanes as Spoke says, in the palette as it is (⌘Z goes back)">New spokes</button></div>
+      <!-- a spoke's lanes (the owner: "not only over 6 lanes but over 2; I would try 1 lane at all") -->
+      <div class="toggles looks" id="laneKeys">
+        <button class="tog" data-lanes="1" title="A spoke one lane: every lane its own colour">1 lane</button>
+        <button class="tog" data-lanes="2" title="A spoke two lanes">2 lanes</button>
+        <button class="tog" data-lanes="6" title="A spoke six lanes, now and then its last two a thin accent">6 lanes</button>
+      </div>
+      <div class="sliders" id="slPaint"></div>
+      <div class="paintlist" id="paintList"></div>
+      <p class="read" id="paintRead" hidden></p>
 
       <h4>Cassette</h4>
       <div class="grid4 keys"><button class="btn" id="btnCassDefault" title="The built-in cassette, cassette_trace.svg: a real shell, 100.4 × 63.8 mm">Default</button><button class="btn" id="btnCassLoad" title="Another cassette's SVG for this tape: its outlines traced, its size from its width in mm or cm">Load SVG…</button></div>

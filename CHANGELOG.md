@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: Density; spokes of 1, 2 or 6 lanes; the paints in use in sight**
+  (the owner, 2026-10-12, `TAPE-colors/Screenshot … 6.49 … 6.52 PM.png`, a
+  reference laid beside the Result: "they are somehow thin. The reference
+  has rich colours, grown-up. We need a density of colour slider"; "not only
+  over 6 lanes but over 2; I would try 1 lane at all"; "what is useful to
+  see here is the chosen colours with numbers or names", the rest "under the
+  i"). Density 0 … 100 % multiplies the paint in a spoke ½ … 64 times (50 %
+  by default, est.; before, about 14 %): on 230 × 230, 4 → 56 → 80 % of the
+  tape a whole film. Spoke 1 lane · 2 lanes · 6 lanes for a click and New
+  spokes; a dash of one or two lanes an accent now and then. The paints in
+  use a list of chips, names, spokes and "thin"; the how-to, the palette, its
+  seed and the spokes' count under the Paints' i.
+
 - **TAPE: New colours and New spokes, as ALU's** (the owner, 2026-10-12,
   `TAPE-colors/`, eleven striped canvases: "I need an algorithm as for ALU,
   so that I click a key and the palette changes at random … with our own

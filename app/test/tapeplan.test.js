@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, blockOf, dragLanes, spokePoint, SPOKE_LANES, TAPE_FAMILIES, newPalette, newSpokes, recolourSpokes, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
+import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, blockOf, dragLanes, spokePoint, SPOKE_LANES, TAPE_FAMILIES, newPalette, newSpokes, recolourSpokes, densityOf, DENSITY, SPOKE_SIZES, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS as RUN_DEFAULTS, pieceLen, sweepOf } from '../src/strokes.js';
 import { toMachine, LOOP_SHARE } from '../src/band.js';
 
@@ -205,7 +205,7 @@ test('a spoke: across the lanes at one spot round the cassette, on the canvas on
 test('the brush mixing the paints: nothing without a spoke; a spoke dragged along the way the brush goes, thinning', () => {
   const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity });
   assert.ok(mixWalk(G, []).cover.every(c => c === 0), 'no paint, no cover');
-  const M = mixWalk(G, [{ u: 6.5, k0: 0, k1: 999, paint: 'black' }], 'snake'), lane = [...G.pts.keys()].filter(i => G.pts[i].l === 5 && G.pts[i].u >= 6.5 && G.pts[i].u < 8);
+  const M = mixWalk(G, [{ u: 6.5, k0: 0, k1: 999, paint: 'black' }], 'snake', 0), lane = [...G.pts.keys()].filter(i => G.pts[i].l === 5 && G.pts[i].u >= 6.5 && G.pts[i].u < 8);
   assert.ok(M.cover[lane[0]] > 0.5, 'thick at the spoke');
   assert.ok(M.cover[lane.at(-1)] < M.cover[lane[0]], 'thinner along the way');
   assert.ok(M.rgb.every(Number.isFinite) && M.cover.every(Number.isFinite));
@@ -244,4 +244,16 @@ test('New colours (the owner, 2026-10-12: "click a key and the palette changes a
     assert.deepEqual(again.map(s => [s.u, s.k0, s.k1]), sp.map(s => [s.u, s.k0, s.k1]), 'New colours keeps the spokes\' places');
   }
   assert.deepEqual(newSpokes(G, newPalette(7), 7), newSpokes(G, newPalette(7), 7), 'a seed the same spokes');
+});
+
+test('Density (the owner, 2026-10-12: "they are somehow thin … we need a density of colour slider"): more paint, more tape covered whole; a spoke 1, 2 or 6 lanes', () => {
+  assert.ok(densityOf(0) === 0.5 && Math.abs(densityOf(100) - 64) < 1e-9 && densityOf(DENSITY) > 4, 'half … 64 times the paint');
+  const G = planOf({ ...DEFAULTS, cw: 230, ch: 230, segLen: Infinity, strokes: 1 }), sp = newSpokes(G, newPalette(5), 5);
+  const full = d => { const M = mixWalk(G, sp, 'snake', d); let n = 0; for (let i = 0; i < G.pts.length; i++) if (M.cover[i] > 0.95) n++; return n; };
+  const a = full(0), b = full(50), c = full(100);
+  assert.ok(a < b && b < c, `whole film ${a} < ${b} < ${c}`);
+  assert.deepEqual(SPOKE_SIZES, [1, 2, 6]);
+  assert.deepEqual(blockOf(7.2, 2), [6, 7]); assert.deepEqual(blockOf(7.2, 1), [7, 7]); assert.deepEqual(dragLanes(3, 9, 2), [3, 4]);
+  for (const n of SPOKE_SIZES) assert.ok(newSpokes(G, newPalette(9), 9, n).every(s => s.k1 - s.k0 + 1 <= n), `New spokes ${n} lanes a dash at most`);
+  assert.ok(newSpokes(G, newPalette(9), 9, 1).length > newSpokes(G, newPalette(9), 9, 6).length, 'one lane a dash: more dashes');
 });

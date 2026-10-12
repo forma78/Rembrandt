@@ -516,12 +516,15 @@ export function spokeHits(G, sp) {
 // into 6 lines at most; I will make 12 myself, one after another, as a
 // dashed line — and 18 too; then one fragment at the bottom may have one
 // colour, or two, or three"): a click the block of six under the pointer,
-// lanes 1 … 6, 7 … 12, 13 … 18 …; a drag lane to lane, six at most.
-export const SPOKE_LANES = 6;
-export const blockOf = l => { const k0 = Math.max(0, Math.floor(Math.max(0, Math.round(l)) / SPOKE_LANES) * SPOKE_LANES); return [k0, k0 + SPOKE_LANES - 1]; };
-export function dragLanes(l0, l1) {
+// lanes 1 … 6, 7 … 12, 13 … 18 …; a drag lane to lane, six at most. Or
+// two lanes, or one (the owner, the same evening: "use the sausages of
+// colour not only over 6 lanes but over 2; I would try 1 lane at all — such
+// paints there are"): n, SPOKE_SIZES.
+export const SPOKE_LANES = 6, SPOKE_SIZES = [1, 2, 6];
+export const blockOf = (l, n = SPOKE_LANES) => { const k0 = Math.max(0, Math.floor(Math.max(0, Math.round(l)) / n) * n); return [k0, k0 + n - 1]; };
+export function dragLanes(l0, l1, n = SPOKE_LANES) {
   const a = Math.max(0, Math.round(l0)), b = Math.max(0, Math.round(l1));
-  return b >= a ? [a, Math.min(b, a + SPOKE_LANES - 1)] : [Math.max(b, a - SPOKE_LANES + 1), a];
+  return b >= a ? [a, Math.min(b, a + n - 1)] : [Math.max(b, a - n + 1), a];
 }
 // a spoke's spot on lane k, canvas mm — to line a new dash up with one lying there
 export function spokePoint(G, u, k) { const q = G.F.ring(k), p = rrU(rrGeo(q.a, q.b, q.r), u); return [p.x, p.y * G.sy]; }
@@ -547,7 +550,13 @@ export function nearestSample(G, x, y, within = Infinity) {
 // by the owner's sheets. → per sample its colour (sRGB 0…1) and how covered
 // it is (0 the ground … 1 a full film)
 export const PICK = 0.35, SMEAR = 40, SPOKE_MM = 120, SPOKE_W = 5;   // est.
-export function mixWalk(G, spokes, mode = G.o.mode) {
+// Density, 0 … 100 %: the paint in a spoke, SPOKE_MM times ½ … 64 — the more,
+// the farther the brush carries it as a whole film (the owner, 2026-10-12:
+// "they are somehow thin … the reference has rich colours, grown-up. We
+// need a density of colour slider, to come near the original")
+export const DENSITY = 50;
+export const densityOf = d => 0.5 * Math.pow(128, Math.max(0, Math.min(100, d)) / 100);
+export function mixWalk(G, spokes, mode = G.o.mode, density = DENSITY) {
   const n = G.pts.length, amt = new Float32Array(n), col = new Float32Array(n * 3), len = new Float32Array(n);
   for (let i = 1; i < n; i++) len[i] = G.pts[i].brk ? 0 : G.cum[i] - G.cum[i - 1];
   const mm = i => Math.max(0.3, len[i] || len[i + 1] || 0.6);                      // the stretch a sample stands for
@@ -559,7 +568,7 @@ export function mixWalk(G, spokes, mode = G.o.mode) {
       for (let j = h; j >= 0 && G.cum[h] - G.cum[j] <= half && !(j < h && G.pts[j + 1].brk); j--) near.push(j);
       for (let j = h + 1; j < n && G.cum[j] - G.cum[h] <= half && !G.pts[j].brk; j++) near.push(j);
       for (const j of near) s += mm(j);
-      for (const j of near) put(j, c, SPOKE_MM * mm(j) / s);
+      for (const j of near) put(j, c, SPOKE_MM * densityOf(density) * mm(j) / s);
     }
   }
   const walk = (i0, i1) => {                                                       // one stroke, i0 → i1 either way
@@ -609,14 +618,15 @@ export function newPalette(seed, not = '') {
 export const ACCENT_P = 0.22, ACCENT_LANES = 2;   // a block's chance of a thin accent, and its lanes (Claude's)
 // The spokes' paints: a core paint a dash, never the one of the dash before
 // it on its radius nor the one lying on the same lanes at the spot before; a
-// block now and then giving its last ACCENT_LANES lanes to an accent.
+// six now and then giving its last ACCENT_LANES lanes to an accent; a dash of
+// one or two lanes now and then an accent whole, or thin beside wider ones.
 // slots: [{ u, k0, k1 }] in order, position by position → spokes
 function paintSlots(slots, pal, r, accents = true) {
-  const out = [], last = new Map();                                              // block → the paint at the spot before
+  const out = [], last = new Map(), widest = Math.max(1, ...slots.map(s => s.k1 - s.k0 + 1));   // block → the paint at the spot before
   let prevU = null, prev = null;
   for (const s of slots) {
     if (s.u !== prevU) { prev = null; prevU = s.u; }
-    const short = s.k1 - s.k0 + 1 <= ACCENT_LANES;
+    const w = s.k1 - s.k0 + 1, short = w <= ACCENT_LANES && (widest > ACCENT_LANES + 1 || r() < ACCENT_P);
     const from = short && pal.accent.length ? pal.accent : pal.core;
     const ok = from.filter(p => p !== prev && p !== last.get(s.k0)), choice = ok.length ? ok : from;
     const paint = choice[Math.floor(r() * choice.length)];
@@ -629,13 +639,14 @@ function paintSlots(slots, pal, r, accents = true) {
   return out;
 }
 // New spokes: four to eight spots round the cassette, about evenly apart; at
-// each a dash a block of six lanes, out to the canvas's edge, the paints the palette's
-export function newSpokes(G, pal, seed) {
+// each a dash a block of `lanes` lanes (six, two or one), out to the
+// canvas's edge, the paints the palette's
+export function newSpokes(G, pal, seed, lanes = SPOKE_LANES) {
   if (!G.fits || !G.K) return [];
   const r = rng(seed ^ 0x5bd1e995), q = G.F.ring(0), g0 = rrGeo(q.a, q.b, q.r), n = 4 + Math.floor(r() * 5), base = r(), slots = [];
   for (let i = 0; i < n; i++) {
     const f = ((i + base + (r() - 0.5) * 0.5) / n + 1) % 1, u = lToU(g0, f * g0.P);
-    for (let k0 = 0; k0 < G.K; k0 += SPOKE_LANES) { const s = { u, k0, k1: k0 + SPOKE_LANES - 1 }; if (spokeHits(G, s).length) slots.push(s); }
+    for (let k0 = 0; k0 < G.K; k0 += lanes) { const s = { u, k0, k1: k0 + lanes - 1 }; if (spokeHits(G, s).length) slots.push(s); }
   }
   return paintSlots(slots, pal, r).filter(s => spokeHits(G, s).length);   // an accent past the canvas's edge: none
 }
