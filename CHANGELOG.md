@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Rembrandt.md and README: TAPE.** The glossary's TAPE, and its words —
+  lane and pitch, seam, lane change and closed rings, run, segment, paint
+  stop and overrun, its Snake and Air — marked "on TAPE" where ALU or CCD
+  use the word otherwise; §1 TAPE first with the owner's words of the day,
+  the pencil for TAPE's TRACE an exception to "no pencils any more"; §8 its
+  page and the top row; README's layout and modules.
+
 - **TAPE, the first tab: a cassette in the centre, its tape wound round it**
   (the owner, 2026-10-12: "TAPE first tab, all correct. index."). TAPE ·
   ALU-CUT · CCD · ALU · SMKN · NOLAN · Test · Ink · Calibration · Library on

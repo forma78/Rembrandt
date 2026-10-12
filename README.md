@@ -36,7 +36,9 @@ Rembrandt/
     nolan.html       NOLAN, the ribbons (new; NOLAN.md)
     newyuri.html     New Yuri, letters as rings (new; off the top row since 2026-10-06)
     glyphs.json      the owner's letters: skeletons of lines and arcs
-    index.html       ALU-CUT, ALU with the new things, the first tab (new, 2026-10-11; ALU-cut-Claude/)
+    index.html       TAPE, a cassette and its tape, the first tab (new, 2026-10-12; TAPE-Claude/)
+    cassette_trace.svg  TAPE's built-in cassette, the owner's (100.4 × 63.8 mm)
+    alucut.html      ALU-CUT, ALU with the new things (new, 2026-10-11; first until 2026-10-12; ALU-cut-Claude/)
     ccd.html         CCD, rectangles of straight lanes after Carlos Cruz-Diez (new, 2026-10-11; Cruz-Diez/)
     type.html        TYPE, letters as bands in three passes (new; off the top row since 2026-10-11)
     love.html        LOVE, TYPE's copy for the new things (new, 2026-10-07; off the top row since 2026-10-11)
@@ -75,7 +77,7 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 `pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
-Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `wash.js`
+Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
 (the watercolour on the board, NOLAN's and TYPE's), and pointer mode in
 `jobpage.js`.
 

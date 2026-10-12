@@ -31,7 +31,12 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` from 2026-10-06 to 10-11, then off the row, `type.html` (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
 | **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
-| **ALU-CUT** | ALU with the new things, the first tab since 2026-10-11, in TYPE's and LOVE's place (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `index.html`, its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
+| **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, traced by the machine and coloured by hand last; its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE with the pencil, or with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
+| **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
+| **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
+| **Run · segment · paint stop · overrun (on TAPE)** | A run: the tape whole on the canvas between two crossings of its edges. The overrun: how far the brush carries on past an edge before it lifts, so the tape runs cleanly off it. A segment: the part of a run one squeeze of paint covers, Segment mm (est.). A paint stop: the pause before every segment, the first too, the brush up over its start, for the owner to squeeze its paint there. Not ALU's segment. |
+| **Snake · Air (on TAPE)** | DRAG's two keys on TAPE: the snake, a segment's strokes forward, back, forward … with the brush down; air, forward on the canvas, the brush lifting at the end and flying back to its start, the strokes over. Not CCD's snake, lane after lane. |
+| **ALU-CUT** | ALU with the new things, the first tab from 2026-10-11 to 10-12, in TYPE's and LOVE's place, then after TAPE (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `alucut.html` since 2026-10-12 (`index.html` before), its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
 | **Cut · part** | On ALU-CUT: a seam made with the scissors, ✂ (C), where DRAG stops — the brush lifted, wiped or washed, the next part's paints squeezed, Continue; a part, the pipe between two cuts or a cut and an end, painted on its own with a clean brush, its lanes half a brush clear of a cut, the pipe's lane numbers going on across it (2026-10-11, §8). A seam (S) only changes the paints. |
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
 | **CCD** | The tab of rectangles of straight lanes, after Carlos Cruz-Diez — not the camera's chip — after ALU-CUT in the top row since 2026-10-11 (§1): the paint squeezed by hand along one edge, the dry brush driving it across, lane after lane; DRAG alone, no TRACE, no MARKS, in two keys — Snake, the lanes back and forth with the brush down, and Air, each lane one way and a flight back. `ccd.html`, its plan `ccdplan.js`, its own page module `ccd.js`; ALU-CUT's untouched. |
@@ -126,7 +131,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   canon"). The machine lays a light trace of the line in watercolour before
   the main run in thick acrylic. Drops are an alternative to a stroke, but
   the brush itself follows the contour on the canvas more exactly. "The
-  more water, the better."
+  more water, the better." **TAPE excepted** since 2026-10-12: its TRACE
+  goes with the pencil, or with INK ON in watercolour (below).
 - **Paint goes on by eye for now, and the way ahead is the brush dipping
   into cups** at the edges of the frame (the owner, 2026-10-02). From the
   tube onto the canvas where Create's drop map shows, for the first tests.
@@ -372,6 +378,50 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   next rectangle, the flat brush turned by hand where the direction turns,
   as no servo turns it (2026-10-08); the board the canvas and home, not the
   whole image area (all *Claude's*).
+- **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
+  `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
+  centre, the tape painted by the machine with the brush, after Werner
+  Bronkhorst's textured grounds and tiny figures — "only to restore
+  Soumkine, on Etsy"; "let's make a TAPE tab and bring back the pencil …
+  for trace! I would use an exact cassette"; "Trace — draw the cassette and
+  the tape in the centre: the cassette I will outline with paint like a
+  colouring book, the tape is our plotter with the brush, a perfect drawing
+  and texture"; "Marks is not needed, we do not put it in the software";
+  "but two Drag — the snake, and there along the canvas, back through the
+  air"; the brush the tape: "it will be 100 % the size of the tape in an
+  audio cassette, so the small differences are for the adjustments"; the
+  corners from sharp to round: "when the corners are sharp, the tape fits
+  the square perfectly … so we add a slider transition to round corners,
+  but then on the fly"; "the cassette always in the centre, and when the
+  format changes, 20 × 20, 30 × 30, 50 × 50 cm, it moves to the centre by
+  itself"; the lane change: "only ×24 or even ×48! Let it curl invisibly,
+  elegantly, as a spiral" — ×48 by default; his own `cassette_trace.svg`;
+  "everything is super now", prototype v0.3 approved). Then to Claude, the
+  same day: **TAPE first** ("TAPE first tab, all correct. index."): TAPE ·
+  ALU-CUT · CCD · ALU · SMKN · NOLAN · Test · Ink · Calibration · Library,
+  ALU-CUT's page `alucut.html`. **No format keys; 60 × 60 not refused**:
+  the canvas from home, typed by hand ("just leave 200 × 200 mm by hand, as
+  on ALU / CCD, I am fine changing the format"), the cassette in its centre;
+  60 × 60 is past the reach across, 568.5 mm, and stays ("no, I do not
+  agree, because it is the motivation to buy the cross rails and make X go
+  800 mm at all. 518.5 mm is a temporary measure … the table's width allows
+  it"). **The pencil in the brush's holder**, swapped by hand between TRACE
+  and DRAG; their zeros unmeasured ("we do not know yet, the machine is
+  home-made, DIY, so better to test; I can touch up the tape with a brush
+  too"). **INK** as on ALU ("remember we have the test, and there may be a
+  cup there, so a switch may be needed … maybe a pale watercolour trace
+  with a thin brush will do, not necessarily the pencil"): OFF the pencil,
+  ON the watercolour from the cup; DRAG never dips. **The paint stop**: the
+  brush waits up over the segment's start ("yes, absolutely fine; do not
+  worry, if it needs to go back home I will tell you"). **The views ours**,
+  Trace · Drag · Result and ▶ Play the run ("of course, the views ours, that
+  is the canon"); no Export SVG, the save carries the prototype's layers.
+  The deck TEST · PAUSE, TRACE · Snake · Air, STOP, as CCD's (the owner:
+  "yes, all as on CCD"). *Claude's choices*: INK off by default; TEST dips
+  only with INK ON; the cassette's outlines fitted within 0.02 mm, a lane
+  change within 0.1 mm, a lane's own sides and corners exact; the times the
+  board's planner's, the prototype's reckoning under the plan's i; no
+  Reference panel.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -564,9 +614,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.5**, then the tabs **ALU-CUT · ALU · SMKN · NOLAN · Test · Ink ·
-  Calibration · Library** (ALU-CUT first since 2026-10-11, TYPE and LOVE off
-  the row then; LOVE since 2026-10-07, ALU and SMKN since
+  **v.1.0.5**, then the tabs **TAPE · ALU-CUT · CCD · ALU · SMKN · NOLAN ·
+  Test · Ink · Calibration · Library** (TAPE first since 2026-10-12; ALU-CUT
+  first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
   Create the green **Open Job**. The second
@@ -773,7 +823,31 @@ this section disagree, this section wins: the owner corrected the sketch on
   switch, its two keys under the brush's sliders gone (*Claude's choice*).
   Run on the
   machine since 2026-10-10.
-- **ALU-CUT**, the first tab (2026-10-11, §1; chat-Claude's task,
+- **TAPE**, the first tab (2026-10-12, §1; `app/index.html`, `app/src/tape.js`,
+  `app/src/tapeplan.js`; `TAPE-Claude/TAPE.md`): CCD's page — its board, the
+  canvas from home with the cassette in its centre, PROGRESS, the zoom, the
+  LCD — with the deck **TEST · PAUSE, TRACE · Snake · Air, STOP**. TRACE:
+  the cassette's outline and the tape's guide, every run's centre line on
+  the canvas — the very line DRAG runs — with the pencil, or with **INK** ON
+  in watercolour from the cup, a dip, then lines on what the brush holds up
+  to the dip run, as ALU's. DRAG: a pass a segment, a stop before each, the
+  first too — the brush over its start, up, the LCD "Segment 12 of 72:
+  squeeze the paint under the brush, then Continue" — Snake one path of its
+  strokes, Air a path a stroke, the brush landing and lifting on the move;
+  PAUSE at a segment's end. The panel: INK; the views **Trace · Drag ·
+  Result**, ▶ Play the run (the prototype's, about 30 times as fast); the
+  cassette, **Default · Load SVG…** (its transforms applied, its size from
+  its width in mm or cm, else a real cassette's); Trace: **Cassette outline ·
+  Tape guide**, Trace speed (40 mm/s, est.); Brush, DRAG: Brush = tape,
+  Speed, Gap, Corners (Angle · Cassette · Round), **Lane change · Closed
+  rings**, **Clockwise · Counter**; Adjustments: Cassette size, First lane,
+  Lane change, Segment (est.), Strokes, Edge overrun, **Round · Flat**, Flat
+  angle; the canvas; the reading — the tape lane, the lanes, the seam, DRAG
+  and TRACE with their times (est.), one ⚠ line a warning. The Result's
+  ground and tape colours in the Tools. 💾 SAVE TAPE, the Library opening it
+  here: an SVG centred on the canvas, its layers trace-cassette (the
+  cassette's SVG nested as it is), trace-tape and drag-tape, lines and arcs.
+- **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once
   muddies where dark runs into white — Florian Markus's way, and Plot Bot
