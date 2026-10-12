@@ -229,7 +229,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   lane's end (the owner: "name today's update somehow, v.1.0.4 already —
   we have not updated for a while"); **v.1.0.5**, Cut, the same day, with
   ALU-CUT first, its cuts, MARKS on the lanes and up to 18 lanes (the owner:
-  "a small update to v.1.0.5").
+  "a small update to v.1.0.5"); **v.1.0.6**, Tape, on 2026-10-12, with TAPE
+  first, BASF after it, the owner's paints and their spokes mixed by the
+  brush (the owner: "great! thank you very much! we set v.1.0.6 and can
+  push it to GitHub").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -791,7 +794,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.5**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
+  **v.1.0.6**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
   NOLAN · Test · Ink · Calibration · Library** (TAPE first and BASF after it
   since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since

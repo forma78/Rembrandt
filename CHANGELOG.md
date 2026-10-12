@@ -3,7 +3,13 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v.1.0.6 — 2026-10-12 · Tape
+
+- **v.1.0.6 after the name** (the owner, 2026-10-12: "great! thank you very
+  much! we set v.1.0.6 and can push it to GitHub"), on every tab and in the
+  saved SVGs (`rembrandt: '1.0.6'`). Named Tape, after the day's two tabs
+  (*Claude's name*). With it go up the CCD tab of 2026-10-11, not pushed
+  before.
 
 - **BASF: rounded squares from the middle** (the owner, 2026-10-12,
   `TAPE-colors/Screenshot 2026-10-12 at 8.15.45 PM.png`, the short
