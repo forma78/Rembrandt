@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: Counter takes TRACE's cassette the other way round too** (the
+  owner, 2026-10-12, `TAPE-images/` 15:03: every loop's top left corner cut
+  by the pencil, the left sides drawn in several strokes, while the screen
+  draws them round — "the pencil is drawn like a bow with an arrow …";
+  "before changing anything globally, run it the other way round: let's see
+  whether the springs tilt the pencil so that it shoots up from the middle
+  of the left side and cuts the top left corner, or it is really the
+  motors"). Counter mirrored the tape's spiral already; now the cassette's
+  outlines go the other way round from their file's too, so all of TRACE
+  runs backwards.
+
 - **TAPE: no lift at the canvas's edges** (the owner, 2026-10-12: "on the
   corners there is no need at all to lift the head — the canvas sits firm
   on its supports on the table, the brush just goes through the air and

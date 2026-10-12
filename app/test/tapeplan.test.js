@@ -174,3 +174,13 @@ test('the brush down off the canvas (the owner, 2026-10-12: "let it just go with
   const G = planOf({ ...DEFAULTS, cw: 200, ch: 200 }), onLen = G.segs.map(sg => { let s = 0; for (let i = sg.i0 + 1; i <= sg.i1; i++) if (on(G, G.pts[i]) && on(G, G.pts[i - 1])) s += Math.hypot(G.pts[i].x - G.pts[i - 1].x, G.pts[i].y - G.pts[i - 1].y); return s; });
   assert.ok(Math.max(...onLen) - Math.min(...onLen) < 2, 'a squeeze the same tape on the canvas each');
 });
+
+test('Counter: TRACE takes the cassette the other way round too', () => {
+  const G = planOf(settingsOf({})), lines = cassetteLines(ITEMS, G.cb, DEFAULT_CASS);
+  const cw = traceRows(G, lines, { traceCass: true, traceTape: false }), ccw = traceRows(G, lines, { traceCass: true, traceTape: false, dir: 'ccw' });
+  const slash = lines.findIndex(l => l.id === 'screws-6'), a = cw.ps[slash], b = ccw.ps[slash];
+  assert.ok(gapOf(a[0].a, b.at(-1).b) < 1e-6 && gapOf(a.at(-1).b, b[0].a) < 1e-6, 'an open line from its other end');
+  const body = ccw.ps[0];
+  const area = P => P.reduce((s, g) => s + g.a.x * g.b.y - g.b.x * g.a.y, 0);
+  assert.ok(Math.sign(area(cw.ps[0])) === -Math.sign(area(body)), 'the shell round the other way');
+});

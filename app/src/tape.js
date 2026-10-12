@@ -159,7 +159,7 @@ function dragRun(mode = S.mode) {
 function traceRun() {
   const G = planNow(), key = JSON.stringify([plKey, S.traceSpeed, S.travel, S.tail, S.ink, hereNow(), S.ink ? dipCup() : null, S.traceCass, S.traceTape]);
   if (TRACE?.key === key) return TRACE;
-  const R = traceRows(G, LINES, { traceCass: S.traceCass, traceTape: S.traceTape, ink: S.ink });
+  const R = traceRows(G, LINES, { traceCass: S.traceCass, traceTape: S.traceTape, ink: S.ink, dir: S.dir });
   TRACE = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), speed: S.traceSpeed, ink: S.ink }, [{ key: 'TRACE', ps: R.ps, why: null }]), rows: R.info, lines: R.ps.length } : EMPTY) };
   return TRACE;
 }

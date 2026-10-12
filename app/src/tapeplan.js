@@ -335,8 +335,13 @@ export function traceRows(G, lines, o, dipRun = DIP_RUN) {
   // most, the shell's last corner missing — "draw the circle double, so it
   // surely goes the full 360 degrees on the canvas"): the landing and the
   // lift-off, a tail each, fall on a line already drawn.
+  // Counter (o.dir 'ccw') takes every outline the other way round from its
+  // file's, as the tape's spiral goes (the owner, 2026-10-12, TAPE-images/
+  // 15:03: every loop's top left corner cut by the pencil — "run it the other
+  // way: let's see whether the springs tilt the pencil … or it is the motors")
   if (o.traceCass) lines.forEach((l, i) => {
-    const P = fitLine(l.pts), loop = l.closed || Math.hypot(l.pts[0][0] - l.pts.at(-1)[0], l.pts[0][1] - l.pts.at(-1)[1]) < 0.05;
+    const pts = o.dir === 'ccw' ? l.pts.slice().reverse() : l.pts;
+    const P = fitLine(pts), loop = l.closed || Math.hypot(pts[0][0] - pts.at(-1)[0], pts[0][1] - pts.at(-1)[1]) < 0.05;
     push(loop ? [...P, ...P] : P, `Cassette · ${l.id || `line ${i + 1}`}${loop ? ', round twice' : ''}`, false);
   });
   if (o.traceTape) G.runs.forEach((r, i) => {
