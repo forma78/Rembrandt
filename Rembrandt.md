@@ -34,8 +34,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last; its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
-| **Run · segment · paint stop · overrun (on TAPE)** | A run: the tape whole on the canvas between two crossings of its edges. The overrun: how far the brush carries on past an edge before it lifts, so the tape runs cleanly off it. A segment: the part of a run one squeeze of paint covers, Segment mm (est.). A paint stop: the pause before every segment, the first too, the brush up over its start, for the owner to squeeze its paint there. Not ALU's segment. |
-| **Snake · Air (on TAPE)** | DRAG's two keys on TAPE: the snake, a segment's strokes forward, back, forward … with the brush down; air, forward on the canvas, the brush lifting at the end and flying back to its start, the strokes over. Not CCD's snake, lane after lane. |
+| **Run · overrun (on TAPE)** | A run: the tape whole, from where it comes out from under the cassette to its last lane, the brush down off the canvas too (a closed ring a run of its own). The overrun: how far the brush carries on past the canvas's edge at a run's end before it lifts. No segments and no paint stops since 2026-10-12, the evening (§1). |
+| **Snake · Air (on TAPE)** | DRAG's two keys on TAPE: the snake, the run's strokes forward, back, forward … with the brush down; air, forward on the canvas, the brush lifting at the end and flying back to its start, the strokes over. Not CCD's snake, lane after lane. |
 | **ALU-CUT** | ALU with the new things, the first tab from 2026-10-11 to 10-12, in TYPE's and LOVE's place, then after TAPE (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `alucut.html` since 2026-10-12 (`index.html` before), its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
 | **Cut · part** | On ALU-CUT: a seam made with the scissors, ✂ (C), where DRAG stops — the brush lifted, wiped or washed, the next part's paints squeezed, Continue; a part, the pipe between two cuts or a cut and an end, painted on its own with a clean brush, its lanes half a brush clear of a cut, the pipe's lane numbers going on across it (2026-10-11, §8). A seam (S) only changes the paints. |
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
@@ -413,7 +413,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   with a thin brush will do, not necessarily the pencil"): OFF the pencil,
   ON the watercolour from the cup; DRAG never dips. **The paint stop**: the
   brush waits up over the segment's start ("yes, absolutely fine; do not
-  worry, if it needs to go back home I will tell you"). **The views ours**,
+  worry, if it needs to go back home I will tell you") — gone the same
+  evening, with the segments (below). **The views ours**,
   Trace · Drag · Result and ▶ Play the run ("of course, the views ours, that
   is the canon"); no Export SVG, the save carries the prototype's layers.
   The deck TEST · PAUSE, TRACE · Snake · Air, STOP, as CCD's (the owner:
@@ -430,8 +431,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   brush just goes through the air and fits into the corners smoothly; we
   only lose time on the lifts"; on Claude's offer to lift past 100 mm off
   the canvas: "no, really, let it just go without a lift, I will be
-  calmer"): a path one run, the paint stops at equal lengths of the tape on
-  the canvas; **Counter takes the cassette backwards too**, to tell the
+  calmer"): a path one run; **Counter takes the cassette backwards too**, to tell the
   pencil's springs from the motors — every loop's top left corner cut ("the
   pencil is drawn like a bow with an arrow"; if the fault moves to the
   bottom right, three sides in one go and the fourth after a lift, "the
@@ -459,6 +459,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   rest of the cassette in the Result, faint on Trace and Drag. DRAG
   untouched (the owner: "in Drag there is no cassette, it draws the tape
   at once, so the system is not hurt much").
+  **No paint stops, no segments** (the owner, the same evening, on the
+  first DRAG: "I press Snake and the pause comes at once, right on the first
+  segment. Not on the first — not at all. Press it 27 times? What for?";
+  then on Segment at 40 mm, 269 of them: "this option must go, we have
+  overcomplicated something"): the tape one run, Snake its strokes forward,
+  back, forward with the brush down, the brush landing once; Air each
+  stroke from the start, a flight back between; PAUSE where the tape passes
+  the seam, a lap's end, or at a turn; the Segment slider gone, and
+  `plotRun`'s pauseOver with it.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -869,18 +878,17 @@ this section disagree, this section wins: the owner corrected the sketch on
   canvas, the very line DRAG runs, with the brush; with **INK** ON in
   watercolour from the cup, a dip, then lines on what the brush holds up to
   the dip run, as ALU's. The rest of the cassette drawn by hand with a
-  stencil, faint on Trace. DRAG: a pass a segment, a stop before each, the
-  first too — the brush over its start, up, the LCD "Segment 12 of 72:
-  squeeze the paint under the brush, then Continue" — Snake one path of its
-  strokes, Air a path a stroke, the brush landing and lifting on the move;
-  PAUSE at a segment's end. The panel: INK; the views **Trace · Drag ·
+  stencil, faint on Trace. DRAG: the tape in one go, no stop — Snake one
+  path of its strokes, the brush landing once, Air a path a stroke, the
+  brush landing and lifting on the move; PAUSE where the tape passes the
+  seam or at a turn. The panel: INK; the views **Trace · Drag ·
   Result**, ▶ Play the run (the prototype's, about 30 times as fast); the
   cassette, **Default · Load SVG…** (its transforms applied, its size from
   its width in mm or cm, else a real cassette's); Trace: **Cassette outline ·
   Tape guide**, Trace speed (40 mm/s, est.); Brush, DRAG: Brush = tape,
   Speed, Gap, Corners (Angle · Cassette · Round), **Lane change · Closed
   rings**, **Clockwise · Counter**; Adjustments: Cassette size, First lane,
-  Lane change, Segment (est.), Strokes, Edge overrun, **Round · Flat**, Flat
+  Lane change, Strokes, Edge overrun, **Round · Flat**, Flat
   angle; the canvas; the reading — the tape lane, the lanes, the seam, DRAG
   and TRACE with their times (est.), one ⚠ line a warning. The Result's
   ground and tape colours in the Tools. 💾 SAVE TAPE, the Library opening it

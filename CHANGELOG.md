@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: no paint stops, no segments** (the owner, 2026-10-12, on the
+  first DRAG: "I press Snake and the pause comes at once, right on the
+  first segment. Not on the first — not at all. Press it 27 times? What
+  for?"; then on Segment at 40 mm, 269 of them: "this option must go, we
+  have overcomplicated something"). DRAG paints the tape in one go: Snake,
+  the run's strokes forward, back, forward with the brush down, the brush
+  landing once; Air, each stroke from the start and a flight back. PAUSE
+  waits where the tape passes the seam, a lap's end, or at a turn, never on
+  a lap. The Segment slider gone; the reading, the confirm, the keys' titles
+  and Play the run without a stop. `plotRun`'s pauseOver removed: `strokes.js`
+  as it was before TAPE.
+
 - **TAPE: no pencil; TRACE the cassette's outline only** (the owner,
   2026-10-12: "too long, that will not do. I will just mark the rectangle
   with the brush"; "so we take the cassette away and keep its outline — the

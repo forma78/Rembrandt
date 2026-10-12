@@ -7,12 +7,13 @@
 // On the table: TRACE, the cassette's outline — its shell — and the tape's
 // guide with the brush, with INK ON in watercolour from the cup (the pencil
 // tried the same day and dropped: "too long, that will not do … I will cut a
-// stencil out of cardboard and draw round it in 30 seconds"); DRAG, the tape segment by segment, the snake or through the air
-// ("two Drag — the snake, and there along the canvas, back through the
-// air"), a stop before every segment, the brush over its start, for the
-// paint ("yes, absolutely fine"); the cassette coloured by hand last ("I will
-// outline the cassette with paint like a colouring book"). No MARKS ("Marks
-// is not needed, we do not put it in the software").
+// stencil out of cardboard and draw round it in 30 seconds"); DRAG, the
+// tape in one go, the snake or through the air ("two Drag — the snake, and
+// there along the canvas, back through the air"), no stop for paint ("press
+// it 27 times? What for?"), no segments ("this option must go, we have
+// overcomplicated something"); the cassette drawn with a stencil and
+// coloured by hand last. No MARKS ("Marks is not needed, we do not put it in
+// the software").
 //
 // CCD's page, its own module: the board, the canvas from home — the cassette
 // always in its centre, the size typed by hand ("just leave 200 × 200 by
@@ -27,7 +28,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS as RUN, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
-import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, DEFAULTS, DEFAULT_CASS, REAL, TINY, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
+import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -47,7 +48,7 @@ const S = {
   ground: '#efe9de', tape: '#3a2a1f', cassSvg: null, cassName: '',
   boardW: 200, boardH: 200, edgeLeft: 50, edgeBottom: 0,
 };
-const NUM = ['brush', 'speed', 'gap', 'corners', 'cassScale', 'clear', 'step', 'segLen', 'strokes', 'overrun', 'brushAngle', 'traceSpeed', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom'];
+const NUM = ['brush', 'speed', 'gap', 'corners', 'cassScale', 'clear', 'step', 'strokes', 'overrun', 'brushAngle', 'traceSpeed', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom'];
 const ONE_OF = { mode: MODES, seam: SEAMS, dir: DIRS, brushType: BRUSH_TYPES, view: ['trace', 'drag', 'result'] };
 const BOOL = ['ink', 'traceCass', 'traceTape'];
 function take(o) {
@@ -121,8 +122,8 @@ async function loadBuiltin() {
 }
 
 // ---------- the plan (tapeplan.js) ----------
-const PLAN_KEYS = ['brush', 'speed', 'gap', 'corners', 'seam', 'dir', 'mode', 'cassScale', 'clear', 'step', 'segLen', 'strokes', 'overrun'];
-const po = () => ({ ...Object.fromEntries(PLAN_KEYS.map(q => [q, S[q]])), cw: S.boardW, ch: S.boardH, cass: CASS ? { vx: CASS.vx, vy: CASS.vy, vw: CASS.vw, vh: CASS.vh, mmW: CASS.mmW } : DEFAULT_CASS });
+const PLAN_KEYS = ['brush', 'speed', 'gap', 'corners', 'seam', 'dir', 'mode', 'cassScale', 'clear', 'step', 'strokes', 'overrun'];
+const po = () => ({ ...Object.fromEntries(PLAN_KEYS.map(q => [q, S[q]])), segLen: Infinity, cw: S.boardW, ch: S.boardH, cass: CASS ? { vx: CASS.vx, vy: CASS.vy, vw: CASS.vw, vh: CASS.vh, mmW: CASS.mmW } : DEFAULT_CASS });
 let PL = null, plKey = '', LINES = [];
 function planNow() {
   const o = po(), key = JSON.stringify([o, CASS?.name, CASS?.text.length]);
@@ -141,10 +142,10 @@ const hereNow = () => { const R = reach(); return { x: R.x.min + S.edgeBottom + 
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
 
 // ---------- the runs: TRACE, DRAG the snake or through the air ----------
-// DRAG: a pass a segment, its stop first, the brush over its start
-// (pauseOver); PAUSE at a segment's end, never on its strokes (pauseAtEnds).
+// DRAG: the tape in one go, no stop; PAUSE where the tape passes the seam
+// or at a stroke's end, never on a lap (pauseAtEnds).
 // TRACE: the brush, with INK ON from the cup, as ALU's TRACE.
-const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, air: [], dips: 0, mm: 0, stops: 0, lines: 0, fault: '' };
+const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, air: [], dips: 0, mm: 0, landings: 0, lines: 0, fault: '' };
 const runOpts = rows => ({ ...RUN, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: false, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
 const RUNS = {}, MODE_NAME = { snake: 'the snake', air: 'through the air' };
 let TRACE = null, busy = false;
@@ -152,7 +153,7 @@ function dragRun(mode = S.mode) {
   const G = planNow(), key = JSON.stringify([plKey, S.speed, S.travel, S.tail, hereNow()]);
   if (RUNS[mode]?.key === key) return RUNS[mode];
   const D = dragRows(G, mode);
-  RUNS[mode] = { key, ...(D.passes.length ? { ...plotRun({ ...runOpts(D.info.length), pauseAtEnds: true, pauseOver: true }, D.passes), rows: D.info, mm: D.length, stops: D.stops } : EMPTY) };
+  RUNS[mode] = { key, ...(D.passes.length ? { ...plotRun({ ...runOpts(D.info.length), pauseAtEnds: true }, D.passes), rows: D.info, mm: D.length, landings: D.runs } : EMPTY) };
   return RUNS[mode];
 }
 function traceRun() {
@@ -277,7 +278,7 @@ function drawTrace() {
   g.restore();
   if (!S.traceTape && !S.traceCass) { g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = themeColor('--mute', '#7D776D'); g.font = font(12); g.textAlign = 'center'; g.fillText('TRACE is off: neither the outline nor the guide', sx([0]), sy([0, 0])); g.restore(); }
 }
-// DRAG: every segment's centre line, a colour a segment in turn; dashed where the brush flies; its paint stop numbered at its start
+// DRAG: the tape's centre line, a colour a run in turn; dashed where the brush flies; a run numbered at its start
 function drawDrag() {
   const G = planNow(), P = G.pts;
   g.save(); inMm(g);
@@ -368,7 +369,7 @@ function drawResult() {
 
 // ---------- ▶ Play the run (the prototype's) ----------
 // The brush through the moves, about 30 times as fast: the segments laid one
-// after another, the brush a ring — dashed in the air or at a paint stop.
+// after another, the brush a ring — dashed in the air.
 let PLAY = null;
 const clock = s => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
 function startPlay() {
@@ -377,8 +378,8 @@ function startPlay() {
   const dur = m => m.type === 'paint' ? m.len / S.speed : m.type === 'air' ? m.len / AIR_SPEED + LIFT_S : 0;
   const real = G.moves.reduce((a, m) => a + dur(m), 0), kk = Math.max(10, real / 45), T = [];
   let r = 0, s = 0;
-  for (const m of G.moves) {
-    const d = dur(m), ds = m.type === 'stop' ? 0.25 : d / kk;
+  for (const m of G.moves.filter(m => m.type !== 'stop')) {                         // no stop for paint
+    const d = dur(m), ds = d / kk;
     if (m.pts) { const c = [0]; for (let i = 1; i < m.pts.length; i++) c[i] = c[i - 1] + dist(m.pts[i - 1], m.pts[i]); m.cl = c; }
     T.push({ m, r0: r, r: d, s0: s, s: ds }); r += d; s += ds;
   }
@@ -404,9 +405,9 @@ function drawPlay() {
     pos = { x: a.x + (b.x - a.x) * q, y: a.y + (b.y - a.y) * q };
     if (m.type === 'paint') part = [...m.pts.slice(0, i), pos];
   }
-  const cur = m.type === 'paint' ? m.seg : (T.slice(PLAY.idx).find(x => x.m.type === 'paint')?.m.seg ?? G.segs.length);
+  const done = new Set(T.slice(0, PLAY.idx).filter(x => x.m.type === 'paint').map(x => x.m.seg));   // a run painted once stays painted, the snake's way back too
   g.save(); inMm(g); clipCanvas(g); g.lineJoin = 'round'; g.lineCap = 'round'; g.lineWidth = S.brush; g.strokeStyle = S.tape;
-  for (let j = 0; j < cur && j < G.segs.length; j++) { poly(g, G.pts, G.segs[j].i0, G.segs[j].i1); g.stroke(); }
+  for (const j of done) { poly(g, G.pts, G.segs[j].i0, G.segs[j].i1); g.stroke(); }
   if (part) { g.beginPath(); part.forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); g.stroke(); }
   g.fillStyle = rgbs(mix(hex2rgb(S.ground), [255, 255, 255], 0.55)); bodyPath(g, G.cb); g.fill();
   g.strokeStyle = '#2B2724'; g.lineWidth = 0.35; cassettePath(g); g.stroke();
@@ -415,10 +416,9 @@ function drawPlay() {
   const X = sx([pos.x]), Y = sy([0, pos.y]), r = Math.max(S.brush / 2 * k, 5);
   g.beginPath(); g.arc(X, Y, r, 0, Math.PI * 2);
   if (m.type === 'paint') { g.fillStyle = S.tape; g.fill(); g.lineWidth = 1.5; g.strokeStyle = '#fff'; g.stroke(); }
-  else { g.setLineDash([3, 3]); g.lineWidth = 2; g.strokeStyle = m.type === 'stop' ? RUST : '#555'; g.stroke(); g.setLineDash([]); }
-  if (m.type === 'stop') { g.fillStyle = RUST; g.font = font(11, 600); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(`squeeze #${m.n}`, X + r + 6, Y); }
+  else { g.setLineDash([3, 3]); g.lineWidth = 2; g.strokeStyle = '#555'; g.stroke(); g.setLineDash([]); }
   g.restore();
-  $('#playRead').textContent = `${clock(e.r0 + f * e.r)} / ${clock(PLAY.total)} · ×${Math.round(PLAY.k)} · segment ${Math.min(cur + 1, G.segs.length)} of ${G.segs.length} · ${m.type === 'paint' ? 'painting' : m.type === 'air' ? 'in the air' : 'paint stop'} (the prototype's reckoning, est.)`;
+  $('#playRead').textContent = `${clock(e.r0 + f * e.r)} / ${clock(PLAY.total)} · ×${Math.round(PLAY.k)} · ${m.type === 'paint' ? 'painting' : 'in the air'} (the prototype's reckoning, est.)`;
 }
 $('#btnPlay').onclick = () => PLAY ? stopPlay() : startPlay();
 
@@ -534,8 +534,7 @@ const SL = {
   slAdjust: [['cassScale', 'Cassette size', 1, 80, 130, '100 % the real shell'],
     ['clear', 'First lane', 0.5, 0, 10, 'Between the cassette and lane 1'],
     ['step', 'Lane change', 1, 4, 120, 'How long the tape takes to move out to the next lane, in brush widths; longer than lane 1, one continuous spiral'],
-    ['segLen', 'Segment', 10, 40, 400, 'How much tape one squeeze of paint covers (est.)'],
-    ['strokes', 'Strokes', 1, 1, 6, 'How many times the brush goes over a segment'],
+    ['strokes', 'Strokes', 1, 1, 6, 'How many times the brush goes over the tape: the snake back and forth with the brush down, air each time from the start'],
     ['overrun', 'Edge overrun', 1, 0, 15, 'How far the brush runs on past the canvas\'s edge before it lifts']],
   slFlat: [['brushAngle', 'Flat angle', 5, 0, 90, 'The flat brush\'s angle on the holder: no servo turns it']],
 };
@@ -549,7 +548,6 @@ function valOf(key) {
     case 'cassScale': return `${v} %${v === 100 ? ' · real' : ''}`;
     case 'clear': case 'overrun': return `${fmt(v, 1)} mm`;
     case 'step': return G?.full && S.seam === 'shift' ? `×${v} · spiral` : `×${v} · ${fmt(Math.min(v * S.brush, G?.P0 ?? Infinity), 0)} mm`;
-    case 'segLen': return `${v} mm (est.)`;
     case 'strokes': return String(v);
     case 'brushAngle': return `${v}°`;
   }
@@ -596,7 +594,7 @@ $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
 });
 $('#planInfo').onclick = () => { $('#planMore').hidden = !$('#planMore').hidden; $('#planInfo').classList.toggle('on', !$('#planMore').hidden); };
 const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-const HINT = 'TAPE: the cassette in the centre of the canvas, real size, the tape wound round it. TRACE its outline and the tape\'s guide with the brush (INK ON: watercolour), then DRAG, the snake or through the air, a stop before every segment for its paint; the cassette drawn with a stencil and coloured by hand last.';
+const HINT = 'TAPE: the cassette in the centre of the canvas, real size, the tape wound round it. TRACE its outline and the tape\'s guide with the brush (INK ON: watercolour), then DRAG, the tape in one go, the snake or through the air; the cassette drawn with a stencil and coloured by hand last.';
 function showPanel() {
   for (const list of Object.values(SL)) for (const [key] of list) {
     const inp = $(`input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
@@ -627,16 +625,15 @@ function settle() {
     lines.push(`Tape lane: <b>${fmt(w, 1)} mm</b> brush · real tape ${REAL.tape} mm (×${fmt(w / REAL.tape, 2)}) · pitch ${fmt(G.F.p, 1)} mm${S.gap ? '' : ' · lanes touching'}`);
     lines.push(`Lanes: <b>${G.kSide}</b> to the side edges · <b>${G.kTop}</b> to top and bottom · <b>${G.K}</b> to fill the corners`);
     lines.push(`Seam: ${S.seam === 'shift' ? (G.full ? 'none — the lane change over the whole turn, <b>one continuous spiral</b>' : `from the middle of the right side, the lane change over <b>${fmt(G.Lb, 0)} mm</b> (${Math.round(G.Lb / G.P0 * 100)} % of lane 1)`) : 'the middle of the right side; each ring closes on itself, the brush lifting to the next'}`);
-    lines.push(`DRAG: <b>${G.segs.length}</b> segments × ${S.strokes} stroke${S.strokes === 1 ? '' : 's'}, <b>${G.segs.length}</b> paint stops · Snake ≈ ${took(D.seconds)}, Air ≈ ${took(A.seconds)} at ${S.speed} mm/s, the stops not timed (est.)`);
+    lines.push(`DRAG: the tape ${fmt(D.mm / S.strokes / 1000, 1)} m${G.runs.length > 1 ? ` in ${G.runs.length} runs` : ', one run'} × ${S.strokes} stroke${S.strokes === 1 ? '' : 's'}, no stop · Snake ≈ ${took(D.seconds)}, the brush landing ${D.landings} time${D.landings === 1 ? '' : 's'}; Air ≈ ${took(A.seconds)}, ${A.landings} landings · at ${S.speed} mm/s (est.)`);
     lines.push(`TRACE: <b>${T.lines}</b> line${T.lines === 1 ? '' : 's'}${S.traceCass ? `, the cassette's outline ${fmt(shellOf(G, 0).P, 0)} mm and ${Math.round(LOOP_SHARE * 100)} % over its start` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'no dip'} · ≈ ${took(T.seconds)} at ${S.traceSpeed} mm/s (est.)`);
   }
-  more.push(`The prototype's reckoning, ${MODE_NAME[S.mode]}: paint ${fmt(G.paintLen / 1000, 1)} m · air ${fmt(G.airLen / 1000, 1)} m · ${G.lifts} lifts · ≈ ${fmt(G.tMachine / 60, 1)} min + ${G.segs.length} paint stops (est.)`);
+  more.push(`The prototype's reckoning, ${MODE_NAME[S.mode]}: paint ${fmt(G.paintLen / 1000, 1)} m · air ${fmt(G.airLen / 1000, 1)} m · ${G.lifts} lifts · ≈ ${fmt(G.tMachine / 60, 1)} min (est.)`);
   more.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; the cassette in its centre; TEST's dots ${TEST_MARGIN} mm in from its edges`);
   $('#planRead').innerHTML = lines.join('<br>');
   $('#planMore').innerHTML = more.join('<br>');
   const warn = [
     !G.fits && `⚠ The cassette does not fit on ${S.boardW} × ${S.boardH} with a ${fmt(w, 1)} mm lane: a smaller cassette or a bigger canvas.`,
-    G.tiny && `⚠ ${G.tiny} corner piece${G.tiny > 1 ? 's' : ''} under ${TINY} mm, each with its own paint stop.`,
     S.brushType === 'flat' && '⚠ A flat brush, no servo turning it: the tape\'s width changes with the way it runs (see the Result).',
     S.ink && cupProblem(cup()) && `⚠ Ink ON: ${cupProblem(cup())}`,
     D.fault && `⚠ The plan is wrong, DRAG will not run it: ${D.fault}.`, T.fault && `⚠ The plan is wrong, TRACE will not run it: ${T.fault}.`,
@@ -644,7 +641,7 @@ function settle() {
   ].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(q => `<span class="warn">${q}</span>`).join('<br>');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = !G.fits ? 'the cassette does not fit' : `${G.K} lanes · ${G.segs.length} segments · DRAG Snake ≈ ${took(D.seconds)} · Air ≈ ${took(A.seconds)} · TRACE ≈ ${took(T.seconds)} (est.)`;
+  $('#stats').textContent = !G.fits ? 'the cassette does not fit' : `${G.K} lanes · DRAG Snake ≈ ${took(D.seconds)} · Air ≈ ${took(A.seconds)} · TRACE ≈ ${took(T.seconds)} (est.)`;
   showPanel(); save(); layout(); lastLcd && lcd(lastLcd);
 }
 function walls(P_) {
@@ -662,7 +659,7 @@ function walls(P_) {
 // DRAG's segments a path each, in their order; the whole state in its
 // metadata, a PNG preview; on the tests' shelf, its label TAPE: the Library
 // opens it here.
-const label = () => `${TAB_NAME} · ${PL?.K ?? 0} lanes · ${PL?.segs.length ?? 0} segments · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm`;
+const label = () => `${TAB_NAME} · ${PL?.K ?? 0} lanes · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, G = planNow(), f = v => (Math.round(v * 100) / 100).toString(), cb = G.cb;
   const meta = JSON.stringify({ rembrandt: '1.0.5', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
@@ -751,9 +748,8 @@ async function runDrag(mode) {
   const G = planNow(), D = dragRun(mode), snake = mode === 'snake';
   if (!G.fits || !D.rows.length) return refuse('Nothing to run: the cassette does not fit on the canvas.');
   if (D.fault) return refuse(`Not run: the plan is wrong — ${D.fault}.`);
-  const text = `${G.segs.length} segments, ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} each — ${snake ? 'forward, back, forward … with the brush down' : 'forward on the canvas, the brush lifting at the end and flying back to the start'} — ${fmt(D.mm / 1000, 1)} m with the brush at ${S.speed} mm/s, ≈ ${took(D.seconds)} (est.), the stops not timed.`
-    + `\n\nDRAG stops before every segment, the first too: the brush goes over its start and waits there, up — squeeze the paint under it, then Continue. ${G.segs.length} stops.`
-    + `\n\nIs the brush in the holder?${walls(D) ? `\n\n${walls(D)}` : ''}`;
+  const text = `the tape ${fmt(D.mm / S.strokes / 1000, 1)} m${G.runs.length > 1 ? ` in ${G.runs.length} runs` : ''}, ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} — ${snake ? 'forward, back, forward … with the brush down' : 'forward on the canvas, the brush lifting at the end and flying back to the start'} — at ${S.speed} mm/s, ≈ ${took(D.seconds)} (est.), no stop.`
+    + `\n\nIs the paint on the canvas, the brush in the holder?${walls(D) ? `\n\n${walls(D)}` : ''}`;
   if (!confirm(`DRAG ${snake ? 'SNAKE' : 'AIR'} ${TAB_NAME}: ${text}`)) return;
   S.mode = mode; S.view = 'drag'; stopPlay(); settle();
   await start(mode, D.blocks, { seconds: D.seconds, rows: D.rows },
@@ -807,7 +803,7 @@ function lcd(st) {
     : live && b?.home ? 'done · the carriage goes home, the brush off'
     : live && now0 && b?.dip ? `${now0} · the dip in the cup`
     : live && now0 ? now0 + (st.brush_on ? ' · brush on' : ' · brush off')
-    : `${G?.segs.length ?? 0} segments · ${G?.K ?? 0} lanes · ${MODE_NAME[S.mode]}`;
+    : `${G?.K ?? 0} lanes · ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} · ${MODE_NAME[S.mode]}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt((P_.mm || 0) / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">

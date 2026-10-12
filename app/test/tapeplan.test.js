@@ -85,31 +85,32 @@ test('a lane is its own sides and corners: closed rings run as lines and quarter
   for (const g of P) if (g.t === 'A') assert.ok(Math.abs(sweepOf(g) - Math.PI / 2) < 1e-6 || sweepOf(g) < Math.PI / 2, 'a corner a quarter at most');
 });
 
-test('DRAG: a pass a segment, its stop first; the snake one path of the strokes, air a path a stroke', () => {
-  const G = planOf(settingsOf({}));
+test('DRAG: the tape one run, no segments (the owner, 2026-10-12: "this option must go"); the snake one path of its strokes, air a path a stroke', () => {
+  const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity });
+  assert.equal(G.segs.length, 1, 'the spiral one run, one segment');
   const S = dragRows(G, 'snake'), A = dragRows(G, 'air');
-  assert.equal(S.passes.length, G.segs.length); assert.equal(S.stops, 72);
-  assert.ok(S.passes.every(p => p.ps.length === 1 && p.why.startsWith('Segment ')));
-  assert.ok(A.passes.every(p => p.ps.length === 3));
-  const one = S.passes[5].ps[0], seg = A.passes[5].ps[0], L = seg.reduce((a, g) => a + pieceLen(g), 0);
+  assert.equal(S.passes.length, 1); assert.equal(S.passes[0].why, null, 'no stop for paint');
+  assert.equal(S.passes[0].ps.length, 1); assert.equal(A.passes[0].ps.length, 3);
+  const one = S.passes[0].ps[0], P = A.passes[0].ps[0], L = P.reduce((a, g) => a + pieceLen(g), 0);
   assert.ok(Math.abs(one.reduce((a, g) => a + pieceLen(g), 0) - 3 * L) < 1e-6, 'forward, back, forward');
-  assert.ok(gapOf(one.at(-1).b, seg.at(-1).b) < 1e-9, 'three strokes: it ends at the far end');
+  assert.ok(gapOf(one.at(-1).b, P.at(-1).b) < 1e-9, 'three strokes: it ends at the far end');
+  const laps = P[0].stopsAt;
+  assert.ok(laps.length >= G.K - 1, `PAUSE at every lap's seam: ${laps.length}`);
+  assert.equal(one[0].stopsAt.length, 3 * laps.length + 2, 'and at the two turns');
+  assert.ok(one[0].stopsAt.every((q, i, all) => !i || q > all[i - 1]), 'in order along the path');
+  const R = dragRows(planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity, seam: 'closed' }), 'snake');
+  assert.ok(R.passes[0].ps.length > 1 && R.passes[0].ps.every(p => (p[0].stopsAt || []).length === 2), 'closed rings: a ring a path, PAUSE at its turns');
 });
 
-test('DRAG on the machine: the brush over each segment\'s start before its stop, the first too; no other pause', () => {
-  const G = planOf(settingsOf({})), D = dragRows(G, 'snake');
-  const o = { ...RUN_DEFAULTS, speed: 25, travel: 180, tail: 3, lift: false, ink: false, snake: true, pause: false, rows: D.info.length, here: { x: 400, y: 300 }, pauseAtEnds: true, pauseOver: true };
-  const R = plotRun(o, D.passes);
+test('DRAG on the machine: no pause block; the path cut where PAUSE may hold, the brush down between', () => {
+  const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity }), D = dragRows(G, 'snake');
+  const R = plotRun({ ...RUN_DEFAULTS, speed: 25, travel: 180, tail: 3, lift: false, ink: false, snake: true, pause: false, rows: D.info.length, here: { x: 400, y: 300 }, pauseAtEnds: true }, D.passes);
   assert.equal(R.fault, '');
-  const pauses = R.blocks.map((b, i) => [b, i]).filter(([b]) => b.kind === 'pause');
-  assert.equal(pauses.length, 72);
-  pauses.forEach(([b, i], n) => {
-    const mv = R.blocks[i - 1], at = mv.cmds.find(c => c.startsWith('M ')).split(' ').map(Number), s = D.passes[n].ps[0][0].a;
-    assert.ok(Math.abs(at[1] - 400 - s.x) < 0.01 && Math.abs(at[2] - 300 - s.y) < 0.01, `stop ${n + 1}: the brush over its start`);
-    assert.equal(b.why, D.passes[n].why);
-  });
-  const without = plotRun({ ...o, pauseOver: false }, D.passes);
-  assert.equal(without.blocks.filter(b => b.kind === 'pause').length, 71, 'without pauseOver: none before the first, as every other tab');
+  assert.equal(R.blocks.filter(b => b.kind === 'pause').length, 0, 'never a stop');
+  const moves = R.blocks.filter(b => b.kind === 'move' && b.paintMM > 0);
+  assert.equal(moves.length, D.passes[0].ps[0][0].stopsAt.length + 1, 'a block from cut to cut');
+  assert.ok(moves.every(b => b.pauseAtEnd), 'PAUSE waits for a block\'s end');
+  assert.equal(R.blocks.filter(b => b.kind === 'arm' && /^J 2 /.test(b.cmd)).length, 2, 'the brush up at the start and once at the end: one landing');
 });
 
 test('TRACE: the cassette\'s outline, its shell, round from 12 o\'clock and on over its start, the brush lifting off over the lap; the guides the very lines DRAG runs', () => {

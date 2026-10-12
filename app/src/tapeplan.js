@@ -285,29 +285,39 @@ export function piecesOf(G, i0, i1) {
   return out;
 }
 
-// ---------- DRAG: a pass a segment, a paint stop before each ----------
-// The snake: forward, back, forward … the strokes with the brush down; air:
+// ---------- DRAG: the tape a run, its strokes over it, no stop ----------
+// The tab plans with segLen Infinity: a run one segment, the whole tape
+// (the owner, 2026-10-12, on the first DRAG: "I press Snake and the pause
+// comes at once, right on the first segment. Not on the first — not at all.
+// Press it 27 times? What for?"; then on Segment at 40 mm: "269 of them, what
+// for? This option must go, we have overcomplicated something"). The snake:
+// a run's strokes forward, back, forward … with the brush down; air:
 // forward, the brush lifting at the end and flying back to the start, the
-// strokes over (the owner, 2026-10-12: "two Drag — the snake, and there
-// along the canvas, back through the air"). Every pass's why the paint
-// stop's: plotRun with pauseOver takes the brush over the segment's start
-// first and waits there, up, showing where to squeeze (the owner: "yes,
-// absolutely fine").
-export const stopWhy = (n, N) => `Segment ${n} of ${N}: squeeze the paint under the brush, then Continue`;
+// strokes over ("two Drag — the snake, and there along the canvas, back
+// through the air"). PAUSE waits where the tape passes the seam, a lap's
+// end, or a stroke's end (stopsAt), never on a lap. → { passes, info,
+// length, runs: the landings }
 export function dragRows(G, mode = G.o.mode) {
-  const passes = [], info = [], N = G.segs.length;
-  let length = 0, runs = 0;
+  const ps = [], info = [], N = G.segs.length, k = G.o.strokes;
+  let length = 0;
   G.segs.forEach((sg, n) => {
     const P = piecesOf(G, sg.i0, sg.i1);
     if (!P.length) return;
-    const row = info.length + 1, R = reverse(P), tag = p => p.map(g => ({ ...g, tilt: 0, row })), L = P.reduce((a, g) => a + pieceLen(g), 0);
-    const ps = mode === 'snake' ? [tag(Array.from({ length: G.o.strokes }, (_, k) => k % 2 ? R : P).flat())]
-      : Array.from({ length: G.o.strokes }, () => tag(P));
-    passes.push({ key: 'DRAG', ps, why: stopWhy(n + 1, N) });
-    info.push({ label: `Segment ${n + 1} of ${N} · ${G.o.strokes} stroke${G.o.strokes === 1 ? '' : 's'}${mode === 'snake' ? ', the snake' : ', one way'}`, L });
-    length += L * G.o.strokes; runs += ps.length;
+    const L = P.reduce((a, g) => a + pieceLen(g), 0), R = reverse(P), name = N > 1 ? `Run ${n + 1} of ${N}` : 'The tape';
+    const laps = [];                                                                // where it passes the seam, mm from its start
+    for (let i = sg.i0 + 1; i < sg.i1; i++) if (G.pts[i].s !== G.pts[i - 1].s && G.spans[G.pts[i].s].kind === 'change') laps.push((G.cum[i - 1] - G.cum[sg.i0]) * L / (G.cum[sg.i1] - G.cum[sg.i0] || 1));
+    const tag = (pieces, row, stops) => pieces.map((g, j) => ({ ...g, tilt: 0, row, ...(!j && stops.length ? { stopsAt: stops } : {}) }));
+    length += L * k;
+    if (mode === 'snake') {
+      const stops = [];
+      for (let t = 0; t < k; t++) { for (const q of t % 2 ? laps.slice().reverse().map(q => L - q) : laps) stops.push(t * L + q); if (t < k - 1) stops.push((t + 1) * L); }
+      ps.push(tag(Array.from({ length: k }, (_, t) => t % 2 ? R : P).flat(), ps.length + 1, stops));
+      info.push({ label: `${name} · ${k} stroke${k === 1 ? '' : 's'}, the snake` });
+      return;
+    }
+    for (let t = 0; t < k; t++) { ps.push(tag(P, ps.length + 1, laps)); info.push({ label: `${name} · stroke ${t + 1} of ${k}, one way` }); }
   });
-  return { passes, info, length, runs, stops: passes.length };
+  return { passes: ps.length ? [{ key: 'DRAG', ps, why: null }] : [], info, length, runs: ps.length };
 }
 
 // ---------- TRACE: the cassette's outline and the tape's guide ----------
