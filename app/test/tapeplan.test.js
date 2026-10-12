@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planOf, family, piecesOf, dragRows, traceRows, cassetteLines, flattenD, pathD, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
+import { planOf, family, piecesOf, dragRows, traceRows, cassetteLines, flattenD, pathD, partsOf, DEFAULTS, DEFAULT_CASS, RISE_DEG, RISE_MIN, LAP_MM } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS as RUN_DEFAULTS, pieceLen, sweepOf } from '../src/strokes.js';
 import { toMachine } from '../src/band.js';
 
@@ -183,4 +183,39 @@ test('Counter: TRACE takes the cassette the other way round too', () => {
   const body = ccw.ps[0];
   const area = P => P.reduce((s, g) => s + g.a.x * g.b.y - g.b.x * g.a.y, 0);
   assert.ok(Math.sign(area(cw.ps[0])) === -Math.sign(area(body)), 'the shell round the other way');
+});
+
+// the pencil never going up the picture, steeper than RISE_DEG, but within a lap or a short rise
+function rises(S) {
+  const sin = Math.sin(RISE_DEG * Math.PI / 180), out = [];
+  for (const q of S) { let run = 0; for (let i = 1; i < q.length; i++) { const dx = q[i][0] - q[i - 1][0], dy = q[i][1] - q[i - 1][1], l = Math.hypot(dx, dy); if (!l) continue; if (-dy / l > sin + 1e-9) run += l; else { if (run) out.push(run); run = 0; } } if (run) out.push(run); }
+  return out;
+}
+const covered = (S, pts) => pts.every(p => S.some(q => q.some((b, i) => { if (!i) return false; const a = q[i - 1], dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy, t = L2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2)) : 0; return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy) < 0.05; })));
+test('in parts (the owner, 2026-10-12: "stick, stick, cucumber"): the pencil never up the picture but in a lap; the whole outline drawn', () => {
+  const shell = flattenD(ITEMS.find(i => i.id === 'body-1').d)[0].pts;
+  for (const [name, pts] of [['clockwise', shell], ['counter', shell.slice().reverse()]]) {
+    const S = partsOf(pts, true);
+    assert.equal(S.length, 2, `${name}: the П and its fourth side`);
+    assert.ok(rises(S).every(r => r <= LAP_MM + 1e-6), `${name}: no rise but a lap's: ${rises(S).map(r => r.toFixed(1))}`);
+    assert.ok(covered(S, pts), `${name}: every point of the shell drawn`);
+  }
+  const screw = flattenD(ITEMS.find(i => i.id === 'screws-1').d)[0].pts, S = partsOf(screw, true);
+  assert.equal(S.length, 2, 'a screw\'s circle two halves'); assert.ok(covered(S, screw));
+  const gear = flattenD(ITEMS.find(i => i.id === 'hubs-2').d)[0].pts, H = partsOf(gear, true);
+  assert.ok(covered(H, gear) && H.length <= 8, `a hub's teeth, ${H.length} strokes`);
+  assert.deepEqual(partsOf([[0, 10], [5, 0]], false), [[[5, 0], [0, 10]]], 'a rising line drawn top to bottom');
+  assert.deepEqual(partsOf([[0, 0], [5, 10]], false), [[[0, 0], [5, 10]]], 'a falling one as it is');
+  assert.equal(partsOf([[0, 0], [10, 0], [10, -2], [20, -2]], false).length, 1, `a rise under ${RISE_MIN} mm goes on with the rest`);
+});
+test('TRACE in parts: the cassette and the guide, every stroke continuous, none going up the picture but in its laps', () => {
+  const G = planOf({ ...DEFAULTS, cw: 230, ch: 230 }), lines = cassetteLines(ITEMS, G.cb, DEFAULT_CASS);
+  const T = traceRows(G, lines, { traceCass: true, traceTape: true, parts: true }), sin = Math.sin(RISE_DEG * Math.PI / 180);
+  assert.ok(T.ps.length > lines.length + G.runs.length);
+  for (const p of T.ps) {
+    for (let i = 1; i < p.length; i++) assert.ok(gapOf(p[i - 1].b, p[i].a) < 0.01, 'continuous');
+    let run = 0, worst = 0;
+    for (const g of p) { const L = pieceLen(g), dx = g.b.x - g.a.x; if (L > 1e-6 && dx / L > sin + 0.05 && g.t === 'L') run += L; else { worst = Math.max(worst, run); run = 0; } }   // machine +X: up the picture
+    assert.ok(Math.max(worst, run) <= LAP_MM + RISE_MIN + 0.5, `no long rise: ${Math.max(worst, run).toFixed(1)} mm`);
+  }
 });

@@ -22,7 +22,7 @@
 // lines and arcs (Rembrandt.md §1): a lane's own pieces exact, a lane change
 // fitted with biarcs (fitPieces, FIT_MM). No DOM.
 
-import { fitPieces, toMachine, DIP_RUN } from './band.js';
+import { fitPieces, toMachine, DIP_RUN, FIT_MM } from './band.js';
 import { pieceLen, reverse, sweepOf } from './strokes.js';
 
 export const REAL = { tape: 3.81, cassW: 100.4, cassH: 63.8 };   // mm: a compact cassette's tape and shell
@@ -31,11 +31,12 @@ export const DEFAULT_CASS = { vx: 0, vy: 0, vw: 100.4, vh: 63.8, mmW: 100.4 };
 // The prototype's settings, the owner's (TAPE.md, Controls). mode: the DRAG
 // key last pressed, snake or air; step: the lane change in brush widths;
 // keepDown: the brush down off the canvas too, no lift at its edges (the
-// owner, 2026-10-12; false: the prototype's runs, for its acceptance)
+// owner, 2026-10-12; false: the prototype's runs, for its acceptance);
+// parts: TRACE in parts, the pencil never going up (partsOf, the owner, the same day)
 export const DEFAULTS = {
   brush: 4, speed: 25, gap: 0, corners: 0, seam: 'shift', dir: 'cw', mode: 'snake',
   cassScale: 100, clear: 0, step: 48, segLen: 180, strokes: 3, overrun: 4, brushType: 'round', brushAngle: 45,
-  traceCass: true, traceTape: true, keepDown: true,
+  traceCass: true, traceTape: true, keepDown: true, parts: true,
 };
 export const MODES = ['snake', 'air'], SEAMS = ['shift', 'closed'], DIRS = ['cw', 'ccw'], BRUSH_TYPES = ['round', 'flat'];
 // the prototype's estimate (TAPE.md, Moves): the air, a lift and a lower, the pencil — est.
@@ -339,18 +340,90 @@ export function traceRows(G, lines, o, dipRun = DIP_RUN) {
   // file's, as the tape's spiral goes (the owner, 2026-10-12, TAPE-images/
   // 15:03: every loop's top left corner cut by the pencil — "run it the other
   // way: let's see whether the springs tilt the pencil … or it is the motors")
+  // In parts (o.parts; below, partsOf): no line goes up the picture, every
+  // rise a stroke of its own, top to bottom; a closed outline once round.
   if (o.traceCass) lines.forEach((l, i) => {
-    const pts = o.dir === 'ccw' ? l.pts.slice().reverse() : l.pts;
-    const P = fitLine(pts), loop = l.closed || Math.hypot(pts[0][0] - pts.at(-1)[0], pts[0][1] - pts.at(-1)[1]) < 0.05;
-    push(loop ? [...P, ...P] : P, `Cassette · ${l.id || `line ${i + 1}`}${loop ? ', round twice' : ''}`, false);
+    const pts = o.dir === 'ccw' ? l.pts.slice().reverse() : l.pts, name = `Cassette · ${l.id || `line ${i + 1}`}`;
+    const loop = l.closed || Math.hypot(pts[0][0] - pts.at(-1)[0], pts[0][1] - pts.at(-1)[1]) < 0.05;
+    if (o.parts) { partsOf(pts, loop).forEach((q, j, all) => push(fitLine(q), all.length > 1 ? `${name}, part ${j + 1} of ${all.length}` : name, false)); return; }
+    const P = fitLine(pts);
+    push(loop ? [...P, ...P] : P, `${name}${loop ? ', round twice' : ''}`, false);
   });
   if (o.traceTape) G.runs.forEach((r, i) => {
     const cuts = [r.c0];
     if (ink) for (let c = G.cum[r.c0] + (i % 2 ? dipRun / 2 : dipRun); c < G.cum[r.c1] - 1e-6; c += dipRun) { let q = cuts.at(-1); while (q < r.c1 && G.cum[q] < c) q++; if (q > cuts.at(-1) && q < r.c1) cuts.push(q); }
     cuts.push(r.c1);
-    for (let j = 0; j + 1 < cuts.length; j++) push(piecesOf(G, cuts[j], cuts[j + 1]), `Tape guide · run ${i + 1}${j ? `, after dip ${j + 1}` : ''}`, j > 0);
+    for (let j = 0; j + 1 < cuts.length; j++) {
+      const name = `Tape guide · run ${i + 1}${j ? `, after dip ${j + 1}` : ''}`;
+      if (!o.parts) { push(piecesOf(G, cuts[j], cuts[j + 1]), name, j > 0); continue; }
+      const pts = G.pts.slice(cuts[j], cuts[j + 1] + 1).map(p => [p.x, p.y]);
+      partsOf(pts, false).forEach((q, k, all) => push(fitLine(q, FIT_MM), all.length > 1 ? `${name}, part ${k + 1} of ${all.length}` : name, j > 0 && !k));
+    }
   });
   return { ps, info };
+}
+
+// ---------- in parts: the pencil never going up ----------
+// The pencil's spring holder, made for the brush, takes it up the picture
+// badly (the owner, 2026-10-12, TAPE-images/ 15:03 and 15:21: clockwise every
+// loop's top left corner cut, counter-clockwise its top right — wherever the
+// line had gone up; "it is the spring — a construction for the brush, and
+// sitting down to change it all now is a lot of time. Let's draw not
+// continuously but in parts, stick, stick, cucumber"). A line cut where it
+// starts to rise steeper than RISE_DEG; every rising stretch drawn the other
+// way, top to bottom, a stroke of its own; a rise shorter than RISE_MIN goes
+// on with its neighbours, as a gear's teeth; every stroke on LAP_MM past its
+// ends into its neighbours', so a landing and a lift-off fall on a line
+// already drawn. A closed outline: once round, the strokes from where a
+// rise ends. pts: canvas mm, y down → [[x, y] …] a stroke, in drawing order.
+export const RISE_DEG = 20, RISE_MIN = 3, LAP_MM = 4;   // est.
+export function partsOf(pts, closed) {
+  let P = pts.filter((p, i) => !i || Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) > 1e-6);
+  if (closed && P.length > 2 && Math.hypot(P[0][0] - P.at(-1)[0], P[0][1] - P.at(-1)[1]) < 0.05) P = P.slice(0, -1);
+  const n = P.length, m = closed ? n : n - 1, sin = Math.sin(RISE_DEG * Math.PI / 180);
+  if (m < 1) return [];
+  const len = [], up = [];
+  for (let k = 0; k < m; k++) {
+    const a = P[k], b = P[(k + 1) % n], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    len.push(L); up.push(L > 0 && (a[1] - b[1]) / L > sin);                     // y down: up the picture is −y
+  }
+  // stretches of one kind, a closed outline's last joined to its first
+  const stretches = () => {
+    const out = [];
+    for (let k = 0; k < m; k++) { const last = out.at(-1); if (last && last.up === up[k]) { last.k1 = k; last.L += len[k]; } else out.push({ up: up[k], k0: k, k1: k, L: len[k] }); }
+    if (closed && out.length > 1 && out[0].up === out.at(-1).up) { const last = out.pop(); out[0] = { up: last.up, k0: last.k0, k1: out[0].k1, L: last.L + out[0].L }; }
+    return out;
+  };
+  for (const s of stretches()) if (s.up && s.L < RISE_MIN) for (let k = s.k0; ; k = (k + 1) % m) { up[k] = false; if (k === s.k1) break; }
+  const S = stretches();
+  // the outline unrolled: its points with their mm along it, a closed one three times over, from −total
+  const cum = [0];
+  for (let k = 0; k < m; k++) cum.push(cum[k] + len[k]);
+  const total = cum[m];
+  const E = [], C = [];
+  for (let r = closed ? -1 : 0; r <= (closed ? 1 : 0); r++) for (let k = 0; k < n; k++) { E.push(P[k]); C.push(r * total + cum[k]); }
+  if (closed) { E.push(P[0]); C.push(2 * total); }
+  const cut = (s0, s1) => {                                                       // the outline from s0 to s1 mm along it
+    const at = s => { let j = 1; while (j < C.length - 1 && C[j] < s) j++; const t = (s - C[j - 1]) / ((C[j] - C[j - 1]) || 1); return [E[j - 1][0] + (E[j][0] - E[j - 1][0]) * t, E[j - 1][1] + (E[j][1] - E[j - 1][1]) * t]; };
+    const out = [at(s0)];
+    for (let j = 0; j < C.length; j++) if (C[j] > s0 + 1e-9 && C[j] < s1 - 1e-9) out.push(E[j]);
+    out.push(at(s1));
+    return out;
+  };
+  const lo = closed ? -total : 0, hi = closed ? 2 * total : total;
+  if (!S.some(s => s.up)) return [closed ? cut(0, total + LAP_MM) : P];            // never up: as it is, a closed one on over its start
+  if (!closed && S.length === 1) return [P.slice().reverse()];                    // all of it up: top to bottom
+  let order = S;
+  if (closed) { const i = S.findIndex(s => !s.up); order = [...S.slice(i), ...S.slice(0, i)]; }   // from where a rise ends
+  const out = [];
+  let base = closed ? cum[order[0].k0] : 0;
+  for (const s of order) {
+    let s0 = cum[s.k0], s1 = cum[s.k1 + 1] + (s.k1 < s.k0 ? total : 0);           // a stretch over the start goes on past it
+    if (closed) { while (s0 < base - 1e-9) { s0 += total; s1 += total; } }
+    const q = cut(Math.max(lo, s0 - LAP_MM), Math.min(hi, s1 + LAP_MM));
+    out.push(s.up ? q.reverse() : q);
+  }
+  return out;
 }
 
 // A cassette's line fitted with lines and arcs, closer than the tape's
@@ -358,15 +431,15 @@ export function traceRows(G, lines, o, dipRun = DIP_RUN) {
 // sharper than KINK, so no biarc rounds a corner the pencil takes (ALU's
 // fitRun's way). pts: canvas mm from the centre → machine pieces
 const CASS_FIT_MM = 0.02, KINK = Math.cos(30 * Math.PI / 180);
-export function fitLine(pts) {
+export function fitLine(pts, tol = CASS_FIT_MM) {
   const P = pts.filter((p, i) => !i || Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) > 1e-6), out = [];
   const dir = (a, b) => { const l = Math.hypot(b[0] - a[0], b[1] - a[1]); return [(b[0] - a[0]) / l, (b[1] - a[1]) / l]; };
   let cur = P.slice(0, 1);
   for (let i = 1; i < P.length; i++) {
     cur.push(P[i]);
-    if (i < P.length - 1) { const u = dir(P[i - 1], P[i]), v = dir(P[i], P[i + 1]); if (u[0] * v[0] + u[1] * v[1] < KINK) { out.push(...fitPieces(cur, CASS_FIT_MM)); cur = [P[i]]; } }
+    if (i < P.length - 1) { const u = dir(P[i - 1], P[i]), v = dir(P[i], P[i + 1]); if (u[0] * v[0] + u[1] * v[1] < KINK) { out.push(...fitPieces(cur, tol)); cur = [P[i]]; } }
   }
-  out.push(...fitPieces(cur, CASS_FIT_MM));
+  out.push(...fitPieces(cur, tol));
   return out;
 }
 

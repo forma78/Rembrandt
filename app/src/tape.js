@@ -50,7 +50,7 @@ const S = {
 };
 const NUM = ['brush', 'speed', 'gap', 'corners', 'cassScale', 'clear', 'step', 'segLen', 'strokes', 'overrun', 'brushAngle', 'traceSpeed', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom'];
 const ONE_OF = { mode: MODES, seam: SEAMS, dir: DIRS, brushType: BRUSH_TYPES, view: ['trace', 'drag', 'result'] };
-const BOOL = ['ink', 'traceCass', 'traceTape'];
+const BOOL = ['ink', 'traceCass', 'traceTape', 'parts'];
 function take(o) {
   if (!o) return;
   for (const k of NUM) if (fin(o[k])) S[k] = o[k];
@@ -157,9 +157,9 @@ function dragRun(mode = S.mode) {
   return RUNS[mode];
 }
 function traceRun() {
-  const G = planNow(), key = JSON.stringify([plKey, S.traceSpeed, S.travel, S.tail, S.ink, hereNow(), S.ink ? dipCup() : null, S.traceCass, S.traceTape]);
+  const G = planNow(), key = JSON.stringify([plKey, S.traceSpeed, S.travel, S.tail, S.ink, hereNow(), S.ink ? dipCup() : null, S.traceCass, S.traceTape, S.parts]);
   if (TRACE?.key === key) return TRACE;
-  const R = traceRows(G, LINES, { traceCass: S.traceCass, traceTape: S.traceTape, ink: S.ink, dir: S.dir });
+  const R = traceRows(G, LINES, { traceCass: S.traceCass, traceTape: S.traceTape, ink: S.ink, dir: S.dir, parts: S.parts });
   TRACE = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), speed: S.traceSpeed, ink: S.ink }, [{ key: 'TRACE', ps: R.ps, why: null }]), rows: R.info, lines: R.ps.length } : EMPTY) };
   return TRACE;
 }
@@ -474,7 +474,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = [...PLAN_KEYS, 'brushType', 'brushAngle', 'traceCass', 'traceTape', 'traceSpeed', 'ground', 'tape', 'cassSvg', 'cassName'];
+const UNDO_KEYS = [...PLAN_KEYS, 'brushType', 'brushAngle', 'traceCass', 'traceTape', 'parts', 'traceSpeed', 'ground', 'tape', 'cassSvg', 'cassName'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -627,7 +627,7 @@ function settle() {
     lines.push(`Lanes: <b>${G.kSide}</b> to the side edges · <b>${G.kTop}</b> to top and bottom · <b>${G.K}</b> to fill the corners`);
     lines.push(`Seam: ${S.seam === 'shift' ? (G.full ? 'none — the lane change over the whole turn, <b>one continuous spiral</b>' : `from the middle of the right side, the lane change over <b>${fmt(G.Lb, 0)} mm</b> (${Math.round(G.Lb / G.P0 * 100)} % of lane 1)`) : 'the middle of the right side; each ring closes on itself, the brush lifting to the next'}`);
     lines.push(`DRAG: <b>${G.segs.length}</b> segments × ${S.strokes} stroke${S.strokes === 1 ? '' : 's'}, <b>${G.segs.length}</b> paint stops · Snake ≈ ${min(D.seconds)} min, Air ≈ ${min(A.seconds)} min at ${S.speed} mm/s, the stops not timed (est.)`);
-    lines.push(`TRACE: <b>${T.lines}</b> lines${S.traceCass ? `, the cassette ${fmt(LINES.reduce((a, l) => a + l.pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - l.pts[i - 1][0], p[1] - l.pts[i - 1][1]) : 0, 0), 0) / 1000, 2)} m` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dips` : 'the pencil'} · ≈ ${min(T.seconds)} min at ${S.traceSpeed} mm/s (est.)`);
+    lines.push(`TRACE: <b>${T.lines}</b> ${S.parts ? 'strokes, in parts' : 'lines'}${S.traceCass ? `, the cassette ${fmt(LINES.reduce((a, l) => a + l.pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - l.pts[i - 1][0], p[1] - l.pts[i - 1][1]) : 0, 0), 0) / 1000, 2)} m` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dips` : 'the pencil'} · ≈ ${min(T.seconds)} min at ${S.traceSpeed} mm/s (est.)`);
   }
   more.push(`The prototype's reckoning, ${MODE_NAME[S.mode]}: paint ${fmt(G.paintLen / 1000, 1)} m · air ${fmt(G.airLen / 1000, 1)} m · ${G.lifts} lifts · ≈ ${fmt(G.tMachine / 60, 1)} min + ${G.segs.length} paint stops (est.)`);
   more.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; the cassette in its centre; TEST's dots ${TEST_MARGIN} mm in from its edges`);
@@ -738,8 +738,8 @@ $('#btnTrace').onclick = async () => {
   if (!T.rows.length) return refuse('Nothing to trace: the cassette\'s outline and the guide are both off.');
   if (S.ink && cupProblem(cup())) return refuse(`Ink ON: ${cupProblem(cup())}`);
   if (T.fault) return refuse(`Not run: the plan is wrong — ${T.fault}.`);
-  const what = [S.traceCass && 'the cassette\'s outline', S.traceTape && `the tape's guide, ${G.runs.length} runs`].filter(Boolean).join(' and ');
-  if (!confirm(`TRACE ${TAB_NAME}: ${what}, ${T.lines} lines at ${S.traceSpeed} mm/s, ≈ ${min(T.seconds)} min (est.).\n\n${S.ink ? `Ink ON: watercolour from the cup, ${T.dips} dips. Is the brush in the holder?` : 'The pencil: is the pencil in the holder?'}${walls(T) ? `\n\n${walls(T)}` : ''}`)) return;
+  const what = [S.traceCass && 'the cassette\'s outline', S.traceTape && `the tape's guide, ${G.runs.length} run${G.runs.length === 1 ? '' : 's'}`].filter(Boolean).join(' and ');
+  if (!confirm(`TRACE ${TAB_NAME}: ${what}, ${T.lines} ${S.parts ? 'strokes in parts, the pencil never going up,' : 'lines'} at ${S.traceSpeed} mm/s, ≈ ${min(T.seconds)} min (est.).\n\n${S.ink ? `Ink ON: watercolour from the cup, ${T.dips} dips. Is the brush in the holder?` : 'The pencil: is the pencil in the holder?'}${walls(T) ? `\n\n${walls(T)}` : ''}`)) return;
   S.view = 'trace'; stopPlay(); settle();
   await start('trace', T.blocks, { seconds: T.seconds, rows: T.rows },
     { page: TAB, pass: 'trace', label: label(), settings: { ...S, cassSvg: S.cassSvg ? '(loaded)' : null }, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });

@@ -435,7 +435,14 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   pencil's springs from the motors — every loop's top left corner cut ("the
   pencil is drawn like a bow with an arrow"; if the fault moves to the
   bottom right, three sides in one go and the fourth after a lift, "the
-  letter П", is the owner's next step).
+  letter П", is the owner's next step). It moved to the top **right**:
+  wherever the line had gone up. **TRACE in parts** ("it is the spring — a
+  construction for the brush … let's draw not continuously but in parts,
+  stick, stick, cucumber"; the springs stay: "otherwise the pencil's point
+  can hole the canvas; the brush has no trouble at all, its bristles make up
+  for the spring"): the pencil never up the picture steeper than 20° (est.),
+  every rise a stroke of its own top to bottom, the strokes 4 mm over each
+  other (est.); In parts in the Trace keys, ON by default.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the

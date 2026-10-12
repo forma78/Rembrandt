@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: TRACE in parts, the pencil never going up** (the owner,
+  2026-10-12, `TAPE-images/` 15:21: Counter moved the cut from the top left
+  corner to the top right — wherever the line had gone up; the holder
+  15:21:49: "it is the spring — a construction for the brush, and sitting
+  down to change it all now is a lot of time. Let's draw not continuously
+  but in parts, stick, stick, cucumber"; "the springs matter, otherwise the
+  pencil's point can hole the canvas; the brush has no trouble at all"). A
+  line is cut where it starts up the picture steeper than 20° (est.); every
+  rising stretch drawn top to bottom, a stroke of its own; a rise under 3 mm
+  goes on with the rest; the strokes 4 mm over each other at their joints
+  (est.), so a landing and a lift-off fall on a line drawn. The shell is the
+  owner's П and its fourth side; a circle two halves; the guide about four
+  strokes a lane. **In parts** in the Trace keys, ON by default; OFF, every
+  line in one go, a closed one round twice. TRACE on 230 × 230: 26 lines,
+  ≈ 11 min → 107 strokes, ≈ 16 min (est.).
+
 - **Rembrandt.md: TAPE after the pencil's first traces** — §1: closed
   outlines round twice, no lift at the canvas's edges, Counter for the
   cassette too, with the owner's words of 2026-10-12.
