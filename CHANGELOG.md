@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: no pencil; TRACE the cassette's outline only** (the owner,
+  2026-10-12: "too long, that will not do. I will just mark the rectangle
+  with the brush"; "so we take the cassette away and keep its outline — the
+  cassette can stay in the Result. I will cut a stencil out of cardboard and
+  draw round it in 30 seconds; why wait 16 minutes?"). TRACE: the shell, the
+  box the lanes hug, round from 12 o'clock — the other way with Counter —
+  and on 60 % over its start, the brush lifting off over the lap, as every
+  loop of Rembrandt's TRACE; ≈ 20 s at 40 mm/s; and the tape's guide as
+  before. The rest of the cassette faint on Trace, whole in the Result. In
+  parts gone with the pencil (commit 2392c00 keeps it); the pencil gone from
+  the titles, the reading and the confirm. The save's layers: cassette, its
+  SVG; trace-cassette, its outline. A run under a minute reads in seconds.
+  DRAG untouched.
+
 - **TAPE: TRACE in parts, the pencil never going up** (the owner,
   2026-10-12, `TAPE-images/` 15:21: Counter moved the cut from the top left
   corner to the top right — wherever the line had gone up; the holder

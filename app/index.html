@@ -11,8 +11,8 @@
 <!-- Rembrandt · TAPE — a cassette in the centre, its tape wound round it, the
      first tab since 2026-10-12 (the owner, TAPE-Claude/: "a hand-painted
      cassette in the centre, the tape painted by the machine with the brush";
-     "only to restore Soumkine, on Etsy"). TRACE draws the cassette and the
-     tape's guide with the pencil — or with INK ON in watercolour from the
+     "only to restore Soumkine, on Etsy"). TRACE draws the cassette's outline
+     and the tape's guide with the brush — with INK ON in watercolour from the
      cup; DRAG paints the tape segment by segment, in two keys, the snake and
      through the air; the cassette is coloured by hand last. The plan in
      src/tapeplan.js, chat-Claude's prototype v0.3 ported. CCD's page: its
@@ -75,7 +75,7 @@
         <button class="btn" id="btnPause" title="PAUSE the run — on DRAG at the end of the segment; pressed, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
       <div class="runkeys deck passes">
-        <button class="btn pass" id="btnTrace" data-pass="trace" title="TRACE: the cassette's outline and the tape's guide, with the pencil — or with INK ON in watercolour from the cup"><svg viewBox="0 0 24 24"><rect x="6.5" y="8" width="11" height="8" rx="1"/><path d="M3.5 5h17v14h-17z" class="dash"/></svg><span>Trace</span></button>
+        <button class="btn pass" id="btnTrace" data-pass="trace" title="TRACE: the cassette's outline and the tape's guide with the brush — with INK ON in watercolour from the cup"><svg viewBox="0 0 24 24"><rect x="6.5" y="8" width="11" height="8" rx="1"/><path d="M3.5 5h17v14h-17z" class="dash"/></svg><span>Trace</span></button>
         <button class="btn pass" id="btnSnake" data-pass="snake" title="DRAG, the snake: every segment forward, back, forward … with the brush down; a stop before each, the brush over its start, for the paint; no dip"><svg viewBox="0 0 24 24"><path d="M4 7h14a2.5 2.5 0 0 1 0 5H6a2.5 2.5 0 0 0 0 5h14"/></svg><span>Snake</span></button>
         <button class="btn pass" id="btnAir" data-pass="air" title="DRAG through the air: every segment forward on the canvas, the brush lifting at its end and flying back to its start, the strokes over; a stop before each, the brush over its start, for the paint; no dip"><svg viewBox="0 0 24 24"><path d="M4 16h14M15 13l3 3-3 3"/><path d="M18 8H6" class="dash"/><path d="M8 5l-3 3 3 3" class="thin"/></svg><span>Air</span></button>
       </div>
@@ -90,15 +90,14 @@
     </div>
     <section class="sec">
       <h3>TAPE <span class="hint">a cassette, its tape round it</span></h3>
-      <!-- INK, ALU's: ON TRACE in watercolour from the cup of the Ink tab; OFF the pencil (the owner, 2026-10-12: "maybe a pale
-           watercolour trace with a thin brush will do, not necessarily the pencil"); DRAG never dips -->
-      <div class="inkrow" title="ON: TRACE in watercolour, dipping in the cup of the Ink tab; OFF: the pencil, no dip. DRAG never dips">
+      <!-- INK, ALU's: ON TRACE in watercolour from the cup of the Ink tab; OFF no dip; DRAG never dips -->
+      <div class="inkrow" title="ON: TRACE in watercolour, dipping in the cup of the Ink tab; OFF: no dip. DRAG never dips">
         <span class="slh"><span>Ink</span></span>
         <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
       </div>
       <!-- the passes as they will look; a view only -->
       <div class="toggles looks" id="views">
-        <button class="tog" data-view="trace" title="TRACE: the pencil's lines — the cassette's outline and the tape's guide">Trace</button>
+        <button class="tog" data-view="trace" title="TRACE: the cassette's outline and the tape's guide, the rest of the cassette faint — drawn by hand with a stencil">Trace</button>
         <button class="tog" data-view="drag" title="DRAG: every segment's centre line, a colour a segment in turn, its paint stop numbered at its start; dashed where the brush flies">Drag</button>
         <button class="tog" data-view="result" title="The painting: the tape as the brush leaves it, the cassette filled light; the lanes past the canvas faint">Result</button>
       </div>
@@ -112,10 +111,8 @@
 
       <h4>Trace</h4>
       <div class="toggles looks" id="traceKeys">
-        <button class="tog" data-trace="traceCass" title="The cassette's outline, to colour by hand like a colouring book">Cassette outline</button>
+        <button class="tog" data-trace="traceCass" title="The cassette's outline, its shell, the box the tape hugs: round from 12 o'clock and on over its start; the rest drawn by hand with a stencil">Cassette outline</button>
         <button class="tog" data-trace="traceTape" title="The tape's guide: every run's centre line on the canvas, the very line DRAG runs">Tape guide</button>
-        <!-- in parts (the owner, 2026-10-12: "let's draw not continuously but in parts, stick, stick, cucumber"): the pencil's spring holder takes it up the picture badly -->
-        <button class="tog" data-trace="parts" title="In parts: the pencil never goes up the picture — every rise a stroke of its own, top to bottom, the strokes 4 mm over each other; off, every line in one go, a closed one round twice">In parts</button>
       </div>
       <div class="sliders" id="slTrace"></div>
 

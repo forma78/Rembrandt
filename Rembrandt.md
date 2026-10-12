@@ -31,7 +31,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` from 2026-10-06 to 10-11, then off the row, `type.html` (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
 | **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
-| **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, traced by the machine and coloured by hand last; its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE with the pencil, or with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
+| **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last; its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
 | **Run · segment · paint stop · overrun (on TAPE)** | A run: the tape whole on the canvas between two crossings of its edges. The overrun: how far the brush carries on past an edge before it lifts, so the tape runs cleanly off it. A segment: the part of a run one squeeze of paint covers, Segment mm (est.). A paint stop: the pause before every segment, the first too, the brush up over its start, for the owner to squeeze its paint there. Not ALU's segment. |
@@ -131,8 +131,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   canon"). The machine lays a light trace of the line in watercolour before
   the main run in thick acrylic. Drops are an alternative to a stroke, but
   the brush itself follows the contour on the canvas more exactly. "The
-  more water, the better." **TAPE excepted** since 2026-10-12: its TRACE
-  goes with the pencil, or with INK ON in watercolour (below).
+  more water, the better." TAPE tried the pencil for its TRACE on
+  2026-10-12 and dropped it the same day (below).
 - **Paint goes on by eye for now, and the way ahead is the brush dipping
   into cups** at the edges of the frame (the owner, 2026-10-02). From the
   tube onto the canvas where Create's drop map shows, for the first tests.
@@ -442,7 +442,23 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   can hole the canvas; the brush has no trouble at all, its bristles make up
   for the spring"): the pencil never up the picture steeper than 20° (est.),
   every rise a stroke of its own top to bottom, the strokes 4 mm over each
-  other (est.); In parts in the Trace keys, ON by default.
+  other (est.); In parts in the Trace keys, ON by default — gone with the
+  pencil the same day. **The pencil dropped; TRACE the cassette's outline
+  only** (the owner, the same afternoon, on "16 minutes" for TRACE in parts:
+  "too long, that will not do. I will just mark the rectangle with the
+  brush. Two weeks ago we took the pencil away … this construction does not
+  draw that way"; "so we take the cassette away and keep its outline — the
+  cassette can stay in the Result, to see what comes out. I will cut a
+  stencil out of cardboard and draw round it in 30 seconds; why wait 16
+  minutes?"; "the springs matter, otherwise the pencil's point can hole the
+  canvas; with the brush there is no trouble at all — its bristles make up
+  for the spring"): TRACE the shell, the box the lanes hug, round from 12
+  o'clock and on 60 % over its start, the brush lifting off over the lap,
+  as every loop of Rembrandt's TRACE (*Claude's*: the brush's canon in
+  place of the pencil's round twice), ≈ 20 s; and the tape's guide; the
+  rest of the cassette in the Result, faint on Trace and Drag. DRAG
+  untouched (the owner: "in Drag there is no cassette, it draws the tape
+  at once, so the system is not hurt much").
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -848,10 +864,12 @@ this section disagree, this section wins: the owner corrected the sketch on
   `app/src/tapeplan.js`; `TAPE-Claude/TAPE.md`): CCD's page — its board, the
   canvas from home with the cassette in its centre, PROGRESS, the zoom, the
   LCD — with the deck **TEST · PAUSE, TRACE · Snake · Air, STOP**. TRACE:
-  the cassette's outline and the tape's guide, every run's centre line on
-  the canvas — the very line DRAG runs — with the pencil, or with **INK** ON
-  in watercolour from the cup, a dip, then lines on what the brush holds up
-  to the dip run, as ALU's. DRAG: a pass a segment, a stop before each, the
+  the cassette's outline — its shell, round from 12 o'clock and on 60 %
+  over its start — and the tape's guide, every run's centre line on the
+  canvas, the very line DRAG runs, with the brush; with **INK** ON in
+  watercolour from the cup, a dip, then lines on what the brush holds up to
+  the dip run, as ALU's. The rest of the cassette drawn by hand with a
+  stencil, faint on Trace. DRAG: a pass a segment, a stop before each, the
   first too — the brush over its start, up, the LCD "Segment 12 of 72:
   squeeze the paint under the brush, then Continue" — Snake one path of its
   strokes, Air a path a stroke, the brush landing and lifting on the move;
@@ -866,8 +884,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   angle; the canvas; the reading — the tape lane, the lanes, the seam, DRAG
   and TRACE with their times (est.), one ⚠ line a warning. The Result's
   ground and tape colours in the Tools. 💾 SAVE TAPE, the Library opening it
-  here: an SVG centred on the canvas, its layers trace-cassette (the
-  cassette's SVG nested as it is), trace-tape and drag-tape, lines and arcs.
+  here: an SVG centred on the canvas, its layers cassette (its SVG nested
+  as it is), trace-cassette (its outline), trace-tape and drag-tape, lines
+  and arcs.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once

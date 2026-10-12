@@ -4,11 +4,10 @@
 // after Werner Bronkhorst; "only to restore Soumkine, on Etsy"). Its plan in
 // tapeplan.js, chat-Claude's prototype v0.3 ported.
 //
-// On the table: TRACE, the cassette's outline and the tape's guide with the
-// pencil ("let's bring the pencil back … for trace! I would use an exact
-// cassette") — or with INK ON in watercolour from the cup ("maybe a pale
-// watercolour trace with a thin brush will do"); the pencil swapped for the
-// brush; DRAG, the tape segment by segment, the snake or through the air
+// On the table: TRACE, the cassette's outline — its shell — and the tape's
+// guide with the brush, with INK ON in watercolour from the cup (the pencil
+// tried the same day and dropped: "too long, that will not do … I will cut a
+// stencil out of cardboard and draw round it in 30 seconds"); DRAG, the tape segment by segment, the snake or through the air
 // ("two Drag — the snake, and there along the canvas, back through the
 // air"), a stop before every segment, the brush over its start, for the
 // paint ("yes, absolutely fine"); the cassette coloured by hand last ("I will
@@ -27,8 +26,8 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS as RUN, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
-import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN } from './band.js';
-import { planOf, dragRows, traceRows, cassetteLines, piecesOf, pathD, DEFAULTS, DEFAULT_CASS, REAL, TINY, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
+import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
+import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, DEFAULTS, DEFAULT_CASS, REAL, TINY, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -41,7 +40,7 @@ const fin = v => Number.isFinite(v), hex = v => typeof v === 'string' && /^#[0-9
 
 // ---------- state ----------
 // The prototype's settings, the owner's; INK, the view, TRACE's speed (the
-// pencil's 40 mm/s, est.), the flights and the tail as CCD's; the Result's
+// prototype's 40 mm/s, est.), the flights and the tail as CCD's; the Result's
 // colours; a loaded cassette's SVG (null: the built-in one).
 const S = {
   ...DEFAULTS, ink: false, view: 'result', traceSpeed: 40, travel: 180, tail: 3,
@@ -50,7 +49,7 @@ const S = {
 };
 const NUM = ['brush', 'speed', 'gap', 'corners', 'cassScale', 'clear', 'step', 'segLen', 'strokes', 'overrun', 'brushAngle', 'traceSpeed', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom'];
 const ONE_OF = { mode: MODES, seam: SEAMS, dir: DIRS, brushType: BRUSH_TYPES, view: ['trace', 'drag', 'result'] };
-const BOOL = ['ink', 'traceCass', 'traceTape', 'parts'];
+const BOOL = ['ink', 'traceCass', 'traceTape'];
 function take(o) {
   if (!o) return;
   for (const k of NUM) if (fin(o[k])) S[k] = o[k];
@@ -144,7 +143,7 @@ const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x,
 // ---------- the runs: TRACE, DRAG the snake or through the air ----------
 // DRAG: a pass a segment, its stop first, the brush over its start
 // (pauseOver); PAUSE at a segment's end, never on its strokes (pauseAtEnds).
-// TRACE: the pencil, or with INK ON the cup, as ALU's TRACE.
+// TRACE: the brush, with INK ON from the cup, as ALU's TRACE.
 const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, air: [], dips: 0, mm: 0, stops: 0, lines: 0, fault: '' };
 const runOpts = rows => ({ ...RUN, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: false, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
 const RUNS = {}, MODE_NAME = { snake: 'the snake', air: 'through the air' };
@@ -157,9 +156,9 @@ function dragRun(mode = S.mode) {
   return RUNS[mode];
 }
 function traceRun() {
-  const G = planNow(), key = JSON.stringify([plKey, S.traceSpeed, S.travel, S.tail, S.ink, hereNow(), S.ink ? dipCup() : null, S.traceCass, S.traceTape, S.parts]);
+  const G = planNow(), key = JSON.stringify([plKey, S.traceSpeed, S.travel, S.tail, S.ink, hereNow(), S.ink ? dipCup() : null, S.traceCass, S.traceTape]);
   if (TRACE?.key === key) return TRACE;
-  const R = traceRows(G, LINES, { traceCass: S.traceCass, traceTape: S.traceTape, ink: S.ink, dir: S.dir, parts: S.parts });
+  const R = traceRows(G, { traceCass: S.traceCass, traceTape: S.traceTape, ink: S.ink });
   TRACE = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), speed: S.traceSpeed, ink: S.ink }, [{ key: 'TRACE', ps: R.ps, why: null }]), rows: R.info, lines: R.ps.length } : EMPTY) };
   return TRACE;
 }
@@ -210,7 +209,7 @@ function layout() {
 let drawSoon = 0;
 const kick = () => { if (!drawSoon) drawSoon = requestAnimationFrame(() => { drawSoon = 0; draw(); }); };
 const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
-const ORANGE = '#EB7A25', GROUND = '#FBFAF7', PENCIL = '#7D7A74', WATER = '#6F8FB8', RUST = '#C0603D';
+const ORANGE = '#EB7A25', GROUND = '#FBFAF7', DRY = '#7D7A74', WATER = '#6F8FB8', RUST = '#C0603D';
 function draw() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = g.canvas.width / dpr, H = g.canvas.height / dpr, hw = S.boardW / 2, hh = S.boardH / 2;
@@ -258,7 +257,7 @@ function draw() {
 }
 
 // ---------- the views ----------
-// The cassette's lines as the pencil draws them (cassetteLines)
+// The cassette's lines, as its SVG draws them (cassetteLines)
 function cassettePath(c) { c.beginPath(); for (const l of LINES) { l.pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); if (l.closed) c.closePath(); } }
 function bodyPath(c, cb) {                                                            // the shell: its body outline, else its box
   const body = LINES.find(l => /^body/i.test(l.id) && l.closed);
@@ -266,15 +265,17 @@ function bodyPath(c, cb) {                                                      
   if (body) body.pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); else c.rect(-cb.w / 2, -cb.h / 2, cb.w, cb.h);
 }
 const poly = (c, P, i0, i1) => { c.beginPath(); c.moveTo(P[i0].x, P[i0].y); for (let i = i0 + 1; i <= i1; i++) c.lineTo(P[i].x, P[i].y); };
-// TRACE: the pencil's lines, or the watercolour's with INK ON
+// TRACE: the cassette's outline and the guide, the watercolour's with INK ON;
+// the rest of the cassette faint — it is drawn by hand, with a stencil
 function drawTrace() {
   const G = planNow();
   g.save(); inMm(g); clipCanvas(g); g.lineJoin = 'round'; g.lineCap = 'round';
-  g.strokeStyle = S.ink ? WATER : PENCIL; g.lineWidth = S.ink ? 0.8 : 0.4;
+  g.strokeStyle = 'rgba(120,115,108,.35)'; g.lineWidth = 0.25; cassettePath(g); g.stroke();
+  g.strokeStyle = S.ink ? WATER : DRY; g.lineWidth = S.ink ? 0.8 : 0.5;
   if (S.traceTape) for (const r of G.runs) { poly(g, G.pts, r.c0, r.c1); g.stroke(); }
-  if (S.traceCass) { cassettePath(g); g.stroke(); }
+  if (S.traceCass && G.fits) { const cb = G.cb; g.beginPath(); g.roundRect(-cb.w / 2, -cb.h / 2, cb.w, cb.h, cb.r); g.stroke(); }
   g.restore();
-  if (!S.traceTape && !S.traceCass) { g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = themeColor('--mute', '#7D776D'); g.font = font(12); g.textAlign = 'center'; g.fillText('TRACE is off: neither the cassette nor the guide', sx([0]), sy([0, 0])); g.restore(); }
+  if (!S.traceTape && !S.traceCass) { g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = themeColor('--mute', '#7D776D'); g.font = font(12); g.textAlign = 'center'; g.fillText('TRACE is off: neither the outline nor the guide', sx([0]), sy([0, 0])); g.restore(); }
 }
 // DRAG: every segment's centre line, a colour a segment in turn; dashed where the brush flies; its paint stop numbered at its start
 function drawDrag() {
@@ -474,7 +475,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = [...PLAN_KEYS, 'brushType', 'brushAngle', 'traceCass', 'traceTape', 'parts', 'traceSpeed', 'ground', 'tape', 'cassSvg', 'cassName'];
+const UNDO_KEYS = [...PLAN_KEYS, 'brushType', 'brushAngle', 'traceCass', 'traceTape', 'traceSpeed', 'ground', 'tape', 'cassSvg', 'cassName'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -525,7 +526,7 @@ addEventListener('keydown', e => {
 // ---------- the panel ----------
 // The sliders, TAPE.md's ranges and the owner's defaults; est. where nothing measured them
 const SL = {
-  slTrace: [['traceSpeed', 'Trace speed', 5, 10, 150, 'The pencil along the cassette and the guide, mm/s (est.)']],
+  slTrace: [['traceSpeed', 'Trace speed', 5, 10, 150, 'The brush along the cassette\'s outline and the guide, mm/s (est.)']],
   slBrush: [['brush', 'Brush = tape', 0.5, 2, 20, 'The brush is the tape: as wide as a cassette\'s, 3.81 mm; the small differences for the adjustments'],
     ['speed', 'Speed', 1, 5, Math.min(80, SPEED_MAX), 'The brush along the tape, mm/s'],
     ['gap', 'Gap', 0.5, 0, 10, 'Between neighbouring lanes; 0, they touch'],
@@ -595,7 +596,7 @@ $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
 });
 $('#planInfo').onclick = () => { $('#planMore').hidden = !$('#planMore').hidden; $('#planInfo').classList.toggle('on', !$('#planMore').hidden); };
 const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-const HINT = 'TAPE: the cassette in the centre of the canvas, real size, the tape wound round it. TRACE with the pencil (INK ON: watercolour), then the brush in the holder and DRAG, the snake or through the air, a stop before every segment for its paint; the cassette coloured by hand last.';
+const HINT = 'TAPE: the cassette in the centre of the canvas, real size, the tape wound round it. TRACE its outline and the tape\'s guide with the brush (INK ON: watercolour), then DRAG, the snake or through the air, a stop before every segment for its paint; the cassette drawn with a stencil and coloured by hand last.';
 function showPanel() {
   for (const list of Object.values(SL)) for (const [key] of list) {
     const inp = $(`input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
@@ -617,7 +618,7 @@ function showPanel() {
   $('#btnCassDefault').classList.toggle('on', !S.cassSvg);
   $('#hint').textContent = HINT;
 }
-const min = s => fmt(s / 60, 0);
+const took = s => s < 59.5 ? `${Math.max(1, Math.round(s))} s` : `${fmt(s / 60, 0)} min`;   // a short run in seconds
 // Settled: a slider let go, a key pressed — the plan, the reading, the LCD.
 function settle() {
   busy = false;
@@ -626,8 +627,8 @@ function settle() {
     lines.push(`Tape lane: <b>${fmt(w, 1)} mm</b> brush · real tape ${REAL.tape} mm (×${fmt(w / REAL.tape, 2)}) · pitch ${fmt(G.F.p, 1)} mm${S.gap ? '' : ' · lanes touching'}`);
     lines.push(`Lanes: <b>${G.kSide}</b> to the side edges · <b>${G.kTop}</b> to top and bottom · <b>${G.K}</b> to fill the corners`);
     lines.push(`Seam: ${S.seam === 'shift' ? (G.full ? 'none — the lane change over the whole turn, <b>one continuous spiral</b>' : `from the middle of the right side, the lane change over <b>${fmt(G.Lb, 0)} mm</b> (${Math.round(G.Lb / G.P0 * 100)} % of lane 1)`) : 'the middle of the right side; each ring closes on itself, the brush lifting to the next'}`);
-    lines.push(`DRAG: <b>${G.segs.length}</b> segments × ${S.strokes} stroke${S.strokes === 1 ? '' : 's'}, <b>${G.segs.length}</b> paint stops · Snake ≈ ${min(D.seconds)} min, Air ≈ ${min(A.seconds)} min at ${S.speed} mm/s, the stops not timed (est.)`);
-    lines.push(`TRACE: <b>${T.lines}</b> ${S.parts ? 'strokes, in parts' : 'lines'}${S.traceCass ? `, the cassette ${fmt(LINES.reduce((a, l) => a + l.pts.reduce((s, p, i) => i ? s + Math.hypot(p[0] - l.pts[i - 1][0], p[1] - l.pts[i - 1][1]) : 0, 0), 0) / 1000, 2)} m` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dips` : 'the pencil'} · ≈ ${min(T.seconds)} min at ${S.traceSpeed} mm/s (est.)`);
+    lines.push(`DRAG: <b>${G.segs.length}</b> segments × ${S.strokes} stroke${S.strokes === 1 ? '' : 's'}, <b>${G.segs.length}</b> paint stops · Snake ≈ ${took(D.seconds)}, Air ≈ ${took(A.seconds)} at ${S.speed} mm/s, the stops not timed (est.)`);
+    lines.push(`TRACE: <b>${T.lines}</b> line${T.lines === 1 ? '' : 's'}${S.traceCass ? `, the cassette's outline ${fmt(shellOf(G, 0).P, 0)} mm and ${Math.round(LOOP_SHARE * 100)} % over its start` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'no dip'} · ≈ ${took(T.seconds)} at ${S.traceSpeed} mm/s (est.)`);
   }
   more.push(`The prototype's reckoning, ${MODE_NAME[S.mode]}: paint ${fmt(G.paintLen / 1000, 1)} m · air ${fmt(G.airLen / 1000, 1)} m · ${G.lifts} lifts · ≈ ${fmt(G.tMachine / 60, 1)} min + ${G.segs.length} paint stops (est.)`);
   more.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; the cassette in its centre; TEST's dots ${TEST_MARGIN} mm in from its edges`);
@@ -643,7 +644,7 @@ function settle() {
   ].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(q => `<span class="warn">${q}</span>`).join('<br>');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = !G.fits ? 'the cassette does not fit' : `${G.K} lanes · ${G.segs.length} segments · DRAG Snake ≈ ${min(D.seconds)} min · Air ≈ ${min(A.seconds)} min · TRACE ≈ ${min(T.seconds)} min (est.)`;
+  $('#stats').textContent = !G.fits ? 'the cassette does not fit' : `${G.K} lanes · ${G.segs.length} segments · DRAG Snake ≈ ${took(D.seconds)} · Air ≈ ${took(A.seconds)} · TRACE ≈ ${took(T.seconds)} (est.)`;
   showPanel(); save(); layout(); lastLcd && lcd(lastLcd);
 }
 function walls(P_) {
@@ -679,7 +680,8 @@ function svgOf() {
 <!-- Rembrandt v.1.0.5 · ${esc(label())}; 1 unit = 1 mm from the canvas's centre, y down -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect id="canvas" x="${f(-W / 2)}" y="${f(-H / 2)}" width="${W}" height="${H}" fill="${S.ground}" stroke="#24221F" stroke-width="0.5"/>
-<g id="trace-cassette">${cass}</g>
+<g id="cassette">${cass}</g>
+<g id="trace-cassette" fill="none" stroke="#999" stroke-width="0.5">${G.fits ? `<path id="outline" d="${pathD(shellOf(G, 0).pieces)}"/>` : ''}</g>
 <g id="trace-tape" fill="none" stroke="#999" stroke-width="0.5">
 ${guides}
 </g>
@@ -739,7 +741,7 @@ $('#btnTrace').onclick = async () => {
   if (S.ink && cupProblem(cup())) return refuse(`Ink ON: ${cupProblem(cup())}`);
   if (T.fault) return refuse(`Not run: the plan is wrong — ${T.fault}.`);
   const what = [S.traceCass && 'the cassette\'s outline', S.traceTape && `the tape's guide, ${G.runs.length} run${G.runs.length === 1 ? '' : 's'}`].filter(Boolean).join(' and ');
-  if (!confirm(`TRACE ${TAB_NAME}: ${what}, ${T.lines} ${S.parts ? 'strokes in parts, the pencil never going up,' : 'lines'} at ${S.traceSpeed} mm/s, ≈ ${min(T.seconds)} min (est.).\n\n${S.ink ? `Ink ON: watercolour from the cup, ${T.dips} dips. Is the brush in the holder?` : 'The pencil: is the pencil in the holder?'}${walls(T) ? `\n\n${walls(T)}` : ''}`)) return;
+  if (!confirm(`TRACE ${TAB_NAME}: ${what}, ${T.lines} line${T.lines === 1 ? '' : 's'} at ${S.traceSpeed} mm/s, ≈ ${took(T.seconds)} (est.).\n\n${S.ink ? `Ink ON: watercolour from the cup, ${T.dips} dip${T.dips === 1 ? '' : 's'}.` : 'Ink OFF: no dip.'} Is the brush in the holder?${walls(T) ? `\n\n${walls(T)}` : ''}`)) return;
   S.view = 'trace'; stopPlay(); settle();
   await start('trace', T.blocks, { seconds: T.seconds, rows: T.rows },
     { page: TAB, pass: 'trace', label: label(), settings: { ...S, cassSvg: S.cassSvg ? '(loaded)' : null }, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });
@@ -749,7 +751,7 @@ async function runDrag(mode) {
   const G = planNow(), D = dragRun(mode), snake = mode === 'snake';
   if (!G.fits || !D.rows.length) return refuse('Nothing to run: the cassette does not fit on the canvas.');
   if (D.fault) return refuse(`Not run: the plan is wrong — ${D.fault}.`);
-  const text = `${G.segs.length} segments, ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} each — ${snake ? 'forward, back, forward … with the brush down' : 'forward on the canvas, the brush lifting at the end and flying back to the start'} — ${fmt(D.mm / 1000, 1)} m with the brush at ${S.speed} mm/s, ≈ ${min(D.seconds)} min (est.), the stops not timed.`
+  const text = `${G.segs.length} segments, ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} each — ${snake ? 'forward, back, forward … with the brush down' : 'forward on the canvas, the brush lifting at the end and flying back to the start'} — ${fmt(D.mm / 1000, 1)} m with the brush at ${S.speed} mm/s, ≈ ${took(D.seconds)} (est.), the stops not timed.`
     + `\n\nDRAG stops before every segment, the first too: the brush goes over its start and waits there, up — squeeze the paint under it, then Continue. ${G.segs.length} stops.`
     + `\n\nIs the brush in the holder?${walls(D) ? `\n\n${walls(D)}` : ''}`;
   if (!confirm(`DRAG ${snake ? 'SNAKE' : 'AIR'} ${TAB_NAME}: ${text}`)) return;

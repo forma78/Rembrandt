@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planOf, family, piecesOf, dragRows, traceRows, cassetteLines, flattenD, pathD, partsOf, DEFAULTS, DEFAULT_CASS, RISE_DEG, RISE_MIN, LAP_MM } from '../src/tapeplan.js';
+import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS as RUN_DEFAULTS, pieceLen, sweepOf } from '../src/strokes.js';
-import { toMachine } from '../src/band.js';
+import { toMachine, LOOP_SHARE } from '../src/band.js';
 
 // TAPE's plan: the tape wound round a cassette (the owner, 2026-10-12,
 // TAPE-Claude/). The numbers of chat-Claude's approved prototype v0.3 are
@@ -112,29 +112,23 @@ test('DRAG on the machine: the brush over each segment\'s start before its stop,
   assert.equal(without.blocks.filter(b => b.kind === 'pause').length, 71, 'without pauseOver: none before the first, as every other tab');
 });
 
-test('TRACE: the cassette\'s outlines at real size, its shell 100.4 × 63.8 round 1.8 mm corners; the guides the very lines DRAG runs', () => {
-  const G = planOf(settingsOf({})), lines = cassetteLines(ITEMS, G.cb, DEFAULT_CASS), body = lines.find(l => l.id === 'body-1');
-  assert.ok(body.closed);
-  const xs = body.pts.map(p => p[0]), ys = body.pts.map(p => p[1]);
-  assert.ok(Math.abs(Math.min(...xs) + 50.2) < 1e-6 && Math.abs(Math.max(...ys) - 31.9) < 1e-6, 'centred on the canvas');
-  const T = traceRows(G, lines, { traceCass: true, traceTape: true, ink: false });
-  const shell = T.ps[0].reduce((a, g) => a + pieceLen(g), 0) / 2;
-  assert.ok(Math.abs(shell - (2 * (100.4 + 63.8) - (8 - 2 * Math.PI) * 1.8)) < 0.1, `the shell ${shell.toFixed(2)} mm round`);
-  // a closed outline round twice, the pencil's landing and lift-off on a line already drawn (the owner, 2026-10-12)
-  const screw = T.ps[lines.findIndex(l => l.id === 'screws-1')], half = screw.length / 2, sl = screw.reduce((a, g) => a + pieceLen(g), 0);
-  assert.ok(Math.abs(sl - 2 * 2 * Math.PI * 2) < 0.05, `a screw ⌀4 round twice: ${sl.toFixed(2)} mm`);
-  assert.ok(gapOf(screw[half - 1].b, screw[half].a) < 1e-9, 'the second round goes on from the first');
-  const slash = T.ps[lines.findIndex(l => l.id === 'screws-6')].reduce((a, g) => a + pieceLen(g), 0);
-  assert.ok(Math.abs(slash - Math.hypot(4.026 - 1.574, 3.628 - 1.572)) < 0.01, 'an open line once');
-  assert.equal(T.ps.length, lines.length + G.runs.length);
-  const guide = T.ps.slice(lines.length).reduce((a, p) => a + p.reduce((b, g) => b + pieceLen(g), 0), 0);
-  assert.ok(Math.abs(guide - G.guideLen) < 0.002 * G.guideLen, 'the guide as long as the runs on the canvas');
+test('TRACE: the cassette\'s outline, its shell, round from 12 o\'clock and on over its start, the brush lifting off over the lap; the guides the very lines DRAG runs', () => {
+  const G = planOf(settingsOf({})), cb = G.cb, T = traceRows(G, { traceCass: true, traceTape: true, ink: false });
+  const shell = T.ps[0], L = shell.reduce((a, g) => a + pieceLen(g), 0), P = 2 * (100.4 + 63.8) - (8 - 2 * Math.PI) * 1.8;
+  assert.ok(Math.abs(L - (1 + LOOP_SHARE) * P) < 0.01, `once round and ${LOOP_SHARE * 100} % over its start: ${L.toFixed(2)} mm`);
+  assert.ok(shell.every(g => Math.abs(g.tailOut - LOOP_SHARE * P) < 0.01), 'the brush lifting off over all of the lap');
+  assert.ok(gapOf(shell[0].a, toMachine([0, -cb.h / 2])) < 1e-9, 'from 12 o\'clock');
+  assert.ok(shell.every(g => g.t === 'L' || Math.abs(g.r - 1.8) < 1e-9), 'its sides lines, its corners the shell\'s 1.8 mm');
+  assert.ok(shell[0].b.y > shell[0].a.y, 'clockwise: to the right first');
+  assert.equal(T.ps.length, 1 + G.runs.length);
   for (const p of T.ps) for (let i = 1; i < p.length; i++) assert.ok(gapOf(p[i - 1].b, p[i].a) < 0.01, 'continuous');
-  const inked = traceRows(G, lines, { traceCass: true, traceTape: true, ink: true });
+  const guide = T.ps.slice(1).reduce((a, p) => a + p.reduce((b, g) => b + pieceLen(g), 0), 0);
+  assert.ok(Math.abs(guide - G.guideLen) < 0.002 * G.guideLen, 'the guide as long as the runs on the canvas');
+  const inked = traceRows(G, { traceCass: true, traceTape: true, ink: true });
   assert.ok(inked.ps.length > T.ps.length, 'with ink the long guides cut where the dips fall');
-  assert.ok(inked.ps.some(p => p[0].nodip), 'the short lines on what the brush holds');
-  const off = traceRows(G, lines, { traceCass: false, traceTape: true });
-  assert.equal(off.ps.length, G.runs.length);
+  assert.equal(traceRows(G, { traceCass: false, traceTape: true }).ps.length, G.runs.length);
+  assert.equal(traceRows(G, { traceCass: true, traceTape: false }).ps.length, 1);
+  assert.ok(Math.abs(shellOf(G, 0).pieces.reduce((a, g) => a + pieceLen(g), 0) - P) < 0.01, 'the save\'s outline once round');
 });
 
 test('the SVG\'s paths: lines, curves, arcs, relative and repeated; through a matrix', () => {
@@ -175,47 +169,16 @@ test('the brush down off the canvas (the owner, 2026-10-12: "let it just go with
   assert.ok(Math.max(...onLen) - Math.min(...onLen) < 2, 'a squeeze the same tape on the canvas each');
 });
 
-test('Counter: TRACE takes the cassette the other way round too', () => {
-  const G = planOf(settingsOf({})), lines = cassetteLines(ITEMS, G.cb, DEFAULT_CASS);
-  const cw = traceRows(G, lines, { traceCass: true, traceTape: false }), ccw = traceRows(G, lines, { traceCass: true, traceTape: false, dir: 'ccw' });
-  const slash = lines.findIndex(l => l.id === 'screws-6'), a = cw.ps[slash], b = ccw.ps[slash];
-  assert.ok(gapOf(a[0].a, b.at(-1).b) < 1e-6 && gapOf(a.at(-1).b, b[0].a) < 1e-6, 'an open line from its other end');
-  const body = ccw.ps[0];
-  const area = P => P.reduce((s, g) => s + g.a.x * g.b.y - g.b.x * g.a.y, 0);
-  assert.ok(Math.sign(area(cw.ps[0])) === -Math.sign(area(body)), 'the shell round the other way');
+test('Counter: TRACE\'s outline the other way round too, from 12 o\'clock', () => {
+  const G = planOf(settingsOf({ dir: 'ccw' })), shell = traceRows(G, { traceCass: true }).ps[0];
+  assert.ok(gapOf(shell[0].a, toMachine([0, -G.cb.h / 2])) < 1e-9, 'from 12 o\'clock');
+  assert.ok(shell[0].b.y < shell[0].a.y, 'to the left first');
 });
 
-// the pencil never going up the picture, steeper than RISE_DEG, but within a lap or a short rise
-function rises(S) {
-  const sin = Math.sin(RISE_DEG * Math.PI / 180), out = [];
-  for (const q of S) { let run = 0; for (let i = 1; i < q.length; i++) { const dx = q[i][0] - q[i - 1][0], dy = q[i][1] - q[i - 1][1], l = Math.hypot(dx, dy); if (!l) continue; if (-dy / l > sin + 1e-9) run += l; else { if (run) out.push(run); run = 0; } } if (run) out.push(run); }
-  return out;
-}
-const covered = (S, pts) => pts.every(p => S.some(q => q.some((b, i) => { if (!i) return false; const a = q[i - 1], dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy, t = L2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / L2)) : 0; return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy) < 0.05; })));
-test('in parts (the owner, 2026-10-12: "stick, stick, cucumber"): the pencil never up the picture but in a lap; the whole outline drawn', () => {
-  const shell = flattenD(ITEMS.find(i => i.id === 'body-1').d)[0].pts;
-  for (const [name, pts] of [['clockwise', shell], ['counter', shell.slice().reverse()]]) {
-    const S = partsOf(pts, true);
-    assert.equal(S.length, 2, `${name}: the П and its fourth side`);
-    assert.ok(rises(S).every(r => r <= LAP_MM + 1e-6), `${name}: no rise but a lap's: ${rises(S).map(r => r.toFixed(1))}`);
-    assert.ok(covered(S, pts), `${name}: every point of the shell drawn`);
-  }
-  const screw = flattenD(ITEMS.find(i => i.id === 'screws-1').d)[0].pts, S = partsOf(screw, true);
-  assert.equal(S.length, 2, 'a screw\'s circle two halves'); assert.ok(covered(S, screw));
-  const gear = flattenD(ITEMS.find(i => i.id === 'hubs-2').d)[0].pts, H = partsOf(gear, true);
-  assert.ok(covered(H, gear) && H.length <= 8, `a hub's teeth, ${H.length} strokes`);
-  assert.deepEqual(partsOf([[0, 10], [5, 0]], false), [[[5, 0], [0, 10]]], 'a rising line drawn top to bottom');
-  assert.deepEqual(partsOf([[0, 0], [5, 10]], false), [[[0, 0], [5, 10]]], 'a falling one as it is');
-  assert.equal(partsOf([[0, 0], [10, 0], [10, -2], [20, -2]], false).length, 1, `a rise under ${RISE_MIN} mm goes on with the rest`);
-});
-test('TRACE in parts: the cassette and the guide, every stroke continuous, none going up the picture but in its laps', () => {
-  const G = planOf({ ...DEFAULTS, cw: 230, ch: 230 }), lines = cassetteLines(ITEMS, G.cb, DEFAULT_CASS);
-  const T = traceRows(G, lines, { traceCass: true, traceTape: true, parts: true }), sin = Math.sin(RISE_DEG * Math.PI / 180);
-  assert.ok(T.ps.length > lines.length + G.runs.length);
-  for (const p of T.ps) {
-    for (let i = 1; i < p.length; i++) assert.ok(gapOf(p[i - 1].b, p[i].a) < 0.01, 'continuous');
-    let run = 0, worst = 0;
-    for (const g of p) { const L = pieceLen(g), dx = g.b.x - g.a.x; if (L > 1e-6 && dx / L > sin + 0.05 && g.t === 'L') run += L; else { worst = Math.max(worst, run); run = 0; } }   // machine +X: up the picture
-    assert.ok(Math.max(worst, run) <= LAP_MM + RISE_MIN + 0.5, `no long rise: ${Math.max(worst, run).toFixed(1)} mm`);
-  }
+test('the cassette on the board and in the Result: its SVG at real size, centred on the canvas', () => {
+  const G = planOf(settingsOf({})), body = cassetteLines(ITEMS, G.cb, DEFAULT_CASS).find(l => l.id === 'body-1');
+  assert.ok(body.closed);
+  const xs = body.pts.map(p => p[0]), ys = body.pts.map(p => p[1]);
+  assert.ok(Math.abs(Math.min(...xs) + 50.2) < 1e-6 && Math.abs(Math.max(...xs) - 50.2) < 1e-6, 'its 100.4 mm across, centred');
+  assert.ok(Math.abs(Math.min(...ys) + 31.9) < 1e-6 && Math.abs(Math.max(...ys) - 31.9) < 1e-6, 'its 63.8 mm up, centred');
 });
