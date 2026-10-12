@@ -118,8 +118,14 @@ test('TRACE: the cassette\'s outlines at real size, its shell 100.4 × 63.8 roun
   const xs = body.pts.map(p => p[0]), ys = body.pts.map(p => p[1]);
   assert.ok(Math.abs(Math.min(...xs) + 50.2) < 1e-6 && Math.abs(Math.max(...ys) - 31.9) < 1e-6, 'centred on the canvas');
   const T = traceRows(G, lines, { traceCass: true, traceTape: true, ink: false });
-  const shell = T.ps[0].reduce((a, g) => a + pieceLen(g), 0);
+  const shell = T.ps[0].reduce((a, g) => a + pieceLen(g), 0) / 2;
   assert.ok(Math.abs(shell - (2 * (100.4 + 63.8) - (8 - 2 * Math.PI) * 1.8)) < 0.1, `the shell ${shell.toFixed(2)} mm round`);
+  // a closed outline round twice, the pencil's landing and lift-off on a line already drawn (the owner, 2026-10-12)
+  const screw = T.ps[lines.findIndex(l => l.id === 'screws-1')], half = screw.length / 2, sl = screw.reduce((a, g) => a + pieceLen(g), 0);
+  assert.ok(Math.abs(sl - 2 * 2 * Math.PI * 2) < 0.05, `a screw ⌀4 round twice: ${sl.toFixed(2)} mm`);
+  assert.ok(gapOf(screw[half - 1].b, screw[half].a) < 1e-9, 'the second round goes on from the first');
+  const slash = T.ps[lines.findIndex(l => l.id === 'screws-6')].reduce((a, g) => a + pieceLen(g), 0);
+  assert.ok(Math.abs(slash - Math.hypot(4.026 - 1.574, 3.628 - 1.572)) < 0.01, 'an open line once');
   assert.equal(T.ps.length, lines.length + G.runs.length);
   const guide = T.ps.slice(lines.length).reduce((a, p) => a + p.reduce((b, g) => b + pieceLen(g), 0), 0);
   assert.ok(Math.abs(guide - G.guideLen) < 0.002 * G.guideLen, 'the guide as long as the runs on the canvas');

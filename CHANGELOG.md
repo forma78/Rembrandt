@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: TRACE takes a closed outline round twice** (the owner,
+  2026-10-12, the pencil's first trace, `TAPE-images/`: the screws' circles
+  and the holes in the trapezoid a short stroke, "a quarter of a circle at
+  most, then it goes up"; the shell's last corner not drawn — "draw the
+  circle double, so it surely goes the full 360 degrees on the canvas with
+  the pencil"). The landing and the lift-off, 3 mm each on the move, ate
+  half of a 12.6 mm screw, and the pencil touches only at the bottom of
+  them; now they fall on a line already drawn. Open lines once, as before.
+
 - **Rembrandt.md and README: TAPE.** The glossary's TAPE, and its words —
   lane and pitch, seam, lane change and closed rings, run, segment, paint
   stop and overrun, its Snake and Air — marked "on TAPE" where ALU or CCD

@@ -303,7 +303,15 @@ export function traceRows(G, lines, o, dipRun = DIP_RUN) {
     ps.push(pieces.map(g => ({ ...g, tilt: 0, row, ...(nodip ? { nodip: true } : {}) })));
     info.push({ label, L });
   };
-  if (o.traceCass) lines.forEach((l, i) => push(fitLine(l.pts), `Cassette · ${l.id || `line ${i + 1}`}`, false));
+  // A closed outline round twice (the owner, 2026-10-12, the pencil's first
+  // trace, TAPE-images/: the screws' circles a short stroke, a quarter at
+  // most, the shell's last corner missing — "draw the circle double, so it
+  // surely goes the full 360 degrees on the canvas"): the landing and the
+  // lift-off, a tail each, fall on a line already drawn.
+  if (o.traceCass) lines.forEach((l, i) => {
+    const P = fitLine(l.pts), loop = l.closed || Math.hypot(l.pts[0][0] - l.pts.at(-1)[0], l.pts[0][1] - l.pts.at(-1)[1]) < 0.05;
+    push(loop ? [...P, ...P] : P, `Cassette · ${l.id || `line ${i + 1}`}${loop ? ', round twice' : ''}`, false);
+  });
   if (o.traceTape) G.runs.forEach((r, i) => {
     const cuts = [r.c0];
     if (ink) for (let c = G.cum[r.c0] + (i % 2 ? dipRun / 2 : dipRun); c < G.cum[r.c1] - 1e-6; c += dipRun) { let q = cuts.at(-1); while (q < r.c1 && G.cum[q] < c) q++; if (q > cuts.at(-1) && q < r.c1) cuts.push(q); }
