@@ -113,8 +113,14 @@ export function family(o) {
   const ex = cb.w / 2 - cb.r, ey = cb.h / 2 - cb.r;
   const cx = ex * (1 - lam), cy = ey * (1 - lam);
   const R0 = lam * Math.hypot(ex, ey) + cb.r + o.clear + w / 2;
-  const ring = k => { const R = R0 + k * p; return { a: cx + R, b: cy + R, r: Math.max(0, mu * R) }; };
-  return { w, p, cb, mu, lam, cx, cy, R0, ring };
+  // BASF (o.inner, the owner, 2026-10-12: "grow the spiral inwards, so that
+  // without touching Cassette size it winds on to the middle of the canvas"):
+  // `shift` lanes inside the cassette's lane 1, true offsets of it inwards,
+  // the first of them at the middle — lane 0 the innermost then, the
+  // cassette's lane `shift`
+  const shift = o.inner ? Math.max(0, Math.floor((Math.min(cx, cy) + R0) / p)) : 0, R1 = R0 - shift * p;
+  const ring = k => { const R = R1 + k * p; return { a: cx + R, b: cy + R, r: Math.max(0, mu * R) }; };
+  return { w, p, cb, mu, lam, cx, cy, R0, shift, ring };
 }
 
 // ---------- the plan: the samples, the runs on the canvas, the segments ----------
@@ -128,7 +134,7 @@ export function planOf(oIn) {
   const step = Math.max(0.6, Math.max(o.cw, o.ch) / 500);
   const fits = cb.w + 2 * w < o.cw && cb.h + 2 * w < o.ch;
   const geo = k => { const q = ring(k); return rrGeo(q.a, q.b, q.r); };
-  const g0 = geo(0), Lb = Math.min(o.step * w, g0.P), U = lToU(g0, Lb), full = U >= 9;
+  const g0 = geo(F.shift), Lb = Math.min(o.step * w, g0.P), U = lToU(g0, Lb), full = U >= 9;   // the lane change as the cassette's lane 1 has it, BASF's inner lanes too
   const blend = u => smooth3(uToL(g0, u) / Lb);                                 // one profile for every lane: neighbours never bunch or part
   const pts = [], spans = [];
   const add = (p, s, u, brk, l) => {                                              // l: the lane it lies on, k + f on a lane change (the paint's map)
@@ -147,8 +153,8 @@ export function planOf(oIn) {
       [0, ...uSamples(B0, 0, U, step)].forEach((u, i) => { const B = rrU(B0, u), q = F.p * (1 - blend(u)); add({ x: B.x - B.ty * q, y: B.y + B.tx * q, tx: B.tx, ty: B.ty }, s, u, brk && i === 0, k + blend(u)); });
       return;
     }
-    const A0 = geo(k);
-    [0, ...uSamples(A0, 0, U, step)].forEach((u, i) => { const A = rrU(A0, u), B = rrU(B0, u), f = blend(u); add({ x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, tx: A.tx, ty: A.ty }, s, u, brk && i === 0, k + f); });
+    const A0 = geo(k);                                                           // BASF: sampled on the outer of the two, the inner ones tiny near the middle
+    [0, ...uSamples(o.inner ? B0 : A0, 0, U, step)].forEach((u, i) => { const A = rrU(A0, u), B = rrU(B0, u), f = blend(u); add({ x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, tx: A.tx, ty: A.ty }, s, u, brk && i === 0, k + f); });
   };
   const arc = (k, u0, u1, brk) => {
     const g = geo(k), us = uSamples(g, u0, u1, step), s = spans.push({ kind: 'lane', k, g, u0 }) - 1;
@@ -159,8 +165,9 @@ export function planOf(oIn) {
   let K = 0;
   if (fits) {
     if (o.seam === 'shift') {
-      band(-1, true);                                                            // the tape comes out from under the cassette by the same lane change
-      for (let k = 0; k < 600; k++) { if (gone(k)) break; if (!full) arc(k, U, 9, false); band(k, false); K = k + 1; }
+      if (o.inner) { if (!full) arc(0, U, 9, true); band(0, full); K = 1; }     // BASF: from the middle, a first lap on the innermost lane
+      else band(-1, true);                                                       // the tape comes out from under the cassette by the same lane change
+      for (let k = K; k < 600; k++) { if (gone(k)) break; if (!full) arc(k, U, 9, false); band(k, false); K = k + 1; }
     } else {
       for (let k = 0; k < 600; k++) { if (gone(k)) break; arc(k, 0, 9, true); K = k + 1; }
     }

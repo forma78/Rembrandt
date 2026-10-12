@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BASF, a new tab: the tape wound to the middle** (the owner, 2026-10-12:
+  "let's call the new tab BASF, in honour of the cassettes gone … leave the
+  winding at 100 % where the cassette is now … just grow the spiral
+  inwards, so that without touching Cassette size the spiral winds on to the
+  middle of the canvas. Then on Drag we lead the sausages to the centre, and
+  in the Result the same proportion, but the wound tape in the centre").
+  `basf.html`, after TAPE in every page's row; TAPE's page module with its
+  body's `data-tab="basf"`, its own keep, 💾 SAVE BASF labelled BASF and
+  opened there. The plan's `inner`: lanes inside the cassette's lane 1,
+  true offsets inwards, one pitch apart, the first at the middle — 8 lanes
+  inside a 100 % cassette at a 4 mm pitch — the lane change as the
+  cassette's lane has it, sampled on the outer lane of each change. No
+  cassette drawn, none in TRACE, its section off the panel. Tests: the
+  cassette's lane as TAPE's, the inner lanes one pitch apart to the middle,
+  one path, the machine's pieces within 0.1 mm.
+
 - **TAPE: Cassette size from 0 % — the cassette may go** (the owner,
   2026-10-12, `TAPE-colors/Screenshot-2026-10-12-.png`: "OMG!!! Claude, this
   is incredibly beautiful!!! We did it"; then "why do we need the cassette at

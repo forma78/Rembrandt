@@ -32,6 +32,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
 | **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last — or, since the same evening, none at all, the tape wound from the centre (Cassette size 0 %); its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
+| **BASF** | TAPE's tape wound on to the middle of the canvas, no cassette, after TAPE in the top row since 2026-10-12, in honour of the cassettes gone (§1): the cassette's box kept at 100 % as the lanes' anchor, so the spokes' layout and proportions are TAPE's, and lanes inside it, true offsets inwards, to the middle. `basf.html`, its body `data-tab="basf"`; TAPE's page module and plan (`inner`), its own keep and Library label. |
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
 | **Run · overrun (on TAPE)** | A run: the tape whole, from where it comes out from under the cassette to its last lane, the brush down off the canvas too (a closed ring a run of its own). The overrun: how far the brush carries on past the canvas's edge at a run's end before it lifts. No segments and no paint stops since 2026-10-12, the evening (§1). |
@@ -572,6 +573,21 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   circles at Cassette, squares at Angle; a small one, a window the inner
   lanes round and the outer ones near circles. Spots at a corner's ends that
   coincide, the sides gone, are one.
+  **BASF, a tab of its own: the tape wound to the middle** (the owner, the
+  same evening: "it all decided itself. We really need a new tab, but there
+  is a nuance. Let's call the new tab BASF, in honour of the cassettes gone.
+  And leave the winding at 100 % where the cassette is now. We will reduce
+  nothing, because I tried — reducing drags our layout of the paint drops
+  along. Just grow the spiral inwards, so that without touching Cassette
+  size (100 % by default) the spiral winds on to the middle of the canvas.
+  Then on Drag we lead the sausages to the centre, and in the Result we have
+  the same proportion, but the wound tape in the centre"): after TAPE in the
+  top row; TAPE as it is. Lanes inside the cassette's lane 1, true offsets
+  inwards, one pitch apart, the first at the middle; the lane change as the
+  cassette's lane has it; no cassette drawn, none in TRACE, its section off
+  the panel; the pattern and the presets as TAPE's, a preset's first ring
+  the middle's. TAPE's page module and plan (*Claude's choice*: a fix
+  reaches both, as SMKN's and ALU's).
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -764,8 +780,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.5**, then the tabs **TAPE · ALU-CUT · CCD · ALU · SMKN · NOLAN ·
-  Test · Ink · Calibration · Library** (TAPE first since 2026-10-12; ALU-CUT
+  **v.1.0.5**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
+  NOLAN · Test · Ink · Calibration · Library** (TAPE first and BASF after it
+  since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on

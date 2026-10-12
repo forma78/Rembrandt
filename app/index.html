@@ -23,6 +23,7 @@
     <span class="ver">v.1.0.5</span>
     <nav class="tabs" aria-label="Pages">
       <a href="index.html" class="on">TAPE</a>
+      <a href="basf.html">BASF</a>
       <a href="alucut.html">ALU-CUT</a>
       <a href="ccd.html">CCD</a>
       <a href="alu.html">ALU</a>
@@ -126,10 +127,12 @@
       <div class="paintlist" id="paintList"></div>
       <p class="read" id="paintRead" hidden></p>
 
+      <div id="cassSec">
       <h4>Cassette</h4>
       <div class="grid4 keys"><button class="btn" id="btnCassDefault" title="The built-in cassette, cassette_trace.svg: a real shell, 100.4 × 63.8 mm">Default</button><button class="btn" id="btnCassLoad" title="Another cassette's SVG for this tape: its outlines traced, its size from its width in mm or cm">Load SVG…</button></div>
       <input type="file" id="cassIn" accept=".svg,image/svg+xml" hidden>
       <p class="read" id="cassRead"></p>
+      </div>
 
       <h4>Trace</h4>
       <div class="toggles looks" id="traceKeys">

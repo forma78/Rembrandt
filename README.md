@@ -38,6 +38,7 @@ Rembrandt/
     glyphs.json      the owner's letters: skeletons of lines and arcs
     index.html       TAPE, a cassette and its tape, the first tab (new, 2026-10-12; TAPE-Claude/)
     cassette_trace.svg  TAPE's built-in cassette, the owner's (100.4 × 63.8 mm)
+    basf.html        BASF, TAPE's tape wound to the middle, no cassette (new, 2026-10-12)
     alucut.html      ALU-CUT, ALU with the new things (new, 2026-10-11; first until 2026-10-12; ALU-cut-Claude/)
     ccd.html         CCD, rectangles of straight lanes after Carlos Cruz-Diez (new, 2026-10-11; Cruz-Diez/)
     type.html        TYPE, letters as bands in three passes (new; off the top row since 2026-10-11)

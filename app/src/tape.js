@@ -36,7 +36,8 @@ import { cupOf, cupProblem, drawCup, dipAt } from './ink.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const TAB = 'tape', TAB_NAME = 'TAPE', KEY = 'rembrandt.tape.v01';
+// BASF (basf.html, its body's data-tab): this page, the tape wound on to the middle, no cassette (the owner, 2026-10-12, "in honour of the cassettes gone")
+const TAB = document.body.dataset.tab === 'basf' ? 'basf' : 'tape', BASF = TAB === 'basf', TAB_NAME = BASF ? 'BASF' : 'TAPE', KEY = `rembrandt.${TAB}.v01`;
 const fin = v => Number.isFinite(v), hex = v => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 
 // ---------- state ----------
@@ -132,12 +133,12 @@ async function loadBuiltin() {
 
 // ---------- the plan (tapeplan.js) ----------
 const PLAN_KEYS = ['brush', 'speed', 'gap', 'corners', 'seam', 'dir', 'mode', 'cassScale', 'clear', 'step', 'strokes', 'overrun'];
-const po = () => ({ ...Object.fromEntries(PLAN_KEYS.map(q => [q, S[q]])), segLen: Infinity, cw: S.boardW, ch: S.boardH, cass: CASS ? { vx: CASS.vx, vy: CASS.vy, vw: CASS.vw, vh: CASS.vh, mmW: CASS.mmW } : DEFAULT_CASS });
+const po = () => ({ ...Object.fromEntries(PLAN_KEYS.map(q => [q, S[q]])), segLen: Infinity, inner: BASF, cw: S.boardW, ch: S.boardH, cass: CASS ? { vx: CASS.vx, vy: CASS.vy, vw: CASS.vw, vh: CASS.vh, mmW: CASS.mmW } : DEFAULT_CASS });
 let PL = null, plKey = '', LINES = [];
 function planNow() {
   const o = po(), key = JSON.stringify([o, CASS?.name, CASS?.text.length]);
   if (PL && key === plKey) return PL;
-  plKey = key; PL = planOf(o); LINES = CASS && PL.cb.w > 0.5 ? cassetteLines(CASS.items, PL.cb, CASS) : []; RESULT = null;   // 0 %: no cassette at all
+  plKey = key; PL = planOf(o); LINES = !BASF && CASS && PL.cb.w > 0.5 ? cassetteLines(CASS.items, PL.cb, CASS) : []; RESULT = null;   // 0 %: no cassette at all
   return PL;
 }
 
@@ -168,7 +169,7 @@ function dragRun(mode = S.mode) {
 function traceRun() {
   const G = planNow(), key = JSON.stringify([plKey, S.traceSpeed, S.travel, S.tail, S.ink, hereNow(), S.ink ? dipCup() : null, S.traceCass, S.traceTape]);
   if (TRACE?.key === key) return TRACE;
-  const R = traceRows(G, { traceCass: S.traceCass, traceTape: S.traceTape, ink: S.ink });
+  const R = traceRows(G, { traceCass: S.traceCass && !BASF, traceTape: S.traceTape, ink: S.ink });
   TRACE = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), speed: S.traceSpeed, ink: S.ink }, [{ key: 'TRACE', ps: R.ps, why: null }]), rows: R.info, lines: R.ps.length } : EMPTY) };
   return TRACE;
 }
@@ -284,7 +285,7 @@ function drawTrace() {
   g.strokeStyle = 'rgba(120,115,108,.35)'; g.lineWidth = 0.25; cassettePath(g); g.stroke();
   g.strokeStyle = S.ink ? WATER : DRY; g.lineWidth = S.ink ? 0.8 : 0.5;
   if (S.traceTape) for (const r of G.runs) { poly(g, G.pts, r.c0, r.c1); g.stroke(); }
-  if (S.traceCass && G.fits) { const cb = G.cb; g.beginPath(); g.roundRect(-cb.w / 2, -cb.h / 2, cb.w, cb.h, cb.r); g.stroke(); }
+  if (S.traceCass && !BASF && G.fits) { const cb = G.cb; g.beginPath(); g.roundRect(-cb.w / 2, -cb.h / 2, cb.w, cb.h, cb.r); g.stroke(); }
   g.restore();
   if (!S.traceTape && !S.traceCass) { g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = themeColor('--mute', '#7D776D'); g.font = font(12); g.textAlign = 'center'; g.fillText('TRACE is off: neither the outline nor the guide', sx([0]), sy([0, 0])); g.restore(); }
 }
@@ -332,7 +333,7 @@ function resultBitmap() {
   }
   c.fillStyle = S.ground; c.fillRect(-S.boardW / 2, -S.boardH / 2, S.boardW, S.boardH);
   c.save(); clipCanvas(c); if (S.spokes.length) paintMixed(c, G, mixNow(), 0, G.pts.length - 1); else paintTape(c, G);
-  c.fillStyle = rgbs(mix(hex2rgb(S.ground), [255, 255, 255], 0.55)); bodyPath(c, G.cb); c.fill();
+  if (!BASF) { c.fillStyle = rgbs(mix(hex2rgb(S.ground), [255, 255, 255], 0.55)); bodyPath(c, G.cb); c.fill(); }   // BASF: the tape in the middle, no cassette
   c.strokeStyle = '#2B2724'; c.lineWidth = 0.35; c.lineJoin = 'round'; c.lineCap = 'round'; cassettePath(c); c.stroke();
   c.restore();
   RESULT = { key, c: c2, ex, ey };
@@ -472,7 +473,7 @@ function drawPlay() {
     for (const j of done) { poly(g, G.pts, G.segs[j].i0, G.segs[j].i1); g.stroke(); }
     if (part) { g.beginPath(); part.forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); g.stroke(); }
   }
-  g.fillStyle = rgbs(mix(hex2rgb(S.ground), [255, 255, 255], 0.55)); bodyPath(g, G.cb); g.fill();
+  if (!BASF) { g.fillStyle = rgbs(mix(hex2rgb(S.ground), [255, 255, 255], 0.55)); bodyPath(g, G.cb); g.fill(); }
   g.strokeStyle = '#2B2724'; g.lineWidth = 0.35; cassettePath(g); g.stroke();
   g.restore();
   g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -759,7 +760,7 @@ $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
 });
 $('#planInfo').onclick = () => { $('#planMore').hidden = !$('#planMore').hidden; $('#planInfo').classList.toggle('on', !$('#planMore').hidden); };
 const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-const HINT = 'TAPE: the cassette in the centre of the canvas, real size, the tape wound round it. TRACE its outline and the tape\'s guide with the brush (INK ON: watercolour), then DRAG, the tape in one go, the snake or through the air; the cassette drawn with a stencil and coloured by hand last.';
+const HINT = BASF ? 'BASF: the tape wound from the middle of the canvas out, no cassette — its proportions TAPE\'s. TRACE the tape\'s guide with the brush (INK ON: watercolour), then DRAG, the tape in one go, the snake or through the air.' : 'TAPE: the cassette in the centre of the canvas, real size, the tape wound round it. TRACE its outline and the tape\'s guide with the brush (INK ON: watercolour), then DRAG, the tape in one go, the snake or through the air; the cassette drawn with a stencil and coloured by hand last.';
 function showPanel() {
   for (const list of Object.values(SL)) for (const [key] of list) {
     const inp = $(`input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
@@ -811,7 +812,7 @@ function settle() {
     lines.push(`Lanes: <b>${G.kSide}</b> to the side edges · <b>${G.kTop}</b> to top and bottom · <b>${G.K}</b> to fill the corners`);
     lines.push(`Seam: ${S.seam === 'shift' ? (G.full ? 'none — the lane change over the whole turn, <b>one continuous spiral</b>' : `from the middle of the right side, the lane change over <b>${fmt(G.Lb, 0)} mm</b> (${Math.round(G.Lb / G.P0 * 100)} % of lane 1)`) : 'the middle of the right side; each ring closes on itself, the brush lifting to the next'}`);
     lines.push(`DRAG: the tape ${fmt(D.mm / S.strokes / 1000, 1)} m${G.runs.length > 1 ? ` in ${G.runs.length} runs` : ', one run'} × ${S.strokes} stroke${S.strokes === 1 ? '' : 's'}, no stop · Snake ≈ ${took(D.seconds)}, the brush landing ${D.landings} time${D.landings === 1 ? '' : 's'}; Air ≈ ${took(A.seconds)}, ${A.landings} landings · at ${S.speed} mm/s (est.)`);
-    lines.push(`TRACE: <b>${T.lines}</b> line${T.lines === 1 ? '' : 's'}${S.traceCass && G.cb.w > 0.5 ? `, the cassette's outline ${fmt(shellOf(G, 0).P, 0)} mm and ${Math.round(LOOP_SHARE * 100)} % over its start` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'no dip'} · ≈ ${took(T.seconds)} at ${S.traceSpeed} mm/s (est.)`);
+    lines.push(`TRACE: <b>${T.lines}</b> line${T.lines === 1 ? '' : 's'}${S.traceCass && !BASF && G.cb.w > 0.5 ? `, the cassette's outline ${fmt(shellOf(G, 0).P, 0)} mm and ${Math.round(LOOP_SHARE * 100)} % over its start` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'no dip'} · ≈ ${took(T.seconds)} at ${S.traceSpeed} mm/s (est.)`);
   }
   more.push(`The prototype's reckoning, ${MODE_NAME[S.mode]}: paint ${fmt(G.paintLen / 1000, 1)} m · air ${fmt(G.airLen / 1000, 1)} m · ${G.lifts} lifts · ≈ ${fmt(G.tMachine / 60, 1)} min (est.)`);
   more.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; the cassette in its centre; TEST's dots ${TEST_MARGIN} mm in from its edges`);
@@ -862,7 +863,7 @@ function svgOf() {
 <!-- Rembrandt v.1.0.5 · ${esc(label())}; 1 unit = 1 mm from the canvas's centre, y down -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect id="canvas" x="${f(-W / 2)}" y="${f(-H / 2)}" width="${W}" height="${H}" fill="${S.ground}" stroke="#24221F" stroke-width="0.5"/>
-<g id="cassette">${cass}</g>
+<g id="cassette">${BASF ? '' : cass}</g>
 <g id="spokes" fill="none" stroke-width="2.8" stroke-linecap="round">${S.spokes.map(sp => { const L = spokeLine(G, sp); return L.length ? `<path d="M${L.map(p => `${f(p[0])} ${f(p[1])}`).join('L')}" stroke="${PAINT[sp.paint].hex}" data-paint="${PAINT[sp.paint].name}"/>` : ''; }).join('')}</g>
 <g id="trace-cassette" fill="none" stroke="#999" stroke-width="0.5">${G.fits ? `<path id="outline" d="${pathD(shellOf(G, 0).pieces)}"/>` : ''}</g>
 <g id="trace-tape" fill="none" stroke="#999" stroke-width="0.5">
@@ -1015,6 +1016,7 @@ async function watch() {
 load(); Object.assign(S, canvasNow(S));                                          // the canvas from the base, every tab's (canvas.js)
 onCanvas(c => { Object.assign(S, c); settle(); });                               // changed in another window
 lampSwitch($('#lamp'));
+if (BASF) { $('#cassSec').hidden = true; $('#traceKeys [data-trace="traceCass"]').hidden = true; }   // no cassette on BASF
 showZoom();
 addEventListener('rembrandt-night', () => kick());
 new ResizeObserver(layout).observe(stage);
