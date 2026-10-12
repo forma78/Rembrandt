@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Rembrandt.md: TAPE after the pencil's first traces** — §1: closed
+  outlines round twice, no lift at the canvas's edges, Counter for the
+  cassette too, with the owner's words of 2026-10-12.
+
 - **TAPE: Counter takes TRACE's cassette the other way round too** (the
   owner, 2026-10-12, `TAPE-images/` 15:03: every loop's top left corner cut
   by the pencil, the left sides drawn in several strokes, while the screen

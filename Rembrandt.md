@@ -422,6 +422,20 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   change within 0.1 mm, a lane's own sides and corners exact; the times the
   board's planner's, the prototype's reckoning under the plan's i; no
   Reference panel.
+  **After the pencil's first traces** (the same day, `TAPE-images/`): a
+  closed outline **round twice** ("draw the circle double, so it surely goes
+  the full 360 degrees on the canvas") — the screws' circles had come out a
+  short stroke, the landing and the lift-off eating them; **no lift at the
+  canvas's edges** ("the canvas sits firm on its supports on the table, the
+  brush just goes through the air and fits into the corners smoothly; we
+  only lose time on the lifts"; on Claude's offer to lift past 100 mm off
+  the canvas: "no, really, let it just go without a lift, I will be
+  calmer"): a path one run, the paint stops at equal lengths of the tape on
+  the canvas; **Counter takes the cassette backwards too**, to tell the
+  pencil's springs from the motors — every loop's top left corner cut ("the
+  pencil is drawn like a bow with an arrow"; if the fault moves to the
+  bottom right, three sides in one go and the fourth after a lift, "the
+  letter П", is the owner's next step).
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
