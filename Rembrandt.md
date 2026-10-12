@@ -32,7 +32,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
 | **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last — or, since the same evening, none at all, the tape wound from the centre (Cassette size 0 %); its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
-| **BASF** | TAPE's tape wound on to the middle of the canvas, no cassette, after TAPE in the top row since 2026-10-12, in honour of the cassettes gone (§1): the cassette's box kept at 100 % as the lanes' anchor, so the spokes' layout and proportions are TAPE's, and lanes inside it, true offsets inwards, to the middle. `basf.html`, its body `data-tab="basf"`; TAPE's page module and plan (`inner`), its own keep and Library label. |
+| **BASF** | TAPE's tape wound from the middle of the canvas, no cassette, after TAPE in the top row since 2026-10-12, in honour of the cassettes gone (§1): every lane a rounded square of one shape, the innermost at the middle, Corners its rounding. `basf.html`, its body `data-tab="basf"`; TAPE's page module and plan (`inner`), its own keep and Library label. |
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
 | **Run · overrun (on TAPE)** | A run: the tape whole, from where it comes out from under the cassette to its last lane, the brush down off the canvas too (a closed ring a run of its own). The overrun: how far the brush carries on past the canvas's edge at a run's end before it lifts. No segments and no paint stops since 2026-10-12, the evening (§1). |
@@ -587,7 +587,18 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   cassette's lane has it; no cassette drawn, none in TRACE, its section off
   the panel; the pattern and the presets as TAPE's, a preset's first ring
   the middle's. TAPE's page module and plan (*Claude's choice*: a fix
-  reaches both, as SMKN's and ALU's).
+  reaches both, as SMKN's and ALU's). **Then squares** (the owner, the same
+  night, his screenshot 8.15.45 PM, the short rectangle in the middle
+  ringed: "our canvas is 20 × 20, and with no cassette there is no need to
+  break the width and height in its memory. You can make a square with
+  round corners at once; such sharp corners I will not make with a brush
+  anyway"): every lane a rounded square, all of one shape, from the middle
+  out, the innermost half a brush across; Corners the corner's share of
+  the half-size — half at 0, squares at Angle, circles at Round; the sides
+  one pitch apart, the corners a little wider, 0.41 of the straight share
+  of a pitch (*Claude's*: lanes rounded to the middle cannot all touch);
+  the lane change reckoned on the lane about 40 mm out (est.); Cassette
+  size and First lane off the panel.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the

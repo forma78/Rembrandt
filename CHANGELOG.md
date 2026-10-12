@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BASF: rounded squares from the middle** (the owner, 2026-10-12,
+  `TAPE-colors/Screenshot 2026-10-12 at 8.15.45 PM.png`, the short
+  rectangle in the middle ringed: "our canvas is 20 × 20, and with no
+  cassette there is no need to break the width and height in its memory.
+  You can make a square with round corners at once; such sharp corners I
+  will not make with a brush anyway"). BASF's lanes no longer the
+  cassette's offsets inwards: every lane a rounded square, all of one
+  shape, the innermost half a brush across at the middle; Corners the
+  corner's share of the half-size — half at the middle of the slider,
+  squares at Angle, circles at Round. The sides one pitch apart, the
+  corners 0.41 of the straight share of a pitch wider (0.8 mm at a 4 mm
+  pitch and the default; none for circles). The lane change reckoned on the
+  lane about 40 mm out (`BASF_REF`, est.). Cassette size and First lane off
+  BASF's panel; its Corners scale Square · Rounded · Circle. TAPE as it was.
+
 - **BASF, a new tab: the tape wound to the middle** (the owner, 2026-10-12:
   "let's call the new tab BASF, in honour of the cassettes gone … leave the
   winding at 100 % where the cassette is now … just grow the spiral
