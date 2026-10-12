@@ -282,14 +282,19 @@ test('meta 1, meta 2 (the owner, 2026-10-12: "new keys, meta 1 and meta 2" after
   }
 });
 
-test('BASF (the owner, 2026-10-12: "grow the spiral inwards … wound on to the middle of the canvas"): lanes inside the cassette\'s, one pitch apart, to the middle; the outer lanes as TAPE\'s', () => {
-  for (const corners of [0, -50, 50]) {
-    const tape = planOf({ ...DEFAULTS, cw: 230, ch: 230, segLen: Infinity, corners }), G = planOf({ ...DEFAULTS, cw: 230, ch: 230, segLen: Infinity, corners, inner: true }), F = G.F;
-    assert.ok(F.shift > 0, `corners ${corners}: lanes inside`);
-    for (const q of ['a', 'b', 'r']) assert.ok(Math.abs(F.ring(F.shift)[q] - tape.F.ring(0)[q]) < 1e-9, `corners ${corners}: the cassette's lane 1 the same, ${q}`);
-    assert.ok(Math.min(F.ring(0).a, F.ring(0).b) <= F.p && Math.min(F.ring(0).a, F.ring(0).b) >= 0, `corners ${corners}: the innermost at the middle`);
-    for (let k = 1; k < F.shift + 3; k++) { const a = F.ring(k - 1), b = F.ring(k); assert.ok(Math.abs(b.a - a.a - F.p) < 1e-9 && Math.abs(b.b - a.b - F.p) < 1e-9, 'one pitch apart'); }
-    assert.equal(G.K - F.shift, tape.K, 'the outer lanes as many');
+test('BASF (the owner, 2026-10-12: "a square with round corners at once … no need to break the width and height in the cassette\'s memory"): rounded squares from the middle out, the sides one pitch apart', () => {
+  for (const corners of [0, -50, 50, 20]) {
+    const G = planOf({ ...DEFAULTS, cw: 230, ch: 230, segLen: Infinity, corners, inner: true }), F = G.F;
+    const r0 = F.ring(0);
+    assert.ok(r0.a === r0.b && Math.abs(r0.a - F.w / 2) < 1e-9, `corners ${corners}: the innermost a square at the middle, the brush over it`);
+    for (let k = 1; k < G.K; k++) {
+      const a = F.ring(k - 1), b = F.ring(k);
+      assert.ok(b.a === b.b, 'a square');
+      assert.ok(Math.abs(b.a - a.a - F.p) < 1e-9, 'the sides one pitch apart');
+      const ca = a.a - a.r, cb = b.a - b.r, diag = (cb - ca) * Math.SQRT2 + (b.r - a.r);
+      assert.ok(diag >= F.p - 1e-9 && diag <= F.p * (1 + 0.42) + 1e-9, `the corners one pitch apart or a little wider: ${(diag / F.p).toFixed(3)}`);
+    }
+    if (corners === 50) for (let k = 0; k < 5; k++) assert.ok(Math.abs(F.ring(k).r - F.ring(k).a) < 1e-9, 'Round: circles');
     for (let i = 1; i < G.pts.length; i++) if (!G.pts[i].brk) assert.ok(Math.hypot(G.pts[i].x - G.pts[i - 1].x, G.pts[i].y - G.pts[i - 1].y) < 2, 'one path, no jump');
     checkPieces(`BASF corners ${corners}`, G);
   }

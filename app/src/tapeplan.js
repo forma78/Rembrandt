@@ -107,20 +107,30 @@ export function inRR(x, y, a, b, r) {
 // cassette's outline; 0 … +50: the shared corner centre slides to the
 // cassette's, the lanes turning into circles (the owner: "from angle to
 // rounded … but then on the fly").
+// BASF's square (the owner, 2026-10-12, his screenshot 8.15.45 PM: "in the
+// centre at once a short rectangle — our canvas is 20 × 20, and with no
+// cassette there is no need to break the width and height in its memory.
+// You can make a square with round corners at once; such sharp corners I
+// will not make with a brush anyway"): every lane a rounded square, all of
+// one shape, from the middle out — its straight part and its corner shares
+// of its half-size as Corners says, half and half at 0, squares at Angle,
+// circles at Round. The sides one pitch apart; the corners a little wider,
+// 0.41 of the straight share of a pitch — none for circles. The lane change
+// reckoned on the lane about BASF_REF mm out, as the cassette's was.
+export const BASF_REF = 40;                                                        // mm, est.
 export function family(o) {
   const w = o.brush, p = w + o.gap, cb = cassBox(o), v = o.corners;
+  if (o.inner) {
+    const rf = Math.max(0, Math.min(1, 0.5 + v / 100)), h0 = w / 2;
+    const ring = k => { const h = h0 + k * p; return { a: h, b: h, r: rf * h }; };
+    return { w, p, cb, mu: 1, lam: 0, cx: 0, cy: 0, R0: h0, rf, shift: Math.max(0, Math.round((BASF_REF - h0) / p)), ring };
+  }
   const mu = v < 0 ? (v + 50) / 50 : 1, lam = v > 0 ? v / 50 : 0;
   const ex = cb.w / 2 - cb.r, ey = cb.h / 2 - cb.r;
   const cx = ex * (1 - lam), cy = ey * (1 - lam);
   const R0 = lam * Math.hypot(ex, ey) + cb.r + o.clear + w / 2;
-  // BASF (o.inner, the owner, 2026-10-12: "grow the spiral inwards, so that
-  // without touching Cassette size it winds on to the middle of the canvas"):
-  // `shift` lanes inside the cassette's lane 1, true offsets of it inwards,
-  // the first of them at the middle — lane 0 the innermost then, the
-  // cassette's lane `shift`
-  const shift = o.inner ? Math.max(0, Math.floor((Math.min(cx, cy) + R0) / p)) : 0, R1 = R0 - shift * p;
-  const ring = k => { const R = R1 + k * p; return { a: cx + R, b: cy + R, r: Math.max(0, mu * R) }; };
-  return { w, p, cb, mu, lam, cx, cy, R0, shift, ring };
+  const ring = k => { const R = R0 + k * p; return { a: cx + R, b: cy + R, r: Math.max(0, mu * R) }; };
+  return { w, p, cb, mu, lam, cx, cy, R0, shift: 0, ring };
 }
 
 // ---------- the plan: the samples, the runs on the canvas, the segments ----------
@@ -134,7 +144,7 @@ export function planOf(oIn) {
   const step = Math.max(0.6, Math.max(o.cw, o.ch) / 500);
   const fits = cb.w + 2 * w < o.cw && cb.h + 2 * w < o.ch;
   const geo = k => { const q = ring(k); return rrGeo(q.a, q.b, q.r); };
-  const g0 = geo(F.shift), Lb = Math.min(o.step * w, g0.P), U = lToU(g0, Lb), full = U >= 9;   // the lane change as the cassette's lane 1 has it, BASF's inner lanes too
+  const g0 = geo(F.shift), Lb = Math.min(o.step * w, g0.P), U = lToU(g0, Lb), full = U >= 9;   // the lane change as the cassette's lane 1 has it — BASF's as its lane about BASF_REF out
   const blend = u => smooth3(uToL(g0, u) / Lb);                                 // one profile for every lane: neighbours never bunch or part
   const pts = [], spans = [];
   const add = (p, s, u, brk, l) => {                                              // l: the lane it lies on, k + f on a lane change (the paint's map)

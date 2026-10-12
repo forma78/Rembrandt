@@ -1016,7 +1016,10 @@ async function watch() {
 load(); Object.assign(S, canvasNow(S));                                          // the canvas from the base, every tab's (canvas.js)
 onCanvas(c => { Object.assign(S, c); settle(); });                               // changed in another window
 lampSwitch($('#lamp'));
-if (BASF) { $('#cassSec').hidden = true; $('#traceKeys [data-trace="traceCass"]').hidden = true; }   // no cassette on BASF
+if (BASF) {                                                                        // no cassette on BASF: its section, its outline, its size and first lane off
+  $('#cassSec').hidden = true; $('#traceKeys [data-trace="traceCass"]').hidden = true;
+  for (const k of ['cassScale', 'clear']) $(`input[data-k="${k}"]`).closest('.sl').hidden = true;
+}
 showZoom();
 addEventListener('rembrandt-night', () => kick());
 new ResizeObserver(layout).observe(stage);
