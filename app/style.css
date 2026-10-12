@@ -659,3 +659,11 @@ body.type .status{grid-column:1/4;grid-row:4}
 .ccd #rects .none{font-size:12px;color:var(--mute);padding:5px 6px}
 .ccd #rectEdit .grid4{margin-top:8px}
 .ccd #rGap,.ccd #brushRead{margin:4px 0 0}
+
+/* TAPE (2026-10-12): CCD's page, the first tab; TRACE · Snake · Air on the deck; the colours in the Tools, LOVE's chips */
+.tape .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* TRACE · DRAG: Snake · Air */
+.tape #cornersScale{margin:-6px 0 10px}
+.tape #seamKeys,.tape #typeKeys{margin-bottom:6px}
+.tape #dirKeys{margin-bottom:4px}
+.tape #playRead{margin:6px 0 0}
+.tape #planRead,.tape #planWarn{line-height:1.55}

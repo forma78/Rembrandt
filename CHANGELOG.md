@@ -5,6 +5,33 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE, the first tab: a cassette in the centre, its tape wound round it**
+  (the owner, 2026-10-12: "TAPE first tab, all correct. index."). TAPE ·
+  ALU-CUT · CCD · ALU · SMKN · NOLAN · Test · Ink · Calibration · Library on
+  every page; TAPE is `index.html` (`src/tape.js`), ALU-CUT moved to
+  `alucut.html`, the Library opening each one's saves there. CCD's page:
+  the board, the canvas from home — the cassette always in its centre, the
+  size typed by hand ("just leave 200 × 200 by hand, as on ALU and CCD"; no
+  format keys, 60 × 60 not refused: "motivation to buy the cross rails") —
+  the zoom, the LCD. The deck TEST · PAUSE, **TRACE · Snake · Air**, STOP
+  ("Marks is not needed"; "two Drag — the snake, and there along the canvas,
+  back through the air"). TRACE the cassette's outline and the tape's guide
+  with the pencil; **INK** as on ALU: ON, in watercolour from the cup ("maybe
+  a pale watercolour trace with a thin brush will do"); TEST dips only with
+  INK ON. DRAG a stop before every segment, the first too, the brush up over
+  its start to show where to squeeze ("yes, absolutely fine"); PAUSE at a
+  segment's end. The panel: the views Trace · Drag · Result and ▶ Play the
+  run ("of course, the views ours, that is the canon"); the cassette,
+  Default or Load SVG… (its transforms applied, its size from its width in
+  mm or cm); Trace: Cassette outline, Tape guide, Trace speed (est.); the
+  prototype's sliders and keys, its readouts and one ⚠ line a warning; the
+  Result's ground and tape colours in the Tools. 💾 SAVE TAPE: an SVG
+  centred on the canvas with the prototype's layers — trace-cassette,
+  trace-tape, drag-tape — lines and arcs, the state in its metadata; no
+  separate Export SVG. Checked in a headless browser with the runs blocked:
+  the three views, Play, the confirms, TEST, a save and its opening, a
+  loaded SVG; ALU-CUT, CCD, ALU and the Library open without an error.
+
 - **TAPE: the plan, the tape wound round a cassette** (the owner,
   2026-10-12, `TAPE-Claude/`: chat-Claude's prototype v0.3, "everything is
   super now"). `src/tapeplan.js` and its tests: the prototype's geometry —
