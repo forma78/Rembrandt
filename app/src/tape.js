@@ -197,7 +197,7 @@ const clipCanvas = c => { c.beginPath(); c.rect(-S.boardW / 2, -S.boardH / 2, S.
 const ZOOMS = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
 let Z = 1, ZC = null;   // the zoom; the window's centre, null: the canvas's
 function layout() {
-  const F = view(), r = stage.getBoundingClientRect(), m = 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0, strip = 46;   // the paints' strip by the Tools, as ALU's
+  const F = view(), r = stage.getBoundingClientRect(), m = 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0, strip = 78;   // the paints' strip by the Tools, two columns of 12 (style.css)
   kFit = Math.max(0.2, Math.min((r.width - strip - 2 * m) / sw, (r.height - 2 * m) / sh));
   k = kFit * Z;
   dpr = window.devicePixelRatio || 1;

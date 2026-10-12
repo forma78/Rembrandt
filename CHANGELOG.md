@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: every paint off its swatch; two columns of 12** (the owner,
+  2026-10-12, `colors-004…006.jpg`: the second sheet — "the Chinese are
+  circus artists, of course: Green, White, Purple, no fuss" — and "White
+  again, specially for you — you are calibrating something there"; "maybe
+  in two rows of 12"). The nine paints read off the maker's chart before now
+  off his swatches, the second sheet calibrated on its White to read as the
+  first; Rose Azo added, 24 paints. The strip two columns, light and warm
+  in the first, cool and dark in the second.
+
 - **TAPE: the owner's paints, the spokes, the Result mixing them** (the
   owner, 2026-10-12, `TAPE-images/`: "I try to make a mix as Florian does,
   but I lack a layout of the real paints I have"; Florian's software "really

@@ -184,9 +184,10 @@ test('the cassette on the board and in the Result: its SVG at real size, centred
   assert.ok(Math.abs(Math.min(...ys) + 31.9) < 1e-6 && Math.abs(Math.max(...ys) - 31.9) < 1e-6, 'its 63.8 mm up, centred');
 });
 
-test('the paints: the owner\'s 18 Shuttle Art and his own 01 … 05, each a colour and where it was read', () => {
-  assert.equal(TAPE_PAINTS.length, 23);
-  assert.equal(new Set(TAPE_PAINTS.map(p => p[0])).size, 23, 'ids unique');
+test('the paints: the owner\'s 18 Shuttle Art, his own 01 … 05 and Rose Azo, each a colour off its swatch', () => {
+  assert.equal(TAPE_PAINTS.length, 24);
+  assert.equal(new Set(TAPE_PAINTS.map(p => p[0])).size, 24, 'ids unique');
+  assert.ok(TAPE_PAINTS.every(p => p[3] === 'swatch'), 'every one swatched in daylight');
   for (const [id, name, hex, from] of TAPE_PAINTS) { assert.match(hex, /^#[0-9A-F]{6}$/, name); assert.ok(['swatch', 'chart'].includes(from), name); assert.equal(PAINT[id].name, name); }
   for (const id of ['p01', 'p02', 'p03', 'p04', 'p05']) assert.equal(PAINT[id].from, 'swatch');
 });

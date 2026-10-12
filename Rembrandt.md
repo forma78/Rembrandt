@@ -475,10 +475,13 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   mixes the colours on the computer, for me that is a revelation. But we
   can make such a thing too, right?"; "I try to make a mix as Florian does,
   but I lack a layout of the real paints I have"; "can these colours go in
-  the TOOLS on the left, as in ALU"): his paints a strip by the Tools — the
-  18 Shuttle Art acrylics of `18-colors.jpg` and his own 01 … 05 — their
-  colours off his swatches in daylight (`colors-001…003.jpg`, the paper
-  taken for white) or, not swatched yet, off the maker's chart, all est.;
+  the TOOLS on the left, as in ALU"): his paints a strip by the Tools, two
+  columns of 12 ("maybe in two rows of 12") — the 18 Shuttle Art acrylics
+  of `18-colors.jpg`, his own 01 … 05 and Rose Azo — their colours off his
+  swatches in daylight (`colors-001…006.jpg`), the first sheet against its
+  paper, the second against its White, swatched again to calibrate ("White
+  again, specially for you — you are calibrating something there"), all
+  est.;
   **M** lays a spoke of the chosen paint — a click across all the lanes, a
   drag from lane to lane, a click on one takes it away; the **Result mixes
   them as the brush goes**, DRAG's own walk — the snake's strokes or air's —

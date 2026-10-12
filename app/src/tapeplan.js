@@ -457,34 +457,39 @@ export function pathD(pieces) {
 
 // ---------- the paints, and the brush mixing them (the Result) ----------
 // The owner's paints (2026-10-12, TAPE-images/: "the 18 colours I use now"
-// — Shuttle Art acrylics, 18-colors.jpg — "plus what I mixed myself";
-// colors-001…003.jpg, the swatches on paper in daylight). A colour read off
-// the swatches, the paper taken for white (est.); the paints not swatched yet
-// off the maker's chart (est.). [id, name, hex, from]
+// — Shuttle Art acrylics, 18-colors.jpg — "plus what I mixed myself", and
+// Rose Azo; the swatches on paper in daylight, colors-001…006.jpg: "the
+// Chinese are circus artists, of course — Green, White, Purple, no fuss; no
+// vermilions, cadmiums, burnt sienna, emerald, cobalt or madder for you").
+// A colour read off its swatch (est.): the first sheet's against its paper,
+// the second's against its White, swatched again on it to calibrate ("White
+// again, specially for you — you are calibrating something there"), so the
+// two sheets read alike. [id, name, hex, from]
 export const TAPE_PAINTS = [
   ['white', 'White', '#FBF9F0', 'swatch'],
   ['lemon', 'Lemon Yellow', '#FFF200', 'swatch'],
   ['p02', '02', '#FFE41E', 'swatch'],
   ['oyellow', 'Orange Yellow', '#FA9B00', 'swatch'],
   ['sand', 'Sand Yellow', '#F3C06D', 'swatch'],
-  ['ochre', 'Yellow Ochre', '#B47528', 'chart'],
+  ['ochre', 'Yellow Ochre', '#C68811', 'swatch'],
   ['orange', 'Orange', '#DB2B01', 'swatch'],
   ['red', 'Red', '#BF020B', 'swatch'],
   ['p05', '05', '#C10221', 'swatch'],
   ['deepred', 'Deep Red', '#9D1529', 'swatch'],
   ['pink', 'Pink', '#ED5D65', 'swatch'],
+  ['roseazo', 'Rose Azo', '#BA085E', 'swatch'],
   ['magenta', 'Magenta', '#AA0955', 'swatch'],
-  ['purple', 'Purple', '#7024CC', 'chart'],
+  ['purple', 'Purple', '#3E1B56', 'swatch'],
   ['p01', '01', '#CFEA8E', 'swatch'],
-  ['green', 'Green', '#01CB41', 'chart'],
-  ['turquoise', 'Turquoise', '#54D6BE', 'chart'],
-  ['viridian', 'Viridian', '#003734', 'chart'],
-  ['sky', 'Sky Blue', '#80CCEC', 'chart'],
+  ['green', 'Green', '#019430', 'swatch'],
+  ['turquoise', 'Turquoise', '#31E2CA', 'swatch'],
+  ['viridian', 'Viridian', '#004B4B', 'swatch'],
+  ['sky', 'Sky Blue', '#418CBA', 'swatch'],
   ['p03', '03', '#0E72B5', 'swatch'],
   ['p04', '04', '#165AAB', 'swatch'],
-  ['ultramarine', 'Ultramarine', '#002392', 'chart'],
-  ['brown', 'Dark Brown', '#571F10', 'chart'],
-  ['black', 'Black', '#252420', 'chart'],
+  ['ultramarine', 'Ultramarine', '#122387', 'swatch'],
+  ['brown', 'Dark Brown', '#3D160E', 'swatch'],
+  ['black', 'Black', '#090909', 'swatch'],
 ];
 export const PAINT = Object.fromEntries(TAPE_PAINTS.map(([id, name, hex, from]) => [id, { id, name, hex, from }]));
 

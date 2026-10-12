@@ -667,3 +667,4 @@ body.type .status{grid-column:1/4;grid-row:4}
 .tape #dirKeys{margin-bottom:4px}
 .tape #playRead{margin:6px 0 0}
 .tape #planRead,.tape #planWarn{line-height:1.55}
+.tape .paintstrip{width:78px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(12,auto);grid-template-columns:30px 30px;justify-content:center;align-content:start;column-gap:6px;row-gap:3px;padding:8px 0}   /* the owner's 24 paints, two columns of 12 ("maybe in two rows of 12") */
