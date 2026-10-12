@@ -495,7 +495,18 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   after another, as a dashed line — and 18 too; then one fragment at the
   bottom may have one colour, or two, or three"): a click lays the block of
   six under the pointer, lined up with a spoke lying there; a drag six at
-  most.
+  most. **New colours, as ALU's** (the owner, the same evening, `TAPE-colors/`,
+  eleven striped canvases: "I need an algorithm as for ALU, so that I click
+  a key and the palette changes at random … but ours will be with our own
+  paints and the spiral round the cassette"): eight families read off the
+  references in his paints (*Claude's reading*: Ice, Ember, Signal, Cream,
+  Blush, Sky and rust, Carnival, Dusk), a family's core carrying the tape,
+  its accents thin; New colours picks another family and three to five of
+  its core paints, the spokes lying there taking them — or, none lying,
+  new ones laid; New spokes lays four to eight spots round the cassette, a
+  dash a block of six lanes out to the canvas's edge, now and then its last
+  two lanes an accent, the palette as it is; two dashes on a radius never
+  one paint. The palette and its seed kept with the save.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -920,9 +931,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   angle; the canvas; the reading — the tape lane, the lanes, the seam, DRAG
   and TRACE with their times (est.), one ⚠ line a warning. The Result's
   ground and tape colours in the Tools; M and Clear the spokes over them;
-  the owner's paints a strip by the Tools, a chip a paint, its name and
-  where its colour was read on hover, its spokes counted under it; Paints
-  in the panel, the spokes read. 💾 SAVE TAPE, the Library opening it
+  the owner's paints a strip by the Tools, two columns of 12, a chip a
+  paint, its name on hover, its spokes counted under it; Paints in the
+  panel — **New colours · New spokes**, the palette and the spokes read. 💾 SAVE TAPE, the Library opening it
   here: an SVG centred on the canvas, its layers cassette (its SVG nested
   as it is), trace-cassette (its outline), trace-tape and drag-tape, lines
   and arcs.

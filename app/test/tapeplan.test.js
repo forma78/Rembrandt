@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, blockOf, dragLanes, spokePoint, SPOKE_LANES, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
+import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, blockOf, dragLanes, spokePoint, SPOKE_LANES, TAPE_FAMILIES, newPalette, newSpokes, recolourSpokes, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS as RUN_DEFAULTS, pieceLen, sweepOf } from '../src/strokes.js';
 import { toMachine, LOOP_SHARE } from '../src/band.js';
 
@@ -226,4 +226,22 @@ test('a spoke six lanes at most (the owner, 2026-10-12: "6 lines at most … one
   assert.equal(new Set(hits.flat()).size, hits.flat().length, 'the dashes never on one lane twice');
   const p = spokePoint(G, 6.5, 8), q = spokeLine(G, dashes[1])[2];
   assert.ok(Math.hypot(p[0] - q[0], p[1] - q[1]) < 1e-9, 'a dash\'s spot on a lane');
+});
+
+test('New colours (the owner, 2026-10-12: "click a key and the palette changes at random"): a family of his own paints, spokes round the cassette in it', () => {
+  for (const f of TAPE_FAMILIES) for (const id of [...f.core, ...f.accent]) assert.ok(PAINT[id], `${f.name}: ${id} one of his paints`);
+  const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity });
+  for (let seed = 1; seed <= 40; seed++) {
+    const pal = newPalette(seed), f = TAPE_FAMILIES.find(q => q.name === pal.name);
+    assert.ok(pal.core.length >= 3 && pal.core.every(id => f.core.includes(id)) && pal.accent.length >= 1 && pal.accent.every(id => f.accent.includes(id)), `seed ${seed}`);
+    assert.notEqual(newPalette(seed, pal.name).name, pal.name, 'another family than the last');
+    const sp = newSpokes(G, pal, seed), spots = new Set(sp.map(s => s.u));
+    assert.ok(spots.size >= 4 && spots.size <= 8, `four to eight spots: ${spots.size}`);
+    assert.ok(sp.every(s => s.k1 - s.k0 + 1 <= SPOKE_LANES && spokeHits(G, s).length > 0), 'six lanes at most, on the canvas');
+    assert.ok(sp.every(s => [...pal.core, ...pal.accent].includes(s.paint)), 'the palette\'s paints');
+    for (const u of spots) { const r = sp.filter(s => s.u === u).sort((a, b) => a.k0 - b.k0); for (let i = 1; i < r.length; i++) if (r[i].k1 - r[i].k0 + 1 > 2 && r[i - 1].k1 - r[i - 1].k0 + 1 > 2) assert.notEqual(r[i].paint, r[i - 1].paint, 'two dashes on a radius differ'); }
+    const again = recolourSpokes(sp, newPalette(seed + 1000), seed + 1000);
+    assert.deepEqual(again.map(s => [s.u, s.k0, s.k1]), sp.map(s => [s.u, s.k0, s.k1]), 'New colours keeps the spokes\' places');
+  }
+  assert.deepEqual(newSpokes(G, newPalette(7), 7), newSpokes(G, newPalette(7), 7), 'a seed the same spokes');
 });

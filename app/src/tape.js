@@ -28,7 +28,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS as RUN, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
-import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixWalk, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, TAPE_PAINTS, PAINT, SPOKE_LANES, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
+import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixWalk, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, newPalette, newSpokes, recolourSpokes, TAPE_PAINTS, PAINT, SPOKE_LANES, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -47,6 +47,7 @@ const S = {
   ...DEFAULTS, ink: false, view: 'result', traceSpeed: 40, travel: 180, tail: 3,
   ground: '#efe9de', tape: '#3a2a1f', cassSvg: null, cassName: '',
   spokes: [], paint: 'black', tool: '',                                            // the paint's map: spokes across the lanes; the chosen paint; M, the spoke tool
+  palette: null, seed: 0,                                                          // New colours' last palette and seed (tapeplan.js, newPalette)
   boardW: 200, boardH: 200, edgeLeft: 50, edgeBottom: 0,
 };
 const NUM = ['brush', 'speed', 'gap', 'corners', 'cassScale', 'clear', 'step', 'strokes', 'overrun', 'brushAngle', 'traceSpeed', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom'];
@@ -62,6 +63,9 @@ function take(o) {
   S.spokes = Array.isArray(o.spokes) ? o.spokes.filter(q => q && fin(q.u) && fin(q.k0) && fin(q.k1) && PAINT[q.paint]).map(q => ({ u: q.u, k0: q.k0, k1: q.k1, paint: q.paint })) : [];
   if (PAINT[o.paint]) S.paint = o.paint;
   S.tool = o.tool === 'spoke' ? 'spoke' : '';
+  const okIds = a => Array.isArray(a) && a.every(id => PAINT[id]);
+  S.palette = o.palette && typeof o.palette.name === 'string' && okIds(o.palette.core) && okIds(o.palette.accent) ? { name: o.palette.name, core: o.palette.core, accent: o.palette.accent } : null;
+  S.seed = fin(o.seed) ? o.seed : 0;
 }
 function load() { try { take(JSON.parse(localStorage.getItem(KEY) || 'null')); } catch { } }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
@@ -528,7 +532,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = [...PLAN_KEYS, 'brushType', 'brushAngle', 'traceCass', 'traceTape', 'traceSpeed', 'ground', 'tape', 'cassSvg', 'cassName', 'spokes'];
+const UNDO_KEYS = [...PLAN_KEYS, 'brushType', 'brushAngle', 'traceCass', 'traceTape', 'traceSpeed', 'ground', 'tape', 'cassSvg', 'cassName', 'spokes', 'palette', 'seed'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -548,6 +552,20 @@ $('#paints').innerHTML = TAPE_PAINTS.map(([id, name, hex]) => `<div class="chip"
 $('#paints').querySelectorAll('[data-paint]').forEach(ch => ch.querySelector('.sw').onclick = () => { S.paint = ch.dataset.paint; S.tool = 'spoke'; save(); showPanel(); kick(); });
 document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => { S.tool = S.tool === b.dataset.tool ? '' : b.dataset.tool; save(); showPanel(); kick(); });
 $('#btnSpokesClear').onclick = () => { if (!S.spokes.length) return; undoPush(); S.spokes = []; settle(); };
+// New colours, as ALU's: a palette at random, another family than the last; the spokes lying there take it, or new ones are laid
+$('#btnNewColours').onclick = () => {
+  undoPush(); stopPlay();
+  S.seed = Math.floor(Math.random() * 1e9); S.palette = newPalette(S.seed, S.palette?.name);
+  S.spokes = S.spokes.length ? recolourSpokes(S.spokes, S.palette, S.seed) : newSpokes(planNow(), S.palette, S.seed);
+  S.view = 'result'; settle();
+};
+// New spokes: their places at random, in the palette as it is
+$('#btnNewSpokes').onclick = () => {
+  undoPush(); stopPlay();
+  S.seed = Math.floor(Math.random() * 1e9); S.palette ||= newPalette(S.seed);
+  S.spokes = newSpokes(planNow(), S.palette, S.seed);
+  S.view = 'result'; settle();
+};
 let grab = null;
 const spokeOfGrab = () => {                                                       // a click: the block of six under the pointer; a drag: lane to lane, six at most
   if (!grab) return null;
@@ -715,9 +733,10 @@ function showPanel() {
     ch.classList.toggle('pick', S.tool === 'spoke' && q.id === S.paint);
     ch.title = `${q.name} — ${q.from === 'chart' ? 'its colour off the maker\'s chart' : 'its colour off your swatch'} (est.)${n ? `, ${n} spoke${n === 1 ? '' : 's'}` : ''} — a click: the paint of the next spoke (M)`;
   });
-  $('#paintRead').innerHTML = S.spokes.length
+  const pal = S.palette ? `Palette <b>${S.palette.name}</b>: ${S.palette.core.map(id => PAINT[id].name).join(', ')}; thin: ${S.palette.accent.map(id => PAINT[id].name).join(', ')} · seed ${S.seed}<br>` : '';
+  $('#paintRead').innerHTML = pal + (S.spokes.length
     ? `<b>${S.spokes.length}</b> spoke${S.spokes.length === 1 ? '' : 's'}: ${Object.entries(count).map(([id, n]) => `${PAINT[id].name}${n > 1 ? ` × ${n}` : ''}`).join(', ')} — the Result mixes them as the brush goes, ${S.strokes} stroke${S.strokes === 1 ? '' : 's'} ${MODE_NAME[S.mode]} (est.)`
-    : `No spokes: a paint in the strip on the left, then a click on the tape — a spoke over the ${SPOKE_LANES} lanes there, one after another outwards as a dashed line; a drag — from lane to lane.`;
+    : `No spokes: New colours, or a paint in the strip on the left, then a click on the tape — a spoke over the ${SPOKE_LANES} lanes there, one after another outwards as a dashed line; a drag — from lane to lane.`);
 }
 const took = s => s < 59.5 ? `${Math.max(1, Math.round(s))} s` : `${fmt(s / 60, 0)} min`;   // a short run in seconds
 // Settled: a slider let go, a key pressed — the plan, the reading, the LCD.

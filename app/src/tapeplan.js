@@ -25,6 +25,7 @@
 import { fitPieces, toMachine, DIP_RUN, LOOP_SHARE } from './band.js';
 import { pieceLen, reverse, sweepOf } from './strokes.js';
 import { linOf, toSrgb, pigmentMix } from './color.js';
+import { rng } from './util.js';
 
 export const REAL = { tape: 3.81, cassW: 100.4, cassH: 63.8 };   // mm: a compact cassette's tape and shell
 export const CASS_R = 1.8;            // mm: the shell's corner radius in cassette_trace.svg (body-1)
@@ -579,4 +580,69 @@ export function mixWalk(G, spokes, mode = G.o.mode) {
   const rgb = new Float32Array(n * 3), cover = new Float32Array(n);
   for (let i = 0; i < n; i++) { cover[i] = Math.min(1, amt[i] / mm(i)); for (let q = 0; q < 3; q++) rgb[3 * i + q] = amt[i] > 0 ? toSrgb(col[3 * i + q]) : 0; }
   return { rgb, cover };
+}
+
+// ---------- New colours: a palette and its spokes at random, as ALU's ----------
+// The owner's references (2026-10-12, TAPE-colors/: "I need an algorithm as
+// for ALU, so that I click a key and the palette changes at random … but ours
+// will be with our own paints and the spiral round the cassette"): striped
+// canvases — lanes of colour, rows where the paint changes, a thin accent
+// here and there. Their moods in the owner's paints (Claude's reading, the
+// references' numbers by each): a family's core carries the tape, its
+// accents come in thin.
+export const TAPE_FAMILIES = [
+  { name: 'Ice', core: ['ultramarine', 'p04', 'sky', 'p03', 'white', 'black'], accent: ['oyellow', 'deepred', 'orange'] },          // 1, 8
+  { name: 'Ember', core: ['orange', 'black', 'ultramarine', 'oyellow', 'deepred'], accent: ['red', 'lemon', 'brown'] },             // 2
+  { name: 'Signal', core: ['red', 'orange', 'black', 'white'], accent: ['turquoise', 'pink', 'sky'] },                             // 3, 9
+  { name: 'Cream', core: ['white', 'sand', 'black', 'red'], accent: ['ultramarine', 'oyellow', 'orange'] },                        // 4
+  { name: 'Blush', core: ['pink', 'sand', 'white', 'orange', 'deepred'], accent: ['black', 'sky', 'brown', 'roseazo'] },           // 5, 6
+  { name: 'Sky and rust', core: ['sky', 'p03', 'white', 'orange', 'sand'], accent: ['ultramarine', 'pink', 'black'] },             // 7
+  { name: 'Carnival', core: ['red', 'orange', 'lemon', 'ultramarine', 'pink'], accent: ['sky', 'white', 'deepred', 'p02'] },       // 10
+  { name: 'Dusk', core: ['pink', 'sand', 'black', 'brown', 'deepred'], accent: ['purple', 'ultramarine', 'white'] },               // 11
+];
+const shuffled = (r, a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+// a family at random, three to five of its core paints, one or two accents; another family than `not`
+export function newPalette(seed, not = '') {
+  const r = rng(seed), F = TAPE_FAMILIES.filter(f => f.name !== not), f = F[Math.floor(r() * F.length)];
+  return { name: f.name, core: shuffled(r, f.core).slice(0, 3 + Math.floor(r() * Math.min(3, f.core.length - 2))), accent: shuffled(r, f.accent).slice(0, 1 + Math.floor(r() * 2)) };
+}
+export const ACCENT_P = 0.22, ACCENT_LANES = 2;   // a block's chance of a thin accent, and its lanes (Claude's)
+// The spokes' paints: a core paint a dash, never the one of the dash before
+// it on its radius nor the one lying on the same lanes at the spot before; a
+// block now and then giving its last ACCENT_LANES lanes to an accent.
+// slots: [{ u, k0, k1 }] in order, position by position → spokes
+function paintSlots(slots, pal, r, accents = true) {
+  const out = [], last = new Map();                                              // block → the paint at the spot before
+  let prevU = null, prev = null;
+  for (const s of slots) {
+    if (s.u !== prevU) { prev = null; prevU = s.u; }
+    const short = s.k1 - s.k0 + 1 <= ACCENT_LANES;
+    const from = short && pal.accent.length ? pal.accent : pal.core;
+    const ok = from.filter(p => p !== prev && p !== last.get(s.k0)), choice = ok.length ? ok : from;
+    const paint = choice[Math.floor(r() * choice.length)];
+    if (accents && !short && pal.accent.length && s.k1 - s.k0 + 1 > ACCENT_LANES + 1 && r() < ACCENT_P) {
+      out.push({ u: s.u, k0: s.k0, k1: s.k1 - ACCENT_LANES, paint });
+      out.push({ u: s.u, k0: s.k1 - ACCENT_LANES + 1, k1: s.k1, paint: pal.accent[Math.floor(r() * pal.accent.length)] });
+    } else out.push({ u: s.u, k0: s.k0, k1: s.k1, paint });
+    prev = paint; last.set(s.k0, paint);
+  }
+  return out;
+}
+// New spokes: four to eight spots round the cassette, about evenly apart; at
+// each a dash a block of six lanes, out to the canvas's edge, the paints the palette's
+export function newSpokes(G, pal, seed) {
+  if (!G.fits || !G.K) return [];
+  const r = rng(seed ^ 0x5bd1e995), q = G.F.ring(0), g0 = rrGeo(q.a, q.b, q.r), n = 4 + Math.floor(r() * 5), base = r(), slots = [];
+  for (let i = 0; i < n; i++) {
+    const f = ((i + base + (r() - 0.5) * 0.5) / n + 1) % 1, u = lToU(g0, f * g0.P);
+    for (let k0 = 0; k0 < G.K; k0 += SPOKE_LANES) { const s = { u, k0, k1: k0 + SPOKE_LANES - 1 }; if (spokeHits(G, s).length) slots.push(s); }
+  }
+  return paintSlots(slots, pal, r).filter(s => spokeHits(G, s).length);   // an accent past the canvas's edge: none
+}
+// New colours on spokes lying there: their places kept, their paints the palette's
+export function recolourSpokes(spokes, pal, seed) {
+  const order = spokes.map((s, i) => ({ s, i })).sort((a, b) => a.s.u - b.s.u || a.s.k0 - b.s.k0);
+  const painted = paintSlots(order.map(o => o.s), pal, rng(seed ^ 0x27d4eb2f), false), out = spokes.slice();
+  order.forEach((o, j) => { out[o.i] = { ...o.s, paint: painted[j].paint }; });
+  return out;
 }

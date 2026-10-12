@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: New colours and New spokes, as ALU's** (the owner, 2026-10-12,
+  `TAPE-colors/`, eleven striped canvases: "I need an algorithm as for ALU,
+  so that I click a key and the palette changes at random … with our own
+  paints and the spiral round the cassette"). Eight families read off the
+  references in his paints — Ice, Ember, Signal, Cream, Blush, Sky and
+  rust, Carnival, Dusk — a core and thin accents. New colours: another
+  family than the last, three to five of its core paints and one or two
+  accents; the spokes lying there take them, or new ones are laid. New
+  spokes: four to eight spots round the cassette, about evenly apart, a dash
+  a block of six lanes out to the canvas's edge, a block's last two lanes an
+  accent now and then; two dashes on a radius, or on the same lanes at
+  neighbouring spots, never one paint. The view goes to the Result; the
+  palette and its seed are kept, ⌘Z goes back. Tests: the families his
+  paints, the spots and the dashes, a seed the same spokes.
+
 - **TAPE: a spoke six lanes at most, dash after dash** (the owner,
   2026-10-12: "I do not lay the colour as an even sausage over the whole
   length. It wants breaking into 6 lines at most; I will make 12 myself, one
