@@ -31,7 +31,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` from 2026-10-06 to 10-11, then off the row, `type.html` (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
 | **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
-| **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last; its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
+| **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last — or, since the same evening, none at all, the tape wound from the centre (Cassette size 0 %); its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
 | **Run · overrun (on TAPE)** | A run: the tape whole, from where it comes out from under the cassette to its last lane, the brush down off the canvas too (a closed ring a run of its own). The overrun: how far the brush carries on past the canvas's edge at a run's end before it lifts. No segments and no paint stops since 2026-10-12, the evening (§1). |
@@ -555,6 +555,23 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   orange, gold — a press a new deal in it, the spokes in their places. The
   spokes are a map for his hand only, never run (the owner: "it is only
   visual, we have no marks! I will squeeze onto the canvas quickly").
+  **The cassette may go: Cassette size from 0 %** (the owner, the same
+  evening, on the Result in meta 2: "OMG!!! Claude, this is incredibly
+  beautiful!!! We did it"; then: "wait… why do we need the cassette at all
+  now? We seem to have outdone ourselves. First we gave up drawing the
+  cassette, kept only its outline. Now maybe — Adjustments, Cassette size,
+  the limit there is 80 % — take it to 0 %? … I woke up this morning with
+  the idea of parting CCD, which is for Melnicomm, from Soumkine, and the
+  cassette was a fine answer — its tape suits Soumkine's vibe perfectly.
+  But when we had made the tab I was lost: I have 18 jars of paint and a
+  few of my own mixes. Doing as Florian does — making mud — I did not
+  want. So we took up a special algorithm. It came out so cool that the
+  cassette only cheapens it. Without the cassette, contemporary art of an
+  amazing shape"): Cassette size 0 … 130 %, at 0 % no cassette, no outline
+  in TRACE, the tape wound from the centre — its shape as Corners says,
+  circles at Cassette, squares at Angle; a small one, a window the inner
+  lanes round and the outer ones near circles. Spots at a corner's ends that
+  coincide, the sides gone, are one.
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the

@@ -137,7 +137,7 @@ let PL = null, plKey = '', LINES = [];
 function planNow() {
   const o = po(), key = JSON.stringify([o, CASS?.name, CASS?.text.length]);
   if (PL && key === plKey) return PL;
-  plKey = key; PL = planOf(o); LINES = CASS ? cassetteLines(CASS.items, PL.cb, CASS) : []; RESULT = null;
+  plKey = key; PL = planOf(o); LINES = CASS && PL.cb.w > 0.5 ? cassetteLines(CASS.items, PL.cb, CASS) : []; RESULT = null;   // 0 %: no cassette at all
   return PL;
 }
 
@@ -694,7 +694,7 @@ const SL = {
     ['speed', 'Speed', 1, 5, Math.min(80, SPEED_MAX), 'The brush along the tape, mm/s'],
     ['gap', 'Gap', 0.5, 0, 10, 'Between neighbouring lanes; 0, they touch'],
     ['corners', 'Corners', 1, -50, 50, 'From sharp, the tape fitting the square, through the cassette\'s own corners, to round — then on the fly']],
-  slAdjust: [['cassScale', 'Cassette size', 1, 80, 130, '100 % the real shell'],
+  slAdjust: [['cassScale', 'Cassette size', 1, 0, 130, '100 % the real shell; 0 % none, the tape wound from the centre — its shape as Corners says (the owner, 2026-10-12: "why do we need the cassette at all now?")'],
     ['clear', 'First lane', 0.5, 0, 10, 'Between the cassette and lane 1'],
     ['step', 'Lane change', 1, 4, 120, 'How long the tape takes to move out to the next lane, in brush widths; longer than lane 1, one continuous spiral'],
     ['strokes', 'Strokes', 1, 1, 6, 'How many times the brush goes over the tape: the snake back and forth with the brush down, air each time from the start'],
@@ -709,7 +709,7 @@ function valOf(key) {
     case 'speed': case 'traceSpeed': return `${v} mm/s${key === 'traceSpeed' ? ' (est.)' : ''}`;
     case 'gap': return v ? `${fmt(v, 1)} mm` : '0 · touching';
     case 'corners': return `${v > 0 ? '+' : ''}${v}`;
-    case 'cassScale': return `${v} %${v === 100 ? ' · real' : ''}`;
+    case 'cassScale': return `${v} %${v === 100 ? ' · real' : v === 0 ? ' · none' : ''}`;
     case 'clear': case 'overrun': return `${fmt(v, 1)} mm`;
     case 'step': return G?.full && S.seam === 'shift' ? `×${v} · spiral` : `×${v} · ${fmt(Math.min(v * S.brush, G?.P0 ?? Infinity), 0)} mm`;
     case 'strokes': return String(v);
@@ -811,7 +811,7 @@ function settle() {
     lines.push(`Lanes: <b>${G.kSide}</b> to the side edges · <b>${G.kTop}</b> to top and bottom · <b>${G.K}</b> to fill the corners`);
     lines.push(`Seam: ${S.seam === 'shift' ? (G.full ? 'none — the lane change over the whole turn, <b>one continuous spiral</b>' : `from the middle of the right side, the lane change over <b>${fmt(G.Lb, 0)} mm</b> (${Math.round(G.Lb / G.P0 * 100)} % of lane 1)`) : 'the middle of the right side; each ring closes on itself, the brush lifting to the next'}`);
     lines.push(`DRAG: the tape ${fmt(D.mm / S.strokes / 1000, 1)} m${G.runs.length > 1 ? ` in ${G.runs.length} runs` : ', one run'} × ${S.strokes} stroke${S.strokes === 1 ? '' : 's'}, no stop · Snake ≈ ${took(D.seconds)}, the brush landing ${D.landings} time${D.landings === 1 ? '' : 's'}; Air ≈ ${took(A.seconds)}, ${A.landings} landings · at ${S.speed} mm/s (est.)`);
-    lines.push(`TRACE: <b>${T.lines}</b> line${T.lines === 1 ? '' : 's'}${S.traceCass ? `, the cassette's outline ${fmt(shellOf(G, 0).P, 0)} mm and ${Math.round(LOOP_SHARE * 100)} % over its start` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'no dip'} · ≈ ${took(T.seconds)} at ${S.traceSpeed} mm/s (est.)`);
+    lines.push(`TRACE: <b>${T.lines}</b> line${T.lines === 1 ? '' : 's'}${S.traceCass && G.cb.w > 0.5 ? `, the cassette's outline ${fmt(shellOf(G, 0).P, 0)} mm and ${Math.round(LOOP_SHARE * 100)} % over its start` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'no dip'} · ≈ ${took(T.seconds)} at ${S.traceSpeed} mm/s (est.)`);
   }
   more.push(`The prototype's reckoning, ${MODE_NAME[S.mode]}: paint ${fmt(G.paintLen / 1000, 1)} m · air ${fmt(G.airLen / 1000, 1)} m · ${G.lifts} lifts · ≈ ${fmt(G.tMachine / 60, 1)} min (est.)`);
   more.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; the cassette in its centre; TEST's dots ${TEST_MARGIN} mm in from its edges`);

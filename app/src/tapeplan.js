@@ -687,6 +687,7 @@ export function spotsOf(G, k1) {
   const q = G.F.ring(Math.min(k1, Math.max(0, G.K - 1))), g = rrGeo(q.a, q.b, q.r), L = CORNER_U.map(u => uToL(g, u)), us = [];
   L.forEach((a, i) => {
     const b = i + 1 < L.length ? L[i + 1] : L[0] + g.P, gap = b - a, m = gap > RUN_MM ? Math.ceil(gap / MARK_MM) : 1;
+    if (gap < 1 && i + 1 < L.length) return;                                        // a corner's end on the next one's start — no sides, the cassette gone: one spot
     for (let j = 0; j < m; j++) us.push(j ? lToU(g, (a + gap * j / m) % g.P) : CORNER_U[i]);
   });
   return us.sort((x, y) => x - y);

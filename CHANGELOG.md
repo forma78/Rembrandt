@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: Cassette size from 0 % — the cassette may go** (the owner,
+  2026-10-12, `TAPE-colors/Screenshot-2026-10-12-.png`: "OMG!!! Claude, this
+  is incredibly beautiful!!! We did it"; then "why do we need the cassette at
+  all now? … the limit there is 80 % — take it to 0 %? … It came out so
+  cool that the cassette only cheapens it. Without the cassette,
+  contemporary art of an amazing shape"). Cassette size 0 … 130 %: at 0 %
+  no cassette drawn, no outline in TRACE, the tape wound from the centre,
+  its shape as Corners says — circles at Cassette, squares at Angle; a small
+  one a window, the inner lanes round, the outer near circles. A corner's
+  two spots that coincide, the sides gone, are one (`spotsOf`).
+
 - **TAPE: meta 1 and meta 2, the owner's two ideals as palettes** (the
   owner, 2026-10-12, `TAPE-colors/meta-tape-01.jpg` and `-02.jpg`: "maybe
   you can take something from them for new keys, meta 1 and meta 2"). Two
