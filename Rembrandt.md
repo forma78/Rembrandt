@@ -545,6 +545,16 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   turn; an accent a fleck, a third of the paint; the lane keys gone, M laying
   the pattern's stripe under the pointer, else six; in the paints' list a
   click and a paint in the strip change one, + adds one, × takes one out.
+  **meta 1 · meta 2** (the owner, the same evening, `meta-tape-02.jpg`
+  beside the first: "maybe you can take something from them for new keys,
+  meta 1 and meta 2, in place of 1 lane, 2 lanes"): his two ideals as
+  palettes in his paints (*Claude's reading*) — meta 1 ultramarine, 04,
+  sky, white, black, 03, orange, orange yellow and purple flecks, the first
+  ring white and sky; meta 2 purple, black, pink, sand, white, orange,
+  ochre, ultramarine, red and rose azo threads, the first ring ochre and
+  orange, gold — a press a new deal in it, the spokes in their places. The
+  spokes are a map for his hand only, never run (the owner: "it is only
+  visual, we have no marks! I will squeeze onto the canvas quickly").
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -971,7 +981,7 @@ this section disagree, this section wins: the owner corrected the sketch on
   ground and tape colours in the Tools; M and Clear the spokes over them;
   the owner's paints a strip by the Tools, two columns of 12, a chip a
   paint, its name on hover, its spokes counted under it; Paints in the
-  panel — **New colours · New spokes**, Density, the paints in use — a
+  panel — **New colours · New spokes**, **meta 1 · meta 2**, Density, the paints in use — a
   click and a paint in the strip to change one, + to add, × to take out —
   the palette and the spokes under its i. 💾 SAVE TAPE, the Library opening it
   here: an SVG centred on the canvas, its layers cassette (its SVG nested

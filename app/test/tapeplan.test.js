@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, blockOf, dragLanes, spokePoint, SPOKE_LANES, TAPE_FAMILIES, newPalette, newSpokes, recolourSpokes, densityOf, DENSITY, SPOKE_SIZES, stripesOf, spotsOf, rrGeo, uToL, CORNER_U, RUN_MM, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
+import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, blockOf, dragLanes, spokePoint, SPOKE_LANES, TAPE_FAMILIES, newPalette, newSpokes, recolourSpokes, densityOf, DENSITY, SPOKE_SIZES, stripesOf, spotsOf, rrGeo, uToL, CORNER_U, RUN_MM, TAPE_META, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS as RUN_DEFAULTS, pieceLen, sweepOf } from '../src/strokes.js';
 import { toMachine, LOOP_SHARE } from '../src/band.js';
 
@@ -268,4 +268,16 @@ test('Density (the owner, 2026-10-12: "they are somehow thin … we need a densi
   assert.ok(a < b && b < c, `whole film ${a} < ${b} < ${c}`);
   assert.deepEqual(SPOKE_SIZES, [1, 2, 6]);
   assert.deepEqual(blockOf(7.2, 2), [6, 7]); assert.deepEqual(blockOf(7.2, 1), [7, 7]); assert.deepEqual(dragLanes(3, 9, 2), [3, 4]);
+});
+
+test('meta 1, meta 2 (the owner, 2026-10-12: "new keys, meta 1 and meta 2" after his two ideals): his paints; the first ring the preset\'s own', () => {
+  const G = planOf({ ...DEFAULTS, cw: 230, ch: 230, segLen: Infinity });
+  for (const m of Object.values(TAPE_META)) {
+    for (const id of [...m.core, ...m.accent, ...m.inner]) assert.ok(PAINT[id], `${m.name}: ${id}`);
+    for (let seed = 1; seed <= 10; seed++) {
+      const sp = newSpokes(G, m, seed), first = sp.filter(s => s.k0 === 0);
+      assert.ok(first.length && first.every(s => [...m.inner, ...m.accent].includes(s.paint)), `${m.name}: the first ring ${m.inner.join(', ')}`);
+      assert.ok(sp.every(s => [...m.inner, ...m.core, ...m.accent].includes(s.paint)), `${m.name}: its paints only`);
+    }
+  }
 });

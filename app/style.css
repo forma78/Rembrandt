@@ -682,3 +682,4 @@ body.type .status{grid-column:1/4;grid-row:4}
 .tape .paintlist .pl:hover .x{display:block}
 .tape .paintlist .pl.add{padding:2px 8px;font-weight:600;color:var(--mute)}
 .tape .paintstrip.editing .chip .sw{box-shadow:0 0 0 1px var(--orange)}       /* a paint to pick for the palette */
+.tape #metaKeys{margin:8px 0 2px}

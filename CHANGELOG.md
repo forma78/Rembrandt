@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: meta 1 and meta 2, the owner's two ideals as palettes** (the
+  owner, 2026-10-12, `TAPE-colors/meta-tape-01.jpg` and `-02.jpg`: "maybe
+  you can take something from them for new keys, meta 1 and meta 2"). Two
+  keys under New colours: meta 1 the blues — ultramarine, 04, sky, white,
+  black, 03 — with orange, orange yellow and purple flecks, its first ring
+  white and sky; meta 2 the plums — purple, black, pink, sand, white,
+  orange — with ochre, ultramarine, red and rose azo threads, its first ring
+  ochre and orange, gold. A press deals the preset anew, the spokes staying
+  in their places; the key of the palette on stays down. A palette may carry
+  its first ring's paints (`inner`), kept through the list's changes.
+
 - **TAPE: the Result streaky, as the owner's ideal; the spokes on Drag
   only; the palette in hand** (the owner, 2026-10-12,
   `TAPE-colors/meta-tape-01.jpg`: "much better already! but I would take the

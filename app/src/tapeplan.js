@@ -642,6 +642,15 @@ export const TAPE_FAMILIES = [
   { name: 'Carnival', core: ['red', 'orange', 'lemon', 'ultramarine', 'pink'], accent: ['sky', 'white', 'deepred', 'p02'] },       // 10
   { name: 'Dusk', core: ['pink', 'sand', 'black', 'brown', 'deepred'], accent: ['purple', 'ultramarine', 'white'] },               // 11
 ];
+// The owner's two ideals as palettes (2026-10-12, TAPE-colors/meta-tape-01.jpg
+// and meta-tape-02.jpg: "maybe you can take something from them for new
+// keys, meta 1 and meta 2"; Claude's reading in his paints): their core and
+// accents, and the first ring's, round the cassette — light on the first,
+// gold on the second
+export const TAPE_META = {
+  'meta 1': { name: 'meta 1', core: ['ultramarine', 'p04', 'sky', 'white', 'black', 'p03'], accent: ['orange', 'oyellow', 'purple'], inner: ['white', 'sky'] },
+  'meta 2': { name: 'meta 2', core: ['purple', 'black', 'pink', 'sand', 'white', 'orange'], accent: ['ochre', 'ultramarine', 'red', 'roseazo'], inner: ['ochre', 'orange'] },
+};
 const shuffled = (r, a) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 // a family at random, three to five of its core paints, one or two accents; another family than `not`
 export function newPalette(seed, not = '') {
@@ -698,18 +707,18 @@ function paintPattern(spokes, pal, seed) {
     const w = row[0].k1 - row[0].k0 + 1, thin = w <= ACCENT_LANES;
     // a ring holds its tone, as the ideal's (meta-tape-01.jpg): dark and light rings in turn, now and then two alike
     tone = r() < 0.25 ? tone : 1 - tone;
-    const own = tones[tone].length ? tones[tone] : pal.core;
+    const own = row[0].k0 === 0 && pal.inner?.length ? pal.inner : tones[tone].length ? tones[tone] : pal.core;   // the first ring the preset's own
     let prev = null;
     for (const s of row) {
       const beside = inner.reduce((best, t) => !best || uGap(t.u, s.u) < uGap(best.u, s.u) ? t : best, null)?.paint;
-      const accent = pal.accent.length && (thin ? r() < 0.35 : r() < 0.05), from = accent ? pal.accent : r() < 0.8 ? own : pal.core;   // an accent a fleck
+      const accent = pal.accent.length && (thin ? r() < 0.35 : r() < 0.05), from = accent ? pal.accent : r() < 0.8 || own === pal.inner ? own : pal.core;   // an accent a fleck
       let ok = from.filter(p => p !== prev && p !== beside);
       if (!ok.length) ok = [...pal.core, ...pal.accent].filter(p => p !== prev && p !== beside);   // an accent alone, and the spot before had it: the whole palette
       if (!ok.length) ok = [...pal.core, ...pal.accent].filter(p => p !== prev);
       s.paint = ok[Math.floor(r() * ok.length)] ?? from[0]; prev = s.paint;
       if (pal.accent.includes(s.paint) && !pal.core.includes(s.paint)) s.thin = true; else delete s.thin;   // an accent a fleck (mixWalk, FLECK)
     }
-    if (row.length > 1 && row[0].paint === row.at(-1).paint) { const alt = pal.core.find(p => p !== row[0].paint && p !== row[1]?.paint); if (alt) row.at(-1).paint = alt; }   // round the lap: the last spot is the first's neighbour
+    if (row.length > 1 && row[0].paint === row.at(-1).paint) { const alt = [...own, ...pal.accent, ...pal.core].find(p => p !== row[0].paint && p !== row.at(-2)?.paint); if (alt) row.at(-1).paint = alt; }   // round the lap: the last spot is the first's neighbour; its ring's own first
     inner = row;
   }
   return out;

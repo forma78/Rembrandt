@@ -28,7 +28,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS as RUN, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
-import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixGrooves, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, newPalette, newSpokes, recolourSpokes, densityOf, RUN_MM, TAPE_PAINTS, PAINT, SPOKE_LANES, DENSITY, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
+import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixGrooves, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, newPalette, newSpokes, recolourSpokes, TAPE_META, densityOf, RUN_MM, TAPE_PAINTS, PAINT, SPOKE_LANES, DENSITY, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -65,7 +65,7 @@ function take(o) {
   if (PAINT[o.paint]) S.paint = o.paint;
   S.tool = o.tool === 'spoke' ? 'spoke' : '';
   const okIds = a => Array.isArray(a) && a.every(id => PAINT[id]);
-  S.palette = o.palette && typeof o.palette.name === 'string' && okIds(o.palette.core) && okIds(o.palette.accent) ? { name: o.palette.name, core: o.palette.core, accent: o.palette.accent } : null;
+  S.palette = o.palette && typeof o.palette.name === 'string' && okIds(o.palette.core) && okIds(o.palette.accent) ? { name: o.palette.name, core: o.palette.core, accent: o.palette.accent, ...(okIds(o.palette.inner) ? { inner: o.palette.inner } : {}) } : null;
   S.seed = fin(o.seed) ? o.seed : 0;
 }
 function load() { try { take(JSON.parse(localStorage.getItem(KEY) || 'null')); } catch { } }
@@ -572,7 +572,7 @@ function editPaint(id) {
   if (e.mode === 'change' && e.id !== id) {
     const swap = a => [...new Set(a.map(q => q === e.id ? id : q))];
     S.spokes = S.spokes.map(sp => sp.paint === e.id ? { ...sp, paint: id } : sp);
-    if (S.palette) { const core = swap(S.palette.core); S.palette = { ...S.palette, core, accent: swap(S.palette.accent).filter(q => !core.includes(q)) }; }
+    if (S.palette) { const core = swap(S.palette.core); S.palette = { ...S.palette, core, accent: swap(S.palette.accent).filter(q => !core.includes(q)), ...(S.palette.inner ? { inner: swap(S.palette.inner) } : {}) }; }
   } else if (e.mode === 'add') {
     const pal = ownPalette();
     if (![...pal.core, ...pal.accent].includes(id)) { pal.core.push(id); S.palette = pal; if (S.spokes.length) S.spokes = recolourSpokes(S.spokes, pal, S.seed || 1); }
@@ -581,7 +581,7 @@ function editPaint(id) {
 }
 function dropPaint(id) {
   undoPush();
-  const pal = ownPalette(); pal.core = pal.core.filter(q => q !== id); pal.accent = pal.accent.filter(q => q !== id);
+  const pal = ownPalette(); pal.core = pal.core.filter(q => q !== id); pal.accent = pal.accent.filter(q => q !== id); if (pal.inner) pal.inner = pal.inner.filter(q => q !== id);
   if (!pal.core.length && pal.accent.length) pal.core = pal.accent.splice(0);
   if (pal.core.length) { S.palette = pal; if (S.spokes.length) S.spokes = recolourSpokes(S.spokes, pal, S.seed || 1); }
   else { S.palette = null; S.spokes = S.spokes.filter(sp => sp.paint !== id); }
@@ -604,6 +604,13 @@ $('#btnNewColours').onclick = () => {
   S.spokes = S.spokes.length ? recolourSpokes(S.spokes, S.palette, S.seed) : newSpokes(planNow(), S.palette, S.seed);   // the sausages stay in their places
   S.view = 'result'; settle();
 };
+// meta 1, meta 2: the owner's two ideals as palettes (tapeplan.js, TAPE_META) — a press a new deal in it, the spokes in their places
+document.querySelectorAll('#metaKeys [data-meta]').forEach(b => b.onclick = () => {
+  undoPush(); stopPlay();
+  S.seed = Math.floor(Math.random() * 1e9); S.palette = structuredClone(TAPE_META[b.dataset.meta]);
+  S.spokes = S.spokes.length ? recolourSpokes(S.spokes, S.palette, S.seed) : newSpokes(planNow(), S.palette, S.seed);
+  S.view = 'result'; settle();
+});
 // New spokes: the pattern — the corners' spots and the brush's breath — its stripes mixed anew, in the palette as it is
 $('#btnNewSpokes').onclick = () => {
   undoPush(); stopPlay();
@@ -783,10 +790,11 @@ function showPanel() {
     ch.title = `${q.name} — ${q.from === 'chart' ? 'its colour off the maker\'s chart' : 'its colour off your swatch'} (est.)${n ? `, ${n} spoke${n === 1 ? '' : 's'}` : ''} — a click: the paint of the next spoke (M)`;
   });
   // the paints in use, as the owner wants them in sight: the palette's, then any other a spoke has; a chip, its name, its spokes
-  const inUse = [...new Set([...(S.palette ? [...S.palette.core, ...S.palette.accent] : []), ...S.spokes.map(sp => sp.paint)])];
+  const inUse = [...new Set([...(S.palette ? [...(S.palette.inner || []), ...S.palette.core, ...S.palette.accent] : []), ...S.spokes.map(sp => sp.paint)])];
   $('#paintList').innerHTML = inUse.map(id => `<span class="pl${count[id] ? '' : ' none'}${EDIT?.id === id ? ' on' : ''}" data-pl="${id}" title="${PAINT[id].name}${S.palette?.accent.includes(id) ? ', thin' : ''} — a click, then a paint in the strip: it takes its place"><i style="background:${PAINT[id].hex}"></i>${PAINT[id].name}${S.palette?.accent.includes(id) ? ' <em>thin</em>' : ''}${count[id] ? ` <em>×${count[id]}</em>` : ''}<b class="x" data-x="${id}" title="Take ${PAINT[id].name} out">×</b></span>`).join('')
     + (inUse.length ? `<span class="pl add${EDIT?.mode === 'add' ? ' on' : ''}" data-add title="Add a paint: then click it in the strip on the left">+</span>` : '');
   $('#paints').classList.toggle('editing', !!EDIT);
+  document.querySelectorAll('#metaKeys [data-meta]').forEach(b => b.classList.toggle('on', S.palette?.name === b.dataset.meta));
   $('#paintRead').innerHTML = [
     `The spokes, where you squeeze the paints. New colours: a palette at random, the spokes staying in their places — or, none lying, the pattern laid. New spokes: the pattern, its stripes of lanes mixed anew — two spots at every corner, and more where a lane would go ${RUN_MM} mm without paint, the brush running out there (the paper test of 8 October, ALU-Claude/paper-test/). M and a paint in the strip: a click lays a spoke over 1, 2 or 6 lanes there, a drag from lane to lane, a click on a spoke takes it away.`,
     S.palette && `Palette <b>${S.palette.name}</b>: ${S.palette.core.map(id => PAINT[id].name).join(', ')}; thin: ${S.palette.accent.map(id => PAINT[id].name).join(', ')} · seed ${S.seed}`,
