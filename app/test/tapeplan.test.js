@@ -12,7 +12,7 @@ const ACC = JSON.parse(readFileSync(new URL('../../TAPE-Claude/reference/accepta
 const SVG = readFileSync(new URL('../cassette_trace.svg', import.meta.url), 'utf8');
 const ITEMS = [...SVG.matchAll(/<path id="([^"]*)" d="([^"]*)"/g)].map(m => ({ id: m[1], d: m[2] }));
 const settingsOf = c => {
-  const o = { ...DEFAULTS, cw: 200, ch: 200 };
+  const o = { ...DEFAULTS, cw: 200, ch: 200, keepDown: false };   // the prototype's runs, cut at the canvas's edges
   for (const [k, v] of Object.entries(c)) {
     if (k === 'format') o.cw = o.ch = v;
     else if (k === 'mode') o.mode = v === 'oneway' ? 'air' : v;
@@ -157,4 +157,20 @@ test('the save\'s path data: back to canvas mm, y down, the arcs\' sweep the way
   const G = planOf(settingsOf({ seam: 'closed' })), sg = G.segs[0], d = pathD(piecesOf(G, sg.i0, sg.i1));
   assert.ok(d.startsWith(`M${(Math.round(G.pts[sg.i0].x * 100) / 100)} `));
   assert.ok(/A\d/.test(d) && / 0 0 1 /.test(d), 'clockwise corners: sweep 1');
+});
+
+test('the brush down off the canvas (the owner, 2026-10-12: "let it just go without a lift"): one run a path, every paint stop on the canvas', () => {
+  const on = (G, p) => Math.abs(p.x) <= G.Hx + G.o.brush / 2 - 0.2 && Math.abs(p.y) <= G.Hy + G.o.brush / 2 - 0.2;
+  for (const c of [{}, { seam: 'closed' }, { corners: 50 }, { corners: -50 }, { cw: 300, ch: 300, brush: 5 }]) {
+    const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, ...c }), was = planOf({ ...DEFAULTS, cw: 200, ch: 200, ...c, keepDown: false }), name = JSON.stringify(c);
+    assert.equal(G.K, was.K, `${name}: the same lanes`);
+    if ((c.seam || 'shift') === 'shift') assert.equal(G.runs.length, 1, `${name}: the spiral one run, no lift at the edges`);
+    else assert.ok(G.runs.length <= G.K, `${name}: a ring one run at most`);
+    assert.ok(G.lifts < was.lifts, `${name}: fewer lifts, ${G.lifts} < ${was.lifts}`);
+    G.segs.forEach((sg, n) => { if (!G.runs.some(r => r.i0 === sg.i0)) assert.ok(on(G, G.pts[sg.i0]), `${name}: stop ${n + 1} on the canvas`); });
+    for (let n = 1; n < G.segs.length; n++) if (!G.runs.some(r => r.i0 === G.segs[n].i0)) assert.equal(G.segs[n].i0, G.segs[n - 1].i1, `${name}: the segments one after another`);
+    checkPieces(name, G);
+  }
+  const G = planOf({ ...DEFAULTS, cw: 200, ch: 200 }), onLen = G.segs.map(sg => { let s = 0; for (let i = sg.i0 + 1; i <= sg.i1; i++) if (on(G, G.pts[i]) && on(G, G.pts[i - 1])) s += Math.hypot(G.pts[i].x - G.pts[i - 1].x, G.pts[i].y - G.pts[i - 1].y); return s; });
+  assert.ok(Math.max(...onLen) - Math.min(...onLen) < 2, 'a squeeze the same tape on the canvas each');
 });

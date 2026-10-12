@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: no lift at the canvas's edges** (the owner, 2026-10-12: "on the
+  corners there is no need at all to lift the head — the canvas sits firm
+  on its supports on the table, the brush just goes through the air and
+  fits into the corners smoothly; we only lose time on the lifts"; and on
+  Claude's offer to lift past 100 mm off the canvas: "no, really, let it
+  just go without a lift, I will be calmer"). A path is one run from its
+  first sample on the canvas to its last, the stretches off it with the
+  brush down, in the air: the spiral one run, a closed ring one. The paint
+  stops cut equal lengths of the tape on the canvas, so every one falls on
+  it. At the defaults 72 stops → 49, 71 lifts → 48, DRAG Snake ≈ 23 → 29
+  min (the outer lanes go round in the air at the brush's speed). The
+  prototype's runs kept for its acceptance (`keepDown: false`).
+
 - **TAPE: TRACE takes a closed outline round twice** (the owner,
   2026-10-12, the pencil's first trace, `TAPE-images/`: the screws' circles
   and the holes in the trapezoid a short stroke, "a quarter of a circle at

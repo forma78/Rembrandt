@@ -29,11 +29,13 @@ export const REAL = { tape: 3.81, cassW: 100.4, cassH: 63.8 };   // mm: a compac
 export const CASS_R = 1.8;            // mm: the shell's corner radius in cassette_trace.svg (body-1)
 export const DEFAULT_CASS = { vx: 0, vy: 0, vw: 100.4, vh: 63.8, mmW: 100.4 };
 // The prototype's settings, the owner's (TAPE.md, Controls). mode: the DRAG
-// key last pressed, snake or air; step: the lane change in brush widths
+// key last pressed, snake or air; step: the lane change in brush widths;
+// keepDown: the brush down off the canvas too, no lift at its edges (the
+// owner, 2026-10-12; false: the prototype's runs, for its acceptance)
 export const DEFAULTS = {
   brush: 4, speed: 25, gap: 0, corners: 0, seam: 'shift', dir: 'cw', mode: 'snake',
   cassScale: 100, clear: 0, step: 48, segLen: 180, strokes: 3, overrun: 4, brushType: 'round', brushAngle: 45,
-  traceCass: true, traceTape: true,
+  traceCass: true, traceTape: true, keepDown: true,
 };
 export const MODES = ['snake', 'air'], SEAMS = ['shift', 'closed'], DIRS = ['cw', 'ccw'], BRUSH_TYPES = ['round', 'flat'];
 // the prototype's estimate (TAPE.md, Moves): the air, a lift and a lower, the pencil — est.
@@ -168,27 +170,52 @@ export function planOf(oIn) {
   for (let i = 1; i < pts.length; i++) cum[i] = cum[i - 1] + (pts[i].brk ? 0 : dist(pts[i - 1], pts[i]));
   // a lane counts as on the canvas while any of its width still touches it
   const ins = pts.map(q => Math.abs(q.x) <= Hx + w / 2 - 0.2 && Math.abs(q.y) <= Hy + w / 2 - 0.2);
-  // the runs: whole pieces on the canvas, past its edge by the overrun
+  // the tape on the canvas, mm along the path: what a squeeze of paint has to cover
+  const onCum = [0];
+  for (let i = 1; i < pts.length; i++) onCum[i] = onCum[i - 1] + (!pts[i].brk && ins[i] && ins[i - 1] ? dist(pts[i - 1], pts[i]) : 0);
+  // The runs, past the canvas's edge by the overrun at their ends. With
+  // keepDown (the owner, 2026-10-12: "on the corners there is no need at all
+  // to lift the head — the canvas sits firm on its supports on the table, the
+  // brush just goes through the air and fits into the corners smoothly; we
+  // only lose time on the lifts"; "really, let it just go without a lift, I
+  // will be calmer"): a path's run from its first sample on the canvas to its
+  // last, the stretches off it run with the brush down, in the air. Without,
+  // the prototype's: every piece on the canvas a run of its own.
   const runs = [];
-  for (let i = 0; i < pts.length;) {
-    if (!ins[i]) { i++; continue; }
-    let j = i;
-    while (j + 1 < pts.length && ins[j + 1] && !pts[j + 1].brk) j++;
+  const run = (i, j) => {
     let s = i, e = j;
     while (s > 0 && !pts[s].brk && cum[i] - cum[s - 1] <= o.overrun + step) s--;
     while (e < pts.length - 1 && !pts[e + 1].brk && cum[e + 1] - cum[j] <= o.overrun + step) e++;
     runs.push({ i0: s, i1: e, c0: i, c1: j });
+  };
+  for (let i = 0; i < pts.length;) {
+    if (o.keepDown) {
+      let e = i;
+      while (e + 1 < pts.length && !pts[e + 1].brk) e++;                       // a path: i … e
+      let c0 = i, c1 = e;
+      while (c0 <= e && !ins[c0]) c0++;
+      while (c1 >= c0 && !ins[c1]) c1--;
+      if (c0 <= e) run(c0, c1);
+      i = e + 1;
+      continue;
+    }
+    if (!ins[i]) { i++; continue; }
+    let j = i;
+    while (j + 1 < pts.length && ins[j + 1] && !pts[j + 1].brk) j++;
+    run(i, j);
     i = j + 1;
   }
-  // the segments: a squeeze of paint each
-  const segs = [];
+  // The segments: a squeeze of paint each, equal lengths of a run. With
+  // keepDown, equal lengths of the tape on the canvas, so every paint stop
+  // falls on the canvas, never in the air past its edge.
+  const segs = [], along = o.keepDown ? onCum : cum;
   for (const r of runs) {
-    const L = cum[r.i1] - cum[r.i0], n = Math.max(1, Math.ceil(L / o.segLen - 0.15));
+    const L = along[r.i1] - along[r.i0], n = Math.max(1, Math.ceil(L / o.segLen - 0.15));
     let a = r.i0;
     for (let k = 1; k <= n; k++) {
-      const target = cum[r.i0] + L * k / n;
+      const target = along[r.i0] + L * k / n;
       let b = a;
-      while (b < r.i1 && cum[b] < target) b++;
+      while (b < r.i1 && along[b] < target) b++;
       if (k === n) b = r.i1;
       if (b > a) segs.push({ i0: a, i1: b, len: cum[b] - cum[a] });
       a = b;
