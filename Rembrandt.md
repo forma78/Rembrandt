@@ -35,6 +35,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
 | **Run · overrun (on TAPE)** | A run: the tape whole, from where it comes out from under the cassette to its last lane, the brush down off the canvas too (a closed ring a run of its own). The overrun: how far the brush carries on past the canvas's edge at a run's end before it lifts. No segments and no paint stops since 2026-10-12, the evening (§1). |
+| **Spoke (on TAPE)** | Paint squeezed across the lanes at one spot round the cassette, from it outwards, as the owner laid it on paper (`TAPE-images/` 17:22): one of his paints, all the lanes or from lane to lane, on the canvas only; the tape passes it lap after lap and the brush drags it along. Laid with M; the Result mixes them as the brush goes. A map for the hand, never run on the machine. |
 | **Snake · Air (on TAPE)** | DRAG's two keys on TAPE: the snake, the run's strokes forward, back, forward … with the brush down; air, forward on the canvas, the brush lifting at the end and flying back to its start, the strokes over. Not CCD's snake, lane after lane. |
 | **ALU-CUT** | ALU with the new things, the first tab from 2026-10-11 to 10-12, in TYPE's and LOVE's place, then after TAPE (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `alucut.html` since 2026-10-12 (`index.html` before), its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
 | **Cut · part** | On ALU-CUT: a seam made with the scissors, ✂ (C), where DRAG stops — the brush lifted, wiped or washed, the next part's paints squeezed, Continue; a part, the pipe between two cuts or a cut and an end, painted on its own with a clean brush, its lanes half a brush clear of a cut, the pipe's lane numbers going on across it (2026-10-11, §8). A seam (S) only changes the paints. |
@@ -468,6 +469,24 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   stroke from the start, a flight back between; PAUSE where the tape passes
   the seam, a lap's end, or at a turn; the Segment slider gone, and
   `plotRun`'s pauseOver with it.
+  **The paints and the spokes** (the owner, the same evening, `TAPE-images/`:
+  his sheets on paper 17:22, the paint squeezed across the lanes and dragged
+  round; Florian Markus's IMG_0467 and his software IMG_0480 — "he really
+  mixes the colours on the computer, for me that is a revelation. But we
+  can make such a thing too, right?"; "I try to make a mix as Florian does,
+  but I lack a layout of the real paints I have"; "can these colours go in
+  the TOOLS on the left, as in ALU"): his paints a strip by the Tools — the
+  18 Shuttle Art acrylics of `18-colors.jpg` and his own 01 … 05 — their
+  colours off his swatches in daylight (`colors-001…003.jpg`, the paper
+  taken for white) or, not swatched yet, off the maker's chart, all est.;
+  **M** lays a spoke of the chosen paint — a click across all the lanes, a
+  drag from lane to lane, a click on one takes it away; the **Result mixes
+  them as the brush goes**, DRAG's own walk — the snake's strokes or air's —
+  the brush picking up and laying down paint at every step, the paints
+  mixed as pigments (*Claude's*: the walk, not Florian's gradient between
+  marks, so Snake, Air and Strokes show; its numbers est.). Play the run
+  shows the mixed paint where the brush has been. Not run on the machine:
+  the owner squeezes by hand, "Marks is not needed".
 - **SMKN, ALU with the paints in stock** (the owner, 2026-10-08: "now we
   only need to make a real palette with the colours we have in stock, but
   the existing tab must stay too. Let's call the second tab SMKN — it is the
@@ -891,7 +910,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   Lane change, Strokes, Edge overrun, **Round · Flat**, Flat
   angle; the canvas; the reading — the tape lane, the lanes, the seam, DRAG
   and TRACE with their times (est.), one ⚠ line a warning. The Result's
-  ground and tape colours in the Tools. 💾 SAVE TAPE, the Library opening it
+  ground and tape colours in the Tools; M and Clear the spokes over them;
+  the owner's paints a strip by the Tools, a chip a paint, its name and
+  where its colour was read on hover, its spokes counted under it; Paints
+  in the panel, the spokes read. 💾 SAVE TAPE, the Library opening it
   here: an SVG centred on the canvas, its layers cassette (its SVG nested
   as it is), trace-cassette (its outline), trace-tape and drag-tape, lines
   and arcs.

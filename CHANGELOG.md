@@ -5,6 +5,24 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: the owner's paints, the spokes, the Result mixing them** (the
+  owner, 2026-10-12, `TAPE-images/`: "I try to make a mix as Florian does,
+  but I lack a layout of the real paints I have"; Florian's software "really
+  mixes the colours on the computer … we can make such a thing too, right?";
+  "can these colours go in the TOOLS on the left, as in ALU"). A strip by
+  the Tools of his 23 paints — the 18 Shuttle Art and his own 01 … 05 — the
+  colours off his daylight swatches, the paper taken for white, or off the
+  maker's chart where not swatched yet (est.). M lays a spoke of the chosen
+  paint across the lanes — a click all of them, a drag lane to lane — on the
+  canvas only; a click on a spoke takes it away; Clear the spokes in the
+  Tools. The Result mixes them along DRAG's own walk: at every step the
+  brush picks up PICK of what lies there and lays down what it carries over
+  SMEAR mm, the paints mixed as pigments (`mixWalk`, est.); the ground mixed
+  in where the paint thins, drawn opaque. Play the run shows the mixed paint
+  where the brush has been; the spokes saved and in the save's SVG. Tests
+  for the paints, the spokes and the mixing; `window.__tape` for the
+  console, as the prototype's.
+
 - **TAPE: no paint stops, no segments** (the owner, 2026-10-12, on the
   first DRAG: "I press Snake and the pause comes at once, right on the
   first segment. Not on the first — not at all. Press it 27 times? What

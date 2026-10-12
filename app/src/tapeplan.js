@@ -24,6 +24,7 @@
 
 import { fitPieces, toMachine, DIP_RUN, LOOP_SHARE } from './band.js';
 import { pieceLen, reverse, sweepOf } from './strokes.js';
+import { linOf, toSrgb, pigmentMix } from './color.js';
 
 export const REAL = { tape: 3.81, cassW: 100.4, cassH: 63.8 };   // mm: a compact cassette's tape and shell
 export const CASS_R = 1.8;            // mm: the shell's corner radius in cassette_trace.svg (body-1)
@@ -129,8 +130,8 @@ export function planOf(oIn) {
   const g0 = geo(0), Lb = Math.min(o.step * w, g0.P), U = lToU(g0, Lb), full = U >= 9;
   const blend = u => smooth3(uToL(g0, u) / Lb);                                 // one profile for every lane: neighbours never bunch or part
   const pts = [], spans = [];
-  const add = (p, s, u, brk) => {
-    p.y *= sy; p.ty *= sy; p.s = s; p.u = u;
+  const add = (p, s, u, brk, l) => {                                              // l: the lane it lies on, k + f on a lane change (the paint's map)
+    p.y *= sy; p.ty *= sy; p.s = s; p.u = u; p.l = l;
     const prev = pts.at(-1);
     if (!brk && prev) { const dx = p.x - prev.x, dy = p.y - prev.y, l = Math.hypot(dx, dy); if (l < 1e-6) return; p.tx = dx / l; p.ty = dy / l; }
     if (brk) p.brk = true;
@@ -142,16 +143,16 @@ export function planOf(oIn) {
     if (k < 0 && B0.r > 0) {
       // the tape coming out from under the cassette: lane 1 pushed in along its own normal, so it keeps
       // the cassette's rounded corners (a "lane 0" would have a negative radius)
-      [0, ...uSamples(B0, 0, U, step)].forEach((u, i) => { const B = rrU(B0, u), q = F.p * (1 - blend(u)); add({ x: B.x - B.ty * q, y: B.y + B.tx * q, tx: B.tx, ty: B.ty }, s, u, brk && i === 0); });
+      [0, ...uSamples(B0, 0, U, step)].forEach((u, i) => { const B = rrU(B0, u), q = F.p * (1 - blend(u)); add({ x: B.x - B.ty * q, y: B.y + B.tx * q, tx: B.tx, ty: B.ty }, s, u, brk && i === 0, k + blend(u)); });
       return;
     }
     const A0 = geo(k);
-    [0, ...uSamples(A0, 0, U, step)].forEach((u, i) => { const A = rrU(A0, u), B = rrU(B0, u), f = blend(u); add({ x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, tx: A.tx, ty: A.ty }, s, u, brk && i === 0); });
+    [0, ...uSamples(A0, 0, U, step)].forEach((u, i) => { const A = rrU(A0, u), B = rrU(B0, u), f = blend(u); add({ x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, tx: A.tx, ty: A.ty }, s, u, brk && i === 0, k + f); });
   };
   const arc = (k, u0, u1, brk) => {
     const g = geo(k), us = uSamples(g, u0, u1, step), s = spans.push({ kind: 'lane', k, g, u0 }) - 1;
     if (brk) us.unshift(u0);
-    us.forEach((u, i) => add(rrU(g, u), s, u, brk && i === 0));
+    us.forEach((u, i) => add(rrU(g, u), s, u, brk && i === 0, k));
   };
   const gone = k => { const q = ring(k); return inRR(Hx, Hy, q.a - w / 2, q.b - w / 2, q.r - w / 2); };   // lane k no longer touches the canvas
   let K = 0;
@@ -452,4 +453,111 @@ export function pathD(pieces) {
     s += g.t === 'L' ? `L${f2(b[0])} ${f2(b[1])}` : `A${f2(g.r)} ${f2(g.r)} 0 ${sweepOf(g) > Math.PI ? 1 : 0} ${g.d > 0 ? 1 : 0} ${f2(b[0])} ${f2(b[1])}`;
   }
   return s;
+}
+
+// ---------- the paints, and the brush mixing them (the Result) ----------
+// The owner's paints (2026-10-12, TAPE-images/: "the 18 colours I use now"
+// — Shuttle Art acrylics, 18-colors.jpg — "plus what I mixed myself";
+// colors-001…003.jpg, the swatches on paper in daylight). A colour read off
+// the swatches, the paper taken for white (est.); the paints not swatched yet
+// off the maker's chart (est.). [id, name, hex, from]
+export const TAPE_PAINTS = [
+  ['white', 'White', '#FBF9F0', 'swatch'],
+  ['lemon', 'Lemon Yellow', '#FFF200', 'swatch'],
+  ['p02', '02', '#FFE41E', 'swatch'],
+  ['oyellow', 'Orange Yellow', '#FA9B00', 'swatch'],
+  ['sand', 'Sand Yellow', '#F3C06D', 'swatch'],
+  ['ochre', 'Yellow Ochre', '#B47528', 'chart'],
+  ['orange', 'Orange', '#DB2B01', 'swatch'],
+  ['red', 'Red', '#BF020B', 'swatch'],
+  ['p05', '05', '#C10221', 'swatch'],
+  ['deepred', 'Deep Red', '#9D1529', 'swatch'],
+  ['pink', 'Pink', '#ED5D65', 'swatch'],
+  ['magenta', 'Magenta', '#AA0955', 'swatch'],
+  ['purple', 'Purple', '#7024CC', 'chart'],
+  ['p01', '01', '#CFEA8E', 'swatch'],
+  ['green', 'Green', '#01CB41', 'chart'],
+  ['turquoise', 'Turquoise', '#54D6BE', 'chart'],
+  ['viridian', 'Viridian', '#003734', 'chart'],
+  ['sky', 'Sky Blue', '#80CCEC', 'chart'],
+  ['p03', '03', '#0E72B5', 'swatch'],
+  ['p04', '04', '#165AAB', 'swatch'],
+  ['ultramarine', 'Ultramarine', '#002392', 'chart'],
+  ['brown', 'Dark Brown', '#571F10', 'chart'],
+  ['black', 'Black', '#252420', 'chart'],
+];
+export const PAINT = Object.fromEntries(TAPE_PAINTS.map(([id, name, hex, from]) => [id, { id, name, hex, from }]));
+
+// A spoke: paint squeezed across the lanes, from the cassette outwards, as
+// the owner laid it on paper (TAPE-images/ 17:22): at u round the lanes,
+// lanes k0 … k1 (0 the one touching the cassette), one paint. Where the
+// tape passes it on the canvas, lap after lap. → the samples it lies on
+const uGap = (a, b) => { const d = Math.abs(a - b) % 9; return Math.min(d, 9 - d); };
+export function spokeHits(G, sp) {
+  const out = [];
+  for (let i = 1; i < G.pts.length; i++) {
+    const a = G.pts[i - 1], b = G.pts[i];
+    if (b.brk || Math.abs(b.u - a.u) > 4.5) continue;                             // the seam's jump from 9 to 0: no crossing
+    if ((a.u - sp.u) * (b.u - sp.u) > 0 && uGap(b.u, sp.u) > 1e-9) continue;
+    const at = uGap(a.u, sp.u) < uGap(b.u, sp.u) ? i - 1 : i;
+    const q = G.pts[at], on = Math.abs(q.x) <= G.Hx && Math.abs(q.y) <= G.Hy;          // paint is squeezed on the canvas only
+    if (on && q.l >= sp.k0 - 0.5 && q.l <= sp.k1 + 0.5 && !out.some(h => Math.abs(h - at) < 3)) out.push(at);
+  }
+  return out;
+}
+// the spoke as it lies, canvas mm: a point on every lane it crosses
+export function spokeLine(G, sp) {
+  const out = [];
+  for (let k = Math.max(0, sp.k0); k <= Math.min(G.K - 1, sp.k1); k++) { const q = G.F.ring(k), p = rrU(rrGeo(q.a, q.b, q.r), sp.u); out.push([p.x, p.y * G.sy]); }
+  return out;
+}
+// The nearest sample to a point, canvas mm → its index, or -1 past `within` mm
+export function nearestSample(G, x, y, within = Infinity) {
+  let best = -1, bd = within * within;
+  G.pts.forEach((p, i) => { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+
+// The brush through the paint: DRAG's own walk — the snake its strokes
+// forward, back, forward over a run; air each stroke from the start — every
+// sample a place on the canvas, the lanes never crossing. At every step the
+// brush picks up PICK of what lies there and lays down what it carries over
+// SMEAR mm, the paints mixed as pigments (color.js); a spoke SPOKE_MM of
+// paint on each lane it crosses, spread over SPOKE_W mm. All est., to be set
+// by the owner's sheets. → per sample its colour (sRGB 0…1) and how covered
+// it is (0 the ground … 1 a full film)
+export const PICK = 0.35, SMEAR = 40, SPOKE_MM = 120, SPOKE_W = 5;   // est.
+export function mixWalk(G, spokes, mode = G.o.mode) {
+  const n = G.pts.length, amt = new Float32Array(n), col = new Float32Array(n * 3), len = new Float32Array(n);
+  for (let i = 1; i < n; i++) len[i] = G.pts[i].brk ? 0 : G.cum[i] - G.cum[i - 1];
+  const mm = i => Math.max(0.3, len[i] || len[i + 1] || 0.6);                      // the stretch a sample stands for
+  const put = (i, c, a) => { if (a <= 0) return; const t = a / (amt[i] + a); const m = amt[i] > 0 ? pigmentMix([col[3 * i], col[3 * i + 1], col[3 * i + 2]], c, t) : c; col.set(m, 3 * i); amt[i] += a; };
+  for (const sp of spokes) {
+    const c = linOf(PAINT[sp.paint]?.hex); if (!c) continue;
+    for (const h of spokeHits(G, sp)) {
+      let s = 0; const half = SPOKE_W / 2, near = [];
+      for (let j = h; j >= 0 && G.cum[h] - G.cum[j] <= half && !(j < h && G.pts[j + 1].brk); j--) near.push(j);
+      for (let j = h + 1; j < n && G.cum[j] - G.cum[h] <= half && !G.pts[j].brk; j++) near.push(j);
+      for (const j of near) s += mm(j);
+      for (const j of near) put(j, c, SPOKE_MM * mm(j) / s);
+    }
+  }
+  const walk = (i0, i1) => {                                                       // one stroke, i0 → i1 either way
+    let b = 0, bc = [0, 0, 0];
+    const d = i1 >= i0 ? 1 : -1;
+    for (let i = i0; ; i += d) {
+      const L = mm(i), take = amt[i] * PICK, give = b * Math.min(1, L / SMEAR);
+      const was = [col[3 * i], col[3 * i + 1], col[3 * i + 2]];
+      if (give > 0) { const keep = amt[i] - take; amt[i] = keep; put(i, bc, give); }
+      else amt[i] -= take;
+      const nb = b - give + take;
+      if (take > 0) bc = b - give > 1e-9 ? pigmentMix(bc, was, take / nb) : was;
+      b = nb;
+      if (i === i1) break;
+    }
+  };
+  for (const r of G.segs) for (let t = 0; t < G.o.strokes; t++) (mode === 'snake' && t % 2) ? walk(r.i1, r.i0) : walk(r.i0, r.i1);
+  const rgb = new Float32Array(n * 3), cover = new Float32Array(n);
+  for (let i = 0; i < n; i++) { cover[i] = Math.min(1, amt[i] / mm(i)); for (let q = 0; q < 3; q++) rgb[3 * i + q] = amt[i] > 0 ? toSrgb(col[3 * i + q]) : 0; }
+  return { rgb, cover };
 }

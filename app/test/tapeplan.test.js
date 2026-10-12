@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
+import { planOf, family, piecesOf, dragRows, traceRows, shellOf, cassetteLines, flattenD, pathD, TAPE_PAINTS, PAINT, spokeHits, spokeLine, mixWalk, nearestSample, DEFAULTS, DEFAULT_CASS } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS as RUN_DEFAULTS, pieceLen, sweepOf } from '../src/strokes.js';
 import { toMachine, LOOP_SHARE } from '../src/band.js';
 
@@ -182,4 +182,33 @@ test('the cassette on the board and in the Result: its SVG at real size, centred
   const xs = body.pts.map(p => p[0]), ys = body.pts.map(p => p[1]);
   assert.ok(Math.abs(Math.min(...xs) + 50.2) < 1e-6 && Math.abs(Math.max(...xs) - 50.2) < 1e-6, 'its 100.4 mm across, centred');
   assert.ok(Math.abs(Math.min(...ys) + 31.9) < 1e-6 && Math.abs(Math.max(...ys) - 31.9) < 1e-6, 'its 63.8 mm up, centred');
+});
+
+test('the paints: the owner\'s 18 Shuttle Art and his own 01 … 05, each a colour and where it was read', () => {
+  assert.equal(TAPE_PAINTS.length, 23);
+  assert.equal(new Set(TAPE_PAINTS.map(p => p[0])).size, 23, 'ids unique');
+  for (const [id, name, hex, from] of TAPE_PAINTS) { assert.match(hex, /^#[0-9A-F]{6}$/, name); assert.ok(['swatch', 'chart'].includes(from), name); assert.equal(PAINT[id].name, name); }
+  for (const id of ['p01', 'p02', 'p03', 'p04', 'p05']) assert.equal(PAINT[id].from, 'swatch');
+});
+
+test('a spoke: across the lanes at one spot round the cassette, on the canvas only, lap after lap', () => {
+  const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity });
+  const all = spokeHits(G, { u: 6.5, k0: 0, k1: 999, paint: 'black' }), some = spokeHits(G, { u: 6.5, k0: 3, k1: 7, paint: 'black' });
+  assert.ok(all.length >= G.kTop - 1 && all.length <= G.kTop + 1, `the top's middle: a hit a lane up to the canvas's edge, ${all.length}`);
+  assert.equal(some.length, 5, 'lanes 4 … 8');
+  for (const i of all) { const p = G.pts[i]; assert.ok(Math.abs(p.x) < 1 && p.y < 0 && Math.abs(p.y) <= G.Hy, 'at 12 o\'clock, on the canvas'); }
+  assert.equal(spokeLine(G, { u: 6.5, k0: 0, k1: 999 }).length, G.K);
+  assert.equal(nearestSample(G, 500, 500, 5), -1, 'nothing near: none');
+});
+
+test('the brush mixing the paints: nothing without a spoke; a spoke dragged along the way the brush goes, thinning', () => {
+  const G = planOf({ ...DEFAULTS, cw: 200, ch: 200, segLen: Infinity });
+  assert.ok(mixWalk(G, []).cover.every(c => c === 0), 'no paint, no cover');
+  const M = mixWalk(G, [{ u: 6.5, k0: 0, k1: 999, paint: 'black' }], 'snake'), lane = [...G.pts.keys()].filter(i => G.pts[i].l === 5 && G.pts[i].u >= 6.5 && G.pts[i].u < 8);
+  assert.ok(M.cover[lane[0]] > 0.5, 'thick at the spoke');
+  assert.ok(M.cover[lane.at(-1)] < M.cover[lane[0]], 'thinner along the way');
+  assert.ok(M.rgb.every(Number.isFinite) && M.cover.every(Number.isFinite));
+  const mixed = mixWalk(G, [{ u: 6.5, k0: 0, k1: 999, paint: 'lemon' }, { u: 7.5, k0: 0, k1: 999, paint: 'sky' }], 'snake');
+  const i = lane.find(j => G.pts[j].u > 7.6 && mixed.cover[j] > 0.2), [r, g, b] = [0, 1, 2].map(q => mixed.rgb[3 * i + q]);
+  assert.ok(g > r && g > b, `lemon carried into sky: a green, ${[r, g, b].map(v => v.toFixed(2))}`);
 });
