@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · TAPE</title>
+<style>
+:root{--bg:#f2f0eb;--panel:#ffffff;--ink:#1c1b19;--muted:#7b776f;--line:#e4e0d7;--acc:#1c1b19;--acc-ink:#ffffff;--table:#d9d5cc;--warn:#8a5b00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151413;--panel:#1e1d1b;--ink:#ebe7e0;--muted:#9a958c;--line:#34312d;--acc:#ebe7e0;--acc-ink:#151413;--table:#2a2825;--warn:#e2b55c}}
+:root[data-theme="dark"]{--bg:#151413;--panel:#1e1d1b;--ink:#ebe7e0;--muted:#9a958c;--line:#34312d;--acc:#ebe7e0;--acc-ink:#151413;--table:#2a2825;--warn:#e2b55c}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;-webkit-text-size-adjust:100%}
+.app{display:grid;grid-template-columns:310px minmax(0,1fr);min-height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:16px 16px 28px;overflow:auto;height:100vh;position:sticky;top:0}
+main{padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+@media (max-width:860px){.app{grid-template-columns:1fr}aside{height:auto;position:static;border-right:0;border-top:1px solid var(--line);order:2}main{order:1;padding:12px 12px 4px}}
+h1{font-size:15px;letter-spacing:.14em;margin:0}
+.sub{color:var(--muted);font-size:11px;margin:2px 0 10px}
+.grp{border-top:1px solid var(--line);padding:11px 0 9px}
+.grp h2,.grp>summary{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:650}
+details.grp>summary{cursor:pointer;list-style:none}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary::after{content:" +";}
+details.grp[open]>summary::after{content:" −";}
+.row{display:flex;align-items:center;gap:8px;margin:7px 0}
+.row>label{flex:0 0 84px}
+.row input[type=range]{flex:1;min-width:0;accent-color:var(--acc)}
+.row .v{flex:0 0 58px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.ends{display:flex;justify-content:space-between;margin:-5px 66px 4px 92px;font-size:10px;color:var(--muted)}
+.seg{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex:1}
+.seg button{flex:1;border:0;border-right:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 4px;font:inherit;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--acc);color:var(--acc-ink)}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:7px;padding:6px 10px;font:inherit;cursor:pointer}
+.btn.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:11px;margin-top:6px}
+.chk{display:flex;gap:8px;align-items:center;margin:6px 0}
+.col{display:flex;gap:10px;align-items:center}
+.col input[type=color]{width:34px;height:24px;border:1px solid var(--line);border-radius:5px;padding:0;background:none}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar .seg{flex:0 0 auto;min-width:240px}
+#clock{color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+#stage{position:relative;width:100%;max-width:820px}
+#stage canvas{display:block;border-radius:8px}
+#ov{position:absolute;left:0;top:0;pointer-events:none}
+.read{max-width:820px;display:grid;grid-template-columns:120px 1fr;gap:3px 12px;font-size:12px}
+.read .k{color:var(--muted)}
+.read .w{grid-column:1/-1;color:var(--warn)}
+.order{font-size:11px;color:var(--muted);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <h1>TAPE</h1>
+  <div class="sub">Rembrandt · new tab · prototype v0.3</div>
+
+  <div class="grp"><h2>Format · cm</h2>
+    <div class="seg" id="fmt"><button data-v="200">20</button><button data-v="300">30</button><button data-v="400">40</button><button data-v="500">50</button><button data-v="600">60</button></div>
+    <div class="hint">Square canvas. The cassette always sits in the centre.</div>
+  </div>
+
+  <div class="grp"><h2>Cassette</h2>
+    <div class="btns"><button class="btn" id="loadBtn">Load SVG…</button><button class="btn" id="phBtn">Default</button></div>
+    <input type="file" id="file" accept=".svg,image/svg+xml" hidden>
+    <div class="hint" id="cassInfo"></div>
+  </div>
+
+  <div class="grp"><h2>Trace · pencil</h2>
+    <label class="chk"><input type="checkbox" id="trC" checked> Cassette outline (to colour by hand)</label>
+    <label class="chk"><input type="checkbox" id="trT" checked> Tape guide (centre line)</label>
+  </div>
+
+  <div class="grp"><h2>Drag · brush</h2>
+    <div class="row"><div class="seg" id="mode"><button data-v="snake">Snake</button><button data-v="oneway">One way</button></div></div>
+    <div class="hint" id="modeHint"></div>
+    <div class="row"><label>Brush = tape</label><input type="range" id="brush" min="2" max="20" step="0.5"><span class="v" id="brushV"></span></div>
+    <div class="row"><label>Speed</label><input type="range" id="speed" min="5" max="80" step="1"><span class="v" id="speedV"></span></div>
+    <div class="row"><label>Gap</label><input type="range" id="gap" min="0" max="10" step="0.5"><span class="v" id="gapV"></span></div>
+    <div class="row"><label>Corners</label><input type="range" id="corners" min="-50" max="50" step="1"><span class="v" id="cornersV"></span></div>
+    <div class="ends"><span>Angle</span><span>Cassette</span><span>Round</span></div>
+    <div class="row"><label>Seam</label><div class="seg" id="seam"><button data-v="shift">Lane change</button><button data-v="closed">Closed rings</button></div></div>
+    <div class="row"><label>Direction</label><div class="seg" id="dir"><button data-v="cw">Clockwise</button><button data-v="ccw">Counter</button></div></div>
+  </div>
+
+  <details class="grp" open><summary>Adjustments</summary>
+    <div class="row"><label>Cassette size</label><input type="range" id="cassScale" min="80" max="130" step="1"><span class="v" id="cassScaleV"></span></div>
+    <div class="row"><label>First lane</label><input type="range" id="clear" min="0" max="10" step="0.5"><span class="v" id="clearV"></span></div>
+    <div class="row" id="stepRow"><label>Lane change</label><input type="range" id="step" min="4" max="120" step="1"><span class="v" id="stepV"></span></div>
+    <div class="row"><label>Segment</label><input type="range" id="segLen" min="40" max="400" step="10"><span class="v" id="segLenV"></span></div>
+    <div class="row"><label>Strokes</label><input type="range" id="strokes" min="1" max="6" step="1"><span class="v" id="strokesV"></span></div>
+    <div class="row"><label>Edge overrun</label><input type="range" id="overrun" min="0" max="15" step="1"><span class="v" id="overrunV"></span></div>
+    <div class="row"><label>Brush type</label><div class="seg" id="btype"><button data-v="round">Round</button><button data-v="flat">Flat</button></div></div>
+    <div class="row" id="angRow"><label>Flat angle</label><input type="range" id="brushAngle" min="0" max="90" step="5"><span class="v" id="brushAngleV"></span></div>
+    <div class="hint">Cassette size: 100% = real shell, 100.4 × 63.8 mm. First lane: gap between the cassette and lane 1. Lane change: length of the step to the next lane, in brush widths; once it is longer than lane 1 it spreads over the whole turn and the tape becomes one continuous spiral. Segment: how much tape one squeeze of paint covers.</div>
+  </details>
+
+  <div class="grp"><h2>Colours (preview only)</h2>
+    <div class="col"><label>Ground <input type="color" id="ground"></label><label>Tape <input type="color" id="tape"></label></div>
+  </div>
+
+  <div class="grp"><h2>Hand-off</h2>
+    <div class="btns"><button class="btn pri" id="expSvg">Export SVG</button><button class="btn" id="expJson">Copy params JSON</button></div>
+    <div class="hint" id="expHint">SVG layers: trace-cassette, trace-tape, drag-tape (one path per segment). Params are in &lt;metadata&gt;.</div>
+  </div>
+
+  <div class="grp order"><h2>On the table</h2>1 · Trace — pencil draws cassette + tape guide<br>2 · Drag — brush paints the tape, segment by segment<br>3 · Cassette coloured by hand last, it covers the tape start</div>
+</aside>
+
+<main>
+  <div class="bar">
+    <div class="seg" id="view"><button data-v="preview">Preview</button><button data-v="path">Path</button><button data-v="trace">Trace</button></div>
+    <button class="btn" id="play">▶ Play</button>
+    <span id="clock"></span>
+  </div>
+  <div id="stage"><canvas id="cv"></canvas><canvas id="ov"></canvas></div>
+  <div class="read" id="read"></div>
+</main>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s);
+const REAL={tapeW:3.81,cassW:100.4,cassH:63.8};
+const AIR_SPEED=80, LIFT_S=0.8, TRACE_SPEED=40;
+
+const S={format:200,brush:4,speed:25,gap:0,corners:0,dir:'cw',mode:'snake',seam:'shift',step:48,clear:0,
+  traceCass:true,traceTape:true,cassScale:100,segLen:180,strokes:3,overrun:4,
+  brushType:'round',brushAngle:45,ground:'#efe9de',tape:'#3a2a1f',view:'preview'};
+let userSVG=null;   // {text,vw,vh,img,len}
+let G=null;
+
+/* ---------- cassette: default = cassette_trace.svg (real shell, 100.4 × 63.8 mm) ---------- */
+const DEFAULT_SVG=`<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="100.4mm" height="63.8mm" viewBox="0 0 100.4 63.8">
+<g fill="none" stroke="#000" stroke-width="0.3" stroke-linecap="round" stroke-linejoin="round">
+<g id="body" inkscape:groupmode="layer" inkscape:label="01 корпус">
+<path id="body-1" d="M1.8,0 L98.6,0 C99.594,0 100.4,0.806 100.4,1.8 L100.4,62 C100.4,62.994 99.594,63.8 98.6,63.8 L1.8,63.8 C0.806,63.8 0,62.994 0,62 L0,1.8 C0,0.806 0.806,0 1.8,0 Z"/>
+</g>
+<g id="label" inkscape:groupmode="layer" inkscape:label="02 этикетка">
+<path id="label-1" d="M9,8.1 L91.4,8.1 C92.063,8.1 92.6,8.637 92.6,9.3 L92.6,44.3 C92.6,44.963 92.063,45.5 91.4,45.5 L9,45.5 C8.337,45.5 7.8,44.963 7.8,44.3 L7.8,9.3 C7.8,8.637 8.337,8.1 9,8.1 Z"/>
+<path id="label-2" d="M7.8,20.6 L92.6,20.6"/>
+</g>
+<g id="window" inkscape:groupmode="layer" inkscape:label="03 окно">
+<path id="window-1" d="M21.5,20.8 L78.9,20.8 C79.452,20.8 79.9,21.248 79.9,21.8 L79.9,36.2 C79.9,36.752 79.452,37.2 78.9,37.2 L21.5,37.2 C20.948,37.2 20.5,36.752 20.5,36.2 L20.5,21.8 C20.5,21.248 20.948,20.8 21.5,20.8 Z"/>
+<path id="window-2" d="M28.5,21.9 L71.9,21.9 C75.821,21.9 79,25.079 79,29 L79,29 C79,32.921 75.821,36.1 71.9,36.1 L28.5,36.1 C24.579,36.1 21.4,32.921 21.4,29 L21.4,29 C21.4,25.079 24.579,21.9 28.5,21.9 Z"/>
+<path id="window-3" d="M42.1,22.7 L58.3,22.7 C59.128,22.7 59.8,23.372 59.8,24.2 L59.8,33.3 C59.8,34.128 59.128,34.8 58.3,34.8 L42.1,34.8 C41.272,34.8 40.6,34.128 40.6,33.3 L40.6,24.2 C40.6,23.372 41.272,22.7 42.1,22.7 Z"/>
+</g>
+<g id="hubs" inkscape:groupmode="layer" inkscape:label="04 бобины">
+<path id="hubs-1" d="M35.5,28.7 C35.5,32.179 32.679,35 29.2,35 C25.721,35 22.9,32.179 22.9,28.7 C22.9,25.221 25.721,22.4 29.2,22.4 C32.679,22.4 35.5,25.221 35.5,28.7 Z"/>
+<path id="hubs-2" d="M33.664,31.913 L33.427,32.219 L33.168,32.509 L32.89,32.779 L32.593,33.029 L32.279,33.257 L31.95,33.463 L31.607,33.645 L31.253,33.803 L30.888,33.935 L30.514,34.041 L30.135,34.12 L29.75,34.172 L29.75,33.166 L28.65,33.166 L28.65,34.172 L28.265,34.12 L27.886,34.041 L27.512,33.935 L27.147,33.803 L26.793,33.645 L26.45,33.463 L26.121,33.257 L25.807,33.029 L25.51,32.779 L25.232,32.509 L24.973,32.219 L24.736,31.913 L25.607,31.409 L25.057,30.457 L24.186,30.96 L24.039,30.601 L23.918,30.232 L23.823,29.856 L23.755,29.474 L23.714,29.088 L23.7,28.7 L23.714,28.312 L23.755,27.926 L23.823,27.544 L23.918,27.168 L24.039,26.799 L24.186,26.44 L25.057,26.943 L25.607,25.991 L24.736,25.487 L24.973,25.181 L25.232,24.891 L25.51,24.621 L25.807,24.371 L26.121,24.143 L26.45,23.937 L26.793,23.755 L27.147,23.597 L27.512,23.465 L27.886,23.359 L28.265,23.28 L28.65,23.228 L28.65,24.234 L29.75,24.234 L29.75,23.228 L30.135,23.28 L30.514,23.359 L30.888,23.465 L31.253,23.597 L31.607,23.755 L31.95,23.937 L32.279,24.143 L32.593,24.371 L32.89,24.621 L33.168,24.891 L33.427,25.181 L33.664,25.487 L32.793,25.991 L33.343,26.943 L34.214,26.44 L34.361,26.799 L34.482,27.168 L34.577,27.544 L34.645,27.926 L34.686,28.312 L34.7,28.7 L34.686,29.088 L34.645,29.474 L34.577,29.856 L34.482,30.232 L34.361,30.601 L34.214,30.96 L33.343,30.457 L32.793,31.409 Z"/>
+<path id="hubs-3" d="M77.5,28.7 C77.5,32.179 74.679,35 71.2,35 C67.721,35 64.9,32.179 64.9,28.7 C64.9,25.221 67.721,22.4 71.2,22.4 C74.679,22.4 77.5,25.221 77.5,28.7 Z"/>
+<path id="hubs-4" d="M75.664,31.913 L75.427,32.219 L75.168,32.509 L74.89,32.779 L74.593,33.029 L74.279,33.257 L73.95,33.463 L73.607,33.645 L73.253,33.803 L72.888,33.935 L72.514,34.041 L72.135,34.12 L71.75,34.172 L71.75,33.166 L70.65,33.166 L70.65,34.172 L70.265,34.12 L69.886,34.041 L69.512,33.935 L69.147,33.803 L68.793,33.645 L68.45,33.463 L68.121,33.257 L67.807,33.029 L67.51,32.779 L67.232,32.509 L66.973,32.219 L66.736,31.913 L67.607,31.409 L67.057,30.457 L66.186,30.96 L66.039,30.601 L65.918,30.232 L65.823,29.856 L65.755,29.474 L65.714,29.088 L65.7,28.7 L65.714,28.312 L65.755,27.926 L65.823,27.544 L65.918,27.168 L66.039,26.799 L66.186,26.44 L67.057,26.943 L67.607,25.991 L66.736,25.487 L66.973,25.181 L67.232,24.891 L67.51,24.621 L67.807,24.371 L68.121,24.143 L68.45,23.937 L68.793,23.755 L69.147,23.597 L69.512,23.465 L69.886,23.359 L70.265,23.28 L70.65,23.228 L70.65,24.234 L71.75,24.234 L71.75,23.228 L72.135,23.28 L72.514,23.359 L72.888,23.465 L73.253,23.597 L73.607,23.755 L73.95,23.937 L74.279,24.143 L74.593,24.371 L74.89,24.621 L75.168,24.891 L75.427,25.181 L75.664,25.487 L74.793,25.991 L75.343,26.943 L76.214,26.44 L76.361,26.799 L76.482,27.168 L76.577,27.544 L76.645,27.926 L76.686,28.312 L76.7,28.7 L76.686,29.088 L76.645,29.474 L76.577,29.856 L76.482,30.232 L76.361,30.601 L76.214,30.96 L75.343,30.457 L74.793,31.409 Z"/>
+</g>
+<g id="head" inkscape:groupmode="layer" inkscape:label="05 головка и отверстия">
+<path id="head-1" d="M14.8,63.8 L18.3,47.8 L82.1,47.8 L85.6,63.8"/>
+<path id="head-2" d="M37.6,58.8 C37.6,60.07 36.57,61.1 35.3,61.1 C34.03,61.1 33,60.07 33,58.8 C33,57.53 34.03,56.5 35.3,56.5 C36.57,56.5 37.6,57.53 37.6,58.8 Z"/>
+<path id="head-3" d="M67.4,58.8 C67.4,60.07 66.37,61.1 65.1,61.1 C63.83,61.1 62.8,60.07 62.8,58.8 C62.8,57.53 63.83,56.5 65.1,56.5 C66.37,56.5 67.4,57.53 67.4,58.8 Z"/>
+<path id="head-4" d="M27.5,60.6 C27.5,61.705 26.605,62.6 25.5,62.6 C24.395,62.6 23.5,61.705 23.5,60.6 C23.5,59.495 24.395,58.6 25.5,58.6 C26.605,58.6 27.5,59.495 27.5,60.6 Z"/>
+<path id="head-5" d="M76.9,60.6 C76.9,61.705 76.005,62.6 74.9,62.6 C73.795,62.6 72.9,61.705 72.9,60.6 C72.9,59.495 73.795,58.6 74.9,58.6 C76.005,58.6 76.9,59.495 76.9,60.6 Z"/>
+</g>
+<g id="screws" inkscape:groupmode="layer" inkscape:label="06 винты">
+<path id="screws-1" d="M4.8,2.6 C4.8,3.705 3.905,4.6 2.8,4.6 C1.695,4.6 0.8,3.705 0.8,2.6 C0.8,1.495 1.695,0.6 2.8,0.6 C3.905,0.6 4.8,1.495 4.8,2.6 Z"/>
+<path id="screws-2" d="M99.6,2.6 C99.6,3.705 98.705,4.6 97.6,4.6 C96.495,4.6 95.6,3.705 95.6,2.6 C95.6,1.495 96.495,0.6 97.6,0.6 C98.705,0.6 99.6,1.495 99.6,2.6 Z"/>
+<path id="screws-3" d="M4.8,60.6 C4.8,61.705 3.905,62.6 2.8,62.6 C1.695,62.6 0.8,61.705 0.8,60.6 C0.8,59.495 1.695,58.6 2.8,58.6 C3.905,58.6 4.8,59.495 4.8,60.6 Z"/>
+<path id="screws-4" d="M99.6,60.6 C99.6,61.705 98.705,62.6 97.6,62.6 C96.495,62.6 95.6,61.705 95.6,60.6 C95.6,59.495 96.495,58.6 97.6,58.6 C98.705,58.6 99.6,59.495 99.6,60.6 Z"/>
+<path id="screws-5" d="M52.2,52.9 C52.2,54.005 51.305,54.9 50.2,54.9 C49.095,54.9 48.2,54.005 48.2,52.9 C48.2,51.795 49.095,50.9 50.2,50.9 C51.305,50.9 52.2,51.795 52.2,52.9 Z"/>
+<path id="screws-6" d="M1.574,1.572 L4.026,3.628"/>
+<path id="screws-7" d="M96.374,1.572 L98.826,3.628"/>
+<path id="screws-8" d="M1.574,61.628 L4.026,59.572"/>
+<path id="screws-9" d="M96.374,59.572 L98.826,61.628"/>
+<path id="screws-10" d="M49.282,54.211 L51.118,51.589"/>
+</g>
+</g></svg>`;
+function elToD(el){
+  const g=n=>parseFloat(el.getAttribute(n))||0;
+  switch(el.nodeName.toLowerCase()){
+    case 'path':return el.getAttribute('d');
+    case 'rect':{const x=g('x'),y=g('y'),w=g('width'),h=g('height');let rx=Math.min(g('rx')||g('ry'),w/2,h/2);
+      if(!rx)return `M${x},${y}H${x+w}V${y+h}H${x}Z`;
+      return `M${x+rx},${y}H${x+w-rx}A${rx},${rx} 0 0 1 ${x+w},${y+rx}V${y+h-rx}A${rx},${rx} 0 0 1 ${x+w-rx},${y+h}H${x+rx}A${rx},${rx} 0 0 1 ${x},${y+h-rx}V${y+rx}A${rx},${rx} 0 0 1 ${x+rx},${y}Z`;}
+    case 'circle':{const cx=g('cx'),cy=g('cy'),r=g('r');return `M${cx-r},${cy}A${r},${r} 0 1 0 ${cx+r},${cy}A${r},${r} 0 1 0 ${cx-r},${cy}Z`;}
+    case 'ellipse':{const cx=g('cx'),cy=g('cy'),rx=g('rx'),ry=g('ry');return `M${cx-rx},${cy}A${rx},${ry} 0 1 0 ${cx+rx},${cy}A${rx},${ry} 0 1 0 ${cx-rx},${cy}Z`;}
+    case 'line':return `M${g('x1')},${g('y1')}L${g('x2')},${g('y2')}`;
+    case 'polyline':case 'polygon':{const p=(el.getAttribute('points')||'').trim().split(/[\s,]+/).map(Number);if(p.length<4)return null;
+      let d=`M${p[0]},${p[1]}`;for(let i=2;i+1<p.length;i+=2)d+=`L${p[i]},${p[i+1]}`;return el.nodeName.toLowerCase()==='polygon'?d+'Z':d;}
+  }
+  return null;
+}
+function parseCassette(text){
+  const doc=new DOMParser().parseFromString(text,'image/svg+xml'),root=doc.documentElement;
+  if(!root||root.nodeName.toLowerCase()!=='svg')return null;
+  let vx=0,vy=0,vw,vh;const vb=(root.getAttribute('viewBox')||'').trim().split(/[\s,]+/).map(Number);
+  if(vb.length===4&&vb[2]>0&&vb[3]>0)[vx,vy,vw,vh]=vb;else{vw=parseFloat(root.getAttribute('width'))||100.4;vh=parseFloat(root.getAttribute('height'))||63.8;}
+  const m=(root.getAttribute('width')||'').trim().match(/^([\d.]+)\s*(mm|cm)$/);
+  const mmW=m?parseFloat(m[1])*(m[2]==='cm'?10:1):null;     // physical size when the file states it
+  const paths=[];let hasTransform=false;
+  root.querySelectorAll('path,rect,circle,ellipse,line,polyline,polygon').forEach(el=>{
+    if(el.closest('defs,clipPath,mask,symbol,pattern,marker'))return;
+    for(let n=el;n&&n!==root;n=n.parentNode)if(n.getAttribute&&n.getAttribute('transform'))hasTransform=true;
+    const d=elToD(el);if(d)paths.push({d,id:el.getAttribute('id')||'',p2:new Path2D(d)});
+  });
+  let len=0;   // outline length for the trace time estimate
+  try{const host=document.createElement('div');host.style.cssText='position:absolute;left:-9999px;top:0;width:10px;height:10px;overflow:hidden';
+    host.innerHTML=text;document.body.appendChild(host);
+    host.querySelectorAll('path,rect,circle,ellipse,line,polyline,polygon').forEach(el=>{try{len+=el.getTotalLength();}catch(e){}});host.remove();}catch(e){}
+  return{text,vx,vy,vw,vh,mmW,paths,len,hasTransform};
+}
+const DEFAULT_CASS=parseCassette(DEFAULT_SVG);
+const cass=()=>userSVG||DEFAULT_CASS;
+
+/* ---------- helpers ---------- */
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const hex2rgb=h=>{h=h.replace('#','');return[0,2,4].map(i=>parseInt(h.substr(i,2),16));};
+const rgbs=(c,a=1)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const mix=(c,d,t)=>c.map((v,i)=>v+(d[i]-v)*t);
+const shade=(c,l)=>l>=0?mix(c,[255,255,255],l):mix(c,[0,0,0],-l);
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function fmtT(s){s=Math.round(s);const m=Math.round(s/60);if(m>=60)return `${Math.floor(m/60)} h ${m%60} min`;return m<1?`${s} s`:`${m} min`;}
+function clock(s){s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
+
+/* ---------- geometry ---------- */
+const CASS_R=1.8;   // corner radius of the shell in cassette_trace.svg, mm
+function cassBox(){
+  const C=cass(),k=S.cassScale/100;
+  const w=(C.mmW||REAL.cassW)*k,h=w*C.vh/C.vw;
+  return{w,h,k,r:CASS_R*w/REAL.cassW};
+}
+// A ring is a rounded rectangle cut into 9 pieces, starting at the seam (middle of the right side) and
+// running clockwise on screen (y down): right-lower, BR corner, bottom, BL, left, TL, top, TR, right-upper.
+// Position on a ring: u = piece index + fraction (0…9). The same u on two neighbouring lanes is the same
+// spot across the tape, so blending two lanes at equal u keeps them exactly one pitch apart.
+function rrGeo(a,b,r){
+  r=Math.max(0,Math.min(r,a,b));const sa=a-r,sb=b-r,q=Math.PI*r/2;
+  const len=[sb,q,2*sa,q,2*sb,q,2*sa,q,sb],c=[0];let P=0;for(const L of len){P+=L;c.push(P);}
+  return{a,b,r,sa,sb,len,c,P};
+}
+function rrU(g,u){
+  let i=Math.floor(u),f=u-i;if(i>=9){i=8;f=1;}if(i<0){i=0;f=0;}
+  const{a,b,r,sa,sb}=g;let th;
+  switch(i){
+    case 0:return{x:a,y:f*sb,tx:0,ty:1};
+    case 1:th=f*Math.PI/2;return{x:sa+r*Math.cos(th),y:sb+r*Math.sin(th),tx:-Math.sin(th),ty:Math.cos(th)};
+    case 2:return{x:sa-2*sa*f,y:b,tx:-1,ty:0};
+    case 3:th=Math.PI/2+f*Math.PI/2;return{x:-sa+r*Math.cos(th),y:sb+r*Math.sin(th),tx:-Math.sin(th),ty:Math.cos(th)};
+    case 4:return{x:-a,y:sb-2*sb*f,tx:0,ty:-1};
+    case 5:th=Math.PI+f*Math.PI/2;return{x:-sa+r*Math.cos(th),y:-sb+r*Math.sin(th),tx:-Math.sin(th),ty:Math.cos(th)};
+    case 6:return{x:-sa+2*sa*f,y:-b,tx:1,ty:0};
+    case 7:th=1.5*Math.PI+f*Math.PI/2;return{x:sa+r*Math.cos(th),y:-sb+r*Math.sin(th),tx:-Math.sin(th),ty:Math.cos(th)};
+    default:return{x:a,y:-sb+sb*f,tx:0,ty:1};
+  }
+}
+const uToL=(g,u)=>{const i=Math.floor(u);if(i>=9)return g.P;return g.c[i]+(u-i)*g.len[i];};
+function lToU(g,l){if(l>=g.P-1e-9)return 9;for(let i=0;i<9;i++){if(g.len[i]>0&&l<g.c[i+1])return i+(l-g.c[i])/g.len[i];}return 9;}
+// u values from u0 to u1, about step mm apart, always landing on piece ends (keeps sharp corners sharp)
+function uSamples(g,u0,u1,step){
+  const out=[];
+  for(let i=Math.floor(u0);i<9&&i<u1;i++){
+    const f0=Math.max(0,u0-i),f1=Math.min(1,u1-i);if(f1<=f0)continue;
+    const n=Math.max(1,Math.ceil((f1-f0)*g.len[i]/step));
+    for(let j=1;j<=n;j++)out.push(i+f0+(f1-f0)*j/n);
+  }
+  return out;
+}
+const smooth3=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
+function inRR(x,y,a,b,r){x=Math.abs(x);y=Math.abs(y);if(x>a||y>b)return false;r=Math.max(0,Math.min(r,a,b));const dx=x-(a-r),dy=y-(b-r);if(dx<=0||dy<=0)return true;return dx*dx+dy*dy<=r*r;}
+// Ring family. Every lane's four corner arcs share one centre, so lane k+1 sits exactly one pitch
+// outside lane k all the way round, corners included.
+//   corners -50 … 0 : sharp (mitred) → true offset of the cassette outline
+//   corners 0 … +50 : the shared corner centre slides to the cassette centre, lanes become circles
+function family(){
+  const w=S.brush,p=w+S.gap,cb=cassBox(),v=S.corners;
+  const mu=v<0?(v+50)/50:1, lam=v>0?v/50:0;
+  const ex=cb.w/2-cb.r, ey=cb.h/2-cb.r;
+  const cx=ex*(1-lam), cy=ey*(1-lam);
+  const R0=lam*Math.hypot(ex,ey)+cb.r+S.clear+w/2;
+  const ring=k=>{const R=R0+k*p;return{a:cx+R,b:cy+R,r:Math.max(0,mu*R)};};
+  return{w,p,cb,mu,lam,cx,cy,R0,ring};
+}
+function build(){
+  const F=family(),{w,cb,ring}=F,H=S.format/2;
+  const sy=S.dir==='cw'?1:-1;               // counter-clockwise = mirrored top/bottom, seam stays on the right
+  const step=Math.max(0.6,S.format/500);
+  const fits=cb.w+2*w<S.format&&cb.h+2*w<S.format;
+  const geo=k=>{const q=ring(k);return rrGeo(q.a,q.b,q.r);};
+  const g0=geo(0),Lb=Math.min(S.step*w,g0.P),U=lToU(g0,Lb),full=U>=9;
+  const blend=u=>smooth3(uToL(g0,u)/Lb);    // one profile for every lane -> neighbours never bunch or part
+  const pts=[];
+  const add=(pt,brk)=>{
+    pt.y*=sy;pt.ty*=sy;
+    const prev=pts[pts.length-1];
+    if(!brk&&prev){const dx=pt.x-prev.x,dy=pt.y-prev.y,l=Math.hypot(dx,dy);if(l<1e-6)return;pt.tx=dx/l;pt.ty=dy/l;}
+    if(brk)pt.brk=true;pts.push(pt);
+  };
+  // lane change: lane k -> lane k+1, from the seam to u = U (the whole turn when "full")
+  const band=(k,brk)=>{
+    const B0=geo(k+1);
+    if(k<0&&B0.r>0){
+      // tape coming out from under the cassette: lane 1 pushed inward along its own normal, so the
+      // emerging lane keeps the cassette's rounded corners (a "lane 0" would have a negative radius)
+      const us=[0,...uSamples(B0,0,U,step)];
+      us.forEach((u,i)=>{const B=rrU(B0,u),o=F.p*(1-blend(u));add({x:B.x-B.ty*o,y:B.y+B.tx*o,tx:B.tx,ty:B.ty},brk&&i===0);});
+      return;
+    }
+    const A0=geo(k),us=[0,...uSamples(A0,0,U,step)];
+    us.forEach((u,i)=>{const A=rrU(A0,u),B=rrU(B0,u),f=blend(u);add({x:A.x+(B.x-A.x)*f,y:A.y+(B.y-A.y)*f,tx:A.tx,ty:A.ty},brk&&i===0);});
+  };
+  const arc=(k,u0,u1,brk)=>{const g=geo(k),us=uSamples(g,u0,u1,step);if(brk)us.unshift(u0);
+    us.forEach((u,i)=>add(rrU(g,u),brk&&i===0));};
+  const gone=k=>{const q=ring(k);return inRR(H,H,q.a-w/2,q.b-w/2,q.r-w/2);};   // lane k no longer touches the canvas
+  let K=0;
+  if(fits){
+    if(S.seam==='shift'){
+      band(-1,true);                 // the tape comes out from under the cassette with the same lane change
+      for(let k=0;k<600;k++){if(gone(k))break;if(!full)arc(k,U,9,false);band(k,false);K=k+1;}
+    }else{
+      for(let k=0;k<600;k++){if(gone(k))break;arc(k,0,9,true);K=k+1;}
+    }
+  }
+  let kSide=0,kTop=0;while(kSide<K&&ring(kSide).a+w/2<H)kSide++;while(kTop<K&&ring(kTop).b+w/2<H)kTop++;
+  const cum=[0];for(let i=1;i<pts.length;i++)cum[i]=cum[i-1]+(pts[i].brk?0:dist(pts[i-1],pts[i]));
+  // a lane counts as on the canvas while any part of its width still touches it
+  const ins=pts.map(q=>Math.max(Math.abs(q.x),Math.abs(q.y))<=H+w/2-0.2);
+  // runs = continuous pieces on the canvas, extended past the edge by the overrun
+  const runs=[];let i=0;
+  while(i<pts.length){
+    if(!ins[i]){i++;continue;}
+    let j=i;while(j+1<pts.length&&ins[j+1]&&!pts[j+1].brk)j++;
+    let s=i,e=j;
+    while(s>0&&!pts[s].brk&&cum[i]-cum[s-1]<=S.overrun+step)s--;
+    while(e<pts.length-1&&!pts[e+1].brk&&cum[e+1]-cum[j]<=S.overrun+step)e++;
+    runs.push({i0:s,i1:e,c0:i,c1:j});
+    i=j+1;
+  }
+  // segments = one squeeze of paint each
+  const segs=[];
+  for(const r of runs){
+    const L=cum[r.i1]-cum[r.i0];
+    const n=Math.max(1,Math.ceil(L/S.segLen-0.15));
+    let a=r.i0;
+    for(let k=1;k<=n;k++){
+      const target=cum[r.i0]+L*k/n;let b=a;
+      while(b<r.i1&&cum[b]<target)b++;
+      if(k===n)b=r.i1;
+      if(b>a)segs.push({i0:a,i1:b,len:cum[b]-cum[a]});
+      a=b;
+    }
+  }
+  // machine moves
+  const moves=[];let pos=null,paintLen=0,airLen=0,lifts=0;
+  segs.forEach((sg,idx)=>{
+    const P=pts.slice(sg.i0,sg.i1+1),R=P.slice().reverse();
+    if(pos){const d=dist(pos,P[0]);moves.push({type:'air',pts:[pos,P[0]],len:d});airLen+=d;lifts++;}
+    moves.push({type:'stop',at:P[0],n:idx+1});
+    for(let k=0;k<S.strokes;k++){
+      if(S.mode==='snake'){const Q=k%2?R:P;moves.push({type:'paint',pts:Q,len:sg.len,seg:idx});paintLen+=sg.len;pos=Q[Q.length-1];}
+      else{
+        moves.push({type:'paint',pts:P,len:sg.len,seg:idx});paintLen+=sg.len;pos=P[P.length-1];
+        if(k<S.strokes-1){const d=dist(pos,P[0]);moves.push({type:'air',pts:[pos,P[0]],len:d,ret:true});airLen+=d;lifts++;pos=P[0];}
+      }
+    }
+  });
+  const guideLen=runs.reduce((s,r)=>s+cum[r.c1]-cum[r.c0],0);
+  const C=cass(),cassLen=(C.len||0)*cb.w/C.vw;
+  const tiny=segs.filter(s=>s.len<12).length;
+  G={F,H,cb,K,kSide,kTop,fits,Lb,full,P0:g0.P,pts,cum,runs,segs,moves,paintLen,airLen,lifts,tiny,guideLen,cassLen,
+     tMachine:paintLen/S.speed+airLen/AIR_SPEED+lifts*LIFT_S,
+     tTrace:((S.traceCass?cassLen:0)+(S.traceTape?guideLen:0))/TRACE_SPEED};
+}
+
+/* ---------- drawing ---------- */
+const cv=$('#cv'),ov=$('#ov');
+function sizeCanvas(){
+  const css=Math.max(240,Math.min($('#stage').clientWidth,820));
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  [cv,ov].forEach(c=>{c.style.width=css+'px';c.style.height=css+'px';c.width=Math.round(css*dpr);c.height=Math.round(css*dpr);});
+}
+function setT(ctx){const span=S.format*1.32,sc=ctx.canvas.width/span;ctx.setTransform(sc,0,0,sc,ctx.canvas.width/2,ctx.canvas.height/2);return sc;}
+function poly(ctx,P,i0,i1){ctx.beginPath();ctx.moveTo(P[i0].x,P[i0].y);for(let i=i0+1;i<=i1;i++)ctx.lineTo(P[i].x,P[i].y);}
+function offPoly(ctx,P,i0,i1,fn){ctx.beginPath();for(let i=i0;i<=i1;i++){const p=P[i],o=fn(p),x=p.x-p.ty*o,y=p.y+p.tx*o;i===i0?ctx.moveTo(x,y):ctx.lineTo(x,y);}}
+
+function render(full=true){
+  if(!G)return;
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
+  const sc=setT(ctx),H=G.H,w=S.brush,span=S.format*1.32;
+  ctx.fillStyle=cssv('--table');ctx.fillRect(-span,-span,span*2,span*2);
+  // ghost of the spiral beyond the canvas
+  if(G.pts.length>1){
+    ctx.save();ctx.lineJoin='round';ctx.lineCap='round';
+    if(S.view==='preview'){ctx.globalAlpha=.13;ctx.strokeStyle=S.tape;ctx.lineWidth=w;}
+    else{ctx.globalAlpha=.35;ctx.strokeStyle='#8a867f';ctx.lineWidth=Math.max(.4,1.2/sc);ctx.setLineDash([2,2]);}
+    poly(ctx,G.pts,0,G.pts.length-1);ctx.stroke();ctx.restore();
+  }
+  const ground=S.view==='trace'?'#fbfaf6':S.ground;
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=16;ctx.shadowOffsetY=3;
+  ctx.fillStyle=ground;ctx.fillRect(-H,-H,2*H,2*H);ctx.restore();
+  if(S.view==='path'){drawPath(ctx,sc);}
+  else{
+    ctx.save();ctx.beginPath();ctx.rect(-H,-H,2*H,2*H);ctx.clip();
+    if(S.view==='preview'){paintTape(ctx,full);drawCassette(ctx,'preview');}
+    else drawTrace(ctx);
+    ctx.restore();
+  }
+  ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=1/sc;ctx.strokeRect(-H,-H,2*H,2*H);
+  ctx.fillStyle=cssv('--muted');ctx.font=`${S.format*0.03}px -apple-system,sans-serif`;ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  ctx.fillText(`${S.format/10} × ${S.format/10} cm · ${S.view}`,-H,H+S.format*0.065);
+}
+
+function paintTape(ctx,full){
+  const w=S.brush,base=hex2rgb(S.tape),gr=hex2rgb(S.ground),R=rng(11);
+  const K=Math.max(6,Math.min(26,Math.round(w*1.7)));
+  const gro=[];for(let k=0;k<K;k++){const hi=R()<0.22;gro.push({f:(k+0.5)/K-0.5+(R()-0.5)*0.4/K,l:hi?0.22+R()*0.35:(R()-0.5)*0.3,a:0.35+R()*0.45,lw:0.35+R()*0.6});}
+  const flat=S.brushType==='flat',al=S.brushAngle*Math.PI/180;
+  const eW=p=>flat?Math.max(1.6,w*Math.abs(Math.sin(Math.atan2(p.ty,p.tx)-al))):w;
+  const dry=s=>S.mode==='snake'?0.08+0.025*S.strokes+0.07*Math.abs(2*s-1):0.05+0.02*S.strokes+0.5*s*s;
+  const P=G.pts;
+  ctx.lineJoin='round';ctx.lineCap='round';
+  // pass 1: paint body of every segment, so no round cap lands on top of a neighbour's texture
+  ctx.globalAlpha=1;ctx.fillStyle=ctx.strokeStyle=rgbs(base);
+  for(const sg of G.segs){
+    const i0=sg.i0,i1=sg.i1;
+    if(!flat){ctx.lineWidth=w;poly(ctx,P,i0,i1);ctx.stroke();}
+    else{
+      ctx.beginPath();
+      for(let i=i0;i<=i1;i++){const p=P[i],e=eW(p)/2,x=p.x-p.ty*e,y=p.y+p.tx*e;i===i0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+      for(let i=i1;i>=i0;i--){const p=P[i],e=eW(p)/2;ctx.lineTo(p.x+p.ty*e,p.y-p.tx*e);}
+      ctx.closePath();ctx.fill();ctx.lineWidth=1.6;poly(ctx,P,i0,i1);ctx.stroke();
+    }
+  }
+  if(!full)return;
+  // pass 2: bristle grooves, ridges, dry-brush
+  ctx.lineCap='butt';
+  for(const sg of G.segs){
+    const i0=sg.i0,i1=sg.i1;
+    for(const g of gro){
+      ctx.strokeStyle=rgbs(shade(base,g.l));ctx.globalAlpha=g.a;ctx.lineWidth=w/K*g.lw;
+      offPoly(ctx,P,i0,i1,p=>g.f*eW(p));ctx.stroke();
+    }
+    // paint ridges along both lane edges: light catches one side, the other sits in shadow
+    ctx.lineWidth=Math.max(0.15,w*0.06);
+    ctx.globalAlpha=.45;ctx.strokeStyle=rgbs(shade(base,.5));offPoly(ctx,P,i0,i1,p=>-0.46*eW(p));ctx.stroke();
+    ctx.globalAlpha=.5;ctx.strokeStyle=rgbs(shade(base,-.65));offPoly(ctx,P,i0,i1,p=>0.47*eW(p));ctx.stroke();
+    // dry-brush streaks: one way runs out of paint toward the end, snake stays even
+    const n=i1-i0,C=4;ctx.strokeStyle=rgbs(gr);
+    for(let c=0;c<C;c++){
+      const a=i0+Math.floor(c*n/C),b=Math.min(i1,i0+Math.floor((c+1)*n/C)+1);if(b<=a)continue;
+      const d=dry((c+0.5)/C);
+      for(let k=1;k<K;k+=3){const g=gro[k];ctx.globalAlpha=Math.min(.9,d*(0.55+0.5*g.a));ctx.lineWidth=w/K*0.45;offPoly(ctx,P,a,b,p=>(g.f+0.5/K)*eW(p));ctx.stroke();}
+    }
+  }
+  ctx.globalAlpha=1;ctx.lineCap='round';
+}
+function drawCassette(ctx,mode){
+  if(mode==='trace'&&!S.traceCass)return;
+  const cb=G.cb,C=cass(),s=cb.w/C.vw;
+  ctx.save();ctx.translate(-cb.w/2,-cb.h/2);ctx.scale(s,s);ctx.translate(-C.vx,-C.vy);
+  if(mode==='preview'){
+    ctx.fillStyle=rgbs(mix(hex2rgb(S.ground),[255,255,255],.55));
+    const body=C.paths.find(q=>/^body/i.test(q.id));
+    if(body)ctx.fill(body.p2);else ctx.fillRect(C.vx,C.vy,C.vw,C.vh);
+  }
+  if(C.hasTransform&&C.img){if(mode!=='preview')ctx.globalAlpha=.6;ctx.drawImage(C.img,C.vx,C.vy,C.vw,C.vh);}
+  else{
+    const lw=mode==='trace'?0.5:mode==='path'?0.3:0.35;
+    ctx.lineWidth=lw/s;ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.strokeStyle=mode==='preview'?'#2b2724':mode==='trace'?'#7d7a74':'rgba(120,115,108,.7)';
+    for(const q of C.paths)ctx.stroke(q.p2);
+  }
+  ctx.restore();
+}
+function drawTrace(ctx){
+  if(S.traceTape){
+    ctx.strokeStyle='#8d8a84';ctx.lineWidth=0.5;ctx.lineJoin='round';ctx.lineCap='round';
+    for(const r of G.runs){poly(ctx,G.pts,r.c0,r.c1);ctx.stroke();}
+  }
+  drawCassette(ctx,'trace');
+  if(!S.traceTape&&!S.traceCass){ctx.fillStyle='#999';ctx.font=`${S.format*0.04}px sans-serif`;ctx.textAlign='center';ctx.fillText('Trace is off',0,0);}
+}
+function drawPath(ctx,sc){
+  drawCassette(ctx,'path');
+  const P=G.pts;ctx.lineJoin='round';ctx.lineCap='round';
+  G.segs.forEach((sg,i)=>{ctx.strokeStyle=i%2?'#c0603d':S.tape;ctx.lineWidth=Math.max(0.7,S.brush*0.2);poly(ctx,P,sg.i0,sg.i1);ctx.stroke();});
+  ctx.save();ctx.setLineDash([2.5,2]);ctx.strokeStyle='rgba(80,80,80,.6)';ctx.lineWidth=Math.max(.35,1/sc);
+  G.moves.forEach(m=>{if(m.type==='air'&&!m.ret){ctx.beginPath();ctx.moveTo(m.pts[0].x,m.pts[0].y);ctx.lineTo(m.pts[1].x,m.pts[1].y);ctx.stroke();}});
+  // one-way returns through the air: faint, they would hide the path otherwise
+  ctx.setLineDash([1,2]);ctx.strokeStyle='rgba(80,80,80,.22)';
+  G.moves.forEach(m=>{if(m.type==='air'&&m.ret){ctx.beginPath();ctx.moveTo(m.pts[0].x,m.pts[0].y);ctx.lineTo(m.pts[1].x,m.pts[1].y);ctx.stroke();}});
+  ctx.restore();
+  const fs=S.format*0.018,showNum=G.segs.length<=90;
+  G.segs.forEach((sg,i)=>{
+    const p=P[sg.i0];ctx.beginPath();ctx.arc(p.x,p.y,fs*0.8,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+    ctx.lineWidth=Math.max(.3,1/sc);ctx.strokeStyle='#333';ctx.stroke();
+    if(showNum){ctx.fillStyle='#222';ctx.font=`600 ${fs}px -apple-system,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(i+1,p.x,p.y+fs*0.06);}
+  });
+}
+
+/* ---------- play ---------- */
+let anim=null;
+function stopPlay(){if(anim){cancelAnimationFrame(anim.raf);anim=null;}const c=ov.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,ov.width,ov.height);$('#play').textContent='▶ Play';$('#clock').textContent='';}
+function startPlay(){
+  if(!G||!G.moves.length)return;
+  let real=0;for(const m of G.moves)real+=m.type==='paint'?m.len/S.speed:m.type==='air'?m.len/AIR_SPEED+LIFT_S:0;
+  const k=Math.max(10,real/45);
+  const T=[];let r=0,s=0;
+  for(const m of G.moves){
+    const d=m.type==='paint'?m.len/S.speed:m.type==='air'?m.len/AIR_SPEED+LIFT_S:0;
+    const ds=m.type==='stop'?0.25:d/k;
+    if(m.pts){const c=[0];for(let i=1;i<m.pts.length;i++)c[i]=c[i-1]+dist(m.pts[i-1],m.pts[i]);m.cl=c;}
+    T.push({m,r0:r,r:d,s0:s,s:ds});r+=d;s+=ds;
+  }
+  anim={T,total:real,simTotal:s,k,t0:performance.now(),idx:0,raf:0};
+  $('#play').textContent='■ Stop';
+  const frame=now=>{
+    if(!anim)return;
+    const el=(now-anim.t0)/1000;
+    if(el>=anim.simTotal){stopPlay();return;}
+    while(anim.idx<T.length-1&&el>=T[anim.idx].s0+T[anim.idx].s)anim.idx++;
+    const e=T[anim.idx],m=e.m,f=e.s>0?Math.min(1,(el-e.s0)/e.s):1;
+    let pos;
+    if(m.type==='stop')pos=m.at;
+    else{const L=f*m.cl[m.cl.length-1];let i=1;while(i<m.cl.length-1&&m.cl[i]<L)i++;const a=m.pts[i-1],b=m.pts[i],seg=m.cl[i]-m.cl[i-1]||1,q=Math.max(0,Math.min(1,(L-m.cl[i-1])/seg));pos={x:a.x+(b.x-a.x)*q,y:a.y+(b.y-a.y)*q};}
+    const c=ov.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,ov.width,ov.height);
+    const sc=setT(c),w=S.brush;
+    const curSeg=m.type==='paint'?m.seg:(T.slice(anim.idx).find(x=>x.m.type==='paint')||{m:{seg:G.segs.length}}).m.seg;
+    c.lineJoin='round';c.lineCap='round';c.strokeStyle='rgba(192,96,61,.35)';c.lineWidth=w;
+    for(let j=0;j<curSeg&&j<G.segs.length;j++){poly(c,G.pts,G.segs[j].i0,G.segs[j].i1);c.stroke();}
+    if(m.type==='paint'){c.strokeStyle='rgba(192,96,61,.6)';poly(c,G.pts,G.segs[m.seg].i0,G.segs[m.seg].i1);c.stroke();}
+    c.beginPath();c.arc(pos.x,pos.y,Math.max(w/2,S.format*0.01),0,Math.PI*2);
+    if(m.type==='paint'){c.fillStyle=S.tape;c.fill();c.lineWidth=1.5/sc;c.strokeStyle='#fff';c.stroke();}
+    else{c.setLineDash([3/sc,3/sc]);c.lineWidth=2/sc;c.strokeStyle=m.type==='stop'?'#c0603d':'#555';c.stroke();c.setLineDash([]);}
+    if(m.type==='stop'){c.fillStyle='#c0603d';c.font=`600 ${S.format*0.03}px -apple-system,sans-serif`;c.textAlign='left';c.fillText(`squeeze #${m.n}`,pos.x+S.format*0.025,pos.y);}
+    const now_r=e.r0+f*e.r;
+    $('#clock').textContent=`${clock(now_r)} / ${clock(anim.total)} · ×${Math.round(anim.k)} · segment ${Math.min(curSeg+1,G.segs.length)}/${G.segs.length} · ${m.type==='paint'?'painting':m.type==='air'?'in the air':'paint stop'}`;
+    anim.raf=requestAnimationFrame(frame);
+  };
+  anim.raf=requestAnimationFrame(frame);
+}
+
+/* ---------- readouts ---------- */
+function readouts(){
+  const g=G,o=[];const row=(k,v)=>o.push(`<div class="k">${k}</div><div>${v}</div>`);const warn=t=>o.push(`<div class="w">⚠️ ${t}</div>`);
+  row('Cassette',`${g.cb.w.toFixed(1)} × ${g.cb.h.toFixed(1)} mm · ${S.cassScale===100?'real size':S.cassScale+'% of real'}`);
+  if(g.fits){
+    row('Tape lane',`${S.brush} mm brush · real tape 3.81 mm (×${(S.brush/3.81).toFixed(2)}) · pitch ${g.F.p} mm${S.gap?'':' · lanes touching'}`);
+    row('Lanes',`${g.kSide} to the side edges · ${g.kTop} to top/bottom · ${g.K} to fill the corners`);
+    row('Seam',S.seam==='shift'?(g.full?'none · the lane change is spread over the whole turn, one continuous spiral':`starts mid right side · lane change over ${g.Lb.toFixed(0)} mm (${Math.round(g.Lb/g.P0*100)}% of lane 1)`):'mid right side · each ring closes on itself, lift to the next');
+    row('Drag',`${g.segs.length} segments × ${S.strokes} stroke${S.strokes>1?'s':''} · ${S.mode==='snake'?'snake':'one way'}`);
+    row('Path',`paint ${(g.paintLen/1000).toFixed(1)} m · air ${(g.airLen/1000).toFixed(1)} m · ${g.lifts} lifts`);
+    row('Machine',`≈ ${fmtT(g.tMachine)} + ${g.segs.length} paint stops`);
+    row('Trace',`≈ ${fmtT(g.tTrace)} · cassette ${(g.cassLen/1000).toFixed(2)} m${S.traceTape?` · guide ${(g.guideLen/1000).toFixed(1)} m`:''}`);
+    if(g.tiny)warn(`${g.tiny} corner piece${g.tiny>1?'s':''} under 12 mm — each still needs its own paint stop.`);
+  }else{
+    warn(`The cassette does not fit on ${S.format/10}×${S.format/10} with a ${S.brush} mm lane — smaller cassette size or bigger format.`);
+  }
+  if(S.brushType==='flat')warn('Flat brush without rotation: tape width changes with direction (see preview).');
+  $('#read').innerHTML=o.join('');
+  $('#cassInfo').textContent=`${userSVG?'Loaded SVG':'cassette_trace.svg'} · ${g.cb.w.toFixed(1)} × ${g.cb.h.toFixed(1)} mm on canvas${cass().hasTransform?' · ⚠️ has transforms, drawn as image':''}`;
+  $('#modeHint').textContent=S.mode==='snake'?'Squeeze at the segment start → brush drags forward, back, forward… without lifting.':'Forward on the canvas → lift → back through the air → lower → forward again.';
+  $('#angRow').style.display=S.brushType==='flat'?'':'none';
+  $('#stepRow').style.display=S.seam==='shift'?'':'none';
+}
+
+/* ---------- export ---------- */
+function params(){
+  const g=G;
+  return{tab:'TAPE',version:'0.3',format_mm:S.format,
+    trace:{cassette:S.traceCass,tape_guide:S.traceTape},
+    drag:{mode:S.mode,brush_mm:S.brush,speed_mm_s:S.speed,gap_mm:S.gap,corners:S.corners,seam:S.seam,direction:S.dir},
+    adjustments:{cassette_size_pct:S.cassScale,first_lane_gap_mm:S.clear,lane_change_x_brush:S.step,segment_mm:S.segLen,strokes:S.strokes,edge_overrun_mm:S.overrun,brush_type:S.brushType,flat_angle_deg:S.brushAngle},
+    derived:{cassette_mm:[+g.cb.w.toFixed(1),+g.cb.h.toFixed(1)],pitch_mm:g.F.p,lanes_total:g.K,lanes_to_sides:g.kSide,lanes_to_top_bottom:g.kTop,
+      segments:g.segs.length,paint_m:+(g.paintLen/1000).toFixed(2),machine_min:+(g.tMachine/60).toFixed(1)},
+    cassette_source:userSVG?'loaded-svg':'cassette_trace.svg'};
+}
+function exportSVG(){
+  const g=G,H=g.H,f=n=>+n.toFixed(2),cb=g.cb;
+  const d=(i0,i1)=>{let s=`M${f(g.pts[i0].x)} ${f(g.pts[i0].y)}`;for(let i=i0+1;i<=i1;i++)s+=`L${f(g.pts[i].x)} ${f(g.pts[i].y)}`;return s;};
+  let s=`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${S.format}mm" height="${S.format}mm" viewBox="${-H} ${-H} ${2*H} ${2*H}">\n`;
+  s+=`<metadata>${JSON.stringify(params()).replace(/</g,'&lt;')}</metadata>\n`;
+  s+=`<rect id="canvas" x="${-H}" y="${-H}" width="${2*H}" height="${2*H}" fill="none" stroke="#ccc" stroke-width="0.3"/>\n`;
+  if(S.traceCass){
+    const C=cass(),doc=new DOMParser().parseFromString(C.text,'image/svg+xml'),root=doc.documentElement;
+    root.setAttribute('x',f(-cb.w/2));root.setAttribute('y',f(-cb.h/2));root.setAttribute('width',f(cb.w));root.setAttribute('height',f(cb.h));
+    if(!root.getAttribute('viewBox'))root.setAttribute('viewBox',`${C.vx} ${C.vy} ${C.vw} ${C.vh}`);
+    s+=`<g id="trace-cassette">${new XMLSerializer().serializeToString(root)}</g>\n`;
+  }
+  if(S.traceTape){s+=`<g id="trace-tape" fill="none" stroke="#999" stroke-width="0.5">`;g.runs.forEach((r,i)=>{s+=`<path id="guide-${i+1}" d="${d(r.c0,r.c1)}"/>`;});s+=`</g>\n`;}
+  s+=`<g id="drag-tape" data-mode="${S.mode}" data-strokes="${S.strokes}" data-brush-mm="${S.brush}" data-speed-mm-s="${S.speed}" fill="none" stroke="${S.tape}" stroke-width="${S.brush}" stroke-linecap="round" stroke-linejoin="round">\n`;
+  g.segs.forEach((sg,i)=>{s+=`<path id="seg-${String(i+1).padStart(3,'0')}" d="${d(sg.i0,sg.i1)}"/>\n`;});
+  s+=`</g>\n</svg>\n`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'image/svg+xml'}));
+  a.download=`tape_${S.format/10}x${S.format/10}_${S.mode}.svg`;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
+}
+
+/* ---------- user SVG ---------- */
+function loadSVG(text){
+  const c=parseCassette(text);
+  if(!c||!c.paths.length){alert('No drawable outlines found in that SVG');return;}
+  if(c.hasTransform){   // transforms are not flattened here: fall back to drawing the file as an image
+    const img=new Image();img.onload=()=>{c.img=img;userSVG=c;update(true);};img.onerror=()=>alert('Could not render that SVG');
+    img.src=URL.createObjectURL(new Blob([text],{type:'image/svg+xml'}));
+  }else{userSVG=c;update(true);}
+}
+
+/* ---------- UI ---------- */
+const sliders={brush:v=>`${(+v).toFixed(1)} mm`,speed:v=>`${v} mm/s`,gap:v=>+v?`${v} mm`:'0 · touch',corners:v=>`${v>0?'+':''}${v}`,
+  cassScale:v=>`${v} %`,clear:v=>`${v} mm`,step:v=>`×${v}`,segLen:v=>`${v} mm`,strokes:v=>`${v}`,overrun:v=>`${v} mm`,brushAngle:v=>`${v}°`};
+let rafId=0;
+function update(full){
+  stopPlay();build();readouts();
+  $('#stepV').textContent=G.full&&S.seam==='shift'?`×${S.step} · spiral`:`×${S.step} · ${Math.round(G.Lb)} mm`;
+  cancelAnimationFrame(rafId);rafId=requestAnimationFrame(()=>render(full));
+}
+Object.keys(sliders).forEach(id=>{
+  const el=$('#'+id);el.value=S[id];$('#'+id+'V').textContent=sliders[id](S[id]);
+  el.addEventListener('input',()=>{S[id]=+el.value;$('#'+id+'V').textContent=sliders[id](el.value);update(false);});
+  el.addEventListener('change',()=>update(true));
+});
+function segGroup(id,key,num){
+  const box=$('#'+id),btns=[...box.querySelectorAll('button')];
+  const sync=()=>btns.forEach(b=>b.classList.toggle('on',String(S[key])===b.dataset.v));
+  btns.forEach(b=>b.addEventListener('click',()=>{S[key]=num?+b.dataset.v:b.dataset.v;sync();if(key==='view'){render(true);}else update(true);}));
+  sync();
+}
+segGroup('fmt','format',true);segGroup('mode','mode');segGroup('seam','seam');segGroup('dir','dir');segGroup('btype','brushType');segGroup('view','view');
+$('#trC').addEventListener('change',e=>{S.traceCass=e.target.checked;update(true);});
+$('#trT').addEventListener('change',e=>{S.traceTape=e.target.checked;update(true);});
+$('#ground').value=S.ground;$('#tape').value=S.tape;
+$('#ground').addEventListener('input',e=>{S.ground=e.target.value;render(true);});
+$('#tape').addEventListener('input',e=>{S.tape=e.target.value;render(true);});
+$('#loadBtn').addEventListener('click',()=>$('#file').click());
+$('#file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>loadSVG(r.result);r.readAsText(f);e.target.value='';});
+$('#phBtn').addEventListener('click',()=>{userSVG=null;update(true);});
+$('#play').addEventListener('click',()=>{anim?stopPlay():startPlay();});
+$('#expSvg').addEventListener('click',exportSVG);
+$('#expJson').addEventListener('click',()=>{const t=JSON.stringify(params(),null,2);
+  const done=()=>{$('#expHint').textContent='Params copied.';};
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(done,()=>{prompt('Copy:',t);});else prompt('Copy:',t);});
+new ResizeObserver(()=>{sizeCanvas();render(true);}).observe($('#stage'));
+sizeCanvas();update(true);
+window.__tape={S,get G(){return G;},update,render};
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+{
+ "01_default_preview": {
+  "settings_changed_from_default": {},
+  "lanes_total": 22,
+  "lanes_to_sides": 12,
+  "lanes_to_top_bottom": 17,
+  "runs": 28,
+  "segments": 72,
+  "paint_m": 27.1,
+  "air_m": 4,
+  "lifts": 71,
+  "machine_min": 19.8,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 337.9,
+  "first_lane_R0_mm": 3.8
+ },
+ "02_default_path": {
+  "settings_changed_from_default": {
+   "view": "path"
+  },
+  "lanes_total": 22,
+  "lanes_to_sides": 12,
+  "lanes_to_top_bottom": 17,
+  "runs": 28,
+  "segments": 72,
+  "paint_m": 27.1,
+  "air_m": 4,
+  "lifts": 71,
+  "machine_min": 19.8,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 337.9,
+  "first_lane_R0_mm": 3.8
+ },
+ "03_default_trace": {
+  "settings_changed_from_default": {
+   "view": "trace"
+  },
+  "lanes_total": 22,
+  "lanes_to_sides": 12,
+  "lanes_to_top_bottom": 17,
+  "runs": 28,
+  "segments": 72,
+  "paint_m": 27.1,
+  "air_m": 4,
+  "lifts": 71,
+  "machine_min": 19.8,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 337.9,
+  "first_lane_R0_mm": 3.8
+ },
+ "04_closed_rings": {
+  "settings_changed_from_default": {
+   "seam": "closed"
+  },
+  "lanes_total": 22,
+  "lanes_to_sides": 12,
+  "lanes_to_top_bottom": 17,
+  "runs": 41,
+  "segments": 76,
+  "paint_m": 26.7,
+  "air_m": 4.1,
+  "lifts": 75,
+  "machine_min": 19.7,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 337.9,
+  "first_lane_R0_mm": 3.8
+ },
+ "05_corners_angle": {
+  "settings_changed_from_default": {
+   "corners": -50
+  },
+  "lanes_total": 18,
+  "lanes_to_sides": 12,
+  "lanes_to_top_bottom": 17,
+  "runs": 9,
+  "segments": 56,
+  "paint_m": 26.5,
+  "air_m": 1.5,
+  "lifts": 55,
+  "machine_min": 18.7,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 344.4,
+  "first_lane_R0_mm": 3.8
+ },
+ "06_corners_round": {
+  "settings_changed_from_default": {
+   "corners": 50
+  },
+  "lanes_total": 21,
+  "lanes_to_sides": 10,
+  "lanes_to_top_bottom": 10,
+  "runs": 41,
+  "segments": 72,
+  "paint_m": 24.2,
+  "air_m": 4.9,
+  "lifts": 71,
+  "machine_min": 18.1,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 382,
+  "first_lane_R0_mm": 60.8
+ },
+ "07_continuous_spiral_x120": {
+  "settings_changed_from_default": {
+   "step": 120
+  },
+  "lanes_total": 22,
+  "lanes_to_sides": 12,
+  "lanes_to_top_bottom": 17,
+  "runs": 27,
+  "segments": 71,
+  "paint_m": 27.4,
+  "air_m": 3.8,
+  "lifts": 70,
+  "machine_min": 20,
+  "lane_change_mm": 337.9,
+  "continuous_spiral": true,
+  "lane1_perimeter_mm": 337.9,
+  "first_lane_R0_mm": 3.8
+ },
+ "08_gap3": {
+  "settings_changed_from_default": {
+   "gap": 3
+  },
+  "lanes_total": 13,
+  "lanes_to_sides": 7,
+  "lanes_to_top_bottom": 10,
+  "runs": 17,
+  "segments": 42,
+  "paint_m": 16,
+  "air_m": 2.3,
+  "lifts": 41,
+  "machine_min": 11.7,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 337.9,
+  "first_lane_R0_mm": 3.8
+ },
+ "09_oneway": {
+  "settings_changed_from_default": {
+   "mode": "oneway"
+  },
+  "lanes_total": 22,
+  "lanes_to_sides": 12,
+  "lanes_to_top_bottom": 17,
+  "runs": 28,
+  "segments": 72,
+  "paint_m": 27.1,
+  "air_m": 18.8,
+  "lifts": 215,
+  "machine_min": 24.8,
+  "lane_change_mm": 192,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 337.9,
+  "first_lane_R0_mm": 3.8
+ },
+ "10_30cm_brush5": {
+  "settings_changed_from_default": {
+   "format": 300,
+   "brush": 5
+  },
+  "lanes_total": 32,
+  "lanes_to_sides": 19,
+  "lanes_to_top_bottom": 23,
+  "runs": 41,
+  "segments": 123,
+  "paint_m": 53.2,
+  "air_m": 8.2,
+  "lifts": 122,
+  "machine_min": 38.8,
+  "lane_change_mm": 240,
+  "continuous_spiral": false,
+  "lane1_perimeter_mm": 341,
+  "first_lane_R0_mm": 4.3
+ }
+}
