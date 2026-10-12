@@ -485,7 +485,17 @@ export function plotRun(o, passes) {
   const drawnOf = p => p.filter(g => !sliver(g, min)).reduce((s, g) => s + pieceLen(g), 0);
   const away = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
   passes.forEach(({ key, ps: ps0, why }, n) => {
-    if (n && why) blocks.push({ kind: 'pause', why, row: 0 });   // a pass with no why runs on without one (NOLAN's watercolour)
+    // o.pauseOver (TAPE, the owner, 2026-10-12): the brush goes over the pass's start first, up, and the
+    // pause waits there — it shows where the paint goes; the first pass too. Without it the pause waits
+    // where the brush lifted, none before the first
+    if (why && (n || o.pauseOver)) {
+      if (o.pauseOver && ps0[0]?.length) {
+        const q = B ? intoB(ps0[0][0].a, B) : ps0[0][0].a;
+        blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(q)}`, 'G'], lengthMM: null, paintMM: 0, row: ps0[0][0].row });
+        seconds += travelTime(away(at0, q), o.travel); at0 = q;
+      }
+      blocks.push({ kind: 'pause', why, row: 0 });   // a pass with no why runs on without one (NOLAN's watercolour)
+    }
     let dry = true;                                      // the brush at a pass's start: dry, or waited through the pause
     // With o.noDipUnder a pass starts on its first piece long enough for a
     // dip, the others after it in their order: a full brush never lands on a

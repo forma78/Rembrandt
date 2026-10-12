@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE: the plan, the tape wound round a cassette** (the owner,
+  2026-10-12, `TAPE-Claude/`: chat-Claude's prototype v0.3, "everything is
+  super now"). `src/tapeplan.js` and its tests: the prototype's geometry —
+  every lane a rounded rectangle one pitch outside the last, the lane change
+  one smoothstep for every lane, the runs on the canvas, the segments — its
+  numbers equal to `TAPE-Claude/reference/acceptance.json` in all ten
+  cases. For the machine lines and arcs: a lane's sides and corners exact, a
+  lane change fitted with biarcs within 0.1 mm, the cassette's outlines
+  (any SVG path) within 0.02 mm. DRAG a pass a segment, the snake one path
+  of its strokes, air a path a stroke; TRACE the cassette and the tape's
+  guide, with INK a dip as ALU's TRACE. `plotRun` takes `pauseOver`: the
+  brush goes over a pass's start and the pause waits there, the first pass
+  too — TAPE's alone, every other tab as it was. The owner's
+  `cassette_trace.svg` in `app/`, the tab's built-in cassette.
+
 - **CCD: DRAG in two keys, Snake and Air** (the owner, 2026-10-11: "two
   DRAG keys — the snake and through the air; on ALU-CUT we made a switch,
   here it is all simple"). Snake: a rectangle one row, its lanes back and
