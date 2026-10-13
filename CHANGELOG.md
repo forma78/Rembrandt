@@ -5,6 +5,24 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **CCD's plan: the paints** (`ccdplan.js`, the owner, 2026-10-13:
+  TAPE's paints on CCD, "only here they go straight", Cruz-Diez/IMAGE
+  2026-10-13 14:47:37). Sausages in rows across the lanes, a stripe of 1, 2,
+  3 or 6 lanes each (TAPE's stripes); the rows evenly from the paint's edge
+  to the far one, both in — four on the owner's 20 × 20; the paints dealt as
+  TAPE's, never two alike along a stripe or across a row. **The genesis
+  repeated at the same scale** (the owner: "a repeat at the same scale, not
+  bigger"): a bigger rectangle keeps its pitch, its lanes grow, the stripes
+  and rows again and again, cut at its sides. **Duo** (TAPE-colors/IMAGE
+  2026-10-12 18:44:00): every lane from the far edge to the middle, a lift,
+  back in the air, then from the paint's edge — the top half first, the
+  right one on a horizontal rectangle. **MARKS**: a watercolour dash a
+  sausage, a dip every fourth (ALU's). **The Result** a lane at a time, the
+  paints mixed as pigments; a sausage at Density 50 % keeps the line full
+  70 mm, the measure (TAPE-colors/IMAGE 2026-10-12 19:23:33), gone by about
+  120; twice the paint every 25 % (est.). meta 3 and meta 4 from
+  TAPE-colors/ 18:43:57 and 18:43:59 (Claude's reading). TAPE untouched:
+  its paints, families and stripes imported.
 - **CCD: HOME next to STOP** (the owner, 2026-10-13: "next to STOP make a
   HOME, so that the arm with the brush goes back to the bottom left
   corner"). The brush up, the carriage to home: the two blocks every run
