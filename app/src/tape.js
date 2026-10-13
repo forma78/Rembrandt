@@ -220,7 +220,7 @@ function layout() {
 let drawSoon = 0;
 const kick = () => { if (!drawSoon) drawSoon = requestAnimationFrame(() => { drawSoon = 0; draw(); }); };
 const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
-const ORANGE = '#EB7A25', GROUND = '#FBFAF7', DRY = '#7D7A74', WATER = '#6F8FB8', RUST = '#C0603D', LANE = 'rgba(36,34,31,.3)';   // LANE: DRAG's lanes, grey 30 %
+const ORANGE = '#EB7A25', GROUND = '#FBFAF7', DRY = '#7D7A74', WATER = '#6F8FB8', RUST = '#C0603D', LANE = 'rgba(36,34,31,.15)';   // LANE: DRAG's lanes, grey 15 %
 function draw() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = g.canvas.width / dpr, H = g.canvas.height / dpr, hw = S.boardW / 2, hh = S.boardH / 2;
@@ -289,7 +289,7 @@ function drawTrace() {
   g.restore();
   if (!S.traceTape && !S.traceCass) { g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = themeColor('--mute', '#7D776D'); g.font = font(12); g.textAlign = 'center'; g.fillText('TRACE is off: neither the outline nor the guide', sx([0]), sy([0, 0])); g.restore(); }
 }
-// DRAG: the tape's centre line in grey 30 % (the owner: the black hid the paints' dots), a colour a run in turn; dashed where the brush flies; a run numbered at its start
+// DRAG: the tape's centre line in grey 15 % (the owner: the black hid the paints' dots; 30 % read as 60), a colour a run in turn; dashed where the brush flies; a run numbered at its start
 function drawDrag() {
   const G = planNow(), P = G.pts;
   g.save(); inMm(g);

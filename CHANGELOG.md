@@ -5,11 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
-- **TAPE · BASF: Drag's lanes grey 30 %** (the owner, 2026-10-13,
+- **TAPE · BASF: Drag's lanes grey 15 %** (the owner, 2026-10-13,
   `TAPE-colors/Screenshot 2026-10-13 at 12.51.57 PM.png`: "the outline in
   DRAG is too black. Make it grey please, 30 % — it will be easier for me
-  to see the drops of colour there"). The lanes on the Drag view the ink at
-  30 % instead of the tape's colour; the spokes' paints read on them. The
+  to see the drops of colour there"; then, of the 30 %: "looks like 60 %.
+  Let's have 15 % grey then"). The lanes on the Drag view the ink at 15 %
+  instead of the tape's colour; the spokes' paints read on them. The
   Result and Play as they were.
 
 ## v.1.0.6 — 2026-10-12 · Tape
