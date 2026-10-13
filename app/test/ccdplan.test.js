@@ -65,21 +65,18 @@ test('DRAG: a row a lane, up the machine (+X) for vertical, to the right (+Y) fo
   assert.ok(painting.every(b => b.pauseAtEnd), 'PAUSE waits for a lane\'s end');
 });
 
-test('the snake: a rectangle one row, every lane there and back along itself with the brush down, a step across at the paint\'s edge, PAUSE at the lanes\' ends', () => {
+test('the snake: a rectangle one row, its lanes back and forth with the brush down, a step across at each end, PAUSE at the lanes\' ends', () => {
   const rects = [cleanRect({ x: 0, y: 0, w: 100, h: 200, lanes: 4 }), cleanRect({ x: 0, y: 0, w: 60, h: 40, dir: 'right', lanes: 3 })];
   const pl = planOf(rects, O), R = dragRows(pl, { ...O, snake: true }), air = dragRows(pl, O);
   assert.equal(R.ps.length, 2, 'a row a rectangle');
   assert.deepEqual(R.stops.map(s => s.at), [1]); assert.equal(R.stops[0].why, air.stops[0].why);
   const p = R.ps[0];
-  assert.equal(p.length, 4 * 2 + 3, 'four lanes there and back, three steps across');
-  for (const j of [0, 1, 2, 3]) {
-    const up = p[3 * j], down = p[3 * j + 1];
-    assert.ok(up.b.x > up.a.x, `lane ${j + 1} up`); close(down.a.x, up.b.x, `lane ${j + 1} back from the top`); close(down.b.x, up.a.x, 'to the bottom'); close(down.a.y, up.a.y, 'along itself');
-  }
-  for (const i of [2, 5, 8]) { close(p[i].a.x, p[i].b.x, 'a step across, along the paint\'s edge'); close(p[i].a.x, -100, 'the bottom edge'); close(p[i].b.y - p[i].a.y, pl.rects[0].pitch, 'a pitch'); }
+  assert.equal(p.length, 4 + 3, 'four lanes, three steps across');
+  assert.ok(p[0].b.x > p[0].a.x, 'lane 1 up'); assert.ok(p[2].b.x < p[2].a.x, 'lane 2 down'); assert.ok(p[4].b.x > p[4].a.x, 'lane 3 up');
+  for (const i of [1, 3, 5]) { close(p[i].a.x, p[i].b.x, 'a step across, along the edge'); close(p[i].b.y - p[i].a.y, pl.rects[0].pitch, 'a pitch'); }
   for (let i = 1; i < p.length; i++) { close(p[i].a.x, p[i - 1].b.x, 'one line'); close(p[i].a.y, p[i - 1].b.y, 'one line'); }
-  assert.deepEqual(p[0].stopsAt.map(v => Math.round(v * 1e6) / 1e6), [400, 400 + 30 + 400, 2 * (400 + 30) + 400]);
-  close(R.length, 2 * air.length + 3 * 30 + 2 * pl.rects[1].pitch, 'every lane twice, and the steps');
+  assert.deepEqual(p[0].stopsAt.map(v => Math.round(v * 1e6) / 1e6), [200, 200 + 30 + 200, 2 * (200 + 30) + 200]);
+  close(R.length, air.length + 3 * 30 + 2 * pl.rects[1].pitch, 'the lanes and the steps');
   const run = plotRun({ ...RUN, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R));
   assert.equal(run.fault, '');
   assert.equal(run.blocks.filter(b => b.kind === 'pause').length, 1);
@@ -87,7 +84,7 @@ test('the snake: a rectangle one row, every lane there and back along itself wit
   const lands = run.blocks.filter(b => b.kind === 'move' && b.paintMM === 0 && !b.home).length;
   assert.equal(lands, 2, 'the brush lands once a rectangle');
   const one = dragRows(planOf([cleanRect({ x: 0, y: 0, w: 8, h: 50, lanes: 3 })], O), { ...O, snake: true });
-  assert.equal(one.ps[0].length, 6, 'a brush wider than the rectangle: there and back on one line, no step');
+  assert.equal(one.ps[0].length, 3, 'a brush wider than the rectangle: back and forth on one line, no step');
 });
 
 test('the SVG: a path a lane, y down', () => {
@@ -200,7 +197,7 @@ test('the Result on a rectangle: Air from the paint\'s edge; Duo from both edges
   assert.ok(c(duo, 20) > 0.9 && c(duo, 180) > 0.9, 'Duo: both halves from their own edges');
   assert.ok(c(duo, 100) > 0.05 && c(duo, 100) < 0.9, 'and thinning towards the middle, 100 mm from each');
   const snake = mixRect({ ...two, pat: newPattern(two, 10, BW, 3) }, { ...o, mode: 'snake' });
-  assert.ok(snake.lanes[1].grooves[0].cover[20] > 0.9 && snake.lanes[1].grooves[0].cover[180] > 0.9, 'the snake: lane 2 up and back, the far edge\'s row dragged down');
+  assert.ok(snake.lanes[1].grooves[0].cover[180] > 0.9, 'the snake: lane 2 from the far edge down, its row there');
 });
 
 test('Duo Air past the middle: each half 5 mm on, as the head lifts before it (2026-10-13)', () => {

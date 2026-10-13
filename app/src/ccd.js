@@ -90,7 +90,7 @@ const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x,
 // ---------- the run: DRAG, the snake or through the air ----------
 // Two keys (the owner, 2026-10-11: "two DRAG keys — the snake and through the
 // air; on ALU-CUT we made a switch, here it is all simple"): the snake, a
-// rectangle's lanes, each there and back along itself, the brush down; the air, a row a
+// rectangle's lanes back and forth with the brush down; the air, a row a
 // lane, one way. A pause before every next rectangle (ccdplan.js,
 // dragPasses); PAUSE at a lane's end, never on the line, as ALU's DRAG.
 const RUNS = {}, MODE_NAME = { snake: 'snake', air: 'air', duosnake: 'Duo Snake', duo: 'Duo Air' };   // the LCD's last line, short
@@ -926,7 +926,7 @@ async function runDrag(mode) {
   if (walls(D)) { $('#runState').innerHTML = `<span class="warn">${walls(D)}</span>`; return; }
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
   const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paint only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush and squeeze its paint, then Continue.\n\n` : ''}`
-    + (snake ? `${P.runs} lanes, each there and back along itself with the brush down, a step across at the paint's edge to the next: the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a rectangle; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+    + (snake ? `${P.runs} lanes back and forth with the brush down, a step across at each end: the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a rectangle; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : mode === 'duo' ? `${P.runs} lanes, each in two halves: from the far edge to ${fmt(S.over, 1)} mm past the middle, the brush lifting there and flying back to the next lane — the ${first.dir === 'right' ? 'right' : 'top'} half first — then from the paint's edge; the brush lands ${D.runs} times, ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : mode === 'duosnake' ? `${P.runs} lanes in two halves, each the snake: every lane from the far edge to the middle and back along itself with the brush down, a step across at the edge to the next — the ${first.dir === 'right' ? 'right' : 'top'} half first — then the same from the paint's edge, turning at the middle; the brush lands ${D.runs} times, ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : `${P.runs} lanes, each one way: the brush lands at the paint's edge, runs to the far edge, lifts and flies back; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)

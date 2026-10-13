@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **CCD: Snake back to the next lane, as it was** (the owner, 2026-10-13,
+  after a canvas, Cruz-Diez/IMAGE 2026-10-13 19:02:03: "let us bring SNAKE
+  back with the return along the opposite lane, as it was"). Snake: the
+  lanes back and forth again, a step across at each end. Duo Snake stays
+  there and back along the same lane.
 - **Sand Yellow lighter: #FBE7BC** (the owner, 2026-10-13: "your Sand
   Yellow is too yellow — FBE7BC, in life it is a little lighter"; #F3C06D,
   read off the swatch, before). One paint list, so on TAPE, BASF and CCD

@@ -86,10 +86,10 @@ export function planOf(rects, o) {
 // DRAG's rows for plotRun, mm from the canvas's centre, in one of three ways
 // (the owner, 2026-10-11: "two DRAG keys — the snake and through the air"):
 // in the air, a row a lane, one way, the brush lifting at the far edge and
-// flying back; the snake (o.mode 'snake'), a rectangle one row, every lane
-// there and back along itself with the brush down, a step across at the
-// paint's edge to the next — stopsAt the lanes' ends, so a PAUSE falls
-// there, never on a lane, as ALU's snake; Duo (o.mode
+// flying back; the snake (o.mode 'snake'), a rectangle one row, its lanes
+// back and forth with the brush down, a step across at each end — stopsAt
+// the lanes' ends, so a PAUSE falls there, never on a lane, as ALU's snake;
+// Duo (o.mode
 // 'duo', the owner, 2026-10-13, TAPE-colors/IMAGE 2026-10-12 18:44:00: "a run
 // to the centre, a lift, back — so the first part of the canvas from the top
 // down, then from the other edge to the centre"), every lane from the far
@@ -107,21 +107,24 @@ export function planOf(rects, o) {
 // do not take the flat brush, the tests showed it is useless")
 export const stopWhy = r => `Rectangle ${r.i + 1}, ${DIR_NAME[r.dir]}: wipe the brush, squeeze its paint along its ${EDGE_NAME[r.dir]} edge, then Continue`;
 export const midOf = (r, ln, d = 0) => r.dir === 'right' ? [r.x + r.w / 2 + d, ln.a[1]] : [ln.a[0], r.y + r.h / 2 + d];   // a lane's middle, where Duo's halves meet, d mm on towards the far edge
-// the snake through lanes [[a, b]]: every lane there and back along itself,
-// the brush down, then a step across to the next one's start (the owner,
-// 2026-10-13, testing it live: "back along the same lane — redo it here and
-// in Snake; in practice our ideas do not always work as in theory"; till
-// then the next lane back) → its pieces, where its lanes end, its length
-function snakeOf(pairs, at) {
+// the snake through lanes [[a, b]], the brush down: every other lane the
+// other way, a step across at each end — or, along, every lane there and
+// back along itself, then a step across to the next one's start (Duo Snake;
+// the owner, 2026-10-13, testing it live: "back along the same lane";
+// Snake so for an evening, then back to the next lane: "let us bring SNAKE
+// back with the return along the opposite lane, as it was", Cruz-Diez/IMAGE
+// 2026-10-13 19:02:03) → its pieces, where its lanes end, its length
+function snakeOf(pairs, at, along = false) {
   const pieces = [], stopsAt = [];
   let acc = 0, end = null;
-  pairs.forEach(([a, b], j) => {
-    for (const [p, q] of [[end, a], [a, b], [b, a]]) {
+  pairs.forEach(([a0, b0], j) => {
+    const [a, b] = !along && j % 2 ? [b0, a0] : [a0, b0];
+    for (const [p, q] of along ? [[end, a], [a, b], [b, a]] : [[end, a], [a, b]]) {
       if (!p || Math.hypot(q[0] - p[0], q[1] - p[1]) < 1e-6) continue;              // no step across when the lanes lie on one line
       const g = { t: 'L', a: at(p), b: at(q) }; pieces.push(g); acc += pieceLen(g);
     }
     if (j < pairs.length - 1) stopsAt.push(acc);
-    end = a;
+    end = along ? a : b;
   });
   return { pieces, stopsAt, L: acc };
 }
@@ -139,7 +142,7 @@ export function dragRows(pl, o) {
     if (mode === 'duo' || mode === 'duosnake') {
       const over = mode === 'duo' ? o.over || 0 : 0;                                // past the middle where the brush lifts; the snake turns on it
       for (const [half, from, d] of [['the far edge', ln => ln.b, -over], ['the paint\'s edge', ln => ln.a, over]]) {
-        if (mode === 'duosnake') { snakeRow(snakeOf(r.runs.map(ln => [from(ln), midOf(r, ln, d)]), at), `Rectangle ${r.i + 1} · ${n} lane${n === 1 ? '' : 's'} from ${half} to the middle and back, the snake`); continue; }
+        if (mode === 'duosnake') { snakeRow(snakeOf(r.runs.map(ln => [from(ln), midOf(r, ln, d)]), at, true), `Rectangle ${r.i + 1} · ${n} lane${n === 1 ? '' : 's'} from ${half} to the middle and back, the snake`); continue; }
         for (const ln of r.runs) {
           const g = { t: 'L', a: at(from(ln)), b: at(midOf(r, ln, d)) }, L = pieceLen(g), row = ps.length + 1;
           ps.push([{ ...g, tilt: 0, row }]);
@@ -363,7 +366,7 @@ export function laneWalk(n, deps, strokes, kd = 1) {
 }
 // A rectangle's Result: every lane its grooves, as DRAG runs them — Air every
 // lane from the paint's edge, the snake back and forth the brush carried
-// across, every lane there and back along itself; Duo Air from the far edge
+// across; Duo Air from the far edge
 // to the middle, then from the paint's edge, its paint ending LIFT_EARLY
 // before where the brush lifts, o.over past the middle; Duo Snake each half
 // there and back along every lane, turning at the middle.
@@ -379,11 +382,11 @@ export function mixRect(r, o) {
   for (let k = 0; k < r.lanes; k++) {
     const strokesOf = c => o.mode === 'duo' ? [[n - 1, m1, true], [0, m2, true]]
       : o.mode === 'duosnake' ? [[n - 1, m1, c[0]], [m1, n - 1, false], [0, m2, c[1]], [m2, 0, false]]
-      : o.mode === 'snake' ? [[0, n - 1, c[0]], [n - 1, 0, false]] : [[0, n - 1, true]];
+      : o.mode === 'snake' ? [k % 2 ? [n - 1, 0, c[0]] : [0, n - 1, c[0]]] : [[0, n - 1, true]];
     const grooves = GROOVE_K.map(([kv, kd, shade], g) => {
       const deps = byLane[k].flatMap(([i0, i1, c, v]) => Array.from({ length: i1 - i0 + 1 }, (_, j) => [i0 + j, c, v * kv / (i1 - i0 + 1)]));
       const w = laneWalk(n, deps, strokesOf(carry[g]), kd);
-      if (snaky) carry[g] = w.outs.filter((_, i) => i % 2).map(q => ({ b: Math.min(q.b, HOLD), bc: q.bc }));   // the brush back at a lane's start, over the step
+      if (snaky) carry[g] = (o.mode === 'duosnake' ? w.outs.filter((_, i) => i % 2) : w.outs).map(q => ({ b: Math.min(q.b, HOLD), bc: q.bc }));   // the brush at a lane's end, over the step: Duo Snake's back at its start
       return { rgb: w.rgb, cover: w.cover, shade };
     });
     lanes.push({ k, c: laneAt(r, o.brush, k), grooves });
