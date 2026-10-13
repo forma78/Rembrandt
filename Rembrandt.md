@@ -41,8 +41,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **ALU-CUT** | ALU with the new things, the first tab from 2026-10-11 to 10-12, in TYPE's and LOVE's place, then after TAPE (§1): cuts made with the scissors, ✂ (C), the brush stopping at each, every part its own palette and a clean brush (chat-Claude's task, `ALU-cut-Claude/`). `alucut.html` since 2026-10-12 (`index.html` before), its body `data-tab="alucut"`; ALU's page module and plan, ALU's palette, its own keep and Library label. |
 | **Cut · part** | On ALU-CUT: a seam made with the scissors, ✂ (C), where DRAG stops — the brush lifted, wiped or washed, the next part's paints squeezed, Continue; a part, the pipe between two cuts or a cut and an end, painted on its own with a clean brush, its lanes half a brush clear of a cut, the pipe's lane numbers going on across it (2026-10-11, §8). A seam (S) only changes the paints. |
 | **SMKN** | ALU with the paints in stock, after it in the top row since 2026-10-08 (§1, §8): the palette of the owner's brand Soumkine, fourteen tubes — Sennelier Abstract, Lukas Cryl Terzia, Pébéo Studio Acrylics — their colours read off his photographs (est.). `smkn.html`; ALU's page module and plan, its own keep and Library label. |
-| **CCD** | The tab of rectangles of straight lanes, after Carlos Cruz-Diez — not the camera's chip — after ALU-CUT in the top row since 2026-10-11 (§1): the paint squeezed by hand along one edge, the dry brush driving it across, lane after lane; DRAG alone, no TRACE, no MARKS, in two keys — Snake, the lanes back and forth with the brush down, and Air, each lane one way and a flight back. `ccd.html`, its plan `ccdplan.js`, its own page module `ccd.js`; ALU-CUT's untouched. |
+| **CCD** | The tab of rectangles of straight lanes, after Carlos Cruz-Diez — not the camera's chip — after ALU-CUT in the top row since 2026-10-11 (§1): the paint squeezed by hand along one edge, the dry brush driving it across, lane after lane; since 2026-10-13 TAPE's paints, straight — sausages in rows across the lanes — MARKS where they go and DRAG in three keys: Snake, the lanes back and forth with the brush down; Air, each lane one way and a flight back; Duo. No TRACE. `ccd.html`, its plan `ccdplan.js`, its own page module `ccd.js`; ALU-CUT's untouched, TAPE's paints imported. |
 | **Rectangle (on CCD)** | A free-transform box on the canvas — dragged, stretched by its eight handles, or typed by the ruler from the canvas's bottom left corner (Left, Bottom, Width, Height) — Vertical, every lane from its bottom edge up, or Horizontal, from its left edge to the right; 1 … 218 lanes, the outer lanes' brush edges on its sides. DRAG stops before every next one. |
+| **Sausage · row · stripe (on CCD)** | A sausage: one paint squeezed across a stripe's lanes, SAUSAGE_W along them (5 mm, est.), the owner's hand on a MARKS dash. A stripe: neighbouring lanes, 1, 2, 3 or 6 (TAPE's stripes). A row: the sausages at one place along the lanes; the rows evenly from the paint's edge to the far one, both in — Rows, 1 … 12, four on the owner's 20 × 20 (2026-10-13). Density: the paint in a sausage, 50 % the measured one, the line full 70 mm, then fading. |
+| **Genesis (on CCD)** | The pattern a rectangle's sausages were laid in — its lanes, pitch, rows, stripes and paints — on the rectangle as it was (New spokes, a meta key, New colours with none lying); a bigger rectangle repeats it at its scale, its pitch kept and its lanes more, the stripes and the rows again and again, cut at its sides (the owner, 2026-10-13: "from the genesis 20 × 20 we then enlarge it as an ornament … a repeat at the same scale, not bigger"). |
+| **Duo (on CCD)** | DRAG's third key on CCD, after TAPE-colors/IMAGE 2026-10-12 18:44:00: every lane from the far edge to the middle, the brush lifting there and flying back to the next, then every lane from the paint's edge to the middle — the top half first, the right one on a horizontal rectangle (2026-10-13). |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -387,7 +390,28 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the flat brush, the tests showed it is useless"): till then the flat one,
   turned by hand where the direction turns. **HOME** next to STOP (the owner, the same
   day: "so that the arm with the brush goes back to the bottom left
-  corner"): the brush up, the carriage home, when nothing runs.
+  corner"): the brush up, the carriage home, when nothing runs; on TAPE
+  and BASF too ("yes, it can go on TAPE and BASF"). **TAPE's paints on
+  CCD, straight** (the owner, 2026-10-13, Cruz-Diez/IMAGE 2026-10-13
+  14:47:37: "I want to bring these paints to our CCD tab … the intensity
+  of the paint sausages must be regulated … at a run there is enough for
+  70 mm on average, then it starts to fade"; "PAINTS i, New colours, New
+  spokes, meta 1, meta 2 (presets) and DENSITY, and the set of paints in
+  use — only ours go straight"): sausages in rows across the lanes; **MARKS**
+  added, no TRACE, Snake and Air kept ("CCD will probably need MARKS — no
+  trace — and SNAKE and AIR stay"); **rows inside, a slider for them** ("my
+  20 × 20 had four rows in all, two in the middle and at the edges, left and
+  right; I chose the horizontal run"); **the genesis repeated at the same
+  scale** on 30 × 30 and 40 × 40 ("on 40 × 40 they are copied as a pattern
+  — that is the trick of the algorithm"; "a repeat at the same scale, not
+  bigger"); **the drips wanted** ("the drops show it is not a digital
+  print, that is the whole point"); **Duo** ("a run to the centre, a lift,
+  back … then from the other edge to the centre"; the return in the air,
+  the right half first on a horizontal rectangle: "it will do, that is how
+  it was meant"); **meta 3, meta 4** from TAPE-colors/ 18:43:57 and 18:43:59
+  ("beautiful combinations"). Density at 50 % the measured 70 mm, the rest
+  of the paint's behaviour est.; a palette and a pattern each rectangle's
+  own, the Result's Snake leaving its bead at a lane's end (all *Claude's*).
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
