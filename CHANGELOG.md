@@ -3,7 +3,31 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v.1.0.8 — 2026-10-13 · Genesis
+
+- **v.1.0.8, CCD in colour** (the owner, 2026-10-13: "hooray!!! thank
+  you! all great. Now we can push and make an update on GitHub, it is
+  REMBRANDT v.1.0.8"), on every tab and in the saved SVGs (`rembrandt:
+  '1.0.8'`). Named Genesis (*Claude's name*), after the pattern born on a
+  20 × 20 and repeated on the bigger canvases. What is new:
+  - **CCD paints like TAPE, in straight rows.** The owner's 24 paints by
+    the Tools; sausages squeezed in rows across the lanes, a stripe of 1,
+    2, 3 or 6 lanes each; New colours, New spokes, meta 1 … 4, Density,
+    the paints in use with their counts. **Rows** 1 … 12, evenly from edge
+    to edge — four on the 20 × 20.
+  - **Density in millimetres.** At 50 % the measured sausage: the line
+    full 70 mm, then fading; twice the paint every 25 %.
+  - **The genesis repeated.** A pattern laid on 20 × 20 repeats at the same
+    scale on 30 × 30 and 40 × 40: the pitch kept, more lanes, the stripes
+    and rows again and again.
+  - **MARKS** on CCD: a watercolour dash where every sausage goes. **Duo**:
+    every lane from the far edge to the middle and back in the air, then
+    from the other edge. **Drag · Result**: where to squeeze, and the
+    painting as Snake, Air or Duo would leave it (est.).
+  - **Black arrows**: a paint clicked in the list shows its places,
+    numbered in the order MARKS goes.
+  - **HOME** next to STOP on CCD, TAPE and BASF: the brush up, the
+    carriage home. CCD's brush round, the flat one gone.
 
 - **CCD: a paint's places under black arrows** (the owner, 2026-10-13,
   Cruz-Diez/Screenshot 3.48.15 PM: "highlight with black arrows where to add

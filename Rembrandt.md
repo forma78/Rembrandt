@@ -237,7 +237,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   brush (the owner: "great! thank you very much! we set v.1.0.6 and can
   push it to GitHub"); **v.1.0.7**, Phone, on 2026-10-13, with the pages
   laid out for the iPhone (the owner: "all great. We can push. Make it
-  v.1.0.7, write an update about the mobile version").
+  v.1.0.7, write an update about the mobile version"); **v.1.0.8**,
+  Genesis, on 2026-10-13, with CCD's paints in straight rows, MARKS, Duo,
+  the genesis repeated and HOME (the owner: "now we can push and make an
+  update on GitHub, it is REMBRANDT v.1.0.8").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -823,7 +826,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.7**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
+  **v.1.0.8**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
   NOLAN · Test · Ink · Calibration · Library** (TAPE first and BASF after it
   since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
