@@ -21,7 +21,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
-import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME, SIDE_NAME } from './ccdplan.js';
+import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME } from './ccdplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -445,7 +445,7 @@ addEventListener('keydown', e => {
 // The rectangles and the chosen one's: its direction, its lanes, its place and
 // size by the ruler; the brush; the canvas from home; the file.
 const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['before', 'Lands before the paint\'s edge', 'mm', 0.5, 0, 30], ['past', 'Lifts past the far edge', 'mm', 0.5, 0, 30]];
-const SL_TITLE = { brush: 'The flat brush across the run: a lane\'s width', drag: 'The dry brush along a lane', before: 'How far outside the rectangle, before the edge the paint is squeezed along, the brush lands', past: 'How far past the rectangle\'s far edge it runs before it lifts' };
+const SL_TITLE = { brush: 'The brush across the run: a lane\'s width', drag: 'The dry brush along a lane', before: 'How far outside the rectangle, before the edge the paint is squeezed along, the brush lands', past: 'How far past the rectangle\'s far edge it runs before it lifts' };
 const valOf = key => key === 'drag' ? `${S.drag} mm/s` : `${fmt(S[key], 1)} mm`;
 $('#slBrush').innerHTML = BRUSH_SL.map(([key, label, , step, min, max]) => `<label class="sl" title="${SL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
 $('#slBrush').querySelectorAll('input').forEach(inp => {
@@ -466,7 +466,7 @@ function showRect() {
   const pl = planNow().rects[S.sel];
   box.innerHTML = `
     <h4>Rectangle ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
-    <div class="toggles looks"><button class="tog${r.dir === 'up' ? ' on' : ''}" data-dir="up" title="Every lane from the bottom edge up: the paint squeezed along the bottom edge, the flat brush's wide side left to right">Vertical ↑</button><button class="tog${r.dir === 'right' ? ' on' : ''}" data-dir="right" title="Every lane from the left edge to the right: the paint squeezed along the left edge, the flat brush's wide side bottom to top">Horizontal →</button></div>
+    <div class="toggles looks"><button class="tog${r.dir === 'up' ? ' on' : ''}" data-dir="up" title="Every lane from the bottom edge up: the paint squeezed along the bottom edge">Vertical ↑</button><button class="tog${r.dir === 'right' ? ' on' : ''}" data-dir="right" title="Every lane from the left edge to the right: the paint squeezed along the left edge">Horizontal →</button></div>
     <div class="sliders"><label class="sl" title="How many lanes the brush runs across the rectangle, edge to edge, 1 … ${LANES_MAX}; the pitch follows"><span class="slh"><span>Lanes</span><span class="val" id="o-rL">${r.lanes} · ${fmt(pl?.pitch ?? 0, 2)} mm apart</span></span><input class="slider" type="range" id="rL" min="1" max="${LANES_MAX}" step="1" value="${r.lanes}"></label></div>
     <p class="read" id="rGap">${pl ? gapText(pl) : ''}${pl && pl.runs.length > 1 && acrossOf(r) <= S.brush ? ' — the brush is as wide as the rectangle: every lane on its middle' : ''}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
@@ -496,13 +496,6 @@ $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
   settle();
 });
 $('#planInfo').onclick = () => { $('#planRead').hidden = !$('#planRead').hidden; $('#planInfo').classList.toggle('on', !$('#planRead').hidden); };
-// the flat brush: no servo turns it (Rembrandt.md §1, 2026-10-08), so it stands across the run by hand
-function brushRead() {
-  const dirs = [...new Set(S.rects.map(r => r.dir))];
-  if (!dirs.length) return '';
-  return dirs.length === 1 ? `The flat brush across the run: its wide side <b>${SIDE_NAME[dirs[0]]}</b>.`
-    : `The flat brush across the run: its wide side left to right for the vertical lanes, bottom to top for the horizontal. No servo turns it — DRAG stops before a rectangle that runs the other way, for you to turn it.`;
-}
 function showPanel() {
   for (const [key] of BRUSH_SL) {
     const inp = $(`#slBrush input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
@@ -510,7 +503,6 @@ function showPanel() {
   }
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
-  $('#brushRead').innerHTML = brushRead();
   $('#hint').textContent = HINT[S.tool];
 }
 const what = () => `${S.rects.length} rectangle${S.rects.length === 1 ? '' : 's'}`;
@@ -650,11 +642,10 @@ async function runDrag(mode) {
   if (!D.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to run: no rectangles on the canvas.</span>'; return; }
   if (walls(D)) { $('#runState').innerHTML = `<span class="warn">${walls(D)}</span>`; return; }
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
-  const turns = P.rects.some((r, i) => i && r.dir !== P.rects[i - 1].dir);
-  const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paint only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush${turns ? ', turn the flat brush where the direction turns' : ''} and squeeze its paint, then Continue.\n\n` : ''}`
+  const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paint only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush and squeeze its paint, then Continue.\n\n` : ''}`
     + (snake ? `${P.runs} lanes back and forth with the brush down, a step across at each end: the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a rectangle; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : `${P.runs} lanes, each one way: the brush lands at the paint's edge, runs to the far edge, lifts and flies back; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)
-    + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).\n\nThe flat brush: its wide side ${SIDE_NAME[first.dir]}. Is the paint squeezed along rectangle 1's ${EDGE_NAME[first.dir]} edge?`;
+    + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).\n\nIs the paint squeezed along rectangle 1's ${EDGE_NAME[first.dir]} edge?`;
   if (!confirm(`DRAG ${snake ? 'SNAKE' : 'AIR'} ${TAB_NAME}, ${what()}: ${text}`)) return;
   S.mode = mode; settle();
   await start(mode, D.blocks, { seconds: D.seconds, rows: D.rows },

@@ -51,8 +51,8 @@ test('DRAG: a row a lane, up the machine (+X) for vertical, to the right (+Y) fo
   close(up.a.x, -100, 'from the canvas\'s bottom edge'); close(up.b.x, 100, 'to its top'); close(up.a.y, -95, 'lane 1 brush half in from the left');
   assert.ok(right.b.y > right.a.y && Math.abs(right.b.x - right.a.x) < 1e-9, 'horizontal runs +Y');
   assert.deepEqual(R.stops.map(s => s.at), [4, 7]);
-  assert.match(R.stops[0].why, /^Rectangle 2, vertical/); assert.doesNotMatch(R.stops[0].why, /turn the flat brush/);
-  assert.match(R.stops[1].why, /turn the flat brush — its wide side bottom to top/); assert.match(R.stops[1].why, /along its left edge/);
+  assert.match(R.stops[0].why, /^Rectangle 2, vertical/); assert.match(R.stops[1].why, /along its left edge/);
+  assert.doesNotMatch(R.stops.map(s => s.why).join(' '), /flat brush/, 'a round brush: nothing to turn (2026-10-13)');
   close(R.length, 4 * 200 + 3 * 100 + 2 * 60, 'length');
   const P = dragPasses(R);
   assert.deepEqual(P.map(q => q.ps.length), [4, 3, 2]); assert.equal(P[0].why, null); assert.equal(P[1].why, R.stops[0].why);

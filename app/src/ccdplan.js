@@ -22,7 +22,6 @@ export const MIN_SIDE = 1;          // mm
 export const DIRS = ['up', 'right'];
 export const DIR_NAME = { up: 'vertical, bottom to top', right: 'horizontal, left to right' };
 export const EDGE_NAME = { up: 'bottom', right: 'left' };      // where the paint is squeezed
-export const SIDE_NAME = { up: 'left to right', right: 'bottom to top' };   // the flat brush's wide side, across the run
 
 const fin = Number.isFinite;
 // a rectangle as it may be kept: whatever is wrong in it put right, or null
@@ -69,14 +68,15 @@ export function planOf(rects, o) {
 // forth with the brush down, a step across at each end — stopsAt the lanes'
 // ends, so a PAUSE falls there, never on a lane, as ALU's snake. A stop
 // before every next rectangle — the brush wiped, its paint squeezed along
-// its edge, the flat brush turned when the direction turns
-export const stopWhy = (r, prev) => `Rectangle ${r.i + 1}, ${DIR_NAME[r.dir]}: wipe the brush${prev && prev.dir !== r.dir ? `, turn the flat brush — its wide side ${SIDE_NAME[r.dir]}` : ''}, squeeze its paint along its ${EDGE_NAME[r.dir]} edge, then Continue`;
+// its edge. A round brush: no flat one to turn (the owner, 2026-10-13: "we
+// do not take the flat brush, the tests showed it is useless")
+export const stopWhy = r => `Rectangle ${r.i + 1}, ${DIR_NAME[r.dir]}: wipe the brush, squeeze its paint along its ${EDGE_NAME[r.dir]} edge, then Continue`;
 export function dragRows(pl, o) {
   const ps = [], info = [], stops = [], at = q => toMachine([q[0] - o.cw / 2, o.ch / 2 - q[1]]);
-  let length = 0, prev = null;
+  let length = 0;
   for (const r of pl.rects) {
     if (!r.runs.length) continue;
-    if (ps.length) stops.push({ at: ps.length, why: stopWhy(r, prev) });
+    if (ps.length) stops.push({ at: ps.length, why: stopWhy(r) });
     if (o.snake) {
       const pieces = [], stopsAt = [], row = ps.length + 1, n = r.runs.length;
       let acc = 0, end = null;
@@ -91,7 +91,7 @@ export function dragRows(pl, o) {
       });
       ps.push(pieces.map((g, i) => ({ ...g, tilt: 0, row, ...(!i && stopsAt.length ? { stopsAt } : {}) })));
       info.push({ label: `Rectangle ${r.i + 1} · ${n > 1 ? `${n} lanes, the snake` : 'one lane'}`, ri: r.i, L: acc });
-      length += acc; prev = r;
+      length += acc;
       continue;
     }
     for (const ln of r.runs) {
@@ -100,7 +100,6 @@ export function dragRows(pl, o) {
       info.push({ label: `Rectangle ${r.i + 1} · lane ${ln.n} of ${r.runs.length}`, ri: r.i, L });
       length += L;
     }
-    prev = r;
   }
   return { ps, info, stops, runs: ps.length, length };
 }

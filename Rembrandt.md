@@ -382,9 +382,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   rectangle; Air, every lane one way, the brush lifting past the far edge
   and flying back (before, Air alone: "the paint lies along one edge only",
   *Claude's*). Vertical from the bottom up, Horizontal from the left; a stop before every
-  next rectangle, the flat brush turned by hand where the direction turns,
-  as no servo turns it (2026-10-08); the board the canvas and home, not the
-  whole image area (all *Claude's*).
+  next rectangle; the board the canvas and home, not the whole image area
+  (all *Claude's*). A round brush (the owner, 2026-10-13: "we do not take
+  the flat brush, the tests showed it is useless"): till then the flat one,
+  turned by hand where the direction turns.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner

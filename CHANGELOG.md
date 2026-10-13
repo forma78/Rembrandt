@@ -3,6 +3,13 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **CCD: a round brush, no flat one** (the owner, 2026-10-13: "we do not
+  take the flat brush, the tests showed it is useless — it does not work at
+  all"). The stop before a rectangle that runs the other way no longer asks
+  to turn the brush; the page no longer names a wide side.
+
 ## v.1.0.7 — 2026-10-13 · Phone
 
 - **v.1.0.7, Rembrandt on the phone** (the owner, 2026-10-13: "all great.
