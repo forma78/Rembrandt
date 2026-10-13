@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **CCD: a paint's places under black arrows** (the owner, 2026-10-13,
+  Cruz-Diez/Screenshot 3.48.15 PM: "highlight with black arrows where to add
+  the paint — I am a human, in the physical world my eyes run wild at so
+  much paint; I click Purple and it shows its seven places"). A paint
+  clicked in the list: Drag shows its sausages outlined black, the others
+  faint, a black arrow to each along its lane, numbered as MARKS goes — row
+  by row from the paint's edge; a white halo so they read on the dark table.
+  Clicked again, gone. Changing it by the strip stays as it was.
 - **CCD: the paints on the page** (the owner, 2026-10-13: "PAINTS i, New
   colours, New spokes, meta 1, meta 2 (presets) and DENSITY, and the set of
   paints in use — only ours go straight"). TAPE's strip of 24 paints by the

@@ -247,19 +247,48 @@ function drawLanes() {
 // dark edge so a light one reads; MARKS' dashes under them in watercolour,
 // as wide as the brush
 const WATER = '#6F8FB8';
+// A paint chosen in the list (the owner, 2026-10-13: "highlight with black
+// arrows where to add the paint — I am a human, in the physical world my eyes
+// run wild at so much paint; I click Purple and it shows its seven places"):
+// its sausages full, the others faint, a black arrow to each along the lane
+// from before it, numbered in MARKS' order — row by row from the paint's edge
+const shown = () => EDIT?.mode === 'change' ? EDIT.id : null;
 function drawSausages() {
-  const P = planNow();
+  const P = planNow(), show = shown(), arrows = [];
   g.save(); inMm(g); g.lineCap = 'round';
   for (const r of P.rects) {
     const ss = sausagesOf(r, S.brush); if (!ss.length) continue;
-    g.strokeStyle = WATER; g.globalAlpha = 0.28; g.lineWidth = S.brush;
+    g.strokeStyle = WATER; g.globalAlpha = show ? 0.12 : 0.28; g.lineWidth = S.brush;
     for (const q of ss) { const m = markOf(q, S.brush), a = placeOf(r, m.t, m.c0), b = placeOf(r, m.t, m.c1); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
-    g.globalAlpha = 1; g.lineWidth = Math.max(0.25, 1 / k); g.strokeStyle = 'rgba(36,34,31,.75)';
+    g.lineWidth = Math.max(0.25, 1 / k); g.strokeStyle = 'rgba(36,34,31,.75)';
+    const rows = [...new Set(ss.map(q => q.t))];
     for (const q of ss) {
-      const a = placeOf(r, q.a, q.c0), b = placeOf(r, q.b, q.c1), x = Math.min(a[0], b[0]), y = Math.min(a[1], b[1]), w = Math.abs(b[0] - a[0]), h = Math.abs(b[1] - a[1]);
+      const a = placeOf(r, q.a, q.c0), b = placeOf(r, q.b, q.c1), x = Math.min(a[0], b[0]), y = Math.min(a[1], b[1]), w = Math.abs(b[0] - a[0]), h = Math.abs(b[1] - a[1]), on = q.paint === show;
+      g.globalAlpha = show && !on ? 0.22 : 1;
       g.fillStyle = PAINT[q.paint].hex; g.fillRect(x, y, w, h); g.strokeRect(x, y, w, h);
+      if (on) { const j = rows.indexOf(q.t); arrows.push({ r, q, j, at: placeOf(r, q.a, (q.c0 + q.c1) / 2), box: [x, y, w, h] }); }
     }
   }
+  g.globalAlpha = 1;
+  if (arrows.length) {                                                               // the chosen paint's sausages outlined black
+    g.strokeStyle = '#000'; g.lineWidth = Math.max(0.5, 2 / k);
+    for (const A of arrows) g.strokeRect(...A.box);
+  }
+  g.restore();
+  if (!arrows.length) return;
+  arrows.sort((A, B) => A.r.i - B.r.i || A.j - B.j || (A.j % 2 ? B.q.c0 - A.q.c0 : A.q.c0 - B.q.c0));   // MARKS' order
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.lineCap = 'round'; g.lineJoin = 'round'; g.font = font(11, 600); g.textAlign = 'center'; g.textBaseline = 'middle';
+  const L = 30, gap = 3, head = 8;
+  arrows.forEach((A, n) => {
+    const tip = scr(A.at), d = A.r.dir === 'right' ? [1, 0] : [0, -1];               // along the lane, as the brush goes: up the screen, or to the right
+    const end = [tip[0] - d[0] * gap, tip[1] - d[1] * gap], tail = [end[0] - d[0] * L, end[1] - d[1] * L], side = [-d[1], d[0]];
+    const path = () => { g.beginPath(); g.moveTo(tail[0], tail[1]); g.lineTo(end[0], end[1]); g.moveTo(end[0] - d[0] * head + side[0] * head * 0.6, end[1] - d[1] * head + side[1] * head * 0.6); g.lineTo(end[0], end[1]); g.lineTo(end[0] - d[0] * head - side[0] * head * 0.6, end[1] - d[1] * head - side[1] * head * 0.6); };
+    g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 6; path(); g.stroke();      // a white halo: black reads on the dark table too
+    g.strokeStyle = '#000'; g.lineWidth = 2.5; path(); g.stroke();
+    const at = [tail[0] - d[0] * 9, tail[1] - d[1] * 9];                               // its number at the tail
+    g.fillStyle = 'rgba(255,255,255,.9)'; g.beginPath(); g.arc(at[0], at[1], 8, 0, 7); g.fill();
+    g.fillStyle = '#000'; g.fillText(String(n + 1), at[0], at[1] + 0.5);
+  });
   g.restore();
 }
 // The Result: every rectangle's sausages dragged as the DRAG key chosen runs
@@ -685,8 +714,8 @@ $('#paintList').onclick = e => {
   const x = e.target.closest('[data-x]'), add = e.target.closest('[data-add]'), pl = e.target.closest('[data-pl]');
   if (x) { EDIT = null; dropPaint(x.dataset.x); return; }
   if (add) EDIT = EDIT?.mode === 'add' ? null : { mode: 'add' };
-  else if (pl) EDIT = EDIT?.mode === 'change' && EDIT.id === pl.dataset.pl ? null : { mode: 'change', id: pl.dataset.pl };
-  showPanel();
+  else if (pl) { EDIT = EDIT?.mode === 'change' && EDIT.id === pl.dataset.pl ? null : { mode: 'change', id: pl.dataset.pl }; if (EDIT) S.view = 'drag'; }   // its places shown on Drag, black arrows
+  showPanel(); kick();
 };
 $('#paintInfo').onclick = () => { $('#paintRead').hidden = !$('#paintRead').hidden; $('#paintInfo').classList.toggle('on', !$('#paintRead').hidden); };
 $('#btnPaintsClear').onclick = () => { const r = S.rects[S.sel]; if (!r?.pat) return; undoPush(); delete r.pat; settle(); };
@@ -748,7 +777,7 @@ function showPanel() {
   }
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
-  $('#hint').textContent = EDIT ? (EDIT.mode === 'add' ? 'Add a paint to the palette: click it in the strip on the left (+ again: leave it).' : `Change ${PAINT[EDIT.id].name}: click the paint to put in its place in the strip on the left (${PAINT[EDIT.id].name} in the list again: leave it).`) : HINT[S.tool];
+  $('#hint').textContent = EDIT ? (EDIT.mode === 'add' ? 'Add a paint to the palette: click it in the strip on the left (+ again: leave it).' : `${PAINT[EDIT.id].name}: the black arrows show where to squeeze it, numbered row by row from the paint's edge. To change it, click the paint to put in its place in the strip on the left; ${PAINT[EDIT.id].name} in the list again: leave it.`) : HINT[S.tool];
   const on = (sel, attr, v) => document.querySelectorAll(sel).forEach(b => b.classList.toggle('on', b.dataset[attr] === v));
   on('#views [data-view]', 'view', S.view); on('#modeKeys [data-mode]', 'mode', S.mode);
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
