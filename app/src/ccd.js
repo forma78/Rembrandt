@@ -24,7 +24,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, alongOf, pitchOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME, MODES,
-  ROWS_MAX, CCD_META, DENSITY_NEW, MARKS_DIP, MARK_SPEED, DS, newPattern, recolour, lanesKept, rowsOf, stripesAcross, sausagesOf, markOf, marksRows, mixRect, reachOf, placeOf } from './ccdplan.js';
+  ROWS_MAX, OVER_NEW, CCD_META, DENSITY_NEW, MARKS_DIP, MARK_SPEED, DS, newPattern, recolour, lanesKept, rowsOf, stripesAcross, sausagesOf, markOf, marksRows, mixRect, reachOf, placeOf } from './ccdplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
@@ -42,12 +42,12 @@ const fin = v => Number.isFinite(v);
 // past the far edge it lifts (est.); the flights and the tail as ALU's.
 const S = {
   rects: [], sel: 0, tool: 'edit', mode: 'air',                                      // mode: the DRAG key last pressed, the LCD's numbers
-  brush: 10, drag: 60, before: 0, past: 0, travel: 180, tail: 3,
+  brush: 10, drag: 60, before: 0, past: 0, over: OVER_NEW, travel: 180, tail: 3,   // over: Duo's halves past the middle
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
   view: 'drag', density: DENSITY_NEW, paint: 'black', ink: true,                   // the paints (2026-10-13): the view; the paint in a sausage; M's paint; INK, MARKS' watercolour and TEST's dip
 };
-const NUM = ['sel', 'brush', 'drag', 'before', 'past', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
+const NUM = ['sel', 'brush', 'drag', 'before', 'past', 'over', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
 const TOOLS = ['edit', 'rect', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true;   // nothing kept yet: a rectangle the whole canvas
 function load() {
@@ -68,7 +68,7 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 const wholeCanvas = (o = {}) => cleanRect({ x: 0, y: 0, w: S.boardW, h: S.boardH, dir: o.dir, lanes: o.lanes });
 
 // ---------- the plan (ccdplan.js) ----------
-const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, before: S.before, past: S.past });
+const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, before: S.before, past: S.past, over: S.over });
 let PL = null, plKey = '';
 function planNow() {
   for (const r of S.rects) if (r.pat) r.lanes = lanesKept(r, S.brush);              // a pattern keeps its genesis's pitch: bigger, more lanes, the genesis repeated
@@ -93,12 +93,12 @@ const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x,
 // rectangle's lanes back and forth with the brush down; the air, a row a
 // lane, one way. A pause before every next rectangle (ccdplan.js,
 // dragPasses); PAUSE at a lane's end, never on the line, as ALU's DRAG.
-const RUNS = {}, MODE_NAME = { snake: 'snake', air: 'air', duo: 'Duo' };   // the LCD's last line, short
+const RUNS = {}, MODE_NAME = { snake: 'snake', air: 'air', duosnake: 'Duo Snake', duo: 'Duo Air' };   // the LCD's last line, short
 let busy = false;
 const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, runs: 0, mm: 0, stops: 0, fault: '' };
 const runOpts = rows => ({ ...DEFAULTS, speed: S.drag, travel: S.travel, tail: S.tail, lift: false, ink: false, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
 function dragRun(mode = S.mode) {
-  const P = planNow(), here = hereNow(), key = JSON.stringify([plKey, S.drag, S.travel, S.tail, here]);
+  const P = planNow(), here = hereNow(), key = JSON.stringify([plKey, S.drag, S.travel, S.tail, S.over, here]);
   if (RUNS[mode]?.key === key) return RUNS[mode];
   const R = dragRows(P, { ...po(), mode });
   RUNS[mode] = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), pauseAtEnds: true }, dragPasses(R)), rows: R.info, runs: R.runs, mm: R.length, stops: R.stops.length } : EMPTY) };
@@ -303,7 +303,7 @@ const RGROUND = [251, 250, 247];                                                
 const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
 const wave = (t, s) => { const u = t / STREAK_MM + hash(s, 7) * 50, f = Math.floor(u), x = u - f, e = x * x * (3 - 2 * x); return hash(f, s) * (1 - e) + hash(f + 1, s) * e; };
 function resultBitmap() {
-  const P = planNow(), key = JSON.stringify([plKey, S.density, S.mode]);
+  const P = planNow(), key = JSON.stringify([plKey, S.density, S.mode, S.over]);
   if (RESULT?.key === key) return RESULT;
   const W = S.boardW, H = S.boardH, ppm = Math.min(8, 4096 / Math.max(W, H)), c2 = document.createElement('canvas');
   c2.width = Math.ceil(W * ppm); c2.height = Math.ceil(H * ppm);
@@ -313,7 +313,7 @@ function resultBitmap() {
   c.lineCap = 'butt'; c.lineJoin = 'round';
   for (const r of P.rects) {
     if (!r.pat) continue;                                                            // no sausages, no paint
-    const M = mixRect(r, { brush: S.brush, before: S.before, past: S.past, density: S.density, mode: S.mode });
+    const M = mixRect(r, { brush: S.brush, before: S.before, past: S.past, over: S.over, density: S.density, mode: S.mode });
     for (const ln of M.lanes) ln.grooves.forEach((q, j, Gs) => {
       const off = ((j + 0.5) / Gs.length - 0.5) * S.brush, kk = 1 + q.shade, seed = ln.k * 13 + j + r.i * 977;
       c.lineWidth = S.brush / Gs.length * 1.25;
@@ -421,7 +421,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'before', 'past', 'density'];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'before', 'past', 'over', 'density'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -604,8 +604,8 @@ addEventListener('keydown', e => {
 // ---------- the panel ----------
 // The rectangles and the chosen one's: its direction, its lanes, its place and
 // size by the ruler; the brush; the canvas from home; the file.
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['before', 'Lands before the paint\'s edge', 'mm', 0.5, 0, 30], ['past', 'Lifts past the far edge', 'mm', 0.5, 0, 30]];
-const SL_TITLE = { brush: 'The brush across the run: a lane\'s width', drag: 'The dry brush along a lane', before: 'How far outside the rectangle, before the edge the paint is squeezed along, the brush lands', past: 'How far past the rectangle\'s far edge it runs before it lifts' };
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['before', 'Lands before the paint\'s edge', 'mm', 0.5, 0, 30], ['past', 'Lifts past the far edge', 'mm', 0.5, 0, 30], ['over', 'Duo Air: past the middle', 'mm', 0.5, 0, 20]];
+const SL_TITLE = { brush: 'The brush across the run: a lane\'s width', drag: 'The dry brush along a lane', before: 'How far outside the rectangle, before the edge the paint is squeezed along, the brush lands', past: 'How far past the rectangle\'s far edge it runs before it lifts', over: 'Duo Air: how far each half runs past the middle before it lifts — the head comes off about 5 mm before (the owner, 2026-10-13: "add 5 mm at the lift, the head with the brush comes off before the centre"); Duo Snake turns at the middle itself' };
 const valOf = key => key === 'drag' ? `${S.drag} mm/s` : `${fmt(S[key], 1)} mm`;
 $('#slBrush').innerHTML = BRUSH_SL.map(([key, label, , step, min, max]) => `<label class="sl" title="${SL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
 $('#slBrush').querySelectorAll('input').forEach(inp => {
@@ -788,17 +788,17 @@ const what = () => `${S.rects.length} rectangle${S.rects.length === 1 ? '' : 's'
 function settle() {
   busy = false;
   if (S.sel >= S.rects.length) S.sel = Math.max(0, S.rects.length - 1);
-  const P = planNow(), D = dragRun('air'), Ds = dragRun('snake'), Dd = dragRun('duo'), Mk = marksRun(), here = hereNow(), lines = [];
-  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.runs}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, ${fmt(Ds.mm / 1000, 1)} m with the steps across, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>: landing ${D.runs} times, ${fmt(D.mm / 1000, 1)} m, ≈ ${fmt(D.seconds / 60, 0)} min with the flights back (est.) · DRAG <b>Duo</b>: landing ${Dd.runs} times, ${fmt(Dd.mm / 1000, 1)} m, ≈ ${fmt(Dd.seconds / 60, 0)} min (est.)`);
+  const P = planNow(), D = dragRun('air'), Ds = dragRun('snake'), Dd = dragRun('duo'), Dds = dragRun('duosnake'), Mk = marksRun(), here = hereNow(), lines = [];
+  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.runs}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, ${fmt(Ds.mm / 1000, 1)} m with the steps across, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>: landing ${D.runs} times, ${fmt(D.mm / 1000, 1)} m, ≈ ${fmt(D.seconds / 60, 0)} min with the flights back (est.) · DRAG <b>Duo Snake</b>: landing ${Dds.runs} times, ${fmt(Dds.mm / 1000, 1)} m, ≈ ${fmt(Dds.seconds / 60, 0)} min (est.) · DRAG <b>Duo Air</b>: landing ${Dd.runs} times, ${fmt(Dd.mm / 1000, 1)} m, ≈ ${fmt(Dd.seconds / 60, 0)} min, ${fmt(S.over, 1)} mm past the middle (est.)`);
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${DIR_NAME[r.dir]}, <b>${r.runs.length}</b> lanes ${fmt(r.pitch, 2)} mm apart, ${gapText(r)}; the paint along its ${EDGE_NAME[r.dir]} edge, ${fmt(acrossOf(r), 1)} mm`);
   if (D.stops) lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paint, Continue`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
-  const warn = [D.fault && `The plan is wrong, DRAG Air will not run it: ${D.fault}.`, Ds.fault && `The plan is wrong, DRAG Snake will not run it: ${Ds.fault}.`, Dd.fault && `The plan is wrong, DRAG Duo will not run it: ${Dd.fault}.`, Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, walls(D), walls(Mk)].filter(Boolean);
+  const warn = [D.fault && `The plan is wrong, DRAG Air will not run it: ${D.fault}.`, Ds.fault && `The plan is wrong, DRAG Snake will not run it: ${Ds.fault}.`, Dd.fault && `The plan is wrong, DRAG Duo Air will not run it: ${Dd.fault}.`, Dds.fault && `The plan is wrong, DRAG Duo Snake will not run it: ${Dds.fault}.`, Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, walls(D), walls(Mk)].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.runs} lanes${Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · DRAG Snake ≈ ${fmt(Ds.seconds / 60, 0)} min · Air ≈ ${fmt(D.seconds / 60, 0)} min · Duo ≈ ${fmt(Dd.seconds / 60, 0)} min (est.)`;
+  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.runs} lanes${Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · DRAG Snake ≈ ${fmt(Ds.seconds / 60, 0)} min · Air ≈ ${fmt(D.seconds / 60, 0)} min · Duo Snake ≈ ${fmt(Dds.seconds / 60, 0)} min · Duo Air ≈ ${fmt(Dd.seconds / 60, 0)} min (est.)`;
   showFiles();
   showPanel(); showRects(); save(); layout(); lastLcd && lcd(lastLcd);
 }
@@ -927,10 +927,11 @@ async function runDrag(mode) {
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
   const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paint only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush and squeeze its paint, then Continue.\n\n` : ''}`
     + (snake ? `${P.runs} lanes back and forth with the brush down, a step across at each end: the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a rectangle; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
-      : mode === 'duo' ? `${P.runs} lanes, each in two halves: from the far edge to the middle, the brush lifting there and flying back to the next lane — the ${first.dir === 'right' ? 'right' : 'top'} half first — then from the paint's edge to the middle; the brush lands ${D.runs} times, ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+      : mode === 'duo' ? `${P.runs} lanes, each in two halves: from the far edge to ${fmt(S.over, 1)} mm past the middle, the brush lifting there and flying back to the next lane — the ${first.dir === 'right' ? 'right' : 'top'} half first — then from the paint's edge; the brush lands ${D.runs} times, ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+      : mode === 'duosnake' ? `${P.runs} lanes in two halves, each the snake: from the far edge to the middle and back with the brush down, lane after lane — the ${first.dir === 'right' ? 'right' : 'top'} half first — then the same from the paint's edge, turning at the middle; the brush lands ${D.runs} times, ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip${P.rects.some(r => r.pat && r.rows <= 2) ? '. Every other lane starts at the middle and takes its paint from the rows inside: with the edges\' rows only, those lanes stay dry' : ''}`
       : `${P.runs} lanes, each one way: the brush lands at the paint's edge, runs to the far edge, lifts and flies back; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)
     + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).\n\n${sausages ? 'Are the sausages squeezed on their marks, as Drag shows them?' : `Is the paint squeezed along rectangle 1's ${EDGE_NAME[first.dir]} edge?`}`;
-  if (!confirm(`DRAG ${mode.toUpperCase()} ${TAB_NAME}, ${what()}: ${text}`)) return;
+  if (!confirm(`DRAG ${MODE_NAME[mode].toUpperCase()} ${TAB_NAME}, ${what()}: ${text}`)) return;
   S.mode = mode; settle();
   await start(mode, D.blocks, { seconds: D.seconds, rows: D.rows },
     { page: TAB, pass: 'drag', mode, label: label(), settings: S, here: hereNow(), estimate_s: Math.round(D.seconds) });
@@ -938,6 +939,7 @@ async function runDrag(mode) {
 $('#btnSnake').onclick = () => runDrag('snake');
 $('#btnAir').onclick = () => runDrag('air');
 $('#btnDuo').onclick = () => runDrag('duo');
+$('#btnDuoSnake').onclick = () => runDrag('duosnake');
 // MARKS: a dash a sausage, then the owner squeezes them on the dashes
 $('#btnMarks').onclick = async () => {
   await loadInk(); settle();
@@ -979,7 +981,7 @@ $('#btnStop').onclick = () => post('/run/stop');
 // The LCD, as on ALU: DRAG's numbers while nothing runs.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 let started = null, lastLcd = null;
-const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', snake: 'DRAG SNAKE', air: 'DRAG AIR', duo: 'DRAG DUO' };
+const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', snake: 'DRAG SNAKE', air: 'DRAG AIR', duosnake: 'DRAG DUO SNAKE', duo: 'DRAG DUO AIR' };
 function lcd(st) {
   lastLcd = st;
   const P_ = dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);

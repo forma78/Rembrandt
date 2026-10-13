@@ -3,6 +3,24 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **CCD: Duo Snake and Duo Air; Duo Air 5 mm past the middle** (the owner,
+  2026-10-13, testing Duo: "add 5 mm at the lift, the head with the brush
+  comes off before the centre"; "I need two DUO — DUO SNAKE and DUO AIR …
+  DUO SNAKE, when the brush reaches the centre, turns and goes back; the
+  extra key will not fit in the row of SNAKE and AIR, it can be split").
+  The deck in two rows: MARKS · Snake · Air, under them Duo Snake · Duo
+  Air. Duo Air as Duo was, each half **Duo Air: past the middle** mm on
+  before it lifts — a slider under Brush, 5 mm by default; its Result's
+  paint ending 5 mm before the lift (LIFT_EARLY, the owner's observation),
+  at the middle. Duo Snake: each half the snake, from its edge to the middle
+  and back with the brush down, a step across at each end, turning at the
+  middle itself (no lift there, so no 5 mm); every other lane starts at the
+  middle and takes its paint from the rows inside, so with the edges' rows
+  only those lanes stay dry (the run's question says so). The Result as
+  Snake, Air, Duo Snake or Duo Air.
+
 ## v.1.0.8 — 2026-10-13 · Genesis
 
 - **v.1.0.8, CCD in colour** (the owner, 2026-10-13: "hooray!!! thank

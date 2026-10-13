@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanRect, cleanPat, lanesOf, pitchOf, gapOf, planOf, dragRows, dragPasses, dragSvg, LANES_MAX, ROWS_NEW, rowsOf, newPattern, recolour, dealPaints, lanesKept, stripesAcross, sausagesOf, marksRows, markOf, mixRect, reachOf, paintOf, CCD_META, MARKS_DIP, SAUSAGE_W, REACH_50 } from '../src/ccdplan.js';
+import { cleanRect, cleanPat, lanesOf, pitchOf, gapOf, planOf, dragRows, dragPasses, dragSvg, LANES_MAX, ROWS_NEW, rowsOf, newPattern, recolour, dealPaints, lanesKept, stripesAcross, sausagesOf, marksRows, markOf, mixRect, reachOf, paintOf, CCD_META, MARKS_DIP, SAUSAGE_W, REACH_50, OVER_NEW, LIFT_EARLY } from '../src/ccdplan.js';
 import { PAINT } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS } from '../src/strokes.js';
 
@@ -193,9 +193,50 @@ test('the Result on a rectangle: Air from the paint\'s edge; Duo from both edges
   const air = mixRect({ ...r, pat }, { ...o, mode: 'air' }), c = (M, t) => M.lanes[0].grooves[0].cover[t];
   assert.equal(air.lanes.length, 2); assert.equal(air.n, 301);
   assert.ok(c(air, 20) > 0.9 && c(air, 280) < 0.05, 'full near the paint, the ground at the far end');
-  const two = { ...r, h: 200, rows: 2 }, duo = mixRect({ ...two, pat: newPattern(two, 10, BW, 3) }, { ...o, mode: 'duo' });
+  const two = { ...r, h: 200, rows: 2 }, duo = mixRect({ ...two, pat: newPattern(two, 10, BW, 3) }, { ...o, mode: 'duo', over: 5 });
   assert.ok(c(duo, 20) > 0.9 && c(duo, 180) > 0.9, 'Duo: both halves from their own edges');
   assert.ok(c(duo, 100) > 0.05 && c(duo, 100) < 0.9, 'and thinning towards the middle, 100 mm from each');
   const snake = mixRect({ ...two, pat: newPattern(two, 10, BW, 3) }, { ...o, mode: 'snake' });
   assert.ok(snake.lanes[1].grooves[0].cover[180] > 0.9, 'the snake: lane 2 from the far edge down, its row there');
+});
+
+test('Duo Air past the middle: each half 5 mm on, as the head lifts before it (2026-10-13)', () => {
+  const r = cleanRect({ x: 0, y: 0, w: 200, h: 200, lanes: 4 }), h = cleanRect({ x: 0, y: 0, w: 200, h: 100, dir: 'right', lanes: 2 });
+  assert.equal(OVER_NEW, 5);
+  const R = dragRows(planOf([r, h], O), { ...O, mode: 'duo', over: 5 });
+  close(R.ps[0][0].b.x, -5, 'the top half down past the middle'); close(R.ps[4][0].b.x, 5, 'the bottom half up past it');
+  close(R.ps[8][0].b.y, -5, 'the right half past the middle'); close(R.ps[10][0].b.y, 5, 'the left half past it');
+});
+
+test('Duo Snake: a half one row, from its edge to the middle and back with the brush down, the far edge\'s half first; PAUSE at the lanes\' ends', () => {
+  const r = cleanRect({ x: 0, y: 0, w: 200, h: 200, lanes: 4 });
+  const R = dragRows(planOf([r], O), { ...O, mode: 'duosnake', over: 5 });
+  assert.equal(R.ps.length, 2, 'two rows, a half each'); assert.deepEqual(R.stops, []);
+  const [top, bottom] = R.ps;
+  assert.equal(top.length, 7, 'four lanes and three steps across'); assert.equal(top[0].stopsAt.length, 3);
+  close(top[0].a.x, 100, 'lane 1 from the top edge'); close(top[0].b.x, 0, 'to the middle itself: no lift there, the over Duo Air\'s');
+  close(top[1].a.x, 0, 'a step across there'); close(top[1].b.x, 0, '');
+  close(top[2].a.x, 0, 'lane 2 back up'); close(top[2].b.x, 100, 'to the top edge');
+  close(bottom[0].a.x, -100, 'then from the bottom edge'); close(bottom[0].b.x, 0, 'up to the middle');
+  assert.match(R.info[0].label, /from the far edge to the middle and back, the snake/);
+  const run = plotRun({ ...RUN, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R));
+  assert.equal(run.fault, '');
+});
+
+test('the Result of Duo Snake: lane 1 from the edges in, lane 2 from the middle out, fed by the rows inside', () => {
+  const BW = { name: 'bw', core: ['black', 'white'], accent: [] }, r = cleanRect({ x: 0, y: 0, w: 20, h: 200, lanes: 2, rows: 4 });
+  const M = mixRect({ ...r, pat: newPattern(r, 10, BW, 3) }, { brush: 10, before: 0, past: 0, density: 50, mode: 'duosnake', over: 5 }), c = k => M.lanes[k].grooves[0].cover;
+  assert.ok(c(0)[20] > 0.9 && c(0)[180] > 0.9, 'lane 1: both edges\' rows dragged in');
+  assert.ok(c(1)[50] > 0.9 && c(1)[150] > 0.9, 'lane 2: the inner rows dragged out');
+  const two = { ...r, rows: 2 }, D = mixRect({ ...two, pat: newPattern(two, 10, BW, 3) }, { brush: 10, before: 0, past: 0, density: 50, mode: 'duosnake', over: 5 });
+  assert.ok(D.lanes[1].grooves[0].cover[50] < 0.1, 'two rows, the edges only: lane 2, from the middle out, stays dry');
+});
+
+test('the Result of Duo Air: the paint ends LIFT_EARLY before the lift — 5 mm on, at the middle', () => {
+  const BW = { name: 'bw', core: ['black', 'white'], accent: [] }, r = cleanRect({ x: 0, y: 0, w: 20, h: 100, lanes: 1, rows: 2 }), pat = newPattern(r, 10, BW, 3);
+  const at = over => mixRect({ ...r, pat }, { brush: 10, before: 0, past: 0, density: 50, mode: 'duo', over }).lanes[0].grooves[0].cover;
+  assert.equal(LIFT_EARLY, 5);
+  const c5 = at(5), c0 = at(0);
+  assert.ok(c5[48] > 0.5 && c5[52] > 0.5, 'over 5: both halves to the middle');
+  assert.ok(c0[50] === 0 && c0[47] === 0 && c0[53] === 0, 'over 0: a gap at the middle, as the owner saw');
 });
