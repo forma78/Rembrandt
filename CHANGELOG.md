@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **CCD: Lanes a field with arrows** (the owner, 2026-10-13: "I do not
+  need '7.26 mm apart', only 32; arrows up and down as LEFT and BOTTOM,
+  for a finer setting"). The lanes typed or stepped one by one, the slider
+  under it as before; the pitch stays in the reading under Rows (the gap or
+  overlap) and in the plan's (i).
 - **CCD: Snake back to the next lane, as it was** (the owner, 2026-10-13,
   after a canvas, Cruz-Diez/IMAGE 2026-10-13 19:02:03: "let us bring SNAKE
   back with the return along the opposite lane, as it was"). Snake: the

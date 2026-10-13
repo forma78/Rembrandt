@@ -641,7 +641,7 @@ function showRect() {
   box.innerHTML = `
     <h4>Rectangle ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
     <div class="toggles looks"><button class="tog${r.dir === 'up' ? ' on' : ''}" data-dir="up" title="Every lane from the bottom edge up: the paint squeezed along the bottom edge">Vertical ↑</button><button class="tog${r.dir === 'right' ? ' on' : ''}" data-dir="right" title="Every lane from the left edge to the right: the paint squeezed along the left edge">Horizontal →</button></div>
-    <div class="sliders"><label class="sl" title="How many lanes the brush runs across the rectangle, edge to edge, 1 … ${LANES_MAX}; the pitch follows${r.pat ? ' — with sausages, their pattern laid anew on the rectangle as it is: its genesis' : ''}"><span class="slh"><span>Lanes</span><span class="val" id="o-rL">${r.lanes} · ${fmt(pl?.pitch ?? 0, 2)} mm apart</span></span><input class="slider" type="range" id="rL" min="1" max="${LANES_MAX}" step="1" value="${r.lanes}"></label>
+    <div class="sliders"><label class="sl" title="How many lanes the brush runs across the rectangle, edge to edge, 1 … ${LANES_MAX}; the pitch follows${r.pat ? ' — with sausages, their pattern laid anew on the rectangle as it is: its genesis' : ''}"><span class="slh"><span>Lanes</span><input class="num" type="number" id="rLn" min="1" max="${LANES_MAX}" step="1" value="${r.lanes}" aria-label="Lanes"></span><input class="slider" type="range" id="rL" min="1" max="${LANES_MAX}" step="1" value="${r.lanes}"></label>
       <label class="sl" title="The rows of sausages along the lanes, evenly from the paint's edge to the far one, both edges in; one: the paint's edge only (the owner, 2026-10-13: four on the 20 × 20, two in the middle and at both edges)"><span class="slh"><span>Rows</span><span class="val" id="o-rR">${rowsText(r)}</span></span><input class="slider" type="range" id="rR" min="1" max="${ROWS_MAX}" step="1" value="${r.rows}"></label></div>
     <p class="read" id="rGap">${pl ? gapText(pl) : ''}${pl && pl.runs.length > 1 && acrossOf(r) <= S.brush ? ' — the brush is as wide as the rectangle: every lane on its middle' : ''}${genesisText(r)}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
@@ -651,13 +651,20 @@ function showRect() {
     const v = +inp.value; if (inp.value === '' || !fin(v)) return settle();
     undoPush(); r[inp.dataset.r] = inp.dataset.r === 'x' ? clampX(v) : inp.dataset.r === 'y' ? clampY(v) : v; Object.assign(r, cleanRect(r)); settle();
   }; });
-  const inp = $('#rL'), rows = $('#rR');
-  inp.oninput = () => {
-    if (!busy) undoPush(); busy = true; r.lanes = +inp.value;
+  // Lanes by the slider, or typed and stepped by the field's arrows (the owner, 2026-10-13: "only 32 … arrows up and down as LEFT and BOTTOM, to set it finer")
+  const inp = $('#rL'), num = $('#rLn'), rows = $('#rR');
+  const lanesTo = v => {
+    if (!fin(v)) return;
+    if (!busy) undoPush(); busy = true; r.lanes = Math.round(Math.max(1, Math.min(LANES_MAX, v)));
     if (r.pat) r.pat = newPattern(r, S.brush, palOf(r), r.pat.seed);                  // the genesis anew, on the rectangle as it is
-    const q = planNow().rects[S.sel]; $('#o-rL').textContent = `${r.lanes} · ${fmt(q.pitch, 2)} mm apart`; $('#rGap').innerHTML = gapText(q) + genesisText(r); kick();
+    if (document.activeElement !== num) num.value = r.lanes;
+    inp.value = r.lanes;
+    const q = planNow().rects[S.sel]; $('#rGap').innerHTML = gapText(q) + genesisText(r); kick();
   };
+  inp.oninput = () => lanesTo(+inp.value);
   inp.onchange = () => settle();
+  num.oninput = () => { if (num.value !== '') lanesTo(+num.value); };
+  num.onchange = () => { num.value = r.lanes; settle(); };
   rows.oninput = () => { if (!busy) undoPush(); busy = true; r.rows = +rows.value; reRows(r); $('#o-rR').textContent = rowsText(r); kick(); };
   rows.onchange = () => settle();
   const act = (sel, fn) => box.querySelectorAll(sel).forEach(b => b.onclick = () => { undoPush(); fn(b); settle(); });
