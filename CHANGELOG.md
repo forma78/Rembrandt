@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Sand Yellow lighter: #FBE7BC** (the owner, 2026-10-13: "your Sand
+  Yellow is too yellow — FBE7BC, in life it is a little lighter"; #F3C06D,
+  read off the swatch, before). One paint list, so on TAPE, BASF and CCD
+  alike.
 - **CCD: Snake and Duo Snake back along the same lane** (the owner,
   2026-10-13: "yes, listen, along the same lane. Redo it here and in Snake.
   I am testing it live; sometimes in practice our ideas do not work as in

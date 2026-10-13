@@ -488,7 +488,7 @@ export const TAPE_PAINTS = [
   ['lemon', 'Lemon Yellow', '#FFF200', 'swatch'],
   ['p02', '02', '#FFE41E', 'swatch'],
   ['oyellow', 'Orange Yellow', '#FA9B00', 'swatch'],
-  ['sand', 'Sand Yellow', '#F3C06D', 'swatch'],
+  ['sand', 'Sand Yellow', '#FBE7BC', 'swatch'],   // the owner's, 2026-10-13: "too yellow — FBE7BC, in life a little lighter" (#F3C06D off the swatch before)
   ['ochre', 'Yellow Ochre', '#C68811', 'swatch'],
   ['orange', 'Orange', '#DB2B01', 'swatch'],
   ['red', 'Red', '#BF020B', 'swatch'],
