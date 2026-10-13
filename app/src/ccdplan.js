@@ -86,9 +86,10 @@ export function planOf(rects, o) {
 // DRAG's rows for plotRun, mm from the canvas's centre, in one of three ways
 // (the owner, 2026-10-11: "two DRAG keys — the snake and through the air"):
 // in the air, a row a lane, one way, the brush lifting at the far edge and
-// flying back; the snake (o.mode 'snake'), a rectangle one row, its lanes back and
-// forth with the brush down, a step across at each end — stopsAt the lanes'
-// ends, so a PAUSE falls there, never on a lane, as ALU's snake; Duo (o.mode
+// flying back; the snake (o.mode 'snake'), a rectangle one row, every lane
+// there and back along itself with the brush down, a step across at the
+// paint's edge to the next — stopsAt the lanes' ends, so a PAUSE falls
+// there, never on a lane, as ALU's snake; Duo (o.mode
 // 'duo', the owner, 2026-10-13, TAPE-colors/IMAGE 2026-10-12 18:44:00: "a run
 // to the centre, a lift, back — so the first part of the canvas from the top
 // down, then from the other edge to the centre"), every lane from the far
@@ -97,27 +98,30 @@ export function planOf(rects, o) {
 // a vertical rectangle, the right half on a horizontal one; each half o.over
 // mm past the middle, as the head lifts before it. Duo Snake (o.mode
 // 'duosnake', the owner, the same day: "two DUO — DUO SNAKE and DUO AIR …
-// DUO SNAKE, when the brush reaches the centre, turns and goes back"): a
-// half the snake, its lanes from its edge to the middle and back with the
-// brush down, turning at the middle itself — no lift there; a step across
-// at each end; the far edge's half first. A stop
+// DUO SNAKE, when the brush reaches the centre, turns and goes back" — "along
+// the same lane"): a half the snake, every lane from its edge to the middle
+// and back along itself with the brush down, turning at the middle itself —
+// no lift there; a step across at the edge; the far edge's half first. A stop
 // before every next rectangle — the brush wiped, its paint squeezed along
 // its edge. A round brush: no flat one to turn (the owner, 2026-10-13: "we
 // do not take the flat brush, the tests showed it is useless")
 export const stopWhy = r => `Rectangle ${r.i + 1}, ${DIR_NAME[r.dir]}: wipe the brush, squeeze its paint along its ${EDGE_NAME[r.dir]} edge, then Continue`;
 export const midOf = (r, ln, d = 0) => r.dir === 'right' ? [r.x + r.w / 2 + d, ln.a[1]] : [ln.a[0], r.y + r.h / 2 + d];   // a lane's middle, where Duo's halves meet, d mm on towards the far edge
-// the snake through lanes [[a, b]]: every other one the other way, a step across between → its pieces, where its lanes end, its length
+// the snake through lanes [[a, b]]: every lane there and back along itself,
+// the brush down, then a step across to the next one's start (the owner,
+// 2026-10-13, testing it live: "back along the same lane — redo it here and
+// in Snake; in practice our ideas do not always work as in theory"; till
+// then the next lane back) → its pieces, where its lanes end, its length
 function snakeOf(pairs, at) {
   const pieces = [], stopsAt = [];
   let acc = 0, end = null;
-  pairs.forEach(([a0, b0], j) => {
-    const [a, b] = j % 2 ? [b0, a0] : [a0, b0];
-    for (const [p, q] of [[end, a], [a, b]]) {
+  pairs.forEach(([a, b], j) => {
+    for (const [p, q] of [[end, a], [a, b], [b, a]]) {
       if (!p || Math.hypot(q[0] - p[0], q[1] - p[1]) < 1e-6) continue;              // no step across when the lanes lie on one line
       const g = { t: 'L', a: at(p), b: at(q) }; pieces.push(g); acc += pieceLen(g);
     }
     if (j < pairs.length - 1) stopsAt.push(acc);
-    end = b;
+    end = a;
   });
   return { pieces, stopsAt, L: acc };
 }
@@ -359,9 +363,10 @@ export function laneWalk(n, deps, strokes, kd = 1) {
 }
 // A rectangle's Result: every lane its grooves, as DRAG runs them — Air every
 // lane from the paint's edge, the snake back and forth the brush carried
-// across, Duo Air from the far edge to the middle, then from the paint's
-// edge, its paint ending LIFT_EARLY before where the brush lifts, o.over
-// past the middle; Duo Snake each half back and forth, turning at the middle.
+// across, every lane there and back along itself; Duo Air from the far edge
+// to the middle, then from the paint's edge, its paint ending LIFT_EARLY
+// before where the brush lifts, o.over past the middle; Duo Snake each half
+// there and back along every lane, turning at the middle.
 // → { t0 (mm, sample 0, before the paint's edge), n, lanes: [{ k, c, grooves: [{ rgb, cover, shade }] }] }
 export function mixRect(r, o) {
   const L = alongOf(r), before = o.before || 0, past = o.past || 0, n = Math.max(2, Math.round((L + before + past) / DS) + 1), iOf = t => Math.max(0, Math.min(n - 1, Math.round((t + before) / DS)));
@@ -372,14 +377,13 @@ export function mixRect(r, o) {
   for (const q of ss) { const c = linOf(PAINT[q.paint].hex), i0 = iOf(q.a), i1 = Math.max(i0, iOf(q.b) - 1); for (let k = q.k0; k <= q.k1; k++) byLane[k].push([i0, i1, c, V * (q.thin ? THIN : 1)]); }
   const carry = GROOVE_K.map(() => [true, true]);                                  // the brush across the step, a half each; a clean one at first
   for (let k = 0; k < r.lanes; k++) {
-    const odd = k % 2, way = (a, b) => odd ? [b, a] : [a, b];
     const strokesOf = c => o.mode === 'duo' ? [[n - 1, m1, true], [0, m2, true]]
-      : o.mode === 'duosnake' ? [[...way(n - 1, m1), c[0]], [...way(0, m2), c[1]]]
-      : o.mode === 'snake' ? [[...way(0, n - 1), c[0]]] : [[0, n - 1, true]];
+      : o.mode === 'duosnake' ? [[n - 1, m1, c[0]], [m1, n - 1, false], [0, m2, c[1]], [m2, 0, false]]
+      : o.mode === 'snake' ? [[0, n - 1, c[0]], [n - 1, 0, false]] : [[0, n - 1, true]];
     const grooves = GROOVE_K.map(([kv, kd, shade], g) => {
       const deps = byLane[k].flatMap(([i0, i1, c, v]) => Array.from({ length: i1 - i0 + 1 }, (_, j) => [i0 + j, c, v * kv / (i1 - i0 + 1)]));
       const w = laneWalk(n, deps, strokesOf(carry[g]), kd);
-      if (snaky) carry[g] = w.outs.map(q => ({ b: Math.min(q.b, HOLD), bc: q.bc }));
+      if (snaky) carry[g] = w.outs.filter((_, i) => i % 2).map(q => ({ b: Math.min(q.b, HOLD), bc: q.bc }));   // the brush back at a lane's start, over the step
       return { rgb: w.rgb, cover: w.cover, shade };
     });
     lanes.push({ k, c: laneAt(r, o.brush, k), grooves });

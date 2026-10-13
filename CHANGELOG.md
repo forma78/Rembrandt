@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **CCD: Snake and Duo Snake back along the same lane** (the owner,
+  2026-10-13: "yes, listen, along the same lane. Redo it here and in Snake.
+  I am testing it live; sometimes in practice our ideas do not work as in
+  theory"). Every lane there and back along itself with the brush down,
+  then a step across to the next one's start — at the paint's edge on
+  Snake, at each half's edge on Duo Snake; PAUSE at a lane's end as before.
+  Before, the next lane back. Snake now takes about twice as long. The
+  Result drags every lane both ways.
 - **CCD: Duo Snake and Duo Air; Duo Air 5 mm past the middle** (the owner,
   2026-10-13, testing Duo: "add 5 mm at the lift, the head with the brush
   comes off before the centre"; "I need two DUO — DUO SNAKE and DUO AIR …
