@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TAPE · BASF: a drop's name under the pointer on Drag** (the owner,
+  2026-10-13: "make tooltips on Drag — when I bring the pointer to a
+  colour, the drop's name pops up; on the small drops I cannot tell Black
+  from Purple"). A cloud by the pointer: the paint's chip, its name, *thin*
+  for an accent; the spoke nearest within its dark edge (1.8 mm, 4 px at
+  least), the one drawn last when two meet. Drag only, not during Play.
+
 - **TAPE · BASF: Drag's lanes grey 15 %** (the owner, 2026-10-13,
   `TAPE-colors/Screenshot 2026-10-13 at 12.51.57 PM.png`: "the outline in
   DRAG is too black. Make it grey please, 30 % — it will be easier for me

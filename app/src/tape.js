@@ -637,8 +637,33 @@ cv.addEventListener('pointerdown', e => {
   const k0 = Math.max(0, Math.round(G.pts[i].l)), near = S.spokes.map(sp => ({ sp, d: Math.hypot(...spokePoint(G, sp.u, k0).map((v, j) => v - [x, y][j])) })).filter(q => q.d < 5).sort((a, b) => a.d - b.d)[0];
   grab = { u: near ? near.sp.u : G.pts[i].u, l0: G.pts[i].l, l1: G.pts[i].l, moved: false }; cv.setPointerCapture(e.pointerId); kick();
 });
+// The drop's name under the pointer on Drag (the owner, 2026-10-13: "on the small drops I cannot tell Black from Purple")
+function spokeUnder(G, x, y) {
+  let best = null, bd = Math.max(1.8, 4 / k);                                      // the spoke's dark edge, 3.6 mm across; 4 px at least
+  for (const sp of S.spokes) {
+    const L = spokeLine(G, sp);
+    for (let i = 0; i < L.length; i++) {
+      const a = L[i], b = L[i + 1] || a, dx = b[0] - a[0], dy = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+      const d = Math.hypot(a[0] + dx * t - x, a[1] + dy * t - y);
+      if (d <= bd) { bd = d; best = sp; }                                           // <=: the one drawn last, on top
+    }
+  }
+  return best;
+}
+function showTip(e) {
+  const tip = $('#spokeTip'), [x, y] = toCanvas(e), half = [S.boardW / 2, S.boardH / 2];
+  const sp = S.view === 'drag' && !grab && !PLAY && Math.abs(x) <= half[0] && Math.abs(y) <= half[1] ? spokeUnder(planNow(), x, y) : null;
+  if (!sp) { tip.hidden = true; return; }
+  const q = PAINT[sp.paint], r = $('#board').getBoundingClientRect();
+  tip.innerHTML = `<i style="background:${q.hex}"></i>${q.name}${S.palette?.accent.includes(q.id) ? ' <em>thin</em>' : ''}`;
+  tip.hidden = false;
+  const X = e.clientX - r.left, Y = e.clientY - r.top, w = tip.offsetWidth;
+  tip.style.left = `${X + 14 + w > r.width ? X - 14 - w : X + 14}px`; tip.style.top = `${Math.max(0, Y - 30)}px`;
+}
+cv.addEventListener('pointerleave', () => { $('#spokeTip').hidden = true; });
 cv.addEventListener('pointermove', e => {
   cv.style.cursor = S.tool === 'spoke' ? 'crosshair' : '';
+  showTip(e);
   if (!grab) return;
   const G = planNow(), [x, y] = toCanvas(e), i = nearestSample(G, x, y);
   if (i >= 0) { grab.l1 = G.pts[i].l; grab.moved = grab.moved || Math.abs(grab.l1 - grab.l0) >= 0.5; }
@@ -731,7 +756,7 @@ latch('#seamKeys [data-seam]', b => { S.seam = b.dataset.seam; });
 latch('#dirKeys [data-dir]', b => { S.dir = b.dataset.dir; });
 latch('#typeKeys [data-btype]', b => { S.brushType = b.dataset.btype; });
 latch('#traceKeys [data-trace]', b => { S[b.dataset.trace] = !S[b.dataset.trace]; });
-document.querySelectorAll('#views [data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; stopPlay(); save(); showPanel(); layout(); });
+document.querySelectorAll('#views [data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; $('#spokeTip').hidden = true; stopPlay(); save(); showPanel(); layout(); });
 $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
