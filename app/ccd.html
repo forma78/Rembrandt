@@ -69,7 +69,7 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <!-- the cassette deck: TEST and PAUSE; DRAG alone — no TRACE, no MARKS (the owner, 2026-10-11) — in two keys,
+      <!-- the cassette deck: TEST and PAUSE; STOP and HOME (the owner, 2026-10-13); DRAG alone — no TRACE, no MARKS (the owner, 2026-10-11) — in two keys,
            the snake and through the air ("two DRAG keys — the snake and through the air; on ALU-CUT we made a switch, here it is all simple") -->
       <div class="runkeys deck">
         <button class="btn" id="btnTest" title="TEST, before DRAG: one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
@@ -81,6 +81,7 @@
       </div>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
+        <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
       </div>
     </section>
 

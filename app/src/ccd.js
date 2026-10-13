@@ -19,7 +19,7 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
+import { plotRun, DEFAULTS, ELBOW_HOVER, ELBOW_UP, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME } from './ccdplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -671,6 +671,14 @@ $('#btnTest').onclick = async () => {
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
     { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), cup: cup(), estimate_s: Math.round(T.seconds) });
 };
+// HOME (the owner, 2026-10-13: "next to STOP make a HOME, so that the arm
+// with the brush goes back to the bottom left corner"): the brush up, the
+// carriage to home — the two blocks every run ends with (strokes.js, plotRun)
+function homeBlocks() {
+  const h = homeCorner(), f = v => (Math.round(v * 100) / 100).toFixed(2);
+  return [{ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 1 }, { kind: 'move', cmds: [`T ${S.travel}`, `M ${f(h.x)} ${f(h.y)}`, 'G'], lengthMM: null, paintMM: 0, row: 1, home: true }];
+}
+$('#btnHome').onclick = () => start('home', homeBlocks(), { seconds: 0, rows: [{ label: 'HOME' }] }, { page: TAB, label: `${TAB_NAME} · HOME`, here: hereNow() });
 let paused = false;
 $('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
 $('#btnStop').onclick = () => post('/run/stop');
@@ -678,6 +686,7 @@ $('#btnStop').onclick = () => post('/run/stop');
 // The LCD, as on ALU: DRAG's numbers while nothing runs.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 let started = null, lastLcd = null;
+const KEY_NAME = { test: 'TEST', home: 'HOME', snake: 'DRAG SNAKE', air: 'DRAG AIR' };
 function lcd(st) {
   lastLcd = st;
   const P_ = dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
@@ -692,14 +701,15 @@ function lcd(st) {
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
+  $('#btnHome').disabled = !!live;                                                    // HOME when nothing runs: after STOP, or at the end
   document.querySelectorAll('.deck [data-pass], #btnTest').forEach(el => el.classList.toggle('on', !!live && (el.dataset.pass || 'test') === RUN_KEY));   // the running key stays down
   const now = waiting ? `❚❚ ${st.message}`
-    : live && b?.home ? 'done · the carriage goes home, the brush off'
+    : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off')
     : live && now0 && b?.dip ? `${now0} · the dip in the cup`
     : live && now0 ? now0 + (st.brush_on ? ' · brush on' : ' · brush off')
     : `${planNow().runs} lanes · ${what()} · ${MODE_NAME[S.mode]}`;
   $('#lcd').innerHTML = `
-    <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${RUN_KEY === 'test' ? 'TEST' : `DRAG ${RUN_KEY.toUpperCase()}`}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
+    <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
       <div class="lcd-times"><span class="k">left</span>${segments(mmss(left), 17)}<span class="k">total</span>${segments(mmss(total), 17)}</div>

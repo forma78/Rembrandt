@@ -385,7 +385,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   next rectangle; the board the canvas and home, not the whole image area
   (all *Claude's*). A round brush (the owner, 2026-10-13: "we do not take
   the flat brush, the tests showed it is useless"): till then the flat one,
-  turned by hand where the direction turns.
+  turned by hand where the direction turns. **HOME** next to STOP (the owner, the same
+  day: "so that the arm with the brush goes back to the bottom left
+  corner"): the brush up, the carriage home, when nothing runs.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner

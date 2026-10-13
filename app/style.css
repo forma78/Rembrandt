@@ -639,7 +639,7 @@ body.type .status{grid-column:1/4;grid-row:4}
 .alu .stops .hint{font-size:11px;color:var(--mute);margin-left:4px}
 /* the deck's STOP, no dots, and the snake's switch at its right, under DRAG (the owner, 2026-10-10): the repeat icon, Off and On as INK's; no HARD STOP */
 .alu .stops.deckstops{flex-wrap:nowrap;gap:12px;margin-top:10px}
-.alu .deckstops #btnStop{flex:1}
+.alu .deckstops #btnStop,.alu .deckstops #btnHome{flex:1}
 .alu .deckstops #btnStop::before{display:none}
 .alu .loopsw{margin:0 2px 0 0;gap:8px}
 .alu .loopsw svg{width:22px;height:22px;fill:none;stroke:var(--mute);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;cursor:pointer}
