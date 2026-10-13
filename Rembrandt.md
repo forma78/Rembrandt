@@ -232,7 +232,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   "a small update to v.1.0.5"); **v.1.0.6**, Tape, on 2026-10-12, with TAPE
   first, BASF after it, the owner's paints and their spokes mixed by the
   brush (the owner: "great! thank you very much! we set v.1.0.6 and can
-  push it to GitHub").
+  push it to GitHub"); **v.1.0.7**, Phone, on 2026-10-13, with the pages
+  laid out for the iPhone (the owner: "all great. We can push. Make it
+  v.1.0.7, write an update about the mobile version").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -794,7 +796,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.6**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
+  **v.1.0.7**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
   NOLAN · Test · Ink · Calibration · Library** (TAPE first and BASF after it
   since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
@@ -810,6 +812,13 @@ this section disagree, this section wins: the owner corrected the sketch on
   colours, the curve — with the whole painting, the reference included, in
   its metadata; a click in the Library opens it again. `app/library/`, on
   this Mac, not in git.
+- **The phone** (2026-10-13, v.1.0.7): up to 760 px wide, or 500 px high
+  lying down, every page one column that scrolls — the top row's tabs slide
+  sideways, the current one in sight; the zoom; the board the screen's
+  width (lying down its height); the tools in a row; the panel; the status.
+  TAPE and BASF upright: the paints two rows of 12 under the board. The
+  Mac's page as it was. The phone reaches the Mac through a view-only
+  bridge on port 5165 (reading only; runs and saves stay on the Mac).
 - **Format** — the canvas laid on the image area: **500 × 700** (default),
   **600 × 800**, **400 × 600** and **400 × 300** mm (the last two the owner's,
   2026-10-02); 700 × 1000 is out of reach and gone. Drawn as on the

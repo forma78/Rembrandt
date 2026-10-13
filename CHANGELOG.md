@@ -3,7 +3,30 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v.1.0.7 — 2026-10-13 · Phone
+
+- **v.1.0.7, Rembrandt on the phone** (the owner, 2026-10-13: "all great.
+  We can push. Make it v.1.0.7, write an update about the mobile
+  version"), on every tab and in the saved SVGs (`rembrandt: '1.0.7'`).
+  Named Phone (*Claude's name*). The paintings can now be looked at on the
+  iPhone, whose screen shows the colours better than the old monitor by
+  the Mac (the owner: "the colours are not as juicy there"):
+  - **How to open it.** The iPhone on the same Wi-Fi as the Mac, Safari at
+    `http://<the Mac's address>:5165/` (on 2026-10-13
+    `http://192.168.0.227:5165/`; the router may give the Mac another
+    after a restart). A small bridge on the Mac passes the pages from
+    `rembrandt.py`, which still listens on this Mac only, untouched. It is
+    Claude's, outside the repo for now, and runs while the Mac is awake.
+  - **To look, not to run.** The bridge passes reading only: no TEST,
+    TRACE, SNAKE or AIR, no SAVE and no deleting in the Library from the
+    phone. To see a painting from the Mac as it is: 💾 SAVE on the Mac,
+    then open it from the Library on the phone (the phone keeps its own
+    settings; the Mac's palette and spokes do not travel by themselves).
+  - **What the phone shows.** The page one column: the tabs a row that
+    slides sideways, the board the screen's width, TAPE's paints two rows
+    of 12 under it, the tools, then PROGRESS and the settings, scrolled
+    down. Lying down, the board the screen's height. A tap on a drop on
+    Drag names its paint.
 
 - **The phone** (the owner, 2026-10-13, on the iPhone over the home Wi-Fi:
   "better make a mobile version, if you can — the right panel with the
