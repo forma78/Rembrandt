@@ -220,7 +220,7 @@ function layout() {
 let drawSoon = 0;
 const kick = () => { if (!drawSoon) drawSoon = requestAnimationFrame(() => { drawSoon = 0; draw(); }); };
 const font = (px, w = '') => `${w} ${px}px ` + getComputedStyle(document.body).getPropertyValue('--mono');
-const ORANGE = '#EB7A25', GROUND = '#FBFAF7', DRY = '#7D7A74', WATER = '#6F8FB8', RUST = '#C0603D';
+const ORANGE = '#EB7A25', GROUND = '#FBFAF7', DRY = '#7D7A74', WATER = '#6F8FB8', RUST = '#C0603D', LANE = 'rgba(36,34,31,.3)';   // LANE: DRAG's lanes, grey 30 %
 function draw() {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   const W = g.canvas.width / dpr, H = g.canvas.height / dpr, hw = S.boardW / 2, hh = S.boardH / 2;
@@ -289,13 +289,13 @@ function drawTrace() {
   g.restore();
   if (!S.traceTape && !S.traceCass) { g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = themeColor('--mute', '#7D776D'); g.font = font(12); g.textAlign = 'center'; g.fillText('TRACE is off: neither the outline nor the guide', sx([0]), sy([0, 0])); g.restore(); }
 }
-// DRAG: the tape's centre line, a colour a run in turn; dashed where the brush flies; a run numbered at its start
+// DRAG: the tape's centre line in grey 30 % (the owner: the black hid the paints' dots), a colour a run in turn; dashed where the brush flies; a run numbered at its start
 function drawDrag() {
   const G = planNow(), P = G.pts;
   g.save(); inMm(g);
   g.strokeStyle = 'rgba(120,115,108,.6)'; g.lineWidth = 0.3; cassettePath(g); g.stroke();
   g.lineJoin = 'round'; g.lineCap = 'round'; g.lineWidth = Math.max(0.7, S.brush * 0.2);
-  G.segs.forEach((sg, i) => { g.strokeStyle = i % 2 ? RUST : S.tape; poly(g, P, sg.i0, sg.i1); g.stroke(); });
+  G.segs.forEach((sg, i) => { g.strokeStyle = i % 2 ? RUST : LANE; poly(g, P, sg.i0, sg.i1); g.stroke(); });
   g.setLineDash([2.5, 2]); g.lineWidth = Math.max(0.35, 1 / k);
   for (const m of G.moves) if (m.type === 'air') { g.strokeStyle = m.ret ? 'rgba(80,80,80,.22)' : 'rgba(80,80,80,.6)'; g.beginPath(); g.moveTo(m.pts[0].x, m.pts[0].y); g.lineTo(m.pts[1].x, m.pts[1].y); g.stroke(); }
   g.restore();

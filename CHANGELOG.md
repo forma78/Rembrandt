@@ -3,6 +3,15 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **TAPE · BASF: Drag's lanes grey 30 %** (the owner, 2026-10-13,
+  `TAPE-colors/Screenshot 2026-10-13 at 12.51.57 PM.png`: "the outline in
+  DRAG is too black. Make it grey please, 30 % — it will be easier for me
+  to see the drops of colour there"). The lanes on the Drag view the ink at
+  30 % instead of the tape's colour; the spokes' paints read on them. The
+  Result and Play as they were.
+
 ## v.1.0.6 — 2026-10-12 · Tape
 
 - **v.1.0.6 after the name** (the owner, 2026-10-12: "great! thank you very
