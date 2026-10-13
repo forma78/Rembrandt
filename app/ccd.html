@@ -46,6 +46,12 @@
       <svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="0.5"/><path d="M8 18V6M12 18V6M16 18V6" class="thin"/></svg>
       <span>R</span>
     </button>
+    <!-- the sausages by hand (the owner, 2026-10-13: TAPE's paints on CCD): a paint in the strip, then a click on a stripe at a row -->
+    <button class="tool" data-tool="paint" title="Sausages — a click on a stripe of lanes puts a sausage of the chosen paint at the row nearest, in the genesis, so on every repeat of it; a click with the paint it has takes it away; the Result drags them (M)">
+      <svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18"/><path d="M9 5v14M15 5v14" class="bold"/></svg>
+      <span>M</span>
+    </button>
+    <button class="tool" id="btnPaintsClear" title="Clear the chosen rectangle's sausages (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
     <div class="sep"></div>
     <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
     <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
@@ -61,7 +67,9 @@
   </div>
 
   <section class="stage" id="stage">
-    <div class="board" id="board"><canvas id="cv"></canvas></div>
+    <!-- the owner's paints, TAPE's strip: a chip a paint, its name on hover, how many sausages it has -->
+    <div class="paintstrip" id="paints" aria-label="Paints"></div>
+    <div class="board" id="board"><canvas id="cv"></canvas><div class="spoke-tip" id="spokeTip" hidden></div></div>
   </section>
 
   <aside class="panel">
@@ -69,19 +77,35 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <!-- the cassette deck: TEST and PAUSE; STOP and HOME (the owner, 2026-10-13); DRAG alone — no TRACE, no MARKS (the owner, 2026-10-11) — in two keys,
-           the snake and through the air ("two DRAG keys — the snake and through the air; on ALU-CUT we made a switch, here it is all simple") -->
+      <!-- the cassette deck: TEST and PAUSE; MARKS (the owner, 2026-10-13: "CCD will need MARKS — no trace — and Snake and Air stay") and DRAG
+           in three keys, the snake, through the air ("two DRAG keys — the snake and through the air; on ALU-CUT we made a switch, here it is all
+           simple", 2026-10-11) and Duo (2026-10-13, TAPE-colors/IMAGE 2026-10-12 18:44:00); STOP and HOME (2026-10-13) -->
       <div class="runkeys deck">
-        <button class="btn" id="btnTest" title="TEST, before DRAG: one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <button class="btn" id="btnTest" title="TEST, before the runs: with INK ON one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
         <button class="btn" id="btnPause" title="PAUSE the run at the end of the lane; pressed, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
       <div class="runkeys deck passes">
+        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS: a dash where every sausage goes, across its stripe at its row — with INK ON in watercolour from the cup, a dip every fourth; then squeeze the sausages on them"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" class="thin"/><path d="M8 5v14M14 5v14"/></svg><span>Marks</span></button>
         <button class="btn pass" id="btnSnake" data-pass="snake" title="DRAG, the snake: a rectangle's lanes back and forth with the brush down, a step across at each end; the brush lands once a rectangle, no dip"><svg viewBox="0 0 24 24"><path d="M5 20V5h4.7v14h4.6V5H19v15"/></svg><span>Snake</span></button>
         <button class="btn pass" id="btnAir" data-pass="air" title="DRAG through the air: every lane one way from the paint's edge, the brush lifting at the far edge and flying back to the next; no dip"><svg viewBox="0 0 24 24"><path d="M7 21V5M4 8l3-3 3 3"/><path d="M17 4v13" class="dash"/><path d="M14 17l3 3 3-3" class="thin"/></svg><span>Air</span></button>
+        <button class="btn pass" id="btnDuo" data-pass="duo" title="DRAG, Duo: every lane from the far edge to the middle, the brush lifting there and flying back to the next; then every lane from the paint's edge to the middle — the top half first, the right one on a horizontal rectangle; no dip"><svg viewBox="0 0 24 24"><path d="M7 3v8M4 8l3 3 3-3"/><path d="M17 21v-8M14 16l3-3 3 3"/><path d="M3 12h18" class="dash"/></svg><span>Duo</span></button>
       </div>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
         <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
+      </div>
+      <!-- INK, TAPE's: ON MARKS in watercolour from the cup of the Ink tab, and TEST's dip; OFF no dip; DRAG never dips -->
+      <div class="inkrow" title="ON: MARKS in watercolour, dipping in the cup of the Ink tab, and TEST's dip; OFF: no dip. DRAG never dips">
+        <span class="slh"><span>Ink</span></span>
+        <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
+      </div>
+      <!-- the runs as they will look; a view only -->
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="drag" title="DRAG: the lanes, the sausages where you squeeze them, MARKS' dashes under them in watercolour">Drag</button>
+        <button class="tog" data-view="result" title="The painting: the sausages dragged as the DRAG below runs them, the paints mixed as pigments (est.)">Result</button>
+      </div>
+      <div class="toggles looks" id="modeKeys" title="The Result as this DRAG runs; the LCD's numbers too">
+        <button class="tog" data-mode="snake">Snake</button><button class="tog" data-mode="air">Air</button><button class="tog" data-mode="duo">Duo</button>
       </div>
     </section>
 
@@ -98,6 +122,19 @@
         <button class="btn" id="btnDraw" title="The Rectangle tool: drag on the canvas (R)">Draw one (R)</button>
       </div>
       <div class="edit" id="rectEdit"></div>
+      <!-- the chosen rectangle's paints, TAPE's keys (the owner, 2026-10-13: "PAINTS i, New colours, New spokes, meta 1, meta 2 (presets) and DENSITY,
+           and the set of paints in use — only ours go straight") -->
+      <h4>Paints <span class="hint" id="paintsOf"></span> <button class="info" id="paintInfo" title="The sausages: the rows, the genesis and its repeat, the palette, its seed">i</button></h4>
+      <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random, after the striped canvases of TAPE-colors/, in your paints; the sausages stay in their places — or, none lying, the pattern laid (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="The pattern anew on this rectangle as it is — its genesis: stripes of 1, 2, 3 or 6 lanes, a sausage a stripe a row; the palette as it is (⌘Z goes back)">New spokes</button></div>
+      <div class="toggles looks" id="metaKeys">
+        <button class="tog" data-meta="meta 1" title="TAPE's meta 1 (meta-tape-01): ultramarine, the blues, sky, white, black; orange, orange yellow and purple threads">meta 1</button>
+        <button class="tog" data-meta="meta 2" title="TAPE's meta 2 (meta-tape-02): purple, black, pink, sand, white, orange; ochre, ultramarine, red and rose azo threads">meta 2</button>
+        <button class="tog" data-meta="meta 3" title="TAPE-colors/IMAGE 2026-10-12 18:43:57: orange yellow, ochre, sky, white, pink, ultramarine; red, dark brown and 03 threads">meta 3</button>
+        <button class="tog" data-meta="meta 4" title="TAPE-colors/IMAGE 2026-10-12 18:43:59: ultramarine, 04, sky, white, purple, black; orange, red and orange yellow threads">meta 4</button>
+      </div>
+      <div class="sliders" id="slPaint"></div>
+      <div class="paintlist" id="paintList"></div>
+      <p class="read" id="paintRead" hidden></p>
       <h4>Brush, DRAG</h4>
       <div class="sliders" id="slBrush"></div>
       <h4>Canvas <button class="info" id="planInfo" title="The plan: the rectangles, their lanes, the stops, where the canvas lies from home">i</button></h4>

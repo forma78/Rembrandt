@@ -5,6 +5,24 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **CCD: the paints on the page** (the owner, 2026-10-13: "PAINTS i, New
+  colours, New spokes, meta 1, meta 2 (presets) and DENSITY, and the set of
+  paints in use — only ours go straight"). TAPE's strip of 24 paints by the
+  Tools and M: a click on a stripe at a row puts a sausage of the chosen
+  paint there, in the genesis, so on every repeat; again, it goes. The
+  chosen rectangle's Paints: New colours, New spokes, meta 1 … 4, Density
+  (its reading the mm the line stays full), the paints in use with their
+  counts, change, + and ×. **Rows** under Lanes, 1 … 12. A bigger rectangle
+  repeats its genesis at its scale, its lanes following the genesis's pitch
+  ("Genesis 200 × 200 mm, 40 lanes — here ×2 across, ×2 along"). **The
+  deck**: TEST · PAUSE, MARKS · Snake · Air · Duo, STOP · HOME; **INK** for
+  MARKS' watercolour and TEST's dip (ON by default, as TEST dipped before).
+  **Views Drag · Result**, and the Result as Snake, Air or Duo: on Drag the
+  sausages in their paints, MARKS' dashes under them, a sausage's name under
+  the pointer; the Result every lane in five grooves, the paints mixed as
+  pigments, the dry brush's streaks; the snake's bead left at a lane's end,
+  the bristles carrying a little over (est.). The Library save keeps the
+  sausages.
 - **CCD's plan: the paints** (`ccdplan.js`, the owner, 2026-10-13:
   TAPE's paints on CCD, "only here they go straight", Cruz-Diez/IMAGE
   2026-10-13 14:47:37). Sausages in rows across the lanes, a stripe of 1, 2,

@@ -299,6 +299,10 @@ export function marksRows(pl, o) {
 // 2026-10-12 19:23:33: "at a run there is enough for 70 mm on average, then
 // it starts to fade"); twice as much every 25 %. All est. but the 70 mm.
 export const FILM = 1, PICK_BULK = 0.9, PICK_FILM = 0.3, DRY = 12, THIN = 0.35, DS = 1;
+// the snake's step across: the bristles keep HOLD of what the brush carries,
+// the bead it pushed stays at the lane's end — the drips (the owner,
+// 2026-10-13: "the drops show it is not a digital print")
+export const HOLD = 12;
 export const DENSITY_NEW = 50, REACH_50 = 70;
 export const PAINT_50 = 108;             // a sausage's paint on a lane at 50 %, in FILM mm: the line full REACH_50, half gone ≈ 96, gone ≈ 120 (test)
 export const paintOf = d => PAINT_50 * Math.pow(2, (Math.max(0, Math.min(100, d)) - 50) / 25);
@@ -341,7 +345,7 @@ export function mixRect(r, o) {
     const grooves = GROOVE_K.map(([kv, kd, shade], g) => {
       const deps = byLane[k].flatMap(([i0, i1, c, v]) => Array.from({ length: i1 - i0 + 1 }, (_, j) => [i0 + j, c, v * kv / (i1 - i0 + 1)]));
       const w = laneWalk(n, deps, strokes, kd, o.mode === 'snake' ? carry[g] : null);
-      carry[g] = w.out;
+      carry[g] = { b: Math.min(w.out.b, HOLD), bc: w.out.bc };
       return { rgb: w.rgb, cover: w.cover, shade };
     });
     lanes.push({ k, c: laneAt(r, o.brush, k), grooves });

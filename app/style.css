@@ -658,7 +658,11 @@ body.type .status{grid-column:1/4;grid-row:4}
 .ccd #rects .tog{flex:0 0 auto;padding-left:8px;padding-right:8px}
 .ccd #rects .none{font-size:12px;color:var(--mute);padding:5px 6px}
 .ccd #rectEdit .grid4{margin-top:8px}
-.ccd #rGap,.ccd #brushRead{margin:4px 0 0}
+.ccd #rGap{margin:4px 0 0}
+[data-tab="ccd"] .runkeys.deck.passes{grid-template-columns:repeat(4,1fr)}   /* MARKS · DRAG: Snake · Air · Duo (2026-10-13) */
+[data-tab="ccd"] #modeKeys{margin-top:6px}
+[data-tab="ccd"] #modeKeys .tog{font-size:11px}
+[data-tab="ccd"] #metaKeys{margin:8px 0 2px}
 
 /* TAPE (2026-10-12): CCD's page, the first tab; TRACE · Snake · Air on the deck; the colours in the Tools, LOVE's chips */
 .tape .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* TRACE · DRAG: Snake · Air */
@@ -667,25 +671,25 @@ body.type .status{grid-column:1/4;grid-row:4}
 .tape #dirKeys{margin-bottom:4px}
 .tape #playRead{margin:6px 0 0}
 .tape #planRead,.tape #planWarn{line-height:1.55}
-.tape .paintstrip{width:78px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(12,auto);grid-template-columns:30px 30px;justify-content:center;align-content:start;column-gap:6px;row-gap:3px;padding:8px 0}   /* the owner's 24 paints, two columns of 12 ("maybe in two rows of 12") */
+:is(.tape,[data-tab="ccd"]) .paintstrip{width:78px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(12,auto);grid-template-columns:30px 30px;justify-content:center;align-content:start;column-gap:6px;row-gap:3px;padding:8px 0}   /* the owner's 24 paints, two columns of 12 ("maybe in two rows of 12") */
 .tape #laneKeys{margin:8px 0 2px}
-.tape .paintlist{display:flex;flex-wrap:wrap;gap:4px 12px;margin:10px 0 2px;font-size:12px;color:var(--ink)}   /* the paints in use, in sight */
-.tape .paintlist:empty{display:none}
-.tape .spoke-tip{position:absolute;z-index:3;pointer-events:none;display:flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border-radius:7px;background:var(--panel);color:var(--ink);font:12px/16px var(--sans);white-space:nowrap;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 3px 10px rgba(40,30,20,.18)}   /* the drop's name under the pointer, on Drag */
-.tape .spoke-tip[hidden]{display:none}
-.tape .spoke-tip i{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
-.tape .spoke-tip em{font-style:normal;color:var(--mute)}
-.tape .paintlist .pl{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.tape .paintlist .pl i{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
-.tape .paintlist .pl em{font-style:normal;color:var(--mute);font:11px var(--mono)}
-.tape .paintlist .pl.none{opacity:.55}
-.tape .paintlist .pl{position:relative;cursor:pointer;padding:2px 14px 2px 3px;border-radius:5px}
-.tape .paintlist .pl:hover{background:var(--well)}
-.tape .paintlist .pl.on{box-shadow:0 0 0 1.5px var(--orange)}                  /* chosen to change: then a paint in the strip */
-.tape .paintlist .pl .x{position:absolute;right:2px;top:1px;display:none;font:600 11px var(--mono);color:var(--mute)}
-.tape .paintlist .pl:hover .x{display:block}
-.tape .paintlist .pl.add{padding:2px 8px;font-weight:600;color:var(--mute)}
-.tape .paintstrip.editing .chip .sw{box-shadow:0 0 0 1px var(--orange)}       /* a paint to pick for the palette */
+:is(.tape,[data-tab="ccd"]) .paintlist{display:flex;flex-wrap:wrap;gap:4px 12px;margin:10px 0 2px;font-size:12px;color:var(--ink)}   /* the paints in use, in sight */
+:is(.tape,[data-tab="ccd"]) .paintlist:empty{display:none}
+:is(.tape,[data-tab="ccd"]) .spoke-tip{position:absolute;z-index:3;pointer-events:none;display:flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border-radius:7px;background:var(--panel);color:var(--ink);font:12px/16px var(--sans);white-space:nowrap;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 3px 10px rgba(40,30,20,.18)}   /* the drop's name under the pointer, on Drag */
+:is(.tape,[data-tab="ccd"]) .spoke-tip[hidden]{display:none}
+:is(.tape,[data-tab="ccd"]) .spoke-tip i{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+:is(.tape,[data-tab="ccd"]) .spoke-tip em{font-style:normal;color:var(--mute)}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl i{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl em{font-style:normal;color:var(--mute);font:11px var(--mono)}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl.none{opacity:.55}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl{position:relative;cursor:pointer;padding:2px 14px 2px 3px;border-radius:5px}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl:hover{background:var(--well)}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl.on{box-shadow:0 0 0 1.5px var(--orange)}                  /* chosen to change: then a paint in the strip */
+:is(.tape,[data-tab="ccd"]) .paintlist .pl .x{position:absolute;right:2px;top:1px;display:none;font:600 11px var(--mono);color:var(--mute)}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl:hover .x{display:block}
+:is(.tape,[data-tab="ccd"]) .paintlist .pl.add{padding:2px 8px;font-weight:600;color:var(--mute)}
+:is(.tape,[data-tab="ccd"]) .paintstrip.editing .chip .sw{box-shadow:0 0 0 1px var(--orange)}       /* a paint to pick for the palette */
 .tape #metaKeys{margin:8px 0 2px}
 
 /* ---------- the phone (the owner, 2026-10-13, on the iPhone over the home
@@ -717,9 +721,9 @@ body.type .status{grid-column:1/4;grid-row:4}
 @media (max-width: 760px) and (orientation: portrait) {
   .stage{height:calc(100vw + 30px)}
   .tape .stage{height:calc(100vw + 100px)}
-  .tape .paintstrip{top:auto;bottom:0;right:0;width:auto;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(12,26px);column-gap:3px;row-gap:2px;padding:6px 0 4px;border-right:0;border-top:1px solid var(--line);overflow:visible}
-  .tape .paintstrip .chip{width:26px}
-  .tape .paintstrip .chip .sw{width:26px;height:26px;border-radius:6px}
+  :is(.tape,[data-tab="ccd"]) .paintstrip{top:auto;bottom:0;right:0;width:auto;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(12,26px);column-gap:3px;row-gap:2px;padding:6px 0 4px;border-right:0;border-top:1px solid var(--line);overflow:visible}
+  :is(.tape,[data-tab="ccd"]) .paintstrip .chip{width:26px}
+  :is(.tape,[data-tab="ccd"]) .paintstrip .chip .sw{width:26px;height:26px;border-radius:6px}
 }
 @media (max-height: 500px) and (orientation: landscape) {
   .top{flex-wrap:nowrap;padding:6px 12px}

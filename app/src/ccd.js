@@ -10,7 +10,9 @@
 // ALU-CUT's page, its own module: the board, the canvas from home, PROGRESS,
 // TEST and PAUSE, the LCD, the zoom, the reference, the Library; the shared
 // modules imported, so a fix of the run reaches every tab, and ALU-CUT's
-// alu.js untouched. No TRACE, no MARKS, no ink: DRAG alone.
+// alu.js untouched. No TRACE. Since 2026-10-13 TAPE's paints, straight: the
+// sausages in rows across the lanes, MARKS where they go, DRAG in three keys,
+// the Result.
 //
 // A rectangle's mm: from the canvas's bottom left corner, x right, y up, as a
 // ruler reads them. The board's canvas mm from its centre, as ALU's: x right,
@@ -21,7 +23,9 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
-import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME } from './ccdplan.js';
+import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, alongOf, pitchOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME, MODES,
+  ROWS_MAX, CCD_META, DENSITY_NEW, MARKS_DIP, MARK_SPEED, DS, newPattern, recolour, lanesKept, rowsOf, stripesAcross, sausagesOf, markOf, marksRows, mixRect, reachOf, placeOf } from './ccdplan.js';
+import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -41,9 +45,10 @@ const S = {
   brush: 10, drag: 60, before: 0, past: 0, travel: 180, tail: 3,
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
+  view: 'drag', density: DENSITY_NEW, paint: 'black', ink: true,                   // the paints (2026-10-13): the view; the paint in a sausage; M's paint; INK, MARKS' watercolour and TEST's dip
 };
-const NUM = ['sel', 'brush', 'drag', 'before', 'past', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
-const TOOLS = ['edit', 'rect'], MODES = ['snake', 'air'];
+const NUM = ['sel', 'brush', 'drag', 'before', 'past', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
+const TOOLS = ['edit', 'rect', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true;   // nothing kept yet: a rectangle the whole canvas
 function load() {
   try {
@@ -52,6 +57,9 @@ function load() {
     if (Array.isArray(o.rects)) S.rects = o.rects.map(cleanRect).filter(Boolean);
     if (TOOLS.includes(o.tool)) S.tool = o.tool;
     if (MODES.includes(o.mode)) S.mode = o.mode;
+    if (VIEWS.includes(o.view)) S.view = o.view;
+    if (typeof o.ink === 'boolean') S.ink = o.ink;
+    if (PAINT[o.paint]) S.paint = o.paint;
     S.sel = Math.max(0, Math.min(S.rects.length - 1, Math.round(S.sel)));
     FRESH = false;
   } catch { }
@@ -63,6 +71,7 @@ const wholeCanvas = (o = {}) => cleanRect({ x: 0, y: 0, w: S.boardW, h: S.boardH
 const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, before: S.before, past: S.past });
 let PL = null, plKey = '';
 function planNow() {
+  for (const r of S.rects) if (r.pat) r.lanes = lanesKept(r, S.brush);              // a pattern keeps its genesis's pitch: bigger, more lanes, the genesis repeated
   const key = JSON.stringify([S.rects, S.boardW, S.boardH, S.brush, S.before, S.past]);
   if (PL && key === plKey) return PL;
   plKey = key; PL = planOf(S.rects, po());
@@ -84,16 +93,25 @@ const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x,
 // rectangle's lanes back and forth with the brush down; the air, a row a
 // lane, one way. A pause before every next rectangle (ccdplan.js,
 // dragPasses); PAUSE at a lane's end, never on the line, as ALU's DRAG.
-const RUNS = {}, MODE_NAME = { snake: 'snake', air: 'air' };   // the LCD's last line, short
+const RUNS = {}, MODE_NAME = { snake: 'snake', air: 'air', duo: 'Duo' };   // the LCD's last line, short
 let busy = false;
 const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, runs: 0, mm: 0, stops: 0, fault: '' };
 const runOpts = rows => ({ ...DEFAULTS, speed: S.drag, travel: S.travel, tail: S.tail, lift: false, ink: false, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
 function dragRun(mode = S.mode) {
   const P = planNow(), here = hereNow(), key = JSON.stringify([plKey, S.drag, S.travel, S.tail, here]);
   if (RUNS[mode]?.key === key) return RUNS[mode];
-  const R = dragRows(P, { ...po(), snake: mode === 'snake' });
+  const R = dragRows(P, { ...po(), mode });
   RUNS[mode] = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), pauseAtEnds: true }, dragPasses(R)), rows: R.info, runs: R.runs, mm: R.length, stops: R.stops.length } : EMPTY) };
   return RUNS[mode];
+}
+// MARKS: a dash a sausage, with INK ON in watercolour from the cup (ccdplan.js, marksRows) — a dip every MARKS_DIP-th, its own
+let MARKS_RUN = null;
+function marksRun() {
+  const P = planNow(), here = hereNow(), cupNow = dipCup(), key = JSON.stringify([plKey, S.ink, S.travel, here, cupNow]);
+  if (MARKS_RUN?.key === key) return MARKS_RUN;
+  const R = marksRows(P, { ...po(), ink: S.ink });
+  MARKS_RUN = { key, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), speed: MARK_SPEED, ink: S.ink, noDipUnder: 0 }, [{ key: 'MARKS', ps: R.ps, why: null }]), rows: R.info, marks: R.marks } : { ...EMPTY, marks: 0 }) };
+  return MARKS_RUN;
 }
 
 // ---------- the board ----------
@@ -126,17 +144,19 @@ const inMm = c => { c.setTransform(k * dpr, 0, 0, -k * dpr, (-S.boardW / 2 - V.y
 const ZOOMS = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
 let Z = 1, ZC = null;   // the zoom; the window's centre, null: the canvas's
 function layout() {
-  const F = view(), r = stage.getBoundingClientRect(), m = 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0;
-  kFit = Math.max(0.2, Math.min((r.width - 2 * m) / sw, (r.height - 2 * m) / sh));
+  const F = view(), r = stage.getBoundingClientRect(), m = r.width < 600 ? 10 : 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0;
+  const ps = $('#paints').getBoundingClientRect(), side = ps.height >= r.height - 1;          // the paints' strip by the Tools, or two rows of 12 under the board on an upright phone (style.css), as TAPE's
+  const stripW = side ? ps.width : 0, stripH = side ? 0 : ps.height;
+  kFit = Math.max(0.2, Math.min((r.width - stripW - 2 * m) / sw, (r.height - stripH - 2 * m) / sh));
   k = kFit * Z;
   dpr = window.devicePixelRatio || 1;
-  const w = Math.round(Math.min(sw * k, r.width)), h = Math.round(Math.min(sh * k, r.height)), ww = w / k, hh = h / k;
+  const w = Math.round(Math.min(sw * k, r.width - stripW)), h = Math.round(Math.min(sh * k, r.height - stripH)), ww = w / k, hh = h / k;
   const mid = { x: (F.x0 + F.x1) / 2, y: (F.y0 + F.y1) / 2 }, c = ZC || mid;
   const cy = ww >= sw - 1e-6 ? mid.y : Math.max(F.y0 + ww / 2, Math.min(F.y1 - ww / 2, c.y));
   const cx = hh >= sh - 1e-6 ? mid.x : Math.max(F.x0 + hh / 2, Math.min(F.x1 - hh / 2, c.x));
   if (ZC) ZC = { x: cx, y: cy };
   V = { y0: cy - ww / 2, y1: cy + ww / 2, x0: cx - hh / 2, x1: cx + hh / 2 };
-  board.style.width = w + 'px'; board.style.height = h + 'px';
+  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.marginLeft = stripW + 'px'; board.style.marginBottom = stripH + 'px';
   cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
 }
@@ -164,7 +184,7 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  drawLanes();
+  if (S.view === 'result') drawResult(); else { drawLanes(); drawSausages(); }
   if (REF && S.refOpacity > 0) {                                                       // the reference as tracing paper
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
     g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
@@ -221,6 +241,77 @@ function drawLanes() {
       g.beginPath(); g.moveTo(t[0], t[1]); g.lineTo(e[0], e[1]); g.moveTo(e[0] - d[0] * w - d[1] * w, e[1] - d[1] * w + d[0] * w); g.lineTo(e[0], e[1]); g.lineTo(e[0] - d[0] * w + d[1] * w, e[1] - d[1] * w - d[0] * w); g.stroke();
     }
   }
+  g.restore();
+}
+// The sausages on Drag, where to squeeze them: each a box of its paint, a
+// dark edge so a light one reads; MARKS' dashes under them in watercolour,
+// as wide as the brush
+const WATER = '#6F8FB8';
+function drawSausages() {
+  const P = planNow();
+  g.save(); inMm(g); g.lineCap = 'round';
+  for (const r of P.rects) {
+    const ss = sausagesOf(r, S.brush); if (!ss.length) continue;
+    g.strokeStyle = WATER; g.globalAlpha = 0.28; g.lineWidth = S.brush;
+    for (const q of ss) { const m = markOf(q, S.brush), a = placeOf(r, m.t, m.c0), b = placeOf(r, m.t, m.c1); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+    g.globalAlpha = 1; g.lineWidth = Math.max(0.25, 1 / k); g.strokeStyle = 'rgba(36,34,31,.75)';
+    for (const q of ss) {
+      const a = placeOf(r, q.a, q.c0), b = placeOf(r, q.b, q.c1), x = Math.min(a[0], b[0]), y = Math.min(a[1], b[1]), w = Math.abs(b[0] - a[0]), h = Math.abs(b[1] - a[1]);
+      g.fillStyle = PAINT[q.paint].hex; g.fillRect(x, y, w, h); g.strokeRect(x, y, w, h);
+    }
+  }
+  g.restore();
+}
+// The Result: every rectangle's sausages dragged as the DRAG key chosen runs
+// them (ccdplan.js, mixRect), drawn once into a bitmap the canvas's size —
+// every lane its grooves, a shade lighter or darker, each stretch its colour
+// as covered as the paint got there, the dry brush's streaks wandering ±STREAK
+// about every STREAK_MM; the ground where none did. Lanes in their order, the
+// later over the earlier where they overlap.
+let RESULT = null;
+const STREAK = 0.12, STREAK_MM = 15;                                               // est., TAPE's
+const RGROUND = [251, 250, 247];                                                   // GROUND
+const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+const wave = (t, s) => { const u = t / STREAK_MM + hash(s, 7) * 50, f = Math.floor(u), x = u - f, e = x * x * (3 - 2 * x); return hash(f, s) * (1 - e) + hash(f + 1, s) * e; };
+function resultBitmap() {
+  const P = planNow(), key = JSON.stringify([plKey, S.density, S.mode]);
+  if (RESULT?.key === key) return RESULT;
+  const W = S.boardW, H = S.boardH, ppm = Math.min(8, 4096 / Math.max(W, H)), c2 = document.createElement('canvas');
+  c2.width = Math.ceil(W * ppm); c2.height = Math.ceil(H * ppm);
+  const c = c2.getContext('2d');
+  c.setTransform(ppm, 0, 0, -ppm, 0, H * ppm);                                       // canvas mm from its bottom left corner, y up
+  c.fillStyle = GROUND; c.fillRect(0, 0, W, H);
+  c.lineCap = 'butt'; c.lineJoin = 'round';
+  for (const r of P.rects) {
+    if (!r.pat) continue;                                                            // no sausages, no paint
+    const M = mixRect(r, { brush: S.brush, before: S.before, past: S.past, density: S.density, mode: S.mode });
+    for (const ln of M.lanes) ln.grooves.forEach((q, j, Gs) => {
+      const off = ((j + 0.5) / Gs.length - 0.5) * S.brush, kk = 1 + q.shade, seed = ln.k * 13 + j + r.i * 977;
+      c.lineWidth = S.brush / Gs.length * 1.25;
+      let style = null;
+      for (let i = 0; i < M.n; i++) {
+        const t = M.t0 + i * DS, cov = Math.min(1, q.cover[i]);
+        if (cov < 0.03) { if (style) c.stroke(); style = null; continue; }
+        const nz = kk * (1 + STREAK * (2 * wave(t, seed) - 1));
+        const st = `rgb(${[0, 1, 2].map(m => Math.round(Math.max(0, Math.min(255, RGROUND[m] + (q.rgb[3 * i + m] * 255 * nz - RGROUND[m]) * cov)) / 4) * 4).join(',')})`;
+        const p = placeOf(r, t, ln.c + off);
+        if (st !== style) {
+          const was = style; if (was) c.stroke();
+          style = st; c.strokeStyle = st; c.beginPath();
+          const p0 = was ? placeOf(r, t - DS, ln.c + off) : p; c.moveTo(p0[0], p0[1]);   // on from the stretch before, no seam
+        }
+        c.lineTo(p[0], p[1]);
+      }
+      if (style) c.stroke();
+    });
+  }
+  RESULT = { key, c: c2 };
+  return RESULT;
+}
+function drawResult() {
+  const B = resultBitmap();
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingQuality = 'high';
+  g.drawImage(B.c, sx([-S.boardW / 2]), sy([0, -S.boardH / 2]), S.boardW * k, S.boardH * k);
   g.restore();
 }
 // The guides: every rectangle's outline, the chosen one orange with its eight
@@ -301,7 +392,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'before', 'past'];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'before', 'past', 'density'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -342,8 +433,46 @@ function rectAt(p) {                                                            
 }
 const CURSOR = { '-1,-1': 'nesw-resize', '1,1': 'nesw-resize', '-1,1': 'nwse-resize', '1,-1': 'nwse-resize', '-1,0': 'ew-resize', '1,0': 'ew-resize', '0,-1': 'ns-resize', '0,1': 'ns-resize' };
 let grab = null;
+// M (the owner's sausages by hand): a click on a stripe at a row — the
+// genesis's sausage there takes the chosen paint, so every repeat of it
+// does; with that paint already, it goes. A rectangle with no pattern gets
+// its stripes first, no paint in them.
+const localOf = (r, p) => r.dir === 'right' ? { t: p[0] - r.x, c: p[1] - r.y } : { t: p[1] - r.y, c: p[0] - r.x };
+function laneOfC(r, c) { const pp = pitchOf(r, S.brush); return r.lanes === 1 || acrossOf(r) <= S.brush || !pp ? 0 : Math.max(0, Math.min(r.lanes - 1, Math.round((c - S.brush / 2) / pp))); }
+function paintAt(p) {
+  const i = rectAt(p); if (i < 0) return;
+  undoPush(); S.sel = i;
+  const r = S.rects[i];
+  if (!r.pat) r.pat = newPattern(r, S.brush, null, Math.floor(Math.random() * 1e9));
+  const { t, c } = localOf(r, p), k = laneOfC(r, c), st = stripesAcross(r).find(q => q.k0 <= k && k <= q.k1), row = rowsOf(r).reduce((a, q) => Math.abs(q.t - t) < Math.abs(a.t - t) ? q : a);
+  if (!st) { undoStack.pop(); return; }
+  const cell = r.pat.paint[st.s];
+  cell[row.j] = cell[row.j] === S.paint ? null : S.paint;
+  settle();
+}
+// The sausage's name under the pointer on Drag, as TAPE's drops'
+function sausageUnder(p) {
+  const P = planNow();
+  for (let i = P.rects.length - 1; i >= 0; i--) {
+    const r = P.rects[i], { t, c } = localOf(r, p);
+    for (const q of sausagesOf(r, S.brush)) if (t >= q.a - 1.5 && t <= q.b + 1.5 && c >= q.c0 && c <= q.c1) return q;
+  }
+  return null;
+}
+function showTip(e) {
+  const tip = $('#spokeTip'), q = S.view === 'drag' && !grab ? sausageUnder(toMm(e)) : null;
+  if (!q) { tip.hidden = true; return; }
+  const pt = PAINT[q.paint], rb = board.getBoundingClientRect();
+  tip.innerHTML = `<i style="background:${pt.hex}"></i>${pt.name}${q.thin ? ' <em>thin</em>' : ''} <em>· lanes ${q.k0 + 1}${q.k1 > q.k0 ? `–${q.k1 + 1}` : ''}</em>`;
+  tip.hidden = false;
+  const X = e.clientX - rb.left, Y = e.clientY - rb.top, w = tip.offsetWidth;
+  tip.style.left = `${X + 14 + w > rb.width ? X - 14 - w : X + 14}px`; tip.style.top = `${Math.max(0, Y - 30)}px`;
+}
+cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') $('#spokeTip').hidden = true; });
 cv.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'mouse') showTip(e);                                          // on the phone a tap names the sausage
   if (e.button !== 0) return;
+  if (S.tool === 'paint') { paintAt(toMm(e)); return; }
   const p = toMm(e), hd = nearHandle(e);
   if (hd) { undoPush(); grab = { kind: 'size', hx: hd.hx, hy: hd.hy, r0: { ...S.rects[S.sel] }, moved: false }; cv.setPointerCapture(e.pointerId); return; }
   if (S.tool === 'rect') {
@@ -357,8 +486,9 @@ cv.addEventListener('pointerdown', e => {
 });
 cv.addEventListener('pointermove', e => {
   if (!grab) {
-    const hd = nearHandle(e);
-    cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
+    const hd = S.tool === 'paint' ? null : nearHandle(e);
+    cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' || S.tool === 'paint' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
+    showTip(e);
     return;
   }
   grab.moved = true; busy = true;
@@ -387,11 +517,12 @@ cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', dro
 function moveRect(dx, dy) { const r = S.rects[S.sel]; if (!r) return; undoPush(); r.x = clampX(r.x + dx); r.y = clampY(r.y + dy); settle(); }
 function deleteRect() { if (!S.rects[S.sel]) return; undoPush(); S.rects.splice(S.sel, 1); S.sel = Math.max(0, S.sel - 1); settle(); }
 function clearAll() { if (!S.rects.length) return; undoPush(); S.rects = []; S.sel = 0; S.tool = 'rect'; settle(); }
-function setTool(t) { S.tool = t; settle(); }
+function setTool(t) { S.tool = t; if (t === 'paint') S.view = 'drag'; settle(); }   // M: the sausages are on Drag
 
 const HINT = {
   edit: 'Edit: drag a rectangle to move it, its handles to stretch it — left and right, up and down; a click chooses it; the arrows move it a mm, with ⇧ ten; ⌫ takes it away. Its edges snap to the canvas\'s and the other rectangles\'.',
   rect: 'Rectangle: drag on the canvas to lay a new one — it runs after the others, its lanes and direction the chosen one\'s; then its handles stretch it.',
+  paint: 'M: a click on a stripe of lanes puts a sausage of the chosen paint at the row nearest — in the genesis, so on every repeat of it; a click with the paint it has takes it away. A paint: the strip on the left.',
 };
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
 document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
@@ -402,7 +533,7 @@ addEventListener('keydown', e => {
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (cmd) return;
   if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); deleteRect(); return; }
-  const tool = { v: 'edit', r: 'rect' }[e.key.toLowerCase()];
+  const tool = { v: 'edit', r: 'rect', m: 'paint' }[e.key.toLowerCase()];
   if (tool) { setTool(tool); return; }
   const arrow = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];   // y up: ↑ moves it up
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveRect(arrow[0] * d, arrow[1] * d); }
@@ -453,6 +584,20 @@ $('#slBrush').querySelectorAll('input').forEach(inp => {
   inp.onchange = () => settle();
 });
 const gapText = r => r.runs.length < 2 ? 'one lane' : r.gap > 0.05 ? `white <b>${fmt(r.gap, 2)} mm</b> between them` : r.gap < -0.05 ? `overlapping by <b>${fmt(-r.gap, 2)} mm</b>` : 'edge to edge';
+// the rows' reading: how many, how far apart — the genesis's spacing when it repeats
+const rowsText = r => r.rows === 1 ? '1 · the paint\'s edge only' : `${r.rows} · ${fmt((r.pat?.along ?? alongOf(r)) / (r.rows - 1), 1)} mm apart`;
+// the genesis and its repeat on this rectangle
+function genesisText(r) {
+  const q = r.pat; if (!q) return '';
+  const nx = r.lanes / q.lanes, ny = alongOf(r) / q.along, times = v => Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : fmt(v, 1);
+  return `<br>Genesis ${fmt(q.across, 0)} × ${fmt(q.along, 0)} mm, ${q.lanes} lanes${nx > 1.02 || ny > 1.02 ? ` — here ×${times(nx)} across, ×${times(ny)} along, at its scale` : ''}`;
+}
+// a pattern's rows changed: its paints dealt again, its stripes kept; none to deal, its sausages kept where the rows still are
+function reRows(r) {
+  if (!r.pat) return;
+  const pal = palOf(r);
+  r.pat = pal ? recolour(r.pat, r.rows, pal, r.pat.seed) : { ...r.pat, paint: r.pat.paint.map(row => Array.from({ length: r.rows }, (_, j) => row[j] ?? null)) };
+}
 // The rectangles, in the order they run, a key each; the chosen one's editor
 function showRects() {
   $('#rects').innerHTML = S.rects.length ? S.rects.map((r, i) => `<button class="tog${i === S.sel ? ' on' : ''}" data-sel="${i}" title="${DIR_NAME[r.dir]}, ${r.lanes} lanes, ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm">${r.dir === 'right' ? '→' : '↑'} Rect ${i + 1} · ${r.lanes}</button>`).join('') : '<span class="none">No rectangles: New, or the R tool and a drag on the canvas.</span>';
@@ -467,8 +612,9 @@ function showRect() {
   box.innerHTML = `
     <h4>Rectangle ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
     <div class="toggles looks"><button class="tog${r.dir === 'up' ? ' on' : ''}" data-dir="up" title="Every lane from the bottom edge up: the paint squeezed along the bottom edge">Vertical ↑</button><button class="tog${r.dir === 'right' ? ' on' : ''}" data-dir="right" title="Every lane from the left edge to the right: the paint squeezed along the left edge">Horizontal →</button></div>
-    <div class="sliders"><label class="sl" title="How many lanes the brush runs across the rectangle, edge to edge, 1 … ${LANES_MAX}; the pitch follows"><span class="slh"><span>Lanes</span><span class="val" id="o-rL">${r.lanes} · ${fmt(pl?.pitch ?? 0, 2)} mm apart</span></span><input class="slider" type="range" id="rL" min="1" max="${LANES_MAX}" step="1" value="${r.lanes}"></label></div>
-    <p class="read" id="rGap">${pl ? gapText(pl) : ''}${pl && pl.runs.length > 1 && acrossOf(r) <= S.brush ? ' — the brush is as wide as the rectangle: every lane on its middle' : ''}</p>
+    <div class="sliders"><label class="sl" title="How many lanes the brush runs across the rectangle, edge to edge, 1 … ${LANES_MAX}; the pitch follows${r.pat ? ' — with sausages, their pattern laid anew on the rectangle as it is: its genesis' : ''}"><span class="slh"><span>Lanes</span><span class="val" id="o-rL">${r.lanes} · ${fmt(pl?.pitch ?? 0, 2)} mm apart</span></span><input class="slider" type="range" id="rL" min="1" max="${LANES_MAX}" step="1" value="${r.lanes}"></label>
+      <label class="sl" title="The rows of sausages along the lanes, evenly from the paint's edge to the far one, both edges in; one: the paint's edge only (the owner, 2026-10-13: four on the 20 × 20, two in the middle and at both edges)"><span class="slh"><span>Rows</span><span class="val" id="o-rR">${rowsText(r)}</span></span><input class="slider" type="range" id="rR" min="1" max="${ROWS_MAX}" step="1" value="${r.rows}"></label></div>
+    <p class="read" id="rGap">${pl ? gapText(pl) : ''}${pl && pl.runs.length > 1 && acrossOf(r) <= S.brush ? ' — the brush is as wide as the rectangle: every lane on its middle' : ''}${genesisText(r)}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
     <div class="grid4 keys"><button class="btn" id="rFit" title="This rectangle the whole canvas">Whole canvas</button><button class="btn" id="rDup" title="A copy of it, run after the others">Duplicate</button></div>
     <div class="grid4 keys three"><button class="btn" id="rEarly"${S.sel === 0 ? ' disabled' : ''} title="Run before the one before it">Run earlier</button><button class="btn" id="rLate"${S.sel === S.rects.length - 1 ? ' disabled' : ''} title="Run after the one after it">Run later</button><button class="btn" id="rDel" title="Take it away — or ⌫ on the keyboard; ⌘Z brings it back">Delete</button></div>`;
@@ -476,19 +622,118 @@ function showRect() {
     const v = +inp.value; if (inp.value === '' || !fin(v)) return settle();
     undoPush(); r[inp.dataset.r] = inp.dataset.r === 'x' ? clampX(v) : inp.dataset.r === 'y' ? clampY(v) : v; Object.assign(r, cleanRect(r)); settle();
   }; });
-  const inp = $('#rL');
-  inp.oninput = () => { if (!busy) undoPush(); busy = true; r.lanes = +inp.value; const q = planNow().rects[S.sel]; $('#o-rL').textContent = `${r.lanes} · ${fmt(q.pitch, 2)} mm apart`; $('#rGap').innerHTML = gapText(q); kick(); };
+  const inp = $('#rL'), rows = $('#rR');
+  inp.oninput = () => {
+    if (!busy) undoPush(); busy = true; r.lanes = +inp.value;
+    if (r.pat) r.pat = newPattern(r, S.brush, palOf(r), r.pat.seed);                  // the genesis anew, on the rectangle as it is
+    const q = planNow().rects[S.sel]; $('#o-rL').textContent = `${r.lanes} · ${fmt(q.pitch, 2)} mm apart`; $('#rGap').innerHTML = gapText(q) + genesisText(r); kick();
+  };
   inp.onchange = () => settle();
+  rows.oninput = () => { if (!busy) undoPush(); busy = true; r.rows = +rows.value; reRows(r); $('#o-rR').textContent = rowsText(r); kick(); };
+  rows.onchange = () => settle();
   const act = (sel, fn) => box.querySelectorAll(sel).forEach(b => b.onclick = () => { undoPush(); fn(b); settle(); });
   act('[data-dir]', b => { r.dir = b.dataset.dir; });
   act('#rFit', () => { Object.assign(r, { x: 0, y: 0, w: S.boardW, h: S.boardH }); });
-  act('#rDup', () => { S.rects.push({ ...r }); S.sel = S.rects.length - 1; });
+  act('#rDup', () => { S.rects.push(structuredClone(r)); S.sel = S.rects.length - 1; });   // its pattern its own
   act('#rEarly', () => { const i = S.sel; [S.rects[i], S.rects[i - 1]] = [S.rects[i - 1], S.rects[i]]; S.sel--; });
   act('#rLate', () => { const i = S.sel; [S.rects[i], S.rects[i + 1]] = [S.rects[i + 1], S.rects[i]]; S.sel++; });
   $('#rDel').onclick = deleteRect;
 }
 $('#btnNew').onclick = () => { undoPush(); const was = S.rects[S.sel]; S.rects.push(wholeCanvas({ dir: was?.dir, lanes: was?.lanes })); S.sel = S.rects.length - 1; S.tool = 'edit'; settle(); };
 $('#btnDraw').onclick = () => setTool('rect');
+
+// ---------- the paints (the owner, 2026-10-13: TAPE's, "only here they go straight") ----------
+// The strip of the owner's 24 paints by the Tools, as TAPE's: a click picks
+// the paint and takes up M. The chosen rectangle's palette in hand: a paint
+// in the list, then one in the strip — it takes its place; + then a paint —
+// it joins, the sausages dealt again in their places; × — out.
+$('#paints').innerHTML = TAPE_PAINTS.map(([id, name, hex]) => `<div class="chip" data-paint="${id}"><button class="sw" style="background:${hex}" aria-label="${name}"></button><span class="cnt"></span></div>`).join('');
+$('#paints').querySelectorAll('[data-paint]').forEach(ch => ch.querySelector('.sw').onclick = () => {
+  if (EDIT) { editPaint(ch.dataset.paint); return; }
+  S.paint = ch.dataset.paint; setTool('paint');
+});
+let EDIT = null;                                                                   // { mode: 'change', id } | { mode: 'add' }
+const seedNew = () => Math.floor(Math.random() * 1e9);
+const usedOf = r => [...new Set((r?.pat?.paint || []).flat().filter(Boolean))];
+const palOf = r => r?.pat?.palette ? structuredClone(r.pat.palette) : usedOf(r).length ? { name: 'Own', core: usedOf(r), accent: [] } : null;
+// a rectangle's sausages dealt again in a palette, their places kept — or, none lying or anew, the pattern laid on it as it is: its genesis
+function dealOn(r, pal, seed, anew = false) { r.pat = r.pat && !anew ? recolour(r.pat, r.rows, pal, seed) : newPattern(r, S.brush, pal, seed); }
+function editPaint(id) {
+  const e = EDIT, r = S.rects[S.sel]; EDIT = null;
+  if (!r?.pat) { showPanel(); return; }
+  undoPush();
+  if (e.mode === 'change' && e.id !== id) {
+    const swap = a => [...new Set(a.map(q => q === e.id ? id : q))], pal = r.pat.palette;
+    r.pat.paint = r.pat.paint.map(row => row.map(q => q === e.id ? id : q));
+    if (pal) { const core = swap(pal.core); r.pat.palette = { ...pal, core, accent: swap(pal.accent).filter(q => !core.includes(q)) }; }
+  } else if (e.mode === 'add') {
+    const pal = palOf(r) || { name: 'Own', core: [], accent: [] };
+    if (![...pal.core, ...pal.accent].includes(id)) { pal.core.push(id); dealOn(r, pal, r.pat.seed || 1); }
+  }
+  settle();
+}
+function dropPaint(id) {
+  const r = S.rects[S.sel]; if (!r?.pat) return;
+  undoPush();
+  const pal = palOf(r); pal.core = pal.core.filter(q => q !== id); pal.accent = pal.accent.filter(q => q !== id);
+  if (!pal.core.length && pal.accent.length) pal.core = pal.accent.splice(0);
+  if (pal.core.length) dealOn(r, pal, r.pat.seed || 1);
+  else { r.pat.palette = null; r.pat.paint = r.pat.paint.map(row => row.map(q => q === id ? null : q)); }
+  settle();
+}
+$('#paintList').onclick = e => {
+  const x = e.target.closest('[data-x]'), add = e.target.closest('[data-add]'), pl = e.target.closest('[data-pl]');
+  if (x) { EDIT = null; dropPaint(x.dataset.x); return; }
+  if (add) EDIT = EDIT?.mode === 'add' ? null : { mode: 'add' };
+  else if (pl) EDIT = EDIT?.mode === 'change' && EDIT.id === pl.dataset.pl ? null : { mode: 'change', id: pl.dataset.pl };
+  showPanel();
+};
+$('#paintInfo').onclick = () => { $('#paintRead').hidden = !$('#paintRead').hidden; $('#paintInfo').classList.toggle('on', !$('#paintRead').hidden); };
+$('#btnPaintsClear').onclick = () => { const r = S.rects[S.sel]; if (!r?.pat) return; undoPush(); delete r.pat; settle(); };
+// New colours, TAPE's: a palette at random, another family than the last; the sausages lying there take it, or the pattern is laid
+$('#btnNewColours').onclick = () => { const r = S.rects[S.sel]; if (!r) return; undoPush(); const seed = seedNew(); dealOn(r, newPalette(seed, r.pat?.palette?.name), seed); S.view = 'result'; settle(); };
+// New spokes: the pattern anew on the rectangle as it is — its genesis — in the palette as it is
+$('#btnNewSpokes').onclick = () => { const r = S.rects[S.sel]; if (!r) return; undoPush(); const seed = seedNew(); dealOn(r, palOf(r) || newPalette(seed), seed, true); S.view = 'result'; settle(); };
+// meta 1 … 4: the owner's ideals as palettes (ccdplan.js, CCD_META) — a press a new deal in it, the sausages in their places
+document.querySelectorAll('#metaKeys [data-meta]').forEach(b => b.onclick = () => { const r = S.rects[S.sel]; if (!r) return; undoPush(); const seed = seedNew(); dealOn(r, structuredClone(CCD_META[b.dataset.meta]), seed); S.view = 'result'; settle(); });
+// Density: the paint in a sausage, as far as it carries the line (ccdplan.js, reachOf)
+const REACH = new Map(), reachAt = d => { if (!REACH.has(d)) REACH.set(d, reachOf(d)); return REACH.get(d); };
+const densityText = () => `${S.density} % · full ≈ ${fmt(reachAt(S.density).full, 0)} mm`;
+$('#slPaint').innerHTML = `<label class="sl" title="The paint in a sausage: at 50 % the measured one — the line full 70 mm, then fading (TAPE-colors/IMAGE 2026-10-12 19:23:33); twice as much every 25 % (the Result; est.)"><span class="slh"><span>Density</span><span class="val" id="o-dens"></span></span><input class="slider" type="range" id="dens" min="0" max="100" step="1"></label>`;
+$('#dens').oninput = e => { if (!busy) undoPush(); busy = true; S.density = +e.target.value; $('#o-dens').textContent = densityText(); kick(); };
+$('#dens').onchange = () => settle();
+document.querySelectorAll('#views [data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; $('#spokeTip').hidden = true; save(); showPanel(); kick(); });
+document.querySelectorAll('#modeKeys [data-mode]').forEach(b => b.onclick = () => { S.mode = b.dataset.mode; settle(); });
+$('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
+$('#inkOff').onclick = () => { S.ink = false; settle(); };
+$('#inkOn').onclick = () => { S.ink = true; settle(); };
+// the chosen rectangle's paints in sight: the strip's counts, the list, the keys
+function showPaints() {
+  const r = S.rects[S.sel], ss = r ? sausagesOf(planNow().rects[S.sel], S.brush) : [], pal = r?.pat?.palette, count = {};
+  for (const q of ss) count[q.paint] = (count[q.paint] || 0) + 1;
+  $('#paintsOf').textContent = r ? `Rect ${S.sel + 1}` : '';
+  $('#paints').querySelectorAll('[data-paint]').forEach(ch => {
+    const q = PAINT[ch.dataset.paint], n = count[q.id] || 0;
+    ch.querySelector('.cnt').textContent = n || '';
+    ch.classList.toggle('pick', S.tool === 'paint' && q.id === S.paint);
+    ch.title = `${q.name} — its colour off your swatch (est.)${n ? `, ${n} sausage${n === 1 ? '' : 's'} on rectangle ${S.sel + 1}` : ''} — a click: the paint of the next sausage (M)`;
+  });
+  const inUse = [...new Set([...(pal ? [...pal.core, ...pal.accent] : []), ...usedOf(r)])], thin = id => pal?.accent.includes(id) && !pal.core.includes(id);
+  $('#paintList').innerHTML = inUse.map(id => `<span class="pl${count[id] ? '' : ' none'}${EDIT?.id === id ? ' on' : ''}" data-pl="${id}" title="${PAINT[id].name}${thin(id) ? ', thin' : ''} — a click, then a paint in the strip: it takes its place"><i style="background:${PAINT[id].hex}"></i>${PAINT[id].name}${thin(id) ? ' <em>thin</em>' : ''}${count[id] ? ` <em>×${count[id]}</em>` : ''}<b class="x" data-x="${id}" title="Take ${PAINT[id].name} out">×</b></span>`).join('')
+    + (inUse.length ? `<span class="pl add${EDIT?.mode === 'add' ? ' on' : ''}" data-add title="Add a paint: then click it in the strip on the left">+</span>` : '');
+  $('#paints').classList.toggle('editing', !!EDIT);
+  document.querySelectorAll('#metaKeys [data-meta]').forEach(b => b.classList.toggle('on', pal?.name === b.dataset.meta));
+  if (document.activeElement !== $('#dens')) $('#dens').value = S.density;
+  $('#o-dens').textContent = densityText();
+  const rowsN = r ? rowsOf(r).length : 0;
+  $('#paintRead').innerHTML = [
+    'The sausages, where you squeeze the paints: in rows across the lanes, a stripe of 1, 2, 3 or 6 lanes each. New colours: a palette at random, the sausages staying in their places — or, none lying, the pattern laid. New spokes: the pattern anew on the rectangle as it is, its genesis. M and a paint in the strip: a click on a stripe at a row. A bigger rectangle repeats the genesis at its scale: its pitch kept, its lanes more.',
+    r?.pat && `<b>${ss.length}</b> sausage${ss.length === 1 ? '' : 's'} on rectangle ${S.sel + 1}, ${rowsN} row${rowsN === 1 ? '' : 's'} along it${genesisText(r)}`,
+    `Density ${S.density} %: a sausage keeps the line full about ${fmt(reachAt(S.density).full, 0)} mm, gone by ${fmt(reachAt(S.density).gone, 0)}${S.density === DENSITY_NEW ? ' — the measure, TAPE-colors/IMAGE 2026-10-12 19:23:33' : ' (est.; 50 % the measure)'}`,
+    pal && `Palette <b>${pal.name}</b>: ${pal.core.map(id => PAINT[id].name).join(', ')}${pal.accent.length ? `; thin: ${pal.accent.map(id => PAINT[id].name).join(', ')}` : ''} · seed ${r.pat.seed}`,
+    !r?.pat && 'No sausages yet: New colours, New spokes, a meta key, or M.',
+  ].filter(Boolean).join('<br>');
+}
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#fields').querySelectorAll('input').forEach(inp => inp.onchange = () => {
   const v = +inp.value, any = FIELDS.find(f => f[0] === inp.dataset.k)[5];
@@ -503,23 +748,28 @@ function showPanel() {
   }
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === S.tool));
   $('#fields').querySelectorAll('input').forEach(inp => { if (document.activeElement !== inp) inp.value = S[inp.dataset.k]; });
-  $('#hint').textContent = HINT[S.tool];
+  $('#hint').textContent = EDIT ? (EDIT.mode === 'add' ? 'Add a paint to the palette: click it in the strip on the left (+ again: leave it).' : `Change ${PAINT[EDIT.id].name}: click the paint to put in its place in the strip on the left (${PAINT[EDIT.id].name} in the list again: leave it).`) : HINT[S.tool];
+  const on = (sel, attr, v) => document.querySelectorAll(sel).forEach(b => b.classList.toggle('on', b.dataset[attr] === v));
+  on('#views [data-view]', 'view', S.view); on('#modeKeys [data-mode]', 'mode', S.mode);
+  $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
+  showPaints();
 }
 const what = () => `${S.rects.length} rectangle${S.rects.length === 1 ? '' : 's'}`;
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
   busy = false;
   if (S.sel >= S.rects.length) S.sel = Math.max(0, S.rects.length - 1);
-  const P = planNow(), D = dragRun('air'), Ds = dragRun('snake'), here = hereNow(), lines = [];
-  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.runs}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, ${fmt(Ds.mm / 1000, 1)} m with the steps across, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>: landing ${D.runs} times, ${fmt(D.mm / 1000, 1)} m, ≈ ${fmt(D.seconds / 60, 0)} min with the flights back (est.)`);
+  const P = planNow(), D = dragRun('air'), Ds = dragRun('snake'), Dd = dragRun('duo'), Mk = marksRun(), here = hereNow(), lines = [];
+  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.runs}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, ${fmt(Ds.mm / 1000, 1)} m with the steps across, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>: landing ${D.runs} times, ${fmt(D.mm / 1000, 1)} m, ≈ ${fmt(D.seconds / 60, 0)} min with the flights back (est.) · DRAG <b>Duo</b>: landing ${Dd.runs} times, ${fmt(Dd.mm / 1000, 1)} m, ≈ ${fmt(Dd.seconds / 60, 0)} min (est.)`);
+  if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${DIR_NAME[r.dir]}, <b>${r.runs.length}</b> lanes ${fmt(r.pitch, 2)} mm apart, ${gapText(r)}; the paint along its ${EDGE_NAME[r.dir]} edge, ${fmt(acrossOf(r), 1)} mm`);
   if (D.stops) lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paint, Continue`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
-  const warn = [D.fault && `The plan is wrong, DRAG Air will not run it: ${D.fault}.`, Ds.fault && `The plan is wrong, DRAG Snake will not run it: ${Ds.fault}.`, walls(D)].filter(Boolean);
+  const warn = [D.fault && `The plan is wrong, DRAG Air will not run it: ${D.fault}.`, Ds.fault && `The plan is wrong, DRAG Snake will not run it: ${Ds.fault}.`, Dd.fault && `The plan is wrong, DRAG Duo will not run it: ${Dd.fault}.`, Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, walls(D), walls(Mk)].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.runs} lanes · DRAG Snake ≈ ${fmt(Ds.seconds / 60, 0)} min · Air ≈ ${fmt(D.seconds / 60, 0)} min (est.)`;
+  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.runs} lanes${Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · DRAG Snake ≈ ${fmt(Ds.seconds / 60, 0)} min · Air ≈ ${fmt(D.seconds / 60, 0)} min · Duo ≈ ${fmt(Dd.seconds / 60, 0)} min (est.)`;
   showFiles();
   showPanel(); showRects(); save(); layout(); lastLcd && lcd(lastLcd);
 }
@@ -581,6 +831,7 @@ function svgOf() {
   const meta = JSON.stringify({ rembrandt: '1.0.7', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rects = P.rects.map(r => `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-dir="${r.dir}" data-lanes="${r.runs.length}"/>`).join('\n');
   const lanes = P.rects.flatMap(r => r.runs.map(ln => `  <line x1="${f(ln.a[0])}" y1="${f(H - ln.a[1])}" x2="${f(ln.b[0])}" y2="${f(H - ln.b[1])}"/>`)).join('\n');
+  const sausages = P.rects.flatMap(r => sausagesOf(r, S.brush).map(q => { const a = placeOf(r, q.a, q.c0), b = placeOf(r, q.b, q.c1); return `  <rect x="${f(Math.min(a[0], b[0]))}" y="${f(H - Math.max(a[1], b[1]))}" width="${f(Math.abs(b[0] - a[0]))}" height="${f(Math.abs(b[1] - a[1]))}" fill="${PAINT[q.paint].hex}" data-paint="${q.paint}" data-rect="${r.i + 1}"${q.thin ? ' data-thin="1"' : ''}/>`; })).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
 <!-- Rembrandt v.1.0.7 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's lanes in running order -->
@@ -591,6 +842,9 @@ ${lanes}
 </g>
 <g id="rects" fill="none" stroke="#EB7A25" stroke-width="0.5">
 ${rects}
+</g>
+<g id="sausages" stroke="#24221F" stroke-width="0.2">
+${sausages}
 </g>
 </svg>`;
 }
@@ -638,38 +892,54 @@ async function start(key, blocks, info, log) {
 }
 async function runDrag(mode) {
   settle();
-  const D = dragRun(mode), P = planNow(), first = P.rects[0], snake = mode === 'snake';
+  const D = dragRun(mode), P = planNow(), first = P.rects[0], snake = mode === 'snake', sausages = P.rects.some(r => r.pat);
   if (!D.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to run: no rectangles on the canvas.</span>'; return; }
   if (walls(D)) { $('#runState').innerHTML = `<span class="warn">${walls(D)}</span>`; return; }
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
   const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paint only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush and squeeze its paint, then Continue.\n\n` : ''}`
     + (snake ? `${P.runs} lanes back and forth with the brush down, a step across at each end: the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a rectangle; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+      : mode === 'duo' ? `${P.runs} lanes, each in two halves: from the far edge to the middle, the brush lifting there and flying back to the next lane — the ${first.dir === 'right' ? 'right' : 'top'} half first — then from the paint's edge to the middle; the brush lands ${D.runs} times, ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : `${P.runs} lanes, each one way: the brush lands at the paint's edge, runs to the far edge, lifts and flies back; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)
-    + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).\n\nIs the paint squeezed along rectangle 1's ${EDGE_NAME[first.dir]} edge?`;
-  if (!confirm(`DRAG ${snake ? 'SNAKE' : 'AIR'} ${TAB_NAME}, ${what()}: ${text}`)) return;
+    + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).\n\n${sausages ? 'Are the sausages squeezed on their marks, as Drag shows them?' : `Is the paint squeezed along rectangle 1's ${EDGE_NAME[first.dir]} edge?`}`;
+  if (!confirm(`DRAG ${mode.toUpperCase()} ${TAB_NAME}, ${what()}: ${text}`)) return;
   S.mode = mode; settle();
   await start(mode, D.blocks, { seconds: D.seconds, rows: D.rows },
     { page: TAB, pass: 'drag', mode, label: label(), settings: S, here: hereNow(), estimate_s: Math.round(D.seconds) });
 }
 $('#btnSnake').onclick = () => runDrag('snake');
 $('#btnAir').onclick = () => runDrag('air');
-// TEST, before DRAG (ALU's): one dip in the cup, a dot 20 mm in from each corner of the board, and home.
+$('#btnDuo').onclick = () => runDrag('duo');
+// MARKS: a dash a sausage, then the owner squeezes them on the dashes
+$('#btnMarks').onclick = async () => {
+  await loadInk(); settle();
+  const M = marksRun(), P = planNow();
+  if (!M.marks) { $('#runState').innerHTML = '<span class="warn">Nothing to mark: no sausages — New colours, New spokes, a meta key, or M.</span>'; return; }
+  if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">MARKS dips in the cup with INK ON: ${cupProblem(cup())}</span>`; return; }
+  if (M.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${M.fault}.</span>`; return; }
+  if (walls(M)) { $('#runState').innerHTML = `<span class="warn">${walls(M)}</span>`; return; }
+  const rows = P.rects.reduce((a, r) => a + (r.pat ? rowsOf(r).length : 0), 0);
+  if (!confirm(`MARKS ${TAB_NAME}: ${M.marks} dashes, a sausage each, in ${rows} row${rows === 1 ? '' : 's'} — ${S.ink ? `in watercolour from the cup, a dip every ${MARKS_DIP}, ${M.dips} dip${M.dips === 1 ? '' : 's'}` : 'Ink OFF: no dip, the dry brush'} — at ${MARK_SPEED} mm/s, ≈ ${fmt(M.seconds / 60, 1)} min (est.).\n\nThen squeeze the sausages on the dashes, as Drag shows them. Is the brush in the holder?`)) return;
+  S.view = 'drag'; settle();
+  await start('marks', M.blocks, { seconds: M.seconds, rows: M.rows },
+    { page: TAB, pass: 'marks', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(M.seconds) });
+};
+// TEST, before the runs (ALU's): with INK ON one dip in the cup, a dot 20 mm in from each corner of the board, and home.
 function testRun() {
   const T = cornerDots(S.boardW, S.boardH);
-  return T.dots.length ? { ...plotRun({ ...runOpts(T.dots.length), ink: true }, T.passes), dots: T.dots } : null;
+  return T.dots.length ? { ...plotRun({ ...runOpts(T.dots.length), ink: S.ink }, T.passes), dots: T.dots } : null;
 }
 $('#btnTest').onclick = async () => {
   await loadInk(); settle();
   const here = hereNow(), T = testRun();
   if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the board is ${2 * TEST_MARGIN} mm or less across.</span>`; return; }
-  if (cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TEST dips in the cup: ${cupProblem(cup())}</span>`; return; }
+  if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TEST dips in the cup with INK ON: ${cupProblem(cup())}</span>`; return; }
   if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the test is wrong — ${T.fault}.</span>`; return; }
   const R = reach(), past = d => { const x = here.x + d.at.x, y = here.y + d.at.y; return [x < R.x.min && `${fmt(R.x.min - x, 0)} mm past the bottom wall`, x > R.x.max && `${fmt(x - R.x.max, 0)} mm past the top wall`, y < R.y.min && `${fmt(R.y.min - y, 0)} mm past the left wall`, y > R.y.max && `${fmt(y - R.y.max, 0)} mm past the right wall`].filter(Boolean).join(', '); };
   const out = T.dots.filter(d => past(d));
-  if (!confirm(`TEST: one dip in the cup, then a dot ${TEST_MARGIN} mm in from each corner of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
+  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}a dot ${TEST_MARGIN} mm in from each corner of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
     + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
-    { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), cup: cup(), estimate_s: Math.round(T.seconds) });
+    { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });
 };
 // HOME: the brush up, the carriage home (strokes.js, homeBlocks)
 $('#btnHome').onclick = () => start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, { page: TAB, label: `${TAB_NAME} · HOME`, here: hereNow() });
@@ -680,7 +950,7 @@ $('#btnStop').onclick = () => post('/run/stop');
 // The LCD, as on ALU: DRAG's numbers while nothing runs.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 let started = null, lastLcd = null;
-const KEY_NAME = { test: 'TEST', home: 'HOME', snake: 'DRAG SNAKE', air: 'DRAG AIR' };
+const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', snake: 'DRAG SNAKE', air: 'DRAG AIR', duo: 'DRAG DUO' };
 function lcd(st) {
   lastLcd = st;
   const P_ = dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
