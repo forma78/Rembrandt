@@ -687,3 +687,44 @@ body.type .status{grid-column:1/4;grid-row:4}
 .tape .paintlist .pl.add{padding:2px 8px;font-weight:600;color:var(--mute)}
 .tape .paintstrip.editing .chip .sw{box-shadow:0 0 0 1px var(--orange)}       /* a paint to pick for the palette */
 .tape #metaKeys{margin:8px 0 2px}
+
+/* ---------- the phone (the owner, 2026-10-13, on the iPhone over the home
+   Wi-Fi: "the right panel with the clock covers the screen; the top row of
+   tabs does not scroll"). One column, scrolled: the tabs a row that slides
+   sideways, the zoom, the board the screen's width, the tools in a row, then
+   the panel and the status. Upright the TAPE paints two rows of 12 under the
+   board; lying down the board the screen's height, the paints by its side. */
+@media (max-width: 760px), (max-height: 500px) {
+  html,body{height:auto}
+  body{height:auto;min-height:100svh;overflow:visible;display:flex;flex-direction:column}
+  main{display:flex;flex-direction:column}
+  .top{order:0;flex:none;flex-wrap:wrap;gap:8px;padding:10px 12px;overflow:visible}
+  .brand{flex-wrap:wrap;row-gap:8px;width:100%;min-width:0}
+  .tabs{flex:1 1 100%;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs a{flex:none;padding:7px 11px}
+  .top-mid:empty{display:none}
+  body.type main{display:contents}
+  body.type .zoombar{order:1;flex:none;height:44px}
+  .stage{order:2;flex:none}
+  .tools{order:3;flex-direction:row;flex-wrap:wrap;justify-content:center;border-right:0;border-bottom:1px solid var(--line);padding:6px 8px}
+  .tools .sep{width:1px;height:26px;margin:0 4px}
+  .love .tools .ground{flex-direction:row}
+  .panel{order:4;border-left:0;overflow:visible;padding-bottom:16px}
+  .status{order:5;flex:none;flex-wrap:wrap;gap:4px 16px;padding:8px 12px}
+  .status #hint,.status #stats,.adjust .status #hint,.adjust .status #stats{white-space:normal;flex:1 1 100%}
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  .stage{height:calc(100vw + 30px)}
+  .tape .stage{height:calc(100vw + 100px)}
+  .tape .paintstrip{top:auto;bottom:0;right:0;width:auto;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(12,26px);column-gap:3px;row-gap:2px;padding:6px 0 4px;border-right:0;border-top:1px solid var(--line);overflow:visible}
+  .tape .paintstrip .chip{width:26px}
+  .tape .paintstrip .chip .sw{width:26px;height:26px;border-radius:6px}
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .top{flex-wrap:nowrap;padding:6px 12px}
+  .brand{flex-wrap:nowrap;align-items:center}
+  .tabs{flex:1 1 auto}
+  body.type .zoombar{height:38px}
+  .stage{height:calc(100svh - 92px)}                                                /* the header and the zoom over it, the board on the first screen */
+}

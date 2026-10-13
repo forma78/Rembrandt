@@ -33,3 +33,6 @@ export function lampSwitch(el) {
 }
 addEventListener('storage', e => { if (e.key === KEY) apply(read()); });   // switched on another tab
 apply(read());
+// On a phone the tabs are a row that slides sideways (style.css): this tab's in sight
+const tabs = document.querySelector('.tabs'), here = tabs?.querySelector('a.on');
+if (here && tabs.scrollWidth > tabs.clientWidth) tabs.scrollLeft += here.getBoundingClientRect().left - tabs.getBoundingClientRect().left - (tabs.clientWidth - here.offsetWidth) / 2;

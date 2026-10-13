@@ -203,17 +203,19 @@ const clipCanvas = c => { c.beginPath(); c.rect(-S.boardW / 2, -S.boardH / 2, S.
 const ZOOMS = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
 let Z = 1, ZC = null;   // the zoom; the window's centre, null: the canvas's
 function layout() {
-  const F = view(), r = stage.getBoundingClientRect(), m = 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0, strip = 78;   // the paints' strip by the Tools, two columns of 12 (style.css)
-  kFit = Math.max(0.2, Math.min((r.width - strip - 2 * m) / sw, (r.height - 2 * m) / sh));
+  const F = view(), r = stage.getBoundingClientRect(), m = r.width < 600 ? 10 : 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0;
+  const ps = $('#paints').getBoundingClientRect(), side = ps.height >= r.height - 1;          // the paints' strip by the Tools, or two rows of 12 under the board on an upright phone (style.css)
+  const stripW = side ? ps.width : 0, stripH = side ? 0 : ps.height;
+  kFit = Math.max(0.2, Math.min((r.width - stripW - 2 * m) / sw, (r.height - stripH - 2 * m) / sh));
   k = kFit * Z;
   dpr = window.devicePixelRatio || 1;
-  const w = Math.round(Math.min(sw * k, r.width - strip)), h = Math.round(Math.min(sh * k, r.height)), ww = w / k, hh = h / k;
+  const w = Math.round(Math.min(sw * k, r.width - stripW)), h = Math.round(Math.min(sh * k, r.height - stripH)), ww = w / k, hh = h / k;
   const mid = { x: (F.x0 + F.x1) / 2, y: (F.y0 + F.y1) / 2 }, c = ZC || mid;
   const cy = ww >= sw - 1e-6 ? mid.y : Math.max(F.y0 + ww / 2, Math.min(F.y1 - ww / 2, c.y));
   const cx = hh >= sh - 1e-6 ? mid.x : Math.max(F.x0 + hh / 2, Math.min(F.x1 - hh / 2, c.x));
   if (ZC) ZC = { x: cx, y: cy };
   V = { y0: cy - ww / 2, y1: cy + ww / 2, x0: cx - hh / 2, x1: cx + hh / 2 };
-  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.marginLeft = strip + 'px';
+  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.marginLeft = stripW + 'px'; board.style.marginBottom = stripH + 'px';
   cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
 }
@@ -627,6 +629,7 @@ const spokeOfGrab = () => {                                                     
   return { u: grab.u, k0, k1, paint: S.paint };
 };
 cv.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'mouse') showTip(e);                                          // on the phone a tap names the drop
   if (e.button !== 0 || S.tool !== 'spoke' || PLAY) return;
   const G = planNow(), [x, y] = toCanvas(e);
   const hit = S.spokes.findIndex(sp => spokeLine(G, sp).some(p => Math.hypot(p[0] - x, p[1] - y) < Math.max(1.5, 6 / k)));
@@ -660,7 +663,7 @@ function showTip(e) {
   const X = e.clientX - r.left, Y = e.clientY - r.top, w = tip.offsetWidth;
   tip.style.left = `${X + 14 + w > r.width ? X - 14 - w : X + 14}px`; tip.style.top = `${Math.max(0, Y - 30)}px`;
 }
-cv.addEventListener('pointerleave', () => { $('#spokeTip').hidden = true; });
+cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') $('#spokeTip').hidden = true; });   // a finger leaves at once: its cloud stays till the next tap
 cv.addEventListener('pointermove', e => {
   cv.style.cursor = S.tool === 'spoke' ? 'crosshair' : '';
   showTip(e);

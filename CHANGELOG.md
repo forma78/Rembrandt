@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The phone** (the owner, 2026-10-13, on the iPhone over the home Wi-Fi:
+  "better make a mobile version, if you can — the right panel with the
+  clock covers the screen. The top row of tabs does not scroll"). Up to
+  760 px wide, or 500 px high lying down, every page one column that
+  scrolls: the tabs a row that slides sideways, this tab brought into sight
+  (`lamp.js`, loaded on every page); the zoom; the board the screen's width
+  (lying down its height); the tools in a row; then the panel — PROGRESS,
+  the keys, the settings — and the status, wrapped. Upright, TAPE's and
+  BASF's 24 paints two rows of 12 under the board; `layout()` measures the
+  strip instead of its 78 px. A tap on a drop on Drag names it, as the
+  pointer does on the Mac. The Mac's page as it was.
+
 - **TAPE · BASF: a drop's name under the pointer on Drag** (the owner,
   2026-10-13: "make tooltips on Drag — when I bring the pointer to a
   colour, the drop's name pops up; on the small drops I cannot tell Black
