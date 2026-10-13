@@ -19,7 +19,7 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, DEFAULTS, ELBOW_HOVER, ELBOW_UP, SPEED_MAX, sweepOf } from './strokes.js';
+import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME } from './ccdplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -671,14 +671,8 @@ $('#btnTest').onclick = async () => {
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
     { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), cup: cup(), estimate_s: Math.round(T.seconds) });
 };
-// HOME (the owner, 2026-10-13: "next to STOP make a HOME, so that the arm
-// with the brush goes back to the bottom left corner"): the brush up, the
-// carriage to home — the two blocks every run ends with (strokes.js, plotRun)
-function homeBlocks() {
-  const h = homeCorner(), f = v => (Math.round(v * 100) / 100).toFixed(2);
-  return [{ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 1 }, { kind: 'move', cmds: [`T ${S.travel}`, `M ${f(h.x)} ${f(h.y)}`, 'G'], lengthMM: null, paintMM: 0, row: 1, home: true }];
-}
-$('#btnHome').onclick = () => start('home', homeBlocks(), { seconds: 0, rows: [{ label: 'HOME' }] }, { page: TAB, label: `${TAB_NAME} · HOME`, here: hereNow() });
+// HOME: the brush up, the carriage home (strokes.js, homeBlocks)
+$('#btnHome').onclick = () => start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, { page: TAB, label: `${TAB_NAME} · HOME`, here: hereNow() });
 let paused = false;
 $('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
 $('#btnStop').onclick = () => post('/run/stop');

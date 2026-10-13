@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP, MIN_PIECE } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP, MIN_PIECE, homeBlocks } from '../src/strokes.js';
+import { homeCorner } from '../src/machine.js';
 
 const PLOTTER = { lift: false };   // the plotter's own path, the brush not lifted at the turns
 
@@ -373,4 +374,11 @@ test('no sliver goes to the board: every piece longer than MIN_PIECE', () => {
     }
     assert.ok(pieces > 100);
   }
+});
+
+test('HOME: the brush up first, then the carriage to home at the travel speed (2026-10-13)', () => {
+  const [arm, move] = homeBlocks(180), h = homeCorner();
+  assert.deepEqual(arm, { kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 1 });
+  assert.equal(move.kind, 'move'); assert.equal(move.home, true); assert.equal(move.paintMM, 0);
+  assert.deepEqual(move.cmds, ['T 180', `M ${h.x.toFixed(2)} ${h.y.toFixed(2)}`, 'G']);
 });

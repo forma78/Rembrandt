@@ -10,6 +10,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   corner"). The brush up, the carriage to home: the two blocks every run
   ends with, sent as a run of its own; `rembrandt.py` untouched. Pressable
   when nothing runs — after STOP, or after a run.
+- **TAPE · BASF: HOME next to STOP**, as CCD's (the owner, 2026-10-13:
+  "yes, it can go on TAPE and BASF, thank you"); the two blocks shared,
+  `homeBlocks` in `strokes.js`.
 - **CCD: a round brush, no flat one** (the owner, 2026-10-13: "we do not
   take the flat brush, the tests showed it is useless — it does not work at
   all"). The stop before a rectangle that runs the other way no longer asks

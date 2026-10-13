@@ -466,6 +466,13 @@ export function xyPlan(opts) {
 // a list of pieces marked with their row (and `turn` through a turn); why: the
 // pause before a pass after the first, for its paint. o: the speeds, the
 // tail, lift, pause, ink, here, cup. The carriage goes home at the end.
+// HOME, a run of its own (the owner, 2026-10-13: "next to STOP make a HOME,
+// so that the arm with the brush goes back to the bottom left corner"): the
+// brush up, the carriage to home — the two blocks every run ends with
+export function homeBlocks(travel) {
+  const h = homeCorner(), f = v => (Math.round(v * 100) / 100).toFixed(2);
+  return [{ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 1 }, { kind: 'move', cmds: [`T ${travel}`, `M ${f(h.x)} ${f(h.y)}`, 'G'], lengthMM: null, paintMM: 0, row: 1, home: true }];
+}
 export function plotRun(o, passes) {
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
