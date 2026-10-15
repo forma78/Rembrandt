@@ -21,7 +21,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
-import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, airOf, strokesOf, runsFor, runName, TWO, SNAKY, RUNOUT_NEW, MARGIN_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
+import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, bowsOf, strokesOf, runsFor, runName, TWO, SNAKY, RUNOUT_NEW, MARGIN_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
   BIAS_META, DENSITY_NEW, MARKS_DIP, newPattern, recolour, reRows, rowsOf, sausagesOf, stripeAt, markOf, marksRows, mixAll, rowName } from './biasplan.js';
 import { MARK_SPEED, reachOf } from './ccdplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
@@ -240,16 +240,17 @@ function drawLanes() {
       if (!run.lanes.length) continue;
       const late = two ? run.n === 2 : run.n > 2, colour = late ? SECOND : themeColor('--ink', '#24221F');
       g.strokeStyle = late ? 'rgba(179,71,12,.5)' : 'rgba(36,34,31,.45)'; g.lineWidth = 1; g.setLineDash([3, 3]);
-      if (snake && ppx >= 2) {                                                         // the snake's way, its turns off the canvas dashed
+      if (two && ppx >= 2) {                                                           // BIAS: the brush down off the canvas dashed, its flights over it dashed blue, as the run's trail
+        const W = bowsOf(r, run, so, snake), line = pts => { g.beginPath(); pts.forEach((q, i) => { const s = scr(q); i ? g.lineTo(s[0], s[1]) : g.moveTo(s[0], s[1]); }); g.stroke(); };
+        for (const w of W) line(w.pts);
+        g.strokeStyle = 'rgba(79,195,247,.85)'; g.lineWidth = 1.2; g.setLineDash([5, 4]);
+        W.slice(1).forEach((w, i) => line([W[i].pts.at(-1), w.pts[0]]));
+      } else if (snake && ppx >= 2) {                                                  // the snake's way, its turns off the canvas dashed
         const Pn = snakeOf(r, run, so);
         g.beginPath(); Pn.pts.forEach((q, i) => { const s = scr(q); i ? g.lineTo(s[0], s[1]) : g.moveTo(s[0], s[1]); }); g.stroke();
-      } else if (two && ppx >= 2) {                                                    // BIAS AIR: its 30 mm off the canvas at both ends, dashed
-        g.beginPath();
-        for (const l of run.lanes) { const [a, b] = airOf(run, l, so), A = scr(a), B = scr(b), la = scr(l.a), lb = scr(l.b); g.moveTo(A[0], A[1]); g.lineTo(la[0], la[1]); g.moveTo(lb[0], lb[1]); g.lineTo(B[0], B[1]); }
-        g.stroke();
       }
       g.setLineDash([]);
-      const S = strokesOf(r, run, snake);
+      const S = strokesOf(r, run, snake), landsAt = new Set(two ? bowsOf(r, run, so, snake).map(w => w.lanes[0]) : []);
       run.lanes.forEach((l, j) => {
         const st = S[j], a = scr(st.from), b = scr(st.to), crossing = run.free && st.F !== run.F, col = run.free ? (crossing ? SECOND : themeColor('--ink', '#24221F')) : colour;
         if (show) { g.strokeStyle = 'rgba(36,34,31,.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
@@ -259,7 +260,8 @@ function drawLanes() {
           g.strokeStyle = col; g.lineWidth = 1.6; g.beginPath();
           g.moveTo(m[0] - e[0] * w - e[1] * w, m[1] - e[1] * w + e[0] * w); g.lineTo(m[0], m[1]); g.lineTo(m[0] - e[0] * w + e[1] * w, m[1] - e[1] * w - e[0] * w); g.stroke();
         }
-        g.fillStyle = !j || !snake ? ORANGE : 'rgba(235,122,37,.45)'; g.beginPath(); g.arc(a[0], a[1], !j ? 3.5 : 2, 0, 7); g.fill();   // where it comes in; the run's landing the big dot
+        const lands = !j || !snake || (two && landsAt.has(j));
+        g.fillStyle = lands ? ORANGE : 'rgba(235,122,37,.45)'; g.beginPath(); g.arc(a[0], a[1], lands ? 3.5 : 2, 0, 7); g.fill();   // where it comes in; where the brush lands the big dot
         if (ppx >= 11) {                                                               // the run's number, just outside — BIAS's: the lane's turn, rising in ink, crossing in rust
           g.fillStyle = col; g.font = font(!j ? 11 : 9, !j ? 700 : ''); g.textAlign = 'center'; g.textBaseline = 'middle';
           g.fillText(String(run.free ? j + 1 : run.n), a[0] - e[0] * 9, a[1] - e[1] * 9);
@@ -956,10 +958,10 @@ async function runDrag(mode) {
   if (walls(D)) { $('#runState').innerHTML = `<span class="warn">${walls(D, `DRAG ${MODE_NAME[mode]}`)}</span>`; return; }
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
   const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paints only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush and squeeze its paints, then Continue.\n\n` : ''}`
-    + (TWO(mode) ? `${P.lanes} lanes, a rising one and a crossing one in turn: the rising ones ↗ from the bottom right corner up to the top left, the crossing ones from ${FROM_NAME[P.rects[0].from2]} — every lane ${fmt(S.runout, 0)} mm off the canvas at both its ends, so the brush crosses the edge at an even pressure — `
+    + (TWO(mode) ? `${P.lanes} lanes, a rising one and a crossing one in turn: the rising ones from the bottom right corner up to the top left, the crossing ones from ${FROM_NAME[P.rects[0].from2]} — every lane ${fmt(S.runout, 0)} mm off the canvas at both its ends, so the brush crosses the edge at an even pressure — `
       : `${P.lanes} lanes in four runs, one after another with no stop: 1 rising ↗ every other lane from the bottom right corner, 2 descending ↘ every other lane from the top right, 3 rising the lanes skipped, 4 descending the lanes skipped — `)
     + (mode === 'snake' ? `each run the snake, its lanes forward and back with the brush down, turning ${fmt(S.clear, 1)} mm clear of the canvas so it never touches a painted lane; the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a run, and flies between them; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
-      : mode === 'biassnake' ? `the snake, the brush down, every next lane from its end nearer, round the canvas off it; the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+      : mode === 'biassnake' ? `the rising ones run down ↙, the crossing ones ${P.rects[0].from2 === 'bl' ? 'up ↖' : 'down ↘'}; from one to the next the brush stays down off the canvas where it can go round it, else it lifts and flies over — it lands ${D.runs} time${D.runs === 1 ? '' : 's'}; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : `every lane one way, the brush landing and lifting off the canvas and flying to the next; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)
     + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).${pressedText(D, '\n\n⚠ DRAG ' + MODE_NAME[mode])}\n\n${sausages ? 'Are the sausages squeezed on their marks, as Drag shows them?' : 'Is the paint squeezed along rectangle 1\'s edges?'}`;
   if (!confirm(`DRAG ${MODE_NAME[mode].toUpperCase()} ${TAB_NAME}, ${what()}: ${text}`)) return;
