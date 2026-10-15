@@ -21,7 +21,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
-import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, airOf, strokeOf, runsFor, runName, TWO, SNAKY, RUNOUT_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
+import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, airOf, strokesOf, runsFor, runName, TWO, SNAKY, RUNOUT_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
   BIAS_META, DENSITY_NEW, MARKS_DIP, newPattern, recolour, reRows, rowsOf, sausagesOf, stripeAt, markOf, marksRows, mixAll, rowName } from './biasplan.js';
 import { MARK_SPEED, reachOf } from './ccdplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
@@ -242,19 +242,20 @@ function drawLanes() {
         g.stroke();
       }
       g.setLineDash([]);
+      const S = strokesOf(r, run, snake);
       run.lanes.forEach((l, j) => {
-        const st = strokeOf(run, l, snake && j % 2 === 1), a = scr(st.from), b = scr(st.to);
+        const st = S[j], a = scr(st.from), b = scr(st.to), crossing = run.free && st.F !== run.F, col = run.free ? (crossing ? SECOND : themeColor('--ink', '#24221F')) : colour;
         if (show) { g.strokeStyle = 'rgba(36,34,31,.4)'; g.lineWidth = 1; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
         if (ppx < 4) return;
         const d = [b[0] - a[0], b[1] - a[1]], L = Math.hypot(d[0], d[1]) || 1, e = [d[0] / L, d[1] / L], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], w = Math.min(6, ppx / 3);
         if (L >= 18) {                                                                 // the arrow, in the middle, the way it goes
-          g.strokeStyle = colour; g.lineWidth = 1.6; g.beginPath();
+          g.strokeStyle = col; g.lineWidth = 1.6; g.beginPath();
           g.moveTo(m[0] - e[0] * w - e[1] * w, m[1] - e[1] * w + e[0] * w); g.lineTo(m[0], m[1]); g.lineTo(m[0] - e[0] * w + e[1] * w, m[1] - e[1] * w - e[0] * w); g.stroke();
         }
         g.fillStyle = !j || !snake ? ORANGE : 'rgba(235,122,37,.45)'; g.beginPath(); g.arc(a[0], a[1], !j ? 3.5 : 2, 0, 7); g.fill();   // where it comes in; the run's landing the big dot
-        if (ppx >= 11) {                                                               // the run's number, just outside
-          g.fillStyle = colour; g.font = font(!j ? 11 : 9, !j ? 700 : ''); g.textAlign = 'center'; g.textBaseline = 'middle';
-          g.fillText(String(run.n), a[0] - e[0] * 9, a[1] - e[1] * 9);
+        if (ppx >= 11) {                                                               // the run's number, just outside — BIAS's: the lane's turn, rising in ink, crossing in rust
+          g.fillStyle = col; g.font = font(!j ? 11 : 9, !j ? 700 : ''); g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.fillText(String(run.free ? j + 1 : run.n), a[0] - e[0] * 9, a[1] - e[1] * 9);
         }
       });
     }
@@ -796,7 +797,7 @@ function settle() {
   busy = false;
   if (S.sel >= S.rects.length) S.sel = Math.max(0, S.rects.length - 1);
   const P = planNow(), Ds = dragRun('snake'), Da = dragRun('air'), Dbs = dragRun('biassnake'), Dba = dragRun('biasair'), Mk = marksRun(), here = hereNow(), lines = [];
-  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.lanes}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>, four runs: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, a run each, ${fmt(Ds.mm / 1000, 1)} m with the turns, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>, four runs: landing ${Da.runs} times, ${fmt(Da.mm / 1000, 1)} m, ≈ ${fmt(Da.seconds / 60, 0)} min with the flights (est.) · <b>BIAS SNAKE</b>, two runs, ${fmt(S.runout, 0)} mm off the canvas at every end: landing ${Dbs.runs} time${Dbs.runs === 1 ? '' : 's'}, ${fmt(Dbs.mm / 1000, 1)} m, ≈ ${fmt(Dbs.seconds / 60, 0)} min (est.) · <b>BIAS AIR</b>, two runs: landing ${Dba.runs} times, ${fmt(Dba.mm / 1000, 1)} m, ≈ ${fmt(Dba.seconds / 60, 0)} min (est.)`);
+  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.lanes}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>, four runs: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, a run each, ${fmt(Ds.mm / 1000, 1)} m with the turns, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>, four runs: landing ${Da.runs} times, ${fmt(Da.mm / 1000, 1)} m, ≈ ${fmt(Da.seconds / 60, 0)} min with the flights (est.) · <b>BIAS SNAKE</b>, rising and crossing in turn, ${fmt(S.runout, 0)} mm off the canvas at every end: landing ${Dbs.runs} time${Dbs.runs === 1 ? '' : 's'}, ${fmt(Dbs.mm / 1000, 1)} m, ≈ ${fmt(Dbs.seconds / 60, 0)} min (est.) · <b>BIAS AIR</b>, in turn: landing ${Dba.runs} times, ${fmt(Dba.mm / 1000, 1)} m, ≈ ${fmt(Dba.seconds / 60, 0)} min (est.)`);
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${fmt(r.angle, 1)}°, ${r.cross === 'mirror' ? 'mirrored' : 'square'}, step ${fmt(r.step, 1)} mm, ${gapText(r)}; Snake and Air ${r.runs.map(q => `run ${q.n} ${q.arrow} ${RUN_NAME[q.n]}: ${q.lanes.length}`).join(', ')}; BIAS ${r.runs2.map(q => `run ${q.n} ${q.arrow} ${runName(r, q, 'biassnake')}: ${q.lanes.length}`).join(', ')}`);
   if (Ds.stops) lines.push(`DRAG stops <b>${Ds.stops}</b> time${Ds.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paints, Continue; never between the runs`);
@@ -947,10 +948,10 @@ async function runDrag(mode) {
   if (walls(D)) { $('#runState').innerHTML = `<span class="warn">${walls(D, `DRAG ${MODE_NAME[mode]}`)}</span>`; return; }
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
   const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paints only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush and squeeze its paints, then Continue.\n\n` : ''}`
-    + (TWO(mode) ? `${P.lanes} lanes in two runs, one after the other with no stop: 1 rising ↗, every lane from the bottom right corner up to the top left; 2 the crossing, every lane from ${FROM_NAME[P.rects[0].from2]} — every lane ${fmt(S.runout, 0)} mm off the canvas at both its ends, so the brush crosses the edge at an even pressure — `
+    + (TWO(mode) ? `${P.lanes} lanes, a rising one and a crossing one in turn: the rising ones ↗ from the bottom right corner up to the top left, the crossing ones from ${FROM_NAME[P.rects[0].from2]} — every lane ${fmt(S.runout, 0)} mm off the canvas at both its ends, so the brush crosses the edge at an even pressure — `
       : `${P.lanes} lanes in four runs, one after another with no stop: 1 rising ↗ every other lane from the bottom right corner, 2 descending ↘ every other lane from the top right, 3 rising the lanes skipped, 4 descending the lanes skipped — `)
     + (mode === 'snake' ? `each run the snake, its lanes forward and back with the brush down, turning ${fmt(S.clear, 1)} mm clear of the canvas so it never touches a painted lane; the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a run, and flies between them; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
-      : mode === 'biassnake' ? `each run the snake, its lanes forward and back with the brush down, turning off the canvas; the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a run, and flies between them; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+      : mode === 'biassnake' ? `the snake, the brush down, every next lane from its end nearer, round the canvas off it; the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : `every lane one way, the brush landing and lifting off the canvas and flying to the next; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)
     + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).${pressedText(D, '\n\n⚠ DRAG ' + MODE_NAME[mode])}\n\n${sausages ? 'Are the sausages squeezed on their marks, as Drag shows them?' : 'Is the paint squeezed along rectangle 1\'s edges?'}`;
   if (!confirm(`DRAG ${MODE_NAME[mode].toUpperCase()} ${TAB_NAME}, ${what()}: ${text}`)) return;
@@ -1024,7 +1025,7 @@ function lcd(st) {
     : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off')
     : live && now0 && b?.dip ? `${now0} · the dip in the cup`
     : live && now0 ? now0 + (st.brush_on ? ' · brush on' : ' · brush off')
-    : `${planNow().lanes} lanes · ${TWO(S.mode) ? 2 : 4} runs · ${what()} · ${MODE_NAME[S.mode]}`;
+    : `${planNow().lanes} lanes · ${TWO(S.mode) ? '/ and \\ in turn' : '4 runs'} · ${what()} · ${MODE_NAME[S.mode]}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
