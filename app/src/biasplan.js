@@ -27,19 +27,23 @@
 // of the row each; MARKS where they go; the Result the brush through them, run
 // after run, the later lanes through the earlier's wet paint.
 //
-// BIAS SNAKE and BIAS AIR, two runs (the owner, the same afternoon, after the
-// four on the machine, BIAS-plaid/ 12.57.38 … 13:04:33: "the first two passes
-// take all the paint, leaving none for the third and fourth — mud"; "the
-// brush's direction changes only twice, both diagonal, but straight away —
-// one pass along the diagonal one way, then it crosses the other"; "two
-// runs, not four"): 1 every rising lane from the bottom right corner up, 2
-// every descending one, the crossing, from the top right corner — or the
-// bottom left ("we do not have to make the crossing line there too; it can
-// be drawn from the opposite side"). Every lane starts and ends RUNOUT mm
-// off the canvas ("lifting off, the brush changes its pressure and the
-// line's thickness … our construction allows simply going +30 mm aside, so
-// the brush straightens out off the canvas and reaches the edge evenly —
-// then turns, comes onto the canvas and runs an even, solid line").
+// BIAS SNAKE and BIAS AIR, the two families in turn (the owner, the same
+// afternoon, after the four on the machine, BIAS-plaid/ 12.57.38 … 13:04:33:
+// "the first two passes take all the paint, leaving none for the third and
+// fourth — mud"; "the brush's direction changes only twice, both diagonal,
+// but straight away — one pass along the diagonal one way, then it crosses
+// the other"; and, on the first try, a row of rising lanes, 2.13.26 PM and
+// 14:17:03: "after the first diagonal the brush should make only one line,
+// then go the other way to make a pass in the opposite direction"; "seven
+// lines one way and not one across"): a rising lane, a crossing one, a
+// rising one … — the rising ones from the bottom right corner up, the
+// crossing ones from the top right corner, or the bottom left ("we do not
+// have to make the crossing line there too; it can be drawn from the
+// opposite side"). Every lane starts and ends RUNOUT mm off the canvas
+// ("lifting off, the brush changes its pressure and the line's thickness …
+// our construction allows simply going +30 mm aside, so the brush
+// straightens out off the canvas and reaches the edge evenly — then turns,
+// comes onto the canvas and runs an even, solid line").
 //
 // A rectangle's mm: from the canvas's bottom left corner, x right, y up, as a
 // ruler reads them; the runs for the machine from the canvas's centre
@@ -57,7 +61,7 @@ export const ANGLE_NEW = 26.6, ANGLE_MIN = 5, ANGLE_MAX = 85;   // °: his sketc
 export const STEP_NEW = 32, STEP_MIN = 1, STEP_MAX = 200;       // mm, lane centre to lane centre across them: the owner's 32
 export const ROWS_NEW = 3, ROWS_MIN = 2, ROWS_MAX = 12;         // vertical rows, both sides in: 3, the sides and the middle, his hand test
 export const CROSSES = ['square', 'mirror'], MODES = ['snake', 'air', 'biassnake', 'biasair'], FROMS = ['tr', 'bl'];
-export const TWO = m => m === 'biassnake' || m === 'biasair';     // BIAS SNAKE · BIAS AIR: two runs, every lane
+export const TWO = m => m === 'biassnake' || m === 'biasair';     // BIAS SNAKE · BIAS AIR: every lane, the two families in turn
 export const SNAKY = m => m === 'snake' || m === 'biassnake';
 export const RUNOUT_NEW = 30;       // mm along a lane off the canvas at both its ends, BIAS SNAKE and BIAS AIR: the owner's +30 mm
 export const FROM_NAME = { tr: 'the top right corner', bl: 'the bottom left corner' };
@@ -65,7 +69,7 @@ export const MIN_LANE = 1;          // mm: a shorter lane, a corner's touch, is 
 export const CLEAR_NEW = 2;         // mm: the brush's edge past the rectangle's at a snake's turn, est.
 export const ARROW = { A: '↗', B: '↘' };   // a family's forward stroke; a run's own in its arrow (the crossing from the bottom left ↖)
 export const RUN_NAME = ['', 'rising, every other lane', 'descending, every other lane', 'rising, the lanes skipped', 'descending, the lanes skipped'];
-export const runName = (r, run, mode) => TWO(mode) ? (run.n === 1 ? 'rising, every lane from the bottom right corner' : `the crossing, every lane from ${FROM_NAME[r.from2]}, its strokes ${r.from2 === 'bl' ? 'up' : 'down'}`) : RUN_NAME[run.n];
+export const runName = (r, run, mode) => TWO(mode) ? `a rising lane from the bottom right corner, a crossing one from ${FROM_NAME[r.from2]}, in turn` : RUN_NAME[run.n];
 
 const fin = Number.isFinite, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
@@ -126,16 +130,18 @@ export function runsOf(r) {
   const a0 = A[0]?.k ?? 0, b0 = B[0]?.k ?? 0, even = (L, k) => L.filter(l => (l.k - k) % 2 === 0), odd = (L, k) => L.filter(l => (l.k - k) % 2 !== 0);
   return [even(A, a0), even(B, b0), odd(A, a0), odd(B, b0)].map((lanes, i) => ({ n: i + 1, fam: i % 2 ? 'B' : 'A', F: i % 2 ? FB : FA, arrow: ARROW[i % 2 ? 'B' : 'A'], lanes }));
 }
-// BIAS SNAKE's and BIAS AIR's two runs: 1 every rising lane from the bottom
-// right corner up; 2 every crossing one, as the rectangle's from2 says — from
-// the top right corner down, its strokes ↘, or from the bottom left up, its
-// strokes ↖, the paint dragged the other way (the owner, 2026-10-15: "how the
-// paints mix as we drag the brush from different corners")
+// BIAS SNAKE's and BIAS AIR's one run: the rising lanes from the bottom right
+// corner up and the crossing ones, as the rectangle's from2 says — from the
+// top right corner down, forward ↘, or from the bottom left up, forward ↖,
+// the paint dragged the other way (the owner, 2026-10-15: "how the paints mix
+// as we drag the brush from different corners") — one of each in turn, the
+// longer family's last on their own. A lane carries its family (F).
 export function runsTwo(r) {
-  const [FA, FB] = familiesOf(r), B = familyLanes(r, FB), up = r.from2 === 'bl';
-  const F2 = up ? { ...FB, u: [-FB.u[0], -FB.u[1]] } : FB;
-  return [{ n: 1, fam: 'A', F: FA, arrow: ARROW.A, lanes: familyLanes(r, FA) },
-    { n: 2, fam: 'B', F: F2, arrow: up ? '↖' : ARROW.B, lanes: up ? B.map(l => ({ ...l, a: l.b, b: l.a })) : B.reverse() }];
+  const [FA, FB] = familiesOf(r), A = familyLanes(r, FA).map(l => ({ ...l, F: FA })), up = r.from2 === 'bl';
+  const F2 = up ? { ...FB, u: [-FB.u[0], -FB.u[1]] } : FB, B0 = familyLanes(r, FB), B = (up ? B0.map(l => ({ ...l, a: l.b, b: l.a })) : B0.reverse()).map(l => ({ ...l, F: F2 }));
+  const lanes = [];
+  for (let i = 0; i < Math.max(A.length, B.length); i++) { if (A[i]) lanes.push(A[i]); if (B[i]) lanes.push(B[i]); }
+  return [{ n: 1, fam: 'A', F: FA, arrow: `${ARROW.A}${up ? '↖' : ARROW.B}`, free: true, lanes }];
 }
 // a planned rectangle's runs as a DRAG key runs them
 export const runsFor = (r, mode) => TWO(mode) ? r.runs2 : r.runs;
@@ -165,19 +171,44 @@ function segClear(r, a, b) {
   return Math.min(f(0), f(1), f((lo + hi) / 2));
 }
 // the snake's step from a lane's end to the next one's start, off the
-// rectangle: straight, or round the corner between them, d0 out on both axes
+// rectangle: straight, or round the corner between them — or the two, to
+// another side — d0 out on both axes; the shortest that keeps off it
 function stepAround(r, A, B, d0) {
-  if (segClear(r, A, B) >= d0 - 1e-6) return [];
+  const ok = (p, q) => segClear(r, p, q) >= d0 - 1e-6;
+  if (ok(A, B)) return [];
+  const C = [[r.x - d0, r.y - d0], [r.x + r.w + d0, r.y - d0], [r.x + r.w + d0, r.y + r.h + d0], [r.x - d0, r.y + r.h + d0]];
   let best = null;
-  for (const [cx, cy, sx, sy] of [[r.x, r.y, -1, -1], [r.x + r.w, r.y, 1, -1], [r.x + r.w, r.y + r.h, 1, 1], [r.x, r.y + r.h, -1, 1]]) {
-    const C = [cx + sx * d0, cy + sy * d0], L = Math.hypot(C[0] - A[0], C[1] - A[1]) + Math.hypot(B[0] - C[0], B[1] - C[1]);
-    if (segClear(r, A, C) >= d0 - 1e-6 && segClear(r, C, B) >= d0 - 1e-6 && (!best || L < best.L)) best = { C, L };
-  }
-  return best ? [best.C] : [];
+  const take = mid => {
+    const P = [A, ...mid, B];
+    let L = 0;
+    for (let i = 1; i < P.length; i++) { if (!ok(P[i - 1], P[i])) return; L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); }
+    if (!best || L < best.L) best = { mid, L };
+  };
+  for (let i = 0; i < 4; i++) { take([C[i]]); take([C[i], C[(i + 1) % 4]]); take([C[i], C[(i + 3) % 4]]); }
+  return best ? best.mid : [];
 }
+// a point on the rectangle's edge, mm round it anticlockwise from its bottom left corner
+function roundOf(r, p) {
+  const e = 0.01;
+  if (Math.abs(p[1] - r.y) < e) return p[0] - r.x;
+  if (Math.abs(p[0] - r.x - r.w) < e) return r.w + p[1] - r.y;
+  if (Math.abs(p[1] - r.y - r.h) < e) return r.w + r.h + r.x + r.w - p[0];
+  return 2 * r.w + r.h + r.y + r.h - p[1];
+}
+const roundGap = (r, p, q) => { const P = 2 * (r.w + r.h), d = Math.abs(roundOf(r, p) - roundOf(r, q)) % P; return Math.min(d, P - d); };
 const along = (p, d, s) => [p[0] + d[0] * s, p[1] + d[1] * s];
-// A lane as the brush runs it: forward, or back on every other one of the snake
-export const strokeOf = (run, l, back) => back ? { from: l.b, to: l.a, u: [-run.F.u[0], -run.F.u[1]] } : { from: l.a, to: l.b, u: run.F.u };
+// A lane as the brush runs it: forward, or back on every other one of the
+// snake — its own family's way (BIAS's runs mix them), else its run's
+export const strokeOf = (run, l, back) => { const F = l.F || run.F; return back ? { from: l.b, to: l.a, u: [-F.u[0], -F.u[1]], F } : { from: l.a, to: l.b, u: F.u, F }; };
+// A run's lanes as the brush runs them: through the air forward; the snake
+// forward, back, forward …; BIAS SNAKE's (free) each from its end nearer,
+// round the rectangle, to where the one before it left — the first forward
+export function strokesOf(r, run, snake) {
+  if (!snake) return run.lanes.map(l => strokeOf(run, l, false));
+  if (!run.free) return run.lanes.map((l, j) => strokeOf(run, l, j % 2 === 1));
+  let at = null;
+  return run.lanes.map(l => { const s = strokeOf(run, l, !!at && roundGap(r, at, l.b) < roundGap(r, at, l.a)); at = s.to; return s; });
+}
 // One run as the snake: its lanes forward, back, forward … with the brush
 // down, the brush landing o.before mm before its first lane's edge and
 // lifting o.past mm past its last's; at every other end it runs on till it is
@@ -188,10 +219,10 @@ export const strokeOf = (run, l, back) => back ? { from: l.b, to: l.a, u: [-run.
 // it off the rectangle, and at least clear. → { pts, ends: the index in pts
 // where every lane ends }
 export function snakeOf(r, run, o) {
-  const d0 = (o.brush || 0) / 2 + (o.clear ?? CLEAR_NEW), ro = o.runout || 0, pts = [], ends = [], n = run.lanes.length;
+  const d0 = (o.brush || 0) / 2 + (o.clear ?? CLEAR_NEW), ro = o.runout || 0, pts = [], ends = [], n = run.lanes.length, S = strokesOf(r, run, true);
   const off = (p, d, turn, plain) => along(p, d, ro > 0 ? Math.max(ro, turn ? clearAlong(r, p, d, d0) : 0) : turn ? clearAlong(r, p, d, d0) : plain);
   run.lanes.forEach((l, j) => {
-    const s = strokeOf(run, l, j % 2 === 1), back = [-s.u[0], -s.u[1]];
+    const s = S[j], back = [-s.u[0], -s.u[1]];
     const a = off(s.from, back, j > 0, o.before || 0);
     if (j) pts.push(...stepAround(r, pts.at(-1), a, d0));
     pts.push(a, off(s.to, s.u, j < n - 1, o.past || 0));
@@ -216,7 +247,7 @@ export const stopWhy = r => `Rectangle ${r.i + 1}: wipe the brush, squeeze its p
 const lanesWord = n => `${n} lane${n === 1 ? '' : 's'}`;
 export function dragRows(pl, o) {
   const ps = [], info = [], stops = [], at = q => toMachine([q[0] - o.cw / 2, o.ch / 2 - q[1]]), snake = SNAKY(o.mode), two = TWO(o.mode);
-  const oo = { ...o, runout: two ? o.runout ?? RUNOUT_NEW : 0 }, key = two ? 'BIAS run' : 'run';
+  const oo = { ...o, runout: two ? o.runout ?? RUNOUT_NEW : 0 }, key = two ? 'BIAS' : 'run';
   let length = 0;
   for (const r of pl.rects) {
     if (!r.lanes) continue;
@@ -233,14 +264,14 @@ export function dragRows(pl, o) {
           if (i < P.pts.length - 1 && P.ends.includes(i)) stopsAt.push(acc);
         });
         ps.push(pieces.map((g, i) => ({ ...g, tilt: 0, row, ...(!i && stopsAt.length ? { stopsAt } : {}) })));
-        info.push({ label: `Rectangle ${r.i + 1} · ${key} ${run.n} ${run.arrow} · ${n > 1 ? `${lanesWord(n)}, the snake` : 'one lane'}`, ri: r.i, run: run.n, L: acc });
+        info.push({ label: `Rectangle ${r.i + 1} · ${key} ${run.n} ${run.arrow} · ${n > 1 ? `${lanesWord(n)}${run.free ? ', rising and crossing in turn' : ''}, the snake` : 'one lane'}`, ri: r.i, run: run.n, L: acc });
         length += acc;
         continue;
       }
       run.lanes.forEach((l, j) => {
         const [a, b] = airOf(run, l, oo), g = { t: 'L', a: at(a), b: at(b) }, L = pieceLen(g), row = ps.length + 1;
         ps.push([{ ...g, tilt: 0, row }]);
-        info.push({ label: `Rectangle ${r.i + 1} · ${key} ${run.n} ${run.arrow} · lane ${j + 1} of ${n}`, ri: r.i, run: run.n, L });
+        info.push({ label: `Rectangle ${r.i + 1} · ${key} ${run.n} ${run.free ? (l.F.u[1] > 0 && l.F.u[0] > 0 ? ARROW.A : run.arrow.slice(1)) : run.arrow} · lane ${j + 1} of ${n}`, ri: r.i, run: run.n, L });
         length += L;
       });
     }
@@ -416,8 +447,8 @@ export function mixAll(pl, o) {
   const strokes = [];
   for (const r of pl.rects) {
     const carry = GROOVE_K.map(() => null);                           // the brush across a turn, a groove each; clean at a rectangle's start, wiped at its stop
-    for (const run of runsFor(r, o.mode)) run.lanes.forEach((l, j) => {
-      const s = strokeOf(run, l, snake && j % 2 === 1), n = Math.max(2, Math.round((l.len + before + past) / h) + 1), F = run.F;
+    for (const run of runsFor(r, o.mode)) { const S = strokesOf(r, run, snake); run.lanes.forEach((l, j) => {
+      const s = S[j], n = Math.max(2, Math.round((l.len + before + past) / h) + 1), F = s.F;
       const lane = GROOVE_K.map((_, g) => {
         const off = ((g + 0.5) / G - 0.5) * o.brush, start = [s.from[0] - s.u[0] * before + F.n[0] * off, s.from[1] - s.u[1] * before + F.n[1] * off];
         const Qs = Array.from({ length: n }, (_, i) => quad(start[0] + s.u[0] * i * h, start[1] + s.u[1] * i * h));
@@ -458,7 +489,7 @@ export function mixAll(pl, o) {
         accW[cc] = 0; accA[cc] = 0; accL[3 * cc] = accL[3 * cc + 1] = accL[3 * cc + 2] = 0;
       }
       touched.length = 0;
-    });
+    }); }
   }
   return { h, strokes };
 }

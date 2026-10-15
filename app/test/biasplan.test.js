@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanRect, familiesOf, familyLanes, runsOf, runsTwo, planOf, snakeOf, airOf, distTo, dragRows, dragPasses, dragSvg, rowsOf, newPattern, recolour, reRows, sausagesOf, stripeAt, marksRows, mixAll,
+import { cleanRect, familiesOf, familyLanes, runsOf, runsTwo, strokesOf, planOf, snakeOf, airOf, distTo, dragRows, dragPasses, dragSvg, rowsOf, newPattern, recolour, reRows, sausagesOf, stripeAt, marksRows, mixAll,
   ANGLE_NEW, STEP_NEW, ROWS_NEW, CLEAR_NEW, RUNOUT_NEW, BIAS_META, MARKS_DIP } from '../src/biasplan.js';
 import { plotRun, DEFAULTS } from '../src/strokes.js';
 
@@ -133,50 +133,54 @@ test('the Result: the brush lays the sausages along the lanes, the later runs th
   assert.ok(dry.strokes.every(q => q.cover.every(c => c === 0)), 'no sausages, no paint');
 });
 
-// BIAS SNAKE and BIAS AIR (the owner, the same afternoon: "two runs, not
-// four"; "+30 mm aside, so the brush straightens out off the canvas")
-test('BIAS: two runs, every lane — rising from the bottom right corner, the crossing from the top right or the bottom left', () => {
-  const r = sq(), [A, B] = familiesOf(r), T = runsTwo(r);
+// BIAS SNAKE and BIAS AIR (the owner, the same afternoon: "after the first
+// diagonal only one line, then the other way"; "+30 mm aside, so the brush
+// straightens out off the canvas")
+test('BIAS: a rising lane and a crossing one in turn — the rising from the bottom right corner, the crossing from the top right or the bottom left', () => {
+  const r = sq(), [A, B] = familiesOf(r), [T] = runsTwo(r), isA = l => l.F.u[0] > 0 && l.F.u[1] > 0;
   assert.equal(RUNOUT_NEW, 30);
-  assert.deepEqual(T.map(q => q.fam), ['A', 'B']);
-  assert.deepEqual(T[0].lanes.map(l => l.k), familyLanes(r, A).map(l => l.k), 'every rising lane, the lowest first');
-  assert.deepEqual(T[1].lanes.map(l => l.k), familyLanes(r, B).map(l => l.k).reverse(), 'every crossing lane, from the top right');
-  const bl = runsTwo(cleanRect({ x: 0, y: 0, w: 200, h: 200, from2: 'bl' }));
-  assert.deepEqual(bl[1].lanes.map(l => l.k), familyLanes(r, B).map(l => l.k), 'or from the bottom left');
-  assert.equal(bl[1].arrow, '↖'); assert.ok(bl[1].F.u[1] > 0 && bl[1].F.u[0] < 0, 'its strokes up to the left, the paint dragged the other way');
-  for (const l of bl[1].lanes) assert.ok(l.a[1] < l.b[1], 'each from its lower end');
+  assert.equal(T.lanes.length, familyLanes(r, A).length + familyLanes(r, B).length, 'every lane once');
+  const n = Math.min(familyLanes(r, A).length, familyLanes(r, B).length);
+  for (let i = 0; i < 2 * n; i++) assert.equal(isA(T.lanes[i]), i % 2 === 0, `lane ${i + 1}: ${i % 2 ? 'crossing' : 'rising'}`);
+  assert.deepEqual(T.lanes.filter(isA).map(l => l.k), familyLanes(r, A).map(l => l.k), 'the rising ones from the bottom right corner up');
+  assert.deepEqual(T.lanes.filter(l => !isA(l)).map(l => l.k), familyLanes(r, B).map(l => l.k).reverse(), 'the crossing ones from the top right down');
+  assert.ok(T.lanes[1].a[1] > 150 && T.lanes[1].b[0] > 150, 'the first crossing lane by the top right corner');
+  const [U] = runsTwo(cleanRect({ x: 0, y: 0, w: 200, h: 200, from2: 'bl' })), cross = U.lanes.filter(l => !isA(l));
+  assert.deepEqual(cross.map(l => l.k), familyLanes(r, B).map(l => l.k), 'or from the bottom left up');
+  assert.equal(U.arrow, '↗↖'); for (const l of cross) assert.ok(l.a[1] < l.b[1] && l.F.u[1] > 0, 'its strokes up to the left, the paint dragged the other way');
   assert.equal(cleanRect({ x: 0, y: 0, w: 10, h: 10, from2: 'middle' }).from2, 'tr');
 });
 
-test('BIAS SNAKE: every lane 30 mm along it off the canvas at both ends, the turns off it too; two landings', () => {
-  const pl = planOf([sq()]), r = pl.rects[0], o = { ...O, runout: 30 };
-  for (const run of r.runs2) {
-    const P = snakeOf(r, run, o);
-    run.lanes.forEach((l, j) => {
-      const a = P.pts[P.ends[j] - 1], b = P.pts[P.ends[j]], s = j % 2 ? [l.b, l.a] : [l.a, l.b];
-      assert.ok(Math.hypot(a[0] - s[0][0], a[1] - s[0][1]) >= 30 - 1e-6, `run ${run.n}, lane ${j + 1}: it comes in from 30 mm off`);
-      assert.ok(Math.hypot(b[0] - s[1][0], b[1] - s[1][1]) >= 30 - 1e-6, `run ${run.n}, lane ${j + 1}: it runs 30 mm on`);
-    });
-    for (let j = 0; j < P.ends.length - 1; j++) for (let i = P.ends[j]; i < P.ends[j + 1] - 1; i++) {
-      const a = P.pts[i], b = P.pts[i + 1];
-      for (let t = 0; t <= 1; t += 0.02) assert.ok(distTo(r, [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]) >= O.brush / 2 + O.clear - 1e-3, 'its turns off the canvas');
-    }
+test('BIAS SNAKE: every lane 30 mm along it off the canvas at both ends, from its end nearer, the way between round the canvas; one landing', () => {
+  const pl = planOf([cleanRect({ x: 0, y: 0, w: 350, h: 350, angle: 45, step: 40 })]), r = pl.rects[0], [run] = r.runs2, o = { ...O, runout: 30 };
+  const P = snakeOf(r, run, o), S = strokesOf(r, run, true);
+  run.lanes.forEach((l, j) => {
+    const a = P.pts[P.ends[j] - 1], b = P.pts[P.ends[j]], s = S[j];
+    assert.ok(Math.hypot(a[0] - s.from[0], a[1] - s.from[1]) >= 30 - 1e-6, `lane ${j + 1}: it comes in from 30 mm off`);
+    assert.ok(Math.hypot(b[0] - s.to[0], b[1] - s.to[1]) >= 30 - 1e-6, `lane ${j + 1}: it runs 30 mm on`);
+  });
+  for (let j = 0; j < P.ends.length - 1; j++) for (let i = P.ends[j]; i < P.ends[j + 1] - 1; i++) {
+    const a = P.pts[i], b = P.pts[i + 1];
+    for (let t = 0; t <= 1; t += 0.02) assert.ok(distTo(r, [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]) >= O.brush / 2 + O.clear - 1e-3, `the way to lane ${j + 2} off the canvas`);
   }
-  const R = dragRows(pl, { ...O, mode: 'biassnake' });
-  assert.equal(R.ps.length, 2); assert.equal(R.stops.length, 0);
-  assert.match(R.info[0].label, /BIAS run 1 ↗ · 8 lanes, the snake/); assert.match(R.info[1].label, /BIAS run 2 ↘ · 8 lanes/);
-  const run = plotRun({ ...RUN, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R));
-  assert.equal(run.fault, '');
-  const four = dragRows(pl, { ...O, mode: 'snake' });
-  assert.ok(R.length > four.length, 'the 30 mm off the canvas: a longer way');
+  assert.ok(S[0].u[0] > 0 && S[0].u[1] > 0, 'the first up to the right, from the bottom right corner');
+  const R = dragRows(pl, { ...O, cw: 350, ch: 350, mode: 'biassnake' });
+  assert.equal(R.ps.length, 1); assert.equal(R.stops.length, 0);
+  assert.match(R.info[0].label, /BIAS 1 ↗↘ · \d+ lanes, rising and crossing in turn, the snake/);
+  assert.equal(R.ps[0][0].stopsAt.length, run.lanes.length - 1, 'a pause at every lane\'s end but the last');
+  const run2 = plotRun({ ...RUN, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R));
+  assert.equal(run2.fault, '');
 });
 
-test('BIAS AIR: a lane a row, landing and lifting 30 mm off the canvas', () => {
-  const pl = planOf([sq()]), R = dragRows(pl, { ...O, mode: 'biasair' });
+test('BIAS AIR: a lane a row, in turn, each its family\'s way, landing and lifting 30 mm off the canvas', () => {
+  const pl = planOf([sq()]), R = dragRows(pl, { ...O, mode: 'biasair' }), [run] = pl.rects[0].runs2;
   assert.equal(R.ps.length, pl.lanes);
-  const l = pl.rects[0].runs2[0].lanes[1], g = R.ps[1][0];
-  close(Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), l.len + 60, 'the lane and 30 mm at each end');
+  const g0 = R.ps[0][0], g1 = R.ps[1][0];
+  close(Math.hypot(g0.b.x - g0.a.x, g0.b.y - g0.a.y), run.lanes[0].len + 60, 'the lane and 30 mm at each end');
+  assert.ok(g0.b.x > g0.a.x && g0.b.y > g0.a.y, 'the first rising: up the machine and to the right');
+  assert.ok(g1.b.x < g1.a.x && g1.b.y > g1.a.y, 'then a crossing one: down the machine, to the right');
+  assert.match(R.info[1].label, /BIAS 1 ↘ · lane 2/);
   const M = mixAll(planOf([Object.assign(sq(), { pat: newPattern(sq(), BIAS_META['meta 2'], 7) })]), { ...O, density: 50, mode: 'biassnake' });
   assert.equal(M.strokes.length, pl.lanes * 5);
-  assert.ok(M.strokes.filter(q => q.run === 2).some(q => q.cover.some(c => c > 0.5)), 'the crossing run paints');
+  assert.ok(M.strokes.some(q => q.cover.some(c => c > 0.5)), 'it paints');
 });
