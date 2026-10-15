@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · BIAS</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+</head>
+<body class="adjust arm3 nolan type love alu ccd" data-tab="bias">
+<!-- Rembrandt · BIAS — a plaid on the bias (the owner, 2026-10-15,
+     BIAS-plaid/: "a new way of painting, on the base of the CCD tab: absolutely
+     the same palette and the same principle — DRAG Snake / DRAG Air. The only
+     difference: the stripes not straight but diagonal"). CCD's page: its
+     rectangles, the paints, MARKS, DRAG Snake and Air, the Result; every
+     rectangle laid with diagonal lanes in four runs (src/biasplan.js). -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.0.8</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="index.html">TAPE</a>
+      <a href="basf.html">BASF</a>
+      <a href="alucut.html">ALU-CUT</a>
+      <a href="ccd.html">CCD</a>
+      <a href="bias.html" class="on">BIAS</a>
+      <a href="alu.html">ALU</a>
+      <a href="smkn.html">SMKN</a>
+      <a href="nolan.html">NOLAN</a>
+      <a href="test.html">Test</a>
+      <a href="ink.html">Ink</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+    </nav>
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <nav class="tools" aria-label="Tools">
+    <button class="tool" data-tool="edit" title="Edit — drag a rectangle to move it, its handles to stretch it left and right, up and down; a click chooses it; the arrows move it a mm, with ⇧ ten; ⌫ takes it away (V)">
+      <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
+      <span>V</span>
+    </button>
+    <button class="tool" data-tool="rect" title="Rectangle — drag on the canvas to lay a new one; it runs after the others (R)">
+      <svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="0.5"/><path d="M4 12l6-6M4 18l12-12M10 18l10-10M16 18l4-4" class="thin"/></svg>
+      <span>R</span>
+    </button>
+    <!-- the sausages by hand: a paint in the strip, then a click on a stripe of an edge or a row -->
+    <button class="tool" data-tool="paint" title="Sausages — a click on a stripe of an edge or a row puts a sausage of the chosen paint there; a click with the paint it has takes it away; the Result drags them (M)">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><path d="M4 9v6M9 20h6M20 6v5M12 9v6" class="bold"/></svg>
+      <span>M</span>
+    </button>
+    <button class="tool" id="btnPaintsClear" title="Clear the chosen rectangle's sausages (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+    <div class="sep"></div>
+    <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
+    <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
+    <div class="sep"></div>
+    <button class="tool" id="btnClear" title="Clear the canvas: no rectangles (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+  </nav>
+
+  <!-- the zoom, over the board, as on CCD -->
+  <div class="zoombar" id="zoombar">
+    <button class="zk" id="zoomOut" title="Zoom out (⌘−)" aria-label="Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button class="zk pct" id="zoomFit" title="Back to 100 %: the canvas and home (⌘0)">100%</button>
+    <button class="zk" id="zoomIn" title="Zoom in (⌘+). A pinch on the trackpad zooms where it is; two fingers move the board" aria-label="Zoom in"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+  </div>
+
+  <section class="stage" id="stage">
+    <!-- the owner's paints, CCD's strip: a chip a paint, its name on hover, how many sausages it has -->
+    <div class="paintstrip" id="paints" aria-label="Paints"></div>
+    <div class="board" id="board"><canvas id="cv"></canvas><div class="spoke-tip" id="spokeTip" hidden></div></div>
+  </section>
+
+  <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <!-- the cassette deck, CCD's: TEST and PAUSE; MARKS and DRAG in two keys (the owner, 2026-10-15: "the same principle — DRAG Snake / DRAG Air"); STOP and HOME -->
+      <div class="runkeys deck">
+        <button class="btn" id="btnTest" title="TEST, before the runs: with INK ON one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <button class="btn" id="btnPause" title="PAUSE the run at the end of the lane; pressed, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
+      </div>
+      <div class="runkeys deck passes">
+        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS: a dash where every sausage goes, along its edge or row — with INK ON in watercolour from the cup, a dip every fourth; then squeeze the sausages on them"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><path d="M4 9v6M9 20h6M20 6v5"/></svg><span>Marks</span></button>
+        <button class="btn pass" id="btnSnake" data-pass="snake" title="DRAG, the snake: four runs — rising every other lane from the bottom right corner, descending every other lane from the top right, then the lanes skipped — each run its lanes forward and back with the brush down, turning off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M3 18l7-10h4l-7 10h4l7-10"/></svg><span>Snake</span></button>
+        <button class="btn pass" id="btnAir" data-pass="air" title="DRAG through the air: the four runs' lanes one way each — the rising ones up to the right, the descending ones down to the right — the brush lifting past the far edge and flying to the next; no dip"><svg viewBox="0 0 24 24"><path d="M5 17L16 6M10 6h6v6"/><path d="M9 21l11-11" class="dash"/></svg><span>Air</span></button>
+      </div>
+      <div class="stops deckstops">
+        <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
+        <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
+      </div>
+      <!-- INK, CCD's: ON MARKS in watercolour from the cup of the Ink tab, and TEST's dip; OFF no dip; DRAG never dips -->
+      <div class="inkrow" title="ON: MARKS in watercolour, dipping in the cup of the Ink tab, and TEST's dip; OFF: no dip. DRAG never dips">
+        <span class="slh"><span>Ink</span></span>
+        <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
+      </div>
+      <!-- the runs as they will look; a view only -->
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="drag" title="DRAG: the lanes and the four runs, the sausages where you squeeze them, MARKS' dashes under them in watercolour">Drag</button>
+        <button class="tog" data-view="result" title="The painting: the sausages dragged run after run as the DRAG below runs them, the paints mixed as pigments (est.)">Result</button>
+      </div>
+      <div class="toggles looks" id="modeKeys" title="Drag and the Result as this DRAG runs; the LCD's numbers too">
+        <button class="tog" data-mode="snake">Snake</button><button class="tog" data-mode="air">Air</button>
+      </div>
+    </section>
+
+    <div class="savebar">
+      <button class="btn save" id="btnSave" title="Save the rectangles in the Library, as a new save named by the date and time">💾 SAVE BIAS</button>
+      <span class="save-state" id="saveState">to the Library</span>
+    </div>
+    <section class="sec">
+      <h3>BIAS <span class="hint">a plaid on the bias</span></h3>
+      <h4 class="first">Rectangles, in the order they run</h4>
+      <div class="toggles looks wrap" id="rects"></div>
+      <div class="grid4 keys">
+        <button class="btn" id="btnNew" title="A new rectangle the whole canvas, run after the others; or the R tool to lay one by hand">New: whole canvas</button>
+        <button class="btn" id="btnDraw" title="The Rectangle tool: drag on the canvas (R)">Draw one (R)</button>
+      </div>
+      <div class="edit" id="rectEdit"></div>
+      <!-- the chosen rectangle's paints, CCD's keys -->
+      <h4>Paints <span class="hint" id="paintsOf"></span> <button class="info" id="paintInfo" title="The sausages: the edges and the rows, the palette, its seed">i</button></h4>
+      <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random, after the striped canvases of TAPE-colors/, in your paints; the sausages stay in their places — or, none lying, the pattern laid (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="The pattern anew on this rectangle: the edges and the rows cut into stripes again, a sausage each; the palette as it is (⌘Z goes back)">New spokes</button></div>
+      <div class="toggles looks" id="metaKeys">
+        <button class="tog" data-meta="meta 1" title="TAPE's meta 1 (meta-tape-01): ultramarine, the blues, sky, white, black; orange, orange yellow and purple threads">meta 1</button>
+        <button class="tog" data-meta="meta 2" title="TAPE's meta 2 (meta-tape-02): purple, black, pink, sand, white, orange; ochre, ultramarine, red and rose azo threads">meta 2</button>
+        <button class="tog" data-meta="meta 3" title="TAPE-colors/IMAGE 2026-10-12 18:43:57: orange yellow, ochre, sky, white, pink, ultramarine; red, dark brown and 03 threads">meta 3</button>
+        <button class="tog" data-meta="meta 4" title="TAPE-colors/IMAGE 2026-10-12 18:43:59: ultramarine, 04, sky, white, purple, black; orange, red and orange yellow threads">meta 4</button>
+      </div>
+      <div class="sliders" id="slPaint"></div>
+      <div class="paintlist" id="paintList"></div>
+      <p class="read" id="paintRead" hidden></p>
+      <h4>Brush, DRAG</h4>
+      <div class="sliders" id="slBrush"></div>
+      <h4>Canvas <button class="info" id="planInfo" title="The plan: the rectangles, their runs and lanes, the stops, where the canvas lies from home">i</button></h4>
+      <div class="grid4" id="fields"></div>
+      <p class="read" id="planRead" hidden></p>
+      <p class="read" id="planWarn" hidden></p>
+      <h4>Files for the machine</h4>
+      <div class="filekeys" id="files"></div>
+      <p class="read" id="fileRead"></p>
+    </section>
+
+    <section class="sec">
+      <h3>Reference <span class="hint">over the canvas, as tracing paper</span></h3>
+      <div class="refrow">
+        <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
+        <div class="refctl">
+          <button class="btn" id="btnRef" title="An image over the canvas, to lay the rectangles to: never painted as is">📎 Add new reference</button>
+          <p class="read" id="refRead"></p>
+          <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+        </div>
+      </div>
+      <input type="file" id="refIn" accept="image/*" hidden>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint"></span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/bias.js"></script>
+</body>
+</html>
