@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS SNAKE and BIAS AIR: fewer idle moves** (the owner, 2026-10-15,
+  BIAS-plaid/ Screenshot 2.27.09 PM and 2.27.43 PM: "only one diagonal
+  starts from the right side and goes sideways down; then an idle pass over
+  the canvas up, and straight from there a pass along the opposite diagonal
+  to the right side; from there down through the air …"). The rising lanes
+  each run down ↙ from the right or the top, the crossing ones ↘ to the
+  right side (↖ from the bottom left), every lane its way — no longer from
+  the end nearer. Between two, BIAS SNAKE keeps the brush down off the
+  canvas where that is at most 1.25 times straight across — along the side
+  it left by — else lifts and flies over the canvas; BIAS AIR always flies.
+  Drag dashes the flights blue, as the run's trail. On 350 × 350 at a 12 mm
+  step BIAS SNAKE ≈ 13 min, ≈ 17 before (est.).
+
 - **BIAS: a margin round the canvas** (the owner, 2026-10-15: "the canvas is
   really 30 × 30 … 25 mm on every side to let the brush turn … a margin on
   the screen, so that it is all professional"). Margin round the canvas,
