@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS: a margin round the canvas** (the owner, 2026-10-15: "the canvas is
+  really 30 × 30 … 25 mm on every side to let the brush turn … a margin on
+  the screen, so that it is all professional"). Margin round the canvas,
+  25 mm, a slider: the canvas stays the real one, the margin drawn round it,
+  a pale band, its outer edge dashed. BIAS SNAKE's and BIAS AIR's 30 mm off
+  the canvas stop where the brush's edge would leave the margin (at 45° the
+  30 mm fit); the reading warns when any way goes past it.
+
 - **BIAS SNAKE and BIAS AIR: the two families in turn** (the owner,
   2026-10-15, on the first try, BIAS-plaid/ 2.13.26 PM and 14:17:03: "after
   the first diagonal the brush makes only one line, then goes the other way

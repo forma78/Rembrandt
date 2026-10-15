@@ -496,6 +496,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   lanes on their own. *Claude's*: in the snake every lane from its end
   nearer, round the canvas, to where the one before it left — the brush down
   off the canvas the whole way round, at least the clearance off it.
+  **A margin round the canvas** (the owner, the same afternoon: "the canvas
+  is not 350 × 350 mm, really it is 30 × 30 — I had no strength left to ask
+  you for 25 mm of margin on every side to let the brush turn; but maybe it
+  can be done with a margin on the screen, so that it is all professional"):
+  the canvas the real one, **Margin round the canvas** 25 mm on every side,
+  drawn round it; BIAS's run off the canvas no farther than the margin lets
+  the brush's edge go, a warning when anything goes past it (*Claude's*: the
+  margin BIAS's own, the canvas base every tab's left the real canvas, so
+  TEST's dots stay 20 mm in from its corners).
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1170,7 +1179,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   goes, the snake's turns dashed; the sausages on the edges and rows, MARKS'
   dashes under them. Brush, DRAG: Brush width (6 mm), Drag speed, Lands
   before the edge, Lifts past the edge, **Snake: turns off the canvas**
-  (2 mm, est.), **BIAS: off the canvas** (30 mm, the owner's). The reading
+  (2 mm, est.), **BIAS: off the canvas** (30 mm, the owner's), **Margin
+  round the canvas** (25 mm, the owner's), drawn round it. The reading
   counts every run's lanes; with the canvas on a wall a warning — the snake's turns there would run along its edge over
   the lanes' ends — and how far off the walls to lay it. 💾 SAVE BIAS, the
   Library opening it here.
