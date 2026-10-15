@@ -661,6 +661,7 @@ body.type .status{grid-column:1/4;grid-row:4}
 .ccd #rGap{margin:4px 0 0}
 :is([data-tab="ccd"],[data-tab="bias"]) .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* MARKS · DRAG: Snake · Air; under them Duo Snake · Duo Air (2026-10-13) */
 :is([data-tab="ccd"],[data-tab="bias"]) .runkeys.deck.passes.duo #btnDuoSnake{grid-column:2}
+[data-tab="bias"] .runkeys.deck.passes.two #btnBiasSnake{grid-column:2}   /* BIAS SNAKE · BIAS AIR under Snake · Air (2026-10-15) */
 :is([data-tab="ccd"],[data-tab="bias"]) #modeKeys{margin-top:6px}
 :is([data-tab="ccd"],[data-tab="bias"]) #modeKeys .tog{font-size:11px}
 :is([data-tab="ccd"],[data-tab="bias"]) #metaKeys{margin:8px 0 2px}

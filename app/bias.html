@@ -87,6 +87,11 @@
         <button class="btn pass" id="btnSnake" data-pass="snake" title="DRAG, the snake: four runs — rising every other lane from the bottom right corner, descending every other lane from the top right, then the lanes skipped — each run its lanes forward and back with the brush down, turning off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M3 18l7-10h4l-7 10h4l7-10"/></svg><span>Snake</span></button>
         <button class="btn pass" id="btnAir" data-pass="air" title="DRAG through the air: the four runs' lanes one way each — the rising ones up to the right, the descending ones down to the right — the brush lifting past the far edge and flying to the next; no dip"><svg viewBox="0 0 24 24"><path d="M5 17L16 6M10 6h6v6"/><path d="M9 21l11-11" class="dash"/></svg><span>Air</span></button>
       </div>
+      <!-- BIAS SNAKE · BIAS AIR under Snake and Air (the owner, 2026-10-15, the afternoon: "two runs, not four"; "call the brush BIAS SNAKE // BIAS AIR") -->
+      <div class="runkeys deck passes two">
+        <button class="btn pass" id="btnBiasSnake" data-pass="biassnake" title="BIAS SNAKE: two runs — every rising lane from the bottom right corner, then every crossing one — each the snake with the brush down, every lane 30 mm off the canvas at both ends so the brush crosses the edge at an even pressure; no dip"><svg viewBox="0 0 24 24"><path d="M2 17l7-10h3l-7 10h3l7-10h3l-7 10"/></svg><span>Bias Snake</span></button>
+        <button class="btn pass" id="btnBiasAir" data-pass="biasair" title="BIAS AIR: two runs — every rising lane, then every crossing one — each lane one way, the brush landing and lifting 30 mm off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M5 17L16 6M10 6h6v6"/><path d="M5 7l11 11M16 12v6h-6" class="thin"/></svg><span>Bias Air</span></button>
+      </div>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
         <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
@@ -102,7 +107,7 @@
         <button class="tog" data-view="result" title="The painting: the sausages dragged run after run as the DRAG below runs them, the paints mixed as pigments (est.)">Result</button>
       </div>
       <div class="toggles looks" id="modeKeys" title="Drag and the Result as this DRAG runs; the LCD's numbers too">
-        <button class="tog" data-mode="snake">Snake</button><button class="tog" data-mode="air">Air</button>
+        <button class="tog" data-mode="snake">Snake</button><button class="tog" data-mode="air">Air</button><button class="tog" data-mode="biassnake">Bias Snake</button><button class="tog" data-mode="biasair">Bias Air</button>
       </div>
     </section>
 
