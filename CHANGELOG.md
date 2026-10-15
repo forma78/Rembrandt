@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS SNAKE and BIAS AIR: the two families in turn** (the owner,
+  2026-10-15, on the first try, BIAS-plaid/ 2.13.26 PM and 14:17:03: "after
+  the first diagonal the brush makes only one line, then goes the other way
+  to make a pass in the opposite direction"; "7 lines one way and not one
+  across"). A rising lane, a crossing one, a rising one … — the rising from
+  the bottom right corner up, the crossing from the top right corner or the
+  bottom left — every lane once, 30 mm off the canvas at both ends. BIAS
+  SNAKE one landing: every lane from its end nearer, the way between round
+  the canvas off it, round two corners if it must; BIAS AIR every lane its
+  family's way. Drag numbers the lanes in their turn, rising in ink,
+  crossing in rust. Before, every rising lane, then every crossing one.
+
 - **BIAS: BIAS SNAKE and BIAS AIR, two runs** (the owner, 2026-10-15, the
   afternoon, after the four runs on the machine, BIAS-plaid/ 12.57.38 …
   13:04:33: "in the first two passes it takes all the paint, leaving none for
