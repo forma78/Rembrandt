@@ -47,6 +47,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Genesis (on CCD)** | The pattern a rectangle's sausages were laid in — its lanes, pitch, rows, stripes and paints — on the rectangle as it was (New spokes, a meta key, New colours with none lying); a bigger rectangle repeats it at its scale, its pitch kept and its lanes more, the stripes and the rows again and again, cut at its sides (the owner, 2026-10-13: "from the genesis 20 × 20 we then enlarge it as an ornament … a repeat at the same scale, not bigger"). |
 | **Duo Air · Duo Snake (on CCD)** | DRAG's two Duo keys on CCD, after TAPE-colors/IMAGE 2026-10-12 18:44:00, the top half first, the right one on a horizontal rectangle (2026-10-13). Duo Air: every lane from the far edge to the middle and 5 mm on (Duo Air: past the middle; the head comes off before it), the brush lifting there and flying back to the next, then every lane from the paint's edge. Duo Snake: each half the snake — every lane from its edge to the middle and back along itself with the brush down, turning at the middle, a step across at the edge to the next. |
 | **BIAS** | CCD's rectangles with diagonal lanes, a plaid on the bias, after CCD in the top row since 2026-10-15 (§1, §8): CCD's paints, MARKS and DRAG Snake · Air; every rectangle two families of lanes, rising ↗ at Angle and descending ↘ square to them (or their mirror), one step apart, one lane of each through its bottom left corner; DRAG in four runs, no stop between them — 1 rising every other lane from the bottom right corner up, 2 descending every other lane from the top right corner down, 3 and 4 the lanes skipped — the brush never on a painted lane. `bias.html`, its plan `biasplan.js`, its page module `bias.js`; CCD's untouched. |
+| **BIAS SNAKE · BIAS AIR** | BIAS's two DRAG keys of two runs (2026-10-15, the afternoon): 1 every rising lane from the bottom right corner up, 2 every crossing lane — from the top right corner, its strokes ↘, or from the bottom left, ↖ — every lane starting and ending RUNOUT mm off the canvas (30, the owner's), so the brush crosses the edge at an even pressure; the snake or each lane one way. Snake and Air stay, four runs. |
 | **Run (on BIAS)** | One of the four: the lanes of one family it paints, every other one, in their order — a snake of them with the brush down, turning off the rectangle, or each one way through the air. Not TAPE's run. |
 | **Edge sausages · rows (on BIAS)** | Where BIAS's paint is squeezed (the owner's hand test, BIAS-plaid/ 10:30:07 … 10:30:10): along the rectangle's four edges, where every lane lands, and along vertical rows inside, evenly — Rows counts the sides, three on the 20 × 20, one down the middle; each edge and row cut into stripes of 1, 2, 3 or 6 half-steps, a paint each. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
@@ -466,6 +467,25 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   edges and vertical rows inside, as his hand test laid them; the Result
   run after run on a grid of the canvas, the later lanes through the
   earlier's wet paint; no Duo.
+  **BIAS SNAKE · BIAS AIR, two runs** (the owner, the same afternoon, after
+  the four on the machine, `BIAS-plaid/` 12.57.38 … 13:04:33: "the brush went
+  from one corner to the other continuously … in the first two passes it
+  takes all the paint, leaving none for the third and fourth — mud"; "the
+  brush's direction changes only twice, both diagonal, but straight away —
+  one pass along the diagonal one way, then it crosses the other"; "two
+  runs, not four"; "call the brush BIAS SNAKE // BIAS AIR"): every rising
+  lane from the bottom right corner, then every crossing one, Snake and Air
+  kept. **30 mm off the canvas at every lane's ends** ("lifting off the
+  canvas the brush changes its pressure and the line's thickness, 13:04:33 —
+  untidy, as if a person did it. Our construction allows simply going +30 mm
+  aside, so the brush straightens out off the canvas and reaches the edge
+  evenly — then it turns, comes onto the canvas and runs an even, solid line
+  with no change of thickness"). **The crossing from either side** ("we do
+  not have to make the crossing line there too; it can be drawn from the
+  opposite side"; "the task: to see how the paints mix as we drag the brush
+  from different corners"): from the top right corner, its strokes ↘, or the
+  bottom left, ↖ (*Claude's*: the strokes turned with it, so the paint is
+  dragged from the other edge; in the snake every other lane only).
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1127,9 +1147,11 @@ this section disagree, this section wins: the owner corrected the sketch on
   and arcs.
 - **BIAS**, after CCD (2026-10-15, §1; `app/bias.html`, `app/src/bias.js`,
   `app/src/biasplan.js`): CCD's page — its rectangles, the strip of paints,
-  M, the deck **TEST · PAUSE, MARKS · Snake · Air, STOP · HOME**, INK, the
-  views **Drag · Result** and **Snake · Air** — every rectangle laid with
-  diagonal lanes. A rectangle's own: **⊥ Square · ✕ Mirror**, **Angle**
+  M, the deck **TEST · PAUSE, MARKS · Snake · Air, Bias Snake · Bias Air
+  under them, STOP · HOME**, INK, the views **Drag · Result** and **Snake ·
+  Air · Bias Snake · Bias Air** — every rectangle laid with diagonal lanes.
+  A rectangle's own: **⊥ Square · ✕ Mirror**, **Crossing ↘ from top right ·
+  ↖ from bottom left** (the BIAS keys'), **Angle**
   (5 … 85°, 26.6), **Step** (1 … 200 mm, 32), typed or by the slider, as
   CCD's Lanes, **Rows** (2 … 12, 3), its place and size by the ruler. Drag:
   every lane a faint strip, where the brush comes in an orange dot and its
@@ -1137,8 +1159,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   goes, the snake's turns dashed; the sausages on the edges and rows, MARKS'
   dashes under them. Brush, DRAG: Brush width (6 mm), Drag speed, Lands
   before the edge, Lifts past the edge, **Snake: turns off the canvas**
-  (2 mm, est.). The reading counts every run's lanes; with the canvas on a
-  wall a warning — the snake's turns there would run along its edge over
+  (2 mm, est.), **BIAS: off the canvas** (30 mm, the owner's). The reading
+  counts every run's lanes; with the canvas on a wall a warning — the snake's turns there would run along its edge over
   the lanes' ends — and how far off the walls to lay it. 💾 SAVE BIAS, the
   Library opening it here.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,

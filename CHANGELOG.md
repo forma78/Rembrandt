@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS: BIAS SNAKE and BIAS AIR, two runs** (the owner, 2026-10-15, the
+  afternoon, after the four runs on the machine, BIAS-plaid/ 12.57.38 …
+  13:04:33: "in the first two passes it takes all the paint, leaving none for
+  the third and fourth — mud"; "two runs, not four"; "call the brush BIAS
+  SNAKE // BIAS AIR"). Two keys under Snake and Air, which stay: 1 every
+  rising lane from the bottom right corner, 2 every crossing lane, from the
+  top right corner (strokes ↘) or the bottom left (strokes ↖, the paint
+  dragged from the other edge) — a key on the rectangle. Every lane starts
+  and ends **30 mm off the canvas** ("our construction allows simply going
+  +30 mm aside, so the brush straightens out off the canvas and reaches the
+  edge evenly"), a slider; Drag shows it dashed. The Result, Bias Snake and
+  Bias Air among the views, to compare how the paints mix. The walls'
+  warning now names the Bottom and Left edge the canvas needs.
+
 - **BIAS, a new tab: CCD on the bias** (the owner, 2026-10-15, BIAS-plaid/:
   "a new way of painting, on the base of the CCD tab: absolutely the same
   palette and the same principle — DRAG Snake / DRAG Air. The only
