@@ -46,6 +46,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Sausage · row · stripe (on CCD)** | A sausage: one paint squeezed across a stripe's lanes, SAUSAGE_W along them (5 mm, est.), the owner's hand on a MARKS dash. A stripe: neighbouring lanes, 1, 2, 3 or 6 (TAPE's stripes). A row: the sausages at one place along the lanes; the rows evenly from the paint's edge to the far one, both in — Rows, 1 … 12, four on the owner's 20 × 20 (2026-10-13). Density: the paint in a sausage, 50 % the measured one, the line full 70 mm, then fading. |
 | **Genesis (on CCD)** | The pattern a rectangle's sausages were laid in — its lanes, pitch, rows, stripes and paints — on the rectangle as it was (New spokes, a meta key, New colours with none lying); a bigger rectangle repeats it at its scale, its pitch kept and its lanes more, the stripes and the rows again and again, cut at its sides (the owner, 2026-10-13: "from the genesis 20 × 20 we then enlarge it as an ornament … a repeat at the same scale, not bigger"). |
 | **Duo Air · Duo Snake (on CCD)** | DRAG's two Duo keys on CCD, after TAPE-colors/IMAGE 2026-10-12 18:44:00, the top half first, the right one on a horizontal rectangle (2026-10-13). Duo Air: every lane from the far edge to the middle and 5 mm on (Duo Air: past the middle; the head comes off before it), the brush lifting there and flying back to the next, then every lane from the paint's edge. Duo Snake: each half the snake — every lane from its edge to the middle and back along itself with the brush down, turning at the middle, a step across at the edge to the next. |
+| **BIAS** | CCD's rectangles with diagonal lanes, a plaid on the bias, after CCD in the top row since 2026-10-15 (§1, §8): CCD's paints, MARKS and DRAG Snake · Air; every rectangle two families of lanes, rising ↗ at Angle and descending ↘ square to them (or their mirror), one step apart, one lane of each through its bottom left corner; DRAG in four runs, no stop between them — 1 rising every other lane from the bottom right corner up, 2 descending every other lane from the top right corner down, 3 and 4 the lanes skipped — the brush never on a painted lane. `bias.html`, its plan `biasplan.js`, its page module `bias.js`; CCD's untouched. |
+| **Run (on BIAS)** | One of the four: the lanes of one family it paints, every other one, in their order — a snake of them with the brush down, turning off the rectangle, or each one way through the air. Not TAPE's run. |
+| **Edge sausages · rows (on BIAS)** | Where BIAS's paint is squeezed (the owner's hand test, BIAS-plaid/ 10:30:07 … 10:30:10): along the rectangle's four edges, where every lane lands, and along vertical rows inside, evenly — Rows counts the sides, three on the 20 × 20, one down the middle; each edge and row cut into stripes of 1, 2, 3 or 6 half-steps, a paint each. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -427,6 +430,42 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   ("beautiful combinations"). Density at 50 % the measured 70 mm, the rest
   of the paint's behaviour est.; a palette and a pattern each rectangle's
   own, the Result's Snake leaving its bead at a lane's end (all *Claude's*).
+- **BIAS, a tab of its own: CCD on the bias** (the owner, 2026-10-15,
+  `BIAS-plaid/`, his hand test photographed, three tartans beside it: "I came
+  up with a new way of painting, on the base of the CCD tab. There will be
+  absolutely the same palette and the same principle — DRAG Snake / DRAG
+  Air. The only difference: the stripes not straight but diagonal"). After
+  CCD: TAPE · BASF · ALU-CUT · CCD · BIAS · ALU · SMKN · NOLAN · Test · Ink ·
+  Calibration · Library. **Four runs, skipping one** ("choose the canvas's
+  format, 20 × 20 cm, say — the brush, from the bottom left corner, skipping
+  one run, rises along the diagonal; skipping one: if the step is 32 mm, the
+  brush's diameter 6 mm, it goes back not along the same trajectory, and not
+  along the next one, +32 mm, but skipping one, +64 mm. And so to the end;
+  then it turns over and goes the other way, descending. Important: the
+  machine does not stop there, but rises a second time — the third run —
+  from the bottom left corner and paints the ones skipped, +32 mm, again
+  skipping one but minding them: the brush must not drive over the ones
+  already painted. Then it descends a second time, again painting the lines
+  skipped — the fourth run. That is all"); his schemes the same morning,
+  10:52:26 "the first run, how the brush rises" and 10:52:30 "the second run,
+  how the brush comes down on the canvas": **rising from the bottom right
+  corner to the top left, then down from the top right** ("on my scheme the
+  brush starts rising from the bottom right corner and reaches the top left
+  … then, to come down, it may move over to the top right corner, that is
+  allowed; there are no rules here"; "we do not have to make the brush's
+  turn continuous"). *Claude's choices*: the name off his folder; the second
+  family square to the first, as on 10:52:30 and the tartans, **Mirror** a
+  key, as on his sketch 10:30:04; Angle 26.6°, his sketches' — a corner to
+  the middle of the far side — Step 32 mm and the brush 6 mm, his numbers;
+  one lane of each family through the rectangle's bottom left corner; run 1
+  the rising lanes of the lowest one's parity, run 2 the descending ones of
+  the highest one's; the snake turning 2 mm clear of the rectangle (est.),
+  round the corner between if it must, so its step never crosses a lane; a
+  lift and a flight between the runs, a stop only before the next
+  rectangle; Air every lane left to right; the sausages along the four
+  edges and vertical rows inside, as his hand test laid them; the Result
+  run after run on a grid of the canvas, the later lanes through the
+  earlier's wet paint; no Duo.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -838,9 +877,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.8**, then the tabs **TAPE · BASF · ALU-CUT · CCD · ALU · SMKN ·
-  NOLAN · Test · Ink · Calibration · Library** (TAPE first and BASF after it
-  since 2026-10-12; ALU-CUT
+  **v.1.0.8**, then the tabs **TAPE · BASF · ALU-CUT · CCD · BIAS · ALU ·
+  SMKN · NOLAN · Test · Ink · Calibration · Library** (BIAS after CCD since
+  2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
@@ -1086,6 +1125,22 @@ this section disagree, this section wins: the owner corrected the sketch on
   here: an SVG centred on the canvas, its layers cassette (its SVG nested
   as it is), trace-cassette (its outline), trace-tape and drag-tape, lines
   and arcs.
+- **BIAS**, after CCD (2026-10-15, §1; `app/bias.html`, `app/src/bias.js`,
+  `app/src/biasplan.js`): CCD's page — its rectangles, the strip of paints,
+  M, the deck **TEST · PAUSE, MARKS · Snake · Air, STOP · HOME**, INK, the
+  views **Drag · Result** and **Snake · Air** — every rectangle laid with
+  diagonal lanes. A rectangle's own: **⊥ Square · ✕ Mirror**, **Angle**
+  (5 … 85°, 26.6), **Step** (1 … 200 mm, 32), typed or by the slider, as
+  CCD's Lanes, **Rows** (2 … 12, 3), its place and size by the ruler. Drag:
+  every lane a faint strip, where the brush comes in an orange dot and its
+  run's number — 1 and 2 in ink, 3 and 4 in rust — an arrow the way it
+  goes, the snake's turns dashed; the sausages on the edges and rows, MARKS'
+  dashes under them. Brush, DRAG: Brush width (6 mm), Drag speed, Lands
+  before the edge, Lifts past the edge, **Snake: turns off the canvas**
+  (2 mm, est.). The reading counts every run's lanes; with the canvas on a
+  wall a warning — the snake's turns there would run along its edge over
+  the lanes' ends — and how far off the walls to lay it. 💾 SAVE BIAS, the
+  Library opening it here.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once

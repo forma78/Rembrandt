@@ -5,6 +5,27 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS, a new tab: CCD on the bias** (the owner, 2026-10-15, BIAS-plaid/:
+  "a new way of painting, on the base of the CCD tab: absolutely the same
+  palette and the same principle — DRAG Snake / DRAG Air. The only
+  difference: the stripes not straight but diagonal"). After CCD in the top
+  row. Every rectangle two families of diagonal lanes, rising ↗ at Angle
+  (26.6°, his sketches') and descending ↘ square to them (✕ Mirror a key),
+  Step apart (32 mm, his), one of each through the bottom left corner.
+  DRAG in four runs, no stop between them: 1 rising every other lane from
+  the bottom right corner up to the top left, 2 descending every other lane
+  from the top right corner down, 3 and 4 the lanes skipped ("the brush
+  must not drive over the ones already painted"; his schemes 10:52:26 and
+  10:52:30). Snake: a run one landing, its lanes forward and back, turning
+  2 mm clear of the canvas (est.), round a corner if it must; a lift and a
+  flight between the runs. Air: every lane one way, left to right. CCD's
+  paints, squeezed along the four edges and vertical rows inside (Rows 3:
+  the middle, his hand test), New colours, New spokes, meta 1 … 4, Density,
+  M, MARKS; the Result run after run, the later lanes dragging the earlier
+  ones' wet paint. A warning when the canvas lies on a wall: the snake's
+  turns there would run along its edge — lay it a brush's half and the
+  clearance off (Bottom edge ↑ 6 mm with the 6 mm brush). CCD untouched.
+
 - **CCD: Lanes a field with arrows** (the owner, 2026-10-13: "I do not
   need '7.26 mm apart', only 32; arrows up and down as LEFT and BOTTOM,
   for a finer setting"). The lanes typed or stepped one by one, the slider
