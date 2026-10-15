@@ -21,7 +21,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
-import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, airOf, strokesOf, runsFor, runName, TWO, SNAKY, RUNOUT_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
+import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, airOf, strokesOf, runsFor, runName, TWO, SNAKY, RUNOUT_NEW, MARGIN_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
   BIAS_META, DENSITY_NEW, MARKS_DIP, newPattern, recolour, reRows, rowsOf, sausagesOf, stripeAt, markOf, marksRows, mixAll, rowName } from './biasplan.js';
 import { MARK_SPEED, reachOf } from './ccdplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
@@ -41,12 +41,12 @@ const fin = v => Number.isFinite(v);
 // how far clear of the rectangle the snake turns; the flights and the tail as CCD's.
 const S = {
   rects: [], sel: 0, tool: 'edit', mode: 'snake',                                    // mode: the DRAG key last pressed — Drag's arrows, the Result, the LCD's numbers
-  brush: 6, drag: 60, before: 0, past: 0, clear: CLEAR_NEW, runout: RUNOUT_NEW, travel: 180, tail: 3,   // brush: the owner's 6 mm; runout: BIAS SNAKE's and BIAS AIR's +30 mm (2026-10-15)
+  brush: 6, drag: 60, before: 0, past: 0, clear: CLEAR_NEW, runout: RUNOUT_NEW, margin: MARGIN_NEW, travel: 180, tail: 3,   // the owner's, 2026-10-15: the brush 6 mm; BIAS's +30 mm off the canvas; 25 mm round it to turn in
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
   view: 'drag', density: DENSITY_NEW, paint: 'black', ink: true,
 };
-const NUM = ['sel', 'brush', 'drag', 'before', 'past', 'clear', 'runout', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
+const NUM = ['sel', 'brush', 'drag', 'before', 'past', 'clear', 'runout', 'margin', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
 const TOOLS = ['edit', 'rect', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true;   // nothing kept yet: a rectangle the whole canvas
 function load() {
@@ -67,7 +67,7 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 const wholeCanvas = (o = {}) => cleanRect({ x: 0, y: 0, w: S.boardW, h: S.boardH, angle: o.angle, step: o.step, cross: o.cross, rows: o.rows });
 
 // ---------- the plan (biasplan.js) ----------
-const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, before: S.before, past: S.past, clear: S.clear, runout: S.runout });
+const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, before: S.before, past: S.past, clear: S.clear, runout: S.runout, margin: S.margin });
 let PL = null, plKey = '';
 function planNow() {
   const key = JSON.stringify([S.rects, S.boardW, S.boardH]);
@@ -94,7 +94,7 @@ let busy = false;
 const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, runs: 0, mm: 0, stops: 0, fault: '' };
 const runOpts = rows => ({ ...DEFAULTS, speed: S.drag, travel: S.travel, tail: S.tail, lift: false, ink: false, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
 function dragRun(mode = S.mode) {
-  const P = planNow(), here = hereNow(), key = JSON.stringify([plKey, S.brush, S.before, S.past, S.clear, S.runout, S.drag, S.travel, S.tail, here]);
+  const P = planNow(), here = hereNow(), key = JSON.stringify([plKey, S.brush, S.before, S.past, S.clear, S.runout, S.margin, S.drag, S.travel, S.tail, here]);
   if (RUNS[mode]?.key === key) return RUNS[mode];
   const R = dragRows(P, { ...po(), mode });
   RUNS[mode] = { key, over: overWalls(R), ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), pauseAtEnds: true }, dragPasses(R)), rows: R.info, runs: R.runs, mm: R.length, stops: R.stops.length } : EMPTY) };
@@ -104,10 +104,11 @@ function dragRun(mode = S.mode) {
 // presses it into them: the snake's turns and the 30 mm off the canvas need
 // room round it (machine.js, the walls; mm)
 function overWalls(R) {
-  const h = hereNow(), W = reach(), out = { bottom: 0, top: 0, left: 0, right: 0 };
+  const h = hereNow(), W = reach(), out = { bottom: 0, top: 0, left: 0, right: 0, margin: 0 }, mx = S.boardH / 2 + S.margin, my = S.boardW / 2 + S.margin;
   for (const p of R.ps) for (const g of p) for (const q of [g.a, g.b]) {
     const x = h.x + q.x, y = h.y + q.y;
     out.bottom = Math.max(out.bottom, W.x.min - x); out.top = Math.max(out.top, x - W.x.max); out.left = Math.max(out.left, W.y.min - y); out.right = Math.max(out.right, y - W.y.max);
+    out.margin = Math.max(out.margin, Math.max(Math.abs(q.x) - mx, Math.abs(q.y) - my) + S.brush / 2);   // the brush's edge past the margin round the canvas
   }
   return out;
 }
@@ -127,10 +128,10 @@ const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('
 let g = ctx;   // the context drawn on: the board's, or a PNG's for the Library
 const PAD = 30;
 function view() {
-  const hw = S.boardW / 2, hh = S.boardH / 2, v = { x0: -hh - PAD, x1: hh + PAD, y0: -hw - PAD, y1: hw + PAD };
+  const hw = S.boardW / 2 + S.margin, hh = S.boardH / 2 + S.margin, v = { x0: -hh - PAD, x1: hh + PAD, y0: -hw - PAD, y1: hw + PAD };   // the canvas and its margin
   for (const r of S.rects) {                                                         // a rectangle past the canvas's edge, its handles too
-    v.y0 = Math.min(v.y0, r.x - hw - 12); v.y1 = Math.max(v.y1, r.x + r.w - hw + 12);
-    v.x0 = Math.min(v.x0, r.y - hh - 12); v.x1 = Math.max(v.x1, r.y + r.h - hh + 12);
+    v.y0 = Math.min(v.y0, r.x - S.boardW / 2 - 12); v.y1 = Math.max(v.y1, r.x + r.w - S.boardW / 2 + 12);
+    v.x0 = Math.min(v.x0, r.y - S.boardH / 2 - 12); v.x1 = Math.max(v.x1, r.y + r.h - S.boardH / 2 + 12);
   }
   const h = hereNow(), hc = homeCorner(), q = { x: hc.x - h.x, y: hc.y - h.y };    // home: the canvas lies from it
   v.x0 = Math.min(v.x0, q.x - 24); v.x1 = Math.max(v.x1, q.x + 24); v.y0 = Math.min(v.y0, q.y - 24); v.y1 = Math.max(v.y1, q.y + 48);
@@ -184,6 +185,11 @@ function draw() {
     g.restore();
     g.fillStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.35)'; g.beginPath(); areaRect(); g.fill();
   }
+  if (S.margin > 0) {                                                                 // the margin round the canvas, where the brush turns: a band, its outer edge dashed
+    const m = S.margin, X0 = sx([-hw - m]), Y0 = sy([0, -hh - m]), MW = (S.boardW + 2 * m) * k, MH = (S.boardH + 2 * m) * k;
+    g.save(); g.fillStyle = night ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.55)'; g.fillRect(X0, Y0, MW, MH);
+    g.strokeStyle = night ? 'rgba(255,255,255,.35)' : 'rgba(36,34,31,.35)'; g.lineWidth = 1; g.setLineDash([3, 4]); g.strokeRect(X0 + .5, Y0 + .5, MW - 1, MH - 1); g.restore();
+  }
   g.fillStyle = GROUND; g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k);   // the canvas
   g.save(); g.beginPath(); g.rect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); g.clip();   // past the walls: hatched
   g.beginPath(); g.rect(0, 0, W, H); areaRect(); g.clip('evenodd');
@@ -201,6 +207,7 @@ function draw() {
   }
   g.font = font(10); g.fillStyle = '#B3470C'; g.textAlign = 'left';
   g.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx([-hw]), sy([0, -hh]) - 6);
+  if (S.margin > 0) { g.fillStyle = themeColor('--mute', '#7D776D'); g.fillText(`margin ${fmt(S.margin, 0)} mm`, sx([-hw - S.margin]), sy([0, hh + S.margin]) + 13); }
   const h = hereNow(), msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
   g.save(); g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 1;                     // TEST's dots: a small cross each, 20 mm in from the corners
   for (const d of cornerDots(S.boardW, S.boardH).dots) { const X = msx(d.at), Y = msy(d.at); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
@@ -434,7 +441,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'before', 'past', 'clear', 'runout', 'density'];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'before', 'past', 'clear', 'runout', 'margin', 'density'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -611,8 +618,8 @@ addEventListener('keydown', e => {
 // ---------- the panel ----------
 // The rectangles and the chosen one's: its angle, step, cross and rows, its
 // place and size by the ruler; the brush; the canvas from home; the file.
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['before', 'Lands before the edge', 'mm', 0.5, 0, 30], ['past', 'Lifts past the edge', 'mm', 0.5, 0, 30], ['clear', 'Snake: turns off the canvas', 'mm', 0.5, 0, 20], ['runout', 'BIAS: off the canvas', 'mm', 1, 0, 60]];
-const SL_TITLE = { brush: 'The brush across the run: a lane\'s width (the owner\'s round brush, 6 mm)', drag: 'The dry brush along a lane', before: 'How far outside the rectangle, before its edge, the brush lands — every lane in the air, the first of a run in the snake', past: 'How far past the rectangle\'s edge it runs before it lifts — every lane in the air, the last of a run in the snake', clear: 'The snake: at every turn the brush runs on till its edge is this far past the rectangle\'s, steps across off it — round the corner if it must — and comes back in on the next lane: it never touches the lane between, nor one already painted (the owner, 2026-10-15). Est.', runout: 'BIAS SNAKE and BIAS AIR: every lane starts and ends this far along it off the canvas, so the brush straightens out off it and crosses the edge at an even pressure (the owner, 2026-10-15: \'our construction allows simply going +30 mm aside\')' };
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['before', 'Lands before the edge', 'mm', 0.5, 0, 30], ['past', 'Lifts past the edge', 'mm', 0.5, 0, 30], ['clear', 'Snake: turns off the canvas', 'mm', 0.5, 0, 20], ['runout', 'BIAS: off the canvas', 'mm', 1, 0, 60], ['margin', 'Margin round the canvas', 'mm', 1, 0, 80]];
+const SL_TITLE = { brush: 'The brush across the run: a lane\'s width (the owner\'s round brush, 6 mm)', drag: 'The dry brush along a lane', before: 'How far outside the rectangle, before its edge, the brush lands — every lane in the air, the first of a run in the snake', past: 'How far past the rectangle\'s edge it runs before it lifts — every lane in the air, the last of a run in the snake', clear: 'The snake: at every turn the brush runs on till its edge is this far past the rectangle\'s, steps across off it — round the corner if it must — and comes back in on the next lane: it never touches the lane between, nor one already painted (the owner, 2026-10-15). Est.', runout: 'BIAS SNAKE and BIAS AIR: every lane starts and ends this far along it off the canvas, so the brush straightens out off it and crosses the edge at an even pressure (the owner, 2026-10-15: \'our construction allows simply going +30 mm aside\') — no farther than the margin', margin: 'The room round the canvas on every side where the brush may run off and turn — BIAS SNAKE\'s and BIAS AIR\'s run off the canvas stays inside it; the canvas itself is the real one, 300 × 300 for a 30 × 30 (the owner, 2026-10-15: \'25 mm on every side to let the brush turn\')' };
 const valOf = key => key === 'drag' ? `${S.drag} mm/s` : `${fmt(S[key], 1)} mm`;
 $('#slBrush').innerHTML = BRUSH_SL.map(([key, label, , step, min, max]) => `<label class="sl" title="${SL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
 $('#slBrush').querySelectorAll('input').forEach(inp => {
@@ -801,7 +808,7 @@ function settle() {
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${fmt(r.angle, 1)}°, ${r.cross === 'mirror' ? 'mirrored' : 'square'}, step ${fmt(r.step, 1)} mm, ${gapText(r)}; Snake and Air ${r.runs.map(q => `run ${q.n} ${q.arrow} ${RUN_NAME[q.n]}: ${q.lanes.length}`).join(', ')}; BIAS ${r.runs2.map(q => `run ${q.n} ${q.arrow} ${runName(r, q, 'biassnake')}: ${q.lanes.length}`).join(', ')}`);
   if (Ds.stops) lines.push(`DRAG stops <b>${Ds.stops}</b> time${Ds.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paints, Continue; never between the runs`);
-  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
+  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges${S.margin > 0 ? `; a margin of ${fmt(S.margin, 0)} mm round it for the brush to turn in` : ''}.`);
   $('#planRead').innerHTML = lines.join(' · ');
   const keys = [[Ds, 'DRAG Snake'], [Da, 'DRAG Air'], [Dbs, 'BIAS SNAKE'], [Dba, 'BIAS AIR']];
   const warn = [...keys.map(([D, name]) => D.fault && `The plan is wrong, ${name} will not run it: ${D.fault}.`), Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, ...keys.map(([D, name]) => pressedText(D, name)), walls(Mk, 'MARKS')].filter(Boolean);
@@ -828,9 +835,10 @@ function walls(P_, name = '') {
 // on an edge at a wall touches it by 0.1 mm (machine.js, EDGE_IN): under 0.5 mm, none
 function pressedText(P_, name) {
   const o = P_?.over; if (!o || !P_.rows.length) return '';
+  const margin = o.margin > 0.5 && S.margin > 0 ? `${name}: the brush goes ${fmt(o.margin, 0)} mm past the margin round the canvas — widen the margin or shorten Lands before, Lifts past, Snake: turns off the canvas.` : '';
   const need = [o.bottom > 0.5 && `Bottom edge ↑ ${Math.ceil(S.edgeBottom + o.bottom + 0.5)} mm`, o.left > 0.5 && `Left edge → ${Math.ceil(S.edgeLeft + o.left + 0.5)} mm`].filter(Boolean);
   const past = [o.bottom > 0.5 && `${fmt(o.bottom, 0)} mm past the bottom wall`, o.left > 0.5 && `${fmt(o.left, 0)} mm past the left wall`, o.top > 0.5 && `${fmt(o.top, 0)} mm past the top wall`, o.right > 0.5 && `${fmt(o.right, 0)} mm past the right wall`].filter(Boolean);
-  return past.length ? `${name}: its way goes ${past.join(', ')} — there the brush would run along the wall, along the canvas's edge.${need.length ? ` Lay the canvas off the walls: ${need.join(', ')} at least.` : ' Move the canvas or the rectangles.'}` : '';
+  return [margin, past.length ? `${name}: its way goes ${past.join(', ')} — there the brush would run along the wall, along the canvas's edge.${need.length ? ` Lay the canvas off the walls: ${need.join(', ')} at least.` : ' Move the canvas or the rectangles.'}` : ''].filter(Boolean).join(' ');
 }
 // The file, as CCD's: the lanes as an SVG in canvas mm, a <path> a lane in running order. Saved to Downloads.
 function showFiles() {
