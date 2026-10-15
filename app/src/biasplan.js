@@ -64,6 +64,7 @@ export const CROSSES = ['square', 'mirror'], MODES = ['snake', 'air', 'biassnake
 export const TWO = m => m === 'biassnake' || m === 'biasair';     // BIAS SNAKE · BIAS AIR: every lane, the two families in turn
 export const SNAKY = m => m === 'snake' || m === 'biassnake';
 export const RUNOUT_NEW = 30;       // mm along a lane off the canvas at both its ends, BIAS SNAKE and BIAS AIR: the owner's +30 mm
+export const MARGIN_NEW = 25;       // mm round the canvas the brush may turn in: the owner's 25 on every side of his 30 × 30 (2026-10-15)
 export const FROM_NAME = { tr: 'the top right corner', bl: 'the bottom left corner' };
 export const MIN_LANE = 1;          // mm: a shorter lane, a corner's touch, is none
 export const CLEAR_NEW = 2;         // mm: the brush's edge past the rectangle's at a snake's turn, est.
@@ -197,6 +198,12 @@ function roundOf(r, p) {
 }
 const roundGap = (r, p, q) => { const P = 2 * (r.w + r.h), d = Math.abs(roundOf(r, p) - roundOf(r, q)) % P; return Math.min(d, P - d); };
 const along = (p, d, s) => [p[0] + d[0] * s, p[1] + d[1] * s];
+// How far along d from p the brush may run off the canvas and stay inside
+// the margin round it (o.margin, the owner's 25 mm: "to let the brush turn"),
+// its edge too; no margin, no bound
+const marginAlong = (p, d, o) => o.margin > 0 && o.cw > 0 && o.ch > 0 ? clearAlong({ x: 0, y: 0, w: o.cw, h: o.ch }, p, d, Math.max(0, o.margin - (o.brush || 0) / 2)) : Infinity;
+// BIAS's run off the canvas at an end: RUNOUT, but no farther than the margin lets it
+const runOff = (p, d, o) => Math.min(o.runout || 0, marginAlong(p, d, o));
 // A lane as the brush runs it: forward, or back on every other one of the
 // snake — its own family's way (BIAS's runs mix them), else its run's
 export const strokeOf = (run, l, back) => { const F = l.F || run.F; return back ? { from: l.b, to: l.a, u: [-F.u[0], -F.u[1]], F } : { from: l.a, to: l.b, u: F.u, F }; };
@@ -216,11 +223,11 @@ export function strokesOf(r, run, snake) {
 // between if it must — and comes back in on the next lane, so it never
 // touches the lane between, nor a painted one. With o.runout (BIAS SNAKE)
 // every lane's ends, the first landing and the last lift too, that far along
-// it off the rectangle, and at least clear. → { pts, ends: the index in pts
-// where every lane ends }
+// it off the rectangle — within o.margin round the canvas — and at least
+// clear. → { pts, ends: the index in pts where every lane ends }
 export function snakeOf(r, run, o) {
   const d0 = (o.brush || 0) / 2 + (o.clear ?? CLEAR_NEW), ro = o.runout || 0, pts = [], ends = [], n = run.lanes.length, S = strokesOf(r, run, true);
-  const off = (p, d, turn, plain) => along(p, d, ro > 0 ? Math.max(ro, turn ? clearAlong(r, p, d, d0) : 0) : turn ? clearAlong(r, p, d, d0) : plain);
+  const off = (p, d, turn, plain) => along(p, d, ro > 0 ? Math.max(runOff(p, d, o), turn ? clearAlong(r, p, d, d0) : 0) : turn ? clearAlong(r, p, d, d0) : plain);
   run.lanes.forEach((l, j) => {
     const s = S[j], back = [-s.u[0], -s.u[1]];
     const a = off(s.from, back, j > 0, o.before || 0);
@@ -231,8 +238,12 @@ export function snakeOf(r, run, o) {
   return { pts, ends };
 }
 // The lanes one way, through the air: each from o.before mm before its edge
-// to o.past past the far one — with o.runout (BIAS AIR) that far at both
-export const airOf = (run, l, o) => { const s = strokeOf(run, l, false), ro = o.runout || 0; return [along(s.from, s.u, -(ro || o.before || 0)), along(s.to, s.u, ro || o.past || 0)]; };
+// to o.past past the far one — with o.runout (BIAS AIR) that far at both,
+// within o.margin round the canvas
+export const airOf = (run, l, o) => {
+  const s = strokeOf(run, l, false), back = [-s.u[0], -s.u[1]];
+  return o.runout > 0 ? [along(s.from, back, runOff(s.from, back, o)), along(s.to, s.u, runOff(s.to, s.u, o))] : [along(s.from, back, o.before || 0), along(s.to, s.u, o.past || 0)];
+};
 
 // DRAG's rows for plotRun, mm from the canvas's centre (the owner, 2026-10-15:
 // "DRAG Snake / DRAG Air", CCD's): the snake, a run a row — its lanes forward

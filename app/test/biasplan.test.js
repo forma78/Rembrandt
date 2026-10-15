@@ -184,3 +184,20 @@ test('BIAS AIR: a lane a row, in turn, each its family\'s way, landing and lifti
   assert.equal(M.strokes.length, pl.lanes * 5);
   assert.ok(M.strokes.some(q => q.cover.some(c => c > 0.5)), 'it paints');
 });
+
+test('the margin round the canvas (the owner\'s 25 mm "to let the brush turn"): BIAS\'s way and the brush\'s edge stay in it, the run off shortened where 30 mm would leave it', () => {
+  for (const angle of [26.6, 45, 70]) {
+    const r = cleanRect({ x: 0, y: 0, w: 300, h: 300, angle, step: 12 }), pl = planOf([r]), o = { ...O, cw: 300, ch: 300, runout: 30, margin: 25 }, canvas = { x: 0, y: 0, w: 300, h: 300 };
+    for (const mode of ['biassnake', 'biasair']) {
+      const R = dragRows(pl, { ...o, mode });
+      for (const p of R.ps) for (const g of p) for (const q of [g.a, g.b]) {
+        const c = [q.y + 150, q.x + 150];                                      // machine mm from the centre → canvas mm
+        assert.ok(distTo(canvas, c) <= 25 - O.brush / 2 + 1e-3, `${angle}°, ${mode}: ${distTo(canvas, c).toFixed(2)} mm off the canvas`);
+      }
+    }
+    const P = snakeOf(pl.rects[0], pl.rects[0].runs2[0], o), S = strokesOf(pl.rects[0], pl.rects[0].runs2[0], true);
+    const runs = S.map((s, j) => Math.hypot(P.pts[P.ends[j]][0] - s.to[0], P.pts[P.ends[j]][1] - s.to[1]));
+    assert.ok(Math.max(...runs) <= 30 + 1e-6, 'never more than 30 mm');
+    if (angle === 45) assert.ok(runs.some(v => Math.abs(v - 30) < 1e-6), 'at 45°, 30 mm fits in 25 mm');
+  }
+});
