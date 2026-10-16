@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS: the deck's pairs the whole width** (the owner, 2026-10-16: "let
+  us stretch the keys as STOP and HOME, the space hangs there untidily").
+  Under MARKS · 45 SNAKE · 45 AIR, SNAKE PLAIN → · ↑, 90 SNAKE · 90 AIR and
+  BIAS SNAKE · BIAS AIR two halves each, no empty first column.
+
 - **BIAS: SNAKE PLAIN → and SNAKE PLAIN ↑, straight stripes as CCD's** (the
   owner, 2026-10-16, the same evening, on 90 tried: "eh … some kind of
   parquet :)) Let us simply do it as in CCD, straight stripes. Snake Plain →,

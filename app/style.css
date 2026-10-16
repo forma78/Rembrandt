@@ -661,8 +661,7 @@ body.type .status{grid-column:1/4;grid-row:4}
 .ccd #rGap{margin:4px 0 0}
 :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"]) .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* MARKS · DRAG: Snake · Air; under them Duo Snake · Duo Air (2026-10-13) */
 :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"]) .runkeys.deck.passes.duo #btnDuoSnake{grid-column:2}
-[data-tab="bias"] .runkeys.deck.passes.two #btnBiasSnake{grid-column:2}   /* BIAS SNAKE · BIAS AIR under Snake · Air (2026-10-15) */
-[data-tab="bias"] .runkeys.deck.passes.plain #btnPlainX,[data-tab="bias"] .runkeys.deck.passes.ninety #btnSnake90{grid-column:2}   /* SNAKE PLAIN → · ↑, then 90 SNAKE · 90 AIR, between 45 and BIAS (2026-10-16) */
+[data-tab="bias"] .runkeys.deck.passes:is(.plain,.ninety,.two){grid-template-columns:1fr 1fr}   /* under MARKS · 45: SNAKE PLAIN → · ↑, 90 SNAKE · 90 AIR, BIAS SNAKE · BIAS AIR, each pair the whole width as STOP · HOME (the owner, 2026-10-16) */
 [data-tab="bias"] #modeKeys{display:grid;grid-template-rows:auto auto;grid-auto-flow:column;grid-auto-columns:1fr}   /* the views in pairs: 45 · Plain · 90 · Bias, the snakes over the airs (Plain: → over ↑) */
 [data-tab="bias"] #modeKeys .tog{padding-left:4px;padding-right:4px}
 :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"]) #modeKeys{margin-top:6px}
