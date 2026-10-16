@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanRect, familiesOf, familyLanes, runsOf, runsTwo, strokesOf, bowsOf, planOf, snakeOf, airOf, distTo, dragRows, dragPasses, dragSvg, rowsOf, newPattern, recolour, reRows, sausagesOf, stripeAt, marksRows, mixAll,
+import { cleanRect, familiesOf, familyLanes, runsOf, runsTwo, runs90Of, straightOf, straightLanes, lanesFor, strokesOf, bowsOf, planOf, snakeOf, airOf, distTo, dragRows, dragPasses, dragSvg, rowsOf, newPattern, recolour, reRows, sausagesOf, stripeAt, marksRows, mixAll,
   ANGLE_NEW, STEP_NEW, ROWS_NEW, CLEAR_NEW, RUNOUT_NEW, BIAS_META, MARKS_DIP } from '../src/biasplan.js';
 import { plotRun, DEFAULTS } from '../src/strokes.js';
 
@@ -214,4 +214,55 @@ test('the margin round the canvas (the owner\'s 25 mm "to let the brush turn"): 
     assert.ok(Math.max(...runs) <= 30 + 1e-6, 'never more than 30 mm');
     if (angle === 45) assert.ok(runs.some(v => Math.abs(v - 30) < 1e-6), 'at 45°, 30 mm fits in 25 mm');
   }
+});
+
+// 90 SNAKE and 90 AIR (the owner, 2026-10-16, BIAS-plaid/ Screenshot 9.08.29
+// PM: "the counter check at a right angle"): Snake's and Air's four runs, the
+// lanes upright and across, whatever the Angle.
+test('90: the lanes upright and across, centred, a step apart, none down the middle, the brush wholly on the rectangle', () => {
+  const r = cleanRect({ x: 0, y: 0, w: 220, h: 220, angle: 45, step: 16 }), [A, B] = straightOf(), U = straightLanes(r, A, 6), X = straightLanes(r, B, 6);
+  assert.deepEqual(U.map(l => l.a[0]), [214, 198, 182, 166, 150, 134, 118, 102, 86, 70, 54, 38, 22, 6], 'from the right edge to the left, 6 mm in at both');
+  for (const l of U) { close(l.a[0], l.b[0], 'upright'); close(l.a[1], 0, 'from the bottom edge'); close(l.b[1], 220, 'to the top edge'); }
+  assert.deepEqual(X.map(l => l.a[1]), [6, 22, 38, 54, 70, 86, 102, 118, 134, 150, 166, 182, 198, 214], 'across: from the bottom up, along n');
+  for (const l of X) { close(l.a[1], l.b[1], 'across'); close(l.a[0], 0, 'from the left edge'); close(l.b[0], 220, 'to the right edge'); }
+  assert.ok(!U.some(l => Math.abs(l.a[0] - 110) < 1), 'none down the middle row');
+  assert.equal(straightLanes(cleanRect({ x: 0, y: 0, w: 212, h: 100, step: 16 }), A, 6).length, 12, 'the outer ones dropped where the brush would leave it');
+  const one = straightLanes(cleanRect({ x: 10, y: 0, w: 20, h: 100, step: 32 }), A, 6);
+  assert.equal(one.length, 1); close(one[0].a[0], 20, 'one fitting: down the middle');
+  assert.deepEqual(straightLanes(cleanRect({ x: 0, y: 0, w: 4, h: 100 }), A, 6), [], 'the brush wider than it: none');
+});
+
+test('90: four runs — 1 upright every other lane from the right edge, 2 across from the top, 3 and 4 the lanes skipped; the plan counts them its own', () => {
+  const r = cleanRect({ x: 0, y: 0, w: 220, h: 220, angle: 26.6, step: 16 }), R = runs90Of(r, 6);
+  assert.deepEqual(R.map(q => q.arrow), ['↑', '→', '↑', '→']);
+  assert.deepEqual(R[0].lanes.map(l => l.a[0]), [214, 182, 150, 118, 86, 54, 22]);
+  assert.deepEqual(R[1].lanes.map(l => l.a[1]), [214, 182, 150, 118, 86, 54, 22], 'from the top down');
+  assert.deepEqual(R[2].lanes.map(l => l.a[0]), [198, 166, 134, 102, 70, 38, 6]);
+  assert.deepEqual(R[3].lanes.map(l => l.a[1]), [198, 166, 134, 102, 70, 38, 6]);
+  const pl = planOf([r], { brush: 6 }), q = pl.rects[0];
+  assert.equal(q.lanes90, 28); assert.equal(pl.lanes90, 28); assert.equal(lanesFor(pl, 'snake90'), 28); assert.equal(lanesFor(pl, 'snake'), pl.lanes);
+  assert.deepEqual(runs90Of(cleanRect({ ...r, angle: 70 }), 6).map(q => q.lanes.length), R.map(q => q.lanes.length), 'whatever the Angle');
+});
+
+test('90 SNAKE: a run a row, turning off the rectangle, every other lane back; 90 AIR: a lane a row, up and to the right; the paths plot', () => {
+  const r = cleanRect({ x: 0, y: 0, w: 200, h: 200, step: 20 }), pl = planOf([r], { brush: O.brush }), q = pl.rects[0], d0 = O.brush / 2 + O.clear;
+  const S = dragRows(pl, { ...O, mode: 'snake90' });
+  assert.equal(S.ps.length, 4); assert.equal(S.stops.length, 0);
+  assert.match(S.info[0].label, /run 1 ↑ · 5 lanes, the snake/); assert.match(S.info[1].label, /run 2 → · 5 lanes, the snake/);
+  for (const run of q.runs90) {
+    const P = snakeOf(q, run, O);
+    for (let j = 0; j < P.ends.length - 1; j++) for (let i = P.ends[j]; i < P.ends[j + 1] - 1; i++) {
+      const a = P.pts[i], b = P.pts[i + 1];
+      for (let t = 0; t <= 1; t += 0.05) assert.ok(distTo(r, [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]) >= d0 - 1e-3, `run ${run.n}, turn ${j + 1}: on the canvas`);
+    }
+  }
+  const A = dragRows(pl, { ...O, mode: 'air90' });
+  assert.equal(A.ps.length, pl.lanes90);
+  const up = A.ps[0][0], across = A.ps[q.runs90[0].lanes.length][0];
+  assert.ok(up.b.x > up.a.x && Math.abs(up.b.y - up.a.y) < 1e-9, 'upright: up the machine (+X), no way across');
+  assert.ok(across.b.y > across.a.y && Math.abs(across.b.x - across.a.x) < 1e-9, 'across: to the right (+Y)');
+  for (const R of [S, A]) { const run = plotRun({ ...RUN, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R)); assert.equal(run.fault, ''); assert.ok(run.seconds > 0); }
+  assert.match(dragSvg(pl, { ...O, mode: 'snake90' }), /the upright ones up/);
+  const M = mixAll(planOf([Object.assign(r, { pat: newPattern(r, BIAS_META['meta 1'], 3) })], { brush: O.brush }), { ...O, density: 50, mode: 'snake90' });
+  assert.equal(M.strokes.length, pl.lanes90 * 5); assert.ok(M.strokes.some(s => s.cover.some(c => c > 0.5)), 'it paints');
 });

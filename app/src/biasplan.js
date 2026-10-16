@@ -45,6 +45,14 @@
 // straightens out off the canvas and reaches the edge evenly — then turns,
 // comes onto the canvas and runs an even, solid line").
 //
+// 90 SNAKE and 90 AIR, the counter check at a right angle (the owner,
+// 2026-10-16, BIAS-plaid/ Screenshot 9.08.29 PM, the straight lanes drawn
+// over the bias: "here the counter check is at a right angle … 45 SNAKE /
+// 45 AIR, and add 90 SNAKE / 90 AIR"): Snake's and Air's four runs, the
+// lanes upright ↑ and across →, whatever the Angle — the upright ones from
+// the right edge to the left, the ones across from the top down. Snake and
+// Air, at the rectangle's Angle, the 45 keys now.
+//
 // A rectangle's mm: from the canvas's bottom left corner, x right, y up, as a
 // ruler reads them; the runs for the machine from the canvas's centre
 // (toMachine). Lines only. No DOM.
@@ -60,17 +68,20 @@ export const BIAS_META = CCD_META;                   // CCD's meta 1 … 4, "abs
 export const ANGLE_NEW = 26.6, ANGLE_MIN = 5, ANGLE_MAX = 85;   // °: his sketches, the corner to the middle of the far side (1 : 2)
 export const STEP_NEW = 32, STEP_MIN = 1, STEP_MAX = 200;       // mm, lane centre to lane centre across them: the owner's 32
 export const ROWS_NEW = 3, ROWS_MIN = 2, ROWS_MAX = 12;         // vertical rows, both sides in: 3, the sides and the middle, his hand test
-export const CROSSES = ['square', 'mirror'], MODES = ['snake', 'air', 'biassnake', 'biasair'], FROMS = ['tr', 'bl'];
+export const CROSSES = ['square', 'mirror'], MODES = ['snake', 'air', 'snake90', 'air90', 'biassnake', 'biasair'], FROMS = ['tr', 'bl'];
 export const TWO = m => m === 'biassnake' || m === 'biasair';     // BIAS SNAKE · BIAS AIR: every lane, the two families in turn
-export const SNAKY = m => m === 'snake' || m === 'biassnake';
+export const NINETY = m => m === 'snake90' || m === 'air90';      // 90 SNAKE · 90 AIR: the four runs, upright and across
+export const SNAKY = m => m === 'snake' || m === 'snake90' || m === 'biassnake';
 export const RUNOUT_NEW = 30;       // mm along a lane off the canvas at both its ends, BIAS SNAKE and BIAS AIR: the owner's +30 mm
 export const MARGIN_NEW = 25;       // mm round the canvas the brush may turn in: the owner's 25 on every side of his 30 × 30 (2026-10-15)
 export const FROM_NAME = { tr: 'the top right corner', bl: 'the bottom left corner' };
 export const MIN_LANE = 1;          // mm: a shorter lane, a corner's touch, is none
 export const CLEAR_NEW = 2;         // mm: the brush's edge past the rectangle's at a snake's turn, est.
 export const ARROW = { A: '↗', B: '↘' };   // a family's forward stroke; a run's own in its arrow (the crossing from the bottom left ↖)
+export const ARROW90 = { A: '↑', B: '→' };  // 90's: upright, across
 export const RUN_NAME = ['', 'rising, every other lane', 'descending, every other lane', 'rising, the lanes skipped', 'descending, the lanes skipped'];
-export const runName = (r, run, mode) => TWO(mode) ? `a rising lane from the bottom right corner, a crossing one from ${FROM_NAME[r.from2]}, in turn` : RUN_NAME[run.n];
+export const RUN_NAME90 = ['', 'upright, every other lane', 'across, every other lane', 'upright, the lanes skipped', 'across, the lanes skipped'];
+export const runName = (r, run, mode) => TWO(mode) ? `a rising lane from the bottom right corner, a crossing one from ${FROM_NAME[r.from2]}, in turn` : (NINETY(mode) ? RUN_NAME90 : RUN_NAME)[run.n];
 
 const fin = Number.isFinite, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
@@ -126,10 +137,36 @@ export function familyLanes(r, F) {
 // other one — the lowest first; 2 the descending ones from the top right corner
 // down, every other one — the highest first; 3 and 4 the lanes they skipped,
 // the same ways. → [{ n, fam, F, lanes }]
-export function runsOf(r) {
-  const [FA, FB] = familiesOf(r), A = familyLanes(r, FA), B = familyLanes(r, FB).reverse();
+function fourRuns(FA, FB, A, B, arrow) {
   const a0 = A[0]?.k ?? 0, b0 = B[0]?.k ?? 0, even = (L, k) => L.filter(l => (l.k - k) % 2 === 0), odd = (L, k) => L.filter(l => (l.k - k) % 2 !== 0);
-  return [even(A, a0), even(B, b0), odd(A, a0), odd(B, b0)].map((lanes, i) => ({ n: i + 1, fam: i % 2 ? 'B' : 'A', F: i % 2 ? FB : FA, arrow: ARROW[i % 2 ? 'B' : 'A'], lanes }));
+  return [even(A, a0), even(B, b0), odd(A, a0), odd(B, b0)].map((lanes, i) => ({ n: i + 1, fam: i % 2 ? 'B' : 'A', F: i % 2 ? FB : FA, arrow: arrow[i % 2 ? 'B' : 'A'], lanes }));
+}
+export function runsOf(r) {
+  const [FA, FB] = familiesOf(r);
+  return fourRuns(FA, FB, familyLanes(r, FA), familyLanes(r, FB).reverse(), ARROW);
+}
+// 90's two families, the bias's at 90° (the owner, 2026-10-16: "the counter
+// check at a right angle"): upright ↑, its lanes from the right edge to the
+// left, as the rising ones from the bottom right corner; across →, from the
+// bottom up, run from the top down as the descending ones
+export const straightOf = () => [{ key: 'A', u: [0, 1], n: [-1, 0] }, { key: 'B', u: [1, 0], n: [0, 1] }];
+// A straight family's lanes: centred on the rectangle, a step apart, none
+// down its middle — so none runs along the middle row of sausages — as many
+// as have the brush wholly on it; only one fitting, down the middle (Claude's:
+// a lane through the corner, as the bias's, would run along the edge, half
+// off it). [{ fam, k, a, b, len }] in order along n
+export function straightLanes(r, F, brush = 0) {
+  const half = Math.abs(dot(F.n, [r.w, r.h])) / 2 - brush / 2, cm = dot(F.n, [r.x + r.w / 2, r.y + r.h / 2]), out = [];
+  if (!(half >= 0)) return out;
+  const m = Math.floor(half / r.step - 0.5 + 1e-9), at = m < 0 ? [[0, 0]] : Array.from({ length: 2 * m + 2 }, (_, i) => [i - m - 1, (i - m - 0.5) * r.step]);
+  for (const [k, off] of at) { const q = chord(r, F, cm + off); if (q) out.push({ fam: F.key, k, ...q }); }
+  return out;
+}
+// 90 SNAKE's and 90 AIR's four runs: 1 upright every other lane from the
+// right edge, 2 across every other lane from the top, 3 and 4 the lanes skipped
+export function runs90Of(r, brush = 0) {
+  const [FA, FB] = straightOf();
+  return fourRuns(FA, FB, straightLanes(r, FA, brush), straightLanes(r, FB, brush).reverse(), ARROW90);
 }
 // BIAS SNAKE's and BIAS AIR's one run: the rising lanes from the bottom right
 // corner up, each run down ↙ from its right or top end (the owner, 2026-10-15,
@@ -149,11 +186,15 @@ export function runsTwo(r) {
   return [{ n: 1, fam: 'A', F: F1, arrow: `↙${up ? '↖' : ARROW.B}`, free: true, lanes }];
 }
 // a planned rectangle's runs as a DRAG key runs them
-export const runsFor = (r, mode) => TWO(mode) ? r.runs2 : r.runs;
-// The plan: every rectangle with its runs, four and two, in the order they run
-export function planOf(rects) {
-  const out = rects.map((r, i) => { const runs = runsOf(r); return { ...r, i, runs, runs2: runsTwo(r), lanes: runs.reduce((a, q) => a + q.lanes.length, 0) }; });
-  return { rects: out, lanes: out.reduce((a, r) => a + r.lanes, 0), length: out.reduce((a, r) => a + r.runs.reduce((s, q) => s + q.lanes.reduce((t, l) => t + l.len, 0), 0), 0) };
+export const runsFor = (r, mode) => TWO(mode) ? r.runs2 : NINETY(mode) ? r.runs90 : r.runs;
+// how many lanes a planned rectangle, or the plan, has as a DRAG key runs them: 90's its own
+export const lanesFor = (q, mode) => NINETY(mode) ? q.lanes90 : q.lanes;
+// The plan: every rectangle with its runs — four on the bias, two, four at
+// 90 (their lanes as the brush, o.brush, fits them) — in the order they run
+const count = runs => runs.reduce((a, q) => a + q.lanes.length, 0);
+export function planOf(rects, o = {}) {
+  const out = rects.map((r, i) => { const runs = runsOf(r), runs90 = runs90Of(r, o.brush || 0); return { ...r, i, runs, runs2: runsTwo(r), runs90, lanes: count(runs), lanes90: count(runs90) }; });
+  return { rects: out, lanes: out.reduce((a, r) => a + r.lanes, 0), lanes90: out.reduce((a, r) => a + r.lanes90, 0), length: out.reduce((a, r) => a + r.runs.reduce((s, q) => s + q.lanes.reduce((t, l) => t + l.len, 0), 0), 0) };
 }
 
 // ---------- the brush's way ----------
@@ -268,8 +309,9 @@ export const airOf = (run, l, o) => {
 // "DRAG Snake / DRAG Air", CCD's): the snake, a run a row — its lanes forward
 // and back with the brush down, stopsAt their ends, so a PAUSE falls there,
 // never on a lane; in the air, a lane a row, one way — the rising ones ↗, the
-// descending ones ↘ — the brush lifting past the far edge and flying to the
-// next. BIAS SNAKE and BIAS AIR the same ways through their two runs, every
+// descending ones ↘; at 90 the upright ones ↑, the ones across → — the brush
+// lifting past the far edge and flying to the next. BIAS SNAKE and BIAS AIR
+// the same ways through their two runs, every
 // lane RUNOUT mm off at both ends. The runs one after another with no stop:
 // between them the brush lifts and flies ("there are no rules here"). A stop
 // before every next rectangle — its paints squeezed.
@@ -280,7 +322,7 @@ export function dragRows(pl, o) {
   const oo = { ...o, runout: two ? o.runout ?? RUNOUT_NEW : 0 }, key = 'run';
   let length = 0;
   for (const r of pl.rects) {
-    if (!r.lanes) continue;
+    if (!lanesFor(r, o.mode)) continue;
     if (ps.length) stops.push({ at: ps.length, why: stopWhy(r) });
     for (const run of runsFor(r, o.mode)) {
       const n = run.lanes.length;
@@ -333,7 +375,7 @@ export function dragPasses(R) {
 const f2 = v => (Math.round(v * 100) / 100).toString();
 export function dragSvg(pl, o) {
   const y = v => o.ch - v, rows = pl.rects.flatMap(r => runsFor(r, o.mode).flatMap(run => run.lanes.map(l => `  <path d="M${f2(l.a[0])} ${f2(y(l.a[1]))} L${f2(l.b[0])} ${f2(y(l.b[1]))}" data-rect="${r.i + 1}" data-run="${run.n}" data-k="${l.k}"/>`)));
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt BIAS · drag · canvas ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one brush-down lane, run by run in running order, drawn forward: the rising ones up to the right, the descending ones down to the right. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n<g id="drag" data-ink="none" data-brush-mm="${o.brush}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>\n</svg>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt BIAS · drag · canvas ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one brush-down lane, run by run in running order, drawn forward: ${NINETY(o.mode) ? 'the upright ones up, the ones across to the right' : 'the rising ones up to the right, the descending ones down to the right'}. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n<g id="drag" data-ink="none" data-brush-mm="${o.brush}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>\n</svg>\n`;
 }
 
 // ---------- the paints: sausages along the edges and the rows ----------
