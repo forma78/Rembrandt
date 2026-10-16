@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LOOM, a new tab: Claude's own, a woven cloth** (the owner, 2026-10-16,
+  Claude-Freedome/: "full freedom: study the result yourself and come up
+  with a tab entirely your own"; IMG_0924 "the coolest", "a texture like
+  Bottega Veneta's"). After BIAS in the top row. The canvas one cloth of
+  strips at 45°, square to each other, laid in turn as BIAS SNAKE lays them,
+  30 mm off the canvas at both ends; where a strip goes under one painted
+  before it, the elbow lifts the brush over it on the move — Plain (the
+  intrecciato), Twill, Basket — or Lattice, no hop, as IMG_0924. Two layers,
+  each its own drawing and paints, run on their own (the owner, on IMG_0921:
+  "two independent runs, and it looks dearer than one"). A canvas past the
+  reach in two halves: half 1, home, a pause to turn the canvas round 180°,
+  half 2. The tones Crimson Ruby, Fall, Azure, Dusk. On a 30 × 30 in Plain:
+  93 strips, 563 hops, ≈ 23 min at 30 mm/s; a 60 × 80 ≈ 2 h a layer (est.).
+  Not yet tried on the machine. `LOOM.md`: how to run it.
+
 - **BIAS SNAKE and BIAS AIR: fewer idle moves** (the owner, 2026-10-15,
   BIAS-plaid/ Screenshot 2.27.09 PM and 2.27.43 PM: "only one diagonal
   starts from the right side and goes sideways down; then an idle pass over

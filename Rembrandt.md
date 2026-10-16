@@ -50,6 +50,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **BIAS SNAKE · BIAS AIR** | BIAS's two DRAG keys (2026-10-15, the afternoon): every lane, a rising one and a crossing one in turn — the rising from the bottom right corner up, each run down ↙ from the right or the top; the crossing from the top right corner, each run ↘ to the right side, or from the bottom left, ↖ — every lane starting and ending RUNOUT mm off the canvas (30, the owner's) within the margin, so the brush crosses the edge at an even pressure. Between two: the snake keeps the brush down off the canvas where it can go round no farther than 1.25 times straight across, else it lifts and flies over; the air always flies. Snake and Air stay, four runs. |
 | **Run (on BIAS)** | One of the four: the lanes of one family it paints, every other one, in their order — a snake of them with the brush down, turning off the rectangle, or each one way through the air. Not TAPE's run. |
 | **Edge sausages · rows (on BIAS)** | Where BIAS's paint is squeezed (the owner's hand test, BIAS-plaid/ 10:30:07 … 10:30:10): along the rectangle's four edges, where every lane lands, and along vertical rows inside, evenly — Rows counts the sides, three on the 20 × 20, one down the middle; each edge and row cut into stripes of 1, 2, 3 or 6 half-steps, a paint each. |
+| **LOOM** | Claude's own tab, after BIAS in the top row since 2026-10-16 (§1, §8), on the owner's offer of "full freedom": the canvas one woven cloth — BIAS SNAKE's strips, square to each other, a rising one and a crossing one in turn, 30 mm off the canvas at both ends — and where a strip should go under one laid before it, the elbow lifts the brush over it on the move. Two layers, each its own drawing and paints, run on their own; a canvas past the reach in two halves, turned round between. MARKS and DRAG Snake · Air; no TRACE. `loom.html`, its plan `loomplan.js`, its page module `loom.js`; BIAS's untouched. Its instructions: `LOOM.md`. |
+| **Strip · hop (on LOOM)** | A strip: a lane of LOOM's cloth, one brush wide, a step from its neighbours across, one of each family through the canvas's centre. A hop: where a strip goes under one painted before it, the brush up from Hop mm before that strip to Hop mm past it — the piece a turn for plotRun, the elbow up through it (+25°) and down to the lift-off by its end, Lands and lifts over its tail either side — so the earlier strip stays on top there. |
+| **Weave (on LOOM)** | Which strip lies on top where two cross: **Plain**, one over and one under in turn, a chessboard — the intrecciato; **Twill**, two and two along the diagonals, its ribs straight across the canvas at 45°; **Basket**, the strips in pairs; **Lattice**, no hop, the later strip on top, as BIAS and IMG_0924. By the strips' indices on the canvas as it lies first. |
+| **Layer 1 · Layer 2 (on LOOM)** | Two runs, each its own drawing — weave, angle, step, crossing corner, rows — and its own sausages and paints: layer 1 on the white canvas, layer 2 another way over it once it has set (the owner, 2026-10-16, IMG_0921: "two independent runs, and it looks dearer than one"). The Result on Layer 2 shows the second over the first. A layer in this glossary's sense. |
+| **Halves · the turn (on LOOM)** | A canvas past the reach (60 × 80, 70 × 100) run in two: half 1, the near half — the left (↔) or the bottom (↕) — and the overlap past the middle; the carriage home, a pause; the canvas turned round 180° by hand, its far corner C on the stop where the near one, A, was; half 2, the same lattice in the canvas's turned frame, its strips going on from the first's, the paint dragged the other way. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -519,6 +524,38 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   brush down off the canvas only where that is short, along the side it
   left by, else a flight over the canvas (*Claude's*: ROUND_MAX 1.25; the
   nearest-end rule of the hour before gone).
+- **LOOM, Claude's own tab** (the owner, 2026-10-16, a Friday evening,
+  `Claude-Freedome/`: "I made a folder for you … the works we made together
+  this week: CCD, BIAS Plaid … Of everything we made, the coolest is
+  IMG_0924.jpg. So I want to offer you full freedom: study the result
+  yourself and come up with a tab entirely your own. You can call it FREE,
+  or CLAUDE, or something else — we usually have 4–5 letters"; "no limits:
+  we have three servo actuators in the construction, not only the NEMA17s
+  for X and Y"; "canvases not only 20 × 20 and 40 × 40 but also 60 × 80 and
+  70 × 100 — they can be done in two runs, though that is a tricky
+  construction; maybe make something simple"; "the Crimson Ruby Weave turned
+  out the most interesting: it has a texture like Bottega Veneta's. I also
+  look at whether it is Instagrammable. Just driving stripes back and forth
+  as on CCD turned out less gripping"). IMG_0924 is BIAS SNAKE of
+  2026-10-15 15:17 (the run log): 45°, a step of 8 mm, the brush 6 mm,
+  three rows, the crossing from the top right, 90 mm/s. **Two layers** (the
+  owner, the same evening, on IMG_0921: "two independent runs, and it looks
+  dearer than one … first one run with one drawing and a set of our paints,
+  then a second run and another direction. But I need to understand that
+  the canvas must dry a little") — the drying in `LOOM.md`, never a timer.
+  *Claude's*, all of it: the name, a loom; the canvas one cloth, no
+  rectangles; BIAS SNAKE's order and its 30 mm off the canvas kept; **the
+  weave by the elbow** — where a strip goes under one painted before it,
+  the elbow lifts the brush over it on the move: Plain, Twill, Basket, and
+  Lattice with none; the lattice from the canvas's centre; layer 2 at first
+  twice the step, Lattice, the crossing from the bottom left; **two halves
+  turned round 180°** for a canvas past the reach — no measuring: the far
+  corner, C, on the stop where the near one, A, was — 30 mm past the middle; the tones Crimson Ruby
+  (IMG_0924's), Fall, Azure and Dusk, after his works on SOUMKINE; Angle 45°,
+  Step 9 mm (IMG_0924's 8 and room for the hop), Hop 1 mm, Lands and lifts
+  over 1.5 mm, Drag 30 mm/s, so the elbow keeps up — ≈ 200°/s of its 211
+  (est.); the shortest stretch with the brush down between two lifts twice
+  the tail. Not tried on the machine: the hop first on a scrap.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -930,9 +967,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.8**, then the tabs **TAPE · BASF · ALU-CUT · CCD · BIAS · ALU ·
-  SMKN · NOLAN · Test · Ink · Calibration · Library** (BIAS after CCD since
-  2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
+  **v.1.0.8**, then the tabs **TAPE · BASF · ALU-CUT · CCD · BIAS · LOOM ·
+  ALU · SMKN · NOLAN · Test · Ink · Calibration · Library** (LOOM after BIAS
+  since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
@@ -1198,6 +1235,27 @@ this section disagree, this section wins: the owner corrected the sketch on
   counts every run's lanes; with the canvas on a wall a warning — the snake's turns there would run along its edge over
   the lanes' ends — and how far off the walls to lay it. 💾 SAVE BIAS, the
   Library opening it here.
+- **LOOM**, after BIAS (2026-10-16, §1; `app/loom.html`, `app/src/loom.js`,
+  `app/src/loomplan.js`; how to run it, `LOOM.md`): BIAS's page with no
+  rectangles — the cloth is the canvas. Tools: M and its clear, Undo, Redo.
+  The deck **TEST · PAUSE, MARKS · Snake · Air, STOP · HOME**, INK, the
+  views **Drag · Result** and **Snake · Air**, all for the layer chosen. The
+  panel: **Layer 1 · Layer 2** (1 and 2 on the keyboard); **Plain · Twill ·
+  Basket · Lattice**; **Crossing ↘ from top right · ↖ from bottom left**;
+  **Angle** (45°), **Step** (9 mm), **Rows** (3); the layer's paints — the
+  tones **Crimson Ruby · Fall · Azure · Dusk**, New colours, New spokes,
+  Density, the paints in use; **One run · Halves ↔ · Halves ↕**, the reading
+  saying whether the canvas fits the reach; Brush, DRAG: Brush width (6 mm),
+  Drag speed (30 mm/s), **Hop: clear of the strip** (1 mm, est.), **Lands and
+  lifts over** (1.5 mm, est.), Snake: turns off the canvas (2 mm), Off the
+  canvas (30 mm), Margin round the canvas (25 mm), **Halves: past the
+  middle** (30 mm). Drag: every stretch with the brush down an opaque strip —
+  the rising grey, the crossing rust — in running order, so the hops show
+  the weave; layer 1 faint under layer 2; the landings, the arrows and the
+  flights as BIAS's; the middle of a halved canvas shaded. Result: layer 1,
+  and on Layer 2 the second over it, a tuck's shadow where a strip dives
+  under. A warning when the elbow cannot keep up with the hops. 💾 SAVE
+  LOOM, both layers, the Library opening it here.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once

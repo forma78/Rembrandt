@@ -23,6 +23,7 @@ Rembrandt/
   CLAUDE.md          points Claude here
   Rembrandt.md       the spec
   NOLAN.md           the NOLAN tab's task (2026-10-03)
+  LOOM.md            LOOM: how to run it, DRAG and the technology (2026-10-16)
   CHANGELOG.md       what changed, newest first
   nolan-images/      the pictures NOLAN is made for
   design/
@@ -42,6 +43,7 @@ Rembrandt/
     alucut.html      ALU-CUT, ALU with the new things (new, 2026-10-11; first until 2026-10-12; ALU-cut-Claude/)
     ccd.html         CCD, rectangles of straight lanes after Carlos Cruz-Diez (new, 2026-10-11; Cruz-Diez/)
     bias.html        BIAS, CCD's rectangles with diagonal lanes in four runs, a plaid on the bias (new, 2026-10-15; BIAS-plaid/)
+    loom.html        LOOM, Claude's own: a woven cloth, the strips over and under by the elbow, two layers, two halves (new, 2026-10-16; Claude-Freedome/)
     type.html        TYPE, letters as bands in three passes (new; off the top row since 2026-10-11)
     love.html        LOVE, TYPE's copy for the new things (new, 2026-10-07; off the top row since 2026-10-11)
     alu.html         ALU, pipes of paint in whole lanes (new, 2026-10-08; ALU-Claude/)
@@ -79,7 +81,7 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 `pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
-Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
+Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs), `loomplan.js` (LOOM's woven cloth, its hops and halves), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
 (the watercolour on the board, NOLAN's and TYPE's), and pointer mode in
 `jobpage.js`.
 
