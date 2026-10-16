@@ -3,9 +3,10 @@
 // will be absolutely the same palette and the same principle — DRAG Snake /
 // DRAG Air. The only difference: the stripes not straight but diagonal").
 // Its plan in biasplan.js: every rectangle two families of diagonal lanes in
-// four runs, every other lane and then the ones skipped — Snake and Air — or
-// in two, every lane, 30 mm off the canvas at both ends — BIAS SNAKE and BIAS
-// AIR (the owner, the same afternoon).
+// four runs, every other lane and then the ones skipped — 45 SNAKE and 45 AIR,
+// or upright and across, 90 SNAKE and 90 AIR (the owner, 2026-10-16) — or in
+// two, every lane, 30 mm off the canvas at both ends — BIAS SNAKE and BIAS
+// AIR (the owner, 2026-10-15, the afternoon).
 //
 // CCD's page, its own module: the board, the canvas from home, PROGRESS, TEST
 // and PAUSE, the LCD, the zoom, the reference, the Library, the paints; the
@@ -21,7 +22,7 @@ import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
-import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, bowsOf, strokesOf, runsFor, runName, TWO, SNAKY, RUNOUT_NEW, MARGIN_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
+import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, bowsOf, strokesOf, runsFor, lanesFor, runName, TWO, NINETY, SNAKY, RUNOUT_NEW, MARGIN_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, RUN_NAME90, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
   BIAS_META, DENSITY_NEW, MARKS_DIP, newPattern, recolour, reRows, rowsOf, sausagesOf, stripeAt, markOf, marksRows, mixAll, rowName } from './biasplan.js';
 import { MARK_SPEED, reachOf } from './ccdplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
@@ -70,9 +71,9 @@ const wholeCanvas = (o = {}) => cleanRect({ x: 0, y: 0, w: S.boardW, h: S.boardH
 const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, before: S.before, past: S.past, clear: S.clear, runout: S.runout, margin: S.margin });
 let PL = null, plKey = '';
 function planNow() {
-  const key = JSON.stringify([S.rects, S.boardW, S.boardH]);
+  const key = JSON.stringify([S.rects, S.boardW, S.boardH, S.brush]);         // the brush: how many of 90's lanes fit
   if (PL && key === plKey) return PL;
-  plKey = key; PL = planOf(S.rects);
+  plKey = key; PL = planOf(S.rects, { brush: S.brush });
   return PL;
 }
 
@@ -89,7 +90,7 @@ const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x,
 // The four runs one after another, no stop between them (the owner,
 // 2026-10-15: "the machine does not stop there"); a pause before every next
 // rectangle (biasplan.js, dragPasses); PAUSE at a lane's end, never on the line.
-const RUNS = {}, MODE_NAME = { snake: 'snake', air: 'air', biassnake: 'BIAS snake', biasair: 'BIAS air' };
+const RUNS = {}, MODE_NAME = { snake: '45 snake', air: '45 air', snake90: '90 snake', air90: '90 air', biassnake: 'BIAS snake', biasair: 'BIAS air' };
 let busy = false;
 const EMPTY = { blocks: [], rows: [], seconds: 0, length: 0, carriage: null, runs: 0, mm: 0, stops: 0, fault: '' };
 const runOpts = rows => ({ ...DEFAULTS, speed: S.drag, travel: S.travel, tail: S.tail, lift: false, ink: false, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
@@ -380,7 +381,7 @@ function guides() {
     g.strokeStyle = on ? ORANGE : 'rgba(36,34,31,.55)'; g.lineWidth = on ? 1.5 : 1; g.setLineDash(on ? [] : [4, 3]);
     g.strokeRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); g.setLineDash([]);
     g.fillStyle = on ? '#B3470C' : themeColor('--mute', '#7D776D'); g.textAlign = 'left';
-    g.fillText(`${i + 1} ${r.cross === 'mirror' ? '✕' : '⊥'} ${fmt(r.angle, 1)}° · ${fmt(r.step, 1)} mm`, a[0] + 6, a[1] + 15);
+    g.fillText(`${i + 1} ${NINETY(S.mode) ? '┼ 90' : `${r.cross === 'mirror' ? '✕' : '⊥'} ${fmt(r.angle, 1)}`}° · ${fmt(r.step, 1)} mm`, a[0] + 6, a[1] + 15);   // 90's lanes whatever the angle
     if (on && grab && grab.kind !== 'move') { g.textAlign = 'right'; g.fillText(`${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm`, b[0], a[1] - 5); }
   });
   const r = S.rects[S.sel];
@@ -648,10 +649,10 @@ function showRect() {
     <div class="toggles looks"><button class="tog${r.cross !== 'mirror' ? ' on' : ''}" data-cross="square" title="The descending lanes square to the rising ones: a plaid turned on the bias, as on your scheme IMAGE 2026-10-15 10:52:30 and the tartans">⊥ Square</button><button class="tog${r.cross === 'mirror' ? ' on' : ''}" data-cross="mirror" title="The descending lanes the rising ones' mirror, both at the angle, as on your sketch IMAGE 2026-10-15 10:30:04">✕ Mirror</button></div>
     <div class="toggles looks" id="fromKeys" title="BIAS SNAKE and BIAS AIR: where the crossing run starts — the rising one from the bottom right corner always (the owner: &quot;we do not have to make the crossing line there too; it can be drawn from the opposite side&quot;)"><button class="tog${r.from2 !== 'bl' ? ' on' : ''}" data-from="tr" title="BIAS: the crossing run from the top right corner down, its strokes down to the right ↘">Crossing ↘ from top right</button><button class="tog${r.from2 === 'bl' ? ' on' : ''}" data-from="bl" title="BIAS: the crossing run from the bottom left corner up, its strokes up to the left ↖ — the paint dragged the other way">↖ from bottom left</button></div>
     <div class="sliders">
-      <label class="sl" title="The rising lanes above the horizontal, ${ANGLE_MIN} … ${ANGLE_MAX}°: 26.6° from a corner to the middle of the far side, as on your sketches; 45° the tartans' bias"><span class="slh"><span>Angle, °</span><input class="num" type="number" id="rAn" min="${ANGLE_MIN}" max="${ANGLE_MAX}" step="0.1" value="${r.angle}" aria-label="Angle"></span><input class="slider" type="range" id="rA" min="${ANGLE_MIN}" max="${ANGLE_MAX}" step="0.1" value="${r.angle}"></label>
-      <label class="sl" title="Lane centre to lane centre, across them, ${STEP_MIN} … ${STEP_MAX} mm: a run skips one, two steps on (the owner: &quot;if the step is 32 mm … not +32 mm but skipping one, +64 mm&quot;); one lane of each through the bottom left corner"><span class="slh"><span>Step, mm</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="100" step="0.5" value="${Math.min(100, r.step)}"></label>
+      <label class="sl" title="The rising lanes above the horizontal, ${ANGLE_MIN} … ${ANGLE_MAX}°: 26.6° from a corner to the middle of the far side, as on your sketches; 45° the tartans' bias. 45 SNAKE, 45 AIR and the BIAS keys run at it; 90 SNAKE and 90 AIR upright and across, whatever it is"><span class="slh"><span>Angle, °</span><input class="num" type="number" id="rAn" min="${ANGLE_MIN}" max="${ANGLE_MAX}" step="0.1" value="${r.angle}" aria-label="Angle"></span><input class="slider" type="range" id="rA" min="${ANGLE_MIN}" max="${ANGLE_MAX}" step="0.1" value="${r.angle}"></label>
+      <label class="sl" title="Lane centre to lane centre, across them, ${STEP_MIN} … ${STEP_MAX} mm: a run skips one, two steps on (the owner: &quot;if the step is 32 mm … not +32 mm but skipping one, +64 mm&quot;); on the bias one lane of each through the bottom left corner; at 90 the lanes centred, none down the middle, the brush wholly on the rectangle"><span class="slh"><span>Step, mm</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="100" step="0.5" value="${Math.min(100, r.step)}"></label>
       <label class="sl" title="Where the sausages lie: the four edges, where every lane lands, and vertical rows inside, evenly — Rows counts the sides (your hand test: the edges all round and one down the middle)"><span class="slh"><span>Rows</span><span class="val" id="o-rR">${rowsText(r)}</span></span><input class="slider" type="range" id="rR" min="${ROWS_MIN}" max="${ROWS_MAX}" step="1" value="${r.rows}"></label></div>
-    <p class="read" id="rGap">${pl ? `<b>${pl.lanes}</b> lanes, ${gapText(r)} · runs ${runsText(pl)}` : ''}</p>
+    <p class="read" id="rGap">${pl ? `<b>${lanesFor(pl, S.mode)}</b> lanes, ${gapText(r)} · runs ${runsText(pl)}` : ''}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
     <div class="grid4 keys"><button class="btn" id="rFit" title="This rectangle the whole canvas">Whole canvas</button><button class="btn" id="rDup" title="A copy of it, run after the others">Duplicate</button></div>
     <div class="grid4 keys three"><button class="btn" id="rEarly"${S.sel === 0 ? ' disabled' : ''} title="Run before the one before it">Run earlier</button><button class="btn" id="rLate"${S.sel === S.rects.length - 1 ? ' disabled' : ''} title="Run after the one after it">Run later</button><button class="btn" id="rDel" title="Take it away — or ⌫ on the keyboard; ⌘Z brings it back">Delete</button></div>`;
@@ -666,7 +667,7 @@ function showRect() {
       if (!busy) undoPush(); busy = true; r[key] = Math.max(lo, Math.min(hi, v));
       if (document.activeElement !== num) num.value = r[key];
       sl.value = Math.min(+sl.max, r[key]);
-      const q = planNow().rects[S.sel]; $('#rGap').innerHTML = `<b>${q.lanes}</b> lanes, ${gapText(r)} · runs ${runsText(q)}`; kick();
+      const q = planNow().rects[S.sel]; $('#rGap').innerHTML = `<b>${lanesFor(q, S.mode)}</b> lanes, ${gapText(r)} · runs ${runsText(q)}`; kick();
     };
     sl.oninput = () => to(+sl.value); sl.onchange = () => settle();
     num.oninput = () => { if (num.value !== '') to(+num.value); };
@@ -805,18 +806,18 @@ const what = () => `${S.rects.length} rectangle${S.rects.length === 1 ? '' : 's'
 function settle() {
   busy = false;
   if (S.sel >= S.rects.length) S.sel = Math.max(0, S.rects.length - 1);
-  const P = planNow(), Ds = dragRun('snake'), Da = dragRun('air'), Dbs = dragRun('biassnake'), Dba = dragRun('biasair'), Mk = marksRun(), here = hereNow(), lines = [];
-  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.lanes}</b> lanes at ${S.drag} mm/s · DRAG <b>Snake</b>, four runs: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, a run each, ${fmt(Ds.mm / 1000, 1)} m with the turns, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · DRAG <b>Air</b>, four runs: landing ${Da.runs} times, ${fmt(Da.mm / 1000, 1)} m, ≈ ${fmt(Da.seconds / 60, 0)} min with the flights (est.) · <b>BIAS SNAKE</b>, rising and crossing in turn, ${fmt(S.runout, 0)} mm off the canvas at every end: landing ${Dbs.runs} time${Dbs.runs === 1 ? '' : 's'}, ${fmt(Dbs.mm / 1000, 1)} m, ≈ ${fmt(Dbs.seconds / 60, 0)} min (est.) · <b>BIAS AIR</b>, in turn: landing ${Dba.runs} times, ${fmt(Dba.mm / 1000, 1)} m, ≈ ${fmt(Dba.seconds / 60, 0)} min (est.)`);
+  const P = planNow(), Ds = dragRun('snake'), Da = dragRun('air'), D9s = dragRun('snake90'), D9a = dragRun('air90'), Dbs = dragRun('biassnake'), Dba = dragRun('biasair'), Mk = marksRun(), here = hereNow(), lines = [];
+  lines.push(!P.rects.length ? 'No rectangles: New, or the R tool and a drag on the canvas.' : `<b>${P.rects.length}</b> rectangle${P.rects.length === 1 ? '' : 's'} · <b>${P.lanes}</b> lanes on the bias, <b>${P.lanes90}</b> at 90, at ${S.drag} mm/s · <b>45 SNAKE</b>, four runs: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, a run each, ${fmt(Ds.mm / 1000, 1)} m with the turns, ≈ ${fmt(Ds.seconds / 60, 0)} min (est.) · <b>45 AIR</b>, four runs: landing ${Da.runs} times, ${fmt(Da.mm / 1000, 1)} m, ≈ ${fmt(Da.seconds / 60, 0)} min with the flights (est.) · <b>90 SNAKE</b>, four runs upright and across: landing ${D9s.runs} time${D9s.runs === 1 ? '' : 's'}, ${fmt(D9s.mm / 1000, 1)} m with the turns, ≈ ${fmt(D9s.seconds / 60, 0)} min (est.) · <b>90 AIR</b>: landing ${D9a.runs} times, ${fmt(D9a.mm / 1000, 1)} m, ≈ ${fmt(D9a.seconds / 60, 0)} min with the flights (est.) · <b>BIAS SNAKE</b>, rising and crossing in turn, ${fmt(S.runout, 0)} mm off the canvas at every end: landing ${Dbs.runs} time${Dbs.runs === 1 ? '' : 's'}, ${fmt(Dbs.mm / 1000, 1)} m, ≈ ${fmt(Dbs.seconds / 60, 0)} min (est.) · <b>BIAS AIR</b>, in turn: landing ${Dba.runs} times, ${fmt(Dba.mm / 1000, 1)} m, ≈ ${fmt(Dba.seconds / 60, 0)} min (est.)`);
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
-  for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${fmt(r.angle, 1)}°, ${r.cross === 'mirror' ? 'mirrored' : 'square'}, step ${fmt(r.step, 1)} mm, ${gapText(r)}; Snake and Air ${r.runs.map(q => `run ${q.n} ${q.arrow} ${RUN_NAME[q.n]}: ${q.lanes.length}`).join(', ')}; BIAS ${r.runs2.map(q => `run ${q.n} ${q.arrow} ${runName(r, q, 'biassnake')}: ${q.lanes.length}`).join(', ')}`);
+  for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${fmt(r.angle, 1)}°, ${r.cross === 'mirror' ? 'mirrored' : 'square'}, step ${fmt(r.step, 1)} mm, ${gapText(r)}; 45 SNAKE and 45 AIR ${r.runs.map(q => `run ${q.n} ${q.arrow} ${RUN_NAME[q.n]}: ${q.lanes.length}`).join(', ')}; 90 SNAKE and 90 AIR ${r.runs90.map(q => `run ${q.n} ${q.arrow} ${RUN_NAME90[q.n]}: ${q.lanes.length}`).join(', ')}; BIAS ${r.runs2.map(q => `run ${q.n} ${q.arrow} ${runName(r, q, 'biassnake')}: ${q.lanes.length}`).join(', ')}`);
   if (Ds.stops) lines.push(`DRAG stops <b>${Ds.stops}</b> time${Ds.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paints, Continue; never between the runs`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges${S.margin > 0 ? `; a margin of ${fmt(S.margin, 0)} mm round it for the brush to turn in` : ''}.`);
   $('#planRead').innerHTML = lines.join(' · ');
-  const keys = [[Ds, 'DRAG Snake'], [Da, 'DRAG Air'], [Dbs, 'BIAS SNAKE'], [Dba, 'BIAS AIR']];
+  const keys = [[Ds, '45 SNAKE'], [Da, '45 AIR'], [D9s, '90 SNAKE'], [D9a, '90 AIR'], [Dbs, 'BIAS SNAKE'], [Dba, 'BIAS AIR']];
   const warn = [...keys.map(([D, name]) => D.fault && `The plan is wrong, ${name} will not run it: ${D.fault}.`), Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, ...keys.map(([D, name]) => pressedText(D, name)), walls(Mk, 'MARKS')].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.lanes} lanes${Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · Snake ≈ ${fmt(Ds.seconds / 60, 0)} min · Air ≈ ${fmt(Da.seconds / 60, 0)} · BIAS SNAKE ≈ ${fmt(Dbs.seconds / 60, 0)} · BIAS AIR ≈ ${fmt(Dba.seconds / 60, 0)} (est.)`;
+  $('#stats').textContent = !P.rects.length ? 'no rectangles' : `${what()} · ${P.lanes} lanes, ${P.lanes90} at 90${Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · 45 SNAKE ≈ ${fmt(Ds.seconds / 60, 0)} min · 45 AIR ≈ ${fmt(Da.seconds / 60, 0)} · 90 SNAKE ≈ ${fmt(D9s.seconds / 60, 0)} · 90 AIR ≈ ${fmt(D9a.seconds / 60, 0)} · BIAS SNAKE ≈ ${fmt(Dbs.seconds / 60, 0)} · BIAS AIR ≈ ${fmt(Dba.seconds / 60, 0)} (est.)`;
   showFiles();
   showPanel(); showRects(); save(); layout(); lastLcd && lcd(lastLcd);
 }
@@ -891,7 +892,7 @@ function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
   const meta = JSON.stringify({ rembrandt: '1.0.8', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rects = P.rects.map(r => `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-angle="${r.angle}" data-step="${r.step}" data-cross="${r.cross}" data-lanes="${r.lanes}"/>`).join('\n');
-  const lanes = P.rects.flatMap(r => r.runs.flatMap(run => run.lanes.map(l => `  <line x1="${f(l.a[0])}" y1="${f(H - l.a[1])}" x2="${f(l.b[0])}" y2="${f(H - l.b[1])}" data-run="${run.n}"/>`))).join('\n');
+  const lanes = P.rects.flatMap(r => runsFor(r, S.mode).flatMap(run => run.lanes.map(l => `  <line x1="${f(l.a[0])}" y1="${f(H - l.a[1])}" x2="${f(l.b[0])}" y2="${f(H - l.b[1])}" data-run="${run.n}"/>`))).join('\n');
   const sausages = P.rects.flatMap(r => sausagesOf(r).map(q => { const [x, y, w, h] = q.box; return `  <rect x="${f(x)}" y="${f(H - y - h)}" width="${f(w)}" height="${f(h)}" fill="${PAINT[q.paint].hex}" data-paint="${q.paint}" data-rect="${r.i + 1}"${q.thin ? ' data-thin="1"' : ''}/>`; })).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
@@ -959,8 +960,9 @@ async function runDrag(mode) {
   if (D.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${D.fault}.</span>`; return; }
   const text = `${D.stops ? `${D.stops + 1} rectangles: squeeze the first one's paints only now; DRAG stops ${D.stops} time${D.stops > 1 ? 's' : ''}, before every next rectangle, for you to wipe the brush and squeeze its paints, then Continue.\n\n` : ''}`
     + (TWO(mode) ? `${P.lanes} lanes, a rising one and a crossing one in turn: the rising ones from the bottom right corner up to the top left, the crossing ones from ${FROM_NAME[P.rects[0].from2]} — every lane ${fmt(S.runout, 0)} mm off the canvas at both its ends, so the brush crosses the edge at an even pressure — `
+      : NINETY(mode) ? `${P.lanes90} lanes upright and across in four runs, one after another with no stop: 1 upright ↑ every other lane from the right edge, 2 across → every other lane from the top, 3 upright the lanes skipped, 4 across the lanes skipped — `
       : `${P.lanes} lanes in four runs, one after another with no stop: 1 rising ↗ every other lane from the bottom right corner, 2 descending ↘ every other lane from the top right, 3 rising the lanes skipped, 4 descending the lanes skipped — `)
-    + (mode === 'snake' ? `each run the snake, its lanes forward and back with the brush down, turning ${fmt(S.clear, 1)} mm clear of the canvas so it never touches a painted lane; the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a run, and flies between them; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
+    + (mode === 'snake' || mode === 'snake90' ? `each run the snake, its lanes forward and back with the brush down, turning ${fmt(S.clear, 1)} mm clear of the canvas so it never touches a painted lane; the brush lands ${D.runs} time${D.runs === 1 ? '' : 's'}, once a run, and flies between them; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : mode === 'biassnake' ? `the rising ones run down ↙, the crossing ones ${P.rects[0].from2 === 'bl' ? 'up ↖' : 'down ↘'}; from one to the next the brush stays down off the canvas where it can go round it, else it lifts and flies over — it lands ${D.runs} time${D.runs === 1 ? '' : 's'}; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`
       : `every lane one way, the brush landing and lifting off the canvas and flying to the next; ${fmt(D.mm / 1000, 1)} m with the dry brush, no dip`)
     + `, at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 0)} min (est.).${pressedText(D, '\n\n⚠ DRAG ' + MODE_NAME[mode])}\n\n${sausages ? 'Are the sausages squeezed on their marks, as Drag shows them?' : 'Is the paint squeezed along rectangle 1\'s edges?'}`;
@@ -971,6 +973,8 @@ async function runDrag(mode) {
 }
 $('#btnSnake').onclick = () => runDrag('snake');
 $('#btnAir').onclick = () => runDrag('air');
+$('#btnSnake90').onclick = () => runDrag('snake90');
+$('#btnAir90').onclick = () => runDrag('air90');
 $('#btnBiasSnake').onclick = () => runDrag('biassnake');
 $('#btnBiasAir').onclick = () => runDrag('biasair');
 // MARKS: a dash a sausage, then the owner squeezes them on the dashes
@@ -1014,7 +1018,7 @@ $('#btnStop').onclick = () => post('/run/stop');
 // The LCD, as on CCD: DRAG's numbers while nothing runs.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 let started = null, lastLcd = null;
-const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', snake: 'DRAG SNAKE', air: 'DRAG AIR', biassnake: 'BIAS SNAKE', biasair: 'BIAS AIR' };
+const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', snake: '45 SNAKE', air: '45 AIR', snake90: '90 SNAKE', air90: '90 AIR', biassnake: 'BIAS SNAKE', biasair: 'BIAS AIR' };
 function lcd(st) {
   lastLcd = st;
   const P_ = dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
@@ -1035,7 +1039,7 @@ function lcd(st) {
     : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off')
     : live && now0 && b?.dip ? `${now0} · the dip in the cup`
     : live && now0 ? now0 + (st.brush_on ? ' · brush on' : ' · brush off')
-    : `${planNow().lanes} lanes · ${TWO(S.mode) ? '/ and \\ in turn' : '4 runs'} · ${what()} · ${MODE_NAME[S.mode]}`;
+    : `${lanesFor(planNow(), S.mode)} lanes · ${TWO(S.mode) ? '/ and \\ in turn' : '4 runs'} · ${what()} · ${MODE_NAME[S.mode]}`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.length / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
