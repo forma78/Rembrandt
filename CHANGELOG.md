@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS: 90 SNAKE and 90 AIR, the counter check at a right angle** (the
+  owner, 2026-10-16, BIAS-plaid/ Screenshot 9.08.29 PM, straight lanes drawn
+  over the bias: "here the counter check is at a right angle … 45 SNAKE /
+  45 AIR, and add 90 SNAKE / 90 AIR, before the BIAS SNAKE // BIAS AIR
+  keys"). Snake and Air are **45 SNAKE · 45 AIR** now, as they were, at the
+  rectangle's Angle. **90 SNAKE · 90 AIR**, a row of their own between them
+  and the BIAS keys: the same four runs, the lanes upright ↑ and across →
+  whatever the Angle — 1 upright every other lane from the right edge, 2
+  across from the top, 3 and 4 the lanes skipped — Step apart, centred on
+  the rectangle, none down its middle, the brush wholly on it. The views
+  two rows, 45 · 90 · Bias, the snakes over the airs; the reading and the
+  LCD count 90's lanes its own. On the owner's 220 × 220 at a 16 mm step:
+  28 lanes, at 60 mm/s 90 SNAKE ≈ 3 min, 90 AIR ≈ 4 (est.).
+
 - **LOOM, a new tab: Claude's own, a woven cloth** (the owner, 2026-10-16,
   Claude-Freedome/: "full freedom: study the result yourself and come up
   with a tab entirely your own"; IMG_0924 "the coolest", "a texture like
