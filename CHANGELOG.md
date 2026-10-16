@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **BIAS: SNAKE PLAIN → and SNAKE PLAIN ↑, straight stripes as CCD's** (the
+  owner, 2026-10-16, the same evening, on 90 tried: "eh … some kind of
+  parquet :)) Let us simply do it as in CCD, straight stripes. Snake Plain →,
+  Snake Plain ↑. And add them before the 90 SNAKE 90 AIR keys"). Two keys,
+  a row of their own between 45 and 90: one family, every lane in turn, the
+  snake with the brush down — → every lane across from the bottom up, → then
+  ←; ↑ every lane upright from the left, ↑ then ↓ — turning off the
+  rectangle as BIAS's snake does; 90's lanes, Step apart. Plain → and
+  Plain ↑ among the views. On 220 × 220 at a 16 mm step: 14 lanes each way,
+  ≈ 1.3 min at 60 mm/s (est.).
+
 - **BIAS: 90 SNAKE and 90 AIR, the counter check at a right angle** (the
   owner, 2026-10-16, BIAS-plaid/ Screenshot 9.08.29 PM, straight lanes drawn
   over the bias: "here the counter check is at a right angle … 45 SNAKE /
