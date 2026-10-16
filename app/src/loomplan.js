@@ -21,7 +21,8 @@
 // A canvas wider or taller than the machine reaches (60 × 80, 70 × 100: "two
 // runs, though that is a tricky construction — maybe something simple") in two
 // halves: the near half and an overlap past the middle; then the canvas turned
-// round 180° by hand, the same corner on the same stop — its far half near —
+// round 180° by hand — its far corner, C, on the stop where the near one, A,
+// was; its far half near —
 // and the far half the same way. The lattice is laid from the canvas's centre,
 // one lane of each family through it, so turned it is the same lattice: the
 // second half's strips go on from the first's, over the overlap, the paint
@@ -324,7 +325,7 @@ export function bowsOf(run, o, snake) {
 // brush down, its hops marked as turns (the elbow up through them, strokes.js,
 // o.lift); stopsAt at the lanes' ends, so a PAUSE falls there. A pass a run;
 // the second's why: the turn.
-export const TURN_WHY = 'Turn the canvas round 180°: the same corner on the same stop, its far half now by home. Then Continue';
+export const TURN_WHY = 'Turn the canvas round 180°: corner C, the far one, on the stop where corner A was — its far half now by home. Then Continue';
 export function dragRows(P, o) {
   const snake = o.mode !== 'air', at = q => toMachine([q[0] - o.cw / 2, o.ch / 2 - q[1]]), info = [], passes = [];
   let length = 0, n = 0;

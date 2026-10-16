@@ -552,7 +552,7 @@ $('#loomRead').innerHTML = [
   'The canvas is one cloth: two families of strips square to each other, a rising one and a crossing one in turn, as BIAS SNAKE laid IMG_0924 — every strip 30 mm off the canvas at both its ends.',
   'The weave: on BIAS the later strip always lies on top. Here, where a strip should go under one laid before it, the elbow lifts the brush on the move just before that strip and lands it just past — a hop — so the earlier strip stays on top there. Plain: one over, one under, the intrecciato. Twill: two and two, ribs straight across at 45°. Basket: the strips in pairs. Lattice: no hop, IMG_0924.',
   'Two layers, two runs: layer 1 its own drawing and paints on the white canvas; layer 2 another way over it, its own paints — once layer 1 has set. Each layer\'s MARKS and DRAG run when you press them.',
-  'A canvas past the reach in two halves: the near half and the overlap, home, the pause — turn the canvas round 180°, the same corner on the same stop — then the far half.',
+  'A canvas past the reach in two halves: the near half and the overlap, home, the pause — turn the canvas round 180°, corner C, the far one, on the stop where corner A was — then the far half.',
 ].map(t => `<span>${t}</span>`).join('<br>');
 
 // ---------- the paints (BIAS's): the strip, the tones, the list ----------
@@ -693,7 +693,7 @@ function showHalves() {
   else if (S.halves === 'one') lines.push(`<span class="warn">Too ${suggest === 'lr' ? 'wide' : 'tall'} for one run: ${suggest === 'lr' ? 'Halves ↔' : 'Halves ↕'}.</span>`);
   if (S.halves !== 'one') {
     const lr = S.halves === 'lr', need = lr ? F.halfW : F.halfH, reachIt = lr ? F.across : F.up;
-    lines.push(`Half 1: the ${lr ? 'left' : 'bottom'} half and ${fmt(S.overlap, 0)} mm past the middle, ${fmt(need, 0)} mm with the margins ${need <= reachIt + 1e-6 ? `— within the ${fmt(reachIt, 1)}` : `<span class="warn">— past the ${fmt(reachIt, 1)} the machine reaches: less overlap or margin</span>`}. Then the carriage goes home and the run waits: turn the canvas round 180°, the same corner on the same stop — mark it A — then Continue for half 2.`);
+    lines.push(`Half 1: the ${lr ? 'left' : 'bottom'} half and ${fmt(S.overlap, 0)} mm past the middle, ${fmt(need, 0)} mm with the margins ${need <= reachIt + 1e-6 ? `— within the ${fmt(reachIt, 1)}` : `<span class="warn">— past the ${fmt(reachIt, 1)} the machine reaches: less overlap or margin</span>`}. Then the carriage goes home and the run waits: turn the canvas round 180°: corner C, the far one, on the stop where corner A — the one by home — was; then Continue for half 2.`);
     lines.push(`The far half lies past the ${lr ? 'right' : 'top'} wall while half 1 runs: the canvas must be free to lie there.`);
   }
   $('#halfRead').innerHTML = lines.join(' ');
@@ -845,7 +845,7 @@ async function start(key, blocks, info, log) {
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 }
-const halvesText = n => n > 1 ? `\n\nTwo halves: the canvas as you laid it first, corner A on the stop. Half 1 runs, the carriage goes home and the run waits — then turn the canvas round 180°, the same corner on the same stop, and Continue for half 2.` : '';
+const halvesText = n => n > 1 ? `\n\nTwo halves: the canvas as you laid it first, corner A — the one by home — on the stop. Half 1 runs, the carriage goes home and the run waits — then turn the canvas round 180°, corner C, the far one, on the stop where A was, and Continue for half 2.` : '';
 async function runDrag(mode) {
   settle();
   const D = dragRun(mode), P = planNow(), c = cl(), sausages = !!c.pat;
