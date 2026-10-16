@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanRect, familiesOf, familyLanes, runsOf, runsTwo, runs90Of, straightOf, straightLanes, lanesFor, strokesOf, bowsOf, planOf, snakeOf, airOf, distTo, dragRows, dragPasses, dragSvg, rowsOf, newPattern, recolour, reRows, sausagesOf, stripeAt, marksRows, mixAll,
+import { cleanRect, familiesOf, familyLanes, runsOf, runsTwo, runs90Of, plainOf, straightOf, straightLanes, lanesFor, strokesOf, bowsOf, planOf, snakeOf, airOf, distTo, dragRows, dragPasses, dragSvg, rowsOf, newPattern, recolour, reRows, sausagesOf, stripeAt, marksRows, mixAll,
   ANGLE_NEW, STEP_NEW, ROWS_NEW, CLEAR_NEW, RUNOUT_NEW, BIAS_META, MARKS_DIP } from '../src/biasplan.js';
 import { plotRun, DEFAULTS } from '../src/strokes.js';
 
@@ -265,4 +265,30 @@ test('90 SNAKE: a run a row, turning off the rectangle, every other lane back; 9
   assert.match(dragSvg(pl, { ...O, mode: 'snake90' }), /the upright ones up/);
   const M = mixAll(planOf([Object.assign(r, { pat: newPattern(r, BIAS_META['meta 1'], 3) })], { brush: O.brush }), { ...O, density: 50, mode: 'snake90' });
   assert.equal(M.strokes.length, pl.lanes90 * 5); assert.ok(M.strokes.some(s => s.cover.some(c => c > 0.5)), 'it paints');
+});
+
+// SNAKE PLAIN → and ↑ (the owner, 2026-10-16, on 90 tried: "some kind of
+// parquet :)) let us simply do it as in CCD, straight stripes").
+test('SNAKE PLAIN: one run, every lane in its order as CCD\'s — across from the bottom up, upright from the left — the snake turning off the rectangle', () => {
+  const r = cleanRect({ x: 0, y: 0, w: 200, h: 120, step: 20 }), pl = planOf([r], { brush: O.brush }), q = pl.rects[0], d0 = O.brush / 2 + O.clear;
+  assert.deepEqual(q.runsX[0].lanes.map(l => l.a[1]), [10, 30, 50, 70, 90, 110], 'across: from the bottom up, none skipped');
+  assert.deepEqual(q.runsY[0].lanes.map(l => l.a[0]), [10, 30, 50, 70, 90, 110, 130, 150, 170, 190], 'upright: from the left');
+  assert.equal(q.runsX[0].arrow, '→'); assert.equal(q.runsY[0].arrow, '↑');
+  assert.equal(lanesFor(pl, 'plainx'), 6); assert.equal(lanesFor(pl, 'plainy'), 10);
+  for (const [mode, run] of [['plainx', q.runsX[0]], ['plainy', q.runsY[0]]]) {
+    const R = dragRows(pl, { ...O, mode });
+    assert.equal(R.ps.length, 1, `${mode}: one landing`); assert.equal(R.ps[0][0].stopsAt.length, run.lanes.length - 1);
+    assert.match(R.info[0].label, new RegExp(`plain ${run.arrow} · ${run.lanes.length} lanes, the snake`));
+    const P = snakeOf(q, run, O);
+    for (let j = 0; j < P.ends.length - 1; j++) for (let i = P.ends[j]; i < P.ends[j + 1] - 1; i++) {
+      const a = P.pts[i], b = P.pts[i + 1];
+      for (let t = 0; t <= 1; t += 0.05) assert.ok(distTo(r, [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]) >= d0 - 1e-3, `${mode}, turn ${j + 1}: on the canvas`);
+    }
+    const dir = j => Math.sign((P.pts[P.ends[j]][0] - P.pts[P.ends[j] - 1][0]) * run.F.u[0] + (P.pts[P.ends[j]][1] - P.pts[P.ends[j] - 1][1]) * run.F.u[1]);
+    run.lanes.forEach((_, j) => assert.equal(dir(j), j % 2 ? -1 : 1, `${mode}, lane ${j + 1}: forward, back, forward …`));
+    const plot = plotRun({ ...RUN, rows: R.ps.length, pauseAtEnds: true }, dragPasses(R)); assert.equal(plot.fault, ''); assert.ok(plot.seconds > 0);
+  }
+  assert.deepEqual(plainOf(r, 6, true)[0].lanes.map(l => l.k), q.runsX[0].lanes.map(l => l.k));
+  const M = mixAll(planOf([Object.assign(r, { pat: newPattern(r, BIAS_META['meta 4'], 5) })], { brush: O.brush }), { ...O, density: 50, mode: 'plainx' });
+  assert.equal(M.strokes.length, 6 * 5); assert.ok(M.strokes.some(s => s.cover.some(c => c > 0.5)), 'it paints');
 });

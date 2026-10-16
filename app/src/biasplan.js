@@ -53,6 +53,13 @@
 // the right edge to the left, the ones across from the top down. Snake and
 // Air, at the rectangle's Angle, the 45 keys now.
 //
+// SNAKE PLAIN → and SNAKE PLAIN ↑, straight stripes as CCD's (the owner, the
+// same evening, on 90 tried: "eh … some kind of parquet :)) let us simply do
+// it as in CCD, straight stripes. Snake Plain →, Snake Plain ↑ — and add them
+// before the 90 SNAKE 90 AIR keys"): one family, every lane in its order,
+// the snake — across from the bottom up, each lane → then ←; upright from the
+// left, ↑ then ↓, as CCD's lane 1 — turning off the rectangle as BIAS's snake.
+//
 // A rectangle's mm: from the canvas's bottom left corner, x right, y up, as a
 // ruler reads them; the runs for the machine from the canvas's centre
 // (toMachine). Lines only. No DOM.
@@ -68,10 +75,11 @@ export const BIAS_META = CCD_META;                   // CCD's meta 1 … 4, "abs
 export const ANGLE_NEW = 26.6, ANGLE_MIN = 5, ANGLE_MAX = 85;   // °: his sketches, the corner to the middle of the far side (1 : 2)
 export const STEP_NEW = 32, STEP_MIN = 1, STEP_MAX = 200;       // mm, lane centre to lane centre across them: the owner's 32
 export const ROWS_NEW = 3, ROWS_MIN = 2, ROWS_MAX = 12;         // vertical rows, both sides in: 3, the sides and the middle, his hand test
-export const CROSSES = ['square', 'mirror'], MODES = ['snake', 'air', 'snake90', 'air90', 'biassnake', 'biasair'], FROMS = ['tr', 'bl'];
+export const CROSSES = ['square', 'mirror'], MODES = ['snake', 'air', 'plainx', 'plainy', 'snake90', 'air90', 'biassnake', 'biasair'], FROMS = ['tr', 'bl'];
 export const TWO = m => m === 'biassnake' || m === 'biasair';     // BIAS SNAKE · BIAS AIR: every lane, the two families in turn
 export const NINETY = m => m === 'snake90' || m === 'air90';      // 90 SNAKE · 90 AIR: the four runs, upright and across
-export const SNAKY = m => m === 'snake' || m === 'snake90' || m === 'biassnake';
+export const PLAIN = m => m === 'plainx' || m === 'plainy';       // SNAKE PLAIN → · ↑: straight stripes, every lane in turn, as CCD's
+export const SNAKY = m => m === 'snake' || m === 'snake90' || m === 'biassnake' || PLAIN(m);
 export const RUNOUT_NEW = 30;       // mm along a lane off the canvas at both its ends, BIAS SNAKE and BIAS AIR: the owner's +30 mm
 export const MARGIN_NEW = 25;       // mm round the canvas the brush may turn in: the owner's 25 on every side of his 30 × 30 (2026-10-15)
 export const FROM_NAME = { tr: 'the top right corner', bl: 'the bottom left corner' };
@@ -168,6 +176,12 @@ export function runs90Of(r, brush = 0) {
   const [FA, FB] = straightOf();
   return fourRuns(FA, FB, straightLanes(r, FA, brush), straightLanes(r, FB, brush).reverse(), ARROW90);
 }
+// SNAKE PLAIN's one run, as CCD's: across →, every lane from the bottom up;
+// upright ↑, every lane from the left — 90's lanes, none skipped
+export function plainOf(r, brush, across) {
+  const [FA, FB] = straightOf(), F = across ? FB : FA, lanes = straightLanes(r, F, brush);
+  return [{ n: 1, fam: F.key, F, arrow: ARROW90[F.key], lanes: across ? lanes : lanes.reverse() }];
+}
 // BIAS SNAKE's and BIAS AIR's one run: the rising lanes from the bottom right
 // corner up, each run down ↙ from its right or top end (the owner, 2026-10-15,
 // Screenshot 2.27.43 PM: "only one diagonal starts from the right side and
@@ -186,15 +200,19 @@ export function runsTwo(r) {
   return [{ n: 1, fam: 'A', F: F1, arrow: `↙${up ? '↖' : ARROW.B}`, free: true, lanes }];
 }
 // a planned rectangle's runs as a DRAG key runs them
-export const runsFor = (r, mode) => TWO(mode) ? r.runs2 : NINETY(mode) ? r.runs90 : r.runs;
-// how many lanes a planned rectangle, or the plan, has as a DRAG key runs them: 90's its own
-export const lanesFor = (q, mode) => NINETY(mode) ? q.lanes90 : q.lanes;
+export const runsFor = (r, mode) => TWO(mode) ? r.runs2 : NINETY(mode) ? r.runs90 : mode === 'plainx' ? r.runsX : mode === 'plainy' ? r.runsY : r.runs;
+// how many lanes a planned rectangle, or the plan, has as a DRAG key runs them: 90's and the plain ones their own
+export const lanesFor = (q, mode) => NINETY(mode) ? q.lanes90 : mode === 'plainx' ? q.lanesX : mode === 'plainy' ? q.lanesY : q.lanes;
 // The plan: every rectangle with its runs — four on the bias, two, four at
-// 90 (their lanes as the brush, o.brush, fits them) — in the order they run
-const count = runs => runs.reduce((a, q) => a + q.lanes.length, 0);
+// 90, one plain each way (their lanes as the brush, o.brush, fits them) — in
+// the order they run
+const count = runs => runs.reduce((a, q) => a + q.lanes.length, 0), sum = (out, k) => out.reduce((a, r) => a + r[k], 0);
 export function planOf(rects, o = {}) {
-  const out = rects.map((r, i) => { const runs = runsOf(r), runs90 = runs90Of(r, o.brush || 0); return { ...r, i, runs, runs2: runsTwo(r), runs90, lanes: count(runs), lanes90: count(runs90) }; });
-  return { rects: out, lanes: out.reduce((a, r) => a + r.lanes, 0), lanes90: out.reduce((a, r) => a + r.lanes90, 0), length: out.reduce((a, r) => a + r.runs.reduce((s, q) => s + q.lanes.reduce((t, l) => t + l.len, 0), 0), 0) };
+  const b = o.brush || 0, out = rects.map((r, i) => {
+    const runs = runsOf(r), runs90 = runs90Of(r, b), runsX = plainOf(r, b, true), runsY = plainOf(r, b, false);
+    return { ...r, i, runs, runs2: runsTwo(r), runs90, runsX, runsY, lanes: count(runs), lanes90: count(runs90), lanesX: count(runsX), lanesY: count(runsY) };
+  });
+  return { rects: out, lanes: sum(out, 'lanes'), lanes90: sum(out, 'lanes90'), lanesX: sum(out, 'lanesX'), lanesY: sum(out, 'lanesY'), length: out.reduce((a, r) => a + r.runs.reduce((s, q) => s + q.lanes.reduce((t, l) => t + l.len, 0), 0), 0) };
 }
 
 // ---------- the brush's way ----------
@@ -319,7 +337,7 @@ export const stopWhy = r => `Rectangle ${r.i + 1}: wipe the brush, squeeze its p
 const lanesWord = n => `${n} lane${n === 1 ? '' : 's'}`;
 export function dragRows(pl, o) {
   const ps = [], info = [], stops = [], at = q => toMachine([q[0] - o.cw / 2, o.ch / 2 - q[1]]), snake = SNAKY(o.mode), two = TWO(o.mode);
-  const oo = { ...o, runout: two ? o.runout ?? RUNOUT_NEW : 0 }, key = 'run';
+  const oo = { ...o, runout: two ? o.runout ?? RUNOUT_NEW : 0 }, key = PLAIN(o.mode) ? 'plain' : 'run';
   let length = 0;
   for (const r of pl.rects) {
     if (!lanesFor(r, o.mode)) continue;
@@ -352,7 +370,7 @@ export function dragRows(pl, o) {
           if (i < P.pts.length - 1 && P.ends.includes(i)) stopsAt.push(acc);
         });
         ps.push(pieces.map((g, i) => ({ ...g, tilt: 0, row, ...(!i && stopsAt.length ? { stopsAt } : {}) })));
-        info.push({ label: `Rectangle ${r.i + 1} · ${key} ${run.n} ${run.arrow} · ${n > 1 ? `${lanesWord(n)}, the snake` : 'one lane'}`, ri: r.i, run: run.n, L: acc });
+        info.push({ label: `Rectangle ${r.i + 1} · ${key}${PLAIN(o.mode) ? '' : ` ${run.n}`} ${run.arrow} · ${n > 1 ? `${lanesWord(n)}, the snake` : 'one lane'}`, ri: r.i, run: run.n, L: acc });
         length += acc;
         continue;
       }
