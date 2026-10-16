@@ -15,7 +15,8 @@
      rectangles, the paints, MARKS, DRAG Snake and Air, the Result; every
      rectangle laid with diagonal lanes in four runs (src/biasplan.js) — 45
      SNAKE and 45 AIR — or upright and across, 90 SNAKE and 90 AIR (the
-     owner, 2026-10-16: "the counter check at a right angle"). -->
+     owner, 2026-10-16: "the counter check at a right angle") — or straight
+     stripes as CCD's, SNAKE PLAIN → and ↑ (the same evening). -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -90,9 +91,14 @@
         <button class="btn pass" id="btnSnake" data-pass="snake" title="45 SNAKE, on the bias at the rectangle's Angle: four runs — rising every other lane from the bottom right corner, descending every other lane from the top right, then the lanes skipped — each run its lanes forward and back with the brush down, turning off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M3 18l7-10h4l-7 10h4l7-10"/></svg><span>45 Snake</span></button>
         <button class="btn pass" id="btnAir" data-pass="air" title="45 AIR, on the bias at the rectangle's Angle: the four runs' lanes one way each — the rising ones up to the right, the descending ones down to the right — the brush lifting past the far edge and flying to the next; no dip"><svg viewBox="0 0 24 24"><path d="M5 17L16 6M10 6h6v6"/><path d="M9 21l11-11" class="dash"/></svg><span>45 Air</span></button>
       </div>
+      <!-- SNAKE PLAIN → · ↑, straight stripes as CCD's, before the 90 keys (the owner, 2026-10-16: "some kind of parquet :)) let us simply do it as in CCD") -->
+      <div class="runkeys deck passes plain">
+        <button class="btn pass" id="btnPlainX" data-pass="plainx" title="SNAKE PLAIN →, straight stripes as CCD's: every lane across, from the bottom up, none skipped — → then ← with the brush down, turning off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M5 19h14v-4.7H5V9.7h14V5H5"/></svg><span>Snake Plain →</span></button>
+        <button class="btn pass" id="btnPlainY" data-pass="plainy" title="SNAKE PLAIN ↑, straight stripes as CCD's: every lane upright, from the left, none skipped — ↑ then ↓ with the brush down, turning off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M5 19V5h4.7v14h4.6V5H19v14"/></svg><span>Snake Plain ↑</span></button>
+      </div>
       <!-- 90 SNAKE · 90 AIR, the counter check at a right angle, before the BIAS keys (the owner, 2026-10-16, BIAS-plaid/ Screenshot 9.08.29 PM) -->
       <div class="runkeys deck passes ninety">
-        <button class="btn pass" id="btnSnake90" data-pass="snake90" title="90 SNAKE, the check at a right angle, whatever the Angle: four runs — upright every other lane from the right edge, across every other lane from the top, then the lanes skipped — each run its lanes forward and back with the brush down, turning off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M4 19V5h5.3v14h5.4V5H20v14"/></svg><span>90 Snake</span></button>
+        <button class="btn pass" id="btnSnake90" data-pass="snake90" title="90 SNAKE, the check at a right angle, whatever the Angle: four runs — upright every other lane from the right edge, across every other lane from the top, then the lanes skipped — each run its lanes forward and back with the brush down, turning off the canvas; no dip"><svg viewBox="0 0 24 24"><path d="M4 8.5h16M4 15.5h16M8.5 4v16M15.5 4v16"/></svg><span>90 Snake</span></button>
         <button class="btn pass" id="btnAir90" data-pass="air90" title="90 AIR, the check at a right angle: the four runs' lanes one way each — the upright ones up, the ones across to the right — the brush lifting past the far edge and flying to the next; no dip"><svg viewBox="0 0 24 24"><path d="M8 20V5M4.5 8.5L8 5l3.5 3.5"/><path d="M11 16h9M16.5 12.5L20 16l-3.5 3.5" class="thin"/></svg><span>90 Air</span></button>
       </div>
       <!-- BIAS SNAKE · BIAS AIR under Snake and Air (the owner, 2026-10-15, the afternoon: "call the brush BIAS SNAKE // BIAS AIR"; "after the first diagonal only one line, then the other way") -->
@@ -115,7 +121,7 @@
         <button class="tog" data-view="result" title="The painting: the sausages dragged run after run as the DRAG below runs them, the paints mixed as pigments (est.)">Result</button>
       </div>
       <div class="toggles looks" id="modeKeys" title="Drag and the Result as this DRAG runs; the LCD's numbers too">
-        <button class="tog" data-mode="snake">45 Snake</button><button class="tog" data-mode="air">45 Air</button><button class="tog" data-mode="snake90">90 Snake</button><button class="tog" data-mode="air90">90 Air</button><button class="tog" data-mode="biassnake">Bias Snake</button><button class="tog" data-mode="biasair">Bias Air</button>
+        <button class="tog" data-mode="snake">45 Snake</button><button class="tog" data-mode="air">45 Air</button><button class="tog" data-mode="plainx">Plain →</button><button class="tog" data-mode="plainy">Plain ↑</button><button class="tog" data-mode="snake90">90 Snake</button><button class="tog" data-mode="air90">90 Air</button><button class="tog" data-mode="biassnake">Bias Snake</button><button class="tog" data-mode="biasair">Bias Air</button>
       </div>
     </section>
 
