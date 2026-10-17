@@ -1064,6 +1064,6 @@ addEventListener('rembrandt-night', () => kick());
 setInterval(watch, 500);
 new ResizeObserver(layout).observe(stage);
 settle(); watch();
-loadInk();
+loadInk().then(() => settle());                                                  // the cup known: MARKS' dips in the reading
 const opening = new URLSearchParams(location.search).get('open');
 if (opening) openFromLibrary(opening);
