@@ -829,7 +829,10 @@ function settle() {
   const P = planNow(), D = dragRun(), Mk = marksRun(), here = hereNow(), lines = [];
   lines.push(!P.figs.length ? 'No tiles: New, or the R tool and a drag on the canvas.' : `<b>${P.figs.length}</b> figure${P.figs.length === 1 ? '' : 's'} · ${S.rects.length} tile${S.rects.length === 1 ? '' : 's'} · DRAG: every figure one line, the brush down all the way, ${fmt(D.mm / 1000, 2)} m at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 1)} min (est.)`);
   for (const F of P.figs) lines.push(`${figName(F, P.units)}: ${fmt(F.length / 1000, 2)} m, ${F.us.map(id => P.units[id].R.levels).reduce((a, b) => a + b, 0)} rings`);
-  if (D.stops) lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next figure: the brush up +${S.wipe}° over its start, wipe it, squeeze its sausages, Continue`);
+  if (D.stops) {                                                                     // the LCD's percent goes by the length painted: where it stands at each wipe
+    const at = P.figs.slice(1).map((_, j) => Math.round(P.figs.slice(0, j + 1).reduce((a, F) => a + F.length, 0) / P.length * 100));
+    lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next figure: the brush up +${S.wipe}° over its start, wipe it, squeeze its sausages, Continue — the LCD at ${at.map(v => `${v} %`).join(', ')}`);
+  }
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
