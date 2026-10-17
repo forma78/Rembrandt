@@ -118,7 +118,7 @@ test('spokes at most SPOKE_GAP apart round a unit; M lays one through the point 
   const rs = [cleanRect({ x: 0, y: 0, w: 130, h: 40 })], U = unitsOf(rs)[0], S = spokesOf(U, rs, O, 1);
   assert.equal(S.length, 3 + 3 + 1 + 1);                                         // 130 mm: three a side
   const q = spokeAt(U, rs, [50, 5]);
-  assert.ok(near(q.a, [50, 0]) && near(q.b, [50, 19], 1e-3), 'from the bottom side up to the middle');
+  assert.ok(near(q.a, [50, 2.5]) && near(q.b, [50, 19], 1e-3), 'from the bottom side, its round end on the tile, up to the middle');
 });
 
 test('MARKS: a dash a sausage, a dip every fourth', () => {

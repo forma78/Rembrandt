@@ -454,8 +454,8 @@ function spokeFrom(G, e, n) {
   let lo = 0, hi = Math.max(G.xs.at(-1) - G.xs[0], G.ys.at(-1) - G.ys[0]);
   const ok = s => squareIn(G, e[0] + n[0] * s, e[1] + n[1] * s, Math.max(1e-6, s - 1e-6));
   for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; }
-  const s = Math.max(0, lo - 1);
-  return { a: e, b: [e[0] + n[0] * s, e[1] + n[1] * s], depth: s };
+  const s = Math.max(0, lo - 1), a0 = Math.min(SAUSAGE_W / 2, s);                   // its round end on the tile, not past its edge
+  return { a: [e[0] + n[0] * a0, e[1] + n[1] * a0], b: [e[0] + n[0] * s, e[1] + n[1] * s], depth: s };
 }
 // The outline's sides of a unit, the inside on their right: [{ a, b, u, n, L }]
 function sidesOf(G) {
@@ -596,26 +596,33 @@ export function marksRows(P, rects, o) {
 // every figure. A sausage on the cells under it, SAUSAGE_W wide, its paint
 // Density's (CCD's, the line full 70 mm at 50 %).
 export const STREAK = 0.12, STREAK_MM = 15;
+// The bristles hold so much and no more: past CAP film-mm a groove sheds SHED
+// of the more a mm, the paint laid thick by the sausage — impasto — not
+// carried on for ever; one sausage's load (≈ 100) under it, so CCD's 70 mm
+// stand (est.)
+export const CAP = 120, SHED = 0.08;
 const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
 const wave = (t, s) => { const u = t / STREAK_MM + hash(s, 7) * 50, f = Math.floor(u), x = u - f, e = x * x * (3 - 2 * x); return hash(f, s) * (1 - e) + hash(f + 1, s) * e; };
 export const GROUND = [251, 250, 247];
 const LOGMIN = Math.log(0.003), logC = hex => linOf(hex).map(v => Math.log(Math.max(v, 0.003)));
-// The steps along every figure's path, a mm apart: { x, y, tx, ty, s, fig, first }
+// The steps along every figure's path: every piece cut evenly, about a mm a
+// stretch, through a turn no more than 1/16 of a radian, a step the middle of
+// its stretch — { x, y, tx, ty, ds (its stretch), k (its curvature, + turning left), s, fig (− at a figure's start) }
 export function stepsOf(P) {
-  const X = [], Yv = [], TX = [], TY = [], S = [], FG = [];
+  const X = [], Yv = [], TX = [], TY = [], D = [], K = [], S = [], FG = [];
   for (const F of P.figs) {
     let s0 = 0, first = true;
     for (const g of F.pieces) {
-      const L = lenOf(g);
-      for (let s = first ? 0 : (DS - (s0 % DS)) % DS; s <= L + 1e-9; s += DS) {
-        const q = atPiece(g, Math.min(L, s));
-        X.push(q.p[0]); Yv.push(q.p[1]); TX.push(q.t[0]); TY.push(q.t[1]); S.push(s0 + s); FG.push(first ? -(F.n) : F.n);
+      const L = lenOf(g), n = Math.max(1, Math.ceil(L / (g.t === 'A' ? Math.min(DS, g.r / 16) : DS))), ds = L / n, kq = g.t === 'A' ? (g.left ? 1 : -1) / g.r : 0;
+      for (let j = 0; j < n; j++) {
+        const q = atPiece(g, (j + 0.5) * ds);
+        X.push(q.p[0]); Yv.push(q.p[1]); TX.push(q.t[0]); TY.push(q.t[1]); D.push(ds); K.push(kq); S.push(s0 + (j + 0.5) * ds); FG.push(first ? -(F.n) : F.n);
         first = false;
       }
       s0 += L;
     }
   }
-  return { n: X.length, x: Float32Array.from(X), y: Float32Array.from(Yv), tx: Float32Array.from(TX), ty: Float32Array.from(TY), s: Float32Array.from(S), fig: Int32Array.from(FG) };
+  return { n: X.length, x: Float32Array.from(X), y: Float32Array.from(Yv), tx: Float32Array.from(TX), ty: Float32Array.from(TY), ds: Float32Array.from(D), k: Float32Array.from(K), s: Float32Array.from(S), fig: Int32Array.from(FG) };
 }
 // o: { cw, ch, brush, density, h } → the sim: advance(n) steps it, rgba(img, all) paints its cells into an ImageData's data, row 0 the canvas's top
 export function simOf(P, rects, o) {
@@ -637,21 +644,24 @@ export function simOf(P, rects, o) {
       amt[c] = na; squeezed += add; mark(c);
     }
   }
-  const T = stepsOf(P), G = GROOVE_K.length, wg = brush / G, m = Math.max(1, Math.ceil(wg / h)), ma = Math.max(1, Math.ceil(DS / h));
-  const b = new Float32Array(G), bl = new Float32Array(3 * G), stamp = new Int32Array(N), idx = new Int32Array(m * ma);
+  const T = stepsOf(P), G = GROOVE_K.length, wg = brush / G, m = Math.max(1, Math.ceil(wg / h)), LMAX = DS * (1 + brush / 2 / 0.25);
+  const b = new Float32Array(G), bl = new Float32Array(3 * G), stamp = new Int32Array(N), idx = new Int32Array(m * (Math.ceil(LMAX / h) + 2));
   let i = 0, sid = 0, wiped = 0, cur = null;
+  // A step: every groove over the stretch it goes — on the outside of a turn
+  // longer, inside shorter — taking up and laying down as CCD's lane walk
+  // does a mm, so much the more or less as its stretch is long
   function advance(n) {
     const end = Math.min(T.n, i + n);
     for (; i < end; i++) {
-      const x = T.x[i], y = T.y[i], tx = T.tx[i], ty = T.ty[i], nxv = -ty, nyv = tx, f = T.fig[i];
+      const x = T.x[i], y = T.y[i], tx = T.tx[i], ty = T.ty[i], nxv = -ty, nyv = tx, f = T.fig[i], ds = T.ds[i], kq = T.k[i];
       if (f < 0) { for (let g = 0; g < G; g++) { wiped += b[g]; b[g] = 0; } }       // a figure's start: the brush wiped
       for (let g = 0; g < G; g++) {
-        const [kv, kd, shade] = GROOVE_K[g], og = ((g + 0.5) / G - 0.5) * brush;
+        const [kv, kd, shade] = GROOVE_K[g], og = ((g + 0.5) / G - 0.5) * brush, Lg = Math.max(0.05, ds * (1 - og * kq)), ma = Math.max(1, Math.ceil(Lg / h)), u = Lg / DS;
         sid++; let cnt = 0;
-        for (let k = 0; k < m; k++) {
-          const off = og + ((k + 0.5) / m - 0.5) * wg;
+        for (let kk = 0; kk < m; kk++) {
+          const off = og + ((kk + 0.5) / m - 0.5) * wg;
           for (let l = 0; l < ma; l++) {
-            const al = ((l + 0.5) / ma - 0.5) * DS, px = x + nxv * off + tx * al, py = y + nyv * off + ty * al, ix = Math.floor(px / h), iy = Math.floor(py / h);
+            const al = ((l + 0.5) / ma - 0.5) * Lg * (1 - off * kq) / Math.max(0.05, 1 - og * kq), px = x + nxv * off + tx * al, py = y + nyv * off + ty * al, ix = Math.floor(px / h), iy = Math.floor(py / h);
             if (ix < 0 || iy < 0 || ix >= nx || iy >= ny) continue;
             const c = iy * nx + ix;
             if (stamp[c] === sid) continue;
@@ -661,8 +671,9 @@ export function simOf(P, rects, o) {
         if (!cnt) continue;                                                         // off the canvas: the brush keeps what it carries
         let A = 0, L0 = 0, L1 = 0, L2 = 0;
         for (let q = 0; q < cnt; q++) { const c = idx[q], a = amt[c]; A += a; L0 += a * lc[3 * c]; L1 += a * lc[3 * c + 1]; L2 += a * lc[3 * c + 2]; }
+        // thicknesses, films: what lies there on average, what the groove takes of it, what it lays; the brush's load in film-mm
         const a = A / cnt, take = Math.min(a, (Math.min(a, FILM) * PICK_FILM + Math.max(0, a - FILM) * PICK_BULK) * kv), bb = b[g];
-        const give = Math.min(bb, FILM * (1 - Math.exp(-bb / (DRY * kd)))), keep = a > 0 ? 1 - take / a : 1;
+        const give = Math.min(bb / u, FILM * (1 - Math.exp(-bb / (DRY * kd))) + Math.max(0, bb - CAP) * SHED), keep = a > 0 ? 1 - take / a : 1;
         const w0 = A > 0 ? L0 / A : LOGMIN, w1 = A > 0 ? L1 / A : LOGMIN, w2 = A > 0 ? L2 / A : LOGMIN;
         const sv = shade + STREAK * (2 * wave(T.s[i], g + 13 * Math.abs(f)) - 1);
         for (let q = 0; q < cnt; q++) {
@@ -674,9 +685,9 @@ export function simOf(P, rects, o) {
           } else amt[c] = left;
           mark(c);
         }
-        const nb = bb - give + take;
+        const nb = Math.max(0, bb + (take - give) * u);
         if (take > 0) {
-          const t = bb - give > 1e-9 ? take / nb : 1;
+          const t = Math.min(1, take * u / Math.max(1e-9, nb));
           bl[3 * g] = bl[3 * g] * (1 - t) + w0 * t; bl[3 * g + 1] = bl[3 * g + 1] * (1 - t) + w1 * t; bl[3 * g + 2] = bl[3 * g + 2] * (1 - t) + w2 * t;
         }
         b[g] = nb;
