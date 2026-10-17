@@ -702,6 +702,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 [data-tab="inka"] #btnPlay{grid-column:1/-1}
 [data-tab="inka"] #inkaKeys{margin:4px 0 2px}
 [data-tab="inka"] #views + .grid4.keys{margin-top:8px}
+[data-tab="inka"] #rects .bang{color:#E5203A;font-weight:700}   /* a tile marked !: its nodes both in its middle, or both on its edge (the owner, 2026-10-17) */
 
 /* ---------- the phone (the owner, 2026-10-13, on the iPhone over the home
    Wi-Fi: "the right panel with the clock covers the screen; the top row of

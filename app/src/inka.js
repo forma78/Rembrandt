@@ -275,6 +275,11 @@ function drawOrder() {
     const b = P.units[id].box, tr = scr([b.x + b.w, b.y + b.h]), lab = P.figs.length > 1 ? `${F.n}·${j + 1}` : String(j + 1), tw = g.measureText(lab).width + 10, c = [tr[0] - tw / 2 - 4, tr[1] + 13];   // in its top right corner: its middle is the nodes'
     g.fillStyle = 'rgba(251,250,247,.9)'; g.strokeStyle = 'rgba(179,71,12,.55)'; g.lineWidth = 1; g.beginPath(); g.roundRect(c[0] - tw / 2, c[1] - 9, tw, 18, 9); g.fill(); g.stroke();
     g.fillStyle = '#B3470C'; g.fillText(lab, c[0], c[1] + 0.5);
+    if (F.cross[j]) {                                                                // ! — its nodes both in its middle, or both on its edge
+      const q = [c[0] - tw / 2 - 13, c[1]];
+      g.fillStyle = NODE; g.beginPath(); g.arc(q[0], q[1], 9, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.font = font(13, 700); g.fillText('!', q[0], q[1] + 0.5); g.font = font(11, 600);
+    }
   });
   g.restore();
 }
@@ -746,7 +751,7 @@ function tileText(i) {
 }
 function showRects() {
   const P = planNow();
-  $('#rects').innerHTML = S.rects.length ? S.rects.map((r, i) => { const F = figOfRect(i), U = unitOfRect(i); return `<button class="tog${i === S.sel ? ' on' : ''}" data-sel="${i}" title="${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm, step ${fmt(r.step, 1)} mm${U?.rs.length > 1 ? ', in a block' : ''}">${U?.rs.length > 1 ? '▣' : '□'} ${i + 1}${P.figs.length > 1 && F ? ` · F${F.n}` : ''}</button>`; }).join('') : '<span class="none">No tiles: New, or the R tool and a drag on the canvas.</span>';
+  $('#rects').innerHTML = S.rects.length ? S.rects.map((r, i) => { const F = figOfRect(i), U = unitOfRect(i), x = F && U ? F.cross[F.us.indexOf(U.id)] : null; return `<button class="tog${i === S.sel ? ' on' : ''}" data-sel="${i}" title="${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm, step ${fmt(r.step, 1)} mm${U?.rs.length > 1 ? ', in a block' : ''}${x ? ` — ! ${CROSS[x]}` : ''}">${x ? '<b class="bang">!</b> ' : ''}${U?.rs.length > 1 ? '▣' : '□'} ${i + 1}${P.figs.length > 1 && F ? ` · F${F.n}` : ''}</button>`; }).join('') : '<span class="none">No tiles: New, or the R tool and a drag on the canvas.</span>';
   $('#rects').querySelectorAll('[data-sel]').forEach(b => b.onclick = () => { S.sel = +b.dataset.sel; EDIT = null; save(); showRects(); showPanel(); kick(); });
   showRect();
 }
@@ -785,13 +790,15 @@ function showRect() {
   act('#rLate', () => { const i = S.sel; [S.rects[i], S.rects[i + 1]] = [S.rects[i + 1], S.rects[i]]; S.sel++; });
   $('#rDel').onclick = deleteRect;
 }
-// The nodes' reading and keys
+// The nodes' reading and keys; a tile marked ! named
+const CROSS = { middle: 'its nodes in and out both at its middle: the brush goes out round it and back across its rings to leave — one of them to its edge?', edge: 'its nodes in and out both on its edge: the brush goes in round it and across its rings from the middle to leave — one of them to its middle?' };
 function showNodes() {
-  const P = planNow(), alone = P.manual ? P.figs.filter(F => F.us.length === 1).map(F => P.units[F.us[0]].rs.map(i => i + 1).join('+')) : [];
+  const P = planNow(), bang = P.figs.flatMap(F => F.us.map((u, j) => F.cross[j] ? `<span class="warn">! Tile ${P.units[u].rs.map(i => i + 1).join('+')}: ${CROSS[F.cross[j]]}</span>` : '').filter(Boolean)), alone = P.manual ? P.figs.filter(F => F.us.length === 1).map(F => P.units[F.us[0]].rs.map(i => i + 1).join('+')) : [];
   $('#nodesOf').textContent = P.manual ? `${P.links.length} · by hand` : 'none · the snake';
   $('#nodeRead').innerHTML = !S.rects.length ? '' : P.manual
     ? `<b>${P.links.length}</b> node${P.links.length === 1 ? '' : 's'}: ${P.figs.filter(F => F.us.length > 1).length} chain${P.figs.filter(F => F.us.length > 1).length === 1 ? '' : 's'}, the brush down along each${alone.length ? ` · alone, a figure each: tile${alone.length === 1 ? '' : 's'} ${alone.join(', ')}` : ''}${S.nodeSel >= 0 && S.nodes[S.nodeSel] ? ' · a node chosen: ⌫ takes it away' : ''}`
     : 'No nodes: the brush runs the snake by itself — tiles side by side one figure, from the bottom left up. N lays it as nodes, to change.';
+  if (bang.length) $('#nodeRead').innerHTML += '<br>' + bang.join('<br>');
   $('#btnClearNodes').disabled = !S.nodes.length;
 }
 $('#btnSnakeNodes').onclick = () => { undoPush(); const keep = S.nodes; S.nodes = []; PL = null; const P = planNow(); S.nodes = snakeNodes(P, S.rects); if (!S.nodes.length) S.nodes = keep; S.tool = 'node'; S.view = 'drag'; settle(); };

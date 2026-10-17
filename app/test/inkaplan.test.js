@@ -207,3 +207,12 @@ test('the turn: ↺ the same spiral mirrored; the snake as nodes runs the very p
   const A = planOf(FOUR(), O), B = planOf(FOUR(), { ...O, nodes: snakeNodes(A, FOUR()) });
   assert.deepEqual(B.figs[0].pts, A.figs[0].pts);
 });
+
+test('! a tile its nodes both in its middle, or both on its edge (the owner\'s mistake, Screenshot 3.54.39 PM)', () => {
+  const rs = FOUR();
+  const mid2 = [{ a: { id: 1, m: 'c' }, b: { id: 2, m: 'c' } }, { a: { id: 2, m: 'c' }, b: { id: 3, m: 'c' } }];
+  assert.deepEqual(planOf(rs, { ...O, nodes: mid2 }).figs[0].cross, [null, 'middle', null]);
+  const edge2 = [{ a: { id: 1, m: 'c' }, b: { id: 2, m: 's' } }, { a: { id: 2, m: 'e' }, b: { id: 3, m: 'c' } }];
+  assert.deepEqual(planOf(rs, { ...O, nodes: edge2 }).figs[0].cross, [null, 'edge', null]);
+  assert.deepEqual(planOf(rs, { ...O, nodes: N1033 }).figs[0].cross, [null, null, null, null]);
+});

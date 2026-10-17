@@ -466,33 +466,37 @@ export function atPiece(g, s) {
 // next from its outside in, and so on — out to the corner nearest the next
 // unit, in from the corner nearest where the brush is; from a middle straight
 // to the next middle across the rings. Every turn rounded.
-// o: { brush, join, corner, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends }], links, manual, length }
+// The last two cross the tile's rings to leave — a tile so marked ! (the
+// owner, 2026-10-17, on a node laid in and out of one middle by mistake,
+// Screenshot 3.54.39 PM: "maybe mark such a square with the sign !"):
+// cross, per unit, null, 'middle' or 'edge'.
+// o: { brush, join, corner, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
 export function planOf(rects, o) {
   const brush = o.brush ?? BRUSH_NEW, units = unitsOf(rects);
   for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), brush, U.step); U.M = magnetsOf(U, rects); }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
   const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
   const figs = F0.map(F => {
-    const pts = [], at = [], ends = [];
+    const pts = [], at = [], ends = [], cross = [];
     F.us.forEach((id, k) => {
       const U = units[id], next = F.us[k + 1], prev = pts.at(-1), nextMid = next !== undefined ? mid(units[next].box) : null;
-      let s;
+      let s, x = null;
       if (!manual) { const out = k % 2 === 0; s = unitPath(U, rects, brush, out ? 'out' : 'in', null, out ? nextMid ?? prev ?? null : prev ?? null); }
       else {
         const inE = k ? F.ls[k - 1].b : null, outE = next !== undefined ? F.ls[k].a : null, rim = e => e && !e.c;
-        if (rim(inE) && rim(outE)) s = [...unitPath(U, rects, brush, 'in', inE.p), outE.p];
+        if (rim(inE) && rim(outE)) { s = [...unitPath(U, rects, brush, 'in', inE.p), outE.p]; x = 'edge'; }
         else if (rim(inE)) s = unitPath(U, rects, brush, 'in', inE.p);
         else if (rim(outE)) s = unitPath(U, rects, brush, 'out', outE.p);
-        else if (inE && outE) { s = unitPath(U, rects, brush, 'out', null, nextMid); s.push(s[0]); }
+        else if (inE && outE) { s = unitPath(U, rects, brush, 'out', null, nextMid); s.push(s[0]); x = 'middle'; }
         else if (outE) s = unitPath(U, rects, brush, 'in', null, null);
         else s = unitPath(U, rects, brush, 'out', null, null);
       }
-      at.push(pts.length); ends.push({ a: s[0], b: s.at(-1) }); pts.push(...s);
+      at.push(pts.length); ends.push({ a: s[0], b: s.at(-1) }); cross.push(x); pts.push(...s);
     });
     const P = jogged(cleanPts(pts), brush / 2), pieces = roundOf(P, o.corner ?? CORNER_NEW), length = pieces.reduce((s, g) => s + lenOf(g), 0);
     // where each unit starts, mm along the path: the nearest point of the rounded path to its first point
     const along = at.map(i => alongTo(pieces, pts[i]));
-    return { ...F, pts: P, pieces, length, along, ends, start: P[0], end: P.at(-1) };
+    return { ...F, pts: P, pieces, length, along, ends, cross, start: P[0], end: P.at(-1) };
   });
   return { units, figs, links, manual, length: figs.reduce((s, F) => s + F.length, 0) };
 }
