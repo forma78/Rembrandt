@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanRect, unitsOf, figuresOf, ringsOf, spiralOf, cleanPts, jogged, roundOf, planOf, dragRows, wipeBlocks, dragSvg, dealFigure, sausagesOf, unitSausages, spokesOf, spokeAt, marksRows, simOf, stepsOf, INKA_META, pureOf, lenOf, atPiece,
+import { withIds, cleanNodes, magnetsOf, linksOf, snakeNodes, cleanRect, unitsOf, figuresOf, ringsOf, spiralOf, cleanPts, jogged, roundOf, planOf, dragRows, wipeBlocks, dragSvg, dealFigure, sausagesOf, unitSausages, spokesOf, spokeAt, marksRows, simOf, stepsOf, INKA_META, pureOf, lenOf, atPiece,
   STEP_NEW, STEP_MAX, JOIN_NEW, WIPE_NEW, SPOKE_GAP, R_MIN } from '../src/inkaplan.js';
 import { dragPasses, MARKS_DIP } from '../src/ccdplan.js';
 import { PAINT } from '../src/tapeplan.js';
@@ -152,4 +152,58 @@ test('the SVG: a path a figure, lines and arcs', () => {
   assert.equal((svg.match(/<path /g) || []).length, 2);
   assert.match(svg, / A\d/);
   assert.ok(PAINT.brown);
+});
+
+// Nodes (the owner, 2026-10-17, INKA/result/IMG_1033, Screenshot 3.31.29 PM:
+// "the brush's way must be set"): 1 from its middle to 2's middle, 2 from its
+// right side's middle to 3's middle, 3 from its bottom side's middle to 4's middle
+const FOUR = () => withIds([[10, 10], [10, 60], [60, 60], [60, 10]].map(([x, y]) => cleanRect({ x, y, w: 50, h: 50 })));
+const N1033 = [{ a: { id: 1, m: 'c' }, b: { id: 2, m: 'c' } }, { a: { id: 2, m: 'e' }, b: { id: 3, m: 'c' } }, { a: { id: 3, m: 's' }, b: { id: 4, m: 'c' } }];
+
+test('ids for every tile; nodes as kept: real ends, two tiles', () => {
+  const rs = withIds([cleanRect({ x: 0, y: 0, w: 9, h: 9 }), cleanRect({ id: 5, x: 0, y: 0, w: 9, h: 9 }), cleanRect({ id: 5, x: 0, y: 0, w: 9, h: 9 })]);
+  assert.deepEqual(rs.map(r => r.id), [6, 5, 7]);
+  assert.equal(cleanNodes([{ a: { id: 1, m: 'c' }, b: { id: 1, m: 'n' } }, { a: { id: 1, m: 'x' }, b: { id: 2, m: 'n' } }, { a: { id: 1, m: 'c' }, b: { id: 2, m: 'nw' } }]).length, 1);
+});
+
+test('magnets: a tile\'s middle, corners and sides\' middles on its outer ring; a block\'s only on its outline', () => {
+  const rs = FOUR(), P = planOf(rs, O);
+  assert.equal(P.units[0].M.length, 9);
+  assert.ok(P.units[0].M.some(q => q.m === 'e' && near(q.p, [57, 35])));
+  const b = withIds(BRACKET.map(cleanRect)), Pb = planOf(b, O);
+  assert.ok(Pb.units[0].M.length < 4 * 8 + 1);
+  assert.ok(!Pb.units[0].M.some(q => q.m === 'e' && q.id === b[0].id), 'the bar\'s right side\'s middle is inside the block, under the tongue');
+});
+
+test('links: one way out of a tile and one in, a later node in the place of the one before; never a loop', () => {
+  const rs = FOUR(), P = planOf(rs, O);
+  assert.equal(linksOf([...N1033, { a: { id: 4, m: 'c' }, b: { id: 1, m: 'sw' } }], rs, P.units).length, 3, 'the loop refused');
+  const L = linksOf([{ a: { id: 1, m: 'c' }, b: { id: 2, m: 'c' } }, { a: { id: 1, m: 'e' }, b: { id: 4, m: 'w' } }], rs, P.units);
+  assert.deepEqual(L.map(l => [l.a.u, l.b.u]), [[0, 3]]);
+});
+
+test('the owner\'s nodes: 1 in to its middle, 2 out to its right side\'s middle, 3 out to its bottom\'s, 4 out from its middle', () => {
+  const rs = FOUR(), P = planOf(rs, { ...O, nodes: N1033 }), F = P.figs[0];
+  assert.equal(P.manual, true); assert.equal(P.figs.length, 1); assert.deepEqual(F.us, [0, 1, 2, 3]);
+  assert.ok(near(F.ends[0].a, [13, 13]) && Math.hypot(F.ends[0].b[0] - 35, F.ends[0].b[1] - 35) < 2, '1: from its bottom left corner in');
+  assert.ok(near(F.ends[1].b, [57, 85]), '2: out to its right side\'s middle');
+  assert.ok(near(F.ends[2].b, [85, 63]), '3: out to its bottom\'s middle');
+  for (let i = 1; i < F.pieces.length; i++) { const a = dirIn(F.pieces[i - 1], true), b = dirIn(F.pieces[i], false); assert.ok(a[0] * b[0] + a[1] * b[1] > Math.cos(10 * Math.PI / 180), `a kink at ${i}`); }
+  // a tile no node touches: a figure of its own
+  rs.push(...withIds([...rs, cleanRect({ x: 140, y: 10, w: 40, h: 40 })]).slice(4));
+  assert.equal(planOf(rs, { ...O, nodes: N1033 }).figs.length, 2);
+});
+
+test('a side\'s middle the seam: every ring round, a step in square to the side, the step apart all the way', () => {
+  const R = ringsOf([{ x: 0, y: 0, w: 50, h: 50 }], 6, 7), s = cleanPts(spiralOf(R, [47, 25]));
+  assert.deepEqual(s.slice(0, 8), [[47, 25], [47, 3], [3, 3], [3, 47], [47, 47], [47, 32], [40, 25], [40, 10]]);
+});
+
+test('the turn: ↺ the same spiral mirrored; the snake as nodes runs the very path', () => {
+  const rs = FOUR(), a = planOf(rs, { ...O, nodes: N1033 }).figs[0].pts.slice(-4);
+  rs[3].turn = 'ccw';
+  const b = planOf(rs, { ...O, nodes: N1033 }).figs[0].pts.slice(-4);
+  assert.notDeepEqual(a, b);
+  const A = planOf(FOUR(), O), B = planOf(FOUR(), { ...O, nodes: snakeNodes(A, FOUR()) });
+  assert.deepEqual(B.figs[0].pts, A.figs[0].pts);
 });

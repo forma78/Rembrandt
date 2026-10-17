@@ -48,9 +48,10 @@ export const SECOND_P = 0.4, ACCENT_SECOND = 0.35;         // a tile's chance of
 const EPS = 1e-7, fin = Number.isFinite;
 
 // ---------- a rectangle as it may be kept ----------
-// { x, y, w, h, step, ss: [{ a: [u, v], b: [u, v], paint, thin }], pal }:
-// its sausages in its own fractions, so they move and stretch with it; the
-// palette of its figure
+// { id, x, y, w, h, step, turn, ss: [{ a: [u, v], b: [u, v], paint, thin }], pal }:
+// its id, for the nodes; the way the brush goes round it as it paints, ↻
+// 'cw' or ↺ 'ccw'; its sausages in its own fractions, so they move and
+// stretch with it; the palette of its figure
 const ids = a => Array.isArray(a) && a.every(id => PAINT[id]);
 export const cleanPal = q => q && typeof q.name === 'string' && ids(q.core) && q.core.length && ids(q.accent ?? [])
   ? { name: q.name, core: q.core.slice(), accent: (q.accent ?? []).slice(), ...(PAINT[q.pure] ? { pure: q.pure } : {}), seed: fin(q.seed) ? q.seed : 0 } : null;
@@ -59,8 +60,21 @@ export function cleanRect(r) {
   if (!r || ![r.x, r.y, r.w, r.h].every(fin)) return null;
   const ss = Array.isArray(r.ss) ? r.ss.filter(q => q && pair(q.a) && pair(q.b) && PAINT[q.paint]).map(q => ({ a: q.a.slice(), b: q.b.slice(), paint: q.paint, ...(q.thin ? { thin: true } : {}) })) : [];
   const pal = cleanPal(r.pal);
-  return { x: r.x, y: r.y, w: Math.max(MIN_SIDE, r.w), h: Math.max(MIN_SIDE, r.h), step: fin(r.step) ? Math.max(STEP_MIN, Math.min(STEP_MAX, r.step)) : STEP_NEW, ss, ...(pal ? { pal } : {}) };
+  return { ...(fin(r.id) ? { id: r.id } : {}), x: r.x, y: r.y, w: Math.max(MIN_SIDE, r.w), h: Math.max(MIN_SIDE, r.h), step: fin(r.step) ? Math.max(STEP_MIN, Math.min(STEP_MAX, r.step)) : STEP_NEW, turn: r.turn === 'ccw' ? 'ccw' : 'cw', ss, ...(pal ? { pal } : {}) };
 }
+// every rectangle an id of its own: the missing and the repeated given new ones
+export function withIds(rects) {
+  const seen = new Set();
+  let next = Math.max(0, ...rects.map(r => fin(r.id) ? r.id : 0)) + 1;
+  for (const r of rects) { if (!fin(r.id) || seen.has(r.id)) r.id = next++; seen.add(r.id); }
+  return rects;
+}
+// a node, the owner's link from one tile to the next (2026-10-17): from a
+// magnet of one — its middle 'c', a corner or a side's middle of its outer
+// ring — to a magnet of another
+export const MAGNETS = ['c', 'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
+const cleanEnd = e => e && fin(e.id) && MAGNETS.includes(e.m) ? { id: e.id, m: e.m } : null;
+export const cleanNodes = a => Array.isArray(a) ? a.map(q => ({ a: cleanEnd(q?.a), b: cleanEnd(q?.b) })).filter(q => q.a && q.b && q.a.id !== q.b.id) : [];
 
 // ---------- units and figures ----------
 const overX = (a, b) => Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
@@ -76,7 +90,7 @@ export function unitsOf(rects) {
   for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) if (overlaps(rects[i], rects[j])) up[find(j)] = find(i);
   const by = new Map();
   rects.forEach((_, i) => { const k = find(i); if (!by.has(k)) by.set(k, []); by.get(k).push(i); });
-  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step }));
+  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step, turn: rects[rs[0]].turn ?? 'cw' }));
 }
 const near = (A, B, rects, join) => A.rs.some(i => B.rs.some(j => touches(rects[i], rects[j], join)));
 // The units of a figure in a snake from its bottom left: up the way it went
@@ -260,17 +274,30 @@ function seamOf(node, hint) {
   const h = hint ?? [Math.min(...node.loops[0].map(v => v[0])), Math.min(...node.loops[0].map(v => v[1]))];
   return deep.filter(q => q.n === top).sort((a, b) => dist(a.c.v, h) - dist(b.c.v, h))[0].c.k;
 }
-// Inward from a ring: round it clockwise from its seam; with one ring
-// inside, its last side a step short and on along the next one's first — the
-// spiral, a step apart all the way; else round to the seam, then its holes
-// and the rings inside, each from the nearest
+// A point on a loop: the vertex it is, or put into the side it lies on → { L, k }, or null
+function seamAt(L, p) {
+  if (!p) return null;
+  for (let k = 0; k < L.length; k++) if (dist(L[k], p) < 1e-4) return { L, k };
+  for (let k = 0; k < L.length; k++) {
+    const a = L[k], b = L[(k + 1) % L.length], ab = dist(a, b) || 1, t = ((p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1])) / (ab * ab);
+    if (t > 0 && t < 1 && Math.abs(crs(sub(b, a), sub(p, a))) / ab < 1e-4) return { L: [...L.slice(0, k + 1), p, ...L.slice(k + 1)], k: k + 1 };
+  }
+  return null;
+}
+// Inward from a ring: round it clockwise from its seam — the point given, if
+// it lies on it, a corner or the middle of a side, else a corner by the
+// rule; with one ring inside, its last side a step short and on into the
+// next one's seam a step in — diagonally from a corner, square to the side
+// from a side's middle: the spiral, a step apart all the way; else round to
+// the seam, then its holes and the rings inside, each from the nearest
 function spiralIn(node, hint) {
-  const L = node.loops[0], k0 = seamOf(node, hint), n = L.length, pts = [];
+  const at = seamAt(node.loops[0], hint), L = at ? at.L : node.loops[0], k0 = at ? at.k : seamOf(node, hint), n = L.length, pts = [];
   for (let m = 0; m <= n; m++) pts.push(L[(k0 + m) % n]);
   if (node.kids.length === 1 && node.loops.length === 1) {
-    const kid = node.kids[0], s = kid.d - node.d, c = pts.at(-1), u = unitV(sub(c, pts.at(-2))), cv = convexOf(L).find(q => q.k === k0);
+    const kid = node.kids[0], s = kid.d - node.d, c = pts.at(-1), u = unitV(sub(c, pts.at(-2))), on = unitV(sub(L[(k0 + 1) % n], c)), cv = convexOf(L).find(q => q.k === k0);
+    const w = cv ? cv.diag : Math.abs(crs(u, on)) < 1e-9 && u[0] * on[0] + u[1] * on[1] > 0 ? [u[1], -u[0]] : null;
     if (dist(c, pts.at(-2)) > s + 1e-6) pts[pts.length - 1] = [c[0] - u[0] * s, c[1] - u[1] * s];
-    return pts.concat(spiralIn(kid, cv ? [c[0] + cv.diag[0] * s, c[1] + cv.diag[1] * s] : pts.at(-1)));
+    return pts.concat(spiralIn(kid, w ? [c[0] + w[0] * s, c[1] + w[1] * s] : pts.at(-1)));
   }
   let cur = pts.at(-1);
   for (const H of node.loops.slice(1)) { let k = 0; H.forEach((v, m) => { if (dist(v, cur) < dist(H[k], cur)) k = m; }); for (let m = 0; m <= H.length; m++) pts.push(H[(k + m) % H.length]); cur = pts.at(-1); }
@@ -291,6 +318,88 @@ export function spiralOf(R, hint, out = false) {
     pts.push(...spiralIn(roots.shift(), cur)); cur = pts.at(-1);
   }
   return out ? pts.reverse() : pts;
+}
+// A unit's spiral as the brush paints it: inward — from its outer ring at
+// `at`, or the corner nearest `hint` — or outward, to `at` or that corner;
+// the brush going round as the unit's turn says, ↻ clockwise or ↺
+// anticlockwise. The rings are built clockwise: the other way, the unit
+// mirrored, built and mirrored back.
+const mx = p => p ? [-p[0], p[1]] : p;
+export function unitPath(U, rects, brush, dir, at, hint) {
+  const mirror = (dir === 'in') === (U.turn === 'ccw');
+  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), brush, U.step);
+  const R = mirror ? U.Rm : U.R, pts = spiralOf(R, mirror ? mx(at ?? hint ?? null) : at ?? hint ?? null, dir === 'out');
+  return mirror ? pts.map(mx) : pts;
+}
+// A magnet of a rectangle, its outer ring d mm in: its middle, a corner, a side's middle
+export function magnetPoint(r, m, d) {
+  const L = r.x + d, R = r.x + r.w - d, B = r.y + d, T = r.y + r.h - d, cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  return { c: [cx, cy], n: [cx, T], ne: [R, T], e: [R, cy], se: [R, B], s: [cx, B], sw: [L, B], w: [L, cy], nw: [L, T] }[m] ?? null;
+}
+// A unit's magnets: first its middle — the middle of its innermost ring,
+// where a spiral ends inside — then its rectangles' corners and sides'
+// middles that lie on its outer ring: [{ id, m, p, c }]
+export function magnetsOf(U, rects) {
+  const d = U.R.roots[0]?.d ?? 0, loops = U.R.roots.map(n => n.loops[0]), out = [];
+  let n = U.R.roots[0]; while (n?.kids.length) n = n.kids[0];
+  const L = n?.loops[0], cen = L ? [(Math.min(...L.map(v => v[0])) + Math.max(...L.map(v => v[0]))) / 2, (Math.min(...L.map(v => v[1])) + Math.max(...L.map(v => v[1]))) / 2] : mid(U.box);
+  out.push({ id: rects[U.rs[0]].id, m: 'c', p: cen, c: true });
+  for (const i of U.rs) for (const m of MAGNETS.slice(1)) {
+    const p = magnetPoint(rects[i], m, d);
+    if (loops.some(Lp => seamAt(Lp, p)) && !out.some(q => !q.c && dist(q.p, p) < 1e-3)) out.push({ id: rects[i].id, m, p, c: false });
+  }
+  return out;
+}
+// A node's end on the plan: its unit and its magnet — a magnet no longer on
+// the outer ring (its tile grown into a block) the nearest one that is
+function endOf(e, rects, units) {
+  const ri = rects.findIndex(r => r.id === e.id); if (ri < 0) return null;
+  const U = units.find(u => u.rs.includes(ri)), M = U.M;
+  if (e.m === 'c') return { u: U.id, ...M[0] };
+  const q = magnetPoint(rects[ri], e.m, U.R.roots[0]?.d ?? 0), rim = M.filter(m => !m.c);
+  if (!rim.length) return { u: U.id, ...M[0] };
+  return { u: U.id, ...rim.reduce((a, m) => dist(m.p, q) < dist(a.p, q) ? m : a) };
+}
+// The links the nodes make: one way out of a unit and one way in, a later
+// node taking the place of the one before; none that would close a loop.
+// → [{ i (the node's index), a, b: { u, id, m, p, c } }]
+export function linksOf(nodes, rects, units) {
+  const out = new Map(), inn = new Map();
+  (nodes || []).forEach((nd, i) => {
+    const a = endOf(nd.a, rects, units), b = endOf(nd.b, rects, units);
+    if (!a || !b || a.u === b.u) return;
+    for (let u = b.u, g = 0; g < 1e4; g++) { if (u === a.u) return; const l = out.get(u); if (!l) break; u = l.b.u; }
+    const oa = out.get(a.u); if (oa) { out.delete(a.u); inn.delete(oa.b.u); }
+    const ib = inn.get(b.u); if (ib) { inn.delete(b.u); out.delete(ib.a.u); }
+    const L = { i, a, b }; out.set(a.u, L); inn.set(b.u, L);
+  });
+  return [...out.values()].sort((p, q) => p.i - q.i);
+}
+// The figures the nodes make: a chain of units a figure, from the one no
+// node comes into; a unit no node touches a figure of its own; in the order
+// of their first tile
+function figuresByNodes(rects, units, links, join) {
+  const out = new Map(links.map(l => [l.a.u, l])), inn = new Map(links.map(l => [l.b.u, l])), figs = [];
+  const near_ = units.map(A => units.map(B => A !== B && near(A, B, rects, join)));
+  for (const U of units) {
+    if (inn.has(U.id)) continue;
+    const us = [U.id], ls = [];
+    for (let u = U.id, g = 0; out.has(u) && g < 1e4; g++) { const l = out.get(u); ls.push(l); u = l.b.u; us.push(u); }
+    figs.push({ us, ls });
+  }
+  const first = F => Math.min(...F.us.flatMap(u => units[u].rs));
+  return figs.sort((a, b) => first(a) - first(b)).map((F, k) => ({ n: k + 1, ...F, adj: (a, b) => near_[a][b] || F.ls.some(l => (l.a.u === a && l.b.u === b) || (l.a.u === b && l.b.u === a)) }));
+}
+// The nodes the snake would make, to start from and change: between every
+// two units of a figure, from where the one ends to where the next begins
+export function snakeNodes(P, rects) {
+  const out = [], rimNear = (M, p) => M.filter(m => !m.c).reduce((a, m) => !a || dist(m.p, p) < dist(a.p, p) ? m : a, null) ?? M[0];
+  for (const F of P.figs) for (let k = 0; k + 1 < F.us.length; k++) {
+    const A = P.units[F.us[k]], B = P.units[F.us[k + 1]];
+    const a = k % 2 ? A.M[0] : rimNear(A.M, F.ends[k].b), b = (k + 1) % 2 ? rimNear(B.M, F.ends[k + 1].a) : B.M[0];
+    out.push({ a: { id: a.id, m: a.m }, b: { id: b.id, m: b.m } });
+  }
+  return out;
 }
 // the points of a path without repeats and without points in a straight run
 export function cleanPts(P) {
@@ -346,29 +455,46 @@ export function atPiece(g, s) {
 }
 
 // ---------- the plan ----------
-// Every unit its rings; every figure one path: its units in their snake, the
-// first from its centre out, the next from its outside in, and so on — out
-// to the corner nearest the next unit, in from the corner nearest where the
-// brush is; from a middle straight to the next middle, across the rings, as
-// the owner's scheme does; every turn rounded.
-// o: { brush, join, corner } → { units, figs: [{ n, us, pts, pieces, length, at: [mm along where each unit starts], ends }], length }
+// Every unit its rings; every figure one path. With nodes (the owner,
+// 2026-10-17: "the brush's way must be set, not left to itself") the
+// figures their chains, each unit as its nodes say: a node into its middle,
+// it spirals out — to the magnet the next node leaves from, its outer ring
+// turned to end there; a node into its outer ring, it spirals in from there
+// to its middle, where the next leaves; both on the rim, in and then across
+// the rings to leave; both in the middle, out and back across. Without, the
+// snake: its units from the bottom left, the first from its middle out, the
+// next from its outside in, and so on — out to the corner nearest the next
+// unit, in from the corner nearest where the brush is; from a middle straight
+// to the next middle across the rings. Every turn rounded.
+// o: { brush, join, corner, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends }], links, manual, length }
 export function planOf(rects, o) {
   const brush = o.brush ?? BRUSH_NEW, units = unitsOf(rects);
-  for (const U of units) U.R = ringsOf(U.rs.map(i => rects[i]), brush, U.step);
-  const figs = figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => {
-    const pts = [], at = [];
+  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), brush, U.step); U.M = magnetsOf(U, rects); }
+  const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
+  const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
+  const figs = F0.map(F => {
+    const pts = [], at = [], ends = [];
     F.us.forEach((id, k) => {
-      const U = units[id], out = k % 2 === 0, next = F.us[k + 1], prev = pts.at(-1);
-      const hint = out ? (next !== undefined ? mid(units[next].box) : prev ?? null) : prev ?? null;
-      at.push(pts.length);
-      pts.push(...spiralOf(U.R, hint, out));
+      const U = units[id], next = F.us[k + 1], prev = pts.at(-1), nextMid = next !== undefined ? mid(units[next].box) : null;
+      let s;
+      if (!manual) { const out = k % 2 === 0; s = unitPath(U, rects, brush, out ? 'out' : 'in', null, out ? nextMid ?? prev ?? null : prev ?? null); }
+      else {
+        const inE = k ? F.ls[k - 1].b : null, outE = next !== undefined ? F.ls[k].a : null, rim = e => e && !e.c;
+        if (rim(inE) && rim(outE)) s = [...unitPath(U, rects, brush, 'in', inE.p), outE.p];
+        else if (rim(inE)) s = unitPath(U, rects, brush, 'in', inE.p);
+        else if (rim(outE)) s = unitPath(U, rects, brush, 'out', outE.p);
+        else if (inE && outE) { s = unitPath(U, rects, brush, 'out', null, nextMid); s.push(s[0]); }
+        else if (outE) s = unitPath(U, rects, brush, 'in', null, null);
+        else s = unitPath(U, rects, brush, 'out', null, null);
+      }
+      at.push(pts.length); ends.push({ a: s[0], b: s.at(-1) }); pts.push(...s);
     });
     const P = jogged(cleanPts(pts), brush / 2), pieces = roundOf(P, o.corner ?? CORNER_NEW), length = pieces.reduce((s, g) => s + lenOf(g), 0);
     // where each unit starts, mm along the path: the nearest point of the rounded path to its first point
-    const starts = at.map(i => pts[i]), along = starts.map(p => alongTo(pieces, p));
-    return { ...F, pts: P, pieces, length, along, start: P[0], end: P.at(-1) };
+    const along = at.map(i => alongTo(pieces, pts[i]));
+    return { ...F, pts: P, pieces, length, along, ends, start: P[0], end: P.at(-1) };
   });
-  return { units, figs, length: figs.reduce((s, F) => s + F.length, 0) };
+  return { units, figs, links, manual, length: figs.reduce((s, F) => s + F.length, 0) };
 }
 function alongTo(pieces, p) {
   let s = 0, best = 0, bd = Infinity;
