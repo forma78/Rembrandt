@@ -5,6 +5,30 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **INKA, a new tab after LOOM: Inca patterns** (the owner, 2026-10-17,
+  `INKA/`: "I came up with a new tab, INKA … Inca patterns, square, like
+  Mexican rugs or chocolate bars"; Florian Markus's way with the paint, not
+  his race tracks; Heather Day's pure colour). Tiles laid with R as CCD's
+  rectangles; laid over one another they are one block, one outline — the
+  owner's "[" — side by side one figure. DRAG every figure one line, the
+  brush down from its landing to its lift: a spiral a tile, the first from
+  its middle out, the next from its outside in, middle to middle across the
+  rings, the tiles in a snake from the bottom left — his scheme; every turn
+  a tangent arc, so the board never stops on the way ("braking to zero is
+  not Instagrammable … a stop kills the mesmerising effect"). Before every
+  next figure the brush flies over its start and goes up to +45° to be
+  wiped, a pause, Continue ("here the brush can be lifted up, so that I
+  wipe it"). No Air, no TRACE; MARKS a dash along every sausage. CCD's
+  paints — New colours, New spokes, meta 1 … 4 — and Inka (his paper test),
+  HDay warm, HDay blue; the sausages spokes from a tile's side across its
+  rings to the middle, a tile its paint, never its neighbour's, a lone
+  figure one pure paint; M lays a spoke, or one dragged. The Result a walk
+  of the brush's grooves on a grid of the canvas (est.); ▶ Play the run and
+  ■ Stop playing, as ALU's. A first visit lays the owner's paper test: on
+  200 × 200 two figures, 2.4 m, ≈ 1.3 min at 40 mm/s (est.), the wipe at
+  68 % on the LCD. The Library opens an INKA save on INKA, and says LOOM
+  on LOOM's cards. Not run on the machine yet.
+
 - **BIAS: the deck's pairs the whole width** (the owner, 2026-10-16: "let
   us stretch the keys as STOP and HOME, the space hangs there untidily").
   Under MARKS · 45 SNAKE · 45 AIR, SNAKE PLAIN → · ↑, 90 SNAKE · 90 AIR and

@@ -57,6 +57,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Weave (on LOOM)** | Which strip lies on top where two cross: **Plain**, one over and one under in turn, a chessboard — the intrecciato; **Twill**, two and two along the diagonals, its ribs straight across the canvas at 45°; **Basket**, the strips in pairs; **Lattice**, no hop, the later strip on top, as BIAS and IMG_0924. By the strips' indices on the canvas as it lies first. |
 | **Layer 1 · Layer 2 (on LOOM)** | Two runs, each its own drawing — weave, angle, step, crossing corner, rows — and its own sausages and paints: layer 1 on the white canvas, layer 2 another way over it once it has set (the owner, 2026-10-16, IMG_0921: "two independent runs, and it looks dearer than one"). The Result on Layer 2 shows the second over the first. A layer in this glossary's sense. |
 | **Halves · the turn (on LOOM)** | A canvas past the reach (60 × 80, 70 × 100) run in two: half 1, the near half — the left (↔) or the bottom (↕) — and the overlap past the middle; the carriage home, a pause; the canvas turned round 180° by hand, its far corner C on the stop where the near one, A, was; half 2, the same lattice in the canvas's turned frame, its strips going on from the first's, the paint dragged the other way. |
+| **INKA** | The tab of Inca patterns, after LOOM in the top row since 2026-10-17 (§1, §8): square tiles "like Mexican rugs or chocolate bars", each filled by a spiral of the dry brush, the tiles that touch one figure, the brush down through all of them without a lift — Florian Markus's way with the paint, not his race tracks — and Heather Day's pure colour in a figure of one paint. MARKS and DRAG, no Air, no TRACE; ▶ Play the run. `inka.html`, its plan `inkaplan.js`, its page module `inka.js`; CCD's untouched. |
+| **Tile · block · unit · figure (on INKA)** | A tile: a rectangle laid with R, as CCD's. A block: tiles laid over one another, one outline, its rings the outline's — the owner's "[". A unit: a tile or a block. A figure: units side by side, sharing a side, no farther apart than One figure: tiles apart up to (5 mm, est.) — one line of the brush; units touching only at a corner, or farther apart, a figure each. |
+| **Ring · spiral (on INKA)** | A ring: one loop of the brush round a unit — its outline moved in by the brush's half, then by Step each time, its turns rounded by Corners; a middle left wider than half a step, one more ring. The spiral: the rings joined, each a step short and on along the next. A figure's units in a snake from its bottom left, up first; the first from its middle out, the next from its outside in, and so on — out to the corner nearest the next unit, in from the corner nearest the brush, from a middle straight to the next middle across the rings, as the owner's scheme draws it. |
+| **Wipe (on INKA)** | Before every next figure: the brush flies over its start and goes up to Wipe (+45°, the elbow's highest, est.), the run pauses; the owner wipes it and squeezes that figure's sausages; Continue brings it down to land. |
+| **Spoke (on INKA)** | A sausage from a unit's side straight in across its rings to its middle, its round end on the tile, so every ring takes it up — round a unit at most 60 mm apart (TAPE's paper test). M lays one through the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -579,6 +584,57 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   over 1.5 mm, Drag 30 mm/s, so the elbow keeps up — ≈ 200°/s of its 211
   (est.); the shortest stretch with the brush down between two lifts twice
   the tail. Not tried on the machine: the hop first on a scrap.
+- **INKA, a tab of its own: Inca patterns** (the owner, 2026-10-17, a
+  Saturday, `INKA/`: "I came up with a new tab, INKA"; Florian Markus's
+  workshop in `master_flo_hires/` — "I am not interested in copying him; I
+  only want to adopt his technical techniques — how the paint goes, how the
+  gradient comes when the paints mix"; "the fundamental difference: he
+  makes race tracks and uses a lot of colours that form a gradient when
+  they mix. I have Inca patterns, square, like Mexican rugs or chocolate
+  bars"; his paper test and its scheme in `personal_references/`; Heather
+  Day in `HDay/` — "I like her colour range and palette, but that cannot be
+  done on our plotter … the brown rectangle on the right, a '[' like an
+  opening square bracket — I borrowed the pure colour from her, as on
+  Painting 12"). After LOOM: TAPE · BASF · ALU-CUT · CCD · BIAS · LOOM ·
+  INKA · ALU · SMKN · NOLAN · Test · Ink · Calibration · Library. **Only
+  DRAG, one line a figure** ("AIR is not needed, only DRAG, a solid line
+  without a lift on one figure. If 6 tiles with beige, orange, ochre, pink
+  and yellow — the brush goes on non-stop over the modules. First it paints
+  the first square with a spiral, the second, the third … — I show it on
+  IMG_1009. Only when all six rectangles are painted the brush lifts and
+  moves over to the brown. Here the brush can be lifted up, so that I wipe
+  it. On the timer we will have 50 % of the work done. Then I press
+  Continue and the brush paints the brown rectangle non-stop"). **CCD's
+  paints** ("we have one palette on CCD, BIAS, TAPE — the random offers,
+  PAINTS Rect 1 i, New colours / New spokes"). **▶ Play the run, as ALU's**
+  ("only the button ■ Stop playing / Play the run needs adding, as it is
+  done in ALU"). **Round turns, never a stop** ("they may be not so sharp,
+  they only have to be Instagrammable :)"; then: "stop. Braking to zero is
+  not Instagrammable — better rounded corners; on a big format it will not
+  matter, and a stop of the brush during the process kills the mesmerising
+  effect. For the first clients we need traffic from the social networks,
+  else advertising costs too much"): every turn a tangent arc, the board
+  never stopping on a figure; a figure one block, so PAUSE waits for its
+  end. *Claude's choices*: the words tile, block, unit, figure; tiles laid
+  over one another one block, one outline — the "[" four rectangles — and
+  side by side within 5 mm one figure (est.), a corner only not; the snake
+  from the bottom left, up first, as the scheme (Screenshot 12.52.59 PM);
+  the first unit from its middle out, the next from its outside in, middle
+  to middle across the rings, as the scheme; Corners 4 mm (≈ 31 mm/s through
+  a turn), a jog of the brush's half where the path would turn back; the
+  wipe over the next figure's start at +45°, the elbow's highest (est.);
+  spokes across the rings, Florian's sausages across every lane, at most
+  60 mm apart round a unit; a unit its core paint, never its neighbour's,
+  now and then a second or an accent, thin; a figure of one unit one pure
+  paint — the palette's, or its darkest core but black and white; the
+  palette keys Inka (his paper test, IMG_1027), HDay warm and HDay blue
+  (Claude's reading in his paints) beside CCD's meta 1 … 4; the Result a
+  walk of the brush's five grooves on a grid of the canvas, CCD's lane walk
+  in two dimensions, the bristles holding 120 film-mm at most (est.); Brush
+  6 mm, Step 7, Drag 40 mm/s; a first visit lays his paper test. The LCD's
+  percent goes by the length painted: at the wipe it stands where the
+  figures' lengths put it — 68 % on the paper test on 200 × 200, not 50 —
+  the reading names it.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -991,8 +1047,8 @@ this section disagree, this section wins: the owner corrected the sketch on
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
   **v.1.0.8**, then the tabs **TAPE · BASF · ALU-CUT · CCD · BIAS · LOOM ·
-  ALU · SMKN · NOLAN · Test · Ink · Calibration · Library** (LOOM after BIAS
-  since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
+  INKA · ALU · SMKN · NOLAN · Test · Ink · Calibration · Library** (INKA
+  after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
@@ -1282,6 +1338,30 @@ this section disagree, this section wins: the owner corrected the sketch on
   and on Layer 2 the second over it, a tuck's shadow where a strip dives
   under. A warning when the elbow cannot keep up with the hops. 💾 SAVE
   LOOM, both layers, the Library opening it here.
+- **INKA**, after LOOM (2026-10-17, §1; `app/inka.html`, `app/src/inka.js`,
+  `app/src/inkaplan.js`): CCD's page — the tiles CCD's rectangles, R a
+  tile, V moves and stretches it, the edges snapping; M and the strip of
+  paints. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME**, INK, the
+  views **Drag · Result** and **▶ Play the run** under them (■ Stop playing
+  while it plays, ALU's). The panel: the tiles as keys — □ a tile, ▣ in a
+  block, F and the figure's number — the chosen one's **Step** (1 … 100 mm,
+  7; typed or by the slider), the reading of its figure, its turn in the
+  run, its rings, out or in, its place and size by the ruler, Whole canvas
+  · Duplicate (beside it, touching: the same figure), Run earlier · Run
+  later (a figure runs in the order of its first tile) · Delete; **Paints ·
+  Figure n** — New colours · New spokes, meta 1 … 4, **Inka · HDay warm ·
+  HDay blue**, Density, the paints in use (CCD's list, the chosen figure's);
+  Brush, DRAG: Brush width (6 mm), Drag speed (40 mm/s), **Corners** (4 mm,
+  the speed through a turn beside it), **One figure: tiles apart up to** (5
+  mm), **Wipe: the brush up to** (+45°); the canvas; the file, every
+  figure a path. Drag: every figure's path a faint strip the brush's width
+  and its centre line, an orange dot where it lands, a ring where it
+  lifts, an arrow where it comes onto every tile and its place in the run
+  (1·1 … 2·1), the flight to the next figure dashed blue, ❚❚ wipe; the
+  sausages in their paints over MARKS' watercolour. Result: the brush
+  through the sausages, the paints mixed as pigments (est.). The reading:
+  the figures, their lengths and rings, DRAG's time, the wipes and where
+  the LCD stands at each. 💾 SAVE INKA, the Library opening it here.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once
