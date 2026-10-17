@@ -422,15 +422,20 @@ function handlesOf(r) {
 function guides() {
   g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.font = font(10); g.textBaseline = 'alphabetic';
   S.rects.forEach((r, i) => {
-    const on = i === S.sel, a = scr([r.x, r.y + r.h]), b = scr([r.x + r.w, r.y]);
+    const on = isPicked(i), a = scr([r.x, r.y + r.h]), b = scr([r.x + r.w, r.y]);
     g.strokeStyle = on ? ORANGE : 'rgba(36,34,31,.45)'; g.lineWidth = on ? 1.5 : 1; g.setLineDash(on ? [] : [4, 3]);
     g.strokeRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); g.setLineDash([]);
     g.fillStyle = on ? '#B3470C' : themeColor('--mute', '#7D776D'); g.textAlign = 'left';
     if (b[0] - a[0] > 34 && b[1] - a[1] > 20) g.fillText(`${i + 1}`, a[0] + 5, a[1] + 13);
     if (on && grab && grab.kind !== 'move' && grab.kind !== 'paint' && grab.kind !== 'node') { g.textAlign = 'right'; g.fillText(`${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm`, b[0], a[1] - 5); }
   });
+  if (MANY.size > 1) {                                                              // the tiles chosen together: their box, its size
+    const B = boxOfIdx(picked()), a = scr([B.x, B.y + B.h]), b = scr([B.x + B.w, B.y]);
+    g.strokeStyle = ORANGE; g.lineWidth = 1; g.setLineDash([6, 4]); g.strokeRect(a[0] - 4, a[1] - 4, b[0] - a[0] + 8, b[1] - a[1] + 8); g.setLineDash([]);
+    g.fillStyle = '#B3470C'; g.textAlign = 'left'; g.fillText(`${MANY.size} tiles · ${fmt(B.w, 1)} × ${fmt(B.h, 1)} mm`, a[0] - 4, a[1] - 9);
+  }
   const r = S.rects[S.sel];
-  if (r && !(grab?.kind === 'new') && S.tool !== 'paint' && S.tool !== 'node') for (const q of handlesOf(r)) {
+  if (r && MANY.size < 2 && !(grab?.kind === 'new') && S.tool !== 'paint' && S.tool !== 'node') for (const q of handlesOf(r)) {
     const s = scr(q.at); g.fillStyle = '#FBFAF7'; g.strokeStyle = ORANGE; g.lineWidth = 1.4; g.fillRect(s[0] - 3.5, s[1] - 3.5, 7, 7); g.strokeRect(s[0] - 3.5, s[1] - 3.5, 7, 7);
   }
   if (grab?.kind === 'paint' && grab.moved && grab.to) {                              // a sausage being laid by hand
@@ -496,7 +501,7 @@ const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'corner', 'join', 'wipe', 'd
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
-function restore(js) { Object.assign(S, JSON.parse(js)); settle(); }
+function restore(js) { Object.assign(S, JSON.parse(js)); const ids = new Set(S.rects.map(r => r.id)); for (const id of [...MANY]) if (!ids.has(id)) MANY.delete(id); if (MANY.size < 2) MANY.clear(); settle(); }
 function undo() { if (!undoStack.length) return; redoStack.push(snapshot()); restore(undoStack.pop()); }
 function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); restore(redoStack.pop()); }
 
@@ -508,7 +513,15 @@ function redo() { if (!redoStack.length) return; undoStack.push(snapshot()); res
 // takes it; a drag lays one where it is dragged.
 const SNAP_PX = 8, half = v => Math.round(v * 2) / 2;
 const clampX = v => Math.max(-OFF, Math.min(S.boardW + OFF, v)), clampY = v => Math.max(-OFF, Math.min(S.boardH + OFF, v));
-const edgesOf = (axis, skip) => [0, axis === 'x' ? S.boardW : S.boardH, ...S.rects.flatMap((r, i) => i === skip ? [] : axis === 'x' ? [r.x, r.x + r.w] : [r.y, r.y + r.h])];
+const edgesOf = (axis, skip) => [0, axis === 'x' ? S.boardW : S.boardH, ...S.rects.flatMap((r, i) => (skip instanceof Set ? skip.has(i) : i === skip) ? [] : axis === 'x' ? [r.x, r.x + r.w] : [r.y, r.y + r.h])];
+// The tiles chosen together — ⌘A all of them, ⇧ and a click one more or one
+// less (the owner, 2026-10-17: "I need a selection that takes every figure
+// on the canvas, cmd+A"): their ids; fewer than two, the chosen one alone
+let MANY = new Set();
+const picked = () => MANY.size > 1 ? S.rects.map((r, i) => MANY.has(r.id) ? i : -1).filter(i => i >= 0) : S.rects[S.sel] ? [S.sel] : [];
+const isPicked = i => MANY.size > 1 ? MANY.has(S.rects[i]?.id) : i === S.sel;
+const boxOfIdx = idx => { const rs = idx.map(i => S.rects[i]), x0 = Math.min(...rs.map(r => r.x)), y0 = Math.min(...rs.map(r => r.y)); return { x: x0, y: y0, w: Math.max(...rs.map(r => r.x + r.w)) - x0, h: Math.max(...rs.map(r => r.y + r.h)) - y0 }; };
+function letGo() { if (!MANY.size) return; MANY.clear(); showRects(); kick(); }
 function snapTo(v, axis, skip) {
   let best = null;
   for (const q of edgesOf(axis, skip)) if (Math.abs(q - v) <= SNAP_PX / k && (best === null || Math.abs(q - v) < Math.abs(best - v))) best = q;
@@ -520,7 +533,7 @@ function snapMove(v, size, axis, skip) {
   return best === null ? half(v) : v + best;
 }
 function nearHandle(e) {
-  const r = S.rects[S.sel]; if (!r) return null;
+  const r = S.rects[S.sel]; if (!r || MANY.size > 1) return null;
   const rc = cv.getBoundingClientRect(), mx = e.clientX - rc.left, my = e.clientY - rc.top;
   let best = null;
   for (const q of handlesOf(r)) { const s = scr(q.at), d = Math.hypot(s[0] - mx, s[1] - my); if (d <= HANDLE_PX && (!best || d < best.d)) best = { ...q, d }; }
@@ -591,7 +604,18 @@ cv.addEventListener('pointerdown', e => {
     grab = { kind: 'new', ax: x, ay: y, moved: false }; cv.setPointerCapture(e.pointerId); kick(); return;
   }
   const i = rectAt(p);
-  if (i >= 0) { undoPush(); S.sel = i; grab = { kind: 'move', from: p, r0: { ...S.rects[i] }, moved: false }; cv.setPointerCapture(e.pointerId); showRects(); kick(); }
+  if (i < 0) { letGo(); return; }
+  if (e.shiftKey) {                                                                  // ⇧: one more, or one less
+    if (MANY.size < 2) MANY = new Set(S.rects[S.sel] ? [S.rects[S.sel].id] : []);
+    const id = S.rects[i].id; if (MANY.has(id)) MANY.delete(id); else MANY.add(id);
+    if (MANY.size < 2) MANY.clear(); S.sel = i; showRects(); kick(); return;
+  }
+  if (MANY.size > 1 && MANY.has(S.rects[i].id)) {                                   // one of the tiles chosen together: all of them move
+    undoPush(); S.sel = i; const idx = picked();
+    grab = { kind: 'moveAll', from: p, r0s: idx.map(j => ({ j, x: S.rects[j].x, y: S.rects[j].y })), box: boxOfIdx(idx), skip: new Set(idx), moved: false };
+    cv.setPointerCapture(e.pointerId); showRects(); kick(); return;
+  }
+  MANY.clear(); undoPush(); S.sel = i; grab = { kind: 'move', from: p, r0: { ...S.rects[i] }, moved: false }; cv.setPointerCapture(e.pointerId); showRects(); kick();
 });
 cv.addEventListener('pointermove', e => {
   if (!grab) {
@@ -605,6 +629,12 @@ cv.addEventListener('pointermove', e => {
   if (grab.kind === 'node') { grab.to = p; const mg = magnetAt(e); grab.snap = mg && mg.u !== grab.from.u ? mg : null; kick(); return; }
   if (grab.kind === 'paint') { grab.to = p; grab.moved = grab.moved || Math.hypot(p[0] - grab.from[0], p[1] - grab.from[1]) > 3; kick(); return; }
   grab.moved = true; busy = true;
+  if (grab.kind === 'moveAll') {                                                     // the box of them snapping as one tile does
+    const B = grab.box, X = snapMove(B.x + p[0] - grab.from[0], B.w, 'x', grab.skip), Y = snapMove(B.y + p[1] - grab.from[1], B.h, 'y', grab.skip);
+    const dx = Math.max(-OFF, Math.min(S.boardW + OFF, X)) - B.x, dy = Math.max(-OFF, Math.min(S.boardH + OFF, Y)) - B.y;
+    for (const q of grab.r0s) { S.rects[q.j].x = q.x + dx; S.rects[q.j].y = q.y + dy; }
+    kick(); return;
+  }
   const r = S.rects[S.sel], r0 = grab.r0;
   if (grab.kind === 'move') {
     r.x = clampX(snapMove(r0.x + p[0] - grab.from[0], r.w, 'x', S.sel)); r.y = clampY(snapMove(r0.y + p[1] - grab.from[1], r.h, 'y', S.sel));
@@ -650,9 +680,15 @@ function addNode(a, b) {
   undoPush(); S.nodes = nodes; S.nodeSel = nodes.length - 1; settle();
 }
 function deleteNode() { if (S.nodeSel < 0 || !S.nodes[S.nodeSel]) return; undoPush(); S.nodes.splice(S.nodeSel, 1); S.nodeSel = -1; settle(); }
-function moveRect(dx, dy) { const r = S.rects[S.sel]; if (!r) return; undoPush(); r.x = clampX(r.x + dx); r.y = clampY(r.y + dy); settle(); }
-function deleteRect() { const r = S.rects[S.sel]; if (!r) return; undoPush(); S.rects.splice(S.sel, 1); S.nodes = S.nodes.filter(q => q.a.id !== r.id && q.b.id !== r.id); S.sel = Math.max(0, S.sel - 1); settle(); }
-function clearAll() { if (!S.rects.length) return; undoPush(); S.rects = []; S.nodes = []; S.sel = 0; S.tool = 'rect'; settle(); }
+function moveRect(dx, dy) { const idx = picked(); if (!idx.length) return; undoPush(); for (const i of idx) { const r = S.rects[i]; r.x = clampX(r.x + dx); r.y = clampY(r.y + dy); } settle(); }
+function deleteRect() {
+  const idx = picked(); if (!idx.length) return;
+  undoPush();
+  const gone = new Set(idx.map(i => S.rects[i].id));
+  S.rects = S.rects.filter(r => !gone.has(r.id)); S.nodes = S.nodes.filter(q => !gone.has(q.a.id) && !gone.has(q.b.id));
+  MANY.clear(); S.sel = Math.max(0, Math.min(S.rects.length - 1, Math.min(...idx) - 1)); settle();
+}
+function clearAll() { if (!S.rects.length) return; undoPush(); S.rects = []; S.nodes = []; MANY.clear(); S.sel = 0; S.tool = 'rect'; settle(); }
 // N with no nodes yet: the snake laid as nodes, the way the brush runs now, to change
 function setTool(t) {
   S.tool = t; S.view = t === 'paint' || t === 'node' ? 'drag' : S.view;
@@ -660,7 +696,7 @@ function setTool(t) {
   settle();
 }
 const HINT = {
-  edit: 'Edit: drag a tile to move it, its handles to stretch it; a click chooses it; the arrows move it a mm, with ⇧ ten; ⌫ takes it away. Its edges snap to the canvas\'s and the other tiles\' — side by side they are one figure; laid over one another, one block.',
+  edit: 'Edit: drag a tile to move it, its handles to stretch it; a click chooses it, ⇧ and a click one more; ⌘A all of them; the arrows move it a mm, with ⇧ ten; ⌫ takes it away. Its edges snap to the canvas\'s and the other tiles\' — side by side they are one figure; laid over one another, one block.',
   rect: 'Tile: drag on the canvas to lay one, its step the chosen one\'s. Side by side with others it joins their figure, the brush on through it; over another it melts into it, one block, one outline — the "[".',
   node: 'N: drag from a magnet of a tile — its middle, a corner, a side\'s middle — to one of the next: the brush\'s way. Into a tile\'s middle it spirals out to where its next node leaves; into its edge it spirals in from there to its middle. A tile one way out and one in: a new node takes the old one\'s place. A click on a node chooses it, ⌫ takes it away.',
   paint: 'M: a click on a tile lays a spoke of the chosen paint from its nearest side across the rings to the middle; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
@@ -668,11 +704,24 @@ const HINT = {
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
 document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
 addEventListener('keydown', e => {
-  if (e.key === 'Escape') post('/run/stop');
+  if (e.key === 'Escape') { post('/run/stop'); letGo(); }
   if (e.target.matches('input,select,textarea')) return;
   const cmd = e.metaKey || e.ctrlKey;
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
-  if (cmd && e.key.toLowerCase() === 'c') { if (S.rects[S.sel]) { e.preventDefault(); COPY = structuredClone(S.rects[S.sel]); PASTED = null; $('#hint').textContent = `Tile ${S.sel + 1} copied: ⌘V lays it beside, touching.`; } return; }
+  if (cmd && e.key.toLowerCase() === 'a') {                                          // every tile on the canvas
+    e.preventDefault(); if (S.rects.length < 2) return;
+    MANY = new Set(S.rects.map(r => r.id)); S.tool = 'edit'; settle();
+    $('#hint').textContent = `All ${S.rects.length} tiles chosen: a drag moves them together, the arrows a mm (⇧ ten), ⌫ takes them away, ⌘C ⌘V copies them with their nodes. A click on the canvas, or Esc, lets them go.`;
+    return;
+  }
+  if (cmd && e.key.toLowerCase() === 'c') {
+    const idx = picked(); if (!idx.length) return;
+    e.preventDefault();
+    const ids = new Set(idx.map(i => S.rects[i].id));
+    COPY = { rects: idx.map(i => structuredClone(S.rects[i])), nodes: S.nodes.filter(q => ids.has(q.a.id) && ids.has(q.b.id)).map(q => structuredClone(q)) }; PASTED = null;
+    $('#hint').textContent = idx.length > 1 ? `${idx.length} tiles copied, ${COPY.nodes.length} node${COPY.nodes.length === 1 ? '' : 's'} between them: ⌘V lays them beside, touching.` : `Tile ${idx[0] + 1} copied: ⌘V lays it beside, touching.`;
+    return;
+  }
   if (cmd && e.key.toLowerCase() === 'v') { if (COPY) { e.preventDefault(); paste(); } return; }
   if (cmd) return;
   if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); if (S.tool === 'node' && S.nodeSel >= 0) deleteNode(); else deleteRect(); return; }
@@ -682,17 +731,22 @@ addEventListener('keydown', e => {
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveRect(arrow[0] * d, arrow[1] * d); }
 });
 
-// ⌘C ⌘V (the owner, 2026-10-17: "Duplicate is not very handy"): the chosen
-// tile copied, its sausages and its turn with it; a paste lays it beside the
-// one copied, touching on the right — the next paste beside that one — or
-// above when the right runs past the canvas
+// ⌘C ⌘V (the owner, 2026-10-17: "Duplicate is not very handy"): the tile
+// chosen, or the tiles chosen together, copied with their sausages, turns
+// and the nodes between them; a paste lays them beside the ones copied,
+// touching on the right — the next paste beside that — or above when the
+// right runs past the canvas; the pasted chosen together, to be moved
 let COPY = null, PASTED = null;
 function paste() {
-  const base = PASTED ?? COPY, c = structuredClone(COPY);
-  c.id = newId(); c.x = base.x + base.w; c.y = base.y;
-  if (c.x + c.w > S.boardW + OFF) { c.x = base.x; c.y = base.y + base.h; }
-  c.x = clampX(c.x); c.y = clampY(c.y);
-  undoPush(); S.rects.push(c); S.sel = S.rects.length - 1; PASTED = c; S.tool = 'edit'; settle();
+  const was = PASTED ?? { off: [0, 0] }, B0 = (() => { const rs = COPY.rects, x0 = Math.min(...rs.map(r => r.x)), y0 = Math.min(...rs.map(r => r.y)); return { x: x0, y: y0, w: Math.max(...rs.map(r => r.x + r.w)) - x0, h: Math.max(...rs.map(r => r.y + r.h)) - y0 }; })();
+  let off = [was.off[0] + B0.w, was.off[1]];
+  if (B0.x + off[0] + B0.w > S.boardW + OFF) off = [was.off[0], was.off[1] + B0.h];
+  undoPush();
+  let id = newId();
+  const map = new Map(), rs = COPY.rects.map(r => { const c = structuredClone(r); map.set(r.id, id); c.id = id++; c.x = clampX(r.x + off[0]); c.y = clampY(r.y + off[1]); return c; });
+  S.rects.push(...rs);
+  S.nodes.push(...COPY.nodes.map(q => ({ a: { id: map.get(q.a.id), m: q.a.m }, b: { id: map.get(q.b.id), m: q.b.m } })));
+  S.sel = S.rects.length - 1; MANY = rs.length > 1 ? new Set(rs.map(r => r.id)) : new Set(); PASTED = { off }; S.tool = 'edit'; settle();
 }
 // The zoom (CCD's)
 function zoomTo(z, e) {
@@ -751,15 +805,21 @@ function tileText(i) {
 }
 function showRects() {
   const P = planNow();
-  $('#rects').innerHTML = S.rects.length ? S.rects.map((r, i) => { const F = figOfRect(i), U = unitOfRect(i), x = F && U ? F.cross[F.us.indexOf(U.id)] : null; return `<button class="tog${i === S.sel ? ' on' : ''}" data-sel="${i}" title="${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm, step ${fmt(r.step, 1)} mm${U?.rs.length > 1 ? ', in a block' : ''}${x ? ` — ! ${CROSS[x]}` : ''}">${x ? '<b class="bang">!</b> ' : ''}${U?.rs.length > 1 ? '▣' : '□'} ${i + 1}${P.figs.length > 1 && F ? ` · F${F.n}` : ''}</button>`; }).join('') : '<span class="none">No tiles: New, or the R tool and a drag on the canvas.</span>';
-  $('#rects').querySelectorAll('[data-sel]').forEach(b => b.onclick = () => { S.sel = +b.dataset.sel; EDIT = null; save(); showRects(); showPanel(); kick(); });
+  $('#rects').innerHTML = S.rects.length ? S.rects.map((r, i) => { const F = figOfRect(i), U = unitOfRect(i), x = F && U ? F.cross[F.us.indexOf(U.id)] : null; return `<button class="tog${isPicked(i) ? ' on' : ''}" data-sel="${i}" title="${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm, step ${fmt(r.step, 1)} mm${U?.rs.length > 1 ? ', in a block' : ''}${x ? ` — ! ${CROSS[x]}` : ''}">${x ? '<b class="bang">!</b> ' : ''}${U?.rs.length > 1 ? '▣' : '□'} ${i + 1}${P.figs.length > 1 && F ? ` · F${F.n}` : ''}</button>`; }).join('') : '<span class="none">No tiles: New, or the R tool and a drag on the canvas.</span>';
+  $('#rects').querySelectorAll('[data-sel]').forEach(b => b.onclick = e => {
+    const i = +b.dataset.sel;
+    if (e.shiftKey) { if (MANY.size < 2) MANY = new Set(S.rects[S.sel] ? [S.rects[S.sel].id] : []); const id = S.rects[i].id; if (MANY.has(id)) MANY.delete(id); else MANY.add(id); if (MANY.size < 2) MANY.clear(); }
+    else MANY.clear();
+    S.sel = i; EDIT = null; save(); showRects(); showPanel(); kick();
+  });
   showRect();
 }
 const R_FIELDS = [['x', 'Left →', 'Its left edge, mm right of the canvas\'s'], ['y', 'Bottom ↑', 'Its bottom edge, mm above the canvas\'s'], ['w', 'Width', 'Left to right'], ['h', 'Height', 'Bottom to top']];
 function showRect() {
   const box = $('#rectEdit'), r = S.rects[S.sel];
   if (!r) { box.innerHTML = ''; return; }
-  box.innerHTML = `
+  const many = MANY.size > 1 ? `<p class="read"><b>${MANY.size} tiles chosen together</b>: a drag moves them all, the arrows a mm (⇧ ten), ⌫ takes them away, ⌘C ⌘V copies them with their nodes; a click on the canvas or Esc lets them go.</p>` : '';
+  box.innerHTML = `${many}
     <h4>Tile ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
     <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round this tile clockwise as it paints it, in or out">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round this tile anticlockwise as it paints it, in or out">↺ Anticlockwise</button></div>
     <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush, white ridges between the rings, Florian's; narrower, they overlap"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label></div>
