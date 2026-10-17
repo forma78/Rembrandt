@@ -664,7 +664,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   middle by mistake: "maybe such a square should be marked with the sign
   !"; then 3.57.31 PM, put right: "it came out very worthy"): the badge by
   its place in the run, ! in its key, a line in red under Nodes; the run as
-  it is, a hint, never a stop.
+  it is, a hint, never a stop. **⌘A** (the owner, the same evening,
+  Screenshot 5.11.30 PM: "I need a selection that takes every figure on
+  the canvas, cmd+A"): every tile chosen together — a drag moves them all,
+  the arrows, ⌫, ⌘C ⌘V with the nodes between them; ⇧ and a click one more
+  or one less (*Claude's*); a click on the canvas or Esc lets them go.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1374,7 +1378,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   paints; **N**, the nodes: every tile's magnets — its middle a dot, its
   outer ring's corners and sides' middles rings — a drag from one to one of
   another tile a node, a click on a node chooses it, ⌫ takes it away;
-  ⌘C ⌘V a tile. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME**, INK, the
+  ⌘C ⌘V a tile, or the tiles chosen together — ⌘A all, ⇧ and a click one
+  more — in a dashed box with their size, moved, copied and taken away
+  together. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME**, INK, the
   views **Drag · Result** and **▶ Play the run** under them (■ Stop playing
   while it plays, ALU's). The panel: the tiles as keys — □ a tile, ▣ in a
   block, F and the figure's number — **Nodes**: From the snake · Clear

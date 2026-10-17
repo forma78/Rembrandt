@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **INKA: ⌘A, every tile chosen; ⇧ and a click, one more** (the owner,
+  2026-10-17, Screenshot 5.11.30 PM: "I need a selection that takes every
+  figure on the canvas, cmd+A"). The tiles chosen together are outlined
+  orange in a dashed box with their size; a drag of one moves them all,
+  their box snapping as one tile does; the arrows move them a mm (⇧ ten);
+  ⌫ takes them away with their nodes; ⌘C ⌘V copies them with their
+  sausages, turns and the nodes between them, laid beside, touching, the
+  pasted chosen together. A click on the canvas, or Esc, lets them go.
+
 - **INKA: ! on a tile its nodes both in its middle, or both on its edge**
   (the owner, 2026-10-17, Screenshot 3.54.39 PM: "maybe such a square
   should be marked with the sign !"). The brush crosses its rings to leave
