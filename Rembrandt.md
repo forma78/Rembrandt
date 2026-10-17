@@ -61,6 +61,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Tile · block · unit · figure (on INKA)** | A tile: a rectangle laid with R, as CCD's. A block: tiles laid over one another, one outline, its rings the outline's — the owner's "[". A unit: a tile or a block. A figure: units side by side, sharing a side, no farther apart than One figure: tiles apart up to (5 mm, est.) — one line of the brush; units touching only at a corner, or farther apart, a figure each. |
 | **Ring · spiral (on INKA)** | A ring: one loop of the brush round a unit — its outline moved in by the brush's half, then by Step each time, its turns rounded by Corners; a middle left wider than half a step, one more ring. The spiral: the rings joined, each a step short and on along the next. A figure's units in a snake from its bottom left, up first; the first from its middle out, the next from its outside in, and so on — out to the corner nearest the next unit, in from the corner nearest the brush, from a middle straight to the next middle across the rings, as the owner's scheme draws it. |
 | **Wipe (on INKA)** | Before every next figure: the brush flies over its start and goes up to Wipe (+45°, the elbow's highest, est.), the run pauses; the owner wipes it and squeezes that figure's sausages; Continue brings it down to land. |
+| **Node · magnet (on INKA)** | A node: the owner's link from one tile to the next (2026-10-17), laid with N — the brush's way set by hand, no algorithm. A magnet: where a node holds — a tile's middle, where its spiral ends inside, or a corner or a side's middle of its outer ring. A node into a tile's middle: it spirals out, its outer ring turned to end where its next node leaves; into its outer ring: it spirals in from there. One way out of a tile, one in; the chains are the figures, a tile no node touches a figure of its own. No nodes: the snake. |
+| **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
 | **Spoke (on INKA)** | A sausage from a unit's side straight in across its rings to its middle, its round end on the tile, so every ring takes it up — round a unit at most 60 mm apart (TAPE's paper test). M lays one through the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -635,6 +637,28 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   percent goes by the length painted: at the wipe it stands where the
   figures' lengths put it — 68 % on the paper test on 200 × 200, not 50 —
   the reading names it.
+  **Nodes, the brush's way by hand** (the owner, the same afternoon, after
+  his first tries, `INKA/result/` Screenshot 3.20.43 PM, 3.23.00 PM: "you
+  have the brush's way and the colour quite out of control"; "we simply
+  did not talk it over and the brush's way went as it pleased, anyhow —
+  and we need to set its direction"; IMG_1033 and Screenshot 3.31.29 PM, the
+  nodes in red: "let us make nodes … add a nodes key to the TOOLS, N is
+  free … on every square I made round points — magnets the nodes hold to
+  … the bottom left square (1) I hooked to the centre of the second (2),
+  and the third, top right (3), its node goes from the edge of the square
+  to the centre. They are set as one wishes, there is no algorithm. The
+  one thing: that the magnets work somehow. If you lead the node of the
+  top right square (3) down to hook the fourth (4), it turns the outer
+  line, whose hook is at the centre"). **⌘C ⌘V** ("for copying the
+  squares I need cmd+c and cmd+v — Duplicate is not very handy").
+  *Claude's choices*: the magnets a tile's middle and its outer ring's
+  corners and sides' middles; a node into a middle, the tile spirals out
+  to where the next leaves, into the edge in from there, both on the edge
+  in and across, both in the middle out and back across; one way out and
+  one in, a later node in the place of the one before, none closing a
+  loop; a tile no node touches a figure of its own; N with no nodes lays
+  the snake as nodes to change; every tile its **turn**, ↻ or ↺ (*Claude's*,
+  on "set its direction"); ⌘V beside the one copied, touching.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1341,10 +1365,15 @@ this section disagree, this section wins: the owner corrected the sketch on
 - **INKA**, after LOOM (2026-10-17, §1; `app/inka.html`, `app/src/inka.js`,
   `app/src/inkaplan.js`): CCD's page — the tiles CCD's rectangles, R a
   tile, V moves and stretches it, the edges snapping; M and the strip of
-  paints. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME**, INK, the
+  paints; **N**, the nodes: every tile's magnets — its middle a dot, its
+  outer ring's corners and sides' middles rings — a drag from one to one of
+  another tile a node, a click on a node chooses it, ⌫ takes it away;
+  ⌘C ⌘V a tile. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME**, INK, the
   views **Drag · Result** and **▶ Play the run** under them (■ Stop playing
   while it plays, ALU's). The panel: the tiles as keys — □ a tile, ▣ in a
-  block, F and the figure's number — the chosen one's **Step** (1 … 100 mm,
+  block, F and the figure's number — **Nodes**: From the snake · Clear
+  nodes, the chains and the tiles alone — the chosen one's **↻ Clockwise ·
+  ↺ Anticlockwise**, **Step** (1 … 100 mm,
   7; typed or by the slider), the reading of its figure, its turn in the
   run, its rings, out or in, its place and size by the ruler, Whole canvas
   · Duplicate (beside it, touching: the same figure), Run earlier · Run
@@ -1357,7 +1386,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   figure a path. Drag: every figure's path a faint strip the brush's width
   and its centre line, an orange dot where it lands, a ring where it
   lifts, an arrow where it comes onto every tile and its place in the run
-  (1·1 … 2·1), the flight to the next figure dashed blue, ❚❚ wipe; the
+  (1·1 … 2·1, in its top right corner), the nodes in red, an arrow their
+  way, the flight to the next figure dashed blue, ❚❚ wipe; the
   sausages in their paints over MARKS' watercolour. Result: the brush
   through the sausages, the paints mixed as pigments (est.). The reading:
   the figures, their lengths and rings, DRAG's time, the wipes and where

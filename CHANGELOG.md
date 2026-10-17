@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **INKA: nodes, the brush's way by hand; a tile's turn; ⌘C ⌘V** (the
+  owner, 2026-10-17, `INKA/result/`: "you have the brush's way and the
+  colour quite out of control … we need to set its direction"; IMG_1033:
+  "let us make nodes … N is free … round points on every square, magnets
+  the nodes hold to … set as one wishes, there is no algorithm"). **N** in
+  the Tools: every tile's magnets — its middle, its outer ring's corners and
+  sides' middles — and a drag from one to one of another tile lays a node,
+  his red marker's. Into a tile's middle the brush spirals out, the outer
+  ring turned to end where the next node leaves — a side's middle too, the
+  rings stepping in square to it there; into its edge it spirals in from
+  there. One way out of a tile and one in, a later node in the place of
+  the one before, none closing a loop; a tile no node touches a figure of
+  its own. N with no nodes lays the snake as nodes, to change; Nodes in the
+  panel: From the snake, Clear nodes. **↻ Clockwise · ↺ Anticlockwise** a
+  tile. **⌘C ⌘V**: a tile copied with its sausages, laid beside, touching.
+
 - **INKA, a new tab after LOOM: Inca patterns** (the owner, 2026-10-17,
   `INKA/`: "I came up with a new tab, INKA … Inca patterns, square, like
   Mexican rugs or chocolate bars"; Florian Markus's way with the paint, not
