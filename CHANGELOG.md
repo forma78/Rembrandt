@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **INKA: ! on a tile its nodes both in its middle, or both on its edge**
+  (the owner, 2026-10-17, Screenshot 3.54.39 PM: "maybe such a square
+  should be marked with the sign !"). The brush crosses its rings to leave
+  there — out round and back to the middle, or in and across to the edge:
+  a red ! by its place in the run, in its key, and a line under Nodes
+  saying which; a hint, the run as it is.
+
 - **INKA: nodes, the brush's way by hand; a tile's turn; ⌘C ⌘V** (the
   owner, 2026-10-17, `INKA/result/`: "you have the brush's way and the
   colour quite out of control … we need to set its direction"; IMG_1033:

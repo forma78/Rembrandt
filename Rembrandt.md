@@ -61,7 +61,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Tile · block · unit · figure (on INKA)** | A tile: a rectangle laid with R, as CCD's. A block: tiles laid over one another, one outline, its rings the outline's — the owner's "[". A unit: a tile or a block. A figure: units side by side, sharing a side, no farther apart than One figure: tiles apart up to (5 mm, est.) — one line of the brush; units touching only at a corner, or farther apart, a figure each. |
 | **Ring · spiral (on INKA)** | A ring: one loop of the brush round a unit — its outline moved in by the brush's half, then by Step each time, its turns rounded by Corners; a middle left wider than half a step, one more ring. The spiral: the rings joined, each a step short and on along the next. A figure's units in a snake from its bottom left, up first; the first from its middle out, the next from its outside in, and so on — out to the corner nearest the next unit, in from the corner nearest the brush, from a middle straight to the next middle across the rings, as the owner's scheme draws it. |
 | **Wipe (on INKA)** | Before every next figure: the brush flies over its start and goes up to Wipe (+45°, the elbow's highest, est.), the run pauses; the owner wipes it and squeezes that figure's sausages; Continue brings it down to land. |
-| **Node · magnet (on INKA)** | A node: the owner's link from one tile to the next (2026-10-17), laid with N — the brush's way set by hand, no algorithm. A magnet: where a node holds — a tile's middle, where its spiral ends inside, or a corner or a side's middle of its outer ring. A node into a tile's middle: it spirals out, its outer ring turned to end where its next node leaves; into its outer ring: it spirals in from there. One way out of a tile, one in; the chains are the figures, a tile no node touches a figure of its own. No nodes: the snake. |
+| **Node · magnet (on INKA)** | A node: the owner's link from one tile to the next (2026-10-17), laid with N — the brush's way set by hand, no algorithm. A magnet: where a node holds — a tile's middle, where its spiral ends inside, or a corner or a side's middle of its outer ring. A node into a tile's middle: it spirals out, its outer ring turned to end where its next node leaves; into its outer ring: it spirals in from there. One way out of a tile, one in; the chains are the figures, a tile no node touches a figure of its own. No nodes: the snake. A tile whose nodes are both in its middle, or both on its edge — the brush crossing its rings to leave — is marked **!** (the owner's sign, not ⚠, which is the muddy pair's). |
 | **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
 | **Spoke (on INKA)** | A sausage from a unit's side straight in across its rings to its middle, its round end on the tile, so every ring takes it up — round a unit at most 60 mm apart (TAPE's paper test). M lays one through the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
@@ -658,7 +658,13 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   one in, a later node in the place of the one before, none closing a
   loop; a tile no node touches a figure of its own; N with no nodes lays
   the snake as nodes to change; every tile its **turn**, ↻ or ↺ (*Claude's*,
-  on "set its direction"); ⌘V beside the one copied, touching.
+  on "set its direction"); ⌘V beside the one copied, touching. **!** on a
+  tile its nodes both in its middle, or both on its edge (the owner, the
+  same afternoon, Screenshot 3.54.39 PM, a node laid in and out of one
+  middle by mistake: "maybe such a square should be marked with the sign
+  !"; then 3.57.31 PM, put right: "it came out very worthy"): the badge by
+  its place in the run, ! in its key, a line in red under Nodes; the run as
+  it is, a hint, never a stop.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
