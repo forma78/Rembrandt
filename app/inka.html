@@ -48,6 +48,11 @@
       <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="0.5"/><path d="M7.5 8.5h9v7h-6v-3.5h2.5" class="thin"/></svg>
       <span>R</span>
     </button>
+    <!-- the nodes (the owner, 2026-10-17: "add a nodes key to the TOOLS, N is free"): the brush's way from tile to tile, by hand -->
+    <button class="tool" data-tool="node" title="Nodes — the brush's way, by hand: drag from a magnet of a tile — its middle, a corner, a side's middle — to a magnet of the next. Into a tile's middle, it spirals out to where the next node leaves; into its edge, it spirals in from there. A click on a node chooses it, ⌫ takes it away (N)">
+      <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="0.5" class="thin"/><rect x="13.5" y="13.5" width="7" height="7" rx="0.5" class="thin"/><path d="M7 7l10 10" class="bold"/><circle cx="7" cy="7" r="1.6" class="dot"/><circle cx="17" cy="17" r="1.6" class="dot"/></svg>
+      <span>N</span>
+    </button>
     <!-- the sausages by hand: a paint in the strip, then a click on a tile -->
     <button class="tool" data-tool="paint" title="Sausages — a click on a tile lays a spoke of the chosen paint from its nearest side across the rings to the middle; a drag lays one where you drag it; a click on one with its paint takes it away, with another paint repaints it (M)">
       <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><rect x="8" y="8" width="8" height="8" rx="0.5" class="thin"/><path d="M12 4v8M20 12h-8" class="bold"/></svg>
@@ -118,6 +123,10 @@
         <button class="btn" id="btnNew" title="A new tile the whole canvas; or the R tool to lay one by hand">New: whole canvas</button>
         <button class="btn" id="btnDraw" title="The Tile tool: drag on the canvas (R)">Draw one (R)</button>
       </div>
+      <!-- the nodes: the brush's way set by hand, or the snake -->
+      <h4>Nodes <span class="hint" id="nodesOf"></span></h4>
+      <p class="read" id="nodeRead"></p>
+      <div class="grid4 keys"><button class="btn" id="btnSnakeNodes" title="The snake laid as nodes — the way the brush would run by itself — to change them with N (⌘Z goes back)">From the snake</button><button class="btn" id="btnClearNodes" title="No nodes: the brush runs the snake by itself, tiles side by side one figure (⌘Z goes back)">Clear nodes</button></div>
       <div class="edit" id="rectEdit"></div>
       <!-- the chosen figure's paints, CCD's keys -->
       <h4>Paints <span class="hint" id="paintsOf"></span> <button class="info" id="paintInfo" title="The spokes, the palette, its seed">i</button></h4>

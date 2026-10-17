@@ -22,7 +22,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
-import { cleanRect, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, INKA_META, figName, lenOf, atPiece,
+import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, INKA_META, figName, lenOf, atPiece,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, JOIN_NEW, CORNER_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -46,15 +46,17 @@ const S = {
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
   view: 'drag', density: DENSITY_NEW, paint: 'brown', ink: true,                  // the view; the paint in a sausage; M's paint; INK, MARKS' watercolour and TEST's dip
+  nodes: [], nodeSel: -1,                                                            // the brush's way by hand (inkaplan.js, linksOf); the node chosen
 };
 const NUM = ['sel', 'brush', 'drag', 'corner', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
-const TOOLS = ['edit', 'rect', 'paint'], VIEWS = ['drag', 'result'];
+const TOOLS = ['edit', 'rect', 'node', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
-    if (Array.isArray(o.rects)) S.rects = o.rects.map(cleanRect).filter(Boolean);
+    if (Array.isArray(o.rects)) S.rects = withIds(o.rects.map(cleanRect).filter(Boolean));
+    S.nodes = cleanNodes(o.nodes);
     if (TOOLS.includes(o.tool)) S.tool = o.tool;
     if (VIEWS.includes(o.view)) S.view = o.view;
     if (typeof o.ink === 'boolean') S.ink = o.ink;
@@ -64,7 +66,8 @@ function load() {
   } catch { }
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } };
-const wholeCanvas = () => cleanRect({ x: 0, y: 0, w: S.boardW, h: S.boardH, step: S.rects[S.sel]?.step ?? STEP_NEW });
+const newId = () => Math.max(0, ...S.rects.map(r => r.id ?? 0)) + 1;
+const wholeCanvas = () => cleanRect({ id: newId(), x: 0, y: 0, w: S.boardW, h: S.boardH, step: S.rects[S.sel]?.step ?? STEP_NEW });
 // The owner's paper test (personal_references/ IMG_1027, Screenshot 12.52.59
 // PM) on the canvas: six tiles, two columns of three, and the "[" apart —
 // four rectangles overlapping, one block — in the Inka palette
@@ -74,17 +77,18 @@ function paperTest() {
   const rs = [];
   for (let c = 0; c < 2; c++) for (let r = 0; r < 3; r++) rs.push({ x: x0 + c * t, y: y0 + r * t, w: t, h: t });   // square tiles, two columns of three
   rs.push({ x: bx, y: y0, w: 0.42 * bw, h: bh }, { x: bx, y: y0 + 0.8 * bh, w: bw, h: 0.2 * bh }, { x: bx, y: y0, w: bw, h: 0.2 * bh }, { x: bx, y: y0 + 0.42 * bh, w: 0.7 * bw, h: 0.16 * bh });   // the "[": its bar, two arms, the tongue
-  S.rects = rs.map(q => cleanRect({ x: r2(q.x), y: r2(q.y), w: r2(q.w), h: r2(q.h), step: STEP_NEW }));
+  S.rects = withIds(rs.map(q => cleanRect({ x: r2(q.x), y: r2(q.y), w: r2(q.w), h: r2(q.h), step: STEP_NEW })));
+  S.nodes = [];
   const P = planNow();
   for (const F of P.figs) dealOn(F, structuredClone(INKA_META.Inka), 1027 + F.n, 'colours');
   S.sel = 0;
 }
 
 // ---------- the plan (inkaplan.js) ----------
-const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, join: S.join, corner: S.corner });
+const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, join: S.join, corner: S.corner, nodes: S.nodes });
 let PL = null, plKey = '';
 function planNow() {
-  const key = JSON.stringify([S.rects.map(r => [r.x, r.y, r.w, r.h, r.step]), S.brush, S.join, S.corner]);
+  const key = JSON.stringify([S.rects.map(r => [r.id, r.x, r.y, r.w, r.h, r.step, r.turn]), S.brush, S.join, S.corner, S.nodes]);
   if (PL && key === plKey) return PL;
   plKey = key; PL = planOf(S.rects, po());
   return PL;
@@ -196,7 +200,7 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (S.view === 'result') drawResult(); else { drawPaths(); drawSausages(); drawOrder(); }
+  if (S.view === 'result') drawResult(); else { drawPaths(); drawSausages(); drawOrder(); drawNodes(); }
   if (REF && S.refOpacity > 0) {
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
     g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
@@ -263,18 +267,46 @@ function drawPaths() {
   }
   g.restore();
 }
-// every tile's place in the run, over its middle, over the sausages too
+// every tile's place in the run, in its top right corner, over the sausages too
 function drawOrder() {
   const P = planNow();
   g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.font = font(11, 600); g.textAlign = 'center'; g.textBaseline = 'middle';
   for (const F of P.figs) F.us.forEach((id, j) => {
-    const c = scr(mid(P.units[id].box)), lab = P.figs.length > 1 ? `${F.n}·${j + 1}` : String(j + 1), tw = g.measureText(lab).width + 10;
+    const b = P.units[id].box, tr = scr([b.x + b.w, b.y + b.h]), lab = P.figs.length > 1 ? `${F.n}·${j + 1}` : String(j + 1), tw = g.measureText(lab).width + 10, c = [tr[0] - tw / 2 - 4, tr[1] + 13];   // in its top right corner: its middle is the nodes'
     g.fillStyle = 'rgba(251,250,247,.9)'; g.strokeStyle = 'rgba(179,71,12,.55)'; g.lineWidth = 1; g.beginPath(); g.roundRect(c[0] - tw / 2, c[1] - 9, tw, 18, 9); g.fill(); g.stroke();
     g.fillStyle = '#B3470C'; g.fillText(lab, c[0], c[1] + 0.5);
   });
   g.restore();
 }
 const mid = b => [b.x + b.w / 2, b.y + b.h / 2];
+// The nodes, the owner's red marker (IMG_1033): a line from magnet to magnet
+// over the paths, a dot at each end, an arrow the way the brush goes; the
+// chosen one thicker on orange. With N the magnets: every unit's middle a
+// dot, its outer ring's corners and sides' middles rings; the one under the
+// pointer orange.
+const NODE = '#E5203A';
+function drawNodes() {
+  const P = planNow(), on = S.tool === 'node';
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.lineCap = 'round'; g.lineJoin = 'round';
+  if (on) for (const U of P.units) for (const q of U.M) {
+    const p = scr(q.p), hot = grab?.kind === 'node' ? grab.snap && grab.snap.u === U.id && grab.snap.m === q.m && grab.snap.id === q.id : HOT && HOT.u === U.id && HOT.m === q.m && HOT.id === q.id;
+    g.fillStyle = q.c ? themeColor('--ink', '#24221F') : '#FBFAF7'; g.strokeStyle = hot ? ORANGE : 'rgba(36,34,31,.8)'; g.lineWidth = hot ? 2.5 : 1.3;
+    g.beginPath(); g.arc(p[0], p[1], q.c ? 4 : 3.6, 0, 7); g.fill(); g.stroke();
+    if (hot) { g.beginPath(); g.arc(p[0], p[1], 8, 0, 7); g.stroke(); }
+  }
+  P.links.forEach(l => {
+    const a = scr(l.a.p), b = scr(l.b.p), sel = l.i === S.nodeSel, d = [b[0] - a[0], b[1] - a[1]], L = Math.hypot(...d) || 1, u = [d[0] / L, d[1] / L], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], w = 6;
+    if (sel) { g.strokeStyle = ORANGE; g.lineWidth = 8; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+    g.strokeStyle = NODE; g.lineWidth = sel ? 4 : 3; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+    g.beginPath(); g.moveTo(m[0] - u[0] * w - u[1] * w * 0.7, m[1] - u[1] * w + u[0] * w * 0.7); g.lineTo(m[0] + u[0] * 2, m[1] + u[1] * 2); g.lineTo(m[0] - u[0] * w + u[1] * w * 0.7, m[1] - u[1] * w - u[0] * w * 0.7); g.stroke();
+    g.fillStyle = '#24221F'; for (const q of [a, b]) { g.beginPath(); g.arc(q[0], q[1], 3.2, 0, 7); g.fill(); }
+  });
+  if (grab?.kind === 'node') {                                                      // a node being drawn
+    const a = scr(grab.from.p), b = grab.snap ? scr(grab.snap.p) : scr(grab.to);
+    g.strokeStyle = NODE; g.lineWidth = 3; g.setLineDash(grab.snap ? [] : [6, 5]); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); g.setLineDash([]);
+  }
+  g.restore();
+}
 // The sausages on Drag, where to squeeze them: each its paint, a dark edge so
 // a light one reads; MARKS' dashes under them in watercolour, the brush's
 // width. A paint chosen in the list (CCD's black arrows): its sausages
@@ -390,10 +422,10 @@ function guides() {
     g.strokeRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); g.setLineDash([]);
     g.fillStyle = on ? '#B3470C' : themeColor('--mute', '#7D776D'); g.textAlign = 'left';
     if (b[0] - a[0] > 34 && b[1] - a[1] > 20) g.fillText(`${i + 1}`, a[0] + 5, a[1] + 13);
-    if (on && grab && grab.kind !== 'move' && grab.kind !== 'paint') { g.textAlign = 'right'; g.fillText(`${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm`, b[0], a[1] - 5); }
+    if (on && grab && grab.kind !== 'move' && grab.kind !== 'paint' && grab.kind !== 'node') { g.textAlign = 'right'; g.fillText(`${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm`, b[0], a[1] - 5); }
   });
   const r = S.rects[S.sel];
-  if (r && !(grab?.kind === 'new') && S.tool !== 'paint') for (const q of handlesOf(r)) {
+  if (r && !(grab?.kind === 'new') && S.tool !== 'paint' && S.tool !== 'node') for (const q of handlesOf(r)) {
     const s = scr(q.at); g.fillStyle = '#FBFAF7'; g.strokeStyle = ORANGE; g.lineWidth = 1.4; g.fillRect(s[0] - 3.5, s[1] - 3.5, 7, 7); g.strokeRect(s[0] - 3.5, s[1] - 3.5, 7, 7);
   }
   if (grab?.kind === 'paint' && grab.moved && grab.to) {                              // a sausage being laid by hand
@@ -455,7 +487,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'corner', 'join', 'wipe', 'density'];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'corner', 'join', 'wipe', 'density', 'nodes'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -540,12 +572,17 @@ cv.addEventListener('pointerdown', e => {
   if (PLAY) { stopPlay(); kick(); }
   const p = toMm(e);
   if (S.tool === 'paint') { grab = { kind: 'paint', from: p, to: p, moved: false }; cv.setPointerCapture(e.pointerId); return; }
+  if (S.tool === 'node') {                                                          // from a magnet: a node drawn; on a node: it is chosen
+    const mg = magnetAt(e);
+    if (mg) { grab = { kind: 'node', from: mg, to: mg.p, snap: null }; cv.setPointerCapture(e.pointerId); kick(); return; }
+    S.nodeSel = nodeAt(e); showNodes(); kick(); return;
+  }
   const hd = nearHandle(e);
   if (hd) { undoPush(); grab = { kind: 'size', hx: hd.hx, hy: hd.hy, r0: { ...S.rects[S.sel] }, moved: false }; cv.setPointerCapture(e.pointerId); return; }
   if (S.tool === 'rect') {
     undoPush();
     const x = clampX(snapTo(p[0], 'x', -1)), y = clampY(snapTo(p[1], 'y', -1)), was = S.rects[S.sel];
-    S.rects.push(cleanRect({ x, y, w: MIN_SIDE, h: MIN_SIDE, step: was?.step ?? STEP_NEW })); S.sel = S.rects.length - 1;
+    S.rects.push(cleanRect({ id: newId(), x, y, w: MIN_SIDE, h: MIN_SIDE, step: was?.step ?? STEP_NEW, turn: was?.turn })); S.sel = S.rects.length - 1;
     grab = { kind: 'new', ax: x, ay: y, moved: false }; cv.setPointerCapture(e.pointerId); kick(); return;
   }
   const i = rectAt(p);
@@ -554,11 +591,13 @@ cv.addEventListener('pointerdown', e => {
 cv.addEventListener('pointermove', e => {
   if (!grab) {
     const hd = S.tool === 'paint' ? null : nearHandle(e);
+    if (S.tool === 'node') { const was = HOT; HOT = magnetAt(e); cv.style.cursor = HOT ? 'crosshair' : nodeAt(e) >= 0 ? 'pointer' : ''; if (was !== HOT) kick(); return; }
     cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' || S.tool === 'paint' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
     showTip(e);
     return;
   }
   const p = toMm(e);
+  if (grab.kind === 'node') { grab.to = p; const mg = magnetAt(e); grab.snap = mg && mg.u !== grab.from.u ? mg : null; kick(); return; }
   if (grab.kind === 'paint') { grab.to = p; grab.moved = grab.moved || Math.hypot(p[0] - grab.from[0], p[1] - grab.from[1]) > 3; kick(); return; }
   grab.moved = true; busy = true;
   const r = S.rects[S.sel], r0 = grab.r0;
@@ -575,6 +614,7 @@ const drop = () => {
   if (!grab) return;
   const was = grab; grab = null;
   if (was.kind === 'paint') { if (was.moved) paintAlong(was.from, was.to); else paintAt(was.from); kick(); return; }
+  if (was.kind === 'node') { if (was.snap) addNode(was.from, was.snap); else kick(); return; }
   if (was.kind === 'new') {
     const r = S.rects[S.sel];
     if (!was.moved || r.w < 2 || r.h < 2) { S.rects.pop(); S.sel = Math.max(0, S.rects.length - 1); undoStack.pop(); }
@@ -583,13 +623,41 @@ const drop = () => {
   settle();
 };
 cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
+// N: the magnet under the pointer, within MAGNET_PX on the screen; the node under it
+const MAGNET_PX = 13;
+let HOT = null;
+function magnetAt(e) {
+  const rc = cv.getBoundingClientRect(), mx = e.clientX - rc.left, my = e.clientY - rc.top;
+  let best = null, bd = MAGNET_PX;
+  for (const U of planNow().units) for (const q of U.M) { const s = scr(q.p), d = Math.hypot(s[0] - mx, s[1] - my); if (d < bd) { bd = d; best = { ...q, u: U.id }; } }
+  return best;
+}
+function nodeAt(e) {
+  const rc = cv.getBoundingClientRect(), m = [e.clientX - rc.left, e.clientY - rc.top];
+  let best = -1, bd = 7;
+  for (const l of planNow().links) { const d = segDist(m, scr(l.a.p), scr(l.b.p)); if (d < bd) { bd = d; best = l.i; } }
+  return best;
+}
+// a node from a magnet to a magnet: the tile's way out before it, and the next one's way in, give way to it; one that would close a loop, refused
+function addNode(a, b) {
+  const nodes = [...S.nodes, { a: { id: a.id, m: a.m }, b: { id: b.id, m: b.m } }];
+  if (!linksOf(nodes, S.rects, planNow().units).some(l => l.i === nodes.length - 1)) { $('#hint').textContent = 'That node would close a loop: the brush would come back to a tile it has painted. Not laid.'; kick(); return; }
+  undoPush(); S.nodes = nodes; S.nodeSel = nodes.length - 1; settle();
+}
+function deleteNode() { if (S.nodeSel < 0 || !S.nodes[S.nodeSel]) return; undoPush(); S.nodes.splice(S.nodeSel, 1); S.nodeSel = -1; settle(); }
 function moveRect(dx, dy) { const r = S.rects[S.sel]; if (!r) return; undoPush(); r.x = clampX(r.x + dx); r.y = clampY(r.y + dy); settle(); }
-function deleteRect() { if (!S.rects[S.sel]) return; undoPush(); S.rects.splice(S.sel, 1); S.sel = Math.max(0, S.sel - 1); settle(); }
-function clearAll() { if (!S.rects.length) return; undoPush(); S.rects = []; S.sel = 0; S.tool = 'rect'; settle(); }
-function setTool(t) { S.tool = t; if (t === 'paint') S.view = 'drag'; settle(); }
+function deleteRect() { const r = S.rects[S.sel]; if (!r) return; undoPush(); S.rects.splice(S.sel, 1); S.nodes = S.nodes.filter(q => q.a.id !== r.id && q.b.id !== r.id); S.sel = Math.max(0, S.sel - 1); settle(); }
+function clearAll() { if (!S.rects.length) return; undoPush(); S.rects = []; S.nodes = []; S.sel = 0; S.tool = 'rect'; settle(); }
+// N with no nodes yet: the snake laid as nodes, the way the brush runs now, to change
+function setTool(t) {
+  S.tool = t; S.view = t === 'paint' || t === 'node' ? 'drag' : S.view;
+  if (t === 'node' && !S.nodes.length && planNow().figs.some(F => F.us.length > 1)) { undoPush(); S.nodes = snakeNodes(planNow(), S.rects); }
+  settle();
+}
 const HINT = {
   edit: 'Edit: drag a tile to move it, its handles to stretch it; a click chooses it; the arrows move it a mm, with ⇧ ten; ⌫ takes it away. Its edges snap to the canvas\'s and the other tiles\' — side by side they are one figure; laid over one another, one block.',
   rect: 'Tile: drag on the canvas to lay one, its step the chosen one\'s. Side by side with others it joins their figure, the brush on through it; over another it melts into it, one block, one outline — the "[".',
+  node: 'N: drag from a magnet of a tile — its middle, a corner, a side\'s middle — to one of the next: the brush\'s way. Into a tile\'s middle it spirals out to where its next node leaves; into its edge it spirals in from there to its middle. A tile one way out and one in: a new node takes the old one\'s place. A click on a node chooses it, ⌫ takes it away.',
   paint: 'M: a click on a tile lays a spoke of the chosen paint from its nearest side across the rings to the middle; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
 };
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
@@ -599,14 +667,28 @@ addEventListener('keydown', e => {
   if (e.target.matches('input,select,textarea')) return;
   const cmd = e.metaKey || e.ctrlKey;
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (cmd && e.key.toLowerCase() === 'c') { if (S.rects[S.sel]) { e.preventDefault(); COPY = structuredClone(S.rects[S.sel]); PASTED = null; $('#hint').textContent = `Tile ${S.sel + 1} copied: ⌘V lays it beside, touching.`; } return; }
+  if (cmd && e.key.toLowerCase() === 'v') { if (COPY) { e.preventDefault(); paste(); } return; }
   if (cmd) return;
-  if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); deleteRect(); return; }
-  const tool = { v: 'edit', r: 'rect', m: 'paint' }[e.key.toLowerCase()];
+  if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); if (S.tool === 'node' && S.nodeSel >= 0) deleteNode(); else deleteRect(); return; }
+  const tool = { v: 'edit', r: 'rect', n: 'node', m: 'paint' }[e.key.toLowerCase()];
   if (tool) { setTool(tool); return; }
   const arrow = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveRect(arrow[0] * d, arrow[1] * d); }
 });
 
+// ⌘C ⌘V (the owner, 2026-10-17: "Duplicate is not very handy"): the chosen
+// tile copied, its sausages and its turn with it; a paste lays it beside the
+// one copied, touching on the right — the next paste beside that one — or
+// above when the right runs past the canvas
+let COPY = null, PASTED = null;
+function paste() {
+  const base = PASTED ?? COPY, c = structuredClone(COPY);
+  c.id = newId(); c.x = base.x + base.w; c.y = base.y;
+  if (c.x + c.w > S.boardW + OFF) { c.x = base.x; c.y = base.y + base.h; }
+  c.x = clampX(c.x); c.y = clampY(c.y);
+  undoPush(); S.rects.push(c); S.sel = S.rects.length - 1; PASTED = c; S.tool = 'edit'; settle();
+}
 // The zoom (CCD's)
 function zoomTo(z, e) {
   z = Math.max(ZOOMS[0], Math.min(ZOOMS.at(-1), z));
@@ -659,7 +741,8 @@ $('#slBrush').querySelectorAll('input').forEach(inp => {
 function tileText(i) {
   const P = planNow(), U = unitOfRect(i), F = figOfRect(i); if (!U || !F) return '';
   const j = F.us.indexOf(U.id), block = U.rs.length > 1, rings = U.R.levels;
-  return `${block ? `In a block of ${U.rs.length} rectangles, one outline` : 'A tile'} · figure ${F.n} of ${P.figs.length}, ${j + 1} of ${F.us.length} in its run · <b>${rings}</b> ring${rings === 1 ? '' : 's'}, ${j % 2 ? 'from its outside in' : 'from its middle out'}${block && U.rs[0] !== i ? ` · its step the block's first rectangle's, ${fmt(U.step, 1)} mm` : ''}`;
+  const e = F.ends[j], inward = Math.hypot(e.b[0] - U.M[0].p[0], e.b[1] - U.M[0].p[1]) < Math.hypot(e.a[0] - U.M[0].p[0], e.a[1] - U.M[0].p[1]);
+  return `${block ? `In a block of ${U.rs.length} rectangles, one outline` : 'A tile'} · figure ${F.n} of ${P.figs.length}, ${j + 1} of ${F.us.length} in its run${P.manual ? ', by the nodes' : ''} · <b>${rings}</b> ring${rings === 1 ? '' : 's'}, ${inward ? 'from its outside in' : 'from its middle out'}, ${U.turn === 'ccw' ? '↺' : '↻'}${block && U.rs[0] !== i ? ` · its step and turn the block's first rectangle's` : ''}`;
 }
 function showRects() {
   const P = planNow();
@@ -673,6 +756,7 @@ function showRect() {
   if (!r) { box.innerHTML = ''; return; }
   box.innerHTML = `
     <h4>Tile ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
+    <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round this tile clockwise as it paints it, in or out">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round this tile anticlockwise as it paints it, in or out">↺ Anticlockwise</button></div>
     <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush, white ridges between the rings, Florian's; narrower, they overlap"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label></div>
     <p class="read" id="rGap">${tileText(S.sel)} · ${r.step > S.brush + 0.05 ? `white <b>${fmt(r.step - S.brush, 1)} mm</b> between the rings` : r.step < S.brush - 0.05 ? `the rings overlapping by <b>${fmt(S.brush - r.step, 1)} mm</b>` : 'ring to ring'}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
@@ -695,11 +779,23 @@ function showRect() {
   num.onchange = () => { num.value = r.step; settle(); };
   const act = (sel, fn) => box.querySelectorAll(sel).forEach(b => b.onclick = () => { undoPush(); fn(b); settle(); });
   act('#rFit', () => { Object.assign(r, { x: 0, y: 0, w: S.boardW, h: S.boardH }); });
-  act('#rDup', () => { const c = structuredClone(r); c.x = clampX(r.x + r.w); S.rects.push(c); S.sel = S.rects.length - 1; });
+  act('#rDup', () => { const c = structuredClone(r); c.id = newId(); c.x = clampX(r.x + r.w); S.rects.push(c); S.sel = S.rects.length - 1; });
+  act('[data-turn]', b => { const U = unitOfRect(S.sel); for (const i of U ? U.rs : [S.sel]) S.rects[i].turn = b.dataset.turn; });
   act('#rEarly', () => { const i = S.sel; [S.rects[i], S.rects[i - 1]] = [S.rects[i - 1], S.rects[i]]; S.sel--; });
   act('#rLate', () => { const i = S.sel; [S.rects[i], S.rects[i + 1]] = [S.rects[i + 1], S.rects[i]]; S.sel++; });
   $('#rDel').onclick = deleteRect;
 }
+// The nodes' reading and keys
+function showNodes() {
+  const P = planNow(), alone = P.manual ? P.figs.filter(F => F.us.length === 1).map(F => P.units[F.us[0]].rs.map(i => i + 1).join('+')) : [];
+  $('#nodesOf').textContent = P.manual ? `${P.links.length} · by hand` : 'none · the snake';
+  $('#nodeRead').innerHTML = !S.rects.length ? '' : P.manual
+    ? `<b>${P.links.length}</b> node${P.links.length === 1 ? '' : 's'}: ${P.figs.filter(F => F.us.length > 1).length} chain${P.figs.filter(F => F.us.length > 1).length === 1 ? '' : 's'}, the brush down along each${alone.length ? ` · alone, a figure each: tile${alone.length === 1 ? '' : 's'} ${alone.join(', ')}` : ''}${S.nodeSel >= 0 && S.nodes[S.nodeSel] ? ' · a node chosen: ⌫ takes it away' : ''}`
+    : 'No nodes: the brush runs the snake by itself — tiles side by side one figure, from the bottom left up. N lays it as nodes, to change.';
+  $('#btnClearNodes').disabled = !S.nodes.length;
+}
+$('#btnSnakeNodes').onclick = () => { undoPush(); const keep = S.nodes; S.nodes = []; PL = null; const P = planNow(); S.nodes = snakeNodes(P, S.rects); if (!S.nodes.length) S.nodes = keep; S.tool = 'node'; S.view = 'drag'; settle(); };
+$('#btnClearNodes').onclick = () => { if (!S.nodes.length) return; undoPush(); S.nodes = []; S.nodeSel = -1; settle(); };
 $('#btnNew').onclick = () => { undoPush(); S.rects.push(wholeCanvas()); S.sel = S.rects.length - 1; S.tool = 'edit'; settle(); };
 $('#btnDraw').onclick = () => setTool('rect');
 
@@ -826,6 +922,11 @@ const what = () => { const P = planNow(); return `${P.figs.length} figure${P.fig
 function settle() {
   busy = false;
   if (S.sel >= S.rects.length) S.sel = Math.max(0, S.rects.length - 1);
+  {                                                                                    // the nodes the plan takes, in their order: one given way, or refused, gone
+    const L = planNow().links;
+    if (S.nodes.length && L.length !== S.nodes.length) { const sel = S.nodes[S.nodeSel]; S.nodes = L.map(l => S.nodes[l.i]); S.nodeSel = S.nodes.indexOf(sel); }
+    if (S.nodeSel >= S.nodes.length) S.nodeSel = -1;
+  }
   const P = planNow(), D = dragRun(), Mk = marksRun(), here = hereNow(), lines = [];
   lines.push(!P.figs.length ? 'No tiles: New, or the R tool and a drag on the canvas.' : `<b>${P.figs.length}</b> figure${P.figs.length === 1 ? '' : 's'} · ${S.rects.length} tile${S.rects.length === 1 ? '' : 's'} · DRAG: every figure one line, the brush down all the way, ${fmt(D.mm / 1000, 2)} m at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 1)} min (est.)`);
   for (const F of P.figs) lines.push(`${figName(F, P.units)}: ${fmt(F.length / 1000, 2)} m, ${F.us.map(id => P.units[id].R.levels).reduce((a, b) => a + b, 0)} rings`);
@@ -841,7 +942,7 @@ function settle() {
   $('#planWarn').hidden = !warn.length;
   $('#stats').textContent = !P.figs.length ? 'no tiles' : `${what()}${Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · DRAG ${fmt(D.mm / 1000, 2)} m ≈ ${fmt(D.seconds / 60, 1)} min${D.stops ? `, ${D.stops} wipe${D.stops === 1 ? '' : 's'}` : ''} (est.)`;
   showFiles();
-  showPanel(); showRects(); save(); layout(); lastLcd && lcd(lastLcd);
+  showPanel(); showRects(); showNodes(); save(); layout(); lastLcd && lcd(lastLcd);
 }
 function walls(P_) {
   const h = hereNow();
