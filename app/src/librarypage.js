@@ -34,7 +34,8 @@ async function load() {
 // label SMKN, the same day), a CCD save on CCD (its label CCD, 2026-10-11), a
 // TAPE save on TAPE, the first tab (its label TAPE, 2026-10-12), a BASF save on
 // BASF (its label BASF, the same day), a BIAS save on BIAS (its label BIAS,
-// 2026-10-15).
+// 2026-10-15), a LOOM save on LOOM (2026-10-16), an INKA save on INKA
+// (its label INKA, 2026-10-17).
 const isNolan = d => d.kind === 'test' && /^NOLAN\b/.test(d.label || '');
 const isNewYuri = d => d.kind === 'test' && /^NEW YURI\b/.test(d.label || '');
 const isType = d => d.kind === 'test' && /^TYPE\b/.test(d.label || '');
@@ -47,8 +48,9 @@ const isTape = d => d.kind === 'test' && /^TAPE\b/.test(d.label || '');   // the
 const isBasf = d => d.kind === 'test' && /^BASF\b/.test(d.label || '');   // TAPE wound to the middle, 2026-10-12
 const isBias = d => d.kind === 'test' && /^BIAS\b/.test(d.label || '');   // CCD's on the bias, 2026-10-15
 const isLoom = d => d.kind === 'test' && /^LOOM\b/.test(d.label || '');   // Claude's woven cloth, 2026-10-16
-const kindOf = d => isNolan(d) ? 'nolan' : isNewYuri(d) ? 'newyuri' : isType(d) ? 'type' : isLove(d) ? 'love' : isAluCut(d) ? 'alucut' : isAlu(d) ? 'alu' : isSmkn(d) ? 'smkn' : isCcd(d) ? 'ccd' : isTape(d) ? 'tape' : isBasf(d) ? 'basf' : isBias(d) ? 'bias' : isLoom(d) ? 'loom' : d.kind || 'painting';
-const tabOf = d => isNolan(d) ? 'NOLAN' : isNewYuri(d) ? 'New Yuri' : isType(d) ? 'TYPE' : isLove(d) ? 'LOVE' : isAluCut(d) ? 'ALU-CUT' : isAlu(d) ? 'ALU' : isSmkn(d) ? 'SMKN' : isCcd(d) ? 'CCD' : isTape(d) ? 'TAPE' : isBasf(d) ? 'BASF' : isBias(d) ? 'BIAS' : d.kind === 'test' ? 'Test' : 'Create';
+const isInka = d => d.kind === 'test' && /^INKA\b/.test(d.label || '');   // Inca tiles, 2026-10-17
+const kindOf = d => isNolan(d) ? 'nolan' : isNewYuri(d) ? 'newyuri' : isType(d) ? 'type' : isLove(d) ? 'love' : isAluCut(d) ? 'alucut' : isAlu(d) ? 'alu' : isSmkn(d) ? 'smkn' : isCcd(d) ? 'ccd' : isTape(d) ? 'tape' : isBasf(d) ? 'basf' : isBias(d) ? 'bias' : isLoom(d) ? 'loom' : isInka(d) ? 'inka' : d.kind || 'painting';
+const tabOf = d => isNolan(d) ? 'NOLAN' : isNewYuri(d) ? 'New Yuri' : isType(d) ? 'TYPE' : isLove(d) ? 'LOVE' : isAluCut(d) ? 'ALU-CUT' : isAlu(d) ? 'ALU' : isSmkn(d) ? 'SMKN' : isCcd(d) ? 'CCD' : isTape(d) ? 'TAPE' : isBasf(d) ? 'BASF' : isBias(d) ? 'BIAS' : isLoom(d) ? 'LOOM' : isInka(d) ? 'INKA' : d.kind === 'test' ? 'Test' : 'Create';
 function card(d) {
   const fmt = d.kind === 'test' ? (d.label || 'test') : FORMATS[d.format]?.label || '';
   const strokes = d.strokes == null ? '' : `${d.strokes} stroke${d.strokes === 1 ? '' : 's'}`;
@@ -69,7 +71,7 @@ async function onCard(e) {
     if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();
   }
-  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'type.html', love: 'love.html', alucut: 'alucut.html', alu: 'alu.html', smkn: 'smkn.html', ccd: 'ccd.html', tape: 'index.html', basf: 'basf.html', bias: 'bias.html', loom: 'loom.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
+  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'type.html', love: 'love.html', alucut: 'alucut.html', alu: 'alu.html', smkn: 'smkn.html', ccd: 'ccd.html', tape: 'index.html', basf: 'basf.html', bias: 'bias.html', loom: 'loom.html', inka: 'inka.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
 }
 $('#grid').addEventListener('click', onCard);
 $('#tests').addEventListener('click', onCard);
