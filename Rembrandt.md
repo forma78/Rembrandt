@@ -713,7 +713,12 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the outer ring by the brush's half again, after his canvas in a thin
   paint showed 7 … 11 mm gaps between the tiles ("they must adjoin one
   another, as on the screen … such gigantic gaps"): the trail the Drag
-  strip's, the Result's and the core's, never the tile's edge; the innermost ring placed
+  strip's, the Result's and the core's, never the tile's edge; and after
+  his second canvas, white still along some sides ("even half-round
+  corners should leave a gap only at the corners, the sides must be flush.
+  Maybe we make an optical compensation?"): the ring change past the seam,
+  so the outer ring runs whole along the edge, and **Edge: out by**, 0 by
+  default, the outer ring that much nearer the edge, never past it; the innermost ring placed
   where its paint meets — or, under half a step on, the one before it moved
   there, so no two crowd (est., the swell closing 0.25 mm); the S only at a
   side's middle, Ring change 30 mm (est.); M a click the arm of the X
@@ -1506,7 +1511,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   ("in the style of MARKS / DRAG"): its palette on every tile, dealt anew
   at every press;
   Brush, DRAG: Brush width (3.5 mm), **With paint** (+5.5 mm, the trail
-  beside it, 9 mm), Drag speed (40 mm/s), **Corners** (4 mm, the speed
+  beside it, 9 mm), **Edge: out by** (0 mm, the outer ring's place beside
+  it), Drag speed (40 mm/s), **Corners** (4 mm, the speed
   through a turn beside it), **Ring change** (30 mm), **One figure: tiles
   apart up to** (5 mm), **Wipe: the brush up to** (+45°); the canvas; the
   file, every figure a path. Drag: every figure's path a faint strip the

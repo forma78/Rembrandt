@@ -47,6 +47,12 @@ export const BRUSH_NEW = 3.5;                              // mm, the brush as h
 // Its trail: the brush and SWELL — est. at any other width.
 export const SWELL_NEW = 5.5;
 export const trailOf = o => Math.max(0.5, (o.brush ?? BRUSH_NEW) + (o.swell ?? SWELL_NEW));
+// The outer ring the brush's half in from the tile's edge, less Edge: out —
+// the owner's optical compensation (2026-10-19, the evening, IMG_1201: white
+// along the sides where the brush lays less than its width; "maybe we make
+// an optical compensation?"), 0 by default; never past the edge itself
+export const EDGE_OUT_NEW = 0, EDGE_MIN = 0.25;
+export const edgeOf = o => Math.max(EDGE_MIN, (o.brush ?? BRUSH_NEW) / 2 - (o.edgeOut ?? EDGE_OUT_NEW));
 export const JOIN_NEW = 5;                                 // mm: tiles this near are one figure (est.)
 export const CORNER_NEW = 4;                               // mm, a turn's radius: √(250 · 4) ≈ 31 mm/s on it, never a stop (machine.js, arcSpeed)
 export const CHANGE_NEW = 30;                              // mm: from a ring to the next at a side's middle, an S this long at most (est.)
@@ -348,14 +354,27 @@ function seamAt(L, p) {
 // from one turn to the next"); else round to the seam, then its holes and the
 // rings inside, each from the nearest. o: { corner, change }. The S's two
 // ends carry one token, .S, so roundOf lays them two arcs.
-function spiralIn(node, hint, o = {}, tok = null) {
+// The S past the seam (the owner, 2026-10-19, the same evening, white along
+// the tiles' sides on his canvas, IMG_1201): every ring whole round to its
+// seam, then in to the next over the side ahead of it, the next ring from
+// there round to its own seam — one stretch the S's for every ring, as
+// TAPE's lane change, and the outer ring whole along the tile's edge; before
+// the seam only where the side ahead is too short. skip: the ring begun
+// that far past its seam, where the S coming in lands.
+function spiralIn(node, hint, o = {}, tok = null, skip = 0) {
   const at = seamAt(node.loops[0], hint), L = at ? at.L : node.loops[0], k0 = at ? at.k : seamOf(node, hint), n = L.length, pts = [];
   for (let m = 0; m <= n; m++) pts.push(L[(k0 + m) % n].slice());
+  if (skip > 0) { const v = unitV(sub(L[(k0 + 1) % n], L[k0])); pts[0] = [pts[0][0] + v[0] * skip, pts[0][1] + v[1] * skip]; }
   if (tok) pts[0].S = tok;
   if (node.kids.length === 1 && node.loops.length === 1) {
     const kid = node.kids[0], s = kid.d - node.d, c = pts.at(-1), b = pts.at(-2), u = unitV(sub(c, b)), on = unitV(sub(L[(k0 + 1) % n], c)), cv = convexOf(L).find(q => q.k === k0);
     const side = !cv && Math.abs(crs(u, on)) < 1e-9 && u[0] * on[0] + u[1] * on[1] > 0, w = cv ? cv.diag : side ? [u[1], -u[0]] : null;
     const next = w ? [c[0] + w[0] * s, c[1] + w[1] * s] : null, room = dist(c, b) - (o.corner ?? CORNER_NEW);
+    const ahead = side ? dist(c, L[(k0 + 1) % n]) - s - (o.corner ?? CORNER_NEW) : 0;
+    if (side && ahead >= s) {
+      const Lx = Math.min(ahead, Math.max(s, o.change ?? CHANGE_NEW)), land = [next[0] + u[0] * Lx, next[1] + u[1] * Lx], t = {};
+      if (seamAt(kid.loops[0], next) && seamAt(kid.loops[0], land)) { c.S = t; return pts.concat(spiralIn(kid, next, o, t, Lx)); }
+    }
     if (side && room >= s) {
       const Lx = Math.min(room, Math.max(s, o.change ?? CHANGE_NEW)), a = [c[0] - u[0] * Lx, c[1] - u[1] * Lx], t = {};
       a.S = t; pts[pts.length - 1] = a;
@@ -392,7 +411,7 @@ export function spiralOf(R, hint, out = false, o = {}) {
 const mx = p => { if (!p) return p; const q = [-p[0], p[1]]; if (p.S) q.S = p.S; return q; };
 export function unitPath(U, rects, o, dir, at, hint) {
   const mirror = (dir === 'in') === (U.turn === 'ccw');
-  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step, o.edge ?? (o.brush ?? BRUSH_NEW) / 2);
+  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step, o.edge ?? edgeOf(o));
   const R = mirror ? U.Rm : U.R, pts = spiralOf(R, mirror ? mx(at ?? hint ?? null) : at ?? hint ?? null, dir === 'out', o);
   return mirror ? pts.map(mx) : pts;
 }
@@ -553,9 +572,9 @@ export function atPiece(g, s) {
 // owner, 2026-10-17, on a node laid in and out of one middle by mistake,
 // Screenshot 3.54.39 PM: "maybe mark such a square with the sign !"):
 // cross, per unit, null, 'middle' or 'edge'.
-// o: { brush, swell, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
+// o: { brush, swell, edgeOut, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
 export function planOf(rects, o) {
-  const trail = trailOf(o), edge = (o.brush ?? BRUSH_NEW) / 2, units = unitsOf(rects), way = { trail, edge, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
+  const trail = trailOf(o), edge = edgeOf(o), units = unitsOf(rects), way = { trail, edge, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
   for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge); U.M = magnetsOf(U, rects); }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
   const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
@@ -674,7 +693,7 @@ function erodeZero(G) {
 // corner of its outline in at 45°, as far as the middle of its part goes, no
 // deeper than its innermost ring. → [{ a, b }]
 export function spokesOf(U, rects, o = {}) {
-  const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step, (o.brush ?? BRUSH_NEW) / 2), out = [];
+  const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step, edgeOf(o)), out = [];
   let n = R.roots[0]; while (n?.kids.length) n = n.kids[0];
   const L = n?.loops[0], half = k => L ? (Math.max(...L.map(v => v[k])) - Math.min(...L.map(v => v[k]))) / 2 : 0;
   const arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };

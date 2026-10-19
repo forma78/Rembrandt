@@ -25,6 +25,9 @@ test('the trail: the brush and its swell, 9 mm at his 3.5; the Drag and the Resu
   const edge = q => Math.min(q[0], q[1], 64 - q[0], 63.5 - q[1]);
   assert.ok(P.figs[0].pts.every(q => edge(q) >= 1.75 - 1e-6) && P.figs[0].pts.some(q => Math.abs(edge(q) - 1.75) < 1e-6), 'the outer ring the dry brush\'s half in, 1.75: touching tiles meet whatever the paint (2026-10-19, the evening)');
   assert.match(dragSvg(P, { ...O, brush: 3.5, swell: SWELL_NEW }), /data-trail-mm="9"/);
+  // Edge: out, the optical compensation (2026-10-19, the evening): the outer ring nearer the edge, never past it
+  const edgeAt = e => Math.min(...planOf(rs, { ...O, brush: 3.5, swell: SWELL_NEW, edgeOut: e }).figs[0].pts.map(edge));
+  assert.ok(Math.abs(edgeAt(1) - 0.75) < 1e-6 && Math.abs(edgeAt(9) - 0.25) < 1e-6);
 });
 
 test('a rectangle as kept: its step 1 … 100 mm, its sausages with real paints only, its palette', () => {
@@ -224,17 +227,18 @@ test('the owner\'s nodes: 1 in to its middle, 2 out to its right side\'s middle,
 });
 
 // The ring change (the owner, 2026-10-19: "too sharp … let the transition be as in TAPE or BASF")
-test('a side\'s middle the seam: every ring round, then an S in to the next over the side, as TAPE\'s lane change', () => {
+test('a side\'s middle the seam: every ring round, then an S in to the next over the side past it, as TAPE\'s lane change', () => {
   const R = ringsOf([{ x: 0, y: 0, w: 50, h: 50 }], 6, 7), s = cleanPts(spiralOf(R, [47, 25], false, { corner: 4, change: 30 }));
-  assert.deepEqual(s.slice(0, 8).map(p => [p[0], p[1]]), [[47, 25], [47, 3], [3, 3], [3, 47], [47, 47], [47, 43], [40, 25], [40, 10]]);   // the side has 22 mm, 4 the turn's: an S over 18
+  // the outer ring whole to its seam, then the S over the side ahead: 22 mm to the corner, the next ring's 7 shorter, 4 the turn's — 11 (2026-10-19, the evening: the tile's edge whole)
+  assert.deepEqual(s.slice(0, 8).map(p => [p[0], p[1]]), [[47, 25], [47, 3], [3, 3], [3, 47], [47, 47], [47, 25], [40, 14], [40, 10]]);
   assert.ok(s[5].S && s[5].S === s[6].S, 'the S\'s two ends');
-  const g = roundOf(s, 4), k = g.findIndex(q => q.t === 'A' && near(q.a, [47, 43]));
-  assert.ok(k > 0 && g[k + 1].t === 'A' && near(g[k + 1].b, [40, 25]) && g[k].left !== g[k + 1].left, 'two arcs, one way and back');
-  assert.ok(Math.abs(g[k].r - (18 * 18 + 7 * 7) / 28) < 1e-9 && g[k].r === g[k + 1].r);
+  const g = roundOf(s, 4), k = g.findIndex(q => q.t === 'A' && near(q.a, [47, 25]) && q.r > 5);
+  assert.ok(k > 0 && g[k + 1].t === 'A' && near(g[k + 1].b, [40, 14]) && g[k].left !== g[k + 1].left, 'two arcs, one way and back');
+  assert.ok(Math.abs(g[k].r - (11 * 11 + 7 * 7) / 28) < 1e-9 && g[k].r === g[k + 1].r);
   for (let i = k; i <= k + 2; i++) { const a = dirIn(g[i - 1], true), b = dirIn(g[i], false); assert.ok(a[0] * b[0] + a[1] * b[1] > 1 - 1e-9, `tangent at ${i}`); }
   // Ring change 0: as short as the step, an S still
   const z = cleanPts(spiralOf(R, [47, 25], false, { corner: 4, change: 0 }));
-  assert.deepEqual([z[5][0], z[5][1]], [47, 32]);
+  assert.deepEqual([z[6][0], z[6][1]], [40, 18]);
 });
 
 test('the turn: ↺ the same spiral mirrored; the snake as nodes runs the very path', () => {

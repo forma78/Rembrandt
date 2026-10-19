@@ -9,6 +9,23 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: the outer ring whole along the edge; Edge: out, an optical
+  compensation** (the owner, 2026-10-19, the second canvas of the evening,
+  the DRAG of 18:05, IMG_1200 … 1202, tiles 9 … 12 marked: "some came
+  nearer, but the last squares still have white borders, though the brush
+  spreads quite wide by the end … even half-round corners should leave a
+  gap only at the corners, the sides must be flush. Maybe we make an
+  optical compensation?"). The plan at the dry brush's width fills every
+  tile to its edge but at a ring change: from a side's middle the outer
+  ring drifted in before its seam, a white crescent on the tile's edge up
+  to a step deep and Ring change long. Now every ring goes whole round to
+  its seam and the S comes after it, over the side ahead — TAPE's way, one
+  stretch for every ring — before it only where the side ahead is short.
+  **Edge: out by** under With paint, 0 by default: the outer ring that
+  much nearer the tile's edge, up to its middle on it (0.25 mm in), for
+  where the brush lays less than its width (est.; half the gap the ruler
+  finds between two tiles).
+
 - **INKA: the outer ring by the dry brush's half again; touching tiles
   meet** (the owner, 2026-10-19, his first canvas of the evening, the DRAG
   of 17:42, `INKA/update-19-10-2026-1.0.9/` IMG_1197 … 1199, the squares'
