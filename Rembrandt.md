@@ -718,7 +718,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   corners should leave a gap only at the corners, the sides must be flush.
   Maybe we make an optical compensation?"): the ring change past the seam,
   so the outer ring runs whole along the edge, and **Edge: out by**, 0 by
-  default, the outer ring that much nearer the edge, never past it; the innermost ring placed
+  default, the outer ring that much nearer the edge, never past it; after
+  his third, 2 … 4 mm of white left ("maybe one more pass on every square —
+  let it go overlapping"), **Overlap**, 0 by default: one more ring, the
+  outermost, its brush's edge that far past the tile's, on the outline
+  grown; the innermost ring placed
   where its paint meets — or, under half a step on, the one before it moved
   there, so no two crowd (est., the swell closing 0.25 mm); the S only at a
   side's middle, Ring change 30 mm (est.); M a click the arm of the X
@@ -1512,7 +1516,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   at every press;
   Brush, DRAG: Brush width (3.5 mm), **With paint** (+5.5 mm, the trail
   beside it, 9 mm), **Edge: out by** (0 mm, the outer ring's place beside
-  it), Drag speed (40 mm/s), **Corners** (4 mm, the speed
+  it), **Overlap** (0 mm, off; one more ring that far past the edge), Drag
+  speed (40 mm/s), **Corners** (4 mm, the speed
   through a turn beside it), **Ring change** (30 mm), **One figure: tiles
   apart up to** (5 mm), **Wipe: the brush up to** (+45°); the canvas; the
   file, every figure a path. Drag: every figure's path a faint strip the

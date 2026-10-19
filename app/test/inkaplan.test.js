@@ -28,6 +28,12 @@ test('the trail: the brush and its swell, 9 mm at his 3.5; the Drag and the Resu
   // Edge: out, the optical compensation (2026-10-19, the evening): the outer ring nearer the edge, never past it
   const edgeAt = e => Math.min(...planOf(rs, { ...O, brush: 3.5, swell: SWELL_NEW, edgeOut: e }).figs[0].pts.map(edge));
   assert.ok(Math.abs(edgeAt(1) - 0.75) < 1e-6 && Math.abs(edgeAt(9) - 0.25) < 1e-6);
+  // Overlap: one more ring, its brush's edge that far past the tile's — onto the neighbour (2026-10-19, the evening: "let it go overlapping")
+  const two = [cleanRect({ x: 0, y: 0, w: 60, h: 60, step: 4 }), cleanRect({ x: 60, y: 0, w: 60, h: 60, step: 4 })], O5 = { ...O, brush: 5, swell: 5, corner: 2.5 };
+  const span = ov => { const P = planOf(two, { ...O5, overlap: ov }), xs = P.figs[0].pts.map(q => q[0]); return [Math.min(...xs), Math.max(...xs), P.units[0].R.levels]; };
+  assert.deepEqual(span(0), [2.5, 117.5, 7]);
+  assert.deepEqual(span(2.5), [0, 120, 8], 'its middle on the edge, the paint half over the neighbour');
+  assert.deepEqual(span(4), [-1.5, 121.5, 8]);
 });
 
 test('a rectangle as kept: its step 1 … 100 mm, its sausages with real paints only, its palette', () => {

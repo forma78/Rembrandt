@@ -53,6 +53,13 @@ export const trailOf = o => Math.max(0.5, (o.brush ?? BRUSH_NEW) + (o.swell ?? S
 // an optical compensation?"), 0 by default; never past the edge itself
 export const EDGE_OUT_NEW = 0, EDGE_MIN = 0.25;
 export const edgeOf = o => Math.max(EDGE_MIN, (o.brush ?? BRUSH_NEW) / 2 - (o.edgeOut ?? EDGE_OUT_NEW));
+// Overlap: one more ring round every tile, its brush's edge that far past
+// the tile's — onto its neighbour, the two over one another (the owner,
+// 2026-10-19, IMG_1203 … 1208, 2 … 4 mm of white still between tiles: "maybe
+// one more pass on every square — let it go overlapping"); 0 none. → the
+// ring's middle, mm in from the tile's edge — out past it negative — or null
+export const OVERLAP_NEW = 0;
+export const overDepth = o => (o.overlap ?? OVERLAP_NEW) > 0 ? (o.brush ?? BRUSH_NEW) / 2 - o.overlap : null;
 export const JOIN_NEW = 5;                                 // mm: tiles this near are one figure (est.)
 export const CORNER_NEW = 4;                               // mm, a turn's radius: √(250 · 4) ≈ 31 mm/s on it, never a stop (machine.js, arcSpeed)
 export const CHANGE_NEW = 30;                              // mm: from a ring to the next at a side's middle, an S this long at most (est.)
@@ -251,7 +258,7 @@ function partAt(E, p) {
 // its paint meets — or, under half a step on from the one before, that one
 // moved in there. → the tree of rings: { d, loops, kids }, the roots the outer ones
 const cellMid = (E, c) => [(E.X[c[0]] + E.X[c[0] + 1]) / 2, (E.Y[c[1]] + E.Y[c[1] + 1]) / 2];
-export function ringsOf(rs, trail, step, edge = trail / 2) {
+export function ringsOf(rs, trail, step, edge = trail / 2, over = null) {
   const G = gridOf(rs), h = trail / 2;
   let lo = 0, hi = Math.max(G.xs.at(-1) - G.xs[0], G.ys.at(-1) - G.ys[0]) / 2;
   for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (erode(G, m)) lo = m; else hi = m; }
@@ -295,6 +302,16 @@ export function ringsOf(rs, trail, step, edge = trail / 2) {
   let rings = 0, lv = 0;
   const tidy = (n, l) => { rings++; lv = Math.max(lv, l); delete n.E; delete n.cells; delete n.Dp; delete n.Pp; n.kids.forEach(c => tidy(c, l + 1)); };
   roots.forEach(r => tidy(r, 1));
+  // the overlap: a ring outside the outer one — past the outline, on the outline grown, every rectangle by as much
+  if (over !== null && roots.length && over < roots[0].d - 0.25) {
+    const E = over > 1e-6 ? erode(G, over) : erode(gridOf(rs.map(r => ({ x: r.x + over, y: r.y + over, w: r.w - 2 * over, h: r.h - 2 * over }))), 1e-6);
+    if (E) {
+      const snap = L => L.map(p => p.map(c => Math.round(c * 1e4) / 1e4)), outer = E.parts.map(q => ({ d: over, loops: over > 1e-6 ? q.loops : q.loops.map(snap), kids: [] }));
+      for (const r of roots) { const v = r.loops[0][0], k = partAt(E, v); (outer[k] ?? outer[0]).kids.push(r); }
+      const made = outer.filter(n => n.kids.length);
+      return { G, D, roots: made, rings: rings + made.length, levels: lv + 1 };
+    }
+  }
   return { G, D, roots, rings, levels: lv };
 }
 
@@ -411,7 +428,7 @@ export function spiralOf(R, hint, out = false, o = {}) {
 const mx = p => { if (!p) return p; const q = [-p[0], p[1]]; if (p.S) q.S = p.S; return q; };
 export function unitPath(U, rects, o, dir, at, hint) {
   const mirror = (dir === 'in') === (U.turn === 'ccw');
-  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step, o.edge ?? edgeOf(o));
+  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step, o.edge ?? edgeOf(o), o.over !== undefined ? o.over : overDepth(o));
   const R = mirror ? U.Rm : U.R, pts = spiralOf(R, mirror ? mx(at ?? hint ?? null) : at ?? hint ?? null, dir === 'out', o);
   return mirror ? pts.map(mx) : pts;
 }
@@ -572,10 +589,10 @@ export function atPiece(g, s) {
 // owner, 2026-10-17, on a node laid in and out of one middle by mistake,
 // Screenshot 3.54.39 PM: "maybe mark such a square with the sign !"):
 // cross, per unit, null, 'middle' or 'edge'.
-// o: { brush, swell, edgeOut, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
+// o: { brush, swell, edgeOut, overlap, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
 export function planOf(rects, o) {
-  const trail = trailOf(o), edge = edgeOf(o), units = unitsOf(rects), way = { trail, edge, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
-  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge); U.M = magnetsOf(U, rects); }
+  const trail = trailOf(o), edge = edgeOf(o), over = overDepth(o), units = unitsOf(rects), way = { trail, edge, over, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
+  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge, over); U.M = magnetsOf(U, rects); }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
   const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
   const figs = F0.map(F => {

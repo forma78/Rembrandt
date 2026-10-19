@@ -9,6 +9,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: Overlap, one more ring round every tile, onto its neighbour**
+  (the owner, 2026-10-19, the third canvas of the evening, the DRAG of
+  18:40, IMG_1203 … 1208 with a ruler: "better already, but maybe one more
+  pass on every square — let it go overlapping"). By the ruler 2 … 4 mm of
+  white between touching tiles, from 7 … 11 before, Edge: out at 0.
+  **Overlap**, under Edge: out, 0 — none — by default: a ring outside the
+  outer one, the outermost, its brush's edge that far past the tile's —
+  at half the brush its middle on the tile's edge; on the outline grown,
+  so a block's too. The spiral comes in by it or goes out by it; its
+  magnets on it. On his twelve at Overlap 3, brush 5: the paint 3 mm onto
+  every neighbour, 41.1 m of DRAG, not 35.9.
+
 - **INKA: the outer ring whole along the edge; Edge: out, an optical
   compensation** (the owner, 2026-10-19, the second canvas of the evening,
   the DRAG of 18:05, IMG_1200 … 1202, tiles 9 … 12 marked: "some came
