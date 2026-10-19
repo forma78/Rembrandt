@@ -748,7 +748,7 @@ export function dragRows(P, o) {
 // tinted, so the brush leaves a trail — that is the trace I see and can
 // squeeze the paint on, as Florian"). Every figure's path, the very pieces
 // DRAG runs, figure after figure, no wipe; with INK ON cut where the dips
-// fall, every DIP_RUN mm — the last stretch no shorter than a quarter of one
+// fall, every TRACE_DIP mm — the last stretch no shorter than a quarter of one
 // — each next going on from DIP_LAP back, as a split row does (band.js), so
 // no gap where the brush went to the cup. A piece cut where it lies, a line or
 // an arc, so a stretch is DRAG's line exactly. → { ps, info, at: the canvas
@@ -766,7 +766,9 @@ export function cutPieces(pieces, s0, s1) {
   }
   return out;
 }
-export function traceRows(P, o, dipRun = DIP_RUN) {
+// mm a dip of tinted water carries (the owner, 2026-10-19: "1440 can easily be done — it is all water here :)"); est. NOLAN's, ALU's and TAPE's dips DIP_RUN, 720
+export const TRACE_DIP = 2 * DIP_RUN;
+export function traceRows(P, o, dipRun = TRACE_DIP) {
   const ps = [], info = [], at = [], lap = Math.max(o.tail ?? 0, DIP_LAP);
   for (const F of P.figs) {
     if (!F.pieces.length) continue;

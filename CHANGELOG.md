@@ -9,6 +9,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **ST-JOHN: TRACE a dip every 1440 mm** (the owner, 2026-10-19, the same
+  evening, testing, on 720 between dips: "1440 can easily be done — it is
+  all water here :)"). TRACE_DIP, ST-JOHN's TRACE's own; NOLAN's, ALU's and
+  TAPE's dips 720 (DIP_RUN) as they were. On his 40 × 40, Width 76, Corners
+  100: 34 dips, not 69, ≈ 27 min, not 34 (est.).
+
 - **ST-JOHN: TRACE in MARKS' place, DRAG's very line in tinted water** (the
   owner, 2026-10-19, the same evening, St_John/ Screenshot 8.50.53 PM,
   Florian's canvas, his lanes traced faint and the sausages over them:

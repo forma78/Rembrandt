@@ -25,9 +25,9 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
-import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, DIP_LAP } from './band.js';
+import { cornerDots, TEST_MARGIN, NO_DIP, DIP_LAP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
-import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
+import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, TRACE_DIP, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -153,7 +153,7 @@ function marksRun() {
 }
 
 // TRACE (ST-JOHN, in MARKS' place; inkaplan.js, traceRows): DRAG's own line,
-// with INK ON in tinted water from the cup, a dip every DIP_RUN mm, at
+// with INK ON in tinted water from the cup, a dip every TRACE_DIP mm, at
 // DRAG's speed — the trace the owner squeezes the paint on, as Florian
 let TRACE_RUN = null;
 function traceRun() {
@@ -1149,7 +1149,7 @@ function settle() {
     const at = P.figs.slice(1).map((_, j) => Math.round(P.figs.slice(0, j + 1).reduce((a, F) => a + F.length, 0) / P.length * 100));
     lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next figure: the brush up +${S.wipe}° over its start, wipe it, squeeze its sausages, Continue — the LCD at ${at.map(v => `${v} %`).join(', ')}`);
   }
-  if (Tr?.stretches) lines.push(`TRACE: DRAG's own line, ${fmt(Tr.mm / 1000, 2)} m, ${S.ink ? `in tinted water from the cup, <b>${Tr.dips}</b> dip${Tr.dips === 1 ? '' : 's'}, one every ${DIP_RUN} mm, each next stretch on from ${DIP_LAP} mm back` : 'Ink OFF: no dip, the brush as it is'}, at ${S.drag} mm/s, ≈ ${fmt(Tr.seconds / 60, 1)} min (est.)`);
+  if (Tr?.stretches) lines.push(`TRACE: DRAG's own line, ${fmt(Tr.mm / 1000, 2)} m, ${S.ink ? `in tinted water from the cup, <b>${Tr.dips}</b> dip${Tr.dips === 1 ? '' : 's'}, one every ${TRACE_DIP} mm, each next stretch on from ${DIP_LAP} mm back` : 'Ink OFF: no dip, the brush as it is'}, at ${S.drag} mm/s, ≈ ${fmt(Tr.seconds / 60, 1)} min (est.)`);
   if (!JOHN && Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
@@ -1299,7 +1299,7 @@ if (JOHN) $('#btnTrace').onclick = async () => {
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TRACE dips in the cup with INK ON: ${cupProblem(cup())}</span>`; return; }
   if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${T.fault}.</span>`; return; }
   if (walls(T)) { $('#runState').innerHTML = `<span class="warn">${walls(T)}</span>`; return; }
-  if (!confirm(`TRACE ${TAB_NAME}, ${what()}: every figure's path, the very line DRAG runs, ${fmt(T.mm / 1000, 2)} m at ${S.drag} mm/s — ${S.ink ? `in tinted water from the cup, a dip every ${DIP_RUN} mm, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'Ink OFF: no dip, the brush as it is'}, ≈ ${fmt(T.seconds / 60, 1)} min (est.).\n\nThen squeeze the paint on the trace, as Florian, and DRAG with the brush dry. Is the brush in the holder?`)) return;
+  if (!confirm(`TRACE ${TAB_NAME}, ${what()}: every figure's path, the very line DRAG runs, ${fmt(T.mm / 1000, 2)} m at ${S.drag} mm/s — ${S.ink ? `in tinted water from the cup, a dip every ${TRACE_DIP} mm, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'Ink OFF: no dip, the brush as it is'}, ≈ ${fmt(T.seconds / 60, 1)} min (est.).\n\nThen squeeze the paint on the trace, as Florian, and DRAG with the brush dry. Is the brush in the holder?`)) return;
   S.view = 'drag'; settle();
   await start('trace', T.blocks, { seconds: T.seconds, rows: T.rows },
     { page: TAB, pass: 'trace', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });

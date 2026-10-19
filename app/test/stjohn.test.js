@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanRect, unitsOf, figuresOf, planOf, linksOf, johnDepths, johnLoop, johnBand, johnRadius, lobesOf, JOHN_W_MAX, traceRows, cutPieces, spokesOf, dealFigure, dragRows, wipeBlocks, INKA_META, lenOf, atPiece, JOHN, figName, BRUSH_NEW, SWELL_NEW } from '../src/inkaplan.js';
+import { cleanRect, unitsOf, figuresOf, planOf, linksOf, johnDepths, johnLoop, johnBand, johnRadius, lobesOf, JOHN_W_MAX, traceRows, cutPieces, TRACE_DIP, spokesOf, dealFigure, dragRows, wipeBlocks, INKA_META, lenOf, atPiece, JOHN, figName, BRUSH_NEW, SWELL_NEW } from '../src/inkaplan.js';
 import { dragPasses } from '../src/ccdplan.js';
-import { DIP_RUN, DIP_LAP } from '../src/band.js';
+import { DIP_LAP } from '../src/band.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
 
 // ST-JOHN's ⌘, St. John's Arms (the owner, 2026-10-19, St_John/): four
@@ -137,10 +137,10 @@ test('TRACE: DRAG\'s very line — whole without ink, cut where the dips fall wi
   const rs = [SIGN(), cleanRect({ id: 2, x: -60, y: 0, w: 50, h: 50 })], o = { ...O, corner: 100 }, P = planOf(rs, o), D = dragRows(P, o);
   const dry = traceRows(P, { ...o, ink: false }), key = ps => JSON.stringify(ps.map(p => p.map(g => [g.t, g.a, g.b, g.c, g.d])));
   assert.equal(key(dry.ps), key(D.ps), 'without ink the very rows DRAG runs, a figure a row');
-  const wet = traceRows(P, { ...o, ink: true, tail: 3 }), F = P.figs[0], n = Math.ceil((F.length - DIP_RUN / 4) / DIP_RUN);
+  const wet = traceRows(P, { ...o, ink: true, tail: 3 }), F = P.figs[0], n = Math.ceil((F.length - TRACE_DIP / 4) / TRACE_DIP);
   const mine = wet.info.filter(q => q.fi === 0);
   assert.equal(mine.length, n, `${n} stretches on the ⌘'s ${Math.round(F.length)} mm`);
-  assert.ok(mine.slice(0, -1).every((q, j) => Math.abs(q.L - (j ? DIP_RUN + DIP_LAP : DIP_RUN)) < 1e-6), 'a dip carries DIP_RUN, each next on from DIP_LAP back');
+  assert.ok(mine.slice(0, -1).every((q, j) => Math.abs(q.L - (j ? TRACE_DIP + DIP_LAP : TRACE_DIP)) < 1e-6), 'a dip carries TRACE_DIP, 1440 mm, each next on from DIP_LAP back');
   assert.ok(Math.abs(mine.reduce((a, q) => a + q.L, 0) - (F.length + DIP_LAP * (n - 1))) < 1e-6, 'all of the line, nothing left out');
   // every stretch's pieces on DRAG's: a cut line on its line, a cut arc on its circle
   for (const [j, at] of wet.at.entries()) assert.ok(j === 0 || P.figs.some(G => G.pieces.some(g => g.t === 'L' ? Math.abs((g.b[0] - g.a[0]) * (at[1] - g.a[1]) - (g.b[1] - g.a[1]) * (at[0] - g.a[0])) < 1e-6 * Math.hypot(g.b[0] - g.a[0], g.b[1] - g.a[1]) : Math.abs(Math.hypot(at[0] - g.c[0], at[1] - g.c[1]) - g.r) < 1e-6)));
