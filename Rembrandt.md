@@ -68,8 +68,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **To buy · •** | A paint not in the owner's stock yet, shown in INKA's strip under his 24 with a red dot: four fluorescents read off his canvases (2026-10-19, `TO_BUY`). Not ⚠ and not INKA's **!**. |
 | **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19); its **spot**, the brightest speck, one tile only. |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
-| **ST-JOHN** | INKA's page with ⌘, St. John's Arms, after INKA in the top row since 2026-10-19 (§1, §8): INKA's tiles, nodes, paints, MARKS, DRAG and Result, and ⌘ in the Tools between R and N. `stjohn.html`, its body `data-tab="stjohn"`; INKA's page module `inka.js` and plan `inkaplan.js`, its own keep and Library label. The owner's references in `St_John/`. |
+| **ST-JOHN** | INKA's page with ⌘, St. John's Arms, after INKA in the top row since 2026-10-19 (§1, §8): INKA's tiles, nodes, paints, DRAG and Result, ⌘ in the Tools between R and N, and TRACE in MARKS' place. `stjohn.html`, its body `data-tab="stjohn"`; INKA's page module `inka.js` and plan `inkaplan.js`, its own keep and Library label. The owner's references in `St_John/`. |
 | **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left, the owner's numbers on the old sign — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, up its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands in the middle on the outermost loop and goes loop after loop inward, from one to the next by the ring change, an S on lobe 4's top: one line, no lift. ↺, the sign mirrored. **Width**: the loop edge to edge, as ALU-CUT's pipe — the rings only so far in from the sign's outline, a window in every lobe, the grid in the middle 2 Width across; at half a lobe the lobes filled; a new one's a fifth of its box, the owner's best, 74 mm on his 387. Its turns concentric: the outer ring's Corners, each ring inside it its depth less, never under 4 mm, never past half its ring's side — at Corners 100 every ring round, three quarters of a circle and its straight inner sides, the windows too. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
+| **TRACE (on ST-JOHN)** | In MARKS' place on ST-JOHN's deck (2026-10-19): every figure's path, the very line DRAG runs, at DRAG's speed, figure after figure, no wipe — with INK ON the same brush in tinted water from the cup, a dip every 720 mm (DIP_RUN, est.), each next stretch on from 20 mm back (DIP_LAP); the trace the owner squeezes the paint on, as Florian, before DRAG. Not TYPE's TRACE of outlines. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -820,7 +821,16 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   0.5 … 100 mm, ST-JOHN's 100 at first, INKA's 4 as before; a ring's turn no
   more than half its side, so at 100 every ring round, the windows teardrops
   pointing to the middle; a new ⌘'s Width a fifth of its box, as his 74 on
-  387.
+  387. **TRACE in MARKS' place** (the owner, the same evening, St_John/
+  Screenshot 8.50.53 PM, Florian's canvas traced faint, the sausages over
+  it: "where MARKS · DRAG are in the controls — we remove MARKS and put
+  TRACE in its place. But see that it coincides perfectly with DRAG, because
+  I will dip the same brush in water, only the water slightly tinted, so
+  the brush leaves a trail — that is the trace I see and can squeeze the
+  paint on, as Florian"): DRAG's own pieces, cut only where the dips fall,
+  every 720 mm (est.), each next stretch on from 20 mm back; at DRAG's
+  speed; on his 40 × 40 at Width 76, Corners 100: 50.6 m, 69 dips, ≈ 34 min
+  (est.). Corners and the reading under i on INKA too ("they are alike").
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1540,7 +1550,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   cuts every node it crosses, orange as it is drawn, a click one node;
   ⌘C ⌘V a tile, or the tiles chosen together — ⌘A all, ⇧ and a click one
   more — in a dashed box with their size, moved, copied and taken away
-  together. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME**, INK, the
+  together. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME** (ST-JOHN's
+  TRACE · DRAG), INK, the
   views **Drag · Result**, **Flights** Off · On under them — the flights
   between figures on Drag, OFF by default (the owner, 2026-10-19: "I do not
   really need them … I just use NODES") — and **▶ Play the run** (■ Stop
@@ -1548,7 +1559,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   block, F and the figure's number — **Nodes**: From the snake · Clear
   nodes, the chains and the tiles alone — the chosen one's **↻ Clockwise ·
   ↺ Anticlockwise**, **Step** (1 … 100 mm,
-  3; typed or by the slider), the reading of its figure, its turn in the
+  3; typed or by the slider), **Corners** under it (0.5 … 100 mm, 4, the
+  canvas's; out of Brush, DRAG since the evening of 2026-10-19, as on
+  ST-JOHN), the reading of its figure under an **i** by its name, its turn in the
   run, its rings, out or in, its place and size by the ruler, Whole canvas
   · Duplicate (beside it, touching: the same figure), Run earlier · Run
   later (a figure runs in the order of its first tile) · Delete; **Paints ·
@@ -1562,8 +1575,7 @@ this section disagree, this section wins: the owner corrected the sketch on
   Brush, DRAG: Brush width (3.5 mm), **With paint** (+5.5 mm, the trail
   beside it, 9 mm), **Edge: out by** (0 mm, the outer ring's place beside
   it), **Overlap** (0 mm, off; one more ring that far past the edge), Drag
-  speed (40 mm/s), **Corners** (4 mm, the speed
-  through a turn beside it), **Ring change** (30 mm), **One figure: tiles
+  speed (40 mm/s), **Ring change** (30 mm), **One figure: tiles
   apart up to** (5 mm), **Wipe: the brush up to** (+45°); the canvas; the
   file, every figure a path. Drag: every figure's path a faint strip the
   trail's width — the paint to the tile's edge — and its centre line, an orange dot where it lands, a ring where it
@@ -1584,10 +1596,15 @@ this section disagree, this section wins: the owner corrected the sketch on
   under it, up to 100 mm, ST-JOHN's 100 at first — the construction, not
   the brush, so on ST-JOHN not under Brush, DRAG (the owner, 2026-10-19),
   one value for the whole canvas as on INKA. The chosen one's reading under
-  its **i**, by its name (the owner: "this text we hide under (i)"). The panel's keys ⌘ n;
+  its **i**, by its name (the owner: "this text we hide under (i)"); both
+  on INKA too since the same evening ("they are alike"). The panel's keys ⌘ n;
   the reading of the chosen one its loops, from its middle in, the lobes
   1 ↘ 2 ↗ 3 ↖ 4 ↙, its Width, the windows and the grid. Drag, Result, ▶ Play the
-  run, MARKS and DRAG as INKA's, the ⌘ one figure, a wipe before the next.
+  run and DRAG as INKA's, the ⌘ one figure, a wipe before the next. The deck
+  **TRACE · DRAG**, TRACE in MARKS' place: DRAG's own line, with INK ON in
+  tinted water, a dip every 720 mm; on Drag a blue ring where it goes on
+  after a dip, no MARKS dashes under the sausages; the reading its length,
+  dips and time.
   A first visit: one ⌘ the whole canvas, two paints. 💾 SAVE ST-JOHN, the
   Library opening it here.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,

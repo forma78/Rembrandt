@@ -9,6 +9,26 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **ST-JOHN: TRACE in MARKS' place, DRAG's very line in tinted water** (the
+  owner, 2026-10-19, the same evening, St_John/ Screenshot 8.50.53 PM,
+  Florian's canvas, his lanes traced faint and the sausages over them:
+  "we remove MARKS and put TRACE in its place. But see that it coincides
+  perfectly with DRAG, because I will dip the same brush in water, only the
+  water slightly tinted, so the brush leaves a trail — that is the trace I
+  see and can squeeze the paint on, as Florian"). The deck TRACE · DRAG:
+  TRACE runs every figure's path, the pieces DRAG runs, at DRAG's speed;
+  with INK ON from the cup of the Ink tab, cut only where the dips fall,
+  every 720 mm (DIP_RUN, est.), each next stretch on from 20 mm back
+  (DIP_LAP) so no gap at the dip — a line or an arc cut where it lies, so
+  every stretch lies on DRAG's line; without ink the very rows of DRAG. On
+  Drag a blue ring where TRACE goes on after a dip, no MARKS dashes; the
+  reading its length, dips and time — on his 40 × 40, Width 76, Corners
+  100: 50.6 m, 69 dips, ≈ 34 min (est.).
+
+- **INKA: Corners under Step, the tile's reading under i** (the owner,
+  the same evening: "you can, thanks for reminding — they are alike"), as
+  on ST-JOHN.
+
 - **ST-JOHN: Corners by Width; the chosen one's reading under i** (the
   owner, 2026-10-19, the same evening: "great! now that is another matter,
   much better. Could you move Corners nearer Width — it is the construction,
