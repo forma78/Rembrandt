@@ -9,6 +9,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: Reference under Paints, then Brush, DRAG** (the owner,
+  2026-10-19: "let us put the Reference block up, near Paints, so that
+  BRUSH, DRAG come after it — so it is all logical"). Its own section at
+  the foot of the panel gone; New spokes' tip says the X.
+
 - **INKA: Reference reads the painting, not the wall; fluorescent paints
   to buy, a red dot •** (the owner, 2026-10-19, `INKA/references/`, twelve
   of his canvases photographed on a wall: the reference "broke"; "we have

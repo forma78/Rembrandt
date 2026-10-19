@@ -1485,7 +1485,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   Figure n** — New colours · New spokes, meta 1 … 4, **Inka · HDay warm ·
   HDay blue · Reference** (the reference's palette in his paints, on every
   tile), Density, the paints in use (CCD's list, the chosen figure's) — the
-  keys on every figure of the tiles chosen together;
+  keys on every figure of the tiles chosen together; **Reference** under
+  them since 2026-10-19 (the owner: "near Paints … so it is all logical"),
+  the image over the canvas and the Reference key's palette;
   Brush, DRAG: Brush width (3.5 mm), **With paint** (+5.5 mm, the trail
   beside it, 9 mm), Drag speed (40 mm/s), **Corners** (4 mm, the speed
   through a turn beside it), **Ring change** (30 mm), **One figure: tiles

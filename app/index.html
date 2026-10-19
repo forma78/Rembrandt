@@ -136,7 +136,7 @@
       <div class="edit" id="rectEdit"></div>
       <!-- the chosen figure's paints, CCD's keys -->
       <h4>Paints <span class="hint" id="paintsOf"></span> <button class="info" id="paintInfo" title="The spokes, the palette, its seed">i</button></h4>
-      <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random in your paints: every tile one of its paints, never its neighbour's, now and then a second; a lone figure one pure paint; the sausages stay in their places — or, none lying, the spokes laid (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="The spokes anew round the figure's tiles, at most 60 mm apart round each; the paints as they are (⌘Z goes back)">New spokes</button></div>
+      <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random in your paints: every tile one of its paints, never its neighbour's, now and then a second; a lone figure one pure paint; the sausages stay in their places — or, none lying, the spokes laid (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="The sausages anew, an X on every tile of the figure, corner to the innermost ring; the paints as they are (⌘Z goes back)">New spokes</button></div>
       <div class="toggles looks" id="metaKeys">
         <button class="tog" data-meta="meta 1" title="TAPE's meta 1 (meta-tape-01): ultramarine, the blues, sky, white, black; orange, orange yellow and purple threads">meta 1</button>
         <button class="tog" data-meta="meta 2" title="TAPE's meta 2 (meta-tape-02): purple, black, pink, sand, white, orange; ochre, ultramarine, red and rose azo threads">meta 2</button>
@@ -152,6 +152,17 @@
       <div class="sliders" id="slPaint"></div>
       <div class="paintlist" id="paintList"></div>
       <p class="read" id="paintRead" hidden></p>
+      <!-- the reference under the paints, its palette the Reference key's (the owner, 2026-10-19: "put the Reference block up, near Paints, then BRUSH, DRAG — so it is all logical") -->
+      <h4>Reference <span class="hint">over the canvas, as tracing paper</span></h4>
+      <div class="refrow">
+        <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
+        <div class="refctl">
+          <button class="btn" id="btnRef" title="An image over the canvas, to lay the tiles to, and the Reference key's palette: never painted as is">📎 Add new reference</button>
+          <p class="read" id="refRead"></p>
+          <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+        </div>
+      </div>
+      <input type="file" id="refIn" accept="image/*" hidden>
       <h4>Brush, DRAG</h4>
       <div class="sliders" id="slBrush"></div>
       <h4>Canvas <button class="info" id="planInfo" title="The plan: the figures, their tiles and rings, the wipes, where the canvas lies from home">i</button></h4>
@@ -163,18 +174,6 @@
       <p class="read" id="fileRead"></p>
     </section>
 
-    <section class="sec">
-      <h3>Reference <span class="hint">over the canvas, as tracing paper</span></h3>
-      <div class="refrow">
-        <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
-        <div class="refctl">
-          <button class="btn" id="btnRef" title="An image over the canvas, to lay the tiles to: never painted as is">📎 Add new reference</button>
-          <p class="read" id="refRead"></p>
-          <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
-        </div>
-      </div>
-      <input type="file" id="refIn" accept="image/*" hidden>
-    </section>
   </aside>
 </main>
 
