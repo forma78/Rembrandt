@@ -9,6 +9,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **ST-JOHN: a ⌘'s Width, and Corners up to 50 mm** (the owner,
+  2026-10-19, the same evening, on the lobes filled to their middles: "I
+  lack CORNERS … it must go up to 50 mm. And we need a slider as in ALU-CUT
+  called WIDTH — there the loop's thickness can be raised. Now the figure
+  came out somehow strange"). **Width** under a ⌘'s Step, as ALU-CUT's
+  pipe: the loop edge to edge, the rings only so far in from the sign's
+  outline — a window in every lobe, the grid in the middle 2 Width across;
+  at half a lobe the lobes filled as before; a new one's an eighth of its
+  box, 50 mm on his 40 × 40: 17 loops, 43.5 m. **Corners** 0.5 … 50 mm, on
+  INKA too. On a ⌘ the turns concentric, as a pipe's lanes: the outer
+  ring's Corners, each ring inside its depth less, never under 4 mm — the
+  loop as thick round a turn as along a side; its X from where the paint
+  begins round the turn. Its X laid again on its loop, the paints kept,
+  after its Width, Corners or size change, and once for a ⌘ kept before.
+
 - **ST-JOHN, a new tab after INKA: ⌘, St. John's Arms** (the owner,
   2026-10-19, the evening, `St_John/`: "name the tab ST-JOHN and make it
   exactly like INKA, only in the tools between R and N we put ⌘ (Command,
