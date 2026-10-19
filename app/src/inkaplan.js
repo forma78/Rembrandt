@@ -12,8 +12,8 @@
 // brush goes on non-stop over the modules … only when all six rectangles are
 // painted the brush lifts and moves to the brown" (personal_references/
 // IMG_1009, Screenshot 12.51.16 PM); a ring, one loop of the brush round a
-// unit, Step apart, the outer one's paint edge on its outline — the brush
-// swollen with paint, its trail (trailOf).
+// unit, Step apart, the outer one's brush edge on its outline; the brush
+// swollen with paint, its trail (trailOf), lays wider — the core by it.
 //
 // DRAG: a figure one path, the brush down from its landing to its lift: the
 // first unit from its centre out, the next from its outside in, the next from
@@ -231,8 +231,12 @@ function partAt(E, p) {
   const i = lower(E.X, p[0]), j = lower(E.Y, p[1]), v = E.lab[i * E.ny + j];
   return v >= 0 ? v : -1;
 }
-// A unit's rings: its outline eroded by the trail's half — the paint's edge on
-// the outline — then a step more each time, until the paint meets in the
+// A unit's rings: its outline eroded by `edge` — the dry brush's half, its edge
+// on the outline, so touching tiles meet whatever the paint (the owner,
+// 2026-10-19, his first canvas of the evening, IMG_1197 … 1199: "such
+// gigantic gaps between the squares … they must adjoin one another, as on
+// the screen"; the trail's half the same afternoon, its thin paint laying
+// far less than its 10 mm) — then a step more each time, until the paint meets in the
 // middle: the innermost ring the trail wide, none narrower than the paint it
 // lays (the owner, 2026-10-19: "in the centre it has no room to turn, yet the
 // program wants three or four more turns … with a 9 mm pass it starts to
@@ -241,12 +245,12 @@ function partAt(E, p) {
 // its paint meets — or, under half a step on from the one before, that one
 // moved in there. → the tree of rings: { d, loops, kids }, the roots the outer ones
 const cellMid = (E, c) => [(E.X[c[0]] + E.X[c[0] + 1]) / 2, (E.Y[c[1]] + E.Y[c[1] + 1]) / 2];
-export function ringsOf(rs, trail, step) {
+export function ringsOf(rs, trail, step, edge = trail / 2) {
   const G = gridOf(rs), h = trail / 2;
   let lo = 0, hi = Math.max(G.xs.at(-1) - G.xs[0], G.ys.at(-1) - G.ys[0]) / 2;
   for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (erode(G, m)) lo = m; else hi = m; }
   const D = lo, ds = [];
-  for (let d = h; d < D - RING_MIN && ds.length < 4000; d += step) ds.push(d);
+  for (let d = Math.min(edge, h); d < D - RING_MIN && ds.length < 4000; d += step) ds.push(d);
   if (!ds.length) ds.push(Math.max(D / 2, D - RING_MIN));                         // narrower than the trail: one ring down its middle
   const levels = ds.map(d => erode(G, d)).filter(Boolean), nodes = levels.map(E => E.parts.map(q => ({ d: E.d, loops: q.loops, kids: [], cells: q.cells, E })));
   for (let l = 1; l < levels.length; l++) for (const n of nodes[l]) {
@@ -388,7 +392,7 @@ export function spiralOf(R, hint, out = false, o = {}) {
 const mx = p => { if (!p) return p; const q = [-p[0], p[1]]; if (p.S) q.S = p.S; return q; };
 export function unitPath(U, rects, o, dir, at, hint) {
   const mirror = (dir === 'in') === (U.turn === 'ccw');
-  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step);
+  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step, o.edge ?? (o.brush ?? BRUSH_NEW) / 2);
   const R = mirror ? U.Rm : U.R, pts = spiralOf(R, mirror ? mx(at ?? hint ?? null) : at ?? hint ?? null, dir === 'out', o);
   return mirror ? pts.map(mx) : pts;
 }
@@ -551,8 +555,8 @@ export function atPiece(g, s) {
 // cross, per unit, null, 'middle' or 'edge'.
 // o: { brush, swell, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
 export function planOf(rects, o) {
-  const trail = trailOf(o), units = unitsOf(rects), way = { trail, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
-  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step); U.M = magnetsOf(U, rects); }
+  const trail = trailOf(o), edge = (o.brush ?? BRUSH_NEW) / 2, units = unitsOf(rects), way = { trail, edge, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
+  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge); U.M = magnetsOf(U, rects); }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
   const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
   const figs = F0.map(F => {
@@ -670,7 +674,7 @@ function erodeZero(G) {
 // corner of its outline in at 45°, as far as the middle of its part goes, no
 // deeper than its innermost ring. → [{ a, b }]
 export function spokesOf(U, rects, o = {}) {
-  const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step), out = [];
+  const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step, (o.brush ?? BRUSH_NEW) / 2), out = [];
   let n = R.roots[0]; while (n?.kids.length) n = n.kids[0];
   const L = n?.loops[0], half = k => L ? (Math.max(...L.map(v => v[k])) - Math.min(...L.map(v => v[k]))) / 2 : 0;
   const arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };

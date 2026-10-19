@@ -9,6 +9,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: the outer ring by the dry brush's half again; touching tiles
+  meet** (the owner, 2026-10-19, his first canvas of the evening, the DRAG
+  of 17:42, `INKA/update-19-10-2026-1.0.9/` IMG_1197 … 1199, the squares'
+  outlines drawn in blue: "they must adjoin one another, as on the screen
+  … I am surprised at such gigantic gaps between the squares. Maybe I
+  knocked some setting off?"). He had not: the outer ring stood the
+  trail's half in — Brush width 5 and With paint +5, 5 mm — and his thin
+  paint laid far less than 10 mm, so every tile lost 3 … 4 mm a side, the
+  tall one 81 mm wide of its 88.5, 7 … 11 mm of white between neighbours.
+  The outer ring at the brush's own half (2.5 mm at 5), as on 2026-10-17;
+  a thick paint swells past the edge onto its neighbour, as the Drag strip
+  shows. With paint — the trail — keeps the Drag strip, the Result and the
+  core; the tile's edge no longer.
+
 - **INKA: the reference's spot, its brightest speck, on one tile only**
   (the owner, 2026-10-19, Screenshot 5.10.28 PM, IMG_1522's bright red
   band and little red square gone from the tiles: "I pressed several

@@ -23,7 +23,7 @@ test('the trail: the brush and its swell, 9 mm at his 3.5; the Drag and the Resu
   assert.equal(trailOf({}), BRUSH_NEW + SWELL_NEW); assert.equal(trailOf({ brush: 3.5 }), 9);
   const rs = [cleanRect({ x: 0, y: 0, w: 64, h: 63.5, step: 3 })], P = planOf(rs, { ...O, brush: 3.5, swell: SWELL_NEW });
   const edge = q => Math.min(q[0], q[1], 64 - q[0], 63.5 - q[1]);
-  assert.ok(P.figs[0].pts.every(q => edge(q) >= 4.5 - 1e-6) && P.figs[0].pts.some(q => Math.abs(edge(q) - 4.5) < 1e-6), 'the outer ring 4.5 in: the paint ends on the tile\'s edge');
+  assert.ok(P.figs[0].pts.every(q => edge(q) >= 1.75 - 1e-6) && P.figs[0].pts.some(q => Math.abs(edge(q) - 1.75) < 1e-6), 'the outer ring the dry brush\'s half in, 1.75: touching tiles meet whatever the paint (2026-10-19, the evening)');
   assert.match(dragSvg(P, { ...O, brush: 3.5, swell: SWELL_NEW }), /data-trail-mm="9"/);
 });
 
@@ -74,10 +74,10 @@ test('the core: the innermost ring the trail wide, its paint meeting in the midd
   assert.deepEqual(depths(R), [3, 10, 20]);                                     // the last 3 mm short of 17 + 3.5: 17 moved in to 20
   assert.equal(innermost(R), 6);
   assert.deepEqual(depths(ringsOf([{ x: 0, y: 0, w: 50, h: 50 }], 6, 7)), [3, 10, 17, 22]);   // 24 went past: in at 22
-  // his tile of 2026-10-17, 64 × 63.5 at a 3 mm step: with the 9 mm trail nine rings, none under 9 mm across — before, eleven, the last 1.75 mm
-  const T = ringsOf([{ x: 0, y: 0, w: 64, h: 63.5 }], trailOf({ brush: 3.5 }), 3);
-  assert.equal(T.levels, 9); assert.ok(Math.abs(innermost(T) - 9) < 1e-6);
-  assert.equal(depths(T)[0], 4.5, 'the outer ring the trail\'s half in: the paint ends on the tile\'s edge');
+  // his tile of 2026-10-17, 64 × 63.5 at a 3 mm step, the brush 3.5: ten rings, none under the 9 mm trail across — before, eleven, the last 1.75 mm
+  const T = ringsOf([{ x: 0, y: 0, w: 64, h: 63.5 }], trailOf({ brush: 3.5 }), 3, 1.75);
+  assert.equal(T.levels, 10); assert.ok(Math.abs(innermost(T) - 9) < 1e-6);
+  assert.equal(depths(T)[0], 1.75, 'the outer ring the dry brush\'s half in: touching tiles meet');
 });
 
 test('the "[" — four rectangles overlapping — one outline, its rings round the whole of it', () => {
