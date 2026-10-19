@@ -49,8 +49,13 @@
       <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="0.5" class="thin"/><rect x="13.5" y="13.5" width="7" height="7" rx="0.5" class="thin"/><path d="M7 7l10 10" class="bold"/><circle cx="7" cy="7" r="1.6" class="dot"/><circle cx="17" cy="17" r="1.6" class="dot"/></svg>
       <span>N</span>
     </button>
+    <!-- the knife (the owner, 2026-10-19: "next to Nodes (N) we need a knife (K) that cuts the nodes") -->
+    <button class="tool" data-tool="knife" title="Knife — drag across nodes to cut them, every one the line crosses; a click on a node cuts it (K). ⌘Z brings them back">
+      <svg viewBox="0 0 24 24"><path d="M3.5 20.5l6-6" class="bold"/><path d="M9.5 14.5L19 5c1.6 3.4.2 7.6-5.5 11z"/><path d="M14 3.5l2.5 2.5M2.5 13.5l3 3" class="thin"/></svg>
+      <span>K</span>
+    </button>
     <!-- the sausages by hand: a paint in the strip, then a click on a tile -->
-    <button class="tool" data-tool="paint" title="Sausages — a click on a tile lays a spoke of the chosen paint from its nearest side across the rings to the middle; a drag lays one where you drag it; a click on one with its paint takes it away, with another paint repaints it (M)">
+    <button class="tool" data-tool="paint" title="Sausages — a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal to the innermost ring; a drag lays one where you drag it; a click on one with its paint takes it away, with another paint repaints it (M)">
       <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><rect x="8" y="8" width="8" height="8" rx="0.5" class="thin"/><path d="M12 4v8M20 12h-8" class="bold"/></svg>
       <span>M</span>
     </button>

@@ -50,7 +50,7 @@ const S = {
   nodes: [], nodeSel: -1,                                                            // the brush's way by hand (inkaplan.js, linksOf); the node chosen
 };
 const NUM = ['sel', 'brush', 'swell', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
-const TOOLS = ['edit', 'rect', 'node', 'paint'], VIEWS = ['drag', 'result'];
+const TOOLS = ['edit', 'rect', 'node', 'knife', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
@@ -311,6 +311,12 @@ function drawNodes() {
     g.beginPath(); g.moveTo(m[0] - u[0] * w - u[1] * w * 0.7, m[1] - u[1] * w + u[0] * w * 0.7); g.lineTo(m[0] + u[0] * 2, m[1] + u[1] * 2); g.lineTo(m[0] - u[0] * w + u[1] * w * 0.7, m[1] - u[1] * w - u[0] * w * 0.7); g.stroke();
     g.fillStyle = '#24221F'; for (const q of [a, b]) { g.beginPath(); g.arc(q[0], q[1], 3.2, 0, 7); g.fill(); }
   });
+  if (grab?.kind === 'knife') {                                                     // the knife's line; the nodes it would cut, orange
+    const cut = new Set(grab.pts.length > 1 ? knifeCuts(grab.pts) : []);
+    for (const l of P.links) if (cut.has(l.i)) { const a = scr(l.a.p), b = scr(l.b.p); g.strokeStyle = ORANGE; g.lineWidth = 9; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); }
+    g.strokeStyle = themeColor('--ink', '#24221F'); g.lineWidth = 1.5; g.setLineDash([4, 3]); g.beginPath();
+    grab.pts.forEach((q, j) => { const s = scr(q); if (j) g.lineTo(s[0], s[1]); else g.moveTo(s[0], s[1]); }); g.stroke(); g.setLineDash([]);
+  }
   if (grab?.kind === 'node') {                                                      // a node being drawn
     const a = scr(grab.from.p), b = grab.snap ? scr(grab.snap.p) : scr(grab.to);
     g.strokeStyle = NODE; g.lineWidth = 3; g.setLineDash(grab.snap ? [] : [6, 5]); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); g.setLineDash([]);
@@ -595,6 +601,7 @@ cv.addEventListener('pointerdown', e => {
   if (PLAY) { stopPlay(); kick(); }
   const p = toMm(e);
   if (S.tool === 'paint') { grab = { kind: 'paint', from: p, to: p, moved: false }; cv.setPointerCapture(e.pointerId); return; }
+  if (S.tool === 'knife') { grab = { kind: 'knife', pts: [p], hit: nodeAt(e) }; cv.setPointerCapture(e.pointerId); kick(); return; }   // K: a line drawn across the nodes
   if (S.tool === 'node') {                                                          // from a magnet: a node drawn; on a node: it is chosen
     const mg = magnetAt(e);
     if (mg) { grab = { kind: 'node', from: mg, to: mg.p, snap: null }; cv.setPointerCapture(e.pointerId); kick(); return; }
@@ -626,12 +633,14 @@ cv.addEventListener('pointermove', e => {
   if (!grab) {
     const hd = S.tool === 'paint' ? null : nearHandle(e);
     if (S.tool === 'node') { const was = HOT; HOT = magnetAt(e); cv.style.cursor = HOT ? 'crosshair' : nodeAt(e) >= 0 ? 'pointer' : ''; if (was !== HOT) kick(); return; }
+    if (S.tool === 'knife') { cv.style.cursor = 'crosshair'; return; }
     cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' || S.tool === 'paint' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
     showTip(e);
     return;
   }
   const p = toMm(e);
   if (grab.kind === 'node') { grab.to = p; const mg = magnetAt(e); grab.snap = mg && mg.u !== grab.from.u ? mg : null; kick(); return; }
+  if (grab.kind === 'knife') { const q = grab.pts.at(-1); if (Math.hypot(p[0] - q[0], p[1] - q[1]) * k > 2) { grab.pts.push(p); kick(); } return; }
   if (grab.kind === 'paint') { grab.to = p; grab.moved = grab.moved || Math.hypot(p[0] - grab.from[0], p[1] - grab.from[1]) > 3; kick(); return; }
   grab.moved = true; busy = true;
   if (grab.kind === 'moveAll') {                                                     // the box of them snapping as one tile does
@@ -655,6 +664,7 @@ const drop = () => {
   const was = grab; grab = null;
   if (was.kind === 'paint') { if (was.moved) paintAlong(was.from, was.to); else paintAt(was.from); kick(); return; }
   if (was.kind === 'node') { if (was.snap) addNode(was.from, was.snap); else kick(); return; }
+  if (was.kind === 'knife') { cutNodes(was.pts.length > 1 ? knifeCuts(was.pts) : was.hit >= 0 ? [was.hit] : []); return; }
   if (was.kind === 'new') {
     const r = S.rects[S.sel];
     if (!was.moved || r.w < 2 || r.h < 2) { S.rects.pop(); S.sel = Math.max(0, S.rects.length - 1); undoStack.pop(); }
@@ -684,6 +694,17 @@ function addNode(a, b) {
   if (!linksOf(nodes, S.rects, planNow().units).some(l => l.i === nodes.length - 1)) { $('#hint').textContent = 'That node would close a loop: the brush would come back to a tile it has painted. Not laid.'; kick(); return; }
   undoPush(); S.nodes = nodes; S.nodeSel = nodes.length - 1; settle();
 }
+// K, the knife (the owner, 2026-10-19: "a knife that cuts the nodes"): every node its line crosses, or the one clicked
+const crossSeg = (a, b, c, d) => { const o = (p, q, r) => (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]), d1 = o(c, d, a), d2 = o(c, d, b), d3 = o(a, b, c), d4 = o(a, b, d); return d1 * d2 < 0 && d3 * d4 < 0; };
+function knifeCuts(pts) {
+  return planNow().links.filter(l => pts.some((q, j) => j && crossSeg(pts[j - 1], q, l.a.p, l.b.p))).map(l => l.i);
+}
+function cutNodes(idx) {
+  if (!idx.length) { kick(); return; }
+  undoPush(); const cut = new Set(idx); S.nodes = S.nodes.filter((_, i) => !cut.has(i)); S.nodeSel = -1;
+  $('#hint').textContent = `Cut ${idx.length} node${idx.length === 1 ? '' : 's'}: the chains apart, a tile no node touches a figure of its own (⌘Z brings ${idx.length === 1 ? 'it' : 'them'} back).`;
+  settle();
+}
 function deleteNode() { if (S.nodeSel < 0 || !S.nodes[S.nodeSel]) return; undoPush(); S.nodes.splice(S.nodeSel, 1); S.nodeSel = -1; settle(); }
 function moveRect(dx, dy) { const idx = picked(); if (!idx.length) return; undoPush(); for (const i of idx) { const r = S.rects[i]; r.x = clampX(r.x + dx); r.y = clampY(r.y + dy); } settle(); }
 function deleteRect() {
@@ -696,7 +717,7 @@ function deleteRect() {
 function clearAll() { if (!S.rects.length) return; undoPush(); S.rects = []; S.nodes = []; MANY.clear(); S.sel = 0; S.tool = 'rect'; settle(); }
 // N with no nodes yet: the snake laid as nodes, the way the brush runs now, to change
 function setTool(t) {
-  S.tool = t; S.view = t === 'paint' || t === 'node' ? 'drag' : S.view;
+  S.tool = t; S.view = t === 'paint' || t === 'node' || t === 'knife' ? 'drag' : S.view;
   if (t === 'node' && !S.nodes.length && planNow().figs.some(F => F.us.length > 1)) { undoPush(); S.nodes = snakeNodes(planNow(), S.rects); }
   settle();
 }
@@ -704,6 +725,7 @@ const HINT = {
   edit: 'Edit: drag a tile to move it, its handles to stretch it; a click chooses it, ⇧ and a click one more; ⌘A all of them; the arrows move it a mm, with ⇧ ten; ⌫ takes it away. Its edges snap to the canvas\'s and the other tiles\' — side by side they are one figure; laid over one another, one block.',
   rect: 'Tile: drag on the canvas to lay one, its step the chosen one\'s. Side by side with others it joins their figure, the brush on through it; over another it melts into it, one block, one outline — the "[".',
   node: 'N: drag from a magnet of a tile — its middle, a corner, a side\'s middle — to one of the next: the brush\'s way. Into a tile\'s middle it spirals out to where its next node leaves; into its edge it spirals in from there to its middle. A tile one way out and one in: a new node takes the old one\'s place. A click on a node chooses it, ⌫ takes it away.',
+  knife: 'K, the knife: drag a line across the nodes — every one it crosses is cut, the chain apart there; a click on a node cuts it. ⌘Z brings them back. N lays them again.',
   paint: 'M: a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal in to the innermost ring; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
 };
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
@@ -730,7 +752,7 @@ addEventListener('keydown', e => {
   if (cmd && e.key.toLowerCase() === 'v') { if (COPY) { e.preventDefault(); paste(); } return; }
   if (cmd) return;
   if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); if (S.tool === 'node' && S.nodeSel >= 0) deleteNode(); else deleteRect(); return; }
-  const tool = { v: 'edit', r: 'rect', n: 'node', m: 'paint' }[e.key.toLowerCase()];
+  const tool = { v: 'edit', r: 'rect', n: 'node', k: 'knife', m: 'paint' }[e.key.toLowerCase()];
   if (tool) { setTool(tool); return; }
   const arrow = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveRect(arrow[0] * d, arrow[1] * d); }

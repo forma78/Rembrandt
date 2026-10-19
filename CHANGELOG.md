@@ -9,6 +9,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: the knife, K, cuts nodes** (the owner, 2026-10-19: "next to
+  Nodes (N) we need a knife (K) that cuts the nodes … the arrows got mixed
+  up, and they do not always land the way needed"; "we have Clear nodes,
+  but that is a sledgehammer, and I need a scalpel :)"). In the Tools under
+  N: a line dragged across the canvas cuts every node it crosses, orange
+  while it is drawn; a click on a node cuts that one; the chain falls apart
+  there, a tile no node touches a figure of its own; ⌘Z brings them back.
+  The M key's tip says the X's arm, as its hint did.
+
 - **INKA: Reference, the palette off a picture in his paints, on every
   tile** (the owner, 2026-10-19, Screenshot 4.15.26 PM: "only up to the 6th
   tile; put 10 and there are no colours :)"; "below we have REFERENCE,
