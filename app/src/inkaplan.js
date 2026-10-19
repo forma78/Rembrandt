@@ -27,7 +27,7 @@
 // mm from the canvas's bottom left corner, x right, y up; the runs from its
 // centre for the machine (toMachine). Lines and arcs. No DOM.
 
-import { toMachine } from './band.js';
+import { toMachine, DIP_RUN, DIP_LAP } from './band.js';
 import { pieceLen } from './strokes.js';
 import { PAINT } from './tapeplan.js';
 import { CCD_META, paintOf, DENSITY_NEW, FILM, PICK_BULK, PICK_FILM, DRY, THIN, DS, GROOVE_K, SAUSAGE_W, MARKS_DIP, MARK_DOT } from './ccdplan.js';
@@ -740,6 +740,52 @@ export function dragRows(P, o) {
   }
   return { ps, info, stops, runs: ps.length, length };
 }
+// TRACE (ST-JOHN, in MARKS' place): DRAG's own line in tinted water (the
+// owner, 2026-10-19, St_John/ Screenshot 8.50.53 PM, Florian's canvas, his
+// lanes traced faint and the sausages squeezed over them: "we remove MARKS
+// and put TRACE in its place. But see that it coincides perfectly with DRAG,
+// because I will dip the same brush in water, only the water slightly
+// tinted, so the brush leaves a trail — that is the trace I see and can
+// squeeze the paint on, as Florian"). Every figure's path, the very pieces
+// DRAG runs, figure after figure, no wipe; with INK ON cut where the dips
+// fall, every DIP_RUN mm — the last stretch no shorter than a quarter of one
+// — each next going on from DIP_LAP back, as a split row does (band.js), so
+// no gap where the brush went to the cup. A piece cut where it lies, a line or
+// an arc, so a stretch is DRAG's line exactly. → { ps, info, at: the canvas
+// point every stretch begins at }
+export function cutPieces(pieces, s0, s1) {
+  const out = [];
+  let s = 0;
+  for (const g of pieces) {
+    const L = lenOf(g), a = Math.max(s0, s), b = Math.min(s1, s + L);
+    if (b - a > 1e-9) {
+      if (a - s < 1e-9 && s + L - b < 1e-9) out.push(g);
+      else { const pa = atPiece(g, a - s).p, pb = atPiece(g, b - s).p; out.push(g.t === 'L' ? { t: 'L', a: pa, b: pb } : { ...g, a: pa, b: pb }); }
+    }
+    s += L; if (s >= s1) break;
+  }
+  return out;
+}
+export function traceRows(P, o, dipRun = DIP_RUN) {
+  const ps = [], info = [], at = [], lap = Math.max(o.tail ?? 0, DIP_LAP);
+  for (const F of P.figs) {
+    if (!F.pieces.length) continue;
+    const L = F.length, cuts = [];
+    if (o.ink) for (let c = dipRun; c < L - dipRun / 4; c += dipRun) cuts.push(c);
+    let start = 0;
+    [...cuts, L].forEach((c, j) => {
+      const part = cutPieces(F.pieces, start, c), row = ps.length + 1;
+      if (part.length) {
+        ps.push(part.map(g => ({ ...machinePiece(g, o), tilt: 0, row })));
+        info.push({ label: `${figName(F, P.units)} · TRACE${cuts.length ? `, stretch ${j + 1} of ${cuts.length + 1}` : ''}`, fi: F.n - 1, L: c - start });
+        at.push(part[0].a);
+      }
+      start = Math.max(0, c - lap);
+    });
+  }
+  return { ps, info, at };
+}
+
 // Before every stop the brush flies on over the next figure's start and goes
 // up to `up`° — the elbow's highest — so the owner wipes it there (the owner,
 // 2026-10-17: "here the brush can be lifted up, so that I wipe it"); after
