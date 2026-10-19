@@ -68,6 +68,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **To buy · •** | A paint not in the owner's stock yet, shown in INKA's strip under his 24 with a red dot: four fluorescents read off his canvases (2026-10-19, `TO_BUY`). Not ⚠ and not INKA's **!**. |
 | **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19); its **spot**, the brightest speck, one tile only. |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
+| **ST-JOHN** | INKA's page with ⌘, St. John's Arms, after INKA in the top row since 2026-10-19 (§1, §8): INKA's tiles, nodes, paints, MARKS, DRAG and Result, and ⌘ in the Tools between R and N. `stjohn.html`, its body `data-tab="stjohn"`; INKA's page module `inka.js` and plan `inkaplan.js`, its own keep and Library label. The owner's references in `St_John/`. |
+| **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left, the owner's numbers on the old sign — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, up its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands in the middle on the outermost loop and goes loop after loop inward, from one to the next by the ring change, an S on lobe 4's top: one line, no lift. ↺, the sign mirrored. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -777,6 +779,30 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   BASF's, LOOM's, NOLAN's and Test's as they were, the Library opening their
   saves there. TAPE's plan stays wherever it is shared — CCD, BIAS and INKA
   import its paints.
+- **ST-JOHN, INKA with ⌘, St. John's Arms** (the owner, 2026-10-19, the
+  evening, `St_John/`: "name the tab ST-JOHN and make it exactly like INKA,
+  only in the tools between R and N we put ⌘ (Command, St. John's Arms)";
+  the old sign, Screenshot 8.23.36 PM — "an interesting solution for us, how
+  the brush will go" — his arrows on it in … PM 2, his drawing IMAGE
+  2026-10-19 20:22:20; of the rings drawn: "it is just how the brush goes
+  over the canvas. There may be 25 of them, it depends on the size of the
+  canvas … now we have a 40 × 40 cm canvas"; "the ⌘ sign goes from the
+  centre"; `preview.webp`: "roughly how Florian paints, but in our style and
+  in one or two colours. Let the brush run on Instagram"). After INKA: INKA
+  · ST-JOHN · ALU-CUT · CCD · BIAS · ALU · SMKN · Ink · Calibration ·
+  Library. `stjohn.html`, INKA's page module and plan, its own keep and
+  Library label; INKA as it was. *Claude's choices*: the lobes the quarters
+  of the sign's box, square as INKA's tiles, their turns by Corners; every
+  loop the ⌘ in one line — lobes 1, 2, 3, 4 in his numbers, each clockwise
+  as his arrows go, their inner sides on across the middle, crossing (the
+  grid of his drawing; lobe 1's and lobe 2's lines on one upright on his
+  scheme); the outermost loop first, through the middle, then inward; the
+  ring change an S on lobe 4's top; ↺ the sign mirrored; J on the keyboard;
+  a figure of its own — no block, no figure with tiles, no node; an X on
+  every lobe; one paint or two, the second on lobes 2 and 4, half the time;
+  a first visit one ⌘ the whole canvas in two paints of Inka. On 40 × 40,
+  Step 3, the brush 3.5, 9 with paint: 32 loops, 64.6 m, ≈ 27 min at 40
+  mm/s (est.). Not run on the machine yet.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1188,8 +1214,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.9**, then the tabs **INKA · ALU-CUT · CCD · BIAS · ALU · SMKN ·
-  Ink · Calibration · Library** (INKA first since 2026-10-19, TAPE, BASF,
+  **v.1.0.9**, then the tabs **INKA · ST-JOHN · ALU-CUT · CCD · BIAS · ALU ·
+  SMKN · Ink · Calibration · Library** (ST-JOHN after INKA since the evening
+  of 2026-10-19; INKA first since 2026-10-19, TAPE, BASF,
   LOOM, NOLAN and Test off the row then; INKA after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
@@ -1529,6 +1556,16 @@ this section disagree, this section wins: the owner corrected the sketch on
   through the sausages, the paints mixed as pigments (est.). The reading:
   the figures, their lengths and rings, DRAG's time, the wipes and where
   the LCD stands at each. 💾 SAVE INKA, the Library opening it here.
+- **ST-JOHN**, after INKA (2026-10-19, the evening, §1; `app/stjohn.html`,
+  INKA's `inka.js` and `inkaplan.js`): INKA's page, all of it, and **⌘**
+  in the Tools between R and N, J on the keyboard, its key's label ⌘: a
+  drag lays the sign, as R a tile — V moves and stretches it, its four
+  lobes dashed in its outline; ⌘C ⌘V, Whole canvas, Step, ↻ · ↺ as a
+  tile's. The panel's keys ⌘ n; the reading of the chosen one its loops,
+  from its middle in, the lobes 1 ↘ 2 ↗ 3 ↖ 4 ↙. Drag, Result, ▶ Play the
+  run, MARKS and DRAG as INKA's, the ⌘ one figure, a wipe before the next.
+  A first visit: one ⌘ the whole canvas, two paints. 💾 SAVE ST-JOHN, the
+  Library opening it here.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once

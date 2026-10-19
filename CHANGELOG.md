@@ -9,6 +9,28 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **ST-JOHN, a new tab after INKA: ⌘, St. John's Arms** (the owner,
+  2026-10-19, the evening, `St_John/`: "name the tab ST-JOHN and make it
+  exactly like INKA, only in the tools between R and N we put ⌘ (Command,
+  St. John's Arms)"; the old sign, Screenshot 8.23.36 PM, "an interesting
+  solution for us, how the brush will go", his arrows in … PM 2; "it is just
+  how the brush goes over the canvas. There may be 25 of them, it depends on
+  the size of the canvas"; "the ⌘ sign goes from the centre"). `stjohn.html`
+  on INKA's `inka.js` and `inkaplan.js`, its own keep and Library label;
+  INKA as it was. **⌘** (J) in the Tools between R and N lays the sign by a
+  drag: its box in four lobes — 1 the bottom right, 2 the top right, 3 the
+  top left, 4 the bottom left, his numbers — every lobe's rings a tile's;
+  every loop one ring of each, round lobe 1 clockwise, its inner side
+  straight on through the middle into lobe 2, and so on round, so the
+  inner sides cross in the middle — the grid of his drawing, IMAGE
+  2026-10-19 20:22:20. The brush lands in the middle, the outermost loop
+  first, then loop after loop inward, the ring change an S on lobe 4's top;
+  ↺ mirrors it. A figure of its own: no block, no figure with tiles, no
+  node. An X on every lobe; one paint or two, the second on lobes 2 and 4.
+  On his 40 × 40 at Step 3, brush 3.5 and 9 with paint: 32 loops, 64.6 m,
+  ≈ 27 min (est.). ST-JOHN in every page's top row after INKA; the Library
+  opens its saves there. Not run on the machine.
+
 - **INKA: Overlap, one more ring round every tile, onto its neighbour**
   (the owner, 2026-10-19, the third canvas of the evening, the DRAG of
   18:40, IMG_1203 … 1208 with a ruler: "better already, but maybe one more
