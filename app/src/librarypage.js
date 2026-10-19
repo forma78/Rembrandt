@@ -71,7 +71,7 @@ async function onCard(e) {
     if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();
   }
-  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'type.html', love: 'love.html', alucut: 'alucut.html', alu: 'alu.html', smkn: 'smkn.html', ccd: 'ccd.html', tape: 'index.html', basf: 'basf.html', bias: 'bias.html', loom: 'loom.html', inka: 'inka.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
+  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'type.html', love: 'love.html', alucut: 'alucut.html', alu: 'alu.html', smkn: 'smkn.html', ccd: 'ccd.html', tape: 'tape.html', basf: 'basf.html', bias: 'bias.html', loom: 'loom.html', inka: 'index.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
 }
 $('#grid').addEventListener('click', onCard);
 $('#tests').addEventListener('click', onCard);

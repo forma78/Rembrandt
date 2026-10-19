@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **INKA, the first tab; TAPE, BASF, LOOM, NOLAN and Test off the top row**
+  (the owner, 2026-10-19: "let us do a general cleanup. We need to remove
+  the TAPE, BASF, LOOM, NOLAN and TEST tabs"; INKA "is the most
+  essential"). The row: INKA · ALU-CUT · CCD · BIAS · ALU · SMKN · Ink ·
+  Calibration · Library. INKA is `index.html`, the server's first page and
+  `start.command`'s; TAPE's page moves to `tape.html`. The five pages stay,
+  as TYPE's and LOVE's did, the Library opening their saves there.
+
 - **INKA: ⌘A, every tile chosen; ⇧ and a click, one more** (the owner,
   2026-10-17, Screenshot 5.11.30 PM: "I need a selection that takes every
   figure on the canvas, cmd+A"). The tiles chosen together are outlined

@@ -22,7 +22,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **RUBENS** | The previous program, repo `Forma78/Rubens`, frozen at v0.1.3. Source of the Calibration and Job code. |
 | **Machine** | CNCDM-001: 2020 frame, two NEMA17 belt axes (X, Y), the arm on the carriage (shoulder J1, elbow J2, wrist J3), spring-mounted tool holder, camera on the bracket. |
 | **Create** | The tab where a painting is planned. Never touches the hardware. Hidden from the top row since 2026-10-04, NOLAN in its place (§1); the page stays, `create.html` since 2026-10-06 (`index.html` is TYPE), and the Library still opens a painting on it. |
-| **NOLAN** | The tab that paints ribbons, in Create's place since 2026-10-04. Its task: `NOLAN.md`. The only tab where the hand works too (§1). |
+| **NOLAN** | The tab that paints ribbons, in Create's place from 2026-10-04, off the top row since 2026-10-19 (§1); the page stays. Its task: `NOLAN.md`. The only tab where the hand works too (§1). |
 | **New Yuri** | The tab that paints letters as rings of circles, after NOLAN on 2026-10-06, off the top row the same day (§1, §8); the page stays, and the Library opens its saves there. Named by the owner. |
 | **Letter** | On New Yuri: one glyph of `app/glyphs.json` on the canvas, a figure of its own — its baseline and left edge, its height, Weight and Step, Rings or Coil. |
 | **Skeleton** | A letter stroke's centre line, lines and arcs, in a box from the baseline to the capline inset by the Weight; the circles' centres walk along it. |
@@ -31,8 +31,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **TYPE** | The tab that paints letters as bands, the first of the top row and `index.html` from 2026-10-06 to 10-11, then off the row, `type.html` (§1, §8): TRACE, MARKS, DRAG. After the prototype of Claude in chat, `TYPE-Claude/`. |
 | **LOVE** | TYPE's copy, after it in the top row from 2026-10-07 to 10-11, then off it (§1), where the new things go — Play the run, then the ribbon of `TYPE-Claude/RIBBON-new.md` — so that TYPE stays as it is to go back to. `love.html`, its plan `loveplan.js`. |
 | **ALU** | The tab that paints pipes of paint, after LOVE in the top row since 2026-10-08 (§1, §8): TYPE's passes, TRACE · MARKS · DRAG, on pipes. `alu.html`, its plan `aluplan.js`, after the spec and the prototype of Claude in chat, `ALU-Claude/`; the rest of its words in `ALU-Claude/ALU.md`. |
-| **TAPE** | The tab of a cassette and its tape, the first tab since 2026-10-12 (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last — or, since the same evening, none at all, the tape wound from the centre (Cassette size 0 %); its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `index.html`, its plan `tapeplan.js`, its page module `tape.js`. |
-| **BASF** | TAPE's tape wound from the middle of the canvas, no cassette, after TAPE in the top row since 2026-10-12, in honour of the cassettes gone (§1): every lane a rounded square of one shape, the innermost at the middle, Corners its rounding. `basf.html`, its body `data-tab="basf"`; TAPE's page module and plan (`inner`), its own keep and Library label. |
+| **TAPE** | The tab of a cassette and its tape, the first tab from 2026-10-12 to 10-19, then off the top row, `tape.html` (§1, §8): a compact cassette at real size in the centre of the canvas, its outline traced by the machine, the rest drawn with a stencil and coloured by hand last — or, since the same evening, none at all, the tape wound from the centre (Cassette size 0 %); its tape wound round it by the brush, lane after lane, touching, off the canvas's edges — after chat-Claude's prototype v0.3 (`TAPE-Claude/`, its words in `TAPE-Claude/TAPE.md`). TRACE the cassette's outline and the tape's guide with the brush, with INK ON in watercolour; DRAG in two keys, Snake and Air; no MARKS. `tape.html` since 2026-10-19 (`index.html` before), its plan `tapeplan.js`, its page module `tape.js`. |
+| **BASF** | TAPE's tape wound from the middle of the canvas, no cassette, after TAPE in the top row from 2026-10-12 to 10-19, in honour of the cassettes gone (§1): every lane a rounded square of one shape, the innermost at the middle, Corners its rounding. `basf.html`, its body `data-tab="basf"`; TAPE's page module and plan (`inner`), its own keep and Library label. |
 | **Lane · pitch (on TAPE)** | A lane: one loop of the tape round the cassette, one brush wide, a rounded rectangle whose four corner arcs share one centre, so the next lies one pitch outside it all the way round; lane 1 the one touching the cassette. The pitch: lane centre to lane centre, the brush and the Gap; at Gap 0 the lanes touch. |
 | **Seam · lane change · closed rings (on TAPE)** | The seam: where the tape moves out to the next lane, the middle of the right side. The lane change: the stretch from the seam over which it drifts out one pitch, Lane change brush widths long, one smoothstep for every lane, so neighbours never bunch or part; longer than lane 1, one continuous spiral and no seam seen. Closed rings instead: every lane closing on itself, the brush lifting to the next. Not ALU's seam. |
 | **Run · overrun (on TAPE)** | A run: the tape whole, from where it comes out from under the cassette to its last lane, the brush down off the canvas too (a closed ring a run of its own). The overrun: how far the brush carries on past the canvas's edge at a run's end before it lifts. No segments and no paint stops since 2026-10-12, the evening (§1). |
@@ -52,12 +52,12 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **SNAKE PLAIN → · SNAKE PLAIN ↑** | BIAS's straight stripes, as CCD's (2026-10-16, the evening, after 90 looked "some kind of parquet"): one family and one run, every lane in its order, the snake with the brush down, turning off the rectangle — → every lane across from the bottom up, → then ←; ↑ every lane upright from the left, ↑ then ↓. 90's lanes: centred, Step apart, none down the middle, the brush wholly on the rectangle. Before 90 SNAKE · 90 AIR on the deck. |
 | **Run (on BIAS)** | One of the four: the lanes of one family it paints, every other one, in their order — a snake of them with the brush down, turning off the rectangle, or each one way through the air. Not TAPE's run. |
 | **Edge sausages · rows (on BIAS)** | Where BIAS's paint is squeezed (the owner's hand test, BIAS-plaid/ 10:30:07 … 10:30:10): along the rectangle's four edges, where every lane lands, and along vertical rows inside, evenly — Rows counts the sides, three on the 20 × 20, one down the middle; each edge and row cut into stripes of 1, 2, 3 or 6 half-steps, a paint each. |
-| **LOOM** | Claude's own tab, after BIAS in the top row since 2026-10-16 (§1, §8), on the owner's offer of "full freedom": the canvas one woven cloth — BIAS SNAKE's strips, square to each other, a rising one and a crossing one in turn, 30 mm off the canvas at both ends — and where a strip should go under one laid before it, the elbow lifts the brush over it on the move. Two layers, each its own drawing and paints, run on their own; a canvas past the reach in two halves, turned round between. MARKS and DRAG Snake · Air; no TRACE. `loom.html`, its plan `loomplan.js`, its page module `loom.js`; BIAS's untouched. Its instructions: `LOOM.md`. |
+| **LOOM** | Claude's own tab, after BIAS in the top row from 2026-10-16 to 10-19 (§1, §8), on the owner's offer of "full freedom": the canvas one woven cloth — BIAS SNAKE's strips, square to each other, a rising one and a crossing one in turn, 30 mm off the canvas at both ends — and where a strip should go under one laid before it, the elbow lifts the brush over it on the move. Two layers, each its own drawing and paints, run on their own; a canvas past the reach in two halves, turned round between. MARKS and DRAG Snake · Air; no TRACE. `loom.html`, its plan `loomplan.js`, its page module `loom.js`; BIAS's untouched. Its instructions: `LOOM.md`. |
 | **Strip · hop (on LOOM)** | A strip: a lane of LOOM's cloth, one brush wide, a step from its neighbours across, one of each family through the canvas's centre. A hop: where a strip goes under one painted before it, the brush up from Hop mm before that strip to Hop mm past it — the piece a turn for plotRun, the elbow up through it (+25°) and down to the lift-off by its end, Lands and lifts over its tail either side — so the earlier strip stays on top there. |
 | **Weave (on LOOM)** | Which strip lies on top where two cross: **Plain**, one over and one under in turn, a chessboard — the intrecciato; **Twill**, two and two along the diagonals, its ribs straight across the canvas at 45°; **Basket**, the strips in pairs; **Lattice**, no hop, the later strip on top, as BIAS and IMG_0924. By the strips' indices on the canvas as it lies first. |
 | **Layer 1 · Layer 2 (on LOOM)** | Two runs, each its own drawing — weave, angle, step, crossing corner, rows — and its own sausages and paints: layer 1 on the white canvas, layer 2 another way over it once it has set (the owner, 2026-10-16, IMG_0921: "two independent runs, and it looks dearer than one"). The Result on Layer 2 shows the second over the first. A layer in this glossary's sense. |
 | **Halves · the turn (on LOOM)** | A canvas past the reach (60 × 80, 70 × 100) run in two: half 1, the near half — the left (↔) or the bottom (↕) — and the overlap past the middle; the carriage home, a pause; the canvas turned round 180° by hand, its far corner C on the stop where the near one, A, was; half 2, the same lattice in the canvas's turned frame, its strips going on from the first's, the paint dragged the other way. |
-| **INKA** | The tab of Inca patterns, after LOOM in the top row since 2026-10-17 (§1, §8): square tiles "like Mexican rugs or chocolate bars", each filled by a spiral of the dry brush, the tiles that touch one figure, the brush down through all of them without a lift — Florian Markus's way with the paint, not his race tracks — and Heather Day's pure colour in a figure of one paint. MARKS and DRAG, no Air, no TRACE; ▶ Play the run. `inka.html`, its plan `inkaplan.js`, its page module `inka.js`; CCD's untouched. |
+| **INKA** | The tab of Inca patterns, after LOOM in the top row from 2026-10-17, the first tab since 2026-10-19 (§1, §8): square tiles "like Mexican rugs or chocolate bars", each filled by a spiral of the dry brush, the tiles that touch one figure, the brush down through all of them without a lift — Florian Markus's way with the paint, not his race tracks — and Heather Day's pure colour in a figure of one paint. MARKS and DRAG, no Air, no TRACE; ▶ Play the run. `index.html` since 2026-10-19 (`inka.html` before), its plan `inkaplan.js`, its page module `inka.js`; CCD's untouched. |
 | **Tile · block · unit · figure (on INKA)** | A tile: a rectangle laid with R, as CCD's. A block: tiles laid over one another, one outline, its rings the outline's — the owner's "[". A unit: a tile or a block. A figure: units side by side, sharing a side, no farther apart than One figure: tiles apart up to (5 mm, est.) — one line of the brush; units touching only at a corner, or farther apart, a figure each. |
 | **Ring · spiral (on INKA)** | A ring: one loop of the brush round a unit — its outline moved in by the brush's half, then by Step each time, its turns rounded by Corners; a middle left wider than half a step, one more ring. The spiral: the rings joined, each a step short and on along the next. A figure's units in a snake from its bottom left, up first; the first from its middle out, the next from its outside in, and so on — out to the corner nearest the next unit, in from the corner nearest the brush, from a middle straight to the next middle across the rings, as the owner's scheme draws it. |
 | **Wipe (on INKA)** | Before every next figure: the brush flies over its start and goes up to Wipe (+45°, the elbow's highest, est.), the run pauses; the owner wipes it and squeezes that figure's sausages; Continue brings it down to land. |
@@ -669,6 +669,16 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the canvas, cmd+A"): every tile chosen together — a drag moves them all,
   the arrows, ⌫, ⌘C ⌘V with the nodes between them; ⇧ and a click one more
   or one less (*Claude's*); a click on the canvas or Esc lets them go.
+- **INKA first; TAPE, BASF, LOOM, NOLAN and Test off the top row** (the
+  owner, 2026-10-19, a Monday: "let us do a general cleanup. We need to
+  remove the TAPE, BASF, LOOM, NOLAN and TEST tabs"; INKA "is the most
+  essential"; asked, he chose INKA first, `index.html`, and the tabs off the
+  row, their pages kept, as TYPE's and LOVE's): INKA · ALU-CUT · CCD · BIAS ·
+  ALU · SMKN · Ink · Calibration · Library. INKA is `index.html`, the
+  server's first page, `start.command` opens it; TAPE's page `tape.html`;
+  BASF's, LOOM's, NOLAN's and Test's as they were, the Library opening their
+  saves there. TAPE's plan stays wherever it is shared — CCD, BIAS and INKA
+  import its paints.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1080,9 +1090,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.8**, then the tabs **TAPE · BASF · ALU-CUT · CCD · BIAS · LOOM ·
-  INKA · ALU · SMKN · NOLAN · Test · Ink · Calibration · Library** (INKA
-  after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
+  **v.1.0.8**, then the tabs **INKA · ALU-CUT · CCD · BIAS · ALU · SMKN ·
+  Ink · Calibration · Library** (INKA first since 2026-10-19, TAPE, BASF,
+  LOOM, NOLAN and Test off the row then; INKA after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
   Job and New Yuri since 2026-10-06, §1), and on
@@ -1110,7 +1120,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   calibration.png`): the canvas inside the image area, the walls dashed,
   hatched where the machine does not reach (600 > 568.5 mm across). The
   status bar names both: `Canvas 500 × 700 · image area 568.5 × 865 · …`.
-- **NOLAN**, the first tab, in Create's place (2026-10-04): ribbons of
+- **NOLAN**, the first tab, in Create's place (2026-10-04), off the top row
+  since 2026-10-19 (§1): ribbons of
   8 mm strokes after `nolan-images/IMG_9424.jpg`, the ribbons N1 · N2 · N3,
   a Watercolour run and a Paint run. Built on Test — its board, PROGRESS,
   keys, INK and sliders — with Create's Tools on the left (the owner,
@@ -1297,7 +1308,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   switch, its two keys under the brush's sliders gone (*Claude's choice*).
   Run on the
   machine since 2026-10-10.
-- **TAPE**, the first tab (2026-10-12, §1; `app/index.html`, `app/src/tape.js`,
+- **TAPE**, the first tab from 2026-10-12 to 10-19, then off the top row (§1;
+  `app/tape.html`, `app/src/tape.js`,
   `app/src/tapeplan.js`; `TAPE-Claude/TAPE.md`): CCD's page — its board, the
   canvas from home with the cassette in its centre, PROGRESS, the zoom, the
   LCD — with the deck **TEST · PAUSE, TRACE · Snake · Air, STOP**. TRACE:
@@ -1351,7 +1363,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   counts every run's lanes; with the canvas on a wall a warning — the snake's turns there would run along its edge over
   the lanes' ends — and how far off the walls to lay it. 💾 SAVE BIAS, the
   Library opening it here.
-- **LOOM**, after BIAS (2026-10-16, §1; `app/loom.html`, `app/src/loom.js`,
+- **LOOM**, after BIAS from 2026-10-16 to 10-19, then off the top row (§1;
+  `app/loom.html`, `app/src/loom.js`,
   `app/src/loomplan.js`; how to run it, `LOOM.md`): BIAS's page with no
   rectangles — the cloth is the canvas. Tools: M and its clear, Undo, Redo.
   The deck **TEST · PAUSE, MARKS · Snake · Air, STOP · HOME**, INK, the
@@ -1372,7 +1385,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   and on Layer 2 the second over it, a tuck's shadow where a strip dives
   under. A warning when the elbow cannot keep up with the hops. 💾 SAVE
   LOOM, both layers, the Library opening it here.
-- **INKA**, after LOOM (2026-10-17, §1; `app/inka.html`, `app/src/inka.js`,
+- **INKA**, after LOOM (2026-10-17), the first tab since 2026-10-19 (§1;
+  `app/index.html`, `app/src/inka.js`,
   `app/src/inkaplan.js`): CCD's page — the tiles CCD's rectangles, R a
   tile, V moves and stretches it, the edges snapping; M and the strip of
   paints; **N**, the nodes: every tile's magnets — its middle a dot, its
@@ -1449,7 +1463,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   iridescent two drawn as their colour, no shine. New composition, New
   colours and New pipe in them; 💾 SAVE SMKN, the Library
   opens it here.
-- **Test**, a tab between Job and Adjustments (2026-10-02): the test bench —
+- **Test**, a tab between Job and Adjustments (2026-10-02), off the top row
+  since 2026-10-19 (§1), the page kept: the test bench —
   a 30 × 30 board ("the ideal format for tests", the owner), black only;
   rows of hairpins drawn by the plotter, X and Y, lines and arcs: a line
   out, a half circle, a line back, the wrist lifting the brush with its
