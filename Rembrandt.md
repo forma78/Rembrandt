@@ -65,7 +65,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Node · magnet (on INKA)** | A node: the owner's link from one tile to the next (2026-10-17), laid with N — the brush's way set by hand, no algorithm. A magnet: where a node holds — a tile's middle, where its spiral ends inside, or a corner or a side's middle of its outer ring. A node into a tile's middle: it spirals out, its outer ring turned to end where its next node leaves; into its outer ring: it spirals in from there. One way out of a tile, one in; the chains are the figures, a tile no node touches a figure of its own. No nodes: the snake. A tile whose nodes are both in its middle, or both on its edge — the brush crossing its rings to leave — is marked **!** (the owner's sign, not ⚠, which is the muddy pair's). |
 | **Knife (on INKA)** | K in the Tools, under N: a line dragged across the canvas cuts every node it crosses, a click on a node cuts that one; the chain falls apart there (2026-10-19, the owner's "scalpel", where Clear nodes is the sledgehammer). |
 | **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
-| **Reference palette (on INKA)** | The palette off the reference in the owner's paints only: every pixel to the nearest of the 24, the six with the most of the picture the core, the next three thin, their shares its weights; the Reference key deals it on every tile (2026-10-19). |
+| **To buy · •** | A paint not in the owner's stock yet, shown in INKA's strip under his 24 with a red dot: four fluorescents read off his canvases (2026-10-19, `TO_BUY`). Not ⚠ and not INKA's **!**. |
+| **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; the Reference key deals it on every tile (2026-10-19). |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -730,6 +731,17 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   next, a tile never its touching neighbour's in any figure, a lone figure
   one paint; the picture whole, its background counted (× takes a paint
   out); the keys with tiles chosen together act on all their figures.
+  **The painting, not the wall; paints to buy** (the owner, the same
+  afternoon, `INKA/references/`, twelve of his canvases photographed framed
+  on a wall: the reference "broke"; "we have fluorescent colours there,
+  intense, but I can buy such … a square of the new 'acid' paint, and in its
+  cell on the left in the TOOLS, where all the colours are, a red dot • — to
+  buy, or not in stock yet"): the wall had come out the largest paint.
+  *Claude's choices*: the painting the box of what differs from the
+  picture's outer ring by more than ΔE 15, in 4 % for the frame; CIEDE2000;
+  four fluorescents to buy, read off his twelve — Fluo Red, Fluo Pink, Fluo
+  Orange, Fluo Lime (est.) — under his 24 in INKA's strip, two a column, a
+  red dot; a paint to buy only 1.5 times nearer than his nearest in stock.
 - **INKA first; TAPE, BASF, LOOM, NOLAN and Test off the top row** (the
   owner, 2026-10-19, a Monday: "let us do a general cleanup. We need to
   remove the TAPE, BASF, LOOM, NOLAN and TEST tabs"; INKA "is the most

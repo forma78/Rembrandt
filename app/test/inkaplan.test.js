@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dealFigures, paletteOfPixels, nearestPaint, withIds, cleanNodes, magnetsOf, linksOf, snakeNodes, cleanRect, unitsOf, figuresOf, ringsOf, spiralOf, cleanPts, jogged, roundOf, planOf, dragRows, wipeBlocks, dragSvg, dealFigure, sausagesOf, unitSausages, spokesOf, spokeAt, marksRows, simOf, stepsOf, INKA_META, pureOf, lenOf, atPiece,
+import { dealFigures, paletteOfPixels, paintingBox, nearestPaint, withIds, cleanNodes, magnetsOf, linksOf, snakeNodes, cleanRect, unitsOf, figuresOf, ringsOf, spiralOf, cleanPts, jogged, roundOf, planOf, dragRows, wipeBlocks, dragSvg, dealFigure, sausagesOf, unitSausages, spokesOf, spokeAt, marksRows, simOf, stepsOf, INKA_META, pureOf, lenOf, atPiece,
   STEP_NEW, STEP_MAX, JOIN_NEW, WIPE_NEW, R_MIN, BRUSH_NEW, SWELL_NEW, trailOf } from '../src/inkaplan.js';
 import { dragPasses, MARKS_DIP } from '../src/ccdplan.js';
 import { PAINT } from '../src/tapeplan.js';
@@ -275,4 +275,22 @@ test('Reference: a picture\'s colours to his paints, their shares; dealt on ever
   for (let i = 0; i < 12; i++) { assert.equal(d.ss.get(i).length, 4, 'an X'); n[main(i)] = (n[main(i)] || 0) + 1; }
   assert.ok(n.pink >= 5 && n.pink <= 7 && n.ultramarine >= 3 && n.white >= 1, JSON.stringify(n));
   for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) if (i !== j && Math.abs(i % 4 - j % 4) + Math.abs(Math.floor(i / 4) - Math.floor(j / 4)) === 1) assert.notEqual(main(i), main(j), `tiles ${i + 1} and ${j + 1} touch`);
+});
+
+// His references (INKA/references/): his canvases photographed on a wall, framed, in fluorescent paints
+test('Reference: the painting off its wall and frame; a fluorescent paint marked to buy, his own in stock first', () => {
+  const w = 100, h = 120, px = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = 4 * (y * w + x), inP = x >= 20 && x < 80 && y >= 20 && y < 100, frame = inP && (x < 22 || x >= 78 || y < 22 || y >= 98);
+    const c = !inP ? [230, 228, 224] : frame ? [222, 205, 176] : y < 60 ? [250, 3, 80] : [18, 28, 90];   // the wall, the frame, neon pink over navy
+    px.set([...c, 255], i);
+  }
+  const B = paintingBox(px, w, h);
+  assert.ok(B.x0 >= 20 && B.x1 <= 80 && B.y0 >= 20 && B.y1 <= 100, `inside the painting: ${JSON.stringify(B)}`);
+  const pal = paletteOfPixels(px, w, h);
+  assert.ok(!pal.core.includes('white') && !pal.core.includes('sand'), `no wall, no frame: ${pal.core}`);
+  assert.deepEqual(pal.core.slice(0, 2).sort(), ['fpink', 'ultramarine'], 'the neon pink one to buy; the navy his Ultramarine');
+  assert.equal(PAINT.fpink.buy, true); assert.ok(!PAINT.pink.buy);
+  assert.equal(nearestPaint([237, 93, 101]), 'pink', 'his own Pink, where it is');
+  assert.equal(nearestPaint([250, 3, 80]), 'fpink');
 });

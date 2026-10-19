@@ -784,9 +784,10 @@ export function dealFigures(rects, units, figs, pal, seed, mode = 'colours', o =
 // The owner, 2026-10-19, Screenshot 4.15.26 PM — ten tiles, the keys
 // painting only the chosen figure's: "a picture with the colour range there,
 // appearing on all ten squares. Important: the reference's analysis must
-// match the colours we have in stock". Every pixel to the nearest of his
-// paints in Lab, lightness at half weight (CMC 2 : 1) — a photograph's light
-// dulls and darkens a paint — and counted; the paints with a share the
+// match the colours we have in stock". Every pixel of the painting — the
+// wall and the frame off (paintingBox) — to the nearest of his paints by
+// CIEDE2000, a paint to buy (PAINT's buy, TO_BUY) only where it is BUY_K
+// times nearer than his nearest in stock, and counted; the paints with a share the
 // palette: the core the largest, REF_CORE at most, each CORE_MIN of the
 // picture or more; the accents the next, thin, REF_ACCENT at most, each
 // ACCENT_MIN or more; the shares its weights (est., Claude's).
@@ -797,27 +798,65 @@ const labOf = lin => {
   const X = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), Y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), Z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
   return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
 };
+// ΔE, CIEDE2000: the hue weighed as an eye does — a photograph's neon pink
+// his Pink, not the dark 05; his navy Ultramarine
+export function de2000([L1, a1, b1], [L2, a2, b2]) {
+  const rad = Math.PI / 180, c7 = c => Math.sqrt(c ** 7 / (c ** 7 + 25 ** 7)), Cb = (Math.hypot(a1, b1) + Math.hypot(a2, b2)) / 2, G = 0.5 * (1 - c7(Cb));
+  const A1 = (1 + G) * a1, A2 = (1 + G) * a2, C1 = Math.hypot(A1, b1), C2 = Math.hypot(A2, b2), hue = (a, b) => { const v = Math.atan2(b, a) / rad; return v < 0 ? v + 360 : v; }, h1 = hue(A1, b1), h2 = hue(A2, b2);
+  let dh = C1 * C2 ? h2 - h1 : 0; if (dh > 180) dh -= 360; else if (dh < -180) dh += 360;
+  const dL = L2 - L1, dC = C2 - C1, dH = 2 * Math.sqrt(C1 * C2) * Math.sin(dh / 2 * rad), Lb = (L1 + L2) / 2, Cp = (C1 + C2) / 2;
+  const hb = !(C1 * C2) ? h1 + h2 : Math.abs(h1 - h2) > 180 ? (h1 + h2 + 360) / 2 : (h1 + h2) / 2;
+  const T = 1 - 0.17 * Math.cos((hb - 30) * rad) + 0.24 * Math.cos(2 * hb * rad) + 0.32 * Math.cos((3 * hb + 6) * rad) - 0.2 * Math.cos((4 * hb - 63) * rad);
+  const SL = 1 + 0.015 * (Lb - 50) ** 2 / Math.sqrt(20 + (Lb - 50) ** 2), SC = 1 + 0.045 * Cp, SH = 1 + 0.015 * Cp * T, RT = -2 * c7(Cp) * Math.sin(60 * Math.exp(-(((hb - 275) / 25) ** 2)) * rad);
+  return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
+}
+export const BUY_K = 1.5;
 const LABS = new Map();
 export function nearestPaint(rgb, ids = Object.keys(PAINT)) {
   const lab = labOf(rgb.map(v => toLin(v / 255)));
   let best = ids[0], bd = Infinity;
-  for (const id of ids) { if (!LABS.has(id)) LABS.set(id, labOf(linOf(PAINT[id].hex))); const q = LABS.get(id), d = ((lab[0] - q[0]) / 2) ** 2 + (lab[1] - q[1]) ** 2 + (lab[2] - q[2]) ** 2; if (d < bd) { bd = d; best = id; } }
+  for (const id of ids) { if (!LABS.has(id)) LABS.set(id, labOf(linOf(PAINT[id].hex))); const d = de2000(lab, LABS.get(id)) * (PAINT[id].buy ? BUY_K : 1); if (d < bd) { bd = d; best = id; } }
   return best;
 }
-export function paletteOfPixels(px) {
-  const n = {}, seen = new Map();
+// The painting, not its wall (the owner's references, INKA/references/:
+// his canvases photographed on a wall, framed): the background the median of
+// the picture's outer ring; the painting the box of what differs from it by
+// more than BG_DE — its 2nd … 98th percentile — in by FRAME of its size on
+// every side, the frame off; a picture nearly all painting kept whole (est.).
+// → { x0, y0, x1, y1 } in pixels, x1 and y1 past the last
+export const BG_DE = 15, FRAME = 0.04;
+export function paintingBox(px, w, h) {
+  const whole = { x0: 0, y0: 0, x1: w, y1: h }, L = new Float32Array(3 * w * h), ring = [[], [], []], m = Math.max(1, Math.round(0.04 * Math.min(w, h)));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = 4 * (y * w + x), q = labOf([px[i], px[i + 1], px[i + 2]].map(v => toLin(v / 255)));
+    L.set(q, 3 * (y * w + x));
+    if (x < m || y < m || x >= w - m || y >= h - m) for (let k = 0; k < 3; k++) ring[k].push(q[k]);
+  }
+  const bg = ring.map(v => v.sort((a, b) => a - b)[v.length >> 1] ?? 0), xs = [], ys = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const j = 3 * (y * w + x); if (Math.hypot(L[j] - bg[0], L[j + 1] - bg[1], L[j + 2] - bg[2]) > BG_DE) { xs.push(x); ys.push(y); } }
+  if (xs.length < 0.05 * w * h) return whole;
+  xs.sort((a, b) => a - b); ys.sort((a, b) => a - b);
+  const pc = (v, f) => v[Math.min(v.length - 1, Math.floor(f * v.length))], x0 = pc(xs, 0.02), x1 = pc(xs, 0.98) + 1, y0 = pc(ys, 0.02), y1 = pc(ys, 0.98) + 1;
+  if (x1 - x0 > 0.92 * w && y1 - y0 > 0.92 * h) return whole;
+  const ix = Math.round(FRAME * (x1 - x0)), iy = Math.round(FRAME * (y1 - y0));
+  return { x0: x0 + ix, y0: y0 + iy, x1: Math.max(x0 + ix + 1, x1 - ix), y1: Math.max(y0 + iy + 1, y1 - iy) };
+}
+// px, w, h: the picture; with w and h, its painting only (paintingBox)
+export function paletteOfPixels(px, w, h) {
+  const n = {}, seen = new Map(), B = w && h ? paintingBox(px, w, h) : null;
   let all = 0;
   for (let i = 0; i + 3 < px.length; i += 4) {
     if (px[i + 3] < 128) continue;
+    if (B) { const k = i >> 2, x = k % w, y = (k - x) / w; if (x < B.x0 || x >= B.x1 || y < B.y0 || y >= B.y1) continue; }
     const key = (px[i] >> 2) << 12 | (px[i + 1] >> 2) << 6 | px[i + 2] >> 2;
     let id = seen.get(key);
     if (!id) { id = nearestPaint([px[i], px[i + 1], px[i + 2]]); seen.set(key, id); }
     n[id] = (n[id] || 0) + 1; all++;
   }
   if (!all) return null;
-  const by = Object.keys(n).sort((a, b) => n[b] - n[a]), w = Object.fromEntries(by.map(id => [id, Math.round(n[id] / all * 1000) / 1000]));
-  const core = by.filter((id, k) => k === 0 || w[id] >= CORE_MIN).slice(0, REF_CORE), accent = by.filter(id => !core.includes(id) && w[id] >= ACCENT_MIN).slice(0, REF_ACCENT);
-  return { name: 'Reference', core, accent, w: Object.fromEntries(core.map(id => [id, w[id]])), seed: 0 };
+  const by = Object.keys(n).sort((a, b) => n[b] - n[a]), sh = Object.fromEntries(by.map(id => [id, Math.round(n[id] / all * 1000) / 1000]));
+  const core = by.filter((id, k) => k === 0 || sh[id] >= CORE_MIN).slice(0, REF_CORE), accent = by.filter(id => !core.includes(id) && sh[id] >= ACCENT_MIN).slice(0, REF_ACCENT);
+  return { name: 'Reference', core, accent, w: Object.fromEntries(core.map(id => [id, sh[id]])), seed: 0 };
 }
 
 // ---------- MARKS: where the sausages go ----------

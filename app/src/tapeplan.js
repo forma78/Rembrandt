@@ -509,7 +509,18 @@ export const TAPE_PAINTS = [
   ['brown', 'Dark Brown', '#3D160E', 'swatch'],
   ['black', 'Black', '#090909', 'swatch'],
 ];
-export const PAINT = Object.fromEntries(TAPE_PAINTS.map(([id, name, hex, from]) => [id, { id, name, hex, from }]));
+// Paints to buy (the owner, 2026-10-19, INKA/references/, his canvases on a
+// wall: "we have fluorescent colours there, intense, but I can buy such …
+// a red dot •, to buy, or not in stock yet"): his fluorescents as his
+// photographs show them, the vivid colours of the twelve clustered (est.);
+// INKA's strip shows them, marked, after his 24
+export const TO_BUY = [
+  ['fred', 'Fluo Red', '#F30502', 'photo'],
+  ['fpink', 'Fluo Pink', '#FA0350', 'photo'],
+  ['forange', 'Fluo Orange', '#F07B10', 'photo'],
+  ['flime', 'Fluo Lime', '#C3DB04', 'photo'],
+];
+export const PAINT = Object.fromEntries([...TAPE_PAINTS.map(([id, name, hex, from]) => [id, { id, name, hex, from }]), ...TO_BUY.map(([id, name, hex, from]) => [id, { id, name, hex, from, buy: true }])]);
 
 // A spoke: paint squeezed across the lanes, from the cassette outwards, as
 // the owner laid it on paper (TAPE-images/ 17:22): at u round the lanes,

@@ -9,6 +9,32 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: Reference reads the painting, not the wall; fluorescent paints
+  to buy, a red dot •** (the owner, 2026-10-19, `INKA/references/`, twelve
+  of his canvases photographed on a wall: the reference "broke"; "we have
+  fluorescent colours there, intense, but I can buy such … add squares with
+  marks, a square of the new 'acid' paint, and in its cell on the left in
+  the TOOLS, where all the colours are, a red dot • — to buy, or not in
+  stock yet"). The wall had been the largest paint — White up to 63 % — the
+  frame Sand, the shadows Brown and Black, his neon pink the dark 05.
+  - **The painting only**: the background the median of the picture's
+    outer ring, the painting the box of what differs from it, in 4 % on
+    every side, the frame off; a picture all painting whole.
+  - **CIEDE2000** in place of Lab at half lightness: a pink his Pink, a
+    teal Sky Blue, a lighter navy Ultramarine.
+  - **To buy**: Fluo Red #F30502, Fluo Pink #FA0350, Fluo Orange #F07B10,
+    Fluo Lime #C3DB04 — the vivid colours of his twelve clustered, as the
+    photographs show them (est.) — under the two columns of his 24 in
+    INKA's strip, two each, a red dot on each; a paint to buy wins only 1.5
+    times nearer than his nearest in stock. In the paints in use a red •;
+    under the Paints' i, "To buy, not in stock yet: …". The other tabs'
+    strips as they were.
+  - The reference kept at 1 400 px (was 2 000); when this browser has no
+    room for it, the Reference panel says so — it was lost on a reload
+    without a word.
+  On his twelve: the pink canvas Black, Fluo Pink, Red, Yellow Ochre; the
+  red one with lime Purple, Fluo Red, Dark Brown, Viridian, thin Fluo Lime.
+
 - **INKA: the knife, K, cuts nodes** (the owner, 2026-10-19: "next to
   Nodes (N) we need a knife (K) that cuts the nodes … the arrows got mixed
   up, and they do not always land the way needed"; "we have Clear nodes,

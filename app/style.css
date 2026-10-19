@@ -696,6 +696,9 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"]) .paintlist .pl:hover .x{display:block}
 :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"]) .paintlist .pl.add{padding:2px 8px;font-weight:600;color:var(--mute)}
 :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"]) .paintstrip.editing .chip .sw{box-shadow:0 0 0 1px var(--orange)}       /* a paint to pick for the palette */
+[data-tab="inka"] .paintstrip{grid-template-rows:repeat(14,auto)}                 /* INKA: his 24 and, under each column, two to buy */
+.paintstrip .chip.buy::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#E5203A;box-shadow:0 0 0 1.5px var(--panel);pointer-events:none}   /* • to buy, not in stock yet (the owner, 2026-10-19) */
+.paintlist .buydot{color:#E5203A}
 .tape #metaKeys{margin:8px 0 2px}
 /* INKA (2026-10-17): CCD's page, MARKS · DRAG a pair, Play the run under the views, the palette keys two rows */
 [data-tab="inka"] .runkeys.deck.passes{grid-template-columns:1fr 1fr}
@@ -736,6 +739,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
   :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"]) .paintstrip{top:auto;bottom:0;right:0;width:auto;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(12,26px);column-gap:3px;row-gap:2px;padding:6px 0 4px;border-right:0;border-top:1px solid var(--line);overflow:visible}
   :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"]) .paintstrip .chip{width:26px}
   :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"]) .paintstrip .chip .sw{width:26px;height:26px;border-radius:6px}
+  [data-tab="inka"] .paintstrip .chip.buy{order:1}                                /* on the phone, rows of 12: the ones to buy last */
 }
 @media (max-height: 500px) and (orientation: landscape) {
   .top{flex-wrap:nowrap;padding:6px 12px}

@@ -24,7 +24,7 @@ import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
 import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
-import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
+import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -901,7 +901,9 @@ $('#btnDraw').onclick = () => setTool('rect');
 // then one in the strip — it takes its place; + then a paint — it joins, the
 // tiles dealt again; × — out. New colours, New spokes, the meta keys and
 // INKA's own act on the chosen tile's figure.
-$('#paints').innerHTML = TAPE_PAINTS.map(([id, name, hex]) => `<div class="chip" data-paint="${id}"><button class="sw" style="background:${hex}" aria-label="${name}"></button><span class="cnt"></span></div>`).join('');
+// his 24, two columns of 12, and under each column two to buy, a red dot • (the owner, 2026-10-19: "a red dot • — to buy, or not in stock yet")
+const STRIP = [...TAPE_PAINTS.slice(0, 12), ...TO_BUY.slice(0, 2), ...TAPE_PAINTS.slice(12), ...TO_BUY.slice(2)];
+$('#paints').innerHTML = STRIP.map(([id, name, hex]) => `<div class="chip${PAINT[id].buy ? ' buy' : ''}" data-paint="${id}"><button class="sw" style="background:${hex}" aria-label="${name}"></button><span class="cnt"></span></div>`).join('');
 $('#paints').querySelectorAll('[data-paint]').forEach(ch => ch.querySelector('.sw').onclick = () => {
   if (EDIT) { editPaint(ch.dataset.paint); return; }
   S.paint = ch.dataset.paint; setTool('paint');
@@ -968,11 +970,11 @@ function refPixels() {
   const img = REF.img, kk = Math.min(1, 160 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
   c2.width = Math.max(1, Math.round(img.naturalWidth * kk)); c2.height = Math.max(1, Math.round(img.naturalHeight * kk));
   const c = c2.getContext('2d', { willReadFrequently: true }); c.drawImage(img, 0, 0, c2.width, c2.height);
-  return c.getImageData(0, 0, c2.width, c2.height).data;
+  return { px: c.getImageData(0, 0, c2.width, c2.height).data, w: c2.width, h: c2.height };
 }
 $('#btnRefPal').onclick = () => {
   if (!REF) { $('#hint').textContent = 'No reference yet: 📎 Add new reference, at the foot of the panel — its colours come in your paints.'; return; }
-  const P = planNow(), pal = paletteOfPixels(refPixels()); if (!pal || !P.figs.length) return;
+  const P = planNow(), R = refPixels(), pal = paletteOfPixels(R.px, R.w, R.h); if (!pal || !P.figs.length) return;
   undoPush(); const seed = seedNew(); dealOn(P.figs, pal, seed, 'colours'); S.view = 'result'; settle();
 };
 // Density: the paint in a sausage, as far as it carries the line (CCD's reachOf)
@@ -997,10 +999,10 @@ function showPaints() {
     const q = PAINT[ch.dataset.paint], n = count[q.id] || 0;
     ch.querySelector('.cnt').textContent = n || '';
     ch.classList.toggle('pick', S.tool === 'paint' && q.id === S.paint);
-    ch.title = `${q.name} — its colour off your swatch (est.)${n ? `, ${n} sausage${n === 1 ? '' : 's'} in figure ${F.n}` : ''} — a click: the paint of the next sausage (M)`;
+    ch.title = `${q.name}${q.buy ? ' • to buy, not in stock yet — its colour off your photographs, INKA/references/' : ' — its colour off your swatch'} (est.)${n ? `, ${n} sausage${n === 1 ? '' : 's'} in figure ${F.n}` : ''} — a click: the paint of the next sausage (M)`;
   });
   const inUse = [...new Set([...(pal && pal.name !== 'Own' ? [...pal.core, ...pal.accent, ...(pal.pure ? [pal.pure] : [])] : []), ...usedOf(F)])], thin = id => pal?.accent.includes(id) && !pal.core.includes(id);
-  $('#paintList').innerHTML = inUse.map(id => `<span class="pl${count[id] ? '' : ' none'}${EDIT?.id === id ? ' on' : ''}" data-pl="${id}" title="${PAINT[id].name}${thin(id) ? ', thin' : ''}${pal?.pure === id ? ', the lone figure\'s pure paint' : ''} — a click shows its places; then a paint in the strip: it takes its place"><i style="background:${PAINT[id].hex}"></i>${PAINT[id].name}${thin(id) ? ' <em>thin</em>' : ''}${count[id] ? ` <em>×${count[id]}</em>` : ''}<b class="x" data-x="${id}" title="Take ${PAINT[id].name} out">×</b></span>`).join('')
+  $('#paintList').innerHTML = inUse.map(id => `<span class="pl${count[id] ? '' : ' none'}${EDIT?.id === id ? ' on' : ''}" data-pl="${id}" title="${PAINT[id].name}${thin(id) ? ', thin' : ''}${pal?.pure === id ? ', the lone figure\'s pure paint' : ''} — a click shows its places; then a paint in the strip: it takes its place"><i style="background:${PAINT[id].hex}"></i>${PAINT[id].name}${PAINT[id].buy ? ' <b class="buydot" title="To buy: not in stock yet">•</b>' : ''}${thin(id) ? ' <em>thin</em>' : ''}${count[id] ? ` <em>×${count[id]}</em>` : ''}<b class="x" data-x="${id}" title="Take ${PAINT[id].name} out">×</b></span>`).join('')
     + (inUse.length ? `<span class="pl add${EDIT?.mode === 'add' ? ' on' : ''}" data-add title="Add a paint: then click it in the strip on the left">+</span>` : '');
   $('#paints').classList.toggle('editing', !!EDIT);
   document.querySelectorAll('[data-meta]').forEach(b => b.classList.toggle('on', pal?.name === b.dataset.meta));
@@ -1013,6 +1015,7 @@ function showPaints() {
     `Density ${S.density} %: a sausage keeps the line full about ${fmt(reachAt(S.density).full, 0)} mm, gone by ${fmt(reachAt(S.density).gone, 0)}${S.density === DENSITY_NEW ? ' — the measure, TAPE-colors/IMAGE 2026-10-12 19:23:33' : ' (est.; 50 % the measure)'}`,
     pal && pal.name !== 'Own' && `Palette <b>${pal.name}</b>: ${pal.core.map(id => PAINT[id].name + (pal.w?.[id] ? ` ${Math.round(pal.w[id] * 100)} %` : '')).join(', ')}${pal.accent.length ? `; thin: ${pal.accent.map(id => PAINT[id].name).join(', ')}` : ''}${pal.pure ? `; a lone figure ${PAINT[pal.pure].name}` : ''} · seed ${pal.seed}`,
     F && !ss.length && 'No sausages yet: New colours, New spokes, a palette key, or M.',
+    (() => { const b = [...new Set(ss.map(q => q.paint))].filter(id => PAINT[id].buy); return b.length ? `<span class="warn">• To buy, not in stock yet: ${b.map(id => PAINT[id].name).join(', ')}</span>` : ''; })(),
   ].filter(Boolean).join('<br>');
 }
 $('#fields').innerHTML = FIELDS.map(([key, label, unit, step, title, any]) => `<label title="${title}">${label} <input data-k="${key}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
@@ -1087,10 +1090,11 @@ function setRef(src, name, store) {
   img.onload = () => {
     REF = { img, name };
     if (store) {
-      const kk = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
+      const kk = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
       c2.width = Math.round(img.naturalWidth * kk); c2.height = Math.round(img.naturalHeight * kk);
       c2.getContext('2d').drawImage(img, 0, 0, c2.width, c2.height);
-      try { localStorage.setItem(REF_KEY, JSON.stringify({ name, src: c2.toDataURL('image/jpeg', 0.9) })); } catch { }
+      REF.kept = true;
+      try { localStorage.setItem(REF_KEY, JSON.stringify({ name, src: c2.toDataURL('image/jpeg', 0.85) })); } catch { REF.kept = false; }   // the browser's room full: here till a reload
     }
     syncRef(); kick();
   };
@@ -1103,7 +1107,7 @@ function syncRef() {
   if (REF) $('#refThumb .refdel').onclick = deleteRef;
   $('#btnRefPal').disabled = !REF;
   $('#refOp').value = S.refOpacity;
-  $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>` : 'Over the canvas, the whole of it inside, to lay the tiles to.';
+  $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>${REF.kept === false ? ' · <span class="warn">this browser has no room to keep it: gone after a reload</span>' : ''}` : 'Over the canvas, the whole of it inside, to lay the tiles to.';
 }
 $('#btnRef').onclick = () => $('#refIn').click();
 $('#refIn').onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => setRef(rd.result, f.name, true); rd.readAsDataURL(f); e.target.value = ''; };
