@@ -27,7 +27,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
-import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn,
+import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -57,12 +57,13 @@ const S = {
 };
 const NUM = ['sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
 const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result'];
-let FRESH = true;   // nothing kept yet: the owner's paper test laid on the canvas
+let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     if (Array.isArray(o.rects)) S.rects = withIds(o.rects.map(cleanRect).filter(Boolean));
+    WIDTHLESS = Array.isArray(o.rects) && o.rects.some(r => isJohn(r) && !fin(r.width));   // a ⌘ kept before Width: its X laid again on its loop
     S.nodes = cleanNodes(o.nodes);
     if (TOOLS.includes(o.tool)) S.tool = o.tool;
     if (VIEWS.includes(o.view)) S.view = o.view;
@@ -105,7 +106,7 @@ const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, swell: S.swell, 
 const trail = () => paintTrail(po());   // what the brush lays with paint, swollen
 let PL = null, plKey = '';
 function planNow() {
-  const key = JSON.stringify([S.rects.map(r => [r.id, r.x, r.y, r.w, r.h, r.step, r.turn]), S.brush, S.swell, S.edgeOut, S.overlap, S.join, S.corner, S.change, S.nodes]);
+  const key = JSON.stringify([S.rects.map(r => [r.id, r.x, r.y, r.w, r.h, r.step, r.turn, r.kind, r.width]), S.brush, S.swell, S.edgeOut, S.overlap, S.join, S.corner, S.change, S.nodes]);
   if (PL && key === plKey) return PL;
   plKey = key; PL = planOf(S.rects, po());
   return PL;
@@ -686,8 +687,9 @@ const drop = () => {
   if (was.kind === 'new') {
     const r = S.rects[S.sel];
     if (!was.moved || r.w < 2 || r.h < 2) { S.rects.pop(); S.sel = Math.max(0, S.rects.length - 1); undoStack.pop(); }
-    else S.tool = 'edit';
+    else { if (isJohn(r)) r.width = johnWidthNew(r); S.tool = 'edit'; }               // a new ⌘'s loop an eighth of its box
   } else if (!was.moved) undoStack.pop();
+  else if (was.kind === 'size' && isJohn(S.rects[S.sel])) relayJohn(S.sel);        // a ⌘ stretched: its X on its loop again
   settle();
 };
 cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
@@ -828,7 +830,7 @@ addEventListener('keydown', e => {
 });
 
 // ---------- the panel ----------
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['corner', 'Corners', 'mm', 0.5, 0.5, 20], ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['corner', 'Corners', 'mm', 0.5, 0.5, 50], ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
 const SL_TITLE = {
   brush: 'The round brush as set, dry; with paint it lays wider — With paint below. MARKS\' dashes go by it',
   swell: 'The brush is no felt-tip: it takes up the paint and swells (the owner, 2026-10-19: «the brush is not a felt-tip or a Posca marker … it swells in volume»). Its trail this much wider than Brush width — 9 mm at 3.5 by the ruler on his canvas of 2026-10-17, so 5.5 (est. at other widths). The rings, the Drag strip and the Result go by the trail: the outer ring its half in from the tile\'s edge, so the paint ends on it; the innermost the trail wide, its paint meeting in the middle',
@@ -836,7 +838,7 @@ const SL_TITLE = {
   edgeOut: 'Optical compensation: the outer ring moved out towards the tile\'s edge by this much, where the brush lays less than its width and leaves white between touching tiles (the owner, 2026-10-19, IMG_1201: «even round corners should leave a gap only at the corners — the sides must be flush»). 0: its edge on the tile\'s; at the brush\'s half, its middle on it, never past (est.; measure the gap with a ruler, half of it here)',
   overlap: 'One more ring round every tile, the outermost, its brush\'s edge this far past the tile\'s — onto its neighbour, the two over one another, so no white between them (the owner, 2026-10-19: «maybe one more pass on every square — let it go overlapping»). 0: none. At half the brush its middle on the tile\'s edge (est.)',
   change: 'Where a ring\'s seam is a side\'s middle — a node there — the brush goes in to the next ring by an S this long, or as long as the side lets it, as TAPE\'s lane change (the owner, 2026-10-19: «let the transition be as in TAPE or BASF»); 0, as short as a step (est.)',
-  corner: 'Every turn of the path a tangent arc this round, or as round as its sides let it — so the board runs through it and never stops (the owner, 2026-10-17: "rounded corners … a stop of the brush during the process kills the effect"); on it ≈ √(250 · r) mm/s at most (est.)',
+  corner: 'Every turn of the path a tangent arc this round, or as round as its sides let it — so the board runs through it and never stops (the owner, 2026-10-17: "rounded corners … a stop of the brush during the process kills the effect"); on it ≈ √(250 · r) mm/s at most (est.). On a ⌘ the outer ring\'s, the rings inside it concentric, each its depth less, never under 4 mm — the loop as thick round a turn as along a side; up to 50 mm (the owner, 2026-10-19)',
   join: 'Tiles this near each other, side by side, are one figure — the brush on through them without a lift; farther apart, a figure each, a wipe between (est.)',
   wipe: 'Before every next figure the brush flies over its start and goes up this far at the elbow — +45° its highest — for you to wipe it; Continue brings it down (the owner, 2026-10-17: "here the brush can be lifted up, so that I wipe it"; est.)',
 };
@@ -844,12 +846,15 @@ const valOf = key => key === 'drag' ? `${S.drag} mm/s` : key === 'wipe' ? `+${S.
 $('#slBrush').innerHTML = BRUSH_SL.map(([key, label, , step, min, max]) => `<label class="sl" title="${SL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
 $('#slBrush').querySelectorAll('input').forEach(inp => {
   inp.oninput = () => { if (!busy) undoPush(); busy = true; S[inp.dataset.k] = +inp.value; showPanel(); kick(); };
-  inp.onchange = () => settle();
+  inp.onchange = () => { if (inp.dataset.k === 'corner') relayJohn(); settle(); };   // a ⌘'s round turns: its X from where the paint now begins
 });
 // a tile's place: its figure, its turn in it, its rings, its way
 function tileText(i) {
   const P = planNow(), U = unitOfRect(i), F = figOfRect(i); if (!U || !F) return '';
-  if (U.john) return `⌘, St. John's Arms · figure ${F.n} of ${P.figs.length}, a figure of its own · <b>${U.R.levels}</b> loop${U.R.levels === 1 ? '' : 's'} from its middle in, every one round the lobes ${U.turn === 'ccw' ? '1 ↙ 2 ↖ 3 ↗ 4 ↘, each ↺ — the sign mirrored' : '1 ↘ 2 ↗ 3 ↖ 4 ↙, each ↻'}, their inner sides on across the middle`;
+  if (U.john) {
+    const r = S.rects[i], win = [r.w / 2 - 2 * U.width, r.h / 2 - 2 * U.width];
+    return `⌘, St. John's Arms · figure ${F.n} of ${P.figs.length}, a figure of its own · <b>${U.R.levels}</b> loop${U.R.levels === 1 ? '' : 's'} from its middle in, every one round the lobes ${U.turn === 'ccw' ? '1 ↙ 2 ↖ 3 ↗ 4 ↘, each ↺ — the sign mirrored' : '1 ↘ 2 ↗ 3 ↖ 4 ↙, each ↻'}, their inner sides on across the middle · Width <b>${fmt(U.width, 0)} mm</b>: ${win[0] > 0.5 && win[1] > 0.5 ? `a window ${fmt(win[0], 0)} × ${fmt(win[1], 0)} mm in every lobe, the grid in the middle ${fmt(2 * U.width, 0)} mm across` : 'the lobes filled to their middles'}`;
+  }
   const j = F.us.indexOf(U.id), block = U.rs.length > 1, rings = U.R.levels;
   const e = F.ends[j], inward = Math.hypot(e.b[0] - U.M[0].p[0], e.b[1] - U.M[0].p[1]) < Math.hypot(e.a[0] - U.M[0].p[0], e.a[1] - U.M[0].p[1]);
   return `${block ? `In a block of ${U.rs.length} rectangles, one outline` : 'A tile'} · figure ${F.n} of ${P.figs.length}, ${j + 1} of ${F.us.length} in its run${P.manual ? ', by the nodes' : ''} · <b>${rings}</b> ring${rings === 1 ? '' : 's'}, ${inward ? 'from its outside in' : 'from its middle out'}, ${U.turn === 'ccw' ? '↺' : '↻'}${block && U.rs[0] !== i ? ` · its step and turn the block's first rectangle's` : ''}`;
@@ -873,7 +878,7 @@ function showRect() {
   box.innerHTML = `${many}
     <h4>${isJohn(r) ? '⌘' : 'Tile'} ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
     <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round this tile clockwise as it paints it, in or out">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round this tile anticlockwise as it paints it, in or out">↺ Anticlockwise</button></div>
-    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label></div>
+    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label>${isJohn(r) ? (() => { const wMax = Math.max(10, Math.ceil(Math.min(r.w, r.h) / 4)); return `<label class="sl" title="The loop's thickness, its paint edge to edge, from the sign's outline in, as ALU-CUT's pipe Width (the owner, 2026-10-19): the rings only so far in, a window in the middle of every lobe, the grid in the middle of the sign twice as wide; at the slider's end the lobes filled to their middles"><span class="slh"><span>Width</span><input class="num" type="number" id="rWn" min="${JOHN_W_MIN}" max="${JOHN_W_MAX}" step="1" value="${r.width}" aria-label="Width"></span><input class="slider" type="range" id="rW" min="${JOHN_W_MIN}" max="${wMax}" step="1" value="${Math.min(wMax, r.width)}"></label>`; })() : ''}</div>
     <p class="read" id="rGap">${tileText(S.sel)} · ${r.step > trail() + 0.05 ? `white <b>${fmt(r.step - trail(), 1)} mm</b> between the rings` : r.step < trail() - 0.05 ? `the rings' paint overlapping by <b>${fmt(trail() - r.step, 1)} mm</b>` : 'ring to ring'}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
     <div class="grid4 keys"><button class="btn" id="rFit" title="This tile the whole canvas">Whole canvas</button><button class="btn" id="rDup" title="A copy of it beside it on the right, touching: the same figure">Duplicate</button></div>
@@ -893,8 +898,21 @@ function showRect() {
   inp.onchange = () => settle();
   num.oninput = () => { if (num.value !== '') stepTo(+num.value); };
   num.onchange = () => { num.value = r.step; settle(); };
+  const wIn = $('#rW'), wNum = $('#rWn');                                            // a ⌘'s Width, as Step
+  if (wIn) {
+    const widthTo = v => {
+      if (!fin(v)) return;
+      if (!busy) undoPush(); busy = true; r.width = Math.max(JOHN_W_MIN, Math.min(JOHN_W_MAX, Math.round(v)));
+      if (document.activeElement !== wNum) wNum.value = r.width;
+      wIn.value = Math.min(+wIn.max, r.width); kick();
+    };
+    wIn.oninput = () => widthTo(+wIn.value);
+    wIn.onchange = () => { relayJohn(S.sel); settle(); };
+    wNum.oninput = () => { if (wNum.value !== '') widthTo(+wNum.value); };
+    wNum.onchange = () => { wNum.value = r.width; relayJohn(S.sel); settle(); };
+  }
   const act = (sel, fn) => box.querySelectorAll(sel).forEach(b => b.onclick = () => { undoPush(); fn(b); settle(); });
-  act('#rFit', () => { Object.assign(r, { x: 0, y: 0, w: S.boardW, h: S.boardH }); });
+  act('#rFit', () => { Object.assign(r, { x: 0, y: 0, w: S.boardW, h: S.boardH }); if (isJohn(r)) relayJohn(S.sel); });
   act('#rDup', () => { const c = structuredClone(r); c.id = newId(); c.x = clampX(r.x + r.w); S.rects.push(c); S.sel = S.rects.length - 1; });
   act('[data-turn]', b => { const U = unitOfRect(S.sel); for (const i of U ? U.rs : [S.sel]) S.rects[i].turn = b.dataset.turn; });
   act('#rEarly', () => { const i = S.sel; [S.rects[i], S.rects[i - 1]] = [S.rects[i - 1], S.rects[i]]; S.sel--; });
@@ -946,6 +964,17 @@ function dealOn(F, pal, seed, mode) {
   for (const [i, ss] of d.ss) { S.rects[i].ss = ss; S.rects[i].pal = d.pal; }
 }
 const chosenFig = () => figOfRect(S.sel);
+// A ⌘'s X laid again where its loop now is, its paints kept — after its
+// Width, Corners or size changed, so no sausage lies in a lobe's window or
+// a box's corner the brush never comes to; i, the ⌘'s rectangle, or all
+function relayJohn(i = null) {
+  const P = planNow();
+  for (const F of P.figs) {
+    const U = P.units[F.us[0]];
+    if (!U.john || (i !== null && !U.rs.includes(i)) || !figSausages(F).length) continue;
+    const pal = palOf(F); dealOn(F, pal, pal.seed ?? 1, 'spokes');
+  }
+}
 // the figures the keys act on: the chosen tile's, or with tiles chosen together (⌘A, ⇧) every one of theirs
 const chosenFigs = () => { const P = planNow(), on = new Set(picked()); return MANY.size > 1 ? P.figs.filter(F => F.us.some(id => P.units[id].rs.some(i => on.has(i)))) : [chosenFig()].filter(Boolean); };
 function editPaint(id) {
@@ -1305,6 +1334,7 @@ async function watch() {
 // ---------- start ----------
 load(); Object.assign(S, canvasNow(S));
 if (FRESH) JOHN ? johnTest() : paperTest();                                      // a first visit: the owner's paper test on the canvas, on ST-JOHN a ⌘
+else if (WIDTHLESS) relayJohn();
 onCanvas(c => { Object.assign(S, c); settle(); });
 syncRef(); loadRef();
 lampSwitch($('#lamp'));
