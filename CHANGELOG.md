@@ -3,7 +3,11 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Unreleased
+## v.1.0.9 — 2026-10-19
+
+- **v.1.0.9 after the name** (the owner, 2026-10-19, with the cleanup:
+  "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
+  (`rembrandt: '1.0.9'` in their metadata).
 
 - **INKA, the first tab; TAPE, BASF, LOOM, NOLAN and Test off the top row**
   (the owner, 2026-10-19: "let us do a general cleanup. We need to remove

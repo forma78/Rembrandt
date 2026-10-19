@@ -258,7 +258,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   v.1.0.7, write an update about the mobile version"); **v.1.0.8**,
   Genesis, on 2026-10-13, with CCD's paints in straight rows, MARKS, Duo,
   the genesis repeated and HOME (the owner: "now we can push and make an
-  update on GitHub, it is REMBRANDT v.1.0.8").
+  update on GitHub, it is REMBRANDT v.1.0.8"); **v.1.0.9** on 2026-10-19,
+  with INKA first and the top row cleaned (the owner: "this will be the
+  v.1.0.9 update").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -1090,7 +1092,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.8**, then the tabs **INKA · ALU-CUT · CCD · BIAS · ALU · SMKN ·
+  **v.1.0.9**, then the tabs **INKA · ALU-CUT · CCD · BIAS · ALU · SMKN ·
   Ink · Calibration · Library** (INKA first since 2026-10-19, TAPE, BASF,
   LOOM, NOLAN and Test off the row then; INKA after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
