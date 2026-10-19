@@ -9,6 +9,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: Flights, a switch, OFF by default** (the owner, 2026-10-19,
+  Screenshot 4.08.23 PM, on the dashed blue lines from figure to figure:
+  "they magnetise by themselves. Maybe a switch to turn them off? I do not
+  really need them"; "I just use NODES"). Under Drag · Result, Off · On as
+  INK's, its dot orange: ON, the brush's flight through the air from a
+  figure's end to the next one's start on Drag, as before; OFF, none. ❚❚
+  wipe stays by every landing; the live trail of a run, and the run itself,
+  as they were.
+
 - **INKA: the brush with paint, the core, the ring change, the X** (the
   owner, 2026-10-19, `INKA/update-19-10-2026-1.0.9/`, his canvas of
   2026-10-17 photographed with a ruler: "study the results and make the

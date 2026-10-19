@@ -103,6 +103,11 @@
         <button class="tog" data-view="drag" title="DRAG: every figure's path, the order of its tiles, where the brush lands, the wipes; the sausages where you squeeze them, MARKS' dashes under them in watercolour">Drag</button>
         <button class="tog" data-view="result" title="The painting: the brush through the sausages, figure by figure, the paints mixed as pigments (est.)">Result</button>
       </div>
+      <!-- the flights on Drag, OFF by default (the owner, 2026-10-19: "I do not really need them") -->
+      <div class="inkrow" title="ON: on Drag the brush's flight through the air from a figure's end to the next one's start, dashed blue; OFF: none. ❚❚ wipe stays by every landing; the run on the machine is the same either way">
+        <span class="slh"><span>Flights</span></span>
+        <div class="inline check flights"><span class="side" id="flightsOff">Off</span><input id="flights" type="checkbox" aria-label="Flights"><span class="side" id="flightsOn">On</span></div>
+      </div>
       <!-- Play the run, ALU's (the owner, 2026-10-17: "add the button ■ Stop playing / Play the run, as it is made in ALU") -->
       <div class="grid4 keys"><button class="btn" id="btnPlay" title="The Result laid again in the brush's order, from the squeezed sausages on; pressed again, it stops. A view: it moves nothing on the machine">▶ Play the run</button></div>
     </section>

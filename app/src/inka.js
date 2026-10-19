@@ -46,6 +46,7 @@ const S = {
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
   view: 'drag', density: DENSITY_NEW, paint: 'brown', ink: true,                  // the view; the paint in a sausage; M's paint; INK, MARKS' watercolour and TEST's dip
+  flights: false,                                                                    // the flights between figures on Drag (the owner, 2026-10-19: "I do not really need them")
   nodes: [], nodeSel: -1,                                                            // the brush's way by hand (inkaplan.js, linksOf); the node chosen
 };
 const NUM = ['sel', 'brush', 'swell', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
@@ -60,6 +61,7 @@ function load() {
     if (TOOLS.includes(o.tool)) S.tool = o.tool;
     if (VIEWS.includes(o.view)) S.view = o.view;
     if (typeof o.ink === 'boolean') S.ink = o.ink;
+    if (typeof o.flights === 'boolean') S.flights = o.flights;
     if (PAINT[o.paint]) S.paint = o.paint;
     S.sel = Math.max(0, Math.min(S.rects.length - 1, Math.round(S.sel)));
     FRESH = false;
@@ -226,8 +228,9 @@ function draw() {
 // darker, white where they leave a gap; and its centre line; an
 // orange dot where the brush lands, a ring where it lifts; every tile's
 // place in the run, a number where the brush comes onto it, an arrow its
-// way; the flight to the next figure dashed blue, ❚❚ where the brush is
-// wiped.
+// way; the flight to the next figure dashed blue, with Flights ON (OFF
+// by default, the owner, 2026-10-19: "I do not really need them"); ❚❚ where
+// the brush is wiped.
 function trace(c, pieces) {
   c.beginPath(); c.moveTo(pieces[0].a[0], pieces[0].a[1]);
   for (const q of pieces) {
@@ -254,7 +257,7 @@ function drawPaths() {
     if (!F.pieces.length) continue;
     if (was) {                                                                         // the flight, the wipe
       const a = scr(was.end), b = scr(F.start);
-      g.strokeStyle = AIR; g.lineWidth = 1.4; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); g.setLineDash([]);
+      if (S.flights) { g.strokeStyle = AIR; g.lineWidth = 1.4; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); g.setLineDash([]); }
       g.fillStyle = '#1F6FA8'; g.font = font(11, 600); g.textAlign = 'left'; g.fillText('❚❚ wipe', b[0] + 9, b[1] - 9);
     }
     const s = scr(F.start), e = scr(F.end);
@@ -944,6 +947,9 @@ document.querySelectorAll('#views [data-view]').forEach(b => b.onclick = () => {
 $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };
+$('#flights').onchange = e => { S.flights = e.target.checked; save(); showPanel(); kick(); };
+$('#flightsOff').onclick = () => { S.flights = false; save(); showPanel(); kick(); };
+$('#flightsOn').onclick = () => { S.flights = true; save(); showPanel(); kick(); };
 function showPaints() {
   const F = chosenFig(), ss = figSausages(F), pal = palOf(F), count = {};
   for (const q of ss) count[q.paint] = (count[q.paint] || 0) + 1;
@@ -986,6 +992,7 @@ function showPanel() {
   $('#hint').textContent = EDIT ? (EDIT.mode === 'add' ? 'Add a paint to the figure\'s palette: click it in the strip on the left (+ again: leave it).' : `${PAINT[EDIT.id].name}: its sausages outlined black, numbered in MARKS' order. To change it, click the paint to put in its place in the strip on the left; ${PAINT[EDIT.id].name} in the list again: leave it.`) : HINT[S.tool];
   document.querySelectorAll('#views [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
+  $('#flights').checked = S.flights; $('#flightsOff').classList.toggle('on', !S.flights); $('#flightsOn').classList.toggle('on', S.flights);
   showPaints();
 }
 const what = () => { const P = planNow(); return `${P.figs.length} figure${P.figs.length === 1 ? '' : 's'}, ${S.rects.length} tile${S.rects.length === 1 ? '' : 's'}`; };

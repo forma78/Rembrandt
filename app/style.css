@@ -166,9 +166,9 @@ main{display:grid;grid-template-columns:60px 1fr 340px;min-height:0}
    the name left and the switch right on one line, as a slider's name and its number (the owner, 2026-10-03) */
 .inkrow{display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px}
 .inkrow .slh{margin-top:0}
-.inline.check.ink{margin-top:0;gap:8px}
-.inline.check.ink .side{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);cursor:pointer;user-select:none}
-.inline.check.ink .side.on{color:var(--ink)}
+.inline.check.ink,.inline.check.flights{margin-top:0;gap:8px}
+.inline.check.ink .side,.inline.check.flights .side{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);cursor:pointer;user-select:none}
+.inline.check.ink .side.on,.inline.check.flights .side.on{color:var(--ink)}   /* INKA's Flights: INK's switch, the orange dot */
 .inline.check.ink input[type=checkbox]:checked,html.night .inline.check.ink input[type=checkbox]:checked{background:#4F7A28}
 .inline.check.ink input[type=checkbox]:checked::before{background:radial-gradient(circle,#4F7A28 0 3px,transparent 3.5px) center/6px 6px no-repeat,linear-gradient(#fff,#ECEBE8)}
 .grid4.keys{margin-top:8px}

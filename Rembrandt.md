@@ -1439,8 +1439,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   ⌘C ⌘V a tile, or the tiles chosen together — ⌘A all, ⇧ and a click one
   more — in a dashed box with their size, moved, copied and taken away
   together. The deck **TEST · PAUSE, MARKS · DRAG, STOP · HOME**, INK, the
-  views **Drag · Result** and **▶ Play the run** under them (■ Stop playing
-  while it plays, ALU's). The panel: the tiles as keys — □ a tile, ▣ in a
+  views **Drag · Result**, **Flights** Off · On under them — the flights
+  between figures on Drag, OFF by default (the owner, 2026-10-19: "I do not
+  really need them … I just use NODES") — and **▶ Play the run** (■ Stop
+  playing while it plays, ALU's). The panel: the tiles as keys — □ a tile, ▣ in a
   block, F and the figure's number — **Nodes**: From the snake · Clear
   nodes, the chains and the tiles alone — the chosen one's **↻ Clockwise ·
   ↺ Anticlockwise**, **Step** (1 … 100 mm,
@@ -1458,7 +1460,7 @@ this section disagree, this section wins: the owner corrected the sketch on
   trail's width — the paint to the tile's edge — and its centre line, an orange dot where it lands, a ring where it
   lifts, an arrow where it comes onto every tile and its place in the run
   (1·1 … 2·1, in its top right corner), the nodes in red, an arrow their
-  way, the flight to the next figure dashed blue, ❚❚ wipe; the
+  way, the flight to the next figure dashed blue with Flights ON, ❚❚ wipe; the
   sausages in their paints over MARKS' watercolour. Result: the brush
   through the sausages, the paints mixed as pigments (est.). The reading:
   the figures, their lengths and rings, DRAG's time, the wipes and where
