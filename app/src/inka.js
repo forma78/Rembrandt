@@ -14,6 +14,11 @@
 // ▶ Play the run as ALU's ("add the button ■ Stop playing / Play the run,
 // as it is made in ALU").
 //
+// ST-JOHN (stjohn.html, its body's data-tab): this page, and ⌘, St. John's
+// Arms, in the Tools between R and N (the owner, 2026-10-19: "name the tab
+// ST-JOHN and make it exactly like INKA, only in the tools between R and N
+// we put ⌘"); its own keep and Library label.
+//
 // A tile's mm: from the canvas's bottom left corner, x right, y up, as a
 // ruler reads them. The board's canvas mm from its centre, as CCD's.
 
@@ -22,7 +27,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
-import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece,
+import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -32,7 +37,8 @@ import { cupOf, cupProblem, dipAt, ELBOW_MAX } from './ink.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const TAB = 'inka', TAB_NAME = 'INKA', KEY = 'rembrandt.inka.v01', REF_KEY = 'rembrandt.inka.ref';
+const JOHN = document.body.dataset.tab === 'stjohn';
+const TAB = JOHN ? 'stjohn' : 'inka', TAB_NAME = JOHN ? 'ST-JOHN' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const fin = v => Number.isFinite(v);
 
 // ---------- state ----------
@@ -50,7 +56,7 @@ const S = {
   nodes: [], nodeSel: -1,                                                            // the brush's way by hand (inkaplan.js, linksOf); the node chosen
 };
 const NUM = ['sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
-const TOOLS = ['edit', 'rect', 'node', 'knife', 'paint'], VIEWS = ['drag', 'result'];
+const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
@@ -83,6 +89,14 @@ function paperTest() {
   S.nodes = [];
   const P = planNow();
   for (const F of P.figs) dealOn(F, structuredClone(INKA_META.Inka), 1027 + F.n, 'colours');
+  S.sel = 0;
+}
+// ST-JOHN's first visit: one ⌘ the whole canvas, in two paints of the Inka palette
+function johnTest() {
+  S.rects = withIds([cleanRect({ x: 0, y: 0, w: S.boardW, h: S.boardH, step: STEP_NEW, kind: JOHN_KIND })]);
+  S.nodes = [];
+  const F = planNow().figs[0];
+  for (let seed = 1919; seed < 1960; seed++) { dealOn(F, structuredClone(INKA_META.Inka), seed, 'colours'); if (new Set(S.rects[0].ss.map(q => q.paint)).size > 1) break; }
   S.sel = 0;
 }
 
@@ -436,8 +450,12 @@ function guides() {
     const on = isPicked(i), a = scr([r.x, r.y + r.h]), b = scr([r.x + r.w, r.y]);
     g.strokeStyle = on ? ORANGE : 'rgba(36,34,31,.45)'; g.lineWidth = on ? 1.5 : 1; g.setLineDash(on ? [] : [4, 3]);
     g.strokeRect(a[0], a[1], b[0] - a[0], b[1] - a[1]); g.setLineDash([]);
+    if (isJohn(r)) {                                                                 // a ⌘: its four lobes, dashed
+      const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      g.setLineDash([2, 4]); g.beginPath(); g.moveTo(m[0], a[1]); g.lineTo(m[0], b[1]); g.moveTo(a[0], m[1]); g.lineTo(b[0], m[1]); g.stroke(); g.setLineDash([]);
+    }
     g.fillStyle = on ? '#B3470C' : themeColor('--mute', '#7D776D'); g.textAlign = 'left';
-    if (b[0] - a[0] > 34 && b[1] - a[1] > 20) g.fillText(`${i + 1}`, a[0] + 5, a[1] + 13);
+    if (b[0] - a[0] > 34 && b[1] - a[1] > 20) g.fillText(`${isJohn(r) ? '⌘ ' : ''}${i + 1}`, a[0] + 5, a[1] + 13);
     if (on && grab && grab.kind !== 'move' && grab.kind !== 'paint' && grab.kind !== 'node') { g.textAlign = 'right'; g.fillText(`${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm`, b[0], a[1] - 5); }
   });
   if (MANY.size > 1) {                                                              // the tiles chosen together: their box, its size
@@ -609,10 +627,10 @@ cv.addEventListener('pointerdown', e => {
   }
   const hd = nearHandle(e);
   if (hd) { undoPush(); grab = { kind: 'size', hx: hd.hx, hy: hd.hy, r0: { ...S.rects[S.sel] }, moved: false }; cv.setPointerCapture(e.pointerId); return; }
-  if (S.tool === 'rect') {
+  if (S.tool === 'rect' || S.tool === 'john') {                                      // R a tile, ⌘ a sign
     undoPush();
     const x = clampX(snapTo(p[0], 'x', -1)), y = clampY(snapTo(p[1], 'y', -1)), was = S.rects[S.sel];
-    S.rects.push(cleanRect({ id: newId(), x, y, w: MIN_SIDE, h: MIN_SIDE, step: was?.step ?? STEP_NEW, turn: was?.turn })); S.sel = S.rects.length - 1;
+    S.rects.push(cleanRect({ id: newId(), x, y, w: MIN_SIDE, h: MIN_SIDE, step: was?.step ?? STEP_NEW, turn: was?.turn, ...(S.tool === 'john' ? { kind: JOHN_KIND } : {}) })); S.sel = S.rects.length - 1;
     grab = { kind: 'new', ax: x, ay: y, moved: false }; cv.setPointerCapture(e.pointerId); kick(); return;
   }
   const i = rectAt(p);
@@ -634,7 +652,7 @@ cv.addEventListener('pointermove', e => {
     const hd = S.tool === 'paint' ? null : nearHandle(e);
     if (S.tool === 'node') { const was = HOT; HOT = magnetAt(e); cv.style.cursor = HOT ? 'crosshair' : nodeAt(e) >= 0 ? 'pointer' : ''; if (was !== HOT) kick(); return; }
     if (S.tool === 'knife') { cv.style.cursor = 'crosshair'; return; }
-    cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' || S.tool === 'paint' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
+    cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' || S.tool === 'john' || S.tool === 'paint' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
     showTip(e);
     return;
   }
@@ -724,6 +742,7 @@ function setTool(t) {
 const HINT = {
   edit: 'Edit: drag a tile to move it, its handles to stretch it; a click chooses it, ⇧ and a click one more; ⌘A all of them; the arrows move it a mm, with ⇧ ten; ⌫ takes it away. Its edges snap to the canvas\'s and the other tiles\' — side by side they are one figure; laid over one another, one block.',
   rect: 'Tile: drag on the canvas to lay one, its step the chosen one\'s. Side by side with others it joins their figure, the brush on through it; over another it melts into it, one block, one outline — the "[".',
+  john: '⌘, St. John\'s Arms: drag on the canvas to lay one, its step the chosen one\'s — four lobes, every lobe\'s rings as a tile\'s. The brush lands in its middle and goes loop after loop inward, every loop round the lobes 1 ↘ 2 ↗ 3 ↖ 4 ↙, each clockwise, their inner sides on across the middle — the grid. A figure of its own: it joins no tile, no node holds on it.',
   node: 'N: drag from a magnet of a tile — its middle, a corner, a side\'s middle — to one of the next: the brush\'s way. Into a tile\'s middle it spirals out to where its next node leaves; into its edge it spirals in from there to its middle. A tile one way out and one in: a new node takes the old one\'s place. A click on a node chooses it, ⌫ takes it away.',
   knife: 'K, the knife: drag a line across the nodes — every one it crosses is cut, the chain apart there; a click on a node cuts it. ⌘Z brings them back. N lays them again.',
   paint: 'M: a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal in to the innermost ring; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
@@ -752,7 +771,7 @@ addEventListener('keydown', e => {
   if (cmd && e.key.toLowerCase() === 'v') { if (COPY) { e.preventDefault(); paste(); } return; }
   if (cmd) return;
   if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); if (S.tool === 'node' && S.nodeSel >= 0) deleteNode(); else deleteRect(); return; }
-  const tool = { v: 'edit', r: 'rect', n: 'node', k: 'knife', m: 'paint' }[e.key.toLowerCase()];
+  const tool = { v: 'edit', r: 'rect', ...(JOHN ? { j: 'john' } : {}), n: 'node', k: 'knife', m: 'paint' }[e.key.toLowerCase()];
   if (tool) { setTool(tool); return; }
   const arrow = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveRect(arrow[0] * d, arrow[1] * d); }
@@ -830,13 +849,14 @@ $('#slBrush').querySelectorAll('input').forEach(inp => {
 // a tile's place: its figure, its turn in it, its rings, its way
 function tileText(i) {
   const P = planNow(), U = unitOfRect(i), F = figOfRect(i); if (!U || !F) return '';
+  if (U.john) return `⌘, St. John's Arms · figure ${F.n} of ${P.figs.length}, a figure of its own · <b>${U.R.levels}</b> loop${U.R.levels === 1 ? '' : 's'} from its middle in, every one round the lobes ${U.turn === 'ccw' ? '1 ↙ 2 ↖ 3 ↗ 4 ↘, each ↺ — the sign mirrored' : '1 ↘ 2 ↗ 3 ↖ 4 ↙, each ↻'}, their inner sides on across the middle`;
   const j = F.us.indexOf(U.id), block = U.rs.length > 1, rings = U.R.levels;
   const e = F.ends[j], inward = Math.hypot(e.b[0] - U.M[0].p[0], e.b[1] - U.M[0].p[1]) < Math.hypot(e.a[0] - U.M[0].p[0], e.a[1] - U.M[0].p[1]);
   return `${block ? `In a block of ${U.rs.length} rectangles, one outline` : 'A tile'} · figure ${F.n} of ${P.figs.length}, ${j + 1} of ${F.us.length} in its run${P.manual ? ', by the nodes' : ''} · <b>${rings}</b> ring${rings === 1 ? '' : 's'}, ${inward ? 'from its outside in' : 'from its middle out'}, ${U.turn === 'ccw' ? '↺' : '↻'}${block && U.rs[0] !== i ? ` · its step and turn the block's first rectangle's` : ''}`;
 }
 function showRects() {
   const P = planNow();
-  $('#rects').innerHTML = S.rects.length ? S.rects.map((r, i) => { const F = figOfRect(i), U = unitOfRect(i), x = F && U ? F.cross[F.us.indexOf(U.id)] : null; return `<button class="tog${isPicked(i) ? ' on' : ''}" data-sel="${i}" title="${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm, step ${fmt(r.step, 1)} mm${U?.rs.length > 1 ? ', in a block' : ''}${x ? ` — ! ${CROSS[x]}` : ''}">${x ? '<b class="bang">!</b> ' : ''}${U?.rs.length > 1 ? '▣' : '□'} ${i + 1}${P.figs.length > 1 && F ? ` · F${F.n}` : ''}</button>`; }).join('') : '<span class="none">No tiles: New, or the R tool and a drag on the canvas.</span>';
+  $('#rects').innerHTML = S.rects.length ? S.rects.map((r, i) => { const F = figOfRect(i), U = unitOfRect(i), x = F && U ? F.cross[F.us.indexOf(U.id)] : null; return `<button class="tog${isPicked(i) ? ' on' : ''}" data-sel="${i}" title="${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm, step ${fmt(r.step, 1)} mm${U?.rs.length > 1 ? ', in a block' : ''}${x ? ` — ! ${CROSS[x]}` : ''}">${x ? '<b class="bang">!</b> ' : ''}${isJohn(r) ? '⌘' : U?.rs.length > 1 ? '▣' : '□'} ${i + 1}${P.figs.length > 1 && F ? ` · F${F.n}` : ''}</button>`; }).join('') : '<span class="none">No tiles: New, or the R tool and a drag on the canvas.</span>';
   $('#rects').querySelectorAll('[data-sel]').forEach(b => b.onclick = e => {
     const i = +b.dataset.sel;
     if (e.shiftKey) { if (MANY.size < 2) MANY = new Set(S.rects[S.sel] ? [S.rects[S.sel].id] : []); const id = S.rects[i].id; if (MANY.has(id)) MANY.delete(id); else MANY.add(id); if (MANY.size < 2) MANY.clear(); }
@@ -851,7 +871,7 @@ function showRect() {
   if (!r) { box.innerHTML = ''; return; }
   const many = MANY.size > 1 ? `<p class="read"><b>${MANY.size} tiles chosen together</b>: a drag moves them all, the arrows a mm (⇧ ten), ⌫ takes them away, ⌘C ⌘V copies them with their nodes; a click on the canvas or Esc lets them go.</p>` : '';
   box.innerHTML = `${many}
-    <h4>Tile ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
+    <h4>${isJohn(r) ? '⌘' : 'Tile'} ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
     <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round this tile clockwise as it paints it, in or out">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round this tile anticlockwise as it paints it, in or out">↺ Anticlockwise</button></div>
     <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label></div>
     <p class="read" id="rGap">${tileText(S.sel)} · ${r.step > trail() + 0.05 ? `white <b>${fmt(r.step - trail(), 1)} mm</b> between the rings` : r.step < trail() - 0.05 ? `the rings' paint overlapping by <b>${fmt(trail() - r.step, 1)} mm</b>` : 'ring to ring'}</p>
@@ -1040,7 +1060,10 @@ function showPanel() {
   $('#flights').checked = S.flights; $('#flightsOff').classList.toggle('on', !S.flights); $('#flightsOn').classList.toggle('on', S.flights);
   showPaints();
 }
-const what = () => { const P = planNow(); return `${P.figs.length} figure${P.figs.length === 1 ? '' : 's'}, ${S.rects.length} tile${S.rects.length === 1 ? '' : 's'}`; };
+const what = () => {
+  const P = planNow(), j = S.rects.filter(isJohn).length, t = S.rects.length - j;
+  return `${P.figs.length} figure${P.figs.length === 1 ? '' : 's'}, ${[(t || !j) && `${t} tile${t === 1 ? '' : 's'}`, j && `${j} ⌘`].filter(Boolean).join(', ')}`;
+};
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
   busy = false;
@@ -1076,7 +1099,7 @@ function walls(P_) {
   return out.length ? `The brush would go ${out.join(', ')}: move the canvas or the tiles.` : '';
 }
 function showFiles() {
-  const name = 'inka_drag.svg', box = $('#files');
+  const name = `${TAB}_drag.svg`, box = $('#files');
   box.innerHTML = `<button class="tog" data-file="drag" title="${name}">Drag</button>`;
   box.querySelector('[data-file]').onclick = () => {
     const a = document.createElement('a');
@@ -1124,7 +1147,7 @@ const label = () => `${TAB_NAME} · ${what()} · ${S.boardW} × ${S.boardH} mm �
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
   const meta = JSON.stringify({ rembrandt: '1.0.9', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
-  const rects = S.rects.map((r, i) => `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-tile="${i + 1}" data-step="${f(r.step)}"/>`).join('\n');
+  const rects = S.rects.map((r, i) => `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-tile="${i + 1}" data-step="${f(r.step)}"${isJohn(r) ? ' data-kind="john"' : ''}/>`).join('\n');
   const paths = dragSvg(P, po()).match(/ {2}<path [^\n]*\/>/g) || [];
   const sausages = sausagesOf(S.rects).map(q => `  <line x1="${f(q.a[0])}" y1="${f(H - q.a[1])}" x2="${f(q.b[0])}" y2="${f(H - q.b[1])}" stroke="${PAINT[q.paint].hex}" data-paint="${q.paint}"${q.thin ? ' data-thin="1"' : ''}/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -1281,7 +1304,7 @@ async function watch() {
 
 // ---------- start ----------
 load(); Object.assign(S, canvasNow(S));
-if (FRESH) paperTest();                                                          // a first visit: the owner's paper test on the canvas
+if (FRESH) JOHN ? johnTest() : paperTest();                                      // a first visit: the owner's paper test on the canvas, on ST-JOHN a ⌘
 onCanvas(c => { Object.assign(S, c); settle(); });
 syncRef(); loadRef();
 lampSwitch($('#lamp'));
