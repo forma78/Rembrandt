@@ -38,6 +38,7 @@ import './ui.js';
 
 const $ = s => document.querySelector(s);
 const JOHN = document.body.dataset.tab === 'stjohn';
+const JOHN_CORNER = 100;   // ST-JOHN's Corners at first: a ⌘'s rings round, its windows too (the owner, 2026-10-19, Screenshot 9.27.36 PM: "the rings must be really round, not squares as now")
 const TAB = JOHN ? 'stjohn' : 'inka', TAB_NAME = JOHN ? 'ST-JOHN' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const fin = v => Number.isFinite(v);
 
@@ -48,7 +49,7 @@ const fin = v => Number.isFinite(v);
 // figure, how high the brush goes to be wiped; the flights and the tail as CCD's.
 const S = {
   rects: [], sel: 0, tool: 'edit',
-  brush: BRUSH_NEW, swell: SWELL_NEW, edgeOut: EDGE_OUT_NEW, overlap: OVERLAP_NEW, drag: 40, corner: CORNER_NEW, change: CHANGE_NEW, join: JOIN_NEW, wipe: WIPE_NEW, travel: 180, tail: 3,
+  brush: BRUSH_NEW, swell: SWELL_NEW, edgeOut: EDGE_OUT_NEW, overlap: OVERLAP_NEW, drag: 40, corner: JOHN ? JOHN_CORNER : CORNER_NEW, change: CHANGE_NEW, join: JOIN_NEW, wipe: WIPE_NEW, travel: 180, tail: 3,
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
   view: 'drag', density: DENSITY_NEW, paint: 'brown', ink: true,                  // the view; the paint in a sausage; M's paint; INK, MARKS' watercolour and TEST's dip
@@ -687,7 +688,7 @@ const drop = () => {
   if (was.kind === 'new') {
     const r = S.rects[S.sel];
     if (!was.moved || r.w < 2 || r.h < 2) { S.rects.pop(); S.sel = Math.max(0, S.rects.length - 1); undoStack.pop(); }
-    else { if (isJohn(r)) r.width = johnWidthNew(r); S.tool = 'edit'; }               // a new ⌘'s loop an eighth of its box
+    else { if (isJohn(r)) r.width = johnWidthNew(r); S.tool = 'edit'; }               // a new ⌘'s loop as the owner found it best, a fifth of its box
   } else if (!was.moved) undoStack.pop();
   else if (was.kind === 'size' && isJohn(S.rects[S.sel])) relayJohn(S.sel);        // a ⌘ stretched: its X on its loop again
   settle();
@@ -830,7 +831,7 @@ addEventListener('keydown', e => {
 });
 
 // ---------- the panel ----------
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['corner', 'Corners', 'mm', 0.5, 0.5, 50], ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['corner', 'Corners', 'mm', 0.5, 0.5, 100], ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
 const SL_TITLE = {
   brush: 'The round brush as set, dry; with paint it lays wider — With paint below. MARKS\' dashes go by it',
   swell: 'The brush is no felt-tip: it takes up the paint and swells (the owner, 2026-10-19: «the brush is not a felt-tip or a Posca marker … it swells in volume»). Its trail this much wider than Brush width — 9 mm at 3.5 by the ruler on his canvas of 2026-10-17, so 5.5 (est. at other widths). The rings, the Drag strip and the Result go by the trail: the outer ring its half in from the tile\'s edge, so the paint ends on it; the innermost the trail wide, its paint meeting in the middle',
@@ -838,7 +839,7 @@ const SL_TITLE = {
   edgeOut: 'Optical compensation: the outer ring moved out towards the tile\'s edge by this much, where the brush lays less than its width and leaves white between touching tiles (the owner, 2026-10-19, IMG_1201: «even round corners should leave a gap only at the corners — the sides must be flush»). 0: its edge on the tile\'s; at the brush\'s half, its middle on it, never past (est.; measure the gap with a ruler, half of it here)',
   overlap: 'One more ring round every tile, the outermost, its brush\'s edge this far past the tile\'s — onto its neighbour, the two over one another, so no white between them (the owner, 2026-10-19: «maybe one more pass on every square — let it go overlapping»). 0: none. At half the brush its middle on the tile\'s edge (est.)',
   change: 'Where a ring\'s seam is a side\'s middle — a node there — the brush goes in to the next ring by an S this long, or as long as the side lets it, as TAPE\'s lane change (the owner, 2026-10-19: «let the transition be as in TAPE or BASF»); 0, as short as a step (est.)',
-  corner: 'Every turn of the path a tangent arc this round, or as round as its sides let it — so the board runs through it and never stops (the owner, 2026-10-17: "rounded corners … a stop of the brush during the process kills the effect"); on it ≈ √(250 · r) mm/s at most (est.). On a ⌘ the outer ring\'s, the rings inside it concentric, each its depth less, never under 4 mm — the loop as thick round a turn as along a side; up to 50 mm (the owner, 2026-10-19)',
+  corner: 'Every turn of the path a tangent arc this round, or as round as its sides let it — so the board runs through it and never stops (the owner, 2026-10-17: "rounded corners … a stop of the brush during the process kills the effect"); on it ≈ √(250 · r) mm/s at most (est.). On a ⌘ the outer ring\'s, the rings inside it concentric, each its depth less, never under 4 mm — the loop as thick round a turn as along a side; past half a ring\'s side, that ring a circle. Up to 100 mm (the owner, 2026-10-19, Screenshot 9.24.56 PM, the roundings drawn in blue: «Corners up to 100 mm»)',
   join: 'Tiles this near each other, side by side, are one figure — the brush on through them without a lift; farther apart, a figure each, a wipe between (est.)',
   wipe: 'Before every next figure the brush flies over its start and goes up this far at the elbow — +45° its highest — for you to wipe it; Continue brings it down (the owner, 2026-10-17: "here the brush can be lifted up, so that I wipe it"; est.)',
 };
