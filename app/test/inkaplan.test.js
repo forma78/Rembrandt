@@ -273,8 +273,14 @@ test('Reference: a picture\'s colours to his paints, their shares; dealt on ever
   assert.equal(d.ss.size, 12, 'every tile');
   const main = i => d.ss.get(i)[0].paint, n = {};
   for (let i = 0; i < 12; i++) { assert.equal(d.ss.get(i).length, 4, 'an X'); n[main(i)] = (n[main(i)] || 0) + 1; }
-  assert.ok(n.pink >= 5 && n.pink <= 7 && n.ultramarine >= 3 && n.white >= 1, JSON.stringify(n));
+  // the shares, on average over many presses: the picture's order, pink the most
+  const avg = {};
+  for (let seed = 1; seed <= 50; seed++) { const e = dealFigures(rs, P.units, P.figs, pal, seed, 'colours', O); for (let i = 0; i < 12; i++) { const q = e.ss.get(i)[0].paint; avg[q] = (avg[q] || 0) + 1 / 50; } }
+  assert.ok(avg.pink > avg.ultramarine && avg.ultramarine > avg.white && avg.pink > 4.5, JSON.stringify(avg));
   for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) if (i !== j && Math.abs(i % 4 - j % 4) + Math.abs(Math.floor(i / 4) - Math.floor(j / 4)) === 1) assert.notEqual(main(i), main(j), `tiles ${i + 1} and ${j + 1} touch`);
+  // at random, as the meta keys: another press, another deal (the owner, 2026-10-19: "no random going through the colours, as in meta")
+  const deal = seed => { const e = dealFigures(rs, P.units, P.figs, pal, seed, 'colours', O); return [...Array(12).keys()].map(i => e.ss.get(i)[0].paint).join(); };
+  assert.ok(new Set([1, 2, 3, 4, 5, 6].map(deal)).size >= 4, 'six presses, at least four different deals');
 });
 
 // His references (INKA/references/): his canvases photographed on a wall, framed, in fluorescent paints

@@ -361,6 +361,9 @@ body.create{grid-template-rows:56px auto 1fr 30px}
 .refthumb img{width:100%;height:100%;object-fit:cover;display:block}
 .refctl{flex:1;min-width:0}
 .refctl .btn{width:100%}
+.refok{display:flex;align-items:center;gap:10px;margin-top:6px}                   /* INKA: the opacity, short, and OK beside it, a deck key */
+.refok .slider{flex:1;min-width:0}
+.refctl .refok .btn{flex:none;width:64px}
 .layer{margin:0 0 6px;padding:9px 10px;border-radius:10px;background:var(--key);box-shadow:var(--raise);cursor:pointer}
 .layer.on{background:var(--key-on);box-shadow:var(--press)}
 .lhead{display:flex;align-items:center;gap:10px}

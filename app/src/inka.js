@@ -972,8 +972,8 @@ function refPixels() {
   const c = c2.getContext('2d', { willReadFrequently: true }); c.drawImage(img, 0, 0, c2.width, c2.height);
   return { px: c.getImageData(0, 0, c2.width, c2.height).data, w: c2.width, h: c2.height };
 }
-$('#btnRefPal').onclick = () => {
-  if (!REF) { $('#hint').textContent = 'No reference yet: 📎 Add new reference, at the foot of the panel — its colours come in your paints.'; return; }
+$('#btnRefOk').onclick = () => {
+  if (!REF) { $('#hint').textContent = 'No reference yet: 📎 Add new reference — its colours come in your paints.'; return; }
   const P = planNow(), R = refPixels(), pal = paletteOfPixels(R.px, R.w, R.h); if (!pal || !P.figs.length) return;
   undoPush(); const seed = seedNew(); dealOn(P.figs, pal, seed, 'colours'); S.view = 'result'; settle();
 };
@@ -1006,11 +1006,11 @@ function showPaints() {
     + (inUse.length ? `<span class="pl add${EDIT?.mode === 'add' ? ' on' : ''}" data-add title="Add a paint: then click it in the strip on the left">+</span>` : '');
   $('#paints').classList.toggle('editing', !!EDIT);
   document.querySelectorAll('[data-meta]').forEach(b => b.classList.toggle('on', pal?.name === b.dataset.meta));
-  $('#btnRefPal').classList.toggle('on', pal?.name === 'Reference'); $('#btnRefPal').disabled = !REF;
+  $('#btnRefOk').classList.toggle('on', pal?.name === 'Reference'); $('#btnRefOk').disabled = !REF;
   if (document.activeElement !== $('#dens')) $('#dens').value = S.density;
   $('#o-dens').textContent = densityText();
   $('#paintRead').innerHTML = [
-    'The sausages, where you squeeze the paints: a cross, X, on every tile — from each corner along the diagonal in to the innermost ring (the owner, 2026-10-19: «logical and simple»), as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes; a block, from every corner of its outline. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. The keys act on the chosen tile\'s figure — with tiles chosen together (⌘A, ⇧ and a click) on all of theirs, the paints spread over them, a tile never its neighbour\'s. Reference: the palette off the reference below, in your paints only, on every tile, in the picture\'s shares. M and a paint in the strip: a click on a tile.',
+    'The sausages, where you squeeze the paints: a cross, X, on every tile — from each corner along the diagonal in to the innermost ring (the owner, 2026-10-19: «logical and simple»), as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes; a block, from every corner of its outline. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. The keys act on the chosen tile\'s figure — with tiles chosen together (⌘A, ⇧ and a click) on all of theirs, the paints spread over them, a tile never its neighbour\'s. Reference, OK: the palette off the reference, in your paints only, on every tile, dealt anew at every press in the picture\'s shares. M and a paint in the strip: a click on a tile.',
     F && `<b>${ss.length}</b> sausage${ss.length === 1 ? '' : 's'} in figure ${F.n}, ${F.us.length} tile${F.us.length === 1 ? '' : 's'}`,
     `Density ${S.density} %: a sausage keeps the line full about ${fmt(reachAt(S.density).full, 0)} mm, gone by ${fmt(reachAt(S.density).gone, 0)}${S.density === DENSITY_NEW ? ' — the measure, TAPE-colors/IMAGE 2026-10-12 19:23:33' : ' (est.; 50 % the measure)'}`,
     pal && pal.name !== 'Own' && `Palette <b>${pal.name}</b>: ${pal.core.map(id => PAINT[id].name + (pal.w?.[id] ? ` ${Math.round(pal.w[id] * 100)} %` : '')).join(', ')}${pal.accent.length ? `; thin: ${pal.accent.map(id => PAINT[id].name).join(', ')}` : ''}${pal.pure ? `; a lone figure ${PAINT[pal.pure].name}` : ''} · seed ${pal.seed}`,
@@ -1105,7 +1105,7 @@ const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').
 function syncRef() {
   $('#refThumb').innerHTML = REF ? `<img src="${REF.img.src}" alt=""><button class="refdel" title="Delete the reference">×</button>` : '<span>no reference yet</span>';
   if (REF) $('#refThumb .refdel').onclick = deleteRef;
-  $('#btnRefPal').disabled = !REF;
+  $('#btnRefOk').disabled = !REF;
   $('#refOp').value = S.refOpacity;
   $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>${REF.kept === false ? ' · <span class="warn">this browser has no room to keep it: gone after a reload</span>' : ''}` : 'Over the canvas, the whole of it inside, to lay the tiles to.';
 }

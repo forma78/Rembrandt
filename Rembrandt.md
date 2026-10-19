@@ -66,7 +66,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Knife (on INKA)** | K in the Tools, under N: a line dragged across the canvas cuts every node it crosses, a click on a node cuts that one; the chain falls apart there (2026-10-19, the owner's "scalpel", where Clear nodes is the sledgehammer). |
 | **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
 | **To buy · •** | A paint not in the owner's stock yet, shown in INKA's strip under his 24 with a red dot: four fluorescents read off his canvases (2026-10-19, `TO_BUY`). Not ⚠ and not INKA's **!**. |
-| **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; the Reference key deals it on every tile (2026-10-19). |
+| **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19). |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -730,7 +730,11 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   least 1.5 %; dealt by their shares, the paint furthest under its share
   next, a tile never its touching neighbour's in any figure, a lone figure
   one paint; the picture whole, its background counted (× takes a paint
-  out); the keys with tiles chosen together act on all their figures.
+  out); the keys with tiles chosen together act on all their figures. The
+  same evening the key went to **OK** in the Reference block, its deal at
+  random as from an urn of the tiles, a paint its share of them ("there is
+  no random going through the colours, as in meta"): before, the paint
+  furthest under its share each time, a press dealing the same again.
   **The painting, not the wall; paints to buy** (the owner, the same
   afternoon, `INKA/references/`, twelve of his canvases photographed framed
   on a wall: the reference "broke"; "we have fluorescent colours there,
@@ -1483,11 +1487,12 @@ this section disagree, this section wins: the owner corrected the sketch on
   · Duplicate (beside it, touching: the same figure), Run earlier · Run
   later (a figure runs in the order of its first tile) · Delete; **Paints ·
   Figure n** — New colours · New spokes, meta 1 … 4, **Inka · HDay warm ·
-  HDay blue · Reference** (the reference's palette in his paints, on every
-  tile), Density, the paints in use (CCD's list, the chosen figure's) — the
+  HDay blue**, Density, the paints in use (CCD's list, the chosen figure's) — the
   keys on every figure of the tiles chosen together; **Reference** under
   them since 2026-10-19 (the owner: "near Paints … so it is all logical"),
-  the image over the canvas and the Reference key's palette;
+  the image over the canvas, its opacity and **OK**, a deck key beside it
+  ("in the style of MARKS / DRAG"): its palette on every tile, dealt anew
+  at every press;
   Brush, DRAG: Brush width (3.5 mm), **With paint** (+5.5 mm, the trail
   beside it, 9 mm), Drag speed (40 mm/s), **Corners** (4 mm, the speed
   through a turn beside it), **Ring change** (30 mm), **One figure: tiles

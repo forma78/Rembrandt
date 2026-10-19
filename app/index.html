@@ -147,7 +147,6 @@
         <button class="tog" data-meta="Inka" title="Your paper test, INKA/personal_references/IMG_1027: sand, orange, ochre, pink, orange yellow, rose azo; a lone figure Dark Brown, the &quot;[&quot;">Inka</button>
         <button class="tog" data-meta="HDay warm" title="Heather Day's warm (HDay/, the pit, color_01), in your paints: sand, pink, ochre, orange yellow, deep red, magenta; purple, sky, white threads; a lone figure purple (Claude's reading)">HDay warm</button>
         <button class="tog" data-meta="HDay blue" title="Heather Day's blue (HDay/ Painting 12, color_02), in your paints: 04, sky, 03, viridian, white; orange, 01, green threads; a lone figure her flat ultramarine (Claude's reading)">HDay blue</button>
-        <button class="tog" id="btnRefPal" title="The palette off the reference below, in your paints only: every pixel to the nearest of them, the six with the most of the picture the core, the next three thin; dealt on every tile of the canvas in the picture's shares, a tile never its neighbour's (the owner, 2026-10-19; ⌘Z goes back)">Reference</button>
       </div>
       <div class="sliders" id="slPaint"></div>
       <div class="paintlist" id="paintList"></div>
@@ -159,7 +158,11 @@
         <div class="refctl">
           <button class="btn" id="btnRef" title="An image over the canvas, to lay the tiles to, and the Reference key's palette: never painted as is">📎 Add new reference</button>
           <p class="read" id="refRead"></p>
-          <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+          <!-- its opacity, and OK: its palette on every tile (the owner, 2026-10-19: "shrink the opacity slider and put an OK button beside it, big, in the style of MARKS / DRAG") -->
+          <div class="refok deck">
+            <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+            <button class="btn pass" id="btnRefOk" title="OK: the reference's colours on every tile — the painting off its wall and frame, every pixel to the nearest of your paints, a fluorescent to buy • where yours are far; the six with the most of it, the next three thin; dealt at random in the picture's shares, anew at every press, a tile never its neighbour's (⌘Z goes back)"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" class="bold"/></svg><span>OK</span></button>
+          </div>
         </div>
       </div>
       <input type="file" id="refIn" accept="image/*" hidden>

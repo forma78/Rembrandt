@@ -9,6 +9,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: the reference's OK, dealt anew at every press** (the owner,
+  2026-10-19: "when I press Reference nothing happens … there is no random
+  going through the colours, as in meta"; "that key has no place there.
+  Let us shrink the opacity slider and put an OK button beside it — it can
+  be big, in the style of MARKS / DRAG at the top"). The Reference key out
+  of the palette keys; **OK** in the Reference block, a deck key beside the
+  opacity, now shorter. Its deal at random as from an urn of the tiles,
+  each paint its share of them — every press another, the picture's order
+  on average (pink 5 of 12 at 51 %, its navy 4.3 at 31 %, white 2.7 at
+  15 %: the neighbours apart even it out a little); before, the paint
+  furthest under its share every time, so a press dealt the same again.
+
 - **INKA: Reference under Paints, then Brush, DRAG** (the owner,
   2026-10-19: "let us put the Reference block up, near Paints, so that
   BRUSH, DRAG come after it — so it is all logical"). Its own section at

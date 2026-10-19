@@ -731,15 +731,18 @@ function paintsOfUnit(ss) {
 // A figure's sausages dealt (mode 'colours': new paints, their places kept —
 // or, none lying, the spokes laid; 'spokes': new places, the paints kept —
 // or, none, dealt): every unit a core paint, never its neighbour's or the one
-// before — the one furthest under its share of the palette (pal.w, else
-// even); now and then a second, the next one's or an accent; one unit, the
-// pure paint. st, a deal over many figures (dealFigures): its counts, and a
+// before — the least used of them; with the palette's shares (pal.w, the
+// reference's), drawn at random as from an urn of the tiles, each paint its
+// share of them, so every press deals anew, as the meta keys do (the owner,
+// 2026-10-19: "there is no random going through the colours, as in meta");
+// now and then a second, the next one's or an accent; one unit, the pure paint. st, a deal over many figures (dealFigures): its counts, and a
 // tile's neighbours in any figure; a lone one then its paint by the shares.
 // → Map(rect index → its sausages), the palette for every rectangle of the figure
 export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {}, st = null) {
   const r = rng(seed ^ 0x2545f491), pick = a => a[Math.floor(r() * a.length)], used = st?.used ?? {}, main = st?.main ?? {}, out = new Map();
   for (const id of F.us) for (const i of units[id].rs) out.set(i, []);
-  const lone = F.us.length === 1, W = q => pal.w?.[q] ?? 1;
+  const lone = F.us.length === 1, total = st?.total ?? F.us.length, Wsum = pal.core.reduce((s, q) => s + (pal.w?.[q] ?? 0), 0) || 1;
+  const urn = c => { const ws = c.map(q => Math.max(0.05, (pal.w?.[q] ?? 0) / Wsum * total - (used[q] || 0))); let x = r() * ws.reduce((s, v) => s + v, 0); for (let k = 0; k < c.length; k++) if ((x -= ws[k]) <= 0) return c[k]; return c.at(-1); };
   F.us.forEach((id, k) => {
     const U = units[id], had = unitSausages(U, rects), was = paintsOfUnit(had);
     let p1, p2 = null;
@@ -751,8 +754,8 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
       let c = pal.core.filter(q => !avoid.has(q));
       if (!c.length) c = pal.core.filter(q => q !== main[F.us[k - 1]]);
       if (!c.length) c = pal.core;
-      const need = q => ((used[q] || 0) + 1) / W(q), least = Math.min(...c.map(need));
-      p1 = pick(c.filter(q => need(q) <= least + 1e-9));
+      if (pal.w) p1 = urn(c);
+      else { const least = Math.min(...c.map(q => used[q] || 0)); p1 = pick(c.filter(q => (used[q] || 0) === least)); }
       if (!lone && r() < SECOND_P) {
         const acc = pal.accent.filter(q => q !== p1), nxt = main[F.us[k - 1]], core = pal.core.filter(q => q !== p1);
         p2 = acc.length && r() < ACCENT_SECOND ? pick(acc) : nxt && nxt !== p1 && r() < 0.5 ? nxt : core.length ? pick(core) : null;
@@ -775,7 +778,7 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
 // palette's shares over all of them, a tile never its touching neighbour's
 // in any figure, a lone figure one paint. → { ss: Map(rect index → its sausages), pal }
 export function dealFigures(rects, units, figs, pal, seed, mode = 'colours', o = {}) {
-  const st = { used: {}, main: {}, near: (a, b) => near(units[a], units[b], rects, o.join ?? JOIN_NEW) }, ss = new Map();
+  const st = { used: {}, main: {}, total: figs.reduce((s, F) => s + F.us.length, 0), near: (a, b) => near(units[a], units[b], rects, o.join ?? JOIN_NEW) }, ss = new Map();
   figs.forEach((F, k) => { for (const [i, q] of dealFigure(rects, units, F, pal, seed + 7919 * k, mode, o, st).ss) ss.set(i, q); });
   return { ss, pal: { ...pal, seed } };
 }
