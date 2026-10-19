@@ -59,11 +59,12 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Halves · the turn (on LOOM)** | A canvas past the reach (60 × 80, 70 × 100) run in two: half 1, the near half — the left (↔) or the bottom (↕) — and the overlap past the middle; the carriage home, a pause; the canvas turned round 180° by hand, its far corner C on the stop where the near one, A, was; half 2, the same lattice in the canvas's turned frame, its strips going on from the first's, the paint dragged the other way. |
 | **INKA** | The tab of Inca patterns, after LOOM in the top row from 2026-10-17, the first tab since 2026-10-19 (§1, §8): square tiles "like Mexican rugs or chocolate bars", each filled by a spiral of the dry brush, the tiles that touch one figure, the brush down through all of them without a lift — Florian Markus's way with the paint, not his race tracks — and Heather Day's pure colour in a figure of one paint. MARKS and DRAG, no Air, no TRACE; ▶ Play the run. `index.html` since 2026-10-19 (`inka.html` before), its plan `inkaplan.js`, its page module `inka.js`; CCD's untouched. |
 | **Tile · block · unit · figure (on INKA)** | A tile: a rectangle laid with R, as CCD's. A block: tiles laid over one another, one outline, its rings the outline's — the owner's "[". A unit: a tile or a block. A figure: units side by side, sharing a side, no farther apart than One figure: tiles apart up to (5 mm, est.) — one line of the brush; units touching only at a corner, or farther apart, a figure each. |
-| **Ring · spiral (on INKA)** | A ring: one loop of the brush round a unit — its outline moved in by the brush's half, then by Step each time, its turns rounded by Corners; a middle left wider than half a step, one more ring. The spiral: the rings joined, each a step short and on along the next. A figure's units in a snake from its bottom left, up first; the first from its middle out, the next from its outside in, and so on — out to the corner nearest the next unit, in from the corner nearest the brush, from a middle straight to the next middle across the rings, as the owner's scheme draws it. |
+| **Trail · swell (on INKA)** | The trail: what the brush lays with paint, wider than it is set — the swell, the paint it takes up (the owner, 2026-10-19: "the brush is not a felt-tip or a Posca marker"); 9 mm at Brush width 3.5, measured by the ruler on his canvas of 2026-10-17, so the swell 5.5 mm (est. at other widths). The rings, the Drag strip and the Result go by it; MARKS' dashes by the brush. |
+| **Ring · spiral (on INKA)** | A ring: one loop of the brush round a unit — its outline moved in by the trail's half, so the paint ends on it, then by Step each time, its turns rounded by Corners — until the paint meets in the middle: the innermost ring the trail wide, none narrower (since 2026-10-19; before, the brush's half and rings down to 1 mm). The spiral: the rings joined — from a corner, each a step short and on along the next; from a side's middle, the **ring change**, an S over the side's last stretch, Ring change mm or as much as it has (TAPE's lane change, 2026-10-19). A figure's units in a snake from its bottom left, up first; the first from its middle out, the next from its outside in, and so on — out to the corner nearest the next unit, in from the corner nearest the brush, from a middle straight to the next middle across the rings, as the owner's scheme draws it. |
 | **Wipe (on INKA)** | Before every next figure: the brush flies over its start and goes up to Wipe (+45°, the elbow's highest, est.), the run pauses; the owner wipes it and squeezes that figure's sausages; Continue brings it down to land. |
 | **Node · magnet (on INKA)** | A node: the owner's link from one tile to the next (2026-10-17), laid with N — the brush's way set by hand, no algorithm. A magnet: where a node holds — a tile's middle, where its spiral ends inside, or a corner or a side's middle of its outer ring. A node into a tile's middle: it spirals out, its outer ring turned to end where its next node leaves; into its outer ring: it spirals in from there. One way out of a tile, one in; the chains are the figures, a tile no node touches a figure of its own. No nodes: the snake. A tile whose nodes are both in its middle, or both on its edge — the brush crossing its rings to leave — is marked **!** (the owner's sign, not ⚠, which is the muddy pair's). |
 | **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
-| **Spoke (on INKA)** | A sausage from a unit's side straight in across its rings to its middle, its round end on the tile, so every ring takes it up — round a unit at most 60 mm apart (TAPE's paper test). M lays one through the point clicked, or one where it is dragged. Not TAPE's spoke. |
+| **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -671,6 +672,47 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the canvas, cmd+A"): every tile chosen together — a drag moves them all,
   the arrows, ⌫, ⌘C ⌘V with the nodes between them; ⇧ and a click one more
   or one less (*Claude's*); a click on the canvas or Esc lets them go.
+  **The brush with paint, the core, the ring change, the X** (the owner,
+  2026-10-19, `INKA/update-19-10-2026-1.0.9/`: his canvas of 2026-10-17
+  photographed with a ruler — "I am not sure that our brush and the width of
+  the paint's trail on the tab match the real canvas exactly … study the
+  results and make the adjustment yourself"; "important: I mentioned 9 mm
+  several times, though on the screen I set 3.5 mm. We did not take into
+  account that the brush is not a felt-tip or a Posca marker. It takes up
+  paint, as on Florian's photographs, and swells in volume. We need to
+  account for this when we imitate the picture on the screen"). **The
+  trail**: the brush and its swell, 5.5 mm by default — set at 3.5 mm, it
+  laid 9: the strip from tile to tile 8.5 … 9 mm by the ruler (IMG_1190,
+  1191), a tile's paint 1.4 … 4.3 mm past its outline, 2.8 on average
+  (IMG_1193, 1194), where the brush's edge had been on it; the outer ring
+  its half in, so the paint ends on the outline, the Drag strip and the
+  Result as wide. **The core** ("in the centre it has no room left to turn,
+  yet the program says it must turn three or four more times — with a 9 mm
+  pass it starts to fidget in place. Our machine with a brush has trouble
+  with circles anyway, so I propose to cut the passes in the core at any
+  brush width. The same at the move to the next square — the brush first
+  shakes in place; maybe with a 0.5 mm pencil that made sense, not with a
+  9 mm brush"): the rings a step apart until the paint meets in the middle,
+  the innermost the trail wide — on his 64 × 63.5 tile nine rings, the last
+  9 mm across, where eleven went down to 1.75. **The ring change**
+  (Screenshot 2.21.20 PM, three transitions circled: "too sharp. In reality
+  the paint lies like this", IMG_1195, 1196; "let the transition be as in
+  TAPE or BASF — there it is smoothed from one turn to the next"): from a
+  side's middle an S, two arcs, over the side's last stretch — Ring change,
+  30 mm, or as much as the side has; from a corner the square spiral as it
+  was. **The X** (the same screenshot, his beige tile 1 laid by hand: "the
+  paint shown with a cross X — logical and simple; at the corners eight
+  times turned out of no use in practice"): New spokes and a first visit lay
+  four arms a tile, corner to the innermost ring. *Claude's choices*: the
+  swell added to the brush, not a ratio; the outer ring moved in by the
+  trail, so a tile on the screen is the paint on the canvas (on 2026-10-17
+  the paint went 2.75 mm past every tile, est.); the innermost ring placed
+  where its paint meets — or, under half a step on, the one before it moved
+  there, so no two crowd (est., the swell closing 0.25 mm); the S only at a
+  side's middle, Ring change 30 mm (est.); M a click the arm of the X
+  nearest it, never twice; Brush 3.5 and Step 3 the new tile's and a first
+  visit's, his; the jog where the path turns back the trail's half; the
+  Result's grooves across the trail.
 - **INKA first; TAPE, BASF, LOOM, NOLAN and Test off the top row** (the
   owner, 2026-10-19, a Monday: "let us do a general cleanup. We need to
   remove the TAPE, BASF, LOOM, NOLAN and TEST tabs"; INKA "is the most
@@ -1402,17 +1444,18 @@ this section disagree, this section wins: the owner corrected the sketch on
   block, F and the figure's number — **Nodes**: From the snake · Clear
   nodes, the chains and the tiles alone — the chosen one's **↻ Clockwise ·
   ↺ Anticlockwise**, **Step** (1 … 100 mm,
-  7; typed or by the slider), the reading of its figure, its turn in the
+  3; typed or by the slider), the reading of its figure, its turn in the
   run, its rings, out or in, its place and size by the ruler, Whole canvas
   · Duplicate (beside it, touching: the same figure), Run earlier · Run
   later (a figure runs in the order of its first tile) · Delete; **Paints ·
   Figure n** — New colours · New spokes, meta 1 … 4, **Inka · HDay warm ·
   HDay blue**, Density, the paints in use (CCD's list, the chosen figure's);
-  Brush, DRAG: Brush width (6 mm), Drag speed (40 mm/s), **Corners** (4 mm,
-  the speed through a turn beside it), **One figure: tiles apart up to** (5
-  mm), **Wipe: the brush up to** (+45°); the canvas; the file, every
-  figure a path. Drag: every figure's path a faint strip the brush's width
-  and its centre line, an orange dot where it lands, a ring where it
+  Brush, DRAG: Brush width (3.5 mm), **With paint** (+5.5 mm, the trail
+  beside it, 9 mm), Drag speed (40 mm/s), **Corners** (4 mm, the speed
+  through a turn beside it), **Ring change** (30 mm), **One figure: tiles
+  apart up to** (5 mm), **Wipe: the brush up to** (+45°); the canvas; the
+  file, every figure a path. Drag: every figure's path a faint strip the
+  trail's width — the paint to the tile's edge — and its centre line, an orange dot where it lands, a ring where it
   lifts, an arrow where it comes onto every tile and its place in the run
   (1·1 … 2·1, in its top right corner), the nodes in red, an arrow their
   way, the flight to the next figure dashed blue, ❚❚ wipe; the

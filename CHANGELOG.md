@@ -9,6 +9,37 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: the brush with paint, the core, the ring change, the X** (the
+  owner, 2026-10-19, `INKA/update-19-10-2026-1.0.9/`, his canvas of
+  2026-10-17 photographed with a ruler: "study the results and make the
+  adjustment yourself"; "the brush is not a felt-tip or a Posca marker. It
+  takes up paint … and swells in volume").
+  - **The trail**: Brush width and **With paint**, +5.5 mm — set at 3.5,
+    the brush laid 9 on that canvas (the strip between tiles 8.5 … 9 mm,
+    a tile's paint 2.8 mm past its outline on average). The outer ring
+    the trail's half in, so the paint ends on the tile's edge; the Drag
+    strip and the Result as wide; the tile's reading the rings' paint
+    overlapping by the trail less the step.
+  - **The core** ("in the centre it has no room left to turn … with a
+    9 mm pass it starts to fidget in place"): the rings a step apart until
+    the paint meets in the middle, the innermost the trail wide, none
+    narrower — on his 64 × 63.5 tile nine rings, the last 9 mm across,
+    where eleven went down to 1.75; his six tiles 6.9 m of DRAG, not 8.5.
+  - **The ring change** (Screenshot 2.21.20 PM: "too sharp … let the
+    transition be as in TAPE or BASF"): from a side's middle — a node
+    there — an S of two arcs over the side's last stretch, **Ring change**
+    30 mm or as much as the side has (est.); from a corner the square
+    spiral as before.
+  - **The X** ("a cross X — logical and simple; at the corners eight
+    times turned out of no use in practice"): New spokes and a first
+    visit lay four arms a tile, corner along the diagonal to the innermost
+    ring; a block's from every corner of its outline at 45°; M a click the
+    arm nearest it, repainted, never laid twice. The sausages lying stay
+    as they are until New spokes.
+  - Brush 3.5 mm and Step 3 a new tile's and a first visit's — his;
+    `INKA/update-19-10-2026-1.0.9/` his photographs as JPEG, the HEIC gone
+    (his word). Not run on the machine yet.
+
 - **INKA, the first tab; TAPE, BASF, LOOM, NOLAN and Test off the top row**
   (the owner, 2026-10-19: "let us do a general cleanup. We need to remove
   the TAPE, BASF, LOOM, NOLAN and TEST tabs"; INKA "is the most
