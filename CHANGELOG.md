@@ -9,6 +9,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: the reference's spot, its brightest speck, on one tile only**
+  (the owner, 2026-10-19, Screenshot 5.10.28 PM, IMG_1522's bright red
+  band and little red square gone from the tiles: "I pressed several
+  times, it never came. We need an algorithm not by which colour has the
+  most area, but by which is the brightest speck in the picture, and let it
+  go on one square only, never two or three"). Of the paints not in the
+  core, nor like one of it, the one whose pixels are the most colourful
+  (mean C* 45 at least, 0.1 % of the painting or more) is the **spot**: OK
+  gives it one tile, all four arms, a new tile at every press; no other tile
+  takes it, not even thin, and the paints like it (CIEDE2000 under 12 — the
+  band's orange edge) leave the accents. IMG_1522: Viridian, Black, Dark
+  Brown, the spot Fluo Red; his red canvases with the lime stroke, the spot
+  Fluo Lime (their red is core). The palette's line under the Paints' i
+  names it. A deal with two touching tiles of one paint dealt again, 20
+  times at most, the first without kept.
+
 - **INKA: the reference's OK, dealt anew at every press** (the owner,
   2026-10-19: "when I press Reference nothing happens … there is no random
   going through the colours, as in meta"; "that key has no place there.

@@ -67,7 +67,7 @@ const EPS = 1e-7, fin = Number.isFinite;
 const ids = a => Array.isArray(a) && a.every(id => PAINT[id]);
 const shares = w => w && typeof w === 'object' ? Object.fromEntries(Object.entries(w).filter(([k, v]) => PAINT[k] && fin(v) && v > 0)) : null;
 export const cleanPal = q => q && typeof q.name === 'string' && ids(q.core) && q.core.length && ids(q.accent ?? [])
-  ? { name: q.name, core: q.core.slice(), accent: (q.accent ?? []).slice(), ...(PAINT[q.pure] ? { pure: q.pure } : {}), ...(shares(q.w) ? { w: shares(q.w) } : {}), seed: fin(q.seed) ? q.seed : 0 } : null;
+  ? { name: q.name, core: q.core.slice(), accent: (q.accent ?? []).slice(), ...(PAINT[q.pure] ? { pure: q.pure } : {}), ...(shares(q.w) ? { w: shares(q.w) } : {}), ...(PAINT[q.spot] ? { spot: q.spot } : {}), seed: fin(q.seed) ? q.seed : 0 } : null;
 const pair = v => Array.isArray(v) && v.length === 2 && v.every(fin);
 export function cleanRect(r) {
   if (!r || ![r.x, r.y, r.w, r.h].every(fin)) return null;
@@ -741,12 +741,14 @@ function paintsOfUnit(ss) {
 export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {}, st = null) {
   const r = rng(seed ^ 0x2545f491), pick = a => a[Math.floor(r() * a.length)], used = st?.used ?? {}, main = st?.main ?? {}, out = new Map();
   for (const id of F.us) for (const i of units[id].rs) out.set(i, []);
-  const lone = F.us.length === 1, total = st?.total ?? F.us.length, Wsum = pal.core.reduce((s, q) => s + (pal.w?.[q] ?? 0), 0) || 1;
+  const spotU = !pal.spot ? null : st ? st.spot : F.us[Math.floor(r() * F.us.length)];   // the spot's one unit
+  const lone = F.us.length === 1, total = (st?.total ?? F.us.length) - (pal.spot ? 1 : 0), Wsum = pal.core.reduce((s, q) => s + (pal.w?.[q] ?? 0), 0) || 1;
   const urn = c => { const ws = c.map(q => Math.max(0.05, (pal.w?.[q] ?? 0) / Wsum * total - (used[q] || 0))); let x = r() * ws.reduce((s, v) => s + v, 0); for (let k = 0; k < c.length; k++) if ((x -= ws[k]) <= 0) return c[k]; return c.at(-1); };
   F.us.forEach((id, k) => {
     const U = units[id], had = unitSausages(U, rects), was = paintsOfUnit(had);
     let p1, p2 = null;
     if (mode === 'spokes' && was.length) { p1 = was[0]; p2 = was[1] ?? null; }
+    else if (id === spotU) p1 = pal.spot;                                         // the spot: this unit, all of it, and no other
     else if (lone && !st) p1 = pureOf(pal);
     else {
       const by = st ? Object.keys(main).map(Number).filter(m => m !== id && st.near(id, m)) : F.us.filter(m => main[m] && F.adj(id, m));
@@ -758,7 +760,7 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
       else { const least = Math.min(...c.map(q => used[q] || 0)); p1 = pick(c.filter(q => (used[q] || 0) === least)); }
       if (!lone && r() < SECOND_P) {
         const acc = pal.accent.filter(q => q !== p1), nxt = main[F.us[k - 1]], core = pal.core.filter(q => q !== p1);
-        p2 = acc.length && r() < ACCENT_SECOND ? pick(acc) : nxt && nxt !== p1 && r() < 0.5 ? nxt : core.length ? pick(core) : null;
+        p2 = acc.length && r() < ACCENT_SECOND ? pick(acc) : nxt && nxt !== p1 && nxt !== pal.spot && r() < 0.5 ? nxt : core.length ? pick(core) : null;
       }
     }
     main[id] = p1; used[p1] = (used[p1] || 0) + 1;
@@ -777,10 +779,22 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
 // the keys with the tiles chosen together: the paints spread in the
 // palette's shares over all of them, a tile never its touching neighbour's
 // in any figure, a lone figure one paint. → { ss: Map(rect index → its sausages), pal }
+// A tile whose neighbours have taken every core paint must share one: dealt
+// again, DEAL_TRIES at most, the first with no two touching tiles of one
+// paint kept — else the one with the fewest.
+export const DEAL_TRIES = 20;
 export function dealFigures(rects, units, figs, pal, seed, mode = 'colours', o = {}) {
-  const st = { used: {}, main: {}, total: figs.reduce((s, F) => s + F.us.length, 0), near: (a, b) => near(units[a], units[b], rects, o.join ?? JOIN_NEW) }, ss = new Map();
-  figs.forEach((F, k) => { for (const [i, q] of dealFigure(rects, units, F, pal, seed + 7919 * k, mode, o, st).ss) ss.set(i, q); });
-  return { ss, pal: { ...pal, seed } };
+  const us = figs.flatMap(F => F.us), nb = (a, b) => near(units[a], units[b], rects, o.join ?? JOIN_NEW), pairs = [];
+  for (let i = 0; i < us.length; i++) for (let j = i + 1; j < us.length; j++) if (nb(us[i], us[j])) pairs.push([us[i], us[j]]);
+  let best = null;
+  for (let t = 0; t < DEAL_TRIES; t++) {
+    const s0 = seed + 104729 * t, rs = rng(s0 ^ 0x5b07), st = { used: {}, main: {}, total: us.length, spot: pal.spot ? us[Math.floor(rs() * us.length)] : null, near: nb }, ss = new Map();
+    figs.forEach((F, k) => { for (const [i, q] of dealFigure(rects, units, F, pal, s0 + 7919 * k, mode, o, st).ss) ss.set(i, q); });
+    const bad = pairs.filter(([a, b]) => st.main[a] && st.main[a] === st.main[b]).length;
+    if (!best || bad < best.bad) best = { ss, bad };
+    if (!bad) break;
+  }
+  return { ss: best.ss, pal: { ...pal, seed } };
 }
 
 // ---------- a palette off a reference ----------
@@ -814,11 +828,11 @@ export function de2000([L1, a1, b1], [L2, a2, b2]) {
   return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
 }
 export const BUY_K = 1.5;
-const LABS = new Map();
+const LABS = new Map(), labP = id => { if (!LABS.has(id)) LABS.set(id, labOf(linOf(PAINT[id].hex))); return LABS.get(id); };
 export function nearestPaint(rgb, ids = Object.keys(PAINT)) {
   const lab = labOf(rgb.map(v => toLin(v / 255)));
   let best = ids[0], bd = Infinity;
-  for (const id of ids) { if (!LABS.has(id)) LABS.set(id, labOf(linOf(PAINT[id].hex))); const d = de2000(lab, LABS.get(id)) * (PAINT[id].buy ? BUY_K : 1); if (d < bd) { bd = d; best = id; } }
+  for (const id of ids) { const d = de2000(lab, labP(id)) * (PAINT[id].buy ? BUY_K : 1); if (d < bd) { bd = d; best = id; } }
   return best;
 }
 // The painting, not its wall (the owner's references, INKA/references/:
@@ -844,22 +858,34 @@ export function paintingBox(px, w, h) {
   const ix = Math.round(FRAME * (x1 - x0)), iy = Math.round(FRAME * (y1 - y0));
   return { x0: x0 + ix, y0: y0 + iy, x1: Math.max(x0 + ix + 1, x1 - ix), y1: Math.max(y0 + iy + 1, y1 - iy) };
 }
+// The spot (the owner, 2026-10-19, Screenshot 5.10.28 PM, IMG_1522's red
+// band and its little red square gone from the tiles: "an algorithm not by
+// which colour has the most area, but by which is the brightest speck in
+// the picture, and let it go on one square only, never two or three"): of
+// the paints not in the core, nor like one of it, the one its pixels the most
+// colourful — their mean chroma, C* — SPOT_C at least, SPOT_MIN of the
+// painting or more; out of the accents with the paints like it, within
+// SPOT_DE (CIEDE2000) — the red band's orange edge — a paint of one tile (dealFigure).
+export const SPOT_C = 45, SPOT_MIN = 0.001, SPOT_DE = 12;
 // px, w, h: the picture; with w and h, its painting only (paintingBox)
 export function paletteOfPixels(px, w, h) {
-  const n = {}, seen = new Map(), B = w && h ? paintingBox(px, w, h) : null;
+  const n = {}, ch = {}, seen = new Map(), B = w && h ? paintingBox(px, w, h) : null;
   let all = 0;
   for (let i = 0; i + 3 < px.length; i += 4) {
     if (px[i + 3] < 128) continue;
     if (B) { const k = i >> 2, x = k % w, y = (k - x) / w; if (x < B.x0 || x >= B.x1 || y < B.y0 || y >= B.y1) continue; }
     const key = (px[i] >> 2) << 12 | (px[i + 1] >> 2) << 6 | px[i + 2] >> 2;
-    let id = seen.get(key);
-    if (!id) { id = nearestPaint([px[i], px[i + 1], px[i + 2]]); seen.set(key, id); }
-    n[id] = (n[id] || 0) + 1; all++;
+    let q = seen.get(key);
+    if (!q) { const rgb = [px[i], px[i + 1], px[i + 2]], L = labOf(rgb.map(v => toLin(v / 255))); q = { id: nearestPaint(rgb), c: Math.hypot(L[1], L[2]) }; seen.set(key, q); }
+    n[q.id] = (n[q.id] || 0) + 1; ch[q.id] = (ch[q.id] || 0) + q.c; all++;
   }
   if (!all) return null;
   const by = Object.keys(n).sort((a, b) => n[b] - n[a]), sh = Object.fromEntries(by.map(id => [id, Math.round(n[id] / all * 1000) / 1000]));
-  const core = by.filter((id, k) => k === 0 || sh[id] >= CORE_MIN).slice(0, REF_CORE), accent = by.filter(id => !core.includes(id) && sh[id] >= ACCENT_MIN).slice(0, REF_ACCENT);
-  return { name: 'Reference', core, accent, w: Object.fromEntries(core.map(id => [id, sh[id]])), seed: 0 };
+  const core = by.filter((id, k) => k === 0 || sh[id] >= CORE_MIN).slice(0, REF_CORE);
+  const like = (a, b) => de2000(labP(a), labP(b)) < SPOT_DE;
+  const spot = by.filter(id => !core.includes(id) && !core.some(c => like(c, id)) && n[id] >= SPOT_MIN * all && ch[id] / n[id] >= SPOT_C).sort((a, b) => ch[b] / n[b] - ch[a] / n[a])[0] ?? null;
+  const accent = by.filter(id => !core.includes(id) && id !== spot && !(spot && like(id, spot)) && sh[id] >= ACCENT_MIN).slice(0, REF_ACCENT);
+  return { name: 'Reference', core, accent, w: Object.fromEntries(core.map(id => [id, sh[id]])), ...(spot ? { spot } : {}), seed: 0 };
 }
 
 // ---------- MARKS: where the sausages go ----------

@@ -66,7 +66,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Knife (on INKA)** | K in the Tools, under N: a line dragged across the canvas cuts every node it crosses, a click on a node cuts that one; the chain falls apart there (2026-10-19, the owner's "scalpel", where Clear nodes is the sledgehammer). |
 | **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
 | **To buy · •** | A paint not in the owner's stock yet, shown in INKA's strip under his 24 with a red dot: four fluorescents read off his canvases (2026-10-19, `TO_BUY`). Not ⚠ and not INKA's **!**. |
-| **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19). |
+| **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19); its **spot**, the brightest speck, one tile only. |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -735,6 +735,14 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   random as from an urn of the tiles, a paint its share of them ("there is
   no random going through the colours, as in meta"): before, the paint
   furthest under its share each time, a press dealing the same again.
+  **The spot** (the owner, the same evening, Screenshot 5.10.28 PM, the red
+  speck of IMG_1522 gone: "not by which colour has the most area, but by
+  which is the brightest speck in the picture, and let it go on one square
+  only, never two or three"): *Claude's choices*: the brightest by its
+  pixels' mean chroma, C* 45 at least, 0.1 % of the painting at least; of
+  the paints not in the core nor within ΔE 12 of one; its like out of the
+  accents; its tile at random, all four arms its own; a deal with touching
+  tiles of one paint dealt again, 20 times at most.
   **The painting, not the wall; paints to buy** (the owner, the same
   afternoon, `INKA/references/`, twelve of his canvases photographed framed
   on a wall: the reference "broke"; "we have fluorescent colours there,

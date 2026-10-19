@@ -263,7 +263,7 @@ test('Reference: a picture\'s colours to his paints, their shares; dealt on ever
   put([236, 95, 100], 500); put([20, 35, 130], 300); put([250, 248, 240], 150); put([200, 140, 20], 30); put([0, 0, 0, 0], 0); px.push(9, 9, 9, 0);
   const pal = paletteOfPixels(Uint8ClampedArray.from(px));
   assert.deepEqual(pal.core, ['pink', 'ultramarine', 'white'], 'the core, in his paints, the most first');
-  assert.deepEqual(pal.accent, ['ochre'], 'under 4 %: thin');
+  assert.equal(pal.spot, 'ochre', 'under 4 % and vivid: the spot, one tile'); assert.deepEqual(pal.accent, []);
   assert.ok(Math.abs(pal.w.pink - 500 / 980) < 0.002, 'its share; the transparent pixel left out');
   assert.equal(nearestPaint([20, 35, 130]), 'ultramarine');
   // twelve lone tiles side by side, three rows of four: every one dealt, the shares kept, touching ones apart
@@ -271,7 +271,7 @@ test('Reference: a picture\'s colours to his paints, their shares; dealt on ever
   const nodes = [{ a: { id: 1, m: 'c' }, b: { id: 2, m: 'c' } }], P = planOf(rs, { ...O, nodes }), d = dealFigures(rs, P.units, P.figs, pal, 3, 'colours', O);
   assert.equal(P.figs.length, 11);
   assert.equal(d.ss.size, 12, 'every tile');
-  const main = i => d.ss.get(i)[0].paint, n = {};
+  const main = i => { const c = {}; for (const q of d.ss.get(i)) c[q.paint] = (c[q.paint] || 0) + 1; return Object.keys(c).sort((x, y) => c[y] - c[x])[0]; }, n = {};   // its paint: the most of its arms, a second on one now and then
   for (let i = 0; i < 12; i++) { assert.equal(d.ss.get(i).length, 4, 'an X'); n[main(i)] = (n[main(i)] || 0) + 1; }
   // the shares, on average over many presses: the picture's order, pink the most
   const avg = {};
@@ -299,4 +299,26 @@ test('Reference: the painting off its wall and frame; a fluorescent paint marked
   assert.equal(PAINT.fpink.buy, true); assert.ok(!PAINT.pink.buy);
   assert.equal(nearestPaint([237, 93, 101]), 'pink', 'his own Pink, where it is');
   assert.equal(nearestPaint([250, 3, 80]), 'fpink');
+});
+
+// The spot (the owner, 2026-10-19, Screenshot 5.10.28 PM: "not which colour has the most area, but the brightest speck … on one square only, never two or three")
+test('Reference: the brightest speck the spot, on one tile only, every press another; its like out of the accents', () => {
+  const px = [], put = (c, n) => { for (let i = 0; i < n; i++) px.push(...c, 255); };
+  put([0, 75, 75], 880); put([9, 9, 9], 90); put([219, 43, 1], 20); put([243, 5, 2], 10);   // viridian, black, the band's orange edge, its neon red
+  const pal = paletteOfPixels(Uint8ClampedArray.from(px));
+  assert.deepEqual(pal.core, ['viridian', 'black']);
+  assert.equal(pal.spot, 'fred', 'the brightest, not the largest');
+  assert.ok(!pal.accent.includes('orange'), 'the red\'s edge not a second red');
+  const rs = []; for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) rs.push(cleanRect({ id: rs.length + 1, x: 10 + c * 40, y: 10 + r * 40, w: 40, h: 40 }));
+  const P = planOf(rs, O), at = new Set();
+  for (let seed = 1; seed <= 30; seed++) {
+    const d = dealFigures(rs, P.units, P.figs, pal, seed, 'colours', O), hold = [...d.ss].filter(([, ss]) => ss.some(q => q.paint === 'fred'));
+    assert.equal(hold.length, 1, `seed ${seed}: one tile`);
+    assert.ok(hold[0][1].every(q => q.paint === 'fred'), 'all of it');
+    at.add(hold[0][0]);
+  }
+  assert.ok(at.size >= 5, 'a tile at random');
+  // one figure of every tile: one tile still
+  const one = dealFigure(rs, P.units, { us: P.units.map(U => U.id), adj: () => false }, pal, 4, 'colours', O);
+  assert.equal([...one.ss].filter(([, ss]) => ss.some(q => q.paint === 'fred')).length, 1);
 });
