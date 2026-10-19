@@ -70,13 +70,15 @@ export const WIPE_NEW = ELBOW_MAX;                         // °: the brush up t
 export const OFF = 60, MIN_SIDE = 1;                       // mm, as CCD's
 export const SHARE_MIN = 1;                                // mm two tiles must share along a side to touch
 export const SECOND_P = 0.4, ACCENT_SECOND = 0.35;         // a tile's chance of a second paint, and of it being an accent (Claude's)
+// ⌘, St. John's Arms (ST-JOHN, 2026-10-19): a rectangle of this kind is the sign, its path johnPts's
+export const JOHN = 'john', isJohn = r => r?.kind === JOHN;
 const EPS = 1e-7, fin = Number.isFinite;
 
 // ---------- a rectangle as it may be kept ----------
-// { id, x, y, w, h, step, turn, ss: [{ a: [u, v], b: [u, v], paint, thin }], pal }:
+// { id, x, y, w, h, step, turn, ss: [{ a: [u, v], b: [u, v], paint, thin }], pal, kind }:
 // its id, for the nodes; the way the brush goes round it as it paints, ↻
 // 'cw' or ↺ 'ccw'; its sausages in its own fractions, so they move and
-// stretch with it; the palette of its figure
+// stretch with it; the palette of its figure; 'john', a ⌘, else a tile
 const ids = a => Array.isArray(a) && a.every(id => PAINT[id]);
 const shares = w => w && typeof w === 'object' ? Object.fromEntries(Object.entries(w).filter(([k, v]) => PAINT[k] && fin(v) && v > 0)) : null;
 export const cleanPal = q => q && typeof q.name === 'string' && ids(q.core) && q.core.length && ids(q.accent ?? [])
@@ -86,7 +88,7 @@ export function cleanRect(r) {
   if (!r || ![r.x, r.y, r.w, r.h].every(fin)) return null;
   const ss = Array.isArray(r.ss) ? r.ss.filter(q => q && pair(q.a) && pair(q.b) && PAINT[q.paint]).map(q => ({ a: q.a.slice(), b: q.b.slice(), paint: q.paint, ...(q.thin ? { thin: true } : {}) })) : [];
   const pal = cleanPal(r.pal);
-  return { ...(fin(r.id) ? { id: r.id } : {}), x: r.x, y: r.y, w: Math.max(MIN_SIDE, r.w), h: Math.max(MIN_SIDE, r.h), step: fin(r.step) ? Math.max(STEP_MIN, Math.min(STEP_MAX, r.step)) : STEP_NEW, turn: r.turn === 'ccw' ? 'ccw' : 'cw', ss, ...(pal ? { pal } : {}) };
+  return { ...(fin(r.id) ? { id: r.id } : {}), x: r.x, y: r.y, w: Math.max(MIN_SIDE, r.w), h: Math.max(MIN_SIDE, r.h), step: fin(r.step) ? Math.max(STEP_MIN, Math.min(STEP_MAX, r.step)) : STEP_NEW, turn: r.turn === 'ccw' ? 'ccw' : 'cw', ss, ...(pal ? { pal } : {}), ...(isJohn(r) ? { kind: JOHN } : {}) };
 }
 // every rectangle an id of its own: the missing and the repeated given new ones
 export function withIds(rects) {
@@ -110,13 +112,13 @@ export const overlaps = (a, b) => overX(a, b) > 0.01 && overY(a, b) > 0.01;
 export const touches = (a, b, join) => (-overX(a, b) <= join && overY(a, b) >= SHARE_MIN) || (-overY(a, b) <= join && overX(a, b) >= SHARE_MIN);
 const boxOf = rs => { const x0 = Math.min(...rs.map(r => r.x)), y0 = Math.min(...rs.map(r => r.y)), x1 = Math.max(...rs.map(r => r.x + r.w)), y1 = Math.max(...rs.map(r => r.y + r.h)); return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; };
 const mid = b => [b.x + b.w / 2, b.y + b.h / 2];
-// The units: rectangles that overlap are one, a block; in the order of their first rectangle
+// The units: rectangles that overlap are one, a block; in the order of their first rectangle. A ⌘ a unit of its own, melting into none
 export function unitsOf(rects) {
   const up = rects.map((_, i) => i), find = i => up[i] === i ? i : (up[i] = find(up[i]));
-  for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) if (overlaps(rects[i], rects[j])) up[find(j)] = find(i);
+  for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) if (!isJohn(rects[i]) && !isJohn(rects[j]) && overlaps(rects[i], rects[j])) up[find(j)] = find(i);
   const by = new Map();
   rects.forEach((_, i) => { const k = find(i); if (!by.has(k)) by.set(k, []); by.get(k).push(i); });
-  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step, turn: rects[rs[0]].turn ?? 'cw' }));
+  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step, turn: rects[rs[0]].turn ?? 'cw', ...(isJohn(rects[rs[0]]) ? { john: true } : {}) }));
 }
 const near = (A, B, rects, join) => A.rs.some(i => B.rs.some(j => touches(rects[i], rects[j], join)));
 // The units of a figure in a snake from its bottom left: up the way it went
@@ -149,9 +151,9 @@ export function snakeOf(us, units, adj) {
   while (left.size) { const p = c(out.at(-1)); let best = null, bd = Infinity; for (const k of left) { const q = c(k), d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; best = k; } } out.push(best); left.delete(best); }
   return out;
 }
-// The figures: units that touch, in the order of their first rectangle, each its units in their snake
+// The figures: units that touch, in the order of their first rectangle, each its units in their snake; a ⌘ a figure of its own
 export function figuresOf(rects, units, join = JOIN_NEW) {
-  const n = units.length, adjM = units.map(A => units.map(B => A !== B && near(A, B, rects, join))), adj = (a, b) => adjM[a][b];
+  const n = units.length, adjM = units.map(A => units.map(B => A !== B && !A.john && !B.john && near(A, B, rects, join))), adj = (a, b) => adjM[a][b];
   const seen = new Array(n).fill(false), out = [];
   for (let i = 0; i < n; i++) {
     if (seen[i]) continue;
@@ -455,7 +457,8 @@ export function magnetsOf(U, rects) {
 // the outer ring (its tile grown into a block) the nearest one that is
 function endOf(e, rects, units) {
   const ri = rects.findIndex(r => r.id === e.id); if (ri < 0) return null;
-  const U = units.find(u => u.rs.includes(ri)), M = U.M;
+  const U = units.find(u => u.rs.includes(ri)), M = U?.M;
+  if (!U || U.john) return null;                                                   // a ⌘ no magnets: no node holds on it
   if (e.m === 'c') return { u: U.id, ...M[0] };
   const q = magnetPoint(rects[ri], e.m, U.R.roots[0]?.d ?? 0), rim = M.filter(m => !m.c);
   if (!rim.length) return { u: U.id, ...M[0] };
@@ -573,6 +576,61 @@ export function atPiece(g, s) {
   return { p: [g.c[0] + g.r * Math.cos(a), g.c[1] + g.r * Math.sin(a)], t: [-Math.sin(a) * sg, Math.cos(a) * sg] };
 }
 
+// ---------- ⌘, St. John's Arms (ST-JOHN) ----------
+// The owner, 2026-10-19, St_John/: the old sign, Screenshot 8.23.36 PM — "an
+// interesting solution for us, how the brush will go" — his arrows on it in
+// … PM 2, and the sign drawn, IMAGE 2026-10-19 20:22:20. A figure of its
+// own, laid with ⌘ in the Tools between R and N: its box in four lobes, its
+// quarters, each filled by rings as a tile is ("it is just how the brush goes
+// over the canvas; there may be 25 of them, as the canvas is"). A loop: one
+// ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1,
+// the bottom right, clockwise, up its inner side and straight on through the
+// middle into lobe 2, the top right, round it, along its inner side on into
+// 3, the top left, down into 4, the bottom left, and along its top into 1
+// again — so every lobe's inner sides go on across the middle and cross
+// there, the sign's middle a grid, as he drew it. The brush lands in the
+// middle on the outermost loop ("the sign goes from the centre"), then loop
+// after loop inward, to the next by the ring change, an S over lobe 4's top:
+// one line, no lift. ↻, as his arrows; ↺, the sign mirrored.
+export const JOHN_TWO = 0.5;                               // a ⌘'s chance of a second paint, on its lobes 2 and 4 (Claude's)
+// its lobes, in the brush's order: 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left
+export function lobesOf(r) {
+  const a = r.w / 2, b = r.h / 2, cx = r.x + a, cy = r.y + b;
+  return [{ x: cx, y: r.y, w: a, h: b }, { x: cx, y: cy, w: a, h: b }, { x: r.x, y: cy, w: a, h: b }, { x: r.x, y: r.y, w: a, h: b }];
+}
+// its rings, alike in every lobe: a tile's, its first lobe's; their depths, the outermost first
+export const johnRings = (r, trail, step, edge, over = null) => ringsOf([lobesOf(r)[0]], trail, step, edge, over);
+export function johnDepths(R) { const out = []; let n = R.roots[0]; while (n) { out.push(n.d); n = n.kids[0]; } return out; }
+// One loop d mm in: its twelve corners from lobe 1's top right on, every
+// one a turn to the right; at the inner corners none, the sides on through
+// the middle, crossing there
+export function johnLoop(r, d) {
+  const x0 = r.x + d, x1 = r.x + r.w - d, y0 = r.y + d, y1 = r.y + r.h - d, cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  return [[x1, cy - d], [x1, y0], [cx + d, y0], [cx + d, y1], [x1, y1], [x1, cy + d], [x0, cy + d], [x0, y1], [cx - d, y1], [cx - d, y0], [x0, y0], [x0, cy - d]];
+}
+// The path: from the middle, on the outermost loop's line across it — lobe
+// 4's top going on into 1's — round every loop; to the next by an S over
+// lobe 4's top, Ring change long or as much as the side has, landing where
+// the next loop's line crosses the middle; the side too short, straight on
+// a step in. The last loop closed where it began.
+export function johnPts(r, ds, o = {}) {
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2, corner = o.corner ?? CORNER_NEW, pts = [];
+  ds.forEach((d, k) => {
+    if (!k) pts.push([cx, cy - d]);
+    pts.push(...johnLoop(r, d));
+    const n = ds[k + 1];
+    if (n === undefined) { pts.push(k ? [cx - d, cy - d] : [cx, cy - d]); return; }
+    const B = [cx - n, cy - n], s = n - d, room = B[0] - (r.x + d + corner);
+    if (room >= s) { const L = Math.min(room, Math.max(s, o.change ?? CHANGE_NEW)), A = [B[0] - L, cy - d], t = {}; A.S = t; B.S = t; pts.push(A, B); }
+    else pts.push(B);
+  });
+  return pts;
+}
+export function johnPath(U, rects, o = {}) {
+  const r = rects[U.rs[0]], ds = johnDepths(U.R), ccw = U.turn === 'ccw', pts = johnPts(ccw ? { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h } : r, ds, o);
+  return ccw ? pts.map(mx) : pts;
+}
+
 // ---------- the plan ----------
 // Every unit its rings; every figure one path. With nodes (the owner,
 // 2026-10-17: "the brush's way must be set, not left to itself") the
@@ -592,7 +650,10 @@ export function atPiece(g, s) {
 // o: { brush, swell, edgeOut, overlap, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
 export function planOf(rects, o) {
   const trail = trailOf(o), edge = edgeOf(o), over = overDepth(o), units = unitsOf(rects), way = { trail, edge, over, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
-  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge, over); U.M = magnetsOf(U, rects); }
+  for (const U of units) {
+    if (U.john) { U.R = johnRings(rects[U.rs[0]], trail, U.step, edge, over); U.M = []; continue; }
+    U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge, over); U.M = magnetsOf(U, rects);
+  }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
   const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
   const figs = F0.map(F => {
@@ -600,7 +661,8 @@ export function planOf(rects, o) {
     F.us.forEach((id, k) => {
       const U = units[id], next = F.us[k + 1], prev = pts.at(-1), nextMid = next !== undefined ? mid(units[next].box) : null;
       let s, x = null;
-      if (!manual) { const out = k % 2 === 0; s = unitPath(U, rects, way, out ? 'out' : 'in', null, out ? nextMid ?? prev ?? null : prev ?? null); }
+      if (U.john) s = johnPath(U, rects, way);
+      else if (!manual) { const out = k % 2 === 0; s = unitPath(U, rects, way, out ? 'out' : 'in', null, out ? nextMid ?? prev ?? null : prev ?? null); }
       else {
         const inE = k ? F.ls[k - 1].b : null, outE = next !== undefined ? F.ls[k].a : null, rim = e => e && !e.c;
         if (rim(inE) && rim(outE)) { s = [...unitPath(U, rects, way, 'in', inE.p), outE.p]; x = 'edge'; }
@@ -625,7 +687,7 @@ function alongTo(pieces, p) {
   return best;
 }
 // a figure's name, for the LCD and the stop
-export const figName = (F, units) => `Figure ${F.n}${F.us.length > 1 ? `, ${F.us.length} units` : units[F.us[0]].rs.length > 1 ? ', a block' : ', one tile'}`;
+export const figName = (F, units) => `Figure ${F.n}${F.us.length > 1 ? `, ${F.us.length} units` : units[F.us[0]].john ? ', ⌘ St. John\'s Arms' : units[F.us[0]].rs.length > 1 ? ', a block' : ', one tile'}`;
 export const wipeWhy = (F, units) => `${figName(F, units)}: the brush up — wipe it; are its sausages squeezed? Then Continue`;
 
 // DRAG's rows for plotRun, mm from the canvas's centre: a figure a row, one
@@ -708,20 +770,27 @@ function erodeZero(G) {
 // so every ring crosses each arm and the middle is the brush's; the round end
 // on the tile at the corner, clear of both its sides. A block: from every
 // corner of its outline in at 45°, as far as the middle of its part goes, no
-// deeper than its innermost ring. → [{ a, b }]
+// deeper than its innermost ring. A ⌘: every lobe its X, as a tile's, the
+// lobes in their order. → [{ a, b }]
 export function spokesOf(U, rects, o = {}) {
-  const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step, edgeOf(o)), out = [];
-  let n = R.roots[0]; while (n?.kids.length) n = n.kids[0];
-  const L = n?.loops[0], half = k => L ? (Math.max(...L.map(v => v[k])) - Math.min(...L.map(v => v[k]))) / 2 : 0;
-  const arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };
-  if (U.rs.length === 1) {
-    const r = rects[U.rs[0]], c = [r.x + r.w / 2, r.y + r.h / 2], hx = half(0), hy = half(1);
+  const out = [], arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };
+  // a rectangle's X, in to the innermost ring of half sides hx, hy round its middle
+  const cross = (r, hx, hy) => {
+    const c = [r.x + r.w / 2, r.y + r.h / 2];
     for (const k of [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.h], [r.x, r.y + r.h]]) {
       const v = unitV(sub(c, k)), ax = Math.abs(v[0]), ay = Math.abs(v[1]);
       arm(k, v, SAUSAGE_W / 2 / Math.max(1e-9, Math.min(ax, ay)), dist(k, c) - Math.min(ax > 1e-9 ? hx / ax : Infinity, ay > 1e-9 ? hy / ay : Infinity));
     }
+  };
+  if (U.john) {
+    const r = rects[U.rs[0]], dN = johnDepths(U.R ?? johnRings(r, trailOf(o), U.step, edgeOf(o))).at(-1) ?? 0;
+    for (const q of lobesOf(r)) cross(q, Math.max(0, q.w / 2 - dN), Math.max(0, q.h / 2 - dN));
     return out;
   }
+  const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step, edgeOf(o));
+  let n = R.roots[0]; while (n?.kids.length) n = n.kids[0];
+  const L = n?.loops[0], half = k => L ? (Math.max(...L.map(v => v[k])) - Math.min(...L.map(v => v[k]))) / 2 : 0;
+  if (U.rs.length === 1) { cross(rects[U.rs[0]], half(0), half(1)); return out; }
   const G = gridOf(U.rs.map(i => rects[i])), cap = (n?.d ?? 0) * Math.SQRT2;
   for (const Lp of erodeZero(G)) for (const cv of convexOf(Lp)) {
     const v = unitV(cv.diag), ok = s => squareIn(G, cv.v[0] + v[0] * s, cv.v[1] + v[1] * s, Math.max(1e-6, s / Math.SQRT2 - 1e-6));
@@ -789,7 +858,7 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
     let p1, p2 = null;
     if (mode === 'spokes' && was.length) { p1 = was[0]; p2 = was[1] ?? null; }
     else if (id === spotU) p1 = pal.spot;                                         // the spot: this unit, all of it, and no other
-    else if (lone && !st) p1 = pureOf(pal);
+    else if (lone && !st && !U.john) p1 = pureOf(pal);
     else {
       const by = st ? Object.keys(main).map(Number).filter(m => m !== id && st.near(id, m)) : F.us.filter(m => main[m] && F.adj(id, m));
       const avoid = new Set([main[F.us[k - 1]], ...by.map(m => main[m])].filter(Boolean));
@@ -798,16 +867,19 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
       if (!c.length) c = pal.core;
       if (pal.w) p1 = urn(c);
       else { const least = Math.min(...c.map(q => used[q] || 0)); p1 = pick(c.filter(q => (used[q] || 0) === least)); }
-      if (!lone && r() < SECOND_P) {
+      if (U.john) { const core = pal.core.filter(q => q !== p1); if (core.length && r() < JOHN_TWO) p2 = pick(core); }   // ⌘: one paint or two (the owner, 2026-10-19: "in one or two colours")
+      else if (!lone && r() < SECOND_P) {
         const acc = pal.accent.filter(q => q !== p1), nxt = main[F.us[k - 1]], core = pal.core.filter(q => q !== p1);
         p2 = acc.length && r() < ACCENT_SECOND ? pick(acc) : nxt && nxt !== p1 && nxt !== pal.spot && r() < 0.5 ? nxt : core.length ? pick(core) : null;
       }
     }
     main[id] = p1; used[p1] = (used[p1] || 0) + 1;
     const places = mode === 'colours' && had.length ? had.map(q => ({ a: q.a, b: q.b, old: q.paint })) : spokesOf(U, rects, o);
-    const two = p2 ? Math.floor(r() * places.length) : -1;
+    const two = p2 ? Math.floor(r() * places.length) : -1, R0 = rects[U.rs[0]];
+    // a ⌘'s second paint on its lobes 2 and 4, the top right and the bottom left
+    const even = q => (q.a[0] + q.b[0] - 2 * R0.x - R0.w) * (q.a[1] + q.b[1] - 2 * R0.y - R0.h) > 0;
     places.forEach((q, m) => {
-      const paint = mode === 'colours' && had.length ? (q.old === was[0] ? p1 : p2 ?? p1) : m === two ? p2 : p1;
+      const paint = U.john ? (even(q) ? p2 ?? p1 : p1) : mode === 'colours' && had.length ? (q.old === was[0] ? p1 : p2 ?? p1) : m === two ? p2 : p1;
       const thin = !lone && pal.accent.includes(paint) && !pal.core.includes(paint);
       const { i, s } = keepIn(U, rects, { a: q.a, b: q.b, paint, thin });
       out.get(i).push(s);
