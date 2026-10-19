@@ -14,7 +14,7 @@ const crs = (a, b) => a[0] * b[1] - a[1] * b[0];
 
 test('a ⌘ as kept; a unit and a figure of its own: it melts into no tile, joins none, no node holds on it', () => {
   assert.equal(SIGN().kind, JOHN); assert.equal(cleanRect({ x: 0, y: 0, w: 10, h: 10 }).kind, undefined);
-  assert.equal(SIGN().width, 50, 'a new one\'s loop an eighth of its box'); assert.equal(SIGN({ width: 9999 }).width, JOHN_W_MAX); assert.equal(cleanRect({ x: 0, y: 0, w: 10, h: 10, width: 30 }).width, undefined);
+  assert.equal(SIGN().width, 76, 'a new one\'s loop as he found it best, 74 on 387'); assert.equal(SIGN({ width: 9999 }).width, JOHN_W_MAX); assert.equal(cleanRect({ x: 0, y: 0, w: 10, h: 10, width: 30 }).width, undefined);
   const rs = [SIGN(), cleanRect({ id: 2, x: 300, y: 300, w: 200, h: 50 }), cleanRect({ id: 3, x: 400, y: 0, w: 50, h: 50 })], U = unitsOf(rs);
   assert.equal(U.length, 3, 'over the ⌘, the tile no block with it'); assert.ok(U[0].john && !U[1].john);
   assert.equal(figuresOf(rs, U).length, 3, 'beside it, the tile no figure with it');
@@ -60,7 +60,7 @@ test('the path: lands in the middle, loop after loop inward, an S on lobe 4\'s t
 
 // Width (the owner, 2026-10-19: "a slider as in ALU-CUT called WIDTH — there the loop's thickness can be raised")
 test('Width: the loop edge to edge, the rings so far in from the outline, a window in every lobe, the grid in the middle 2 Width across', () => {
-  const P = planOf([SIGN()], O), U = P.units[0], ds = U.ds, inner = 50 - BRUSH_NEW / 2, F = P.figs[0];
+  const P = planOf([SIGN({ width: 50 })], O), U = P.units[0], ds = U.ds, inner = 50 - BRUSH_NEW / 2, F = P.figs[0];
   assert.equal(ds.at(-1), inner, 'the innermost ring\'s dry edge on the loop\'s inner edge'); assert.equal(U.R.levels, ds.length); assert.equal(ds.length, 17);
   for (let k = 1; k < ds.length - 1; k++) assert.ok(Math.abs(ds[k] - ds[k - 1] - 3) < 1e-6);
   const xs = F.pieces.flatMap(g => [g.a, g.b]);
@@ -72,7 +72,7 @@ test('Width: the loop edge to edge, the rings so far in from the outline, a wind
 
 // Corners up to 50 (the owner, 2026-10-19): on a ⌘ concentric, as a pipe's lanes
 test('the turns concentric: the outer ring\'s Corners, every ring inside its depth less, never under 4 mm; the X from where the paint begins', () => {
-  const rs = [SIGN()], o = { ...O, corner: 50 }, P = planOf(rs, o), U = P.units[0], ds = U.ds, F = P.figs[0];
+  const rs = [SIGN({ width: 50 })], o = { ...O, corner: 50 }, P = planOf(rs, o), U = P.units[0], ds = U.ds, F = P.figs[0];
   assert.equal(johnRadius(50, ds[0], ds[0]), 50); assert.equal(johnRadius(50, ds.at(-1), ds[0]), 4); assert.equal(johnRadius(3, 40, 1), 3);
   const quarter = F.pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6), radii = new Set(quarter.map(g => Math.round(g.r * 1e6) / 1e6));
   for (const d of ds) assert.ok(radii.has(Math.round(johnRadius(50, d, ds[0]) * 1e6) / 1e6), `a loop ${d} mm in, its turns ${johnRadius(50, d, ds[0])}`);
@@ -80,6 +80,24 @@ test('the turns concentric: the outer ring\'s Corners, every ring inside its dep
   const arm = spokesOf(U, rs, o).find(q => Math.hypot(q.a[0], q.a[1] - 400) < 40), C = [ds[0] + 50, 400 - ds[0] - 50];
   assert.ok(Math.abs(Math.hypot(arm.a[0] - C[0], arm.a[1] - C[1]) - (50 + BRUSH_NEW / 2)) < 1e-6);
   assert.equal(spokesOf(U, rs, O).find(q => Math.hypot(q.a[0], q.a[1] - 400) < 40).a[0] < arm.a[0], true, 'at Corners 4 nearer the corner');
+  const N = ds.at(-1), RN = johnRadius(50, N, ds[0]), CN = [N + RN, 400 - N - RN];
+  assert.ok(Math.abs(Math.hypot(arm.b[0] - CN[0], arm.b[1] - CN[1]) - RN) < 1e-6, 'in to the innermost ring round its turn');
+});
+
+// Corners up to 100 (the owner, 2026-10-19, Screenshot 9.24.56 PM, the roundings drawn in blue)
+test('Corners 100 on his 43 × 43: round lobes, round windows; past half a ring\'s side the ring a circle; the X across the whole loop', () => {
+  const rs = [cleanRect({ id: 1, x: 0, y: 0, w: 430, h: 430, step: 3, kind: JOHN, width: 54 })], o = { ...O, cw: 430, ch: 430, corner: 100 }, P = planOf(rs, o), U = P.units[0], ds = U.ds, F = P.figs[0];
+  const quarter = F.pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6), r = quarter.map(g => g.r);
+  assert.ok(Math.abs(Math.max(...r) - 100) < 1e-6, 'the outer ring 100 round'); assert.ok(Math.abs(Math.min(...r) - johnRadius(100, ds.at(-1), ds[0])) < 1e-6 && Math.min(...r) > 45, 'the window\'s ring near 50');
+  const P4 = planOf([cleanRect({ id: 1, x: 0, y: 0, w: 400, h: 400, step: 3, kind: JOHN })], { ...O, corner: 100 }), big = P4.figs[0].pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6).map(g => g.r);
+  assert.ok(Math.abs(Math.max(...big) - (100 - BRUSH_NEW / 2)) < 1e-6, 'on 40 × 40 the outer ring a circle, half its side round');
+  // his, Screenshot 9.27.36 PM — 387 × 387.5, Step 7, Width 74, the brush 4.5 and 1 with paint — the windows' rings round, no squares: every turn half its ring's side
+  const his = [cleanRect({ id: 1, x: 21, y: 20, w: 387, h: 387.5, step: 7, kind: JOHN, width: 74 })], Ph = planOf(his, { ...O, cw: 430, ch: 430, brush: 4.5, swell: 1, corner: 100 }), Uh = Ph.units[0];
+  const turns = Ph.figs[0].pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6);
+  for (const d of Uh.ds) assert.ok(turns.some(g => Math.abs(g.r - (193.5 - 2 * d) / 2) < 1e-6), `the ring ${d} mm in a round one`);
+  assert.ok(Math.min(...turns.map(g => g.r)) > 24);
+  const X = spokesOf(U, rs, o), outer = X.filter(q => Math.hypot(q.a[0] - 215, q.a[1] - 215) > 10);
+  assert.equal(X.length, 16); assert.ok(outer.every(q => Math.abs(Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1]) - (ds.at(-1) - ds[0] + BRUSH_NEW / 2)) < 1e-6), 'every outer arm across the loop as thick as on a side: the outer paint\'s edge to the innermost ring');
 });
 
 test('↺: the sign mirrored, lobe 1 the bottom left', () => {
