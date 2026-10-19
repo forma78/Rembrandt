@@ -1580,8 +1580,11 @@ this section disagree, this section wins: the owner corrected the sketch on
   drag lays the sign, as R a tile — V moves and stretches it, its four
   lobes dashed in its outline; ⌘C ⌘V, Whole canvas, Step, ↻ · ↺ as a
   tile's, and under Step its **Width** (1 mm … half a lobe by the slider, to
-  500 typed; ALU-CUT's pipe's; a new one's a fifth of its box). Corners up to
-  100 mm, ST-JOHN's 100 at first. The panel's keys ⌘ n;
+  500 typed; ALU-CUT's pipe's; a new one's a fifth of its box) and **Corners**
+  under it, up to 100 mm, ST-JOHN's 100 at first — the construction, not
+  the brush, so on ST-JOHN not under Brush, DRAG (the owner, 2026-10-19),
+  one value for the whole canvas as on INKA. The chosen one's reading under
+  its **i**, by its name (the owner: "this text we hide under (i)"). The panel's keys ⌘ n;
   the reading of the chosen one its loops, from its middle in, the lobes
   1 ↘ 2 ↗ 3 ↖ 4 ↙, its Width, the windows and the grid. Drag, Result, ▶ Play the
   run, MARKS and DRAG as INKA's, the ⌘ one figure, a wipe before the next.

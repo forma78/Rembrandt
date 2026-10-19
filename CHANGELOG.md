@@ -9,6 +9,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **ST-JOHN: Corners by Width; the chosen one's reading under i** (the
+  owner, 2026-10-19, the same evening: "great! now that is another matter,
+  much better. Could you move Corners nearer Width — it is the construction,
+  not the Brush section"; "this text we hide under (i)"). On ST-JOHN Corners
+  under the chosen one's Step and Width, typed or by the slider, out of
+  Brush, DRAG — one value for the whole canvas, as before; the reading of
+  the chosen tile or ⌘ hidden under an i by its name. INKA as it was. The
+  tooltips of Corners and Wipe whole again: a straight quote in them cut
+  them short, now «».
+
 - **ST-JOHN: Corners up to 100 mm; a ⌘'s rings round** (the owner,
   2026-10-19, the same evening, Screenshot 9.24.56 PM, the roundings drawn
   in blue: "much better already, but Corners can be turned up to 100 mm";

@@ -831,7 +831,9 @@ addEventListener('keydown', e => {
 });
 
 // ---------- the panel ----------
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['corner', 'Corners', 'mm', 0.5, 0.5, 100], ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
+const CORNER_SL = ['corner', 'Corners', 'mm', 0.5, 0.5, 100];
+// on ST-JOHN Corners by the chosen one's Step and Width, not the brush's (the owner, 2026-10-19: "move Corners nearer Width — it is the construction, not the Brush section")
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ...(JOHN ? [] : [CORNER_SL]), ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
 const SL_TITLE = {
   brush: 'The round brush as set, dry; with paint it lays wider — With paint below. MARKS\' dashes go by it',
   swell: 'The brush is no felt-tip: it takes up the paint and swells (the owner, 2026-10-19: «the brush is not a felt-tip or a Posca marker … it swells in volume»). Its trail this much wider than Brush width — 9 mm at 3.5 by the ruler on his canvas of 2026-10-17, so 5.5 (est. at other widths). The rings, the Drag strip and the Result go by the trail: the outer ring its half in from the tile\'s edge, so the paint ends on it; the innermost the trail wide, its paint meeting in the middle',
@@ -839,9 +841,9 @@ const SL_TITLE = {
   edgeOut: 'Optical compensation: the outer ring moved out towards the tile\'s edge by this much, where the brush lays less than its width and leaves white between touching tiles (the owner, 2026-10-19, IMG_1201: «even round corners should leave a gap only at the corners — the sides must be flush»). 0: its edge on the tile\'s; at the brush\'s half, its middle on it, never past (est.; measure the gap with a ruler, half of it here)',
   overlap: 'One more ring round every tile, the outermost, its brush\'s edge this far past the tile\'s — onto its neighbour, the two over one another, so no white between them (the owner, 2026-10-19: «maybe one more pass on every square — let it go overlapping»). 0: none. At half the brush its middle on the tile\'s edge (est.)',
   change: 'Where a ring\'s seam is a side\'s middle — a node there — the brush goes in to the next ring by an S this long, or as long as the side lets it, as TAPE\'s lane change (the owner, 2026-10-19: «let the transition be as in TAPE or BASF»); 0, as short as a step (est.)',
-  corner: 'Every turn of the path a tangent arc this round, or as round as its sides let it — so the board runs through it and never stops (the owner, 2026-10-17: "rounded corners … a stop of the brush during the process kills the effect"); on it ≈ √(250 · r) mm/s at most (est.). On a ⌘ the outer ring\'s, the rings inside it concentric, each its depth less, never under 4 mm — the loop as thick round a turn as along a side; past half a ring\'s side, that ring a circle. Up to 100 mm (the owner, 2026-10-19, Screenshot 9.24.56 PM, the roundings drawn in blue: «Corners up to 100 mm»)',
+  corner: 'Every turn of the path a tangent arc this round, or as round as its sides let it — so the board runs through it and never stops (the owner, 2026-10-17: «rounded corners … a stop of the brush during the process kills the effect»); on it ≈ √(250 · r) mm/s at most (est.). On a ⌘ the outer ring\'s, the rings inside it concentric, each its depth less, never under 4 mm — the loop as thick round a turn as along a side; past half a ring\'s side, that ring a circle. Up to 100 mm (the owner, 2026-10-19, Screenshot 9.24.56 PM, the roundings drawn in blue: «Corners up to 100 mm»)',
   join: 'Tiles this near each other, side by side, are one figure — the brush on through them without a lift; farther apart, a figure each, a wipe between (est.)',
-  wipe: 'Before every next figure the brush flies over its start and goes up this far at the elbow — +45° its highest — for you to wipe it; Continue brings it down (the owner, 2026-10-17: "here the brush can be lifted up, so that I wipe it"; est.)',
+  wipe: 'Before every next figure the brush flies over its start and goes up this far at the elbow — +45° its highest — for you to wipe it; Continue brings it down (the owner, 2026-10-17: «here the brush can be lifted up, so that I wipe it»; est.)',
 };
 const valOf = key => key === 'drag' ? `${S.drag} mm/s` : key === 'wipe' ? `+${S.wipe}°` : key === 'swell' ? `+${fmt(S.swell, 1)} mm · ${fmt(trail(), 1)} mm on the canvas` : key === 'edgeOut' ? `+${fmt(S.edgeOut, 2)} mm · the outer ring ${fmt(edgeOf(po()), 2)} mm in` : key === 'overlap' ? (S.overlap > 0 ? `${fmt(S.overlap, 1)} mm past · a ring, its middle ${fmt(Math.abs(S.overlap - S.brush / 2), 1)} mm ${S.overlap >= S.brush / 2 ? 'out' : 'in'}` : 'off') : key === 'corner' ? `${fmt(S.corner, 1)} mm · ≈ ${Math.min(S.drag, Math.floor(Math.sqrt(250 * S.corner)))} mm/s` : `${fmt(S[key], 1)} mm`;
 $('#slBrush').innerHTML = BRUSH_SL.map(([key, label, , step, min, max]) => `<label class="sl" title="${SL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
@@ -871,16 +873,17 @@ function showRects() {
   });
   showRect();
 }
+let TILE_INFO = false;   // ST-JOHN: the chosen one's reading open under its i
 const R_FIELDS = [['x', 'Left →', 'Its left edge, mm right of the canvas\'s'], ['y', 'Bottom ↑', 'Its bottom edge, mm above the canvas\'s'], ['w', 'Width', 'Left to right'], ['h', 'Height', 'Bottom to top']];
 function showRect() {
   const box = $('#rectEdit'), r = S.rects[S.sel];
   if (!r) { box.innerHTML = ''; return; }
   const many = MANY.size > 1 ? `<p class="read"><b>${MANY.size} tiles chosen together</b>: a drag moves them all, the arrows a mm (⇧ ten), ⌫ takes them away, ⌘C ⌘V copies them with their nodes; a click on the canvas or Esc lets them go.</p>` : '';
   box.innerHTML = `${many}
-    <h4>${isJohn(r) ? '⌘' : 'Tile'} ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
+    <h4>${isJohn(r) ? '⌘' : 'Tile'} ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm${JOHN ? ` <button class="info${TILE_INFO ? ' on' : ''}" id="tileInfo" title="Its reading: its figure, its loops or rings, its Width, the white between the rings">i</button>` : ''}</h4>
     <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round this tile clockwise as it paints it, in or out">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round this tile anticlockwise as it paints it, in or out">↺ Anticlockwise</button></div>
-    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label>${isJohn(r) ? (() => { const wMax = Math.max(10, Math.ceil(Math.min(r.w, r.h) / 4)); return `<label class="sl" title="The loop's thickness, its paint edge to edge, from the sign's outline in, as ALU-CUT's pipe Width (the owner, 2026-10-19): the rings only so far in, a window in the middle of every lobe, the grid in the middle of the sign twice as wide; at the slider's end the lobes filled to their middles"><span class="slh"><span>Width</span><input class="num" type="number" id="rWn" min="${JOHN_W_MIN}" max="${JOHN_W_MAX}" step="1" value="${r.width}" aria-label="Width"></span><input class="slider" type="range" id="rW" min="${JOHN_W_MIN}" max="${wMax}" step="1" value="${Math.min(wMax, r.width)}"></label>`; })() : ''}</div>
-    <p class="read" id="rGap">${tileText(S.sel)} · ${r.step > trail() + 0.05 ? `white <b>${fmt(r.step - trail(), 1)} mm</b> between the rings` : r.step < trail() - 0.05 ? `the rings' paint overlapping by <b>${fmt(trail() - r.step, 1)} mm</b>` : 'ring to ring'}</p>
+    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label>${isJohn(r) ? (() => { const wMax = Math.max(10, Math.ceil(Math.min(r.w, r.h) / 4)); return `<label class="sl" title="The loop's thickness, its paint edge to edge, from the sign's outline in, as ALU-CUT's pipe Width (the owner, 2026-10-19): the rings only so far in, a window in the middle of every lobe, the grid in the middle of the sign twice as wide; at the slider's end the lobes filled to their middles"><span class="slh"><span>Width</span><input class="num" type="number" id="rWn" min="${JOHN_W_MIN}" max="${JOHN_W_MAX}" step="1" value="${r.width}" aria-label="Width"></span><input class="slider" type="range" id="rW" min="${JOHN_W_MIN}" max="${wMax}" step="1" value="${Math.min(wMax, r.width)}"></label>`; })() : ''}${JOHN ? `<label class="sl" title="${SL_TITLE.corner} — for every tile and ⌘ on the canvas"><span class="slh"><span>Corners</span><input class="num" type="number" id="rCn" min="${CORNER_SL[4]}" max="${CORNER_SL[5]}" step="${CORNER_SL[3]}" value="${S.corner}" aria-label="Corners"></span><input class="slider" type="range" id="rC" min="${CORNER_SL[4]}" max="${CORNER_SL[5]}" step="${CORNER_SL[3]}" value="${S.corner}"></label>` : ''}</div>
+    <p class="read" id="rGap"${JOHN && !TILE_INFO ? ' hidden' : ''}>${tileText(S.sel)} · ${r.step > trail() + 0.05 ? `white <b>${fmt(r.step - trail(), 1)} mm</b> between the rings` : r.step < trail() - 0.05 ? `the rings' paint overlapping by <b>${fmt(trail() - r.step, 1)} mm</b>` : 'ring to ring'}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
     <div class="grid4 keys"><button class="btn" id="rFit" title="This tile the whole canvas">Whole canvas</button><button class="btn" id="rDup" title="A copy of it beside it on the right, touching: the same figure">Duplicate</button></div>
     <div class="grid4 keys three"><button class="btn" id="rEarly"${S.sel === 0 ? ' disabled' : ''} title="Earlier in the list: a figure runs in the order of its first tile">Run earlier</button><button class="btn" id="rLate"${S.sel === S.rects.length - 1 ? ' disabled' : ''} title="Later in the list">Run later</button><button class="btn" id="rDel" title="Take it away — or ⌫ on the keyboard; ⌘Z brings it back">Delete</button></div>`;
@@ -899,6 +902,21 @@ function showRect() {
   inp.onchange = () => settle();
   num.oninput = () => { if (num.value !== '') stepTo(+num.value); };
   num.onchange = () => { num.value = r.step; settle(); };
+  const cIn = $('#rC'), cNum = $('#rCn');                                            // ST-JOHN's Corners, here by Width: the whole canvas's
+  if (cIn) {
+    const cornerTo = v => {
+      if (!fin(v)) return;
+      if (!busy) undoPush(); busy = true; S.corner = Math.max(CORNER_SL[4], Math.min(CORNER_SL[5], v));
+      if (document.activeElement !== cNum) cNum.value = S.corner;
+      cIn.value = S.corner; kick();
+    };
+    cIn.oninput = () => cornerTo(+cIn.value);
+    cIn.onchange = () => { relayJohn(); settle(); };
+    cNum.oninput = () => { if (cNum.value !== '') cornerTo(+cNum.value); };
+    cNum.onchange = () => { cNum.value = S.corner; relayJohn(); settle(); };
+  }
+  const info = $('#tileInfo');                                                       // its reading under i (the owner, 2026-10-19: "this text we hide under (i)")
+  if (info) info.onclick = () => { TILE_INFO = !TILE_INFO; $('#rGap').hidden = !TILE_INFO; info.classList.toggle('on', TILE_INFO); };
   const wIn = $('#rW'), wNum = $('#rWn');                                            // a ⌘'s Width, as Step
   if (wIn) {
     const widthTo = v => {
