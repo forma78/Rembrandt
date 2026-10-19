@@ -92,27 +92,27 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <!-- the cassette deck, CCD's: TEST and PAUSE; MARKS and DRAG — no Air (the owner, 2026-10-17: "AIR is not needed, only DRAG, a solid line"); STOP and HOME -->
+      <!-- the cassette deck, CCD's: TEST and PAUSE; TRACE and DRAG — TRACE in MARKS' place (the owner, 2026-10-19: "we remove MARKS and put TRACE in its place … it must coincide perfectly with DRAG"), no Air; STOP and HOME -->
       <div class="runkeys deck">
         <button class="btn" id="btnTest" title="TEST, before the runs: with INK ON one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
         <button class="btn" id="btnPause" title="PAUSE: DRAG holds at the end of the figure — on the way it never stops; at a wipe, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
       <div class="runkeys deck passes">
-        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS: a dash along every sausage — with INK ON in watercolour from the cup, a dip every fourth; then squeeze the sausages on them"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><path d="M12 4v7M20 12h-7M4 12h7"/></svg><span>Marks</span></button>
+        <button class="btn pass" id="btnTrace" data-pass="trace" title="TRACE: every figure's path, the very line DRAG runs — with INK ON the same brush in tinted water from the cup, a dip every 720 mm, going on a little back from where it lifted; then squeeze the paint on the trace, as Florian, and DRAG"><svg viewBox="0 0 24 24"><path d="M12 12h2v-3h-5v6h8v-9h-11v12h14" class="thin" stroke-dasharray="2 2"/></svg><span>Trace</span></button>
         <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG: every figure one line, the brush down from its landing to its lift — tile after tile, a spiral each, the first from its middle out, the next from its outside in — never a stop on the way; between figures the brush up over the next one's start, a pause to wipe it, Continue; no dip"><svg viewBox="0 0 24 24"><path d="M12 12h2v-3h-5v6h8v-9h-11v12h14"/></svg><span>Drag</span></button>
       </div>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
         <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
       </div>
-      <!-- INK, CCD's: ON MARKS in watercolour from the cup of the Ink tab, and TEST's dip; OFF no dip; DRAG never dips -->
-      <div class="inkrow" title="ON: MARKS in watercolour, dipping in the cup of the Ink tab, and TEST's dip; OFF: no dip. DRAG never dips">
+      <!-- INK, CCD's: ON TRACE in tinted water from the cup of the Ink tab, and TEST's dip; OFF no dip; DRAG never dips -->
+      <div class="inkrow" title="ON: TRACE in tinted water, dipping in the cup of the Ink tab every 720 mm, and TEST's dip — the blue rings on Drag where it goes on after a dip; OFF: no dip. DRAG never dips">
         <span class="slh"><span>Ink</span></span>
         <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
       </div>
       <!-- the run as it will look; a view only -->
       <div class="toggles looks" id="views">
-        <button class="tog" data-view="drag" title="DRAG: every figure's path, the order of its tiles, where the brush lands, the wipes; the sausages where you squeeze them, MARKS' dashes under them in watercolour">Drag</button>
+        <button class="tog" data-view="drag" title="DRAG: every figure's path, the order of its tiles, where the brush lands, the wipes; the sausages where you squeeze them; with INK ON a blue ring where TRACE goes on after a dip">Drag</button>
         <button class="tog" data-view="result" title="The painting: the brush through the sausages, figure by figure, the paints mixed as pigments (est.)">Result</button>
       </div>
       <!-- the flights on Drag, OFF by default (the owner, 2026-10-19: "I do not really need them") -->

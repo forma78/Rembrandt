@@ -25,9 +25,9 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
-import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
+import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, DIP_LAP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
-import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
+import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -152,6 +152,18 @@ function marksRun() {
   return MARKS_RUN;
 }
 
+// TRACE (ST-JOHN, in MARKS' place; inkaplan.js, traceRows): DRAG's own line,
+// with INK ON in tinted water from the cup, a dip every DIP_RUN mm, at
+// DRAG's speed — the trace the owner squeezes the paint on, as Florian
+let TRACE_RUN = null;
+function traceRun() {
+  const P = planNow(), here = hereNow(), cupNow = dipCup(), key = JSON.stringify([plKey, S.ink, S.drag, S.travel, S.tail, here, cupNow]);
+  if (TRACE_RUN?.key === key) return TRACE_RUN;
+  const R = traceRows(P, { ...po(), ink: S.ink, tail: S.tail });
+  TRACE_RUN = { key, at: R.at, ...(R.ps.length ? { ...plotRun({ ...runOpts(R.ps.length), ink: S.ink, noDipUnder: 0 }, [{ key: 'TRACE', ps: R.ps, why: null }]), rows: R.info, stretches: R.ps.length, mm: R.info.reduce((a, q) => a + q.L, 0) } : { ...EMPTY, stretches: 0 }) };
+  return TRACE_RUN;
+}
+
 // ---------- the board (CCD's) ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
 let g = ctx;   // the context drawn on: the board's, or a PNG's for the Library
@@ -219,7 +231,7 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (S.view === 'result') drawResult(); else { drawPaths(); drawSausages(); drawOrder(); drawNodes(); }
+  if (S.view === 'result') drawResult(); else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }
   if (REF && S.refOpacity > 0) {
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
     g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
@@ -286,6 +298,15 @@ function drawPaths() {
     });
     was = F;
   }
+  g.restore();
+}
+// ST-JOHN with INK ON: where TRACE goes to the cup — a blue ring where every
+// stretch after a dip begins, DIP_LAP back from where the one before lifted
+function drawDips() {
+  if (!JOHN || !S.ink) return;
+  const T = traceRun(), first = new Set(planNow().figs.filter(F => F.pieces.length).map(F => F.start.join()));
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.strokeStyle = WATER; g.lineWidth = 1.5;
+  for (const q of T.at || []) { if (first.has(q.join())) continue; const p = scr(q); g.beginPath(); g.arc(p[0], p[1], 3.5, 0, 7); g.stroke(); }
   g.restore();
 }
 // every tile's place in the run, in its top right corner, over the sausages too
@@ -355,7 +376,7 @@ function drawSausages() {
   if (!ss.length) return;
   g.save(); inMm(g); g.lineCap = 'round';
   g.strokeStyle = WATER; g.globalAlpha = show ? 0.1 : 0.26; g.lineWidth = S.brush;
-  for (const q of ss) { const m = markOf(q, S.brush); g.beginPath(); g.moveTo(m.a[0], m.a[1]); g.lineTo(m.b[0], m.b[1]); g.stroke(); }
+  if (!JOHN) for (const q of ss) { const m = markOf(q, S.brush); g.beginPath(); g.moveTo(m.a[0], m.a[1]); g.lineTo(m.b[0], m.b[1]); g.stroke(); }   // MARKS' dashes; ST-JOHN has none
   for (const q of ss) {
     const on = q.paint === show;
     g.globalAlpha = show && !on ? 0.22 : 1;
@@ -832,8 +853,8 @@ addEventListener('keydown', e => {
 
 // ---------- the panel ----------
 const CORNER_SL = ['corner', 'Corners', 'mm', 0.5, 0.5, 100];
-// on ST-JOHN Corners by the chosen one's Step and Width, not the brush's (the owner, 2026-10-19: "move Corners nearer Width — it is the construction, not the Brush section")
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ...(JOHN ? [] : [CORNER_SL]), ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
+// Corners by the chosen one's Step (and a ⌘'s Width), not the brush's — first on ST-JOHN, then on INKA too (the owner, 2026-10-19: "move Corners nearer Width — it is the construction, not the Brush section"; "on INKA too — they are alike")
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['edgeOut', 'Edge: out by', 'mm', 0.25, 0, 10], ['overlap', 'Overlap', 'mm', 0.5, 0, 15], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
 const SL_TITLE = {
   brush: 'The round brush as set, dry; with paint it lays wider — With paint below. MARKS\' dashes go by it',
   swell: 'The brush is no felt-tip: it takes up the paint and swells (the owner, 2026-10-19: «the brush is not a felt-tip or a Posca marker … it swells in volume»). Its trail this much wider than Brush width — 9 mm at 3.5 by the ruler on his canvas of 2026-10-17, so 5.5 (est. at other widths). The rings, the Drag strip and the Result go by the trail: the outer ring its half in from the tile\'s edge, so the paint ends on it; the innermost the trail wide, its paint meeting in the middle',
@@ -873,17 +894,17 @@ function showRects() {
   });
   showRect();
 }
-let TILE_INFO = false;   // ST-JOHN: the chosen one's reading open under its i
+let TILE_INFO = false;   // the chosen one's reading open under its i
 const R_FIELDS = [['x', 'Left →', 'Its left edge, mm right of the canvas\'s'], ['y', 'Bottom ↑', 'Its bottom edge, mm above the canvas\'s'], ['w', 'Width', 'Left to right'], ['h', 'Height', 'Bottom to top']];
 function showRect() {
   const box = $('#rectEdit'), r = S.rects[S.sel];
   if (!r) { box.innerHTML = ''; return; }
   const many = MANY.size > 1 ? `<p class="read"><b>${MANY.size} tiles chosen together</b>: a drag moves them all, the arrows a mm (⇧ ten), ⌫ takes them away, ⌘C ⌘V copies them with their nodes; a click on the canvas or Esc lets them go.</p>` : '';
   box.innerHTML = `${many}
-    <h4>${isJohn(r) ? '⌘' : 'Tile'} ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm${JOHN ? ` <button class="info${TILE_INFO ? ' on' : ''}" id="tileInfo" title="Its reading: its figure, its loops or rings, its Width, the white between the rings">i</button>` : ''}</h4>
+    <h4>${isJohn(r) ? '⌘' : 'Tile'} ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm <button class="info${TILE_INFO ? ' on' : ''}" id="tileInfo" title="Its reading: its figure, its rings or loops, a ⌘'s Width, the white between the rings">i</button></h4>
     <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round this tile clockwise as it paints it, in or out">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round this tile anticlockwise as it paints it, in or out">↺ Anticlockwise</button></div>
-    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label>${isJohn(r) ? (() => { const wMax = Math.max(10, Math.ceil(Math.min(r.w, r.h) / 4)); return `<label class="sl" title="The loop's thickness, its paint edge to edge, from the sign's outline in, as ALU-CUT's pipe Width (the owner, 2026-10-19): the rings only so far in, a window in the middle of every lobe, the grid in the middle of the sign twice as wide; at the slider's end the lobes filled to their middles"><span class="slh"><span>Width</span><input class="num" type="number" id="rWn" min="${JOHN_W_MIN}" max="${JOHN_W_MAX}" step="1" value="${r.width}" aria-label="Width"></span><input class="slider" type="range" id="rW" min="${JOHN_W_MIN}" max="${wMax}" step="1" value="${Math.min(wMax, r.width)}"></label>`; })() : ''}${JOHN ? `<label class="sl" title="${SL_TITLE.corner} — for every tile and ⌘ on the canvas"><span class="slh"><span>Corners</span><input class="num" type="number" id="rCn" min="${CORNER_SL[4]}" max="${CORNER_SL[5]}" step="${CORNER_SL[3]}" value="${S.corner}" aria-label="Corners"></span><input class="slider" type="range" id="rC" min="${CORNER_SL[4]}" max="${CORNER_SL[5]}" step="${CORNER_SL[3]}" value="${S.corner}"></label>` : ''}</div>
-    <p class="read" id="rGap"${JOHN && !TILE_INFO ? ' hidden' : ''}>${tileText(S.sel)} · ${r.step > trail() + 0.05 ? `white <b>${fmt(r.step - trail(), 1)} mm</b> between the rings` : r.step < trail() - 0.05 ? `the rings' paint overlapping by <b>${fmt(trail() - r.step, 1)} mm</b>` : 'ring to ring'}</p>
+    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label>${isJohn(r) ? (() => { const wMax = Math.max(10, Math.ceil(Math.min(r.w, r.h) / 4)); return `<label class="sl" title="The loop's thickness, its paint edge to edge, from the sign's outline in, as ALU-CUT's pipe Width (the owner, 2026-10-19): the rings only so far in, a window in the middle of every lobe, the grid in the middle of the sign twice as wide; at the slider's end the lobes filled to their middles"><span class="slh"><span>Width</span><input class="num" type="number" id="rWn" min="${JOHN_W_MIN}" max="${JOHN_W_MAX}" step="1" value="${r.width}" aria-label="Width"></span><input class="slider" type="range" id="rW" min="${JOHN_W_MIN}" max="${wMax}" step="1" value="${Math.min(wMax, r.width)}"></label>`; })() : ''}<label class="sl" title="${SL_TITLE.corner} — for every tile and ⌘ on the canvas"><span class="slh"><span>Corners</span><input class="num" type="number" id="rCn" min="${CORNER_SL[4]}" max="${CORNER_SL[5]}" step="${CORNER_SL[3]}" value="${S.corner}" aria-label="Corners"></span><input class="slider" type="range" id="rC" min="${CORNER_SL[4]}" max="${CORNER_SL[5]}" step="${CORNER_SL[3]}" value="${S.corner}"></label></div>
+    <p class="read" id="rGap"${TILE_INFO ? '' : ' hidden'}>${tileText(S.sel)} · ${r.step > trail() + 0.05 ? `white <b>${fmt(r.step - trail(), 1)} mm</b> between the rings` : r.step < trail() - 0.05 ? `the rings' paint overlapping by <b>${fmt(trail() - r.step, 1)} mm</b>` : 'ring to ring'}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
     <div class="grid4 keys"><button class="btn" id="rFit" title="This tile the whole canvas">Whole canvas</button><button class="btn" id="rDup" title="A copy of it beside it on the right, touching: the same figure">Duplicate</button></div>
     <div class="grid4 keys three"><button class="btn" id="rEarly"${S.sel === 0 ? ' disabled' : ''} title="Earlier in the list: a figure runs in the order of its first tile">Run earlier</button><button class="btn" id="rLate"${S.sel === S.rects.length - 1 ? ' disabled' : ''} title="Later in the list">Run later</button><button class="btn" id="rDel" title="Take it away — or ⌫ on the keyboard; ⌘Z brings it back">Delete</button></div>`;
@@ -902,7 +923,7 @@ function showRect() {
   inp.onchange = () => settle();
   num.oninput = () => { if (num.value !== '') stepTo(+num.value); };
   num.onchange = () => { num.value = r.step; settle(); };
-  const cIn = $('#rC'), cNum = $('#rCn');                                            // ST-JOHN's Corners, here by Width: the whole canvas's
+  const cIn = $('#rC'), cNum = $('#rCn');                                            // Corners, here by Step and Width: the whole canvas's
   if (cIn) {
     const cornerTo = v => {
       if (!fin(v)) return;
@@ -1121,20 +1142,21 @@ function settle() {
     if (S.nodes.length && L.length !== S.nodes.length) { const sel = S.nodes[S.nodeSel]; S.nodes = L.map(l => S.nodes[l.i]); S.nodeSel = S.nodes.indexOf(sel); }
     if (S.nodeSel >= S.nodes.length) S.nodeSel = -1;
   }
-  const P = planNow(), D = dragRun(), Mk = marksRun(), here = hereNow(), lines = [];
+  const P = planNow(), D = dragRun(), Mk = marksRun(), Tr = JOHN ? traceRun() : null, here = hereNow(), lines = [];
   lines.push(!P.figs.length ? 'No tiles: New, or the R tool and a drag on the canvas.' : `<b>${P.figs.length}</b> figure${P.figs.length === 1 ? '' : 's'} · ${S.rects.length} tile${S.rects.length === 1 ? '' : 's'} · DRAG: every figure one line, the brush down all the way, ${fmt(D.mm / 1000, 2)} m at ${S.drag} mm/s, ≈ ${fmt(D.seconds / 60, 1)} min (est.)`);
   for (const F of P.figs) lines.push(`${figName(F, P.units)}: ${fmt(F.length / 1000, 2)} m, ${F.us.map(id => P.units[id].R.levels).reduce((a, b) => a + b, 0)} rings`);
   if (D.stops) {                                                                     // the LCD's percent goes by the length painted: where it stands at each wipe
     const at = P.figs.slice(1).map((_, j) => Math.round(P.figs.slice(0, j + 1).reduce((a, F) => a + F.length, 0) / P.length * 100));
     lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next figure: the brush up +${S.wipe}° over its start, wipe it, squeeze its sausages, Continue — the LCD at ${at.map(v => `${v} %`).join(', ')}`);
   }
-  if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
+  if (Tr?.stretches) lines.push(`TRACE: DRAG's own line, ${fmt(Tr.mm / 1000, 2)} m, ${S.ink ? `in tinted water from the cup, <b>${Tr.dips}</b> dip${Tr.dips === 1 ? '' : 's'}, one every ${DIP_RUN} mm, each next stretch on from ${DIP_LAP} mm back` : 'Ink OFF: no dip, the brush as it is'}, at ${S.drag} mm/s, ≈ ${fmt(Tr.seconds / 60, 1)} min (est.)`);
+  if (!JOHN && Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
-  const warn = [D.fault && `The plan is wrong, DRAG will not run it: ${D.fault}.`, Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, walls(D), walls(Mk)].filter(Boolean);
+  const warn = [D.fault && `The plan is wrong, DRAG will not run it: ${D.fault}.`, !JOHN && Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, Tr?.fault && `The plan is wrong, TRACE will not run it: ${Tr.fault}.`, walls(D), JOHN ? walls(Tr) : walls(Mk)].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
   $('#planWarn').hidden = !warn.length;
-  $('#stats').textContent = !P.figs.length ? 'no tiles' : `${what()}${Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · DRAG ${fmt(D.mm / 1000, 2)} m ≈ ${fmt(D.seconds / 60, 1)} min${D.stops ? `, ${D.stops} wipe${D.stops === 1 ? '' : 's'}` : ''} (est.)`;
+  $('#stats').textContent = !P.figs.length ? 'no tiles' : `${what()}${JOHN ? (Tr.stretches ? ` · TRACE ≈ ${fmt(Tr.seconds / 60, 1)} min${S.ink ? `, ${Tr.dips} dips` : ''}` : '') : Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · DRAG ${fmt(D.mm / 1000, 2)} m ≈ ${fmt(D.seconds / 60, 1)} min${D.stops ? `, ${D.stops} wipe${D.stops === 1 ? '' : 's'}` : ''} (est.)`;
   showFiles();
   showPanel(); showRects(); showNodes(); save(); layout(); lastLcd && lcd(lastLcd);
 }
@@ -1269,7 +1291,20 @@ $('#btnDrag').onclick = async () => {
   await start('drag', D.blocks, { seconds: D.seconds, rows: D.rows },
     { page: TAB, pass: 'drag', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(D.seconds) });
 };
-$('#btnMarks').onclick = async () => {
+// TRACE (ST-JOHN): DRAG's own line in tinted water, the trace to squeeze the paint on
+if (JOHN) $('#btnTrace').onclick = async () => {
+  await loadInk(); settle();
+  const T = traceRun(), P = planNow();
+  if (!T.stretches) { $('#runState').innerHTML = '<span class="warn">Nothing to trace: no tiles, no ⌘ on the canvas.</span>'; return; }
+  if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TRACE dips in the cup with INK ON: ${cupProblem(cup())}</span>`; return; }
+  if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${T.fault}.</span>`; return; }
+  if (walls(T)) { $('#runState').innerHTML = `<span class="warn">${walls(T)}</span>`; return; }
+  if (!confirm(`TRACE ${TAB_NAME}, ${what()}: every figure's path, the very line DRAG runs, ${fmt(T.mm / 1000, 2)} m at ${S.drag} mm/s — ${S.ink ? `in tinted water from the cup, a dip every ${DIP_RUN} mm, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'Ink OFF: no dip, the brush as it is'}, ≈ ${fmt(T.seconds / 60, 1)} min (est.).\n\nThen squeeze the paint on the trace, as Florian, and DRAG with the brush dry. Is the brush in the holder?`)) return;
+  S.view = 'drag'; settle();
+  await start('trace', T.blocks, { seconds: T.seconds, rows: T.rows },
+    { page: TAB, pass: 'trace', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });
+};
+if (!JOHN) $('#btnMarks').onclick = async () => {
   await loadInk(); settle();
   const M = marksRun();
   if (!M.marks) { $('#runState').innerHTML = '<span class="warn">Nothing to mark: no sausages — New colours, New spokes, a palette key, or M.</span>'; return; }
@@ -1306,7 +1341,7 @@ $('#btnStop').onclick = () => post('/run/stop');
 // The LCD, as CCD's: DRAG's numbers while nothing runs.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 let started = null, lastLcd = null;
-const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', drag: 'DRAG' };
+const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', trace: 'TRACE', drag: 'DRAG' };
 function lcd(st) {
   lastLcd = st;
   const P_ = dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
