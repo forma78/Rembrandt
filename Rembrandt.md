@@ -69,7 +69,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19); its **spot**, the brightest speck, one tile only. |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **ST-JOHN** | INKA's page with ⌘, St. John's Arms, after INKA in the top row since 2026-10-19 (§1, §8): INKA's tiles, nodes, paints, MARKS, DRAG and Result, and ⌘ in the Tools between R and N. `stjohn.html`, its body `data-tab="stjohn"`; INKA's page module `inka.js` and plan `inkaplan.js`, its own keep and Library label. The owner's references in `St_John/`. |
-| **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left, the owner's numbers on the old sign — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, up its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands in the middle on the outermost loop and goes loop after loop inward, from one to the next by the ring change, an S on lobe 4's top: one line, no lift. ↺, the sign mirrored. **Width**: the loop edge to edge, as ALU-CUT's pipe — the rings only so far in from the sign's outline, a window in every lobe, the grid in the middle 2 Width across; at half a lobe the lobes filled; a new one's an eighth of its box. Its turns concentric: the outer ring's Corners, each ring inside it its depth less, never under 4 mm. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
+| **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left, the owner's numbers on the old sign — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, up its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands in the middle on the outermost loop and goes loop after loop inward, from one to the next by the ring change, an S on lobe 4's top: one line, no lift. ↺, the sign mirrored. **Width**: the loop edge to edge, as ALU-CUT's pipe — the rings only so far in from the sign's outline, a window in every lobe, the grid in the middle 2 Width across; at half a lobe the lobes filled; a new one's a fifth of its box, the owner's best, 74 mm on his 387. Its turns concentric: the outer ring's Corners, each ring inside it its depth less, never under 4 mm, never past half its ring's side — at Corners 100 every ring round, three quarters of a circle and its straight inner sides, the windows too. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -812,7 +812,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   and ST-JOHN. *Claude's choices*: on a ⌘ the turns concentric, as a pipe's
   lanes — the outer ring's Corners, each inside its depth less, never under
   4 mm; its X laid again on its loop, its paints kept, whenever its Width,
-  Corners or size change.
+  Corners or size change. **Corners to 100; the rings round** (the owner, the same
+  evening, Screenshot 9.24.56 PM, the roundings he wants drawn in blue:
+  "much better already, but Corners can be turned up to 100 mm"; Screenshot
+  9.27.36 PM, the windows' rings circled in blue: "the optimal width came
+  out 74! … the rings must be really round, not squares as now"): Corners
+  0.5 … 100 mm, ST-JOHN's 100 at first, INKA's 4 as before; a ring's turn no
+  more than half its side, so at 100 every ring round, the windows teardrops
+  pointing to the middle; a new ⌘'s Width a fifth of its box, as his 74 on
+  387.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1572,7 +1580,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   drag lays the sign, as R a tile — V moves and stretches it, its four
   lobes dashed in its outline; ⌘C ⌘V, Whole canvas, Step, ↻ · ↺ as a
   tile's, and under Step its **Width** (1 mm … half a lobe by the slider, to
-  500 typed; ALU-CUT's pipe's). Corners up to 50 mm. The panel's keys ⌘ n;
+  500 typed; ALU-CUT's pipe's; a new one's a fifth of its box). Corners up to
+  100 mm, ST-JOHN's 100 at first. The panel's keys ⌘ n;
   the reading of the chosen one its loops, from its middle in, the lobes
   1 ↘ 2 ↗ 3 ↖ 4 ↙, its Width, the windows and the grid. Drag, Result, ▶ Play the
   run, MARKS and DRAG as INKA's, the ⌘ one figure, a wipe before the next.

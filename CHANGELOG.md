@@ -9,6 +9,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **ST-JOHN: Corners up to 100 mm; a ⌘'s rings round** (the owner,
+  2026-10-19, the same evening, Screenshot 9.24.56 PM, the roundings drawn
+  in blue: "much better already, but Corners can be turned up to 100 mm";
+  Screenshot 9.27.36 PM: "the optimal width came out 74! … I circled the
+  rings in blue — they must be really round, not squares as now"). Corners
+  0.5 … 100 mm on INKA and ST-JOHN, ST-JOHN's 100 at first, INKA's 4 as
+  before. A ⌘'s turn no more than half its ring's side, so at 100 every ring
+  round — three quarters of a circle and its straight inner sides — its
+  window a teardrop pointing to the middle; on his 387 × 387.5, Step 7,
+  Width 74: the turns 25 … 94.6 mm. Its X from where the outer ring's paint
+  begins round its turn to the innermost ring's middle round its own. A new
+  ⌘'s Width a fifth of its box, as his 74 on 387.
+
 - **ST-JOHN: a ⌘'s Width, and Corners up to 50 mm** (the owner,
   2026-10-19, the same evening, on the lobes filled to their middles: "I
   lack CORNERS … it must go up to 50 mm. And we need a slider as in ALU-CUT
