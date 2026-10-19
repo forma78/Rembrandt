@@ -31,7 +31,7 @@ import { toMachine } from './band.js';
 import { pieceLen } from './strokes.js';
 import { PAINT } from './tapeplan.js';
 import { CCD_META, paintOf, DENSITY_NEW, FILM, PICK_BULK, PICK_FILM, DRY, THIN, DS, GROOVE_K, SAUSAGE_W, MARKS_DIP, MARK_DOT } from './ccdplan.js';
-import { linOf, toSrgb, luminance } from './color.js';
+import { linOf, toLin, toSrgb, luminance } from './color.js';
 import { rng } from './util.js';
 import { ELBOW_MAX } from './ink.js';
 
@@ -65,8 +65,9 @@ const EPS = 1e-7, fin = Number.isFinite;
 // 'cw' or ↺ 'ccw'; its sausages in its own fractions, so they move and
 // stretch with it; the palette of its figure
 const ids = a => Array.isArray(a) && a.every(id => PAINT[id]);
+const shares = w => w && typeof w === 'object' ? Object.fromEntries(Object.entries(w).filter(([k, v]) => PAINT[k] && fin(v) && v > 0)) : null;
 export const cleanPal = q => q && typeof q.name === 'string' && ids(q.core) && q.core.length && ids(q.accent ?? [])
-  ? { name: q.name, core: q.core.slice(), accent: (q.accent ?? []).slice(), ...(PAINT[q.pure] ? { pure: q.pure } : {}), seed: fin(q.seed) ? q.seed : 0 } : null;
+  ? { name: q.name, core: q.core.slice(), accent: (q.accent ?? []).slice(), ...(PAINT[q.pure] ? { pure: q.pure } : {}), ...(shares(q.w) ? { w: shares(q.w) } : {}), seed: fin(q.seed) ? q.seed : 0 } : null;
 const pair = v => Array.isArray(v) && v.length === 2 && v.every(fin);
 export function cleanRect(r) {
   if (!r || ![r.x, r.y, r.w, r.h].every(fin)) return null;
@@ -730,26 +731,29 @@ function paintsOfUnit(ss) {
 // A figure's sausages dealt (mode 'colours': new paints, their places kept —
 // or, none lying, the spokes laid; 'spokes': new places, the paints kept —
 // or, none, dealt): every unit a core paint, never its neighbour's or the one
-// before; now and then a second, the next one's or an accent; one unit, the
-// pure paint. → Map(rect index → its sausages), the palette for every
-// rectangle of the figure
-export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {}) {
-  const r = rng(seed ^ 0x2545f491), pick = a => a[Math.floor(r() * a.length)], used = {}, main = {}, out = new Map();
+// before — the one furthest under its share of the palette (pal.w, else
+// even); now and then a second, the next one's or an accent; one unit, the
+// pure paint. st, a deal over many figures (dealFigures): its counts, and a
+// tile's neighbours in any figure; a lone one then its paint by the shares.
+// → Map(rect index → its sausages), the palette for every rectangle of the figure
+export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {}, st = null) {
+  const r = rng(seed ^ 0x2545f491), pick = a => a[Math.floor(r() * a.length)], used = st?.used ?? {}, main = st?.main ?? {}, out = new Map();
   for (const id of F.us) for (const i of units[id].rs) out.set(i, []);
-  const lone = F.us.length === 1;
+  const lone = F.us.length === 1, W = q => pal.w?.[q] ?? 1;
   F.us.forEach((id, k) => {
     const U = units[id], had = unitSausages(U, rects), was = paintsOfUnit(had);
     let p1, p2 = null;
     if (mode === 'spokes' && was.length) { p1 = was[0]; p2 = was[1] ?? null; }
-    else if (lone) p1 = pureOf(pal);
+    else if (lone && !st) p1 = pureOf(pal);
     else {
-      const avoid = new Set([main[F.us[k - 1]], ...F.us.filter(m => main[m] && F.adj(id, m)).map(m => main[m])].filter(Boolean));
+      const by = st ? Object.keys(main).map(Number).filter(m => m !== id && st.near(id, m)) : F.us.filter(m => main[m] && F.adj(id, m));
+      const avoid = new Set([main[F.us[k - 1]], ...by.map(m => main[m])].filter(Boolean));
       let c = pal.core.filter(q => !avoid.has(q));
       if (!c.length) c = pal.core.filter(q => q !== main[F.us[k - 1]]);
       if (!c.length) c = pal.core;
-      const least = Math.min(...c.map(q => used[q] || 0));
-      p1 = pick(c.filter(q => (used[q] || 0) === least));
-      if (r() < SECOND_P) {
+      const need = q => ((used[q] || 0) + 1) / W(q), least = Math.min(...c.map(need));
+      p1 = pick(c.filter(q => need(q) <= least + 1e-9));
+      if (!lone && r() < SECOND_P) {
         const acc = pal.accent.filter(q => q !== p1), nxt = main[F.us[k - 1]], core = pal.core.filter(q => q !== p1);
         p2 = acc.length && r() < ACCENT_SECOND ? pick(acc) : nxt && nxt !== p1 && r() < 0.5 ? nxt : core.length ? pick(core) : null;
       }
@@ -765,6 +769,55 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {})
     });
   });
   return { ss: out, pal: { ...pal, seed } };
+}
+// Every figure given dealt from one palette at once — the Reference key, and
+// the keys with the tiles chosen together: the paints spread in the
+// palette's shares over all of them, a tile never its touching neighbour's
+// in any figure, a lone figure one paint. → { ss: Map(rect index → its sausages), pal }
+export function dealFigures(rects, units, figs, pal, seed, mode = 'colours', o = {}) {
+  const st = { used: {}, main: {}, near: (a, b) => near(units[a], units[b], rects, o.join ?? JOIN_NEW) }, ss = new Map();
+  figs.forEach((F, k) => { for (const [i, q] of dealFigure(rects, units, F, pal, seed + 7919 * k, mode, o, st).ss) ss.set(i, q); });
+  return { ss, pal: { ...pal, seed } };
+}
+
+// ---------- a palette off a reference ----------
+// The owner, 2026-10-19, Screenshot 4.15.26 PM — ten tiles, the keys
+// painting only the chosen figure's: "a picture with the colour range there,
+// appearing on all ten squares. Important: the reference's analysis must
+// match the colours we have in stock". Every pixel to the nearest of his
+// paints in Lab, lightness at half weight (CMC 2 : 1) — a photograph's light
+// dulls and darkens a paint — and counted; the paints with a share the
+// palette: the core the largest, REF_CORE at most, each CORE_MIN of the
+// picture or more; the accents the next, thin, REF_ACCENT at most, each
+// ACCENT_MIN or more; the shares its weights (est., Claude's).
+// px: RGBA bytes → { name: 'Reference', core, accent, w, seed }
+export const REF_CORE = 6, REF_ACCENT = 3, CORE_MIN = 0.04, ACCENT_MIN = 0.015;
+const labOf = lin => {
+  const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116, [r, g, b] = lin;
+  const X = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), Y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), Z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+};
+const LABS = new Map();
+export function nearestPaint(rgb, ids = Object.keys(PAINT)) {
+  const lab = labOf(rgb.map(v => toLin(v / 255)));
+  let best = ids[0], bd = Infinity;
+  for (const id of ids) { if (!LABS.has(id)) LABS.set(id, labOf(linOf(PAINT[id].hex))); const q = LABS.get(id), d = ((lab[0] - q[0]) / 2) ** 2 + (lab[1] - q[1]) ** 2 + (lab[2] - q[2]) ** 2; if (d < bd) { bd = d; best = id; } }
+  return best;
+}
+export function paletteOfPixels(px) {
+  const n = {}, seen = new Map();
+  let all = 0;
+  for (let i = 0; i + 3 < px.length; i += 4) {
+    if (px[i + 3] < 128) continue;
+    const key = (px[i] >> 2) << 12 | (px[i + 1] >> 2) << 6 | px[i + 2] >> 2;
+    let id = seen.get(key);
+    if (!id) { id = nearestPaint([px[i], px[i + 1], px[i + 2]]); seen.set(key, id); }
+    n[id] = (n[id] || 0) + 1; all++;
+  }
+  if (!all) return null;
+  const by = Object.keys(n).sort((a, b) => n[b] - n[a]), w = Object.fromEntries(by.map(id => [id, Math.round(n[id] / all * 1000) / 1000]));
+  const core = by.filter((id, k) => k === 0 || w[id] >= CORE_MIN).slice(0, REF_CORE), accent = by.filter(id => !core.includes(id) && w[id] >= ACCENT_MIN).slice(0, REF_ACCENT);
+  return { name: 'Reference', core, accent, w: Object.fromEntries(core.map(id => [id, w[id]])), seed: 0 };
 }
 
 // ---------- MARKS: where the sausages go ----------

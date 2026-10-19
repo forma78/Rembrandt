@@ -64,6 +64,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Wipe (on INKA)** | Before every next figure: the brush flies over its start and goes up to Wipe (+45°, the elbow's highest, est.), the run pauses; the owner wipes it and squeezes that figure's sausages; Continue brings it down to land. |
 | **Node · magnet (on INKA)** | A node: the owner's link from one tile to the next (2026-10-17), laid with N — the brush's way set by hand, no algorithm. A magnet: where a node holds — a tile's middle, where its spiral ends inside, or a corner or a side's middle of its outer ring. A node into a tile's middle: it spirals out, its outer ring turned to end where its next node leaves; into its outer ring: it spirals in from there. One way out of a tile, one in; the chains are the figures, a tile no node touches a figure of its own. No nodes: the snake. A tile whose nodes are both in its middle, or both on its edge — the brush crossing its rings to leave — is marked **!** (the owner's sign, not ⚠, which is the muddy pair's). |
 | **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
+| **Reference palette (on INKA)** | The palette off the reference in the owner's paints only: every pixel to the nearest of the 24, the six with the most of the picture the core, the next three thin, their shares its weights; the Reference key deals it on every tile (2026-10-19). |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -713,6 +714,21 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   nearest it, never twice; Brush 3.5 and Step 3 the new tile's and a first
   visit's, his; the jog where the path turns back the trail's half; the
   Result's grooves across the trail.
+  **Reference, a palette off a picture, on every tile** (the owner, the
+  same afternoon, Screenshot 4.15.26 PM, twelve tiles, six of them painted:
+  "only up to the 6th tile; put 10 and there are no colours :)"; "below we
+  have REFERENCE, 📎 Add new reference — pictures with a colour range can go
+  there, and it appears on all 10 squares. Important: the reference's
+  analysis must match the colours we have in stock"; asked, he chose the
+  range dealt on all the tiles, not each tile the colour under it): the
+  keys had dealt the chosen tile's figure only, and tiles no node links are
+  a figure each. *Claude's choices*: every pixel to the nearest of his 24
+  paints in Lab, lightness at half weight (CMC 2 : 1); the core the six
+  with the most of the picture, at least 4 % of it, the next three thin, at
+  least 1.5 %; dealt by their shares, the paint furthest under its share
+  next, a tile never its touching neighbour's in any figure, a lone figure
+  one paint; the picture whole, its background counted (× takes a paint
+  out); the keys with tiles chosen together act on all their figures.
 - **INKA first; TAPE, BASF, LOOM, NOLAN and Test off the top row** (the
   owner, 2026-10-19, a Monday: "let us do a general cleanup. We need to
   remove the TAPE, BASF, LOOM, NOLAN and TEST tabs"; INKA "is the most
@@ -1451,7 +1467,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   · Duplicate (beside it, touching: the same figure), Run earlier · Run
   later (a figure runs in the order of its first tile) · Delete; **Paints ·
   Figure n** — New colours · New spokes, meta 1 … 4, **Inka · HDay warm ·
-  HDay blue**, Density, the paints in use (CCD's list, the chosen figure's);
+  HDay blue · Reference** (the reference's palette in his paints, on every
+  tile), Density, the paints in use (CCD's list, the chosen figure's) — the
+  keys on every figure of the tiles chosen together;
   Brush, DRAG: Brush width (3.5 mm), **With paint** (+5.5 mm, the trail
   beside it, 9 mm), Drag speed (40 mm/s), **Corners** (4 mm, the speed
   through a turn beside it), **Ring change** (30 mm), **One figure: tiles

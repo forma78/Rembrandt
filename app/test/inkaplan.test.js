@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { withIds, cleanNodes, magnetsOf, linksOf, snakeNodes, cleanRect, unitsOf, figuresOf, ringsOf, spiralOf, cleanPts, jogged, roundOf, planOf, dragRows, wipeBlocks, dragSvg, dealFigure, sausagesOf, unitSausages, spokesOf, spokeAt, marksRows, simOf, stepsOf, INKA_META, pureOf, lenOf, atPiece,
+import { dealFigures, paletteOfPixels, nearestPaint, withIds, cleanNodes, magnetsOf, linksOf, snakeNodes, cleanRect, unitsOf, figuresOf, ringsOf, spiralOf, cleanPts, jogged, roundOf, planOf, dragRows, wipeBlocks, dragSvg, dealFigure, sausagesOf, unitSausages, spokesOf, spokeAt, marksRows, simOf, stepsOf, INKA_META, pureOf, lenOf, atPiece,
   STEP_NEW, STEP_MAX, JOIN_NEW, WIPE_NEW, R_MIN, BRUSH_NEW, SWELL_NEW, trailOf } from '../src/inkaplan.js';
 import { dragPasses, MARKS_DIP } from '../src/ccdplan.js';
 import { PAINT } from '../src/tapeplan.js';
@@ -253,4 +253,26 @@ test('! a tile its nodes both in its middle, or both on its edge (the owner\'s m
   const edge2 = [{ a: { id: 1, m: 'c' }, b: { id: 2, m: 's' } }, { a: { id: 2, m: 'e' }, b: { id: 3, m: 'c' } }];
   assert.deepEqual(planOf(rs, { ...O, nodes: edge2 }).figs[0].cross, [null, 'edge', null]);
   assert.deepEqual(planOf(rs, { ...O, nodes: N1033 }).figs[0].cross, [null, null, null, null]);
+});
+
+// The reference's palette (the owner, 2026-10-19, Screenshot 4.15.26 PM: "a
+// picture with the colour range … on all ten squares; the analysis must
+// match the colours we have in stock")
+test('Reference: a picture\'s colours to his paints, their shares; dealt on every tile, a neighbour never one paint', () => {
+  const px = [], put = (c, n) => { for (let i = 0; i < n; i++) px.push(...c, 255); };
+  put([236, 95, 100], 500); put([20, 35, 130], 300); put([250, 248, 240], 150); put([200, 140, 20], 30); put([0, 0, 0, 0], 0); px.push(9, 9, 9, 0);
+  const pal = paletteOfPixels(Uint8ClampedArray.from(px));
+  assert.deepEqual(pal.core, ['pink', 'ultramarine', 'white'], 'the core, in his paints, the most first');
+  assert.deepEqual(pal.accent, ['ochre'], 'under 4 %: thin');
+  assert.ok(Math.abs(pal.w.pink - 500 / 980) < 0.002, 'its share; the transparent pixel left out');
+  assert.equal(nearestPaint([20, 35, 130]), 'ultramarine');
+  // twelve lone tiles side by side, three rows of four: every one dealt, the shares kept, touching ones apart
+  const rs = withIds([]); for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) rs.push(cleanRect({ id: rs.length + 1, x: 10 + c * 40, y: 10 + r * 40, w: 40, h: 40 }));
+  const nodes = [{ a: { id: 1, m: 'c' }, b: { id: 2, m: 'c' } }], P = planOf(rs, { ...O, nodes }), d = dealFigures(rs, P.units, P.figs, pal, 3, 'colours', O);
+  assert.equal(P.figs.length, 11);
+  assert.equal(d.ss.size, 12, 'every tile');
+  const main = i => d.ss.get(i)[0].paint, n = {};
+  for (let i = 0; i < 12; i++) { assert.equal(d.ss.get(i).length, 4, 'an X'); n[main(i)] = (n[main(i)] || 0) + 1; }
+  assert.ok(n.pink >= 5 && n.pink <= 7 && n.ultramarine >= 3 && n.white >= 1, JSON.stringify(n));
+  for (let i = 0; i < 12; i++) for (let j = 0; j < 12; j++) if (i !== j && Math.abs(i % 4 - j % 4) + Math.abs(Math.floor(i / 4) - Math.floor(j / 4)) === 1) assert.notEqual(main(i), main(j), `tiles ${i + 1} and ${j + 1} touch`);
 });

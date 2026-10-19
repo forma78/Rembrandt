@@ -22,7 +22,7 @@ import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
-import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, INKA_META, figName, lenOf, atPiece,
+import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -893,12 +893,15 @@ function palOf(F) {
   const r = figRects(F).map(i => S.rects[i]).find(q => q.pal);
   return r ? structuredClone(r.pal) : usedOf(F).length ? { name: 'Own', core: usedOf(F), accent: [], seed: 1 } : null;
 }
-// a figure's sausages dealt: 'colours', new paints in their places (none lying, the spokes laid); 'spokes', new places, the paints kept
+// a figure's sausages dealt: 'colours', new paints in their places (none lying, the spokes laid); 'spokes', new places, the paints kept;
+// figures, many at once (dealFigures): the paints spread over them all, a tile never its neighbour's
 function dealOn(F, pal, seed, mode) {
-  const d = dealFigure(S.rects, planNow().units, F, pal, seed, mode, po());
+  const Fs = Array.isArray(F) ? F : [F], d = Fs.length > 1 ? dealFigures(S.rects, planNow().units, Fs, pal, seed, mode, po()) : dealFigure(S.rects, planNow().units, Fs[0], pal, seed, mode, po());
   for (const [i, ss] of d.ss) { S.rects[i].ss = ss; S.rects[i].pal = d.pal; }
 }
 const chosenFig = () => figOfRect(S.sel);
+// the figures the keys act on: the chosen tile's, or with tiles chosen together (⌘A, ⇧) every one of theirs
+const chosenFigs = () => { const P = planNow(), on = new Set(picked()); return MANY.size > 1 ? P.figs.filter(F => F.us.some(id => P.units[id].rs.some(i => on.has(i)))) : [chosenFig()].filter(Boolean); };
 function editPaint(id) {
   const e = EDIT, F = chosenFig(); EDIT = null;
   if (!F || !figSausages(F).length) { showPanel(); return; }
@@ -933,10 +936,23 @@ $('#paintList').onclick = e => {
   showPanel(); kick();
 };
 $('#paintInfo').onclick = () => { $('#paintRead').hidden = !$('#paintRead').hidden; $('#paintInfo').classList.toggle('on', !$('#paintRead').hidden); };
-$('#btnPaintsClear').onclick = () => { const F = chosenFig(); if (!F || !figSausages(F).length) return; undoPush(); for (const i of figRects(F)) S.rects[i].ss = []; settle(); };
-$('#btnNewColours').onclick = () => { const F = chosenFig(); if (!F) return; undoPush(); const seed = seedNew(); dealOn(F, newPalette(seed, palOf(F)?.name), seed, 'colours'); S.view = 'result'; settle(); };
-$('#btnNewSpokes').onclick = () => { const F = chosenFig(); if (!F) return; undoPush(); const seed = seedNew(); dealOn(F, palOf(F) || newPalette(seed), seed, 'spokes'); S.view = 'result'; settle(); };
-document.querySelectorAll('[data-meta]').forEach(b => b.onclick = () => { const F = chosenFig(); if (!F) return; undoPush(); const seed = seedNew(); dealOn(F, structuredClone(INKA_META[b.dataset.meta]), seed, 'colours'); S.view = 'result'; settle(); });
+$('#btnPaintsClear').onclick = () => { const Fs = chosenFigs(); if (!Fs.some(F => figSausages(F).length)) return; undoPush(); for (const F of Fs) for (const i of figRects(F)) S.rects[i].ss = []; settle(); };
+$('#btnNewColours').onclick = () => { const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew(); dealOn(Fs, newPalette(seed, palOf(Fs[0])?.name), seed, 'colours'); S.view = 'result'; settle(); };
+$('#btnNewSpokes').onclick = () => { const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew(); dealOn(Fs, palOf(Fs[0]) || newPalette(seed), seed, 'spokes'); S.view = 'result'; settle(); };
+document.querySelectorAll('[data-meta]').forEach(b => b.onclick = () => { const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew(); dealOn(Fs, structuredClone(INKA_META[b.dataset.meta]), seed, 'colours'); S.view = 'result'; settle(); });
+// Reference (the owner, 2026-10-19, Screenshot 4.15.26 PM: "pictures with the colour range there, appearing on all ten squares … the analysis must
+// match the colours we have in stock"): the palette off the reference, in his paints only (inkaplan.js, paletteOfPixels), dealt on every tile
+function refPixels() {
+  const img = REF.img, kk = Math.min(1, 160 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
+  c2.width = Math.max(1, Math.round(img.naturalWidth * kk)); c2.height = Math.max(1, Math.round(img.naturalHeight * kk));
+  const c = c2.getContext('2d', { willReadFrequently: true }); c.drawImage(img, 0, 0, c2.width, c2.height);
+  return c.getImageData(0, 0, c2.width, c2.height).data;
+}
+$('#btnRefPal').onclick = () => {
+  if (!REF) { $('#hint').textContent = 'No reference yet: 📎 Add new reference, at the foot of the panel — its colours come in your paints.'; return; }
+  const P = planNow(), pal = paletteOfPixels(refPixels()); if (!pal || !P.figs.length) return;
+  undoPush(); const seed = seedNew(); dealOn(P.figs, pal, seed, 'colours'); S.view = 'result'; settle();
+};
 // Density: the paint in a sausage, as far as it carries the line (CCD's reachOf)
 const REACH = new Map(), reachAt = d => { if (!REACH.has(d)) REACH.set(d, reachOf(d)); return REACH.get(d); };
 const densityText = () => `${S.density} % · full ≈ ${fmt(reachAt(S.density).full, 0)} mm`;
@@ -953,7 +969,8 @@ $('#flightsOn').onclick = () => { S.flights = true; save(); showPanel(); kick();
 function showPaints() {
   const F = chosenFig(), ss = figSausages(F), pal = palOf(F), count = {};
   for (const q of ss) count[q.paint] = (count[q.paint] || 0) + 1;
-  $('#paintsOf').textContent = F ? `Figure ${F.n}` : '';
+  const Fs = chosenFigs();
+  $('#paintsOf').textContent = Fs.length > 1 ? `${Fs.length} figures, chosen together` : F ? `Figure ${F.n}` : '';
   $('#paints').querySelectorAll('[data-paint]').forEach(ch => {
     const q = PAINT[ch.dataset.paint], n = count[q.id] || 0;
     ch.querySelector('.cnt').textContent = n || '';
@@ -965,13 +982,14 @@ function showPaints() {
     + (inUse.length ? `<span class="pl add${EDIT?.mode === 'add' ? ' on' : ''}" data-add title="Add a paint: then click it in the strip on the left">+</span>` : '');
   $('#paints').classList.toggle('editing', !!EDIT);
   document.querySelectorAll('[data-meta]').forEach(b => b.classList.toggle('on', pal?.name === b.dataset.meta));
+  $('#btnRefPal').classList.toggle('on', pal?.name === 'Reference'); $('#btnRefPal').disabled = !REF;
   if (document.activeElement !== $('#dens')) $('#dens').value = S.density;
   $('#o-dens').textContent = densityText();
   $('#paintRead').innerHTML = [
-    'The sausages, where you squeeze the paints: a cross, X, on every tile — from each corner along the diagonal in to the innermost ring (the owner, 2026-10-19: «logical and simple»), as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes; a block, from every corner of its outline. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. M and a paint in the strip: a click on a tile.',
+    'The sausages, where you squeeze the paints: a cross, X, on every tile — from each corner along the diagonal in to the innermost ring (the owner, 2026-10-19: «logical and simple»), as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes; a block, from every corner of its outline. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. The keys act on the chosen tile\'s figure — with tiles chosen together (⌘A, ⇧ and a click) on all of theirs, the paints spread over them, a tile never its neighbour\'s. Reference: the palette off the reference below, in your paints only, on every tile, in the picture\'s shares. M and a paint in the strip: a click on a tile.',
     F && `<b>${ss.length}</b> sausage${ss.length === 1 ? '' : 's'} in figure ${F.n}, ${F.us.length} tile${F.us.length === 1 ? '' : 's'}`,
     `Density ${S.density} %: a sausage keeps the line full about ${fmt(reachAt(S.density).full, 0)} mm, gone by ${fmt(reachAt(S.density).gone, 0)}${S.density === DENSITY_NEW ? ' — the measure, TAPE-colors/IMAGE 2026-10-12 19:23:33' : ' (est.; 50 % the measure)'}`,
-    pal && pal.name !== 'Own' && `Palette <b>${pal.name}</b>: ${pal.core.map(id => PAINT[id].name).join(', ')}${pal.accent.length ? `; thin: ${pal.accent.map(id => PAINT[id].name).join(', ')}` : ''}${pal.pure ? `; a lone figure ${PAINT[pal.pure].name}` : ''} · seed ${pal.seed}`,
+    pal && pal.name !== 'Own' && `Palette <b>${pal.name}</b>: ${pal.core.map(id => PAINT[id].name + (pal.w?.[id] ? ` ${Math.round(pal.w[id] * 100)} %` : '')).join(', ')}${pal.accent.length ? `; thin: ${pal.accent.map(id => PAINT[id].name).join(', ')}` : ''}${pal.pure ? `; a lone figure ${PAINT[pal.pure].name}` : ''} · seed ${pal.seed}`,
     F && !ss.length && 'No sausages yet: New colours, New spokes, a palette key, or M.',
   ].filter(Boolean).join('<br>');
 }
@@ -1061,6 +1079,7 @@ const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').
 function syncRef() {
   $('#refThumb').innerHTML = REF ? `<img src="${REF.img.src}" alt=""><button class="refdel" title="Delete the reference">×</button>` : '<span>no reference yet</span>';
   if (REF) $('#refThumb .refdel').onclick = deleteRef;
+  $('#btnRefPal').disabled = !REF;
   $('#refOp').value = S.refOpacity;
   $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>` : 'Over the canvas, the whole of it inside, to lay the tiles to.';
 }

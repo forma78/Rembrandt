@@ -9,6 +9,27 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **INKA: Reference, the palette off a picture in his paints, on every
+  tile** (the owner, 2026-10-19, Screenshot 4.15.26 PM: "only up to the 6th
+  tile; put 10 and there are no colours :)"; "below we have REFERENCE,
+  📎 Add new reference — pictures with a colour range can go there, and it
+  appears on all 10 squares. Important: the reference's analysis must match
+  the colours we have in stock"; asked, he chose the range dealt on all the
+  tiles, not each tile the colour under it). Why the colours stopped: the
+  palette keys dealt the chosen tile's figure only, and tiles no node links
+  are a figure each. **Reference** after HDay blue: every pixel of the
+  reference to the nearest of his 24 paints — in Lab, lightness at half
+  weight, as a photograph dulls a paint — counted; the six with the most of
+  the picture the core (4 % of it at least), the next three thin (1.5 %);
+  dealt on every tile in the picture's shares, a tile never its touching
+  neighbour's in any figure, a lone figure one paint; the shares in the
+  palette's line under the Paints' i. **The keys with tiles chosen
+  together** (⌘A, ⇧ and a click): New colours, New spokes, the meta and
+  INKA keys and Clear act on every figure of theirs, the paints spread over
+  them the same way. On the owner's canvas photograph IMG_1188: Yellow
+  Ochre 36 %, White 27 (the canvas), Deep Red 14, Red 10, Pink 6; on Heather
+  Day's color_02: White, Sky Blue, Ultramarine, 03, 04, Viridian (est.).
+
 - **INKA: Flights, a switch, OFF by default** (the owner, 2026-10-19,
   Screenshot 4.08.23 PM, on the dashed blue lines from figure to figure:
   "they magnetise by themselves. Maybe a switch to turn them off? I do not
