@@ -70,15 +70,16 @@ export const WIPE_NEW = ELBOW_MAX;                         // °: the brush up t
 export const OFF = 60, MIN_SIDE = 1;                       // mm, as CCD's
 export const SHARE_MIN = 1;                                // mm two tiles must share along a side to touch
 export const SECOND_P = 0.4, ACCENT_SECOND = 0.35;         // a tile's chance of a second paint, and of it being an accent (Claude's)
-// ⌘, St. John's Arms (ST-JOHN, 2026-10-19): a rectangle of this kind is the sign, its path johnPts's
-export const JOHN = 'john', isJohn = r => r?.kind === JOHN;
+// ⌘, St. John's Arms (ST-JOHN, 2026-10-19): a rectangle of this kind is the sign, its path johnPts's;
+// its Width, the loop edge to edge, mm — a new one's an eighth of its box, the lobes' windows as wide as their loops
+export const JOHN = 'john', isJohn = r => r?.kind === JOHN, JOHN_W_MIN = 1, JOHN_W_MAX = 500, johnWidthNew = r => Math.max(JOHN_W_MIN, Math.round(Math.min(r.w, r.h) / 8));
 const EPS = 1e-7, fin = Number.isFinite;
 
 // ---------- a rectangle as it may be kept ----------
 // { id, x, y, w, h, step, turn, ss: [{ a: [u, v], b: [u, v], paint, thin }], pal, kind }:
 // its id, for the nodes; the way the brush goes round it as it paints, ↻
 // 'cw' or ↺ 'ccw'; its sausages in its own fractions, so they move and
-// stretch with it; the palette of its figure; 'john', a ⌘, else a tile
+// stretch with it; the palette of its figure; 'john', a ⌘, else a tile — a ⌘ its width
 const ids = a => Array.isArray(a) && a.every(id => PAINT[id]);
 const shares = w => w && typeof w === 'object' ? Object.fromEntries(Object.entries(w).filter(([k, v]) => PAINT[k] && fin(v) && v > 0)) : null;
 export const cleanPal = q => q && typeof q.name === 'string' && ids(q.core) && q.core.length && ids(q.accent ?? [])
@@ -87,8 +88,9 @@ const pair = v => Array.isArray(v) && v.length === 2 && v.every(fin);
 export function cleanRect(r) {
   if (!r || ![r.x, r.y, r.w, r.h].every(fin)) return null;
   const ss = Array.isArray(r.ss) ? r.ss.filter(q => q && pair(q.a) && pair(q.b) && PAINT[q.paint]).map(q => ({ a: q.a.slice(), b: q.b.slice(), paint: q.paint, ...(q.thin ? { thin: true } : {}) })) : [];
-  const pal = cleanPal(r.pal);
-  return { ...(fin(r.id) ? { id: r.id } : {}), x: r.x, y: r.y, w: Math.max(MIN_SIDE, r.w), h: Math.max(MIN_SIDE, r.h), step: fin(r.step) ? Math.max(STEP_MIN, Math.min(STEP_MAX, r.step)) : STEP_NEW, turn: r.turn === 'ccw' ? 'ccw' : 'cw', ss, ...(pal ? { pal } : {}), ...(isJohn(r) ? { kind: JOHN } : {}) };
+  const pal = cleanPal(r.pal), w = Math.max(MIN_SIDE, r.w), h = Math.max(MIN_SIDE, r.h);
+  return { ...(fin(r.id) ? { id: r.id } : {}), x: r.x, y: r.y, w, h, step: fin(r.step) ? Math.max(STEP_MIN, Math.min(STEP_MAX, r.step)) : STEP_NEW, turn: r.turn === 'ccw' ? 'ccw' : 'cw', ss, ...(pal ? { pal } : {}),
+    ...(isJohn(r) ? { kind: JOHN, width: fin(r.width) ? Math.max(JOHN_W_MIN, Math.min(JOHN_W_MAX, r.width)) : johnWidthNew({ w, h }) } : {}) };
 }
 // every rectangle an id of its own: the missing and the repeated given new ones
 export function withIds(rects) {
@@ -118,7 +120,7 @@ export function unitsOf(rects) {
   for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) if (!isJohn(rects[i]) && !isJohn(rects[j]) && overlaps(rects[i], rects[j])) up[find(j)] = find(i);
   const by = new Map();
   rects.forEach((_, i) => { const k = find(i); if (!by.has(k)) by.set(k, []); by.get(k).push(i); });
-  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step, turn: rects[rs[0]].turn ?? 'cw', ...(isJohn(rects[rs[0]]) ? { john: true } : {}) }));
+  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step, turn: rects[rs[0]].turn ?? 'cw', ...(isJohn(rects[rs[0]]) ? { john: true, width: rects[rs[0]].width ?? johnWidthNew(rects[rs[0]]) } : {}) }));
 }
 const near = (A, B, rects, join) => A.rs.some(i => B.rs.some(j => touches(rects[i], rects[j], join)));
 // The units of a figure in a snake from its bottom left: up the way it went
@@ -427,7 +429,7 @@ export function spiralOf(R, hint, out = false, o = {}) {
 // the brush going round as the unit's turn says, ↻ clockwise or ↺
 // anticlockwise. The rings are built clockwise: the other way, the unit
 // mirrored, built and mirrored back. o: { trail, corner, change }
-const mx = p => { if (!p) return p; const q = [-p[0], p[1]]; if (p.S) q.S = p.S; return q; };
+const mx = p => { if (!p) return p; const q = [-p[0], p[1]]; if (p.S) q.S = p.S; if (p.r !== undefined) q.r = p.r; return q; };
 export function unitPath(U, rects, o, dir, at, hint) {
   const mirror = (dir === 'in') === (U.turn === 'ccw');
   if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step, o.edge ?? edgeOf(o), o.over !== undefined ? o.over : overDepth(o));
@@ -526,8 +528,8 @@ export function jogged(P, w) {
   }
   return out;
 }
-// Every turn a tangent arc of radius `corner`, or as much as half of each
-// side lets it — so the board runs through it and never stops (the owner,
+// Every turn a tangent arc of radius `corner` — or the point's own, .r, a
+// ⌘'s concentric turns (johnPts) — or as much as half of each side lets it — so the board runs through it and never stops (the owner,
 // 2026-10-17: "rounded corners … a stop of the brush kills the effect");
 // a turn of more than 170°, or one too tight, left a corner. Two points
 // with one .S token an S between them (spiralIn): two arcs, no turn rounded
@@ -548,7 +550,7 @@ export function roundOf(P, corner) {
     const l1 = dist(A, V) * (free(i - 1) ? 1 : 0.5), l2 = dist(V, B) * (free(i + 1) ? 1 : 0.5), u1 = unitV(sub(V, A)), u2 = unitV(sub(B, V));
     const th = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1])));
     if (th < 1e-4) continue;
-    const tn = Math.tan(th / 2), r = th > 170 * Math.PI / 180 ? 0 : Math.min(corner, Math.min(l1, l2) / tn);
+    const tn = Math.tan(th / 2), r = th > 170 * Math.PI / 180 ? 0 : Math.min(V.r ?? corner, Math.min(l1, l2) / tn);   // a point's own radius, a ⌘'s, else Corners
     if (r < R_MIN) { if (dist(cur, V) > 1e-6) out.push({ t: 'L', a: cur, b: V }); cur = V; continue; }
     const t = r * tn, a = [V[0] - u1[0] * t, V[1] - u1[1] * t], b = [V[0] + u2[0] * t, V[1] + u2[1] * t], left = crs(u1, u2) > 0;
     const nr = left ? [-u1[1], u1[0]] : [u1[1], -u1[0]], c = [a[0] + nr[0] * r, a[1] + nr[1] * r];
@@ -592,6 +594,15 @@ export function atPiece(g, s) {
 // middle on the outermost loop ("the sign goes from the centre"), then loop
 // after loop inward, to the next by the ring change, an S over lobe 4's top:
 // one line, no lift. ↻, as his arrows; ↺, the sign mirrored.
+// Width (the owner, the same evening, on the lobes filled to their middles:
+// "we need a slider as in ALU-CUT called WIDTH — there the loop's thickness
+// can be raised. Now the figure came out somehow strange"): the loop, its
+// paint edge to edge, as ALU-CUT's pipe — the rings only so far in from the
+// sign's outline, a window in every lobe, the grid in the middle 2 Width
+// across; at half a lobe or more the lobes filled. And its turns
+// concentric, as a pipe's lanes (the owner, the same: "CORNERS … up to 50
+// mm"): the outer ring's Corners, every ring inside it its depth less, never
+// under CORNER_NEW — the loop as thick round a turn as along a side.
 export const JOHN_TWO = 0.5;                               // a ⌘'s chance of a second paint, on its lobes 2 and 4 (Claude's)
 // its lobes, in the brush's order: 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left
 export function lobesOf(r) {
@@ -601,6 +612,19 @@ export function lobesOf(r) {
 // its rings, alike in every lobe: a tile's, its first lobe's; their depths, the outermost first
 export const johnRings = (r, trail, step, edge, over = null) => ringsOf([lobesOf(r)[0]], trail, step, edge, over);
 export function johnDepths(R) { const out = []; let n = R.roots[0]; while (n) { out.push(n.d); n = n.kids[0]; } return out; }
+// The loops a Width keeps: the rings short of `inner` — the innermost ring's
+// depth, its brush's edge on the loop's inner edge — and one there, or the
+// last moved there under half a step on; deeper than the lobe's own, all of
+// them, the lobe filled
+export function johnBand(ds, inner, step) {
+  if (!(inner < ds.at(-1) - 1e-6)) return ds.slice();
+  const out = ds.filter(d => d < inner - 1e-6);
+  if (!out.length) return [ds[0]];
+  if (inner - out.at(-1) > GAP_MIN) { if (out.length > 1 && inner - out.at(-1) < step / 2) out[out.length - 1] = inner; else out.push(inner); }
+  return out;
+}
+// a loop's turns, concentric: the outer one's Corners, every one inside its depth less, never under CORNER_NEW (or Corners, if less)
+export const johnRadius = (corner, d, d0) => Math.max(Math.min(corner, CORNER_NEW), corner - (d - d0));
 // One loop d mm in: its twelve corners from lobe 1's top right on, every
 // one a turn to the right; at the inner corners none, the sides on through
 // the middle, crossing there
@@ -612,22 +636,23 @@ export function johnLoop(r, d) {
 // 4's top going on into 1's — round every loop; to the next by an S over
 // lobe 4's top, Ring change long or as much as the side has, landing where
 // the next loop's line crosses the middle; the side too short, straight on
-// a step in. The last loop closed where it began.
+// a step in. The last loop closed where it began. Every corner its radius, .r.
 export function johnPts(r, ds, o = {}) {
   const cx = r.x + r.w / 2, cy = r.y + r.h / 2, corner = o.corner ?? CORNER_NEW, pts = [];
   ds.forEach((d, k) => {
     if (!k) pts.push([cx, cy - d]);
-    pts.push(...johnLoop(r, d));
+    const rad = johnRadius(corner, d, ds[0]);
+    pts.push(...johnLoop(r, d).map(v => Object.assign(v, { r: rad })));
     const n = ds[k + 1];
     if (n === undefined) { pts.push(k ? [cx - d, cy - d] : [cx, cy - d]); return; }
-    const B = [cx - n, cy - n], s = n - d, room = B[0] - (r.x + d + corner);
+    const B = [cx - n, cy - n], s = n - d, room = B[0] - (r.x + d + rad);
     if (room >= s) { const L = Math.min(room, Math.max(s, o.change ?? CHANGE_NEW)), A = [B[0] - L, cy - d], t = {}; A.S = t; B.S = t; pts.push(A, B); }
     else pts.push(B);
   });
   return pts;
 }
 export function johnPath(U, rects, o = {}) {
-  const r = rects[U.rs[0]], ds = johnDepths(U.R), ccw = U.turn === 'ccw', pts = johnPts(ccw ? { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h } : r, ds, o);
+  const r = rects[U.rs[0]], ds = U.ds ?? johnDepths(U.R), ccw = U.turn === 'ccw', pts = johnPts(ccw ? { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h } : r, ds, o);
   return ccw ? pts.map(mx) : pts;
 }
 
@@ -651,7 +676,10 @@ export function johnPath(U, rects, o = {}) {
 export function planOf(rects, o) {
   const trail = trailOf(o), edge = edgeOf(o), over = overDepth(o), units = unitsOf(rects), way = { trail, edge, over, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
   for (const U of units) {
-    if (U.john) { U.R = johnRings(rects[U.rs[0]], trail, U.step, edge, over); U.M = []; continue; }
+    if (U.john) {                                                                  // a ⌘: a lobe's rings, as far in as its Width
+      const R = johnRings(rects[U.rs[0]], trail, U.step, edge, over);
+      U.ds = johnBand(johnDepths(R), U.width - edge, U.step); U.R = { ...R, rings: U.ds.length, levels: U.ds.length }; U.M = []; continue;
+    }
     U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge, over); U.M = magnetsOf(U, rects);
   }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
@@ -774,17 +802,25 @@ function erodeZero(G) {
 // lobes in their order. → [{ a, b }]
 export function spokesOf(U, rects, o = {}) {
   const out = [], arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };
-  // a rectangle's X, in to the innermost ring of half sides hx, hy round its middle
-  const cross = (r, hx, hy) => {
+  // a rectangle's X, in to the innermost ring of half sides hx, hy round its
+  // middle; turn: at a corner but `inner`, the outer ring's round turn —
+  // { d, R, b }, its depth, radius and the brush — the arm from where its paint begins
+  const cross = (r, hx, hy, turn = null, inner = null) => {
     const c = [r.x + r.w / 2, r.y + r.h / 2];
     for (const k of [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.h], [r.x, r.y + r.h]]) {
       const v = unitV(sub(c, k)), ax = Math.abs(v[0]), ay = Math.abs(v[1]);
-      arm(k, v, SAUSAGE_W / 2 / Math.max(1e-9, Math.min(ax, ay)), dist(k, c) - Math.min(ax > 1e-9 ? hx / ax : Infinity, ay > 1e-9 ? hy / ay : Infinity));
+      let s0 = SAUSAGE_W / 2 / Math.max(1e-9, Math.min(ax, ay));
+      if (turn && !(inner && dist(k, inner) < 1e-6)) {                                // the ray from the corner onto the circle the paint's edge makes round the turn
+        const C = [k[0] + Math.sign(v[0]) * (turn.d + turn.R), k[1] + Math.sign(v[1]) * (turn.d + turn.R)], q = sub(k, C), bq = v[0] * q[0] + v[1] * q[1], cq = q[0] * q[0] + q[1] * q[1] - (turn.R + turn.b / 2) ** 2, D = bq * bq - cq;
+        if (D >= 0) s0 = Math.max(s0, -bq - Math.sqrt(D));
+      }
+      arm(k, v, s0, dist(k, c) - Math.min(ax > 1e-9 ? hx / ax : Infinity, ay > 1e-9 ? hy / ay : Infinity));
     }
   };
-  if (U.john) {
-    const r = rects[U.rs[0]], dN = johnDepths(U.R ?? johnRings(r, trailOf(o), U.step, edgeOf(o))).at(-1) ?? 0;
-    for (const q of lobesOf(r)) cross(q, Math.max(0, q.w / 2 - dN), Math.max(0, q.h / 2 - dN));
+  if (U.john) {                                                                    // every lobe its X, in to its loop's innermost ring
+    const r = rects[U.rs[0]], ds = U.ds ?? johnBand(johnDepths(U.R ?? johnRings(r, trailOf(o), U.step, edgeOf(o))), (U.width ?? johnWidthNew(r)) - edgeOf(o), U.step), dN = ds.at(-1) ?? 0;
+    const turn = { d: ds[0] ?? 0, R: johnRadius(o.corner ?? CORNER_NEW, 0, 0), b: o.brush ?? BRUSH_NEW }, mid = [r.x + r.w / 2, r.y + r.h / 2];
+    for (const q of lobesOf(r)) cross(q, Math.max(0, q.w / 2 - dN), Math.max(0, q.h / 2 - dN), turn, mid);
     return out;
   }
   const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step, edgeOf(o));

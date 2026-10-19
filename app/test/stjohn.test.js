@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanRect, unitsOf, figuresOf, planOf, linksOf, johnDepths, johnLoop, lobesOf, spokesOf, dealFigure, dragRows, wipeBlocks, INKA_META, lenOf, atPiece, JOHN, figName, BRUSH_NEW, SWELL_NEW } from '../src/inkaplan.js';
+import { cleanRect, unitsOf, figuresOf, planOf, linksOf, johnDepths, johnLoop, johnBand, johnRadius, lobesOf, JOHN_W_MAX, spokesOf, dealFigure, dragRows, wipeBlocks, INKA_META, lenOf, atPiece, JOHN, figName, BRUSH_NEW, SWELL_NEW } from '../src/inkaplan.js';
 import { dragPasses } from '../src/ccdplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
 
@@ -14,6 +14,7 @@ const crs = (a, b) => a[0] * b[1] - a[1] * b[0];
 
 test('a ⌘ as kept; a unit and a figure of its own: it melts into no tile, joins none, no node holds on it', () => {
   assert.equal(SIGN().kind, JOHN); assert.equal(cleanRect({ x: 0, y: 0, w: 10, h: 10 }).kind, undefined);
+  assert.equal(SIGN().width, 50, 'a new one\'s loop an eighth of its box'); assert.equal(SIGN({ width: 9999 }).width, JOHN_W_MAX); assert.equal(cleanRect({ x: 0, y: 0, w: 10, h: 10, width: 30 }).width, undefined);
   const rs = [SIGN(), cleanRect({ id: 2, x: 300, y: 300, w: 200, h: 50 }), cleanRect({ id: 3, x: 400, y: 0, w: 50, h: 50 })], U = unitsOf(rs);
   assert.equal(U.length, 3, 'over the ⌘, the tile no block with it'); assert.ok(U[0].john && !U[1].john);
   assert.equal(figuresOf(rs, U).length, 3, 'beside it, the tile no figure with it');
@@ -21,8 +22,9 @@ test('a ⌘ as kept; a unit and a figure of its own: it melts into no tile, join
   assert.match(figName(planOf(rs, O).figs[0], U), /⌘ St\. John's Arms/);
 });
 
-test('the loops: a lobe\'s rings, alike in all four, Step apart, the outer by the brush\'s half, the innermost the trail wide', () => {
-  const P = planOf([SIGN()], O), U = P.units[0], ds = johnDepths(U.R);
+test('the loops: a lobe\'s rings, alike in all four, Step apart, the outer by the brush\'s half; Width a lobe\'s half, the innermost the trail wide', () => {
+  const P = planOf([SIGN({ width: 100 })], O), U = P.units[0], ds = U.ds;
+  assert.deepEqual(ds, johnDepths(U.R).slice(0, ds.length));
   assert.deepEqual(lobesOf(SIGN()).map(q => [q.x, q.y]), [[200, 0], [200, 200], [0, 200], [0, 0]], '1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left');
   assert.equal(ds[0], BRUSH_NEW / 2); assert.equal(ds.length, U.R.levels);
   for (let k = 1; k < ds.length - 1; k++) assert.ok(Math.abs(ds[k] - ds[k - 1] - 3) < 1e-6);
@@ -42,7 +44,7 @@ test('every loop the ⌘ in one line: round lobe 1, 2, 3, 4, each clockwise, the
 });
 
 test('the path: lands in the middle, loop after loop inward, an S on lobe 4\'s top, never a corner — the board never stops', () => {
-  const P = planOf([SIGN()], O), F = P.figs[0], ds = johnDepths(P.units[0].R);
+  const P = planOf([SIGN({ width: 100 })], O), F = P.figs[0], ds = P.units[0].ds;
   assert.equal(P.figs.length, 1);
   assert.deepEqual(F.start, [200, 200 - ds[0]], 'from the middle');
   assert.deepEqual(F.end, [200 - ds.at(-1), 200 - ds.at(-1)], 'the last loop closed where it began');
@@ -54,6 +56,30 @@ test('the path: lands in the middle, loop after loop inward, an S on lobe 4\'s t
   assert.ok(S.length >= 2 * (ds.length - 4), 'a ring change for every loop but the last few, tight in the middle of the lobe');
   assert.ok(S.every(g => g.a[0] < 200 && g.a[1] < 200), 'all on lobe 4, the bottom left');
   assert.ok(F.length > 60000 && F.length < 70000, `${F.length} mm`);
+});
+
+// Width (the owner, 2026-10-19: "a slider as in ALU-CUT called WIDTH — there the loop's thickness can be raised")
+test('Width: the loop edge to edge, the rings so far in from the outline, a window in every lobe, the grid in the middle 2 Width across', () => {
+  const P = planOf([SIGN()], O), U = P.units[0], ds = U.ds, inner = 50 - BRUSH_NEW / 2, F = P.figs[0];
+  assert.equal(ds.at(-1), inner, 'the innermost ring\'s dry edge on the loop\'s inner edge'); assert.equal(U.R.levels, ds.length); assert.equal(ds.length, 17);
+  for (let k = 1; k < ds.length - 1; k++) assert.ok(Math.abs(ds[k] - ds[k - 1] - 3) < 1e-6);
+  const xs = F.pieces.flatMap(g => [g.a, g.b]);
+  assert.ok(!xs.some(p => p[0] > 200 + inner + 1e-6 && p[0] < 400 - inner - 1e-6 && p[1] > inner + 1e-6 && p[1] < 200 - inner - 1e-6), 'lobe 1\'s window clear');
+  assert.deepEqual(F.end, [200 - inner, 200 - inner], 'the grid\'s corner, 2 Width less the brush across');
+  assert.deepEqual(johnBand([1, 4, 7, 10], 8.6, 3), [1, 4, 7, 8.6]); assert.deepEqual(johnBand([1, 4, 7, 10], 8, 3), [1, 4, 8], "under half a step on: the last moved there"); assert.deepEqual(johnBand([1, 4, 7, 10], 7.6, 3), [1, 4, 7.6]); assert.deepEqual(johnBand([1, 4, 7, 10], 12, 3), [1, 4, 7, 10]); assert.deepEqual(johnBand([1, 4], 0.5, 3), [1]);
+  assert.ok(F.length < planOf([SIGN({ width: 100 })], O).figs[0].length * 0.75);
+});
+
+// Corners up to 50 (the owner, 2026-10-19): on a ⌘ concentric, as a pipe's lanes
+test('the turns concentric: the outer ring\'s Corners, every ring inside its depth less, never under 4 mm; the X from where the paint begins', () => {
+  const rs = [SIGN()], o = { ...O, corner: 50 }, P = planOf(rs, o), U = P.units[0], ds = U.ds, F = P.figs[0];
+  assert.equal(johnRadius(50, ds[0], ds[0]), 50); assert.equal(johnRadius(50, ds.at(-1), ds[0]), 4); assert.equal(johnRadius(3, 40, 1), 3);
+  const quarter = F.pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6), radii = new Set(quarter.map(g => Math.round(g.r * 1e6) / 1e6));
+  for (const d of ds) assert.ok(radii.has(Math.round(johnRadius(50, d, ds[0]) * 1e6) / 1e6), `a loop ${d} mm in, its turns ${johnRadius(50, d, ds[0])}`);
+  // the outer arm of lobe 3's top left corner begins on the paint's edge round the turn, not in the box's corner
+  const arm = spokesOf(U, rs, o).find(q => Math.hypot(q.a[0], q.a[1] - 400) < 40), C = [ds[0] + 50, 400 - ds[0] - 50];
+  assert.ok(Math.abs(Math.hypot(arm.a[0] - C[0], arm.a[1] - C[1]) - (50 + BRUSH_NEW / 2)) < 1e-6);
+  assert.equal(spokesOf(U, rs, O).find(q => Math.hypot(q.a[0], q.a[1] - 400) < 40).a[0] < arm.a[0], true, 'at Corners 4 nearer the corner');
 });
 
 test('↺: the sign mirrored, lobe 1 the bottom left', () => {
