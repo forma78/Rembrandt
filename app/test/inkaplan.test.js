@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { withIds, cleanNodes, magnetsOf, linksOf, snakeNodes, cleanRect, unitsOf, figuresOf, ringsOf, spiralOf, cleanPts, jogged, roundOf, planOf, dragRows, wipeBlocks, dragSvg, dealFigure, sausagesOf, unitSausages, spokesOf, spokeAt, marksRows, simOf, stepsOf, INKA_META, pureOf, lenOf, atPiece,
-  STEP_NEW, STEP_MAX, JOIN_NEW, WIPE_NEW, SPOKE_GAP, R_MIN } from '../src/inkaplan.js';
+  STEP_NEW, STEP_MAX, JOIN_NEW, WIPE_NEW, R_MIN, BRUSH_NEW, SWELL_NEW, trailOf } from '../src/inkaplan.js';
 import { dragPasses, MARKS_DIP } from '../src/ccdplan.js';
 import { PAINT } from '../src/tapeplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
 
 // INKA's plan: Inca patterns — tiles filled by spirals, the brush on from
 // tile to tile without a lift, a wipe between figures (the owner, 2026-10-17).
-const O = { cw: 200, ch: 200, brush: 6, join: JOIN_NEW, corner: 4 };
+const O = { cw: 200, ch: 200, brush: 6, swell: 0, join: JOIN_NEW, corner: 4 };   // the geometry with a 6 mm trail: the brush, no swell
 const RUN = { ...DEFAULTS, speed: 40, travel: 180, tail: 3, lift: false, ink: false, snake: true, pause: false, here: { x: 300, y: 300 }, hover: ELBOW_HOVER, pauseAtEnds: true };
 const near = (a, b, e = 1e-6) => Math.abs(a[0] - b[0]) < e && Math.abs(a[1] - b[1]) < e;
 // the owner's paper test (personal_references/ Screenshot 12.52.59 PM): six tiles, two columns of three, and the brown "[" apart
@@ -16,6 +16,16 @@ const SIX = () => { const rs = []; for (let c = 0; c < 2; c++) for (let r = 0; r
 const BRACKET = [{ x: 130, y: 30, w: 20, h: 100 }, { x: 130, y: 110, w: 50, h: 20 }, { x: 130, y: 30, w: 50, h: 20 }, { x: 130, y: 72, w: 35, h: 16 }];
 const LAYOUT = () => [...SIX(), ...BRACKET.map(cleanRect)];
 const dirIn = (g, end) => { if (g.t === 'L') { const d = [g.b[0] - g.a[0], g.b[1] - g.a[1]], l = Math.hypot(...d); return [d[0] / l, d[1] / l]; } return atPiece(g, end ? lenOf(g) : 0).t; };
+
+// The brush swollen with paint (the owner, 2026-10-19: "the brush is not a
+// felt-tip … it swells in volume"): 3.5 mm set, 9 on the canvas by the ruler
+test('the trail: the brush and its swell, 9 mm at his 3.5; the Drag and the Result by it', () => {
+  assert.equal(trailOf({}), BRUSH_NEW + SWELL_NEW); assert.equal(trailOf({ brush: 3.5 }), 9);
+  const rs = [cleanRect({ x: 0, y: 0, w: 64, h: 63.5, step: 3 })], P = planOf(rs, { ...O, brush: 3.5, swell: SWELL_NEW });
+  const edge = q => Math.min(q[0], q[1], 64 - q[0], 63.5 - q[1]);
+  assert.ok(P.figs[0].pts.every(q => edge(q) >= 4.5 - 1e-6) && P.figs[0].pts.some(q => Math.abs(edge(q) - 4.5) < 1e-6), 'the outer ring 4.5 in: the paint ends on the tile\'s edge');
+  assert.match(dragSvg(P, { ...O, brush: 3.5, swell: SWELL_NEW }), /data-trail-mm="9"/);
+});
 
 test('a rectangle as kept: its step 1 … 100 mm, its sausages with real paints only, its palette', () => {
   assert.equal(cleanRect({ x: 0, y: 0, w: 10, h: 10 }).step, STEP_NEW);
@@ -54,9 +64,20 @@ test('a square\'s rings: the classic spiral, a step apart all the way, the outer
   assert.ok(near(out.at(-1), [37, 37]));
 });
 
-test('a middle wider than half a step gets one more ring, so no white runs down it', () => {
+// The core (the owner, 2026-10-19: "in the centre it has no room to turn …
+// with a 9 mm pass it starts to fidget in place"): the rings a step apart
+// until the paint meets in the middle, the innermost the trail wide
+const depths = R => { const out = []; for (let n = R.roots[0]; n; n = n.kids[0]) out.push(n.d); return out; };
+const innermost = R => { let n = R.roots[0]; while (n.kids.length) n = n.kids[0]; const L = n.loops[0], w = k => Math.max(...L.map(v => v[k])) - Math.min(...L.map(v => v[k])); return Math.min(w(0), w(1)); };
+test('the core: the innermost ring the trail wide, its paint meeting in the middle; none narrower', () => {
   const R = ringsOf([{ x: 0, y: 0, w: 46, h: 100 }], 6, 7);
-  assert.equal(R.levels, 4);                                                   // 3, 10, 17 and 21.5
+  assert.deepEqual(depths(R), [3, 10, 20]);                                     // the last 3 mm short of 17 + 3.5: 17 moved in to 20
+  assert.equal(innermost(R), 6);
+  assert.deepEqual(depths(ringsOf([{ x: 0, y: 0, w: 50, h: 50 }], 6, 7)), [3, 10, 17, 22]);   // 24 went past: in at 22
+  // his tile of 2026-10-17, 64 × 63.5 at a 3 mm step: with the 9 mm trail nine rings, none under 9 mm across — before, eleven, the last 1.75 mm
+  const T = ringsOf([{ x: 0, y: 0, w: 64, h: 63.5 }], trailOf({ brush: 3.5 }), 3);
+  assert.equal(T.levels, 9); assert.ok(Math.abs(innermost(T) - 9) < 1e-6);
+  assert.equal(depths(T)[0], 4.5, 'the outer ring the trail\'s half in: the paint ends on the tile\'s edge');
 });
 
 test('the "[" — four rectangles overlapping — one outline, its rings round the whole of it', () => {
@@ -71,7 +92,7 @@ test('the "[" — four rectangles overlapping — one outline, its rings round t
 
 test('a figure one path: the first tile from its middle out, the next from its outside in, middle to middle across the rings', () => {
   const P = planOf(SIX(), O), F = P.figs[0];
-  assert.ok(Math.hypot(F.start[0] - 35, F.start[1] - 35) < 3, 'lands in the middle of the bottom left tile');
+  assert.ok(Math.hypot(F.start[0] - 35, F.start[1] - 35) < 3 * Math.SQRT2 + 1e-6, 'lands on the innermost ring of the bottom left tile, in its middle');
   assert.equal(F.along.length, 6);
   // the first tile ends at its outer ring's corner by the second, which comes on at its own a brush's width over the shared side
   const k = F.pts.findIndex((p, i) => i && p[1] >= 63 - 1e-6 && Math.abs(F.pts[i - 1][1] - 57) < 1e-6 && Math.abs(p[0] - F.pts[i - 1][0]) < 1e-6);
@@ -109,16 +130,24 @@ test('the paints: neighbours never one paint, a figure of one unit one pure pain
   const P2 = planOf(rs, O), F = P2.figs[0], main = id => { const n = {}; for (const q of unitSausages(P2.units[id], rs)) n[q.paint] = (n[q.paint] || 0) + 1; return Object.keys(n).sort((a, b) => n[b] - n[a])[0]; };
   for (const a of F.us) for (const b of F.us) if (a !== b && F.adj(a, b)) assert.notEqual(main(a), main(b));
   assert.deepEqual([...new Set(unitSausages(P2.units[6], rs).map(q => q.paint))], ['brown']);
-  for (const q of unitSausages(P2.units[0], rs)) { const L = Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1]); assert.ok(L > 15 && L <= 24 + 1e-6, `from the side in, as deep as the rings there: ${L}`); }
+  const ss0 = unitSausages(P2.units[0], rs);
+  assert.equal(ss0.length, 4, 'an X');
+  for (const q of ss0) { const L = Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1]); assert.ok(Math.abs(L - 27.58) < 0.01, `corner to the innermost ring: ${L}`); assert.ok(Math.abs(Math.abs(q.b[0] - q.a[0]) - Math.abs(q.b[1] - q.a[1])) < 1e-6, 'on the diagonal'); }
   assert.equal(pureOf(INKA_META['HDay blue']), 'ultramarine');
   assert.equal(pureOf({ name: 'x', core: ['black', 'sand', 'ochre'], accent: [] }), 'ochre');
 });
 
-test('spokes at most SPOKE_GAP apart round a unit; M lays one through the point clicked', () => {
-  const rs = [cleanRect({ x: 0, y: 0, w: 130, h: 40 })], U = unitsOf(rs)[0], S = spokesOf(U, rs, O, 1);
-  assert.equal(S.length, 3 + 3 + 1 + 1);                                         // 130 mm: three a side
-  const q = spokeAt(U, rs, [50, 5]);
-  assert.ok(near(q.a, [50, 2.5]) && near(q.b, [50, 19], 1e-3), 'from the bottom side, its round end on the tile, up to the middle');
+// The spokes an X (the owner, 2026-10-19, Screenshot 2.21.20 PM: "a cross X, it is logical and simple")
+test('the spokes an X: from every corner along the diagonal to the innermost ring; M lays the arm nearest the point', () => {
+  const rs = [cleanRect({ x: 0, y: 0, w: 130, h: 40 })], U = unitsOf(rs)[0], S = spokesOf(U, rs, O);
+  assert.equal(S.length, 4);
+  assert.ok(near(S[0].a, [8.125, 2.5]) && near(S[0].b, [55.25, 17]), 'its round end clear of both sides at the corner; to the innermost ring, 17 mm in');
+  for (const q of S) assert.ok(Math.abs((q.b[1] - q.a[1]) / (q.b[0] - q.a[0])) - 40 / 130 < 1e-9, 'along the diagonal');
+  assert.deepEqual(spokeAt(U, rs, [50, 5], O), S[0]);
+  assert.deepEqual(spokeAt(U, rs, [100, 30], O), S[2]);
+  // a block: from every corner of its outline at 45°
+  const b = BRACKET.map(cleanRect), B = spokesOf(unitsOf(b)[0], b, O);
+  assert.ok(B.length >= 6 && B.every(q => Math.abs(Math.abs(q.b[0] - q.a[0]) - Math.abs(q.b[1] - q.a[1])) < 1e-6));
 });
 
 test('MARKS: a dash a sausage, a dip every fourth', () => {
@@ -185,7 +214,7 @@ test('links: one way out of a tile and one in, a later node in the place of the 
 test('the owner\'s nodes: 1 in to its middle, 2 out to its right side\'s middle, 3 out to its bottom\'s, 4 out from its middle', () => {
   const rs = FOUR(), P = planOf(rs, { ...O, nodes: N1033 }), F = P.figs[0];
   assert.equal(P.manual, true); assert.equal(P.figs.length, 1); assert.deepEqual(F.us, [0, 1, 2, 3]);
-  assert.ok(near(F.ends[0].a, [13, 13]) && Math.hypot(F.ends[0].b[0] - 35, F.ends[0].b[1] - 35) < 2, '1: from its bottom left corner in');
+  assert.ok(near(F.ends[0].a, [13, 13]) && Math.hypot(F.ends[0].b[0] - 35, F.ends[0].b[1] - 35) < 3 * Math.SQRT2 + 1e-6, '1: from its bottom left corner in');
   assert.ok(near(F.ends[1].b, [57, 85]), '2: out to its right side\'s middle');
   assert.ok(near(F.ends[2].b, [85, 63]), '3: out to its bottom\'s middle');
   for (let i = 1; i < F.pieces.length; i++) { const a = dirIn(F.pieces[i - 1], true), b = dirIn(F.pieces[i], false); assert.ok(a[0] * b[0] + a[1] * b[1] > Math.cos(10 * Math.PI / 180), `a kink at ${i}`); }
@@ -194,9 +223,18 @@ test('the owner\'s nodes: 1 in to its middle, 2 out to its right side\'s middle,
   assert.equal(planOf(rs, { ...O, nodes: N1033 }).figs.length, 2);
 });
 
-test('a side\'s middle the seam: every ring round, a step in square to the side, the step apart all the way', () => {
-  const R = ringsOf([{ x: 0, y: 0, w: 50, h: 50 }], 6, 7), s = cleanPts(spiralOf(R, [47, 25]));
-  assert.deepEqual(s.slice(0, 8), [[47, 25], [47, 3], [3, 3], [3, 47], [47, 47], [47, 32], [40, 25], [40, 10]]);
+// The ring change (the owner, 2026-10-19: "too sharp … let the transition be as in TAPE or BASF")
+test('a side\'s middle the seam: every ring round, then an S in to the next over the side, as TAPE\'s lane change', () => {
+  const R = ringsOf([{ x: 0, y: 0, w: 50, h: 50 }], 6, 7), s = cleanPts(spiralOf(R, [47, 25], false, { corner: 4, change: 30 }));
+  assert.deepEqual(s.slice(0, 8).map(p => [p[0], p[1]]), [[47, 25], [47, 3], [3, 3], [3, 47], [47, 47], [47, 43], [40, 25], [40, 10]]);   // the side has 22 mm, 4 the turn's: an S over 18
+  assert.ok(s[5].S && s[5].S === s[6].S, 'the S\'s two ends');
+  const g = roundOf(s, 4), k = g.findIndex(q => q.t === 'A' && near(q.a, [47, 43]));
+  assert.ok(k > 0 && g[k + 1].t === 'A' && near(g[k + 1].b, [40, 25]) && g[k].left !== g[k + 1].left, 'two arcs, one way and back');
+  assert.ok(Math.abs(g[k].r - (18 * 18 + 7 * 7) / 28) < 1e-9 && g[k].r === g[k + 1].r);
+  for (let i = k; i <= k + 2; i++) { const a = dirIn(g[i - 1], true), b = dirIn(g[i], false); assert.ok(a[0] * b[0] + a[1] * b[1] > 1 - 1e-9, `tangent at ${i}`); }
+  // Ring change 0: as short as the step, an S still
+  const z = cleanPts(spiralOf(R, [47, 25], false, { corner: 4, change: 0 }));
+  assert.deepEqual([z[5][0], z[5][1]], [47, 32]);
 });
 
 test('the turn: ↺ the same spiral mirrored; the snake as nodes runs the very path', () => {

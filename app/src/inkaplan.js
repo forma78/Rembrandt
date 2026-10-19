@@ -12,7 +12,8 @@
 // brush goes on non-stop over the modules … only when all six rectangles are
 // painted the brush lifts and moves to the brown" (personal_references/
 // IMG_1009, Screenshot 12.51.16 PM); a ring, one loop of the brush round a
-// unit, Step apart, the outer one's brush edge on its outline.
+// unit, Step apart, the outer one's paint edge on its outline — the brush
+// swollen with paint, its trail (trailOf).
 //
 // DRAG: a figure one path, the brush down from its landing to its lift: the
 // first unit from its centre out, the next from its outside in, the next from
@@ -28,22 +29,33 @@
 
 import { toMachine } from './band.js';
 import { pieceLen } from './strokes.js';
-import { PAINT, MARK_MM } from './tapeplan.js';
+import { PAINT } from './tapeplan.js';
 import { CCD_META, paintOf, DENSITY_NEW, FILM, PICK_BULK, PICK_FILM, DRY, THIN, DS, GROOVE_K, SAUSAGE_W, MARKS_DIP, MARK_DOT } from './ccdplan.js';
 import { linOf, toSrgb, luminance } from './color.js';
 import { rng } from './util.js';
 import { ELBOW_MAX } from './ink.js';
 
-export const STEP_NEW = 7, STEP_MIN = 1, STEP_MAX = 100;   // mm, ring to ring; with the 6 mm brush a millimetre of white between, Florian's ridges (Claude's)
-export const BRUSH_NEW = 6;                                // mm, the owner's round brush on BIAS
+export const STEP_NEW = 3, STEP_MIN = 1, STEP_MAX = 100;   // mm, ring to ring: the owner's on his canvas of 2026-10-17, the rings' paint over one another, its ridges the bristles'
+export const BRUSH_NEW = 3.5;                              // mm, the brush as he set it there
+// The brush is no felt-tip: it takes up the paint and swells (the owner,
+// 2026-10-19: "the brush is not a felt-tip or a Posca marker. It picks up
+// paint … and swells in volume. We need to account for this in the
+// simulation on screen"). Set at 3.5 mm, it laid 9 on that canvas
+// (INKA/update-19-10-2026-1.0.9/): the strip from tile to tile 8.5 … 9 mm by
+// the ruler (IMG_1190, 1191), a tile's paint 1.4 … 4.3 mm past its outline,
+// 2.8 on average, where the 3.5 mm brush's edge was on it (IMG_1193, 1194).
+// Its trail: the brush and SWELL — est. at any other width.
+export const SWELL_NEW = 5.5;
+export const trailOf = o => Math.max(0.5, (o.brush ?? BRUSH_NEW) + (o.swell ?? SWELL_NEW));
 export const JOIN_NEW = 5;                                 // mm: tiles this near are one figure (est.)
 export const CORNER_NEW = 4;                               // mm, a turn's radius: √(250 · 4) ≈ 31 mm/s on it, never a stop (machine.js, arcSpeed)
+export const CHANGE_NEW = 30;                              // mm: from a ring to the next at a side's middle, an S this long at most (est.)
 export const R_MIN = 0.3;                                  // mm: a tighter turn is left a corner (a 180° one)
 export const RING_MIN = 0.5;                               // mm: no ring narrower than twice this in the middle — its turns too tight to run through
+export const GAP_MIN = 0.25;                               // mm: the paint this short of meeting in a middle, no ring more — the swell closes it (est.)
 export const WIPE_NEW = ELBOW_MAX;                         // °: the brush up to wipe, the elbow's highest (est.)
 export const OFF = 60, MIN_SIDE = 1;                       // mm, as CCD's
 export const SHARE_MIN = 1;                                // mm two tiles must share along a side to touch
-export const SPOKE_GAP = MARK_MM;                          // mm: spokes at most this far apart round a unit, TAPE's paper test
 export const SECOND_P = 0.4, ACCENT_SECOND = 0.35;         // a tile's chance of a second paint, and of it being an accent (Claude's)
 const EPS = 1e-7, fin = Number.isFinite;
 
@@ -218,25 +230,61 @@ function partAt(E, p) {
   const i = lower(E.X, p[0]), j = lower(E.Y, p[1]), v = E.lab[i * E.ny + j];
   return v >= 0 ? v : -1;
 }
-// A unit's rings: its outline eroded by the brush's half, then a step more
-// each time, while anything is left; when the middle is left wider than half
-// a step, one more ring there, so no white runs down it. → the tree of rings:
-// { d, loops, kids }, the roots the outer ones
-export function ringsOf(rs, brush, step) {
-  const G = gridOf(rs), all = [Math.max(G.xs.at(-1) - G.xs[0], G.ys.at(-1) - G.ys[0]) / 2];
-  let lo = 0, hi = all[0];
+// A unit's rings: its outline eroded by the trail's half — the paint's edge on
+// the outline — then a step more each time, until the paint meets in the
+// middle: the innermost ring the trail wide, none narrower than the paint it
+// lays (the owner, 2026-10-19: "in the centre it has no room to turn, yet the
+// program wants three or four more turns … with a 9 mm pass it starts to
+// fidget in place"; "reduce the passes in the core at any brush width"). By
+// how deep each part of a block goes: its innermost ring moved out to where
+// its paint meets — or, under half a step on from the one before, that one
+// moved in there. → the tree of rings: { d, loops, kids }, the roots the outer ones
+const cellMid = (E, c) => [(E.X[c[0]] + E.X[c[0] + 1]) / 2, (E.Y[c[1]] + E.Y[c[1] + 1]) / 2];
+export function ringsOf(rs, trail, step) {
+  const G = gridOf(rs), h = trail / 2;
+  let lo = 0, hi = Math.max(G.xs.at(-1) - G.xs[0], G.ys.at(-1) - G.ys[0]) / 2;
   for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (erode(G, m)) lo = m; else hi = m; }
   const D = lo, ds = [];
-  for (let d = brush / 2; d < D - RING_MIN && ds.length < 4000; d += step) ds.push(d);
-  if (!ds.length) ds.push(Math.max(D / 2, D - brush / 4));
-  else if (D - ds.at(-1) > step / 2) ds.push(Math.min(D - RING_MIN, Math.max(ds.at(-1) + step / 2, D - brush / 4)));
-  const levels = ds.map(d => erode(G, d)).filter(Boolean), nodes = levels.map(E => E.parts.map(q => ({ d: E.d, loops: q.loops, kids: [], cell: q.cells[0], E })));
+  for (let d = h; d < D - RING_MIN && ds.length < 4000; d += step) ds.push(d);
+  if (!ds.length) ds.push(Math.max(D / 2, D - RING_MIN));                         // narrower than the trail: one ring down its middle
+  const levels = ds.map(d => erode(G, d)).filter(Boolean), nodes = levels.map(E => E.parts.map(q => ({ d: E.d, loops: q.loops, kids: [], cells: q.cells, E })));
   for (let l = 1; l < levels.length; l++) for (const n of nodes[l]) {
-    const E = n.E, p = [(E.X[n.cell[0]] + E.X[n.cell[0] + 1]) / 2, (E.Y[n.cell[1]] + E.Y[n.cell[1] + 1]) / 2], k = partAt(levels[l - 1], p);
+    const k = partAt(levels[l - 1], cellMid(n.E, n.cells[0]));
     (nodes[l - 1][k] ?? nodes[l - 1][0]).kids.push(n);
   }
-  for (const L of nodes) for (const n of L) { delete n.E; delete n.cell; }
-  return { G, D, roots: nodes[0] ?? [], rings: nodes.reduce((s, L) => s + L.length, 0), levels: levels.length };
+  // how deep each branch goes, and its deepest point
+  const deep = n => {
+    if (n.kids.length) { n.kids.forEach(deep); const c = n.kids.reduce((a, b) => b.Dp > a.Dp ? b : a); n.Dp = c.Dp; n.Pp = c.Pp; return; }
+    n.Dp = -1;
+    for (const c of n.cells) { const p = cellMid(n.E, c), v = Math.round(depthIn(G, p) * 1e6) / 1e6; if (v > n.Dp) { n.Dp = v; n.Pp = p; } }
+  };
+  const moveTo = (n, d, p) => { const E = erode(G, d), k = E ? partAt(E, p) : -1; if (k < 0) return false; n.d = d; n.loops = E.parts[k].loops; return true; };
+  // the rings a branch keeps: every one short of its middle, then the one whose paint meets there
+  const core = (n, root) => {
+    if (!n.kids.length) {                                                          // the last of its branch, its paint short of the middle: one more, or itself moved in
+      const want = n.Dp - h;
+      if (want > n.d + GAP_MIN) {
+        if (!root && want - n.d < step / 2) moveTo(n, want, n.Pp);
+        else { const c = { d: want, loops: null, kids: [] }; if (moveTo(c, want, n.Pp)) n.kids = [c]; }
+      }
+      return;
+    }
+    const keep = [];
+    for (const c of n.kids) {
+      const want = c.Dp - h;
+      if (want <= n.d + GAP_MIN) continue;                                         // n's paint meets in this part's middle already
+      if (c.d < want - 1e-9) { core(c, false); keep.push(c); continue; }
+      if (!root && n.kids.length === 1 && want - n.d < step / 2 && moveTo(n, want, c.Pp)) { n.kids = []; return; }
+      if (moveTo(c, want, c.Pp)) { c.kids = []; keep.push(c); }
+    }
+    n.kids = keep;
+  };
+  const roots = nodes[0] ?? [];
+  for (const r of roots) { deep(r); core(r, true); }
+  let rings = 0, lv = 0;
+  const tidy = (n, l) => { rings++; lv = Math.max(lv, l); delete n.E; delete n.cells; delete n.Dp; delete n.Pp; n.kids.forEach(c => tidy(c, l + 1)); };
+  roots.forEach(r => tidy(r, 1));
+  return { G, D, roots, rings, levels: lv };
 }
 
 // ---------- the spiral ----------
@@ -286,36 +334,48 @@ function seamAt(L, p) {
 }
 // Inward from a ring: round it clockwise from its seam — the point given, if
 // it lies on it, a corner or the middle of a side, else a corner by the
-// rule; with one ring inside, its last side a step short and on into the
-// next one's seam a step in — diagonally from a corner, square to the side
-// from a side's middle: the spiral, a step apart all the way; else round to
-// the seam, then its holes and the rings inside, each from the nearest
-function spiralIn(node, hint) {
+// rule; with one ring inside, on into the next one's seam a step in: from a
+// corner, the last side a step short, on diagonally — the square spiral; from
+// a side's middle, an S over the last stretch of the side, CHANGE mm or as
+// much as it has, as TAPE's lane change (the owner, 2026-10-19, Screenshot
+// 2.21.20 PM: "too sharp. In reality the paint lies like this", IMG_1195,
+// 1196; "let the transition be as in TAPE or BASF … a smoothed transition
+// from one turn to the next"); else round to the seam, then its holes and the
+// rings inside, each from the nearest. o: { corner, change }. The S's two
+// ends carry one token, .S, so roundOf lays them two arcs.
+function spiralIn(node, hint, o = {}, tok = null) {
   const at = seamAt(node.loops[0], hint), L = at ? at.L : node.loops[0], k0 = at ? at.k : seamOf(node, hint), n = L.length, pts = [];
-  for (let m = 0; m <= n; m++) pts.push(L[(k0 + m) % n]);
+  for (let m = 0; m <= n; m++) pts.push(L[(k0 + m) % n].slice());
+  if (tok) pts[0].S = tok;
   if (node.kids.length === 1 && node.loops.length === 1) {
-    const kid = node.kids[0], s = kid.d - node.d, c = pts.at(-1), u = unitV(sub(c, pts.at(-2))), on = unitV(sub(L[(k0 + 1) % n], c)), cv = convexOf(L).find(q => q.k === k0);
-    const w = cv ? cv.diag : Math.abs(crs(u, on)) < 1e-9 && u[0] * on[0] + u[1] * on[1] > 0 ? [u[1], -u[0]] : null;
-    if (dist(c, pts.at(-2)) > s + 1e-6) pts[pts.length - 1] = [c[0] - u[0] * s, c[1] - u[1] * s];
-    return pts.concat(spiralIn(kid, w ? [c[0] + w[0] * s, c[1] + w[1] * s] : pts.at(-1)));
+    const kid = node.kids[0], s = kid.d - node.d, c = pts.at(-1), b = pts.at(-2), u = unitV(sub(c, b)), on = unitV(sub(L[(k0 + 1) % n], c)), cv = convexOf(L).find(q => q.k === k0);
+    const side = !cv && Math.abs(crs(u, on)) < 1e-9 && u[0] * on[0] + u[1] * on[1] > 0, w = cv ? cv.diag : side ? [u[1], -u[0]] : null;
+    const next = w ? [c[0] + w[0] * s, c[1] + w[1] * s] : null, room = dist(c, b) - (o.corner ?? CORNER_NEW);
+    if (side && room >= s) {
+      const Lx = Math.min(room, Math.max(s, o.change ?? CHANGE_NEW)), a = [c[0] - u[0] * Lx, c[1] - u[1] * Lx], t = {};
+      a.S = t; pts[pts.length - 1] = a;
+      return pts.concat(spiralIn(kid, next, o, t));
+    }
+    if (dist(c, b) > s + 1e-6) pts[pts.length - 1] = [c[0] - u[0] * s, c[1] - u[1] * s];
+    return pts.concat(spiralIn(kid, next ?? pts.at(-1), o));
   }
   let cur = pts.at(-1);
-  for (const H of node.loops.slice(1)) { let k = 0; H.forEach((v, m) => { if (dist(v, cur) < dist(H[k], cur)) k = m; }); for (let m = 0; m <= H.length; m++) pts.push(H[(k + m) % H.length]); cur = pts.at(-1); }
+  for (const H of node.loops.slice(1)) { let k = 0; H.forEach((v, m) => { if (dist(v, cur) < dist(H[k], cur)) k = m; }); for (let m = 0; m <= H.length; m++) pts.push(H[(k + m) % H.length].slice()); cur = pts.at(-1); }
   const kids = node.kids.slice();
   while (kids.length) {
     kids.sort((a, b) => Math.min(...a.loops[0].map(v => dist(v, cur))) - Math.min(...b.loops[0].map(v => dist(v, cur))));
-    pts.push(...spiralIn(kids.shift(), cur)); cur = pts.at(-1);
+    pts.push(...spiralIn(kids.shift(), cur, o)); cur = pts.at(-1);
   }
   return pts;
 }
 // A unit's spiral: inward from the outer ring nearest the hint; outward, the
 // same reversed — from the middle to the outer ring's seam at the hint
-export function spiralOf(R, hint, out = false) {
+export function spiralOf(R, hint, out = false, o = {}) {
   const roots = R.roots.slice(), pts = [];
   let cur = hint;
   while (roots.length) {
     roots.sort((a, b) => Math.min(...a.loops[0].map(v => dist(v, cur ?? v))) - Math.min(...b.loops[0].map(v => dist(v, cur ?? v))));
-    pts.push(...spiralIn(roots.shift(), cur)); cur = pts.at(-1);
+    pts.push(...spiralIn(roots.shift(), cur, o)); cur = pts.at(-1);
   }
   return out ? pts.reverse() : pts;
 }
@@ -323,12 +383,12 @@ export function spiralOf(R, hint, out = false) {
 // `at`, or the corner nearest `hint` — or outward, to `at` or that corner;
 // the brush going round as the unit's turn says, ↻ clockwise or ↺
 // anticlockwise. The rings are built clockwise: the other way, the unit
-// mirrored, built and mirrored back.
-const mx = p => p ? [-p[0], p[1]] : p;
-export function unitPath(U, rects, brush, dir, at, hint) {
+// mirrored, built and mirrored back. o: { trail, corner, change }
+const mx = p => { if (!p) return p; const q = [-p[0], p[1]]; if (p.S) q.S = p.S; return q; };
+export function unitPath(U, rects, o, dir, at, hint) {
   const mirror = (dir === 'in') === (U.turn === 'ccw');
-  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), brush, U.step);
-  const R = mirror ? U.Rm : U.R, pts = spiralOf(R, mirror ? mx(at ?? hint ?? null) : at ?? hint ?? null, dir === 'out');
+  if (mirror && !U.Rm) U.Rm = ringsOf(U.rs.map(i => { const r = rects[i]; return { x: -(r.x + r.w), y: r.y, w: r.w, h: r.h }; }), o.trail ?? trailOf(o), U.step);
+  const R = mirror ? U.Rm : U.R, pts = spiralOf(R, mirror ? mx(at ?? hint ?? null) : at ?? hint ?? null, dir === 'out', o);
   return mirror ? pts.map(mx) : pts;
 }
 // A magnet of a rectangle, its outer ring d mm in: its middle, a corner, a side's middle
@@ -401,11 +461,11 @@ export function snakeNodes(P, rects) {
   }
   return out;
 }
-// the points of a path without repeats and without points in a straight run
+// the points of a path without repeats and without points in a straight run; an S's ends kept
 export function cleanPts(P) {
   const a = [];
-  for (const p of P) if (!a.length || dist(p, a.at(-1)) > 1e-6) a.push(p);
-  return a.filter((p, i) => i === 0 || i === a.length - 1 || Math.abs(crs(sub(p, a[i - 1]), sub(a[i + 1], p))) > 1e-9 * dist(p, a[i - 1]) * dist(a[i + 1], p) || (p[0] - a[i - 1][0]) * (a[i + 1][0] - p[0]) + (p[1] - a[i - 1][1]) * (a[i + 1][1] - p[1]) < 0);
+  for (const p of P) if (!a.length || dist(p, a.at(-1)) > 1e-6) a.push(p); else if (p.S && !a.at(-1).S) a.at(-1).S = p.S;
+  return a.filter((p, i) => i === 0 || i === a.length - 1 || p.S || Math.abs(crs(sub(p, a[i - 1]), sub(a[i + 1], p))) > 1e-9 * dist(p, a[i - 1]) * dist(a[i + 1], p) || (p[0] - a[i - 1][0]) * (a[i + 1][0] - p[0]) + (p[1] - a[i - 1][1]) * (a[i + 1][1] - p[1]) < 0);
 }
 // A turn back on itself — a middle's last side up, the way to the next
 // middle down — would stop the board dead: a jog of w mm sideways there, on
@@ -425,16 +485,26 @@ export function jogged(P, w) {
 // Every turn a tangent arc of radius `corner`, or as much as half of each
 // side lets it — so the board runs through it and never stops (the owner,
 // 2026-10-17: "rounded corners … a stop of the brush kills the effect");
-// a turn of more than 170°, or one too tight, left a corner.
+// a turn of more than 170°, or one too tight, left a corner. Two points
+// with one .S token an S between them (spiralIn): two arcs, no turn rounded
+// at either end, the side up to it the turn's before it.
 // → pieces in canvas mm: { t: 'L', a, b } | { t: 'A', a, b, c, r, left }
 export function roundOf(P, corner) {
-  const out = [];
+  const out = [], n = P.length, isS = i => i >= 0 && i + 1 < n && !!P[i].S && P[i].S === P[i + 1].S, free = i => isS(i - 1) || isS(i);
   let cur = P[0];
-  for (let i = 1; i < P.length - 1; i++) {
-    const A = P[i - 1], V = P[i], B = P[i + 1], l1 = dist(A, V), l2 = dist(V, B), u1 = unitV(sub(V, A)), u2 = unitV(sub(B, V));
+  for (let i = 1; i < n - 1 || (i === n - 1 && isS(i - 1)); i++) {
+    if (isS(i - 1)) {
+      const a = P[i - 1], u = i >= 2 ? unitV(sub(a, P[i - 2])) : i + 1 < n ? unitV(sub(P[i + 1], P[i])) : unitV(sub(P[i], a));
+      if (dist(cur, a) > 1e-6) out.push({ t: 'L', a: cur, b: a });
+      out.push(...sCurve(a, P[i], u)); cur = P[i];
+      continue;
+    }
+    const A = P[i - 1], V = P[i], B = P[i + 1];
+    if (isS(i)) { if (dist(cur, V) > 1e-6) out.push({ t: 'L', a: cur, b: V }); cur = V; continue; }
+    const l1 = dist(A, V) * (free(i - 1) ? 1 : 0.5), l2 = dist(V, B) * (free(i + 1) ? 1 : 0.5), u1 = unitV(sub(V, A)), u2 = unitV(sub(B, V));
     const th = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1])));
     if (th < 1e-4) continue;
-    const tn = Math.tan(th / 2), r = th > 170 * Math.PI / 180 ? 0 : Math.min(corner, Math.min(l1, l2) / 2 / tn);
+    const tn = Math.tan(th / 2), r = th > 170 * Math.PI / 180 ? 0 : Math.min(corner, Math.min(l1, l2) / tn);
     if (r < R_MIN) { if (dist(cur, V) > 1e-6) out.push({ t: 'L', a: cur, b: V }); cur = V; continue; }
     const t = r * tn, a = [V[0] - u1[0] * t, V[1] - u1[1] * t], b = [V[0] + u2[0] * t, V[1] + u2[1] * t], left = crs(u1, u2) > 0;
     const nr = left ? [-u1[1], u1[0]] : [u1[1], -u1[0]], c = [a[0] + nr[0] * r, a[1] + nr[1] * r];
@@ -444,6 +514,14 @@ export function roundOf(P, corner) {
   }
   if (P.length > 1 && dist(cur, P.at(-1)) > 1e-6) out.push({ t: 'L', a: cur, b: P.at(-1) });
   return out;
+}
+// An S from a to b, tangent to u at both: two arcs of one radius, turning
+// towards b's side and back, the switch half way
+function sCurve(a, b, u) {
+  const e = sub(b, a), lat = crs(u, e), y = Math.abs(lat);
+  if (y < 1e-6) return [{ t: 'L', a, b }];
+  const left = lat > 0, w = left ? [-u[1], u[0]] : [u[1], -u[0]], R = (e[0] * e[0] + e[1] * e[1]) / (4 * y), m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  return [{ t: 'A', a, b: m, c: [a[0] + w[0] * R, a[1] + w[1] * R], r: R, left }, { t: 'A', a: m, b, c: [b[0] - w[0] * R, b[1] - w[1] * R], r: R, left: !left }];
 }
 export const lenOf = g => g.t === 'L' ? dist(g.a, g.b) : g.r * sweepC(g);
 const sweepC = g => { const a0 = Math.atan2(g.a[1] - g.c[1], g.a[0] - g.c[0]), a1 = Math.atan2(g.b[1] - g.c[1], g.b[0] - g.c[0]); let s = (a1 - a0) * (g.left ? 1 : -1); while (s <= 1e-12) s += 2 * Math.PI; while (s > 2 * Math.PI) s -= 2 * Math.PI; return s; };
@@ -470,10 +548,10 @@ export function atPiece(g, s) {
 // owner, 2026-10-17, on a node laid in and out of one middle by mistake,
 // Screenshot 3.54.39 PM: "maybe mark such a square with the sign !"):
 // cross, per unit, null, 'middle' or 'edge'.
-// o: { brush, join, corner, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
+// o: { brush, swell, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
 export function planOf(rects, o) {
-  const brush = o.brush ?? BRUSH_NEW, units = unitsOf(rects);
-  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), brush, U.step); U.M = magnetsOf(U, rects); }
+  const trail = trailOf(o), units = unitsOf(rects), way = { trail, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
+  for (const U of units) { U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step); U.M = magnetsOf(U, rects); }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
   const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
   const figs = F0.map(F => {
@@ -481,19 +559,19 @@ export function planOf(rects, o) {
     F.us.forEach((id, k) => {
       const U = units[id], next = F.us[k + 1], prev = pts.at(-1), nextMid = next !== undefined ? mid(units[next].box) : null;
       let s, x = null;
-      if (!manual) { const out = k % 2 === 0; s = unitPath(U, rects, brush, out ? 'out' : 'in', null, out ? nextMid ?? prev ?? null : prev ?? null); }
+      if (!manual) { const out = k % 2 === 0; s = unitPath(U, rects, way, out ? 'out' : 'in', null, out ? nextMid ?? prev ?? null : prev ?? null); }
       else {
         const inE = k ? F.ls[k - 1].b : null, outE = next !== undefined ? F.ls[k].a : null, rim = e => e && !e.c;
-        if (rim(inE) && rim(outE)) { s = [...unitPath(U, rects, brush, 'in', inE.p), outE.p]; x = 'edge'; }
-        else if (rim(inE)) s = unitPath(U, rects, brush, 'in', inE.p);
-        else if (rim(outE)) s = unitPath(U, rects, brush, 'out', outE.p);
-        else if (inE && outE) { s = unitPath(U, rects, brush, 'out', null, nextMid); s.push(s[0]); x = 'middle'; }
-        else if (outE) s = unitPath(U, rects, brush, 'in', null, null);
-        else s = unitPath(U, rects, brush, 'out', null, null);
+        if (rim(inE) && rim(outE)) { s = [...unitPath(U, rects, way, 'in', inE.p), outE.p]; x = 'edge'; }
+        else if (rim(inE)) s = unitPath(U, rects, way, 'in', inE.p);
+        else if (rim(outE)) s = unitPath(U, rects, way, 'out', outE.p);
+        else if (inE && outE) { s = unitPath(U, rects, way, 'out', null, nextMid); s.push(s[0]); x = 'middle'; }
+        else if (outE) s = unitPath(U, rects, way, 'in', null, null);
+        else s = unitPath(U, rects, way, 'out', null, null);
       }
       at.push(pts.length); ends.push({ a: s[0], b: s.at(-1) }); cross.push(x); pts.push(...s);
     });
-    const P = jogged(cleanPts(pts), brush / 2), pieces = roundOf(P, o.corner ?? CORNER_NEW), length = pieces.reduce((s, g) => s + lenOf(g), 0);
+    const P = jogged(cleanPts(pts), trail / 2), pieces = roundOf(P, o.corner ?? CORNER_NEW), length = pieces.reduce((s, g) => s + lenOf(g), 0);
     // where each unit starts, mm along the path: the nearest point of the rounded path to its first point
     const along = at.map(i => alongTo(pieces, pts[i]));
     return { ...F, pts: P, pieces, length, along, ends, cross, start: P[0], end: P.at(-1) };
@@ -557,16 +635,15 @@ export function dragSvg(P, o) {
     for (const g of F.pieces) d.push(g.t === 'L' ? `L${f2(g.b[0])} ${f2(Y(g.b[1]))}` : `A${f2(g.r)} ${f2(g.r)} 0 0 ${g.left ? 0 : 1} ${f2(g.b[0])} ${f2(Y(g.b[1]))}`);
     return `  <path d="${d.join(' ')}" data-figure="${F.n}" data-units="${F.us.length}"/>`;
   });
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt INKA · drag · canvas ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one figure, the brush down all the way, in running order; a wipe between them. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n<g id="drag" data-ink="none" data-brush-mm="${o.brush}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>\n</svg>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt INKA · drag · canvas ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one figure, the brush down all the way, in running order; a wipe between them. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n<g id="drag" data-ink="none" data-brush-mm="${o.brush}" data-trail-mm="${trailOf(o)}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>\n</svg>\n`;
 }
 
 // ---------- the paints: sausages across the rings ----------
 // As Florian squeezes his across every lane of his track and the brush lands
 // in them (master_flo_hires/ 11.03.10, 11.20.04 AM): a spoke, a sausage from
-// a unit's outline straight in across its rings to its middle, so every ring
-// takes it up as it passes; round a unit at most SPOKE_GAP apart, so its
-// outer ring never runs RUN_MM without paint (TAPE's paper test); a unit its
-// paint, now and then a second — the next one's, or an accent, thin — and
+// a unit's outline in across its rings, so every ring takes it up as it
+// passes — since 2026-10-19 the arms of an X, corner to the innermost ring
+// (spokesOf); a unit its paint, now and then a second — the next one's, or an accent, thin — and
 // a figure of one unit one pure paint, Heather Day's flat blue among her
 // stains (HDay/ Painting 12; the owner's brown "[", IMG_1027).
 // A sausage: { a, b } canvas mm, along it the paint across the rings, SAUSAGE_W wide.
@@ -578,51 +655,47 @@ export function sausagesOf(rects, ri) {
 const unitOfRect = (units, i) => units.find(U => U.rs.includes(i));
 // a unit's sausages, by its rectangles
 export const unitSausages = (U, rects) => U.rs.flatMap(i => sausagesOf(rects, i));
-// The spoke at an outline point: straight in, square to its side, to the
-// middle — as deep as a square round it still lies inside — a millimetre short
-function spokeFrom(G, e, n) {
-  let lo = 0, hi = Math.max(G.xs.at(-1) - G.xs[0], G.ys.at(-1) - G.ys[0]);
-  const ok = s => squareIn(G, e[0] + n[0] * s, e[1] + n[1] * s, Math.max(1e-6, s - 1e-6));
-  for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; }
-  const s = Math.max(0, lo - 1), a0 = Math.min(SAUSAGE_W / 2, s);                   // its round end on the tile, not past its edge
-  return { a: [e[0] + n[0] * a0, e[1] + n[1] * a0], b: [e[0] + n[0] * s, e[1] + n[1] * s], depth: s };
-}
-// The outline's sides of a unit, the inside on their right: [{ a, b, u, n, L }]
-function sidesOf(G) {
-  const parts = erodeZero(G), out = [];
-  for (const L of parts) L.forEach((v, k) => { const w = L[(k + 1) % L.length], len = dist(v, w), u = unitV(sub(w, v)); out.push({ a: v, b: w, u, n: [u[1], -u[0]], L: len }); });
-  return out;
-}
 function erodeZero(G) {
   const inSet = (i, j) => i >= 0 && j >= 0 && i < G.nx && j < G.ny && !!G.inn[i * G.ny + j], cells = [];
   for (let i = 0; i < G.nx; i++) for (let j = 0; j < G.ny; j++) if (G.inn[i * G.ny + j]) cells.push([i, j]);
   return loopsOf(G.xs, G.ys, inSet, cells);
 }
-// The spokes round a unit: every side long enough a spoke or more, evenly,
-// a little this way or that by the seed; none shallower than the brush's half
-export function spokesOf(U, rects, o, seed) {
-  const G = gridOf(U.rs.map(i => rects[i])), r = rng(seed ^ 0x51ed27), brush = o.brush ?? BRUSH_NEW, out = [];
-  for (const sd of sidesOf(G)) {
-    if (sd.L < 2 * SAUSAGE_W) continue;
-    const n = Math.ceil(sd.L / SPOKE_GAP);
-    for (let k = 0; k < n; k++) {
-      const t = sd.L * Math.max(0.1, Math.min(0.9, (k + 0.5 + (r() - 0.5) * 0.3) / n)), e = [sd.a[0] + sd.u[0] * t, sd.a[1] + sd.u[1] * t], q = spokeFrom(G, e, sd.n);
-      if (q.depth >= brush / 2) out.push({ a: q.a, b: q.b });
+// The spokes a cross, X (the owner, 2026-10-19, Screenshot 2.21.20 PM, his
+// beige tile 1 laid by hand: "show the paint with a cross X, it is logical
+// and simple; at the corners eight times turned out of no use in practice"):
+// from every corner of a tile along its diagonal in to its innermost ring,
+// so every ring crosses each arm and the middle is the brush's; the round end
+// on the tile at the corner, clear of both its sides. A block: from every
+// corner of its outline in at 45°, as far as the middle of its part goes, no
+// deeper than its innermost ring. → [{ a, b }]
+export function spokesOf(U, rects, o = {}) {
+  const R = U.R ?? ringsOf(U.rs.map(i => rects[i]), trailOf(o), U.step), out = [];
+  let n = R.roots[0]; while (n?.kids.length) n = n.kids[0];
+  const L = n?.loops[0], half = k => L ? (Math.max(...L.map(v => v[k])) - Math.min(...L.map(v => v[k]))) / 2 : 0;
+  const arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };
+  if (U.rs.length === 1) {
+    const r = rects[U.rs[0]], c = [r.x + r.w / 2, r.y + r.h / 2], hx = half(0), hy = half(1);
+    for (const k of [[r.x, r.y], [r.x + r.w, r.y], [r.x + r.w, r.y + r.h], [r.x, r.y + r.h]]) {
+      const v = unitV(sub(c, k)), ax = Math.abs(v[0]), ay = Math.abs(v[1]);
+      arm(k, v, SAUSAGE_W / 2 / Math.max(1e-9, Math.min(ax, ay)), dist(k, c) - Math.min(ax > 1e-9 ? hx / ax : Infinity, ay > 1e-9 ? hy / ay : Infinity));
     }
+    return out;
+  }
+  const G = gridOf(U.rs.map(i => rects[i])), cap = (n?.d ?? 0) * Math.SQRT2;
+  for (const Lp of erodeZero(G)) for (const cv of convexOf(Lp)) {
+    const v = unitV(cv.diag), ok = s => squareIn(G, cv.v[0] + v[0] * s, cv.v[1] + v[1] * s, Math.max(1e-6, s / Math.SQRT2 - 1e-6));
+    let lo = 0, hi = Math.max(G.xs.at(-1) - G.xs[0], G.ys.at(-1) - G.ys[0]) * Math.SQRT2;
+    for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; }
+    arm(cv.v, v, SAUSAGE_W / 2 * Math.SQRT2, Math.min(lo - 1, cap));
   }
   return out;
 }
-// The spoke M lays at a point of a unit: from the side nearest it, through it, to the middle
-export function spokeAt(U, rects, p) {
-  const G = gridOf(U.rs.map(i => rects[i]));
+// The spoke M lays at a point of a unit: the arm of its X nearest it
+const segD = (p, a, b) => { const v = sub(b, a), l2 = v[0] * v[0] + v[1] * v[1], t = l2 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * v[0] + (p[1] - a[1]) * v[1]) / l2)) : 0; return Math.hypot(p[0] - a[0] - t * v[0], p[1] - a[1] - t * v[1]); };
+export function spokeAt(U, rects, p, o = {}) {
   let best = null, bd = Infinity;
-  for (const sd of sidesOf(G)) {
-    const t = Math.max(0, Math.min(sd.L, (p[0] - sd.a[0]) * sd.u[0] + (p[1] - sd.a[1]) * sd.u[1])), e = [sd.a[0] + sd.u[0] * t, sd.a[1] + sd.u[1] * t], d = dist(e, p);
-    if (d < bd) { bd = d; best = { sd, e }; }
-  }
-  if (!best) return null;
-  const q = spokeFrom(G, best.e, best.sd.n);
-  return q.depth > 0.5 ? { a: q.a, b: q.b } : null;
+  for (const q of spokesOf(U, rects, o)) { const d = segD(p, q.a, q.b); if (d < bd) { bd = d; best = q; } }
+  return best;
 }
 // a sausage in the fractions of the rectangle of its unit its middle lies in
 export function keepIn(U, rects, q) {
@@ -682,7 +755,7 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {})
       }
     }
     main[id] = p1; used[p1] = (used[p1] || 0) + 1;
-    const places = mode === 'colours' && had.length ? had.map(q => ({ a: q.a, b: q.b, old: q.paint })) : spokesOf(U, rects, o, seed + 7919 * (k + 1));
+    const places = mode === 'colours' && had.length ? had.map(q => ({ a: q.a, b: q.b, old: q.paint })) : spokesOf(U, rects, o);
     const two = p2 ? Math.floor(r() * places.length) : -1;
     places.forEach((q, m) => {
       const paint = mode === 'colours' && had.length ? (q.old === was[0] ? p1 : p2 ?? p1) : m === two ? p2 : p1;
@@ -754,12 +827,13 @@ export function stepsOf(P) {
   }
   return { n: X.length, x: Float32Array.from(X), y: Float32Array.from(Yv), tx: Float32Array.from(TX), ty: Float32Array.from(TY), ds: Float32Array.from(D), k: Float32Array.from(K), s: Float32Array.from(S), fig: Int32Array.from(FG) };
 }
-// o: { cw, ch, brush, density, h } → the sim: advance(n) steps it, rgba(img, all) paints its cells into an ImageData's data, row 0 the canvas's top
+// The grooves across the trail, the brush as it lays the paint, swollen.
+// o: { cw, ch, brush, swell, density, h } → the sim: advance(n) steps it, rgba(img, all) paints its cells into an ImageData's data, row 0 the canvas's top
 export function simOf(P, rects, o) {
   const W = o.cw, H = o.ch, h = o.h ?? Math.max(0.4, Math.max(W, H) / 900), nx = Math.ceil(W / h), ny = Math.ceil(H / h), N = nx * ny;
   const amt = new Float32Array(N), lc = new Float32Array(3 * N), sh = new Float32Array(N), dirty = new Uint8Array(N), dlist = [];
   const mark = c => { if (!dirty[c]) { dirty[c] = 1; dlist.push(c); } };
-  const V = paintOf(o.density ?? DENSITY_NEW), brush = o.brush ?? BRUSH_NEW;
+  const V = paintOf(o.density ?? DENSITY_NEW), brush = trailOf(o);
   // the sausages, squeezed: a capsule SAUSAGE_W wide along each
   let squeezed = 0;
   for (const F of P.figs) for (const id of F.us) for (const q of unitSausages(P.units[id], rects)) {

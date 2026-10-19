@@ -23,7 +23,7 @@ import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from '
 import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
 import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, INKA_META, figName, lenOf, atPiece,
-  STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, JOIN_NEW, CORNER_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
+  STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE } from './inkaplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
@@ -37,18 +37,18 @@ const fin = v => Number.isFinite(v);
 
 // ---------- state ----------
 // The tiles in their order — a figure runs in the order of its first tile —
-// the chosen one, the tool. The brush, DRAG's speed, the turns' radius, how
-// near tiles are one figure, how high the brush goes to be wiped; the flights
-// and the tail as CCD's.
+// the chosen one, the tool. The brush, and what the paint swells it by, DRAG's
+// speed, the turns' radius, the S from ring to ring, how near tiles are one
+// figure, how high the brush goes to be wiped; the flights and the tail as CCD's.
 const S = {
   rects: [], sel: 0, tool: 'edit',
-  brush: BRUSH_NEW, drag: 40, corner: CORNER_NEW, join: JOIN_NEW, wipe: WIPE_NEW, travel: 180, tail: 3,
+  brush: BRUSH_NEW, swell: SWELL_NEW, drag: 40, corner: CORNER_NEW, change: CHANGE_NEW, join: JOIN_NEW, wipe: WIPE_NEW, travel: 180, tail: 3,
   boardW: 500, boardH: 700, edgeLeft: 50, edgeBottom: 0,
   refOpacity: 30,
   view: 'drag', density: DENSITY_NEW, paint: 'brown', ink: true,                  // the view; the paint in a sausage; M's paint; INK, MARKS' watercolour and TEST's dip
   nodes: [], nodeSel: -1,                                                            // the brush's way by hand (inkaplan.js, linksOf); the node chosen
 };
-const NUM = ['sel', 'brush', 'drag', 'corner', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
+const NUM = ['sel', 'brush', 'swell', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
 const TOOLS = ['edit', 'rect', 'node', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
@@ -85,10 +85,11 @@ function paperTest() {
 }
 
 // ---------- the plan (inkaplan.js) ----------
-const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, join: S.join, corner: S.corner, nodes: S.nodes });
+const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, swell: S.swell, join: S.join, corner: S.corner, change: S.change, nodes: S.nodes });
+const trail = () => paintTrail(po());   // what the brush lays with paint, swollen
 let PL = null, plKey = '';
 function planNow() {
-  const key = JSON.stringify([S.rects.map(r => [r.id, r.x, r.y, r.w, r.h, r.step, r.turn]), S.brush, S.join, S.corner, S.nodes]);
+  const key = JSON.stringify([S.rects.map(r => [r.id, r.x, r.y, r.w, r.h, r.step, r.turn]), S.brush, S.swell, S.join, S.corner, S.change, S.nodes]);
   if (PL && key === plKey) return PL;
   plKey = key; PL = planOf(S.rects, po());
   return PL;
@@ -220,8 +221,9 @@ function draw() {
 }
 
 // ---------- Drag: every figure's path ----------
-// The path as the brush lays it, a faint strip its width — where the rings
-// overlap darker, white where they leave a gap — and its centre line; an
+// The path as the brush lays it, a faint strip as wide as its paint — the
+// brush swollen, its trail (the owner, 2026-10-19) — where the rings overlap
+// darker, white where they leave a gap; and its centre line; an
 // orange dot where the brush lands, a ring where it lifts; every tile's
 // place in the run, a number where the brush comes onto it, an arrow its
 // way; the flight to the next figure dashed blue, ❚❚ where the brush is
@@ -242,7 +244,7 @@ function drawPaths() {
   g.save(); inMm(g); g.lineCap = 'round'; g.lineJoin = 'round';
   for (const F of P.figs) {
     if (!F.pieces.length) continue;
-    g.strokeStyle = 'rgba(36,34,31,.11)'; g.lineWidth = S.brush; trace(g, F.pieces); g.stroke();
+    g.strokeStyle = 'rgba(36,34,31,.11)'; g.lineWidth = trail(); trace(g, F.pieces); g.stroke();
     g.strokeStyle = 'rgba(36,34,31,.42)'; g.lineWidth = 1 / k; trace(g, F.pieces); g.stroke();
   }
   g.restore();
@@ -352,10 +354,10 @@ function drawSausages() {
 // The brush through the sausages, figure by figure, as DRAG runs (inkaplan.js,
 // simOf), on a grid of the canvas, drawn once into a bitmap while nothing
 // changes. Play the run (ALU's): the same walk again from the squeezed
-// sausages on, a mm a step, the bitmap laid as it goes, a ring the brush's
+// sausages on, a mm a step, the bitmap laid as it goes, a ring its paint's
 // width where it is; 6 s and 2 ms a mm, 26 s at most; pressed again, it stops.
 let RESULT = null, PLAY = null;
-const resultKey = () => JSON.stringify([plKey, S.rects.map(r => r.ss), S.density, S.brush, S.boardW, S.boardH]);
+const resultKey = () => JSON.stringify([plKey, S.rects.map(r => r.ss), S.density, S.brush, S.swell, S.boardW, S.boardH]);
 function bitmapOf(sim) {
   const c2 = document.createElement('canvas'); c2.width = sim.nx; c2.height = sim.ny;
   const c = c2.getContext('2d'), img = c.createImageData(sim.nx, sim.ny);
@@ -382,7 +384,7 @@ function drawResult() {
     if (PLAY.sim.at) {
       const p = scr(PLAY.sim.at);
       g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.strokeStyle = '#24221F'; g.fillStyle = '#24221F'; g.lineWidth = 1.2;
-      g.beginPath(); g.arc(p[0], p[1], Math.max(3, S.brush / 2 * k), 0, 7); g.stroke();
+      g.beginPath(); g.arc(p[0], p[1], Math.max(3, trail() / 2 * k), 0, 7); g.stroke();
       g.beginPath(); g.arc(p[0], p[1], 1.8, 0, 7); g.fill(); g.restore();
     }
     return;
@@ -497,7 +499,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'drag', 'corner', 'join', 'wipe', 'density', 'nodes'];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes'];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -552,14 +554,14 @@ function paintAt(p) {
   const i = rectAt(p); if (i < 0) return;
   const U = unitOfRect(i); if (!U) return;
   undoPush(); S.sel = i;
-  const hit = sausagesOf(S.rects).find(q => segDist(p, q.a, q.b) <= SAUSAGE_W / 2 + 1);
+  const arm = spokeAt(U, S.rects, p, po()), same = q => arm && Math.hypot(q.a[0] - arm.a[0], q.a[1] - arm.a[1]) < 0.5 && Math.hypot(q.b[0] - arm.b[0], q.b[1] - arm.b[1]) < 0.5;
+  const on = sausagesOf(S.rects).find(q => segDist(p, q.a, q.b) <= SAUSAGE_W / 2 + 1), hit = on ?? sausagesOf(S.rects).find(same);   // on a sausage, or its X's arm there lying already: repainted, never twice
   if (hit) {
     const ss = S.rects[hit.ri].ss;
-    if (ss[hit.k].paint === S.paint) ss.splice(hit.k, 1); else { ss[hit.k].paint = S.paint; delete ss[hit.k].thin; }
+    if (ss[hit.k].paint === S.paint) { if (!on) { undoStack.pop(); return; } ss.splice(hit.k, 1); } else { ss[hit.k].paint = S.paint; delete ss[hit.k].thin; }
   } else {
-    const q = spokeAt(U, S.rects, p);
-    if (!q) { undoStack.pop(); return; }
-    const { i: j, s } = keepIn(U, S.rects, { ...q, paint: S.paint }); S.rects[j].ss.push(s);
+    if (!arm) { undoStack.pop(); return; }
+    const { i: j, s } = keepIn(U, S.rects, { ...arm, paint: S.paint }); S.rects[j].ss.push(s);
   }
   settle();
 }
@@ -699,7 +701,7 @@ const HINT = {
   edit: 'Edit: drag a tile to move it, its handles to stretch it; a click chooses it, ⇧ and a click one more; ⌘A all of them; the arrows move it a mm, with ⇧ ten; ⌫ takes it away. Its edges snap to the canvas\'s and the other tiles\' — side by side they are one figure; laid over one another, one block.',
   rect: 'Tile: drag on the canvas to lay one, its step the chosen one\'s. Side by side with others it joins their figure, the brush on through it; over another it melts into it, one block, one outline — the "[".',
   node: 'N: drag from a magnet of a tile — its middle, a corner, a side\'s middle — to one of the next: the brush\'s way. Into a tile\'s middle it spirals out to where its next node leaves; into its edge it spirals in from there to its middle. A tile one way out and one in: a new node takes the old one\'s place. A click on a node chooses it, ⌫ takes it away.',
-  paint: 'M: a click on a tile lays a spoke of the chosen paint from its nearest side across the rings to the middle; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
+  paint: 'M: a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal in to the innermost ring; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
 };
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
 document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
@@ -782,15 +784,17 @@ addEventListener('keydown', e => {
 });
 
 // ---------- the panel ----------
-const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['corner', 'Corners', 'mm', 0.5, 0.5, 20], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
+const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 0.5, 50], ['swell', 'With paint', 'mm', 0.5, 0, 20], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX], ['corner', 'Corners', 'mm', 0.5, 0.5, 20], ['change', 'Ring change', 'mm', 1, 0, 80], ['join', 'One figure: tiles apart up to', 'mm', 0.5, 0, 50], ['wipe', 'Wipe: the brush up to', '°', 1, 25, ELBOW_MAX]];
 const SL_TITLE = {
-  brush: 'The round brush: a ring\'s width; the outer ring\'s edge on the tile\'s',
+  brush: 'The round brush as set, dry; with paint it lays wider — With paint below. MARKS\' dashes go by it',
+  swell: 'The brush is no felt-tip: it takes up the paint and swells (the owner, 2026-10-19: «the brush is not a felt-tip or a Posca marker … it swells in volume»). Its trail this much wider than Brush width — 9 mm at 3.5 by the ruler on his canvas of 2026-10-17, so 5.5 (est. at other widths). The rings, the Drag strip and the Result go by the trail: the outer ring its half in from the tile\'s edge, so the paint ends on it; the innermost the trail wide, its paint meeting in the middle',
   drag: 'The dry brush along the path; slower through the turns, never to a stop',
+  change: 'Where a ring\'s seam is a side\'s middle — a node there — the brush goes in to the next ring by an S this long, or as long as the side lets it, as TAPE\'s lane change (the owner, 2026-10-19: «let the transition be as in TAPE or BASF»); 0, as short as a step (est.)',
   corner: 'Every turn of the path a tangent arc this round, or as round as its sides let it — so the board runs through it and never stops (the owner, 2026-10-17: "rounded corners … a stop of the brush during the process kills the effect"); on it ≈ √(250 · r) mm/s at most (est.)',
   join: 'Tiles this near each other, side by side, are one figure — the brush on through them without a lift; farther apart, a figure each, a wipe between (est.)',
   wipe: 'Before every next figure the brush flies over its start and goes up this far at the elbow — +45° its highest — for you to wipe it; Continue brings it down (the owner, 2026-10-17: "here the brush can be lifted up, so that I wipe it"; est.)',
 };
-const valOf = key => key === 'drag' ? `${S.drag} mm/s` : key === 'wipe' ? `+${S.wipe}°` : key === 'corner' ? `${fmt(S.corner, 1)} mm · ≈ ${Math.min(S.drag, Math.floor(Math.sqrt(250 * S.corner)))} mm/s` : `${fmt(S[key], 1)} mm`;
+const valOf = key => key === 'drag' ? `${S.drag} mm/s` : key === 'wipe' ? `+${S.wipe}°` : key === 'swell' ? `+${fmt(S.swell, 1)} mm · ${fmt(trail(), 1)} mm on the canvas` : key === 'corner' ? `${fmt(S.corner, 1)} mm · ≈ ${Math.min(S.drag, Math.floor(Math.sqrt(250 * S.corner)))} mm/s` : `${fmt(S[key], 1)} mm`;
 $('#slBrush').innerHTML = BRUSH_SL.map(([key, label, , step, min, max]) => `<label class="sl" title="${SL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
 $('#slBrush').querySelectorAll('input').forEach(inp => {
   inp.oninput = () => { if (!busy) undoPush(); busy = true; S[inp.dataset.k] = +inp.value; showPanel(); kick(); };
@@ -822,8 +826,8 @@ function showRect() {
   box.innerHTML = `${many}
     <h4>Tile ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm</h4>
     <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round this tile clockwise as it paints it, in or out">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round this tile anticlockwise as it paints it, in or out">↺ Anticlockwise</button></div>
-    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush, white ridges between the rings, Florian's; narrower, they overlap"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label></div>
-    <p class="read" id="rGap">${tileText(S.sel)} · ${r.step > S.brush + 0.05 ? `white <b>${fmt(r.step - S.brush, 1)} mm</b> between the rings` : r.step < S.brush - 0.05 ? `the rings overlapping by <b>${fmt(S.brush - r.step, 1)} mm</b>` : 'ring to ring'}</p>
+    <div class="sliders"><label class="sl" title="Ring to ring, centre to centre, ${STEP_MIN} … ${STEP_MAX} mm: wider than the brush's trail with paint, white ridges between the rings, Florian's; narrower, they overlap. The innermost one nearer, where its paint meets in the middle"><span class="slh"><span>Step</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label></div>
+    <p class="read" id="rGap">${tileText(S.sel)} · ${r.step > trail() + 0.05 ? `white <b>${fmt(r.step - trail(), 1)} mm</b> between the rings` : r.step < trail() - 0.05 ? `the rings' paint overlapping by <b>${fmt(trail() - r.step, 1)} mm</b>` : 'ring to ring'}</p>
     <div class="grid4">${R_FIELDS.map(([q, l, t]) => `<label title="${t}">${l} <input data-r="${q}" type="number" step="0.5"${q === 'w' || q === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
     <div class="grid4 keys"><button class="btn" id="rFit" title="This tile the whole canvas">Whole canvas</button><button class="btn" id="rDup" title="A copy of it beside it on the right, touching: the same figure">Duplicate</button></div>
     <div class="grid4 keys three"><button class="btn" id="rEarly"${S.sel === 0 ? ' disabled' : ''} title="Earlier in the list: a figure runs in the order of its first tile">Run earlier</button><button class="btn" id="rLate"${S.sel === S.rects.length - 1 ? ' disabled' : ''} title="Later in the list">Run later</button><button class="btn" id="rDel" title="Take it away — or ⌫ on the keyboard; ⌘Z brings it back">Delete</button></div>`;
@@ -958,7 +962,7 @@ function showPaints() {
   if (document.activeElement !== $('#dens')) $('#dens').value = S.density;
   $('#o-dens').textContent = densityText();
   $('#paintRead').innerHTML = [
-    'The sausages, where you squeeze the paints: spokes from a tile\'s side straight in across its rings to the middle, as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes — round a tile at most 60 mm apart. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. M and a paint in the strip: a click on a tile.',
+    'The sausages, where you squeeze the paints: a cross, X, on every tile — from each corner along the diagonal in to the innermost ring (the owner, 2026-10-19: «logical and simple»), as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes; a block, from every corner of its outline. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. M and a paint in the strip: a click on a tile.',
     F && `<b>${ss.length}</b> sausage${ss.length === 1 ? '' : 's'} in figure ${F.n}, ${F.us.length} tile${F.us.length === 1 ? '' : 's'}`,
     `Density ${S.density} %: a sausage keeps the line full about ${fmt(reachAt(S.density).full, 0)} mm, gone by ${fmt(reachAt(S.density).gone, 0)}${S.density === DENSITY_NEW ? ' — the measure, TAPE-colors/IMAGE 2026-10-12 19:23:33' : ' (est.; 50 % the measure)'}`,
     pal && pal.name !== 'Own' && `Palette <b>${pal.name}</b>: ${pal.core.map(id => PAINT[id].name).join(', ')}${pal.accent.length ? `; thin: ${pal.accent.map(id => PAINT[id].name).join(', ')}` : ''}${pal.pure ? `; a lone figure ${PAINT[pal.pure].name}` : ''} · seed ${pal.seed}`,
@@ -1062,7 +1066,7 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 // As CCD's: an SVG of the canvas in mm — the tiles, the figures' paths, the
 // sausages — the whole state in its metadata, a PNG preview; its label
 // INKA: the Library opens it here.
-const label = () => `${TAB_NAME} · ${what()} · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm`;
+const label = () => `${TAB_NAME} · ${what()} · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm, ${fmt(trail(), 1)} with paint`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
   const meta = JSON.stringify({ rembrandt: '1.0.9', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
@@ -1074,7 +1078,7 @@ function svgOf() {
 <!-- Rembrandt v.1.0.9 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's figures in running order -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${GROUND}" stroke="#24221F" stroke-width="0.5"/>
-<g id="paths" fill="none" stroke="#24221F" stroke-opacity="0.12" stroke-width="${f(S.brush)}" stroke-linejoin="round" stroke-linecap="round">
+<g id="paths" fill="none" stroke="#24221F" stroke-opacity="0.12" stroke-width="${f(trail())}" stroke-linejoin="round" stroke-linecap="round">
 ${paths.join('\n')}
 </g>
 <g id="tiles" fill="none" stroke="#EB7A25" stroke-width="0.5">
