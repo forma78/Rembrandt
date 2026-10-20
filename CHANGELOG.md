@@ -9,6 +9,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **ST-JOHN: the ⌘ from the top left lobe's window out** (the owner,
+  2026-10-20, the first tests, St_John/ IMG_1215 and Screenshot 10.14.40
+  AM: "our main flaw — now it starts from the middle and as it goes it goes
+  to the lobes. We need it the other way round"; Screenshot 10.29.11 AM and
+  on: "first the top left lobe, from there it pushes the paint into the
+  bottom left. Then into the bottom right"). The lobes in the brush's
+  order, 1 the top left, 2 the bottom left, 3 the bottom right, 4 the top
+  right, each clockwise as before; the brush lands on lobe 1's innermost
+  ring and goes loop after loop outward, the ring change an S on lobe 1's
+  bottom, landing in its middle, the S's one under another. ↺ mirrored,
+  from the top right. On his 40 × 40, Width 76, Corners 100: 49.4 m, 35
+  dips of TRACE (est.).
+
 - **ST-JOHN: TRACE a dip every 1440 mm** (the owner, 2026-10-19, the same
   evening, testing, on 720 between dips: "1440 can easily be done — it is
   all water here :)"). TRACE_DIP, ST-JOHN's TRACE's own; NOLAN's, ALU's and

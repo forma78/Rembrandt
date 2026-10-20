@@ -69,7 +69,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19); its **spot**, the brightest speck, one tile only. |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **ST-JOHN** | INKA's page with ⌘, St. John's Arms, after INKA in the top row since 2026-10-19 (§1, §8): INKA's tiles, nodes, paints, DRAG and Result, ⌘ in the Tools between R and N, and TRACE in MARKS' place. `stjohn.html`, its body `data-tab="stjohn"`; INKA's page module `inka.js` and plan `inkaplan.js`, its own keep and Library label. The owner's references in `St_John/`. |
-| **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left, the owner's numbers on the old sign — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, up its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands in the middle on the outermost loop and goes loop after loop inward, from one to the next by the ring change, an S on lobe 4's top: one line, no lift. ↺, the sign mirrored. **Width**: the loop edge to edge, as ALU-CUT's pipe — the rings only so far in from the sign's outline, a window in every lobe, the grid in the middle 2 Width across; at half a lobe the lobes filled; a new one's a fifth of its box, the owner's best, 74 mm on his 387. Its turns concentric: the outer ring's Corners, each ring inside it its depth less, never under 4 mm, never past half its ring's side — at Corners 100 every ring round, three quarters of a circle and its straight inner sides, the windows too. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
+| **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the top left, 2 the bottom left, 3 the bottom right, 4 the top right (since 2026-10-20; until then the bottom right first, the owner's numbers on the old sign) — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, down its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands on lobe 1's innermost ring, round its window, and goes loop after loop outward, from one to the next by the ring change, an S on lobe 1's bottom: one line, no lift (since 2026-10-20; from the middle inward before). ↺, the sign mirrored. **Width**: the loop edge to edge, as ALU-CUT's pipe — the rings only so far in from the sign's outline, a window in every lobe, the grid in the middle 2 Width across; at half a lobe the lobes filled; a new one's a fifth of its box, the owner's best, 74 mm on his 387. Its turns concentric: the outer ring's Corners, each ring inside it its depth less, never under 4 mm, never past half its ring's side — at Corners 100 every ring round, three quarters of a circle and its straight inner sides, the windows too. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
 | **TRACE (on ST-JOHN)** | In MARKS' place on ST-JOHN's deck (2026-10-19): every figure's path, the very line DRAG runs, at DRAG's speed, figure after figure, no wipe — with INK ON the same brush in tinted water from the cup, a dip every 1440 mm (TRACE_DIP, the owner's, 2026-10-19; est.; NOLAN's, ALU's and TAPE's 720), each next stretch on from 20 mm back (DIP_LAP); the trace the owner squeezes the paint on, as Florian, before DRAG. Not TYPE's TRACE of outlines. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -835,6 +835,24 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   far TRACE goes between dips, 720: "1440 can easily be done — it is all
   water here :)"): TRACE_DIP, ST-JOHN's own, NOLAN's, ALU's and TAPE's 720
   as they were; 34 dips, ≈ 27 min on his 40 × 40 (est.).
+  **From the top left lobe's window out** (the owner, 2026-10-20, the
+  first tests, `St_John/` IMG_1215 — the trace squeezed in blue — and
+  Screenshot 10.14.40 AM, the brush in the middle's grid: "our main flaw —
+  now it starts from the middle and as it goes it goes to the lobes. We
+  need it the other way round", Screenshot 10.29.11 AM and on, his red and
+  purple loops: "first the top left lobe, from there it pushes the paint
+  into the bottom left. Then into the bottom right"): the lobes renumbered
+  in the brush's order, 1 the top left, 2 the bottom left, 3 the bottom
+  right, 4 the top right, each clockwise as before — the loop the same line,
+  the second paint on 2 and 4 the same lobes; the brush lands on lobe 1's
+  innermost ring, round its window, and goes loop after loop outward, the
+  ring change an S on lobe 1's bottom, landing in its middle (or where the
+  next ring's turn begins, if further on), Ring change long before it, so
+  the S's lie one under another; the first loop begins where it ends, the
+  innermost ring closed round its window, the last ends where it began.
+  *Claude's choices*: where the S lies; ↺, the sign mirrored, from the top
+  right. On his 40 × 40, Width 76, Corners 100, Step 3: 49.4 m, 25 loops,
+  35 dips of TRACE (est.).
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1602,8 +1620,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   one value for the whole canvas as on INKA. The chosen one's reading under
   its **i**, by its name (the owner: "this text we hide under (i)"); both
   on INKA too since the same evening ("they are alike"). The panel's keys ⌘ n;
-  the reading of the chosen one its loops, from its middle in, the lobes
-  1 ↘ 2 ↗ 3 ↖ 4 ↙, its Width, the windows and the grid. Drag, Result, ▶ Play the
+  the reading of the chosen one its loops, from lobe 1's window out, the
+  lobes 1 ↖ 2 ↙ 3 ↘ 4 ↗, its Width, the windows and the grid. Drag, Result, ▶ Play the
   run and DRAG as INKA's, the ⌘ one figure, a wipe before the next. The deck
   **TRACE · DRAG**, TRACE in MARKS' place: DRAG's own line, with INK ON in
   tinted water, a dip every 1440 mm; on Drag a blue ring where it goes on
