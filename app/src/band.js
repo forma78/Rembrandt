@@ -11,6 +11,7 @@
 // No DOM here.
 
 import { biarc, at, pieceLen, sweepOf } from './strokes.js';
+import { PREFS_NEW, testPrefs } from './prefs.js';
 
 export const DIP_RUN = 720;   // mm a dip carries along a row (the owner, 2026-10-04: "all 720 mm will go easily"), est.
 // A row split for a dip goes on from this far back: the brush ran dry before
@@ -534,25 +535,37 @@ export function washOf(preview, band, runs, width, box = null) {
 // bottom left corner; I press TEST and it dips in the paint and puts dots at
 // the farthest corners, TL TR / BL BR". The corners are the board's, not the
 // drawing's (the owner, 2026-10-05: "the edges depend on the shape, and they
-// must depend on the board's width and height"): every dot TEST_MARGIN mm in
+// must depend on the board's width and height"): every dot the margin in
 // from both its edges, at any Board width and height ("so I can make the
-// board 400 × 600 mm, and the points keep their 20 mm from the edge"). Round
-// the board in one go — TL, TR, BR, BL — and home, at the bottom left ("so a
-// neat square is cut"; before, BL TL TR BR, the way home crossed it). w, h:
-// the board, mm; machine mm from Here, its centre: X up, Y right. A dot is a
-// stroke DOT_MM long from its point towards the centre; one dip before the
-// first, the others shorter than NO_DIP go on what the brush holds.
-// → { box, dots: [{ name, at, to }], passes } for plotRun.
-export const TEST_MARGIN = 20;   // mm, the owner's
+// board 400 × 600 mm, and the points keep their 20 mm from the edge"); 10 mm
+// since 2026-10-20 ("too big a margin, 20 mm — let's make it 10"), set in
+// Preferences (prefs.js). Round the board in one go — TL, TR, BR, BL — and
+// home, at the bottom left ("so a neat square is cut"; before, BL TL TR BR,
+// the way home crossed it). TL two dots, a wait between, as Preferences say
+// (the owner, 2026-10-20: "on the first top point I need two touches of the
+// brush 5 seconds apart. When I put a new canvas I do not understand where
+// to put it"): the brush up between them. w, h: the board, mm; machine mm
+// from Here, its centre: X up, Y right. A dot is a stroke DOT_MM long from
+// its point towards the centre; one dip before the first, the others
+// shorter than NO_DIP go on what the brush holds.
+// o: { margin, first, gap, dot } → { box, dots: [{ name, at, to, wait? }], passes } for plotRun.
+export const TEST_MARGIN = PREFS_NEW.testMargin;   // mm, the owner's: 20 until 2026-10-20
 export const DOT_MM = 6;         // est.
-export function cornerDots(w, h, margin = TEST_MARGIN, dot = DOT_MM) {
+export function cornerDots(w, h, o = testPrefs()) {
+  const margin = o.margin ?? TEST_MARGIN, dot = o.dot ?? DOT_MM;
   if (!(w > 2 * margin) || !(h > 2 * margin)) return { box: null, dots: [], passes: [] };
   const box = { x0: -h / 2 + margin, x1: h / 2 - margin, y0: -w / 2 + margin, y1: w / 2 - margin };
   const dots = [['TL', box.x1, box.y0], ['TR', box.x1, box.y1], ['BR', box.x0, box.y1], ['BL', box.x0, box.y0]].map(([name, x, y]) => {
     const u = unit2(-x, -y), l = Math.min(dot, Math.hypot(x, y));
     return { name, at: { x, y }, to: { x: x + u.x * l, y: y + u.y * l } };
   });
-  return { box, dots, passes: [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }] };
+  if ((o.first ?? 1) >= 2) dots.splice(1, 0, { ...dots[0], name: 'TL again', wait: o.gap ?? 0 });
+  return { box, dots, passes: [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1, ...(d.wait !== undefined ? { wait: d.wait } : {}) }]), why: null }] };
+}
+// for the pages' words: the margin, and what TEST does, as Preferences say
+export const testMargin = () => testPrefs().margin;
+export function testSay(p = testPrefs()) {
+  return `a dot ${p.margin} mm in from each corner${p.first >= 2 ? `, two at TL ${p.gap} s apart,` : ''}`;
 }
 
 // ---------- into lines and arcs, for the machine ----------

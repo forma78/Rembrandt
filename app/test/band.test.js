@@ -357,28 +357,38 @@ test('the wash on the paper: fresh after a dip and paler along it; rows under WA
 
 // The owner, 2026-10-04: "before PLAY a test: the brush dips in the paint and
 // puts dots at the farthest corners"; 2026-10-05: the board's corners, 20 mm
-// in from its edges at any size, round it TL TR BR BL, then home.
-test('TEST: one dip, a dot 20 mm in from each corner of the board, TL TR BR BL, home', () => {
+// in from its edges at any size, round it TL TR BR BL, then home; 2026-10-20,
+// Preferences: 10 mm ("too big a margin"), and at TL two dots 5 s apart
+// ("when I put a new canvas I do not understand where to put it").
+test('TEST: one dip, a dot the margin in from each corner of the board, TL twice with a wait, TR BR BL, home', () => {
   const cup = { x: 390.18, y: 0.1, est: {}, diameter: 50, height: 20, rim: 30, dip: -3, dwell: 1 };
-  const o = { ...DEFAULTS, ink: true, snake: true, pause: false, lift: false, tail: 3, here: { x: 350, y: 300 }, cup, noDipUnder: NO_DIP, hover: ELBOW_HOVER, rows: 4 };
+  const o = { ...DEFAULTS, ink: true, snake: true, pause: false, lift: false, tail: 3, here: { x: 350, y: 300 }, cup, noDipUnder: NO_DIP, hover: ELBOW_HOVER };
+  assert.equal(TEST_MARGIN, 10, 'the owner\'s, 2026-10-20: 10, not 20');
   for (const [w, h] of [[500, 700], [400, 600], [300, 300]]) {
     const T = cornerDots(w, h);
-    assert.deepEqual(T.dots.map(d => d.name), ['TL', 'TR', 'BR', 'BL'], 'round the board, home last');
+    assert.deepEqual(T.dots.map(d => d.name), ['TL', 'TL again', 'TR', 'BR', 'BL'], 'round the board, TL twice, home last');
     for (const d of T.dots) {
       const fromSide = w / 2 - Math.abs(d.at.y), fromEnd = h / 2 - Math.abs(d.at.x);
       assert.ok(close(fromSide, TEST_MARGIN) && close(fromEnd, TEST_MARGIN), `${w} × ${h} ${d.name}: ${fromSide} and ${fromEnd} mm from its edges`);
       assert.ok(close(Math.hypot(d.to.x - d.at.x, d.to.y - d.at.y), DOT_MM), `${d.name}: ${DOT_MM} mm`);
       assert.ok(Math.hypot(d.to.x, d.to.y) < Math.hypot(d.at.x, d.at.y), `${d.name}: towards the centre`);
     }
-    const [TL, TR, BR, BL] = T.dots.map(d => d.at);
+    const [TL, TL2, TR, BR, BL] = T.dots.map(d => d.at);
+    assert.deepEqual(TL2, TL, 'the second where the first');
     assert.ok(TL.x > 0 && TL.y < 0 && TR.x > 0 && TR.y > 0 && BR.x < 0 && BR.y > 0 && BL.x < 0 && BL.y < 0, 'each in its corner');
-    const t = plotRun(o, T.passes);
+    const t = plotRun({ ...o, rows: T.dots.length }, T.passes), one = plotRun({ ...o, rows: 4 }, cornerDots(w, h, { margin: 10, first: 1 }).passes);
     assert.equal(t.dips, 1, 'one dip, before the first dot');
-    assert.deepEqual(t.blocks.filter(x => x.kind === 'move' && x.paintMM > 0).map(x => x.row), [1, 2, 3, 4]);
+    assert.deepEqual(t.blocks.filter(x => x.kind === 'move' && x.paintMM > 0).map(x => x.row), [1, 2, 3, 4, 5]);
+    const k = t.blocks.findIndex(x => x.kind === 'wait' && x.row === 2);
+    assert.ok(k > 0 && t.blocks[k].s === 5 && t.blocks[k - 1].kind === 'arm' && t.blocks[k - 1].row === 1, 'the wait after TL\'s first dot, the brush up');
+    assert.ok(t.seconds - one.seconds > 5 && t.seconds - one.seconds < 15, `the wait and the second dot in the time: ${t.seconds - one.seconds} s more`);
     assert.ok(t.blocks.at(-1).home, 'home at the end');
     assert.equal(t.fault, '');
   }
-  assert.deepEqual(cornerDots(40, 700).dots, [], 'a board 40 mm across: no room for the dots');
+  const old = cornerDots(400, 600, { margin: 20, first: 1 });
+  assert.deepEqual(old.dots.map(d => d.name), ['TL', 'TR', 'BR', 'BL'], 'one dot at TL, as before 2026-10-20');
+  assert.ok(close(200 - Math.abs(old.dots[0].at.y), 20));
+  assert.deepEqual(cornerDots(20, 700).dots, [], 'a board 20 mm across: no room for the dots');
 });
 
 // The owner, 2026-10-05: "with the brush only flat, no twisting into bundles

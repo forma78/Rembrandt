@@ -21,7 +21,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, WRIST_MAX, TAIL_MIN, TAIL_MAX, sweepOf } from './strokes.js';
-import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
+import { cornerDots, testMargin, testSay, NO_DIP } from './band.js';
 import { cleanCloth, rectOf, planOf, piecesOf, toCanvas, bowsOf, dragRows, runPasses, dragSvg, marksRows, mixAll, windowOf, LOOM_TONES, WEAVE_NAME, HALVES, MODES,
   ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, BRUSH_NEW, DRAG_NEW, HOP_NEW, TAIL_NEW, RUNOUT_NEW, MARGIN_NEW, CLEAR_NEW, OVERLAP_NEW, DENSITY_NEW, MARKS_DIP } from './loomplan.js';
 import { newPattern, recolour, reRows, rowsOf, sausagesOf, stripeAt, markOf, rowName } from './biasplan.js';
@@ -705,7 +705,7 @@ function settle() {
   lines.push(`${layerName()}: <b>${P.lanes}</b> strips, ${WEAVE_NAME[c.weave]}, ${fmt(c.angle, 1)}°, step ${fmt(c.step, 1)} mm, ${gapText()}${P.hops ? `, <b>${P.hops}</b> hops` : ''} · DRAG <b>Snake</b>: the brush landing ${Ds.runs} time${Ds.runs === 1 ? '' : 's'}, ${fmt(Ds.mm / 1000, 1)} m, ≈ ${fmt(Ds.seconds / 60, 0)} min at ${S.drag} mm/s (est.) · <b>Air</b>: landing ${Da.runs} times, ${fmt(Da.mm / 1000, 1)} m, ≈ ${fmt(Da.seconds / 60, 0)} min (est.)`);
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   if (P.runs.length > 1) lines.push(`Two halves: DRAG and MARKS each run half 1, go home and wait for the turn, then run half 2`);
-  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from the corners of what a run paints${S.margin > 0 ? `; a margin of ${fmt(S.margin, 0)} mm round it` : ''}.`);
+  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${testMargin()} mm in from the corners of what a run paints${S.margin > 0 ? `; a margin of ${fmt(S.margin, 0)} mm round it` : ''}.`);
   $('#planRead').innerHTML = lines.join(' · ');
   const keys = [[Ds, 'DRAG Snake'], [Da, 'DRAG Air']];
   const warn = [...keys.map(([D, name]) => D.fault && `The plan is wrong, ${name} will not run it: ${D.fault}.`), Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`,
@@ -875,7 +875,7 @@ $('#btnMarks').onclick = async () => {
   await start('marks', M.blocks, { seconds: M.seconds, rows: M.rows },
     { page: TAB, pass: 'marks', layer: S.layer + 1, label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(M.seconds) });
 };
-// TEST: a dot 20 mm in from each corner of what a run paints — the canvas, or its near half and the overlap
+// TEST: a dot Preferences' margin in from each corner of what a run paints — the canvas, or its near half and the overlap
 function testDots() {
   const W = windowOf(S.halves, S.boardW, S.boardH, S.overlap), T = cornerDots(W.x1 - W.x0, W.y1 - W.y0);
   if (!T.dots.length) return null;
@@ -889,12 +889,12 @@ function testRun() {
 $('#btnTest').onclick = async () => {
   await loadInk(); settle();
   const here = hereNow(), T = testRun();
-  if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the canvas is ${2 * TEST_MARGIN} mm or less across.</span>`; return; }
+  if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the canvas is ${2 * testMargin()} mm or less across.</span>`; return; }
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TEST dips in the cup with INK ON: ${cupProblem(cup())}</span>`; return; }
   if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the test is wrong — ${T.fault}.</span>`; return; }
   const R = reach(), past = d => { const x = here.x + d.at.x, y = here.y + d.at.y; return [x < R.x.min && `${fmt(R.x.min - x, 0)} mm past the bottom wall`, x > R.x.max && `${fmt(x - R.x.max, 0)} mm past the top wall`, y < R.y.min && `${fmt(R.y.min - y, 0)} mm past the left wall`, y > R.y.max && `${fmt(y - R.y.max, 0)} mm past the right wall`].filter(Boolean).join(', '); };
   const out = T.dots.filter(d => past(d));
-  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}a dot ${TEST_MARGIN} mm in from each corner of ${S.halves === 'one' ? `the ${S.boardW} × ${S.boardH} canvas` : 'half 1 and its overlap'} — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
+  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}${testSay()} of ${S.halves === 'one' ? `the ${S.boardW} × ${S.boardH} canvas` : 'half 1 and its overlap'} — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
     + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
     { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });

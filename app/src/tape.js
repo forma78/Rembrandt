@@ -27,7 +27,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS as RUN, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
-import { cornerDots, TEST_MARGIN, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
+import { cornerDots, testMargin, testSay, NO_DIP, DIP_RUN, LOOP_SHARE } from './band.js';
 import { planOf, dragRows, traceRows, shellOf, cassetteLines, piecesOf, pathD, mixGrooves, spokeLine, spokeHits, spokePoint, nearestSample, blockOf, dragLanes, newPalette, newSpokes, recolourSpokes, TAPE_META, densityOf, RUN_MM, TAPE_PAINTS, PAINT, SPOKE_LANES, DENSITY, DEFAULTS, DEFAULT_CASS, REAL, MODES, SEAMS, DIRS, BRUSH_TYPES, AIR_SPEED, LIFT_S } from './tapeplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
@@ -255,7 +255,7 @@ function draw() {
   g.font = font(10); g.fillStyle = '#B3470C'; g.textAlign = 'left';
   g.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx([-hw]), sy([0, -hh]) - 6);
   const h = hereNow(), msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
-  g.save(); g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 1;                     // TEST's dots: a small cross each, 20 mm in from the corners
+  g.save(); g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 1;                     // TEST's dots: a small cross each, Preferences' margin in from the corners
   for (const d of cornerDots(S.boardW, S.boardH).dots) { const X = msx(d.at), Y = msy(d.at); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
   g.restore();
   const hc = homeCorner(), home = { x: hc.x - h.x, y: hc.y - h.y }, hX = msx(home), hY = msy(home);   // home: the canvas lies from it
@@ -843,7 +843,7 @@ function settle() {
     lines.push(`TRACE: <b>${T.lines}</b> line${T.lines === 1 ? '' : 's'}${S.traceCass && !BASF && G.cb.w > 0.5 ? `, the cassette's outline ${fmt(shellOf(G, 0).P, 0)} mm and ${Math.round(LOOP_SHARE * 100)} % over its start` : ''}${S.traceTape ? `, the guide ${fmt(G.guideLen / 1000, 1)} m` : ''} · ${S.ink ? `<b>Ink ON</b>: watercolour, ${T.dips} dip${T.dips === 1 ? '' : 's'}` : 'no dip'} · ≈ ${took(T.seconds)} at ${S.traceSpeed} mm/s (est.)`);
   }
   more.push(`The prototype's reckoning, ${MODE_NAME[S.mode]}: paint ${fmt(G.paintLen / 1000, 1)} m · air ${fmt(G.airLen / 1000, 1)} m · ${G.lifts} lifts · ≈ ${fmt(G.tMachine / 60, 1)} min (est.)`);
-  more.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; the cassette in its centre; TEST's dots ${TEST_MARGIN} mm in from its edges`);
+  more.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; the cassette in its centre; TEST's dots ${testMargin()} mm in from its edges`);
   $('#planRead').innerHTML = lines.join('<br>');
   $('#planMore').innerHTML = more.join('<br>');
   const warn = [
@@ -972,7 +972,7 @@ async function runDrag(mode) {
 }
 $('#btnSnake').onclick = () => runDrag('snake');
 $('#btnAir').onclick = () => runDrag('air');
-// TEST, before the passes: a dot 20 mm in from each corner of the board, and home; with INK ON one dip in the cup first
+// TEST, before the passes: a dot Preferences' margin in from each corner of the board, and home; with INK ON one dip in the cup first
 function testRun() {
   const T = cornerDots(S.boardW, S.boardH);
   return T.dots.length ? { ...plotRun({ ...runOpts(T.dots.length), ink: S.ink }, T.passes), dots: T.dots } : null;
@@ -980,12 +980,12 @@ function testRun() {
 $('#btnTest').onclick = async () => {
   await loadInk(); settle();
   const here = hereNow(), T = testRun();
-  if (!T) return refuse(`No corners: the board is ${2 * TEST_MARGIN} mm or less across.`);
+  if (!T) return refuse(`No corners: the board is ${2 * testMargin()} mm or less across.`);
   if (S.ink && cupProblem(cup())) return refuse(`TEST dips in the cup with INK ON: ${cupProblem(cup())}`);
   if (T.fault) return refuse(`Not run: the test is wrong — ${T.fault}.`);
   const R = reach(), past = d => { const x = here.x + d.at.x, y = here.y + d.at.y; return [x < R.x.min && `${fmt(R.x.min - x, 0)} mm past the bottom wall`, x > R.x.max && `${fmt(x - R.x.max, 0)} mm past the top wall`, y < R.y.min && `${fmt(R.y.min - y, 0)} mm past the left wall`, y > R.y.max && `${fmt(y - R.y.max, 0)} mm past the right wall`].filter(Boolean).join(', '); };
   const out = T.dots.filter(d => past(d));
-  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}a dot ${TEST_MARGIN} mm in from each corner of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
+  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}${testSay()} of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
     + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
     { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });

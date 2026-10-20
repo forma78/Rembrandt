@@ -508,6 +508,8 @@ export function plotRun(o, passes) {
       if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint
       const first = m.pieces[0].g.a;
       turns += m.turns; lifts += m.lifts; need = Math.max(need, m.need);
+      // a wait before the row, the brush up where the last one left it (TEST's second dot at TL, 2026-10-20)
+      if (p[0].wait > 0) { blocks.push({ kind: 'wait', s: p[0].wait, row }); seconds += p[0].wait; }
       // o.noDipUnder (NOLAN): a shorter piece goes on what the brush holds, the first of a pass excepted;
       // nodip on a row (New Yuri's rings, several to a dip run): it goes on what the brush holds too
       const dipped = !!cupAt && (dry || (!p[0].nodip && !(drawn < o.noDipUnder)));

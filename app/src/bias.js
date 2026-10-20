@@ -22,7 +22,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
-import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
+import { cornerDots, testMargin, testSay, NO_DIP } from './band.js';
 import { cleanRect, planOf, dragRows, dragPasses, dragSvg, snakeOf, bowsOf, strokesOf, runsFor, lanesFor, runName, TWO, NINETY, PLAIN, SNAKY, RUNOUT_NEW, MARGIN_NEW, FROM_NAME, OFF, MIN_SIDE, MODES, RUN_NAME, RUN_NAME90, ANGLE_MIN, ANGLE_MAX, STEP_MIN, STEP_MAX, ROWS_MIN, ROWS_MAX, CLEAR_NEW,
   BIAS_META, DENSITY_NEW, MARKS_DIP, newPattern, recolour, reRows, rowsOf, sausagesOf, stripeAt, markOf, marksRows, mixAll, rowName } from './biasplan.js';
 import { MARK_SPEED, reachOf } from './ccdplan.js';
@@ -211,7 +211,7 @@ function draw() {
   g.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx([-hw]), sy([0, -hh]) - 6);
   if (S.margin > 0) { g.fillStyle = themeColor('--mute', '#7D776D'); g.fillText(`margin ${fmt(S.margin, 0)} mm`, sx([-hw - S.margin]), sy([0, hh + S.margin]) + 13); }
   const h = hereNow(), msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
-  g.save(); g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 1;                     // TEST's dots: a small cross each, 20 mm in from the corners
+  g.save(); g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 1;                     // TEST's dots: a small cross each, Preferences' margin in from the corners
   for (const d of cornerDots(S.boardW, S.boardH).dots) { const X = msx(d.at), Y = msy(d.at); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
   g.restore();
   const hc = homeCorner(), home = { x: hc.x - h.x, y: hc.y - h.y }, hX = msx(home), hY = msy(home);   // home: the canvas lies from it
@@ -812,7 +812,7 @@ function settle() {
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${fmt(r.angle, 1)}°, ${r.cross === 'mirror' ? 'mirrored' : 'square'}, step ${fmt(r.step, 1)} mm, ${gapText(r)}; 45 SNAKE and 45 AIR ${r.runs.map(q => `run ${q.n} ${q.arrow} ${RUN_NAME[q.n]}: ${q.lanes.length}`).join(', ')}; SNAKE PLAIN → ${r.lanesX} lanes, ↑ ${r.lanesY}; 90 SNAKE and 90 AIR ${r.runs90.map(q => `run ${q.n} ${q.arrow} ${RUN_NAME90[q.n]}: ${q.lanes.length}`).join(', ')}; BIAS ${r.runs2.map(q => `run ${q.n} ${q.arrow} ${runName(r, q, 'biassnake')}: ${q.lanes.length}`).join(', ')}`);
   if (Ds.stops) lines.push(`DRAG stops <b>${Ds.stops}</b> time${Ds.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paints, Continue; never between the runs`);
-  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges${S.margin > 0 ? `; a margin of ${fmt(S.margin, 0)} mm round it for the brush to turn in` : ''}.`);
+  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${testMargin()} mm in from its edges${S.margin > 0 ? `; a margin of ${fmt(S.margin, 0)} mm round it for the brush to turn in` : ''}.`);
   $('#planRead').innerHTML = lines.join(' · ');
   const keys = [[Ds, '45 SNAKE'], [Da, '45 AIR'], [Dpx, 'SNAKE PLAIN →'], [Dpy, 'SNAKE PLAIN ↑'], [D9s, '90 SNAKE'], [D9a, '90 AIR'], [Dbs, 'BIAS SNAKE'], [Dba, 'BIAS AIR']];
   const warn = [...keys.map(([D, name]) => D.fault && `The plan is wrong, ${name} will not run it: ${D.fault}.`), Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, ...keys.map(([D, name]) => pressedText(D, name)), walls(Mk, 'MARKS')].filter(Boolean);
@@ -996,7 +996,7 @@ $('#btnMarks').onclick = async () => {
   await start('marks', M.blocks, { seconds: M.seconds, rows: M.rows },
     { page: TAB, pass: 'marks', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(M.seconds) });
 };
-// TEST, before the runs (CCD's): with INK ON one dip in the cup, a dot 20 mm in from each corner of the board, and home.
+// TEST, before the runs (CCD's): with INK ON one dip in the cup, a dot Preferences' margin in from each corner of the board, and home.
 function testRun() {
   const T = cornerDots(S.boardW, S.boardH);
   return T.dots.length ? { ...plotRun({ ...runOpts(T.dots.length), ink: S.ink }, T.passes), dots: T.dots } : null;
@@ -1004,12 +1004,12 @@ function testRun() {
 $('#btnTest').onclick = async () => {
   await loadInk(); settle();
   const here = hereNow(), T = testRun();
-  if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the board is ${2 * TEST_MARGIN} mm or less across.</span>`; return; }
+  if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the board is ${2 * testMargin()} mm or less across.</span>`; return; }
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TEST dips in the cup with INK ON: ${cupProblem(cup())}</span>`; return; }
   if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the test is wrong — ${T.fault}.</span>`; return; }
   const R = reach(), past = d => { const x = here.x + d.at.x, y = here.y + d.at.y; return [x < R.x.min && `${fmt(R.x.min - x, 0)} mm past the bottom wall`, x > R.x.max && `${fmt(x - R.x.max, 0)} mm past the top wall`, y < R.y.min && `${fmt(R.y.min - y, 0)} mm past the left wall`, y > R.y.max && `${fmt(y - R.y.max, 0)} mm past the right wall`].filter(Boolean).join(', '); };
   const out = T.dots.filter(d => past(d));
-  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}a dot ${TEST_MARGIN} mm in from each corner of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
+  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}${testSay()} of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
     + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
     { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });

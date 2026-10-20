@@ -22,7 +22,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
-import { cornerDots, TEST_MARGIN, NO_DIP } from './band.js';
+import { cornerDots, testMargin, testSay, NO_DIP } from './band.js';
 import { cleanRect, planOf, dragRows, dragPasses, dragSvg, acrossOf, alongOf, pitchOf, LANES_MAX, LANES_NEW, OFF, MIN_SIDE, DIR_NAME, EDGE_NAME, MODES,
   ROWS_MAX, OVER_NEW, CCD_META, DENSITY_NEW, MARKS_DIP, MARK_SPEED, DS, newPattern, recolour, lanesKept, rowsOf, stripesAcross, sausagesOf, markOf, marksRows, mixRect, reachOf, placeOf } from './ccdplan.js';
 import { TAPE_PAINTS, PAINT, newPalette } from './tapeplan.js';
@@ -196,7 +196,7 @@ function draw() {
   g.font = font(10); g.fillStyle = '#B3470C'; g.textAlign = 'left';
   g.fillText(`canvas ${S.boardW} × ${S.boardH} mm`, sx([-hw]), sy([0, -hh]) - 6);
   const h = hereNow(), msx = q => (q.y - V.y0) * k, msy = q => (V.x1 - q.x) * k, ink = themeColor('--ink', '#24221F');
-  g.save(); g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 1;                     // TEST's dots: a small cross each, 20 mm in from the corners
+  g.save(); g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = 1;                     // TEST's dots: a small cross each, Preferences' margin in from the corners
   for (const d of cornerDots(S.boardW, S.boardH).dots) { const X = msx(d.at), Y = msy(d.at); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
   g.restore();
   const hc = homeCorner(), home = { x: hc.x - h.x, y: hc.y - h.y }, hX = msx(home), hY = msy(home);   // home: the canvas lies from it
@@ -800,7 +800,7 @@ function settle() {
   if (Mk.marks) lines.push(`MARKS: <b>${Mk.marks}</b> dash${Mk.marks === 1 ? '' : 'es'}, a sausage each, ${S.ink ? `in watercolour, ${Mk.dips} dip${Mk.dips === 1 ? '' : 's'} (one every ${MARKS_DIP})` : 'Ink OFF: no dip'}, at ${MARK_SPEED} mm/s, ≈ ${fmt(Mk.seconds / 60, 1)} min (est.)`);
   for (const r of P.rects) lines.push(`Rect ${r.i + 1}: ${DIR_NAME[r.dir]}, <b>${r.runs.length}</b> lanes ${fmt(r.pitch, 2)} mm apart, ${gapText(r)}; the paint along its ${EDGE_NAME[r.dir]} edge, ${fmt(acrossOf(r), 1)} mm`);
   if (D.stops) lines.push(`DRAG stops <b>${D.stops}</b> time${D.stops === 1 ? '' : 's'}, before every next rectangle: wipe the brush, squeeze its paint, Continue`);
-  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${TEST_MARGIN} mm in from its edges.`);
+  lines.push(`The canvas from home: its bottom left corner at carriage <b>X ${fmt(here.x - S.boardH / 2, 1)} · Y ${fmt(here.y - S.boardW / 2, 1)} mm</b>; TEST's dots ${testMargin()} mm in from its edges.`);
   $('#planRead').innerHTML = lines.join(' · ');
   const warn = [D.fault && `The plan is wrong, DRAG Air will not run it: ${D.fault}.`, Ds.fault && `The plan is wrong, DRAG Snake will not run it: ${Ds.fault}.`, Dd.fault && `The plan is wrong, DRAG Duo Air will not run it: ${Dd.fault}.`, Dds.fault && `The plan is wrong, DRAG Duo Snake will not run it: ${Dds.fault}.`, Mk.fault && `The plan is wrong, MARKS will not run it: ${Mk.fault}.`, walls(D), walls(Mk)].filter(Boolean);
   $('#planWarn').innerHTML = warn.map(w => `<span class="warn">${w}</span>`).join(' ');
@@ -961,7 +961,7 @@ $('#btnMarks').onclick = async () => {
   await start('marks', M.blocks, { seconds: M.seconds, rows: M.rows },
     { page: TAB, pass: 'marks', label: label(), settings: S, here: hereNow(), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(M.seconds) });
 };
-// TEST, before the runs (ALU's): with INK ON one dip in the cup, a dot 20 mm in from each corner of the board, and home.
+// TEST, before the runs (ALU's): with INK ON one dip in the cup, a dot Preferences' margin in from each corner of the board, and home.
 function testRun() {
   const T = cornerDots(S.boardW, S.boardH);
   return T.dots.length ? { ...plotRun({ ...runOpts(T.dots.length), ink: S.ink }, T.passes), dots: T.dots } : null;
@@ -969,12 +969,12 @@ function testRun() {
 $('#btnTest').onclick = async () => {
   await loadInk(); settle();
   const here = hereNow(), T = testRun();
-  if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the board is ${2 * TEST_MARGIN} mm or less across.</span>`; return; }
+  if (!T) { $('#runState').innerHTML = `<span class="warn">No corners: the board is ${2 * testMargin()} mm or less across.</span>`; return; }
   if (S.ink && cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">TEST dips in the cup with INK ON: ${cupProblem(cup())}</span>`; return; }
   if (T.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the test is wrong — ${T.fault}.</span>`; return; }
   const R = reach(), past = d => { const x = here.x + d.at.x, y = here.y + d.at.y; return [x < R.x.min && `${fmt(R.x.min - x, 0)} mm past the bottom wall`, x > R.x.max && `${fmt(x - R.x.max, 0)} mm past the top wall`, y < R.y.min && `${fmt(R.y.min - y, 0)} mm past the left wall`, y > R.y.max && `${fmt(y - R.y.max, 0)} mm past the right wall`].filter(Boolean).join(', '); };
   const out = T.dots.filter(d => past(d));
-  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}a dot ${TEST_MARGIN} mm in from each corner of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
+  if (!confirm(`TEST: ${S.ink ? 'one dip in the cup, then ' : ''}${testSay()} of the ${S.boardW} × ${S.boardH} board — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`
     + (out.length ? `\n\n${out.map(d => `${d.name}: ${past(d)}`).join('; ')} — its dot goes on the wall.` : ''))) return;
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) },
     { page: TAB, label: `${TAB_NAME} · TEST · the corners`, here, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), ...(S.ink ? { cup: cup() } : {}), estimate_s: Math.round(T.seconds) });
