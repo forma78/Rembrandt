@@ -213,6 +213,17 @@ main{display:grid;grid-template-columns:60px 1fr 340px;min-height:0}
 .tabs a.on{background:var(--key-on);color:var(--ink);box-shadow:var(--press)}
 .tabs a.on::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;vertical-align:0;background:var(--dot) center/6px 6px no-repeat}
 .tabs a:not(.on):hover{color:var(--ink)}
+/* Preferences, a gear after Library (the owner, 2026-10-20) */
+.tabs a.gear{display:inline-flex;align-items:center;padding-left:8px;padding-right:8px}
+.tabs a.gear::after{content:"";width:13px;height:13px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M12.99 5.93 L13.32 7.07 L15.14 7.10 L15.14 8.90 L13.32 8.93 L12.99 10.07 L12.42 11.11 L13.69 12.41 L12.41 13.69 L11.11 12.42 L10.07 12.99 L8.93 13.32 L8.90 15.14 L7.10 15.14 L7.07 13.32 L5.93 12.99 L4.89 12.42 L3.59 13.69 L2.31 12.41 L3.58 11.11 L3.01 10.07 L2.68 8.93 L0.86 8.90 L0.86 7.10 L2.68 7.07 L3.01 5.93 L3.58 4.89 L2.31 3.59 L3.59 2.31 L4.89 3.58 L5.93 3.01 L7.07 2.68 L7.10 0.86 L8.90 0.86 L8.93 2.68 L10.07 3.01 L11.11 3.58 L12.41 2.31 L13.69 3.59 L12.42 4.89 Z M10.30 8 A2.3 2.3 0 1 0 5.70 8 A2.3 2.3 0 1 0 10.30 8 Z'/%3E%3C/svg%3E") center/13px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M12.99 5.93 L13.32 7.07 L15.14 7.10 L15.14 8.90 L13.32 8.93 L12.99 10.07 L12.42 11.11 L13.69 12.41 L12.41 13.69 L11.11 12.42 L10.07 12.99 L8.93 13.32 L8.90 15.14 L7.10 15.14 L7.07 13.32 L5.93 12.99 L4.89 12.42 L3.59 13.69 L2.31 12.41 L3.58 11.11 L3.01 10.07 L2.68 8.93 L0.86 8.90 L0.86 7.10 L2.68 7.07 L3.01 5.93 L3.58 4.89 L2.31 3.59 L3.59 2.31 L4.89 3.58 L5.93 3.01 L7.07 2.68 L7.10 0.86 L8.90 0.86 L8.93 2.68 L10.07 3.01 L11.11 3.58 L12.41 2.31 L13.69 3.59 L12.42 4.89 Z M10.30 8 A2.3 2.3 0 1 0 5.70 8 A2.3 2.3 0 1 0 10.30 8 Z'/%3E%3C/svg%3E") center/13px no-repeat}
+.tabs a.gear.on::before{margin-right:5px}
+main.prefs{display:block;overflow-y:auto;background:var(--stage);padding:14px 12px 30px}
+main.prefs .sec{max-width:400px;margin:10px auto 0}
+.prefs-board{display:block;width:100%;max-width:220px;margin:12px auto 0}
+.prefs-board rect{fill:none;stroke:var(--mute);stroke-width:1.2}
+.prefs-board .dot{fill:var(--ink)}
+.prefs-board .twice{fill:none;stroke:var(--ink);stroke-width:1}
+.prefs-board text{font:9px var(--mono);fill:var(--mute)}
 .btn[disabled]{opacity:.45;cursor:default;color:var(--mute)}
 .btn[disabled]:active{transform:none;background:var(--key);box-shadow:var(--raise)}
 /* HARD STOP: a grey key with two dots, never mistaken for STOP's one */

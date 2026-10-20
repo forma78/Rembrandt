@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · Preferences</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+</head>
+<body>
+<!-- Rembrandt · Preferences (the owner, 2026-10-20: "after Ink / Calib. /
+     Library make a gear — this will be Preferences"): what holds for every
+     tab, kept in this browser (src/prefs.js). For now TEST's: its dots' margin
+     from the board's edges, and its first one, TL, one dot or two with a wait
+     between. Nothing here moves the machine by itself. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.0.9</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="index.html">INKA</a>
+      <a href="stjohn.html">ST-JOHN</a>
+      <a href="alucut.html">ALU-CUT</a>
+      <a href="ccd.html">CCD</a>
+      <a href="bias.html">BIAS</a>
+      <a href="alu.html">ALU</a>
+      <a href="smkn.html">SMKN</a>
+      <a href="ink.html">Ink</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear on" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+  </div>
+  <div class="top-mid"></div>
+  <div class="top-right"></div>
+</header>
+
+<main class="prefs">
+  <section class="sec">
+    <h3>TEST <span class="hint">the dots, on every tab</span></h3>
+    <div class="grid4" id="testNums"></div>
+    <h4>At TL, the first corner</h4>
+    <div class="seg" id="testFirst">
+      <button data-first="1" title="One dot at TL, then on round the board">One dot</button>
+      <button data-first="2" title="A dot at TL, the brush up, the wait, a dot there again — time to see where the canvas goes">Two dots</button>
+    </div>
+    <svg class="prefs-board" id="board" viewBox="0 0 220 220" aria-label="The board and TEST's dots"></svg>
+    <p class="read" id="testRead"></p>
+    <button class="btn wide" id="btnDefaults" title="Margin 10 mm, two dots at TL, 5 s between">Defaults</button>
+  </section>
+</main>
+
+<footer class="status">
+  <span id="hint">Preferences: what holds for every tab, kept in this browser. TEST reads them when it is pressed.</span>
+  <span id="saved"></span>
+</footer>
+<script type="module" src="src/prefspage.js"></script>
+</body>
+</html>
