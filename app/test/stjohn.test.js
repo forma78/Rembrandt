@@ -6,8 +6,9 @@ import { DIP_LAP } from '../src/band.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
 
 // ST-JOHN's ⌘, St. John's Arms (the owner, 2026-10-19, St_John/): four
-// lobes, every loop round all four from the middle, their inner sides on
-// across it; the brush 3.5 mm, 9 with paint, on his 40 × 40 canvas.
+// lobes, every loop round all four, their inner sides on across the middle,
+// from the top left lobe's window out (2026-10-20); the brush 3.5 mm, 9 with
+// paint, on his 40 × 40 canvas.
 const O = { cw: 400, ch: 400, brush: BRUSH_NEW, swell: SWELL_NEW, corner: 4, change: 30 };
 const RUN = { ...DEFAULTS, speed: 40, travel: 180, tail: 3, lift: false, ink: false, snake: true, pause: false, here: { x: 300, y: 300 }, hover: ELBOW_HOVER, pauseAtEnds: true };
 const SIGN = (o = {}) => cleanRect({ id: 1, x: 0, y: 0, w: 400, h: 400, step: 3, kind: JOHN, ...o });
@@ -26,7 +27,7 @@ test('a ⌘ as kept; a unit and a figure of its own: it melts into no tile, join
 test('the loops: a lobe\'s rings, alike in all four, Step apart, the outer by the brush\'s half; Width a lobe\'s half, the innermost the trail wide', () => {
   const P = planOf([SIGN({ width: 100 })], O), U = P.units[0], ds = U.ds;
   assert.deepEqual(ds, johnDepths(U.R).slice(0, ds.length));
-  assert.deepEqual(lobesOf(SIGN()).map(q => [q.x, q.y]), [[200, 0], [200, 200], [0, 200], [0, 0]], '1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left');
+  assert.deepEqual(lobesOf(SIGN()).map(q => [q.x, q.y]), [[0, 200], [0, 0], [200, 0], [200, 200]], '1 the top left, 2 the bottom left, 3 the bottom right, 4 the top right');
   assert.equal(ds[0], BRUSH_NEW / 2); assert.equal(ds.length, U.R.levels);
   for (let k = 1; k < ds.length - 1; k++) assert.ok(Math.abs(ds[k] - ds[k - 1] - 3) < 1e-6);
   assert.ok(Math.abs(ds.at(-1) - (100 - (BRUSH_NEW + SWELL_NEW) / 2)) < 1e-6, 'the paint of the innermost meets in the lobe\'s middle');
@@ -37,25 +38,32 @@ test('every loop the ⌘ in one line: round lobe 1, 2, 3, 4, each clockwise, the
   const r = SIGN(), L = johnLoop(r, 10), c = 200;
   // every corner a turn to the right
   L.forEach((v, k) => { const a = L[(k + L.length - 1) % L.length], b = L[(k + 1) % L.length]; assert.ok(crs([v[0] - a[0], v[1] - a[1]], [b[0] - v[0], b[1] - v[1]]) < 0); });
-  // lobe 1's inner side up on into lobe 2's, 2's along into 3's, 3's down into 4's, 4's along into 1's
+  // lobe 3's inner side up on into lobe 4's, 4's along into 1's, 1's down into 2's, 2's along into 3's
   assert.deepEqual([L[2], L[3]], [[c + 10, 10], [c + 10, 390]]);
   assert.deepEqual([L[5], L[6]], [[390, c + 10], [10, c + 10]]);
   assert.deepEqual([L[8], L[9]], [[c - 10, 390], [c - 10, 10]]);
   assert.deepEqual([L[11], L[0]], [[10, c - 10], [390, c - 10]]);
 });
 
-test('the path: lands in the middle, loop after loop inward, an S on lobe 4\'s top, never a corner — the board never stops', () => {
+// the owner, 2026-10-20, after the first test: "first the top left lobe, from there it pushes the paint into the bottom left, then into the bottom right"
+test('the path: lands on lobe 1\'s innermost ring, the top left, loop after loop outward, an S on lobe 1\'s bottom, never a corner — the board never stops', () => {
   const P = planOf([SIGN({ width: 100 })], O), F = P.figs[0], ds = P.units[0].ds;
   assert.equal(P.figs.length, 1);
-  assert.deepEqual(F.start, [200, 200 - ds[0]], 'from the middle');
-  assert.deepEqual(F.end, [200 - ds.at(-1), 200 - ds.at(-1)], 'the last loop closed where it began');
+  assert.ok(F.start[1] === 200 + ds.at(-1) && F.start[0] > ds.at(-1) && F.start[0] < 200, `on lobe 1's innermost ring, along its bottom: ${F.start}`);
+  assert.deepEqual(F.end, [100, 200 + ds[0]], 'the outermost loop closed where it began, the middle of lobe 1\'s bottom');
+  const lobe = p => p[0] < 200 ? (p[1] > 200 ? 1 : 2) : p[1] < 200 ? 3 : 4, Q = F.pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6);
+  assert.deepEqual(Q.slice(0, 12).map(g => lobe(g.c)), [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4], 'round 1, the top left, down into 2, along into 3, up into 4');
+  assert.ok(Q.slice(0, 3).every(g => !g.left), 'lobe 1 clockwise');
+  assert.ok(Math.abs(Math.min(...Q.slice(0, 12).flatMap(g => [g.a[0], g.b[0]])) - ds.at(-1)) < 1e-6, 'the first loop the innermost');
+  assert.ok(Math.abs(Math.max(...Q.slice(-12).flatMap(g => [g.a[0], g.b[0]])) - (400 - ds[0])) < 1e-6, 'the last the outermost');
   for (let i = 1; i < F.pieces.length; i++) {
     const a = F.pieces[i - 1], b = F.pieces[i], e = atPiece(a, lenOf(a)), t = atPiece(b, 0).t;
     assert.ok(Math.hypot(e.p[0] - b.a[0], e.p[1] - b.a[1]) < 1e-6 && Math.hypot(e.t[0] - t[0], e.t[1] - t[1]) < 1e-3, `piece ${i} a kink`);
   }
   const S = F.pieces.filter(g => g.t === 'A' && g.r > 10);                         // the S's arcs
-  assert.ok(S.length >= 2 * (ds.length - 4), 'a ring change for every loop but the last few, tight in the middle of the lobe');
-  assert.ok(S.every(g => g.a[0] < 200 && g.a[1] < 200), 'all on lobe 4, the bottom left');
+  assert.equal(S.length, 2 * (ds.length - 1), 'a ring change for every loop but the last');
+  assert.ok(S.every(g => g.a[0] >= 100 - 1e-6 && g.a[0] < 200 && g.a[1] > 200), 'all on lobe 1\'s bottom, from its middle on');
+  assert.ok(S.every((g, k) => !k || g.a[1] <= S[k - 1].a[1] + 1e-6), 'each one further out');
   assert.ok(F.length > 60000 && F.length < 70000, `${F.length} mm`);
 });
 
@@ -65,8 +73,8 @@ test('Width: the loop edge to edge, the rings so far in from the outline, a wind
   assert.equal(ds.at(-1), inner, 'the innermost ring\'s dry edge on the loop\'s inner edge'); assert.equal(U.R.levels, ds.length); assert.equal(ds.length, 17);
   for (let k = 1; k < ds.length - 1; k++) assert.ok(Math.abs(ds[k] - ds[k - 1] - 3) < 1e-6);
   const xs = F.pieces.flatMap(g => [g.a, g.b]);
-  assert.ok(!xs.some(p => p[0] > 200 + inner + 1e-6 && p[0] < 400 - inner - 1e-6 && p[1] > inner + 1e-6 && p[1] < 200 - inner - 1e-6), 'lobe 1\'s window clear');
-  assert.deepEqual(F.end, [200 - inner, 200 - inner], 'the grid\'s corner, 2 Width less the brush across');
+  for (const q of lobesOf(SIGN())) assert.ok(!xs.some(p => p[0] > q.x + inner + 1e-6 && p[0] < q.x + q.w - inner - 1e-6 && p[1] > q.y + inner + 1e-6 && p[1] < q.y + q.h - inner - 1e-6), `the window of the lobe at ${q.x}, ${q.y} clear`);
+  assert.equal(F.start[1], 200 + inner, 'lands on lobe 1\'s window\'s ring, the loop\'s inner edge');
   assert.deepEqual(johnBand([1, 4, 7, 10], 8.6, 3), [1, 4, 7, 8.6]); assert.deepEqual(johnBand([1, 4, 7, 10], 8, 3), [1, 4, 8], "under half a step on: the last moved there"); assert.deepEqual(johnBand([1, 4, 7, 10], 7.6, 3), [1, 4, 7.6]); assert.deepEqual(johnBand([1, 4, 7, 10], 12, 3), [1, 4, 7, 10]); assert.deepEqual(johnBand([1, 4], 0.5, 3), [1]);
   assert.ok(F.length < planOf([SIGN({ width: 100 })], O).figs[0].length * 0.75);
 });
@@ -77,7 +85,7 @@ test('the turns concentric: the outer ring\'s Corners, every ring inside its dep
   assert.equal(johnRadius(50, ds[0], ds[0]), 50); assert.equal(johnRadius(50, ds.at(-1), ds[0]), 4); assert.equal(johnRadius(3, 40, 1), 3);
   const quarter = F.pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6), radii = new Set(quarter.map(g => Math.round(g.r * 1e6) / 1e6));
   for (const d of ds) assert.ok(radii.has(Math.round(johnRadius(50, d, ds[0]) * 1e6) / 1e6), `a loop ${d} mm in, its turns ${johnRadius(50, d, ds[0])}`);
-  // the outer arm of lobe 3's top left corner begins on the paint's edge round the turn, not in the box's corner
+  // the outer arm of lobe 1's top left corner begins on the paint's edge round the turn, not in the box's corner
   const arm = spokesOf(U, rs, o).find(q => Math.hypot(q.a[0], q.a[1] - 400) < 40), C = [ds[0] + 50, 400 - ds[0] - 50];
   assert.ok(Math.abs(Math.hypot(arm.a[0] - C[0], arm.a[1] - C[1]) - (50 + BRUSH_NEW / 2)) < 1e-6);
   assert.equal(spokesOf(U, rs, O).find(q => Math.hypot(q.a[0], q.a[1] - 400) < 40).a[0] < arm.a[0], true, 'at Corners 4 nearer the corner');
@@ -101,9 +109,9 @@ test('Corners 100 on his 43 × 43: round lobes, round windows; past half a ring\
   assert.equal(X.length, 16); assert.ok(outer.every(q => Math.abs(Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1]) - (ds.at(-1) - ds[0] + BRUSH_NEW / 2)) < 1e-6), 'every outer arm across the loop as thick as on a side: the outer paint\'s edge to the innermost ring');
 });
 
-test('↺: the sign mirrored, lobe 1 the bottom left', () => {
+test('↺: the sign mirrored, lobe 1 the top right', () => {
   const P = planOf([SIGN({ turn: 'ccw' })], O), F = P.figs[0], first = F.pieces.find(g => g.t === 'A');
-  assert.ok(first.a[0] < 200, 'the first turn on the left');
+  assert.ok(first.a[0] > 200 && first.a[1] > 200, 'the first turn on the top right');
   assert.ok(F.pieces.filter(g => g.t === 'A' && Math.abs(lenOf(g) / g.r - Math.PI / 2) < 1e-6).every(g => g.left), 'every corner, a quarter turn, to the left');
 });
 

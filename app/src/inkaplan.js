@@ -586,14 +586,17 @@ export function atPiece(g, s) {
 // quarters, each filled by rings as a tile is ("it is just how the brush goes
 // over the canvas; there may be 25 of them, as the canvas is"). A loop: one
 // ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1,
-// the bottom right, clockwise, up its inner side and straight on through the
-// middle into lobe 2, the top right, round it, along its inner side on into
-// 3, the top left, down into 4, the bottom left, and along its top into 1
-// again — so every lobe's inner sides go on across the middle and cross
-// there, the sign's middle a grid, as he drew it. The brush lands in the
-// middle on the outermost loop ("the sign goes from the centre"), then loop
-// after loop inward, to the next by the ring change, an S over lobe 4's top:
-// one line, no lift. ↻, as his arrows; ↺, the sign mirrored.
+// the top left, clockwise, down its inner side and straight on through the
+// middle into lobe 2, the bottom left, round it, along its inner side on
+// into 3, the bottom right, up into 4, the top right, and along its bottom
+// into 1 again — so every lobe's inner sides go on across the middle and
+// cross there, the sign's middle a grid, as he drew it. The brush lands on
+// lobe 1's innermost ring, then loop after loop outward (the owner,
+// 2026-10-20, after the first test: "first the top left lobe, from there it
+// pushes the paint into the bottom left, then into the bottom right"), to
+// the next by the ring change, an S on lobe 1's bottom: one line, no lift.
+// (On 2026-10-19 lobe 1 was the bottom right, the brush from the middle on
+// the outermost loop inward.) ↻, as his arrows; ↺, the sign mirrored.
 // Width (the owner, the same evening, on the lobes filled to their middles:
 // "we need a slider as in ALU-CUT called WIDTH — there the loop's thickness
 // can be raised. Now the figure came out somehow strange"): the loop, its
@@ -604,10 +607,10 @@ export function atPiece(g, s) {
 // mm"): the outer ring's Corners, every ring inside it its depth less, never
 // under CORNER_NEW — the loop as thick round a turn as along a side.
 export const JOHN_TWO = 0.5;                               // a ⌘'s chance of a second paint, on its lobes 2 and 4 (Claude's)
-// its lobes, in the brush's order: 1 the bottom right, 2 the top right, 3 the top left, 4 the bottom left
+// its lobes, in the brush's order (since 2026-10-20): 1 the top left, 2 the bottom left, 3 the bottom right, 4 the top right
 export function lobesOf(r) {
   const a = r.w / 2, b = r.h / 2, cx = r.x + a, cy = r.y + b;
-  return [{ x: cx, y: r.y, w: a, h: b }, { x: cx, y: cy, w: a, h: b }, { x: r.x, y: cy, w: a, h: b }, { x: r.x, y: r.y, w: a, h: b }];
+  return [{ x: r.x, y: cy, w: a, h: b }, { x: r.x, y: r.y, w: a, h: b }, { x: cx, y: r.y, w: a, h: b }, { x: cx, y: cy, w: a, h: b }];
 }
 // its rings, alike in every lobe: a tile's, its first lobe's; their depths, the outermost first
 export const johnRings = (r, trail, step, edge, over = null) => ringsOf([lobesOf(r)[0]], trail, step, edge, over);
@@ -625,29 +628,43 @@ export function johnBand(ds, inner, step) {
 }
 // a loop's turns, concentric: the outer one's Corners, every one inside its depth less, never under CORNER_NEW (or Corners, if less)
 export const johnRadius = (corner, d, d0) => Math.max(Math.min(corner, CORNER_NEW), corner - (d - d0));
-// One loop d mm in: its twelve corners from lobe 1's top right on, every
+// One loop d mm in: its twelve corners from the bottom right lobe's top right on, every
 // one a turn to the right; at the inner corners none, the sides on through
 // the middle, crossing there
 export function johnLoop(r, d) {
   const x0 = r.x + d, x1 = r.x + r.w - d, y0 = r.y + d, y1 = r.y + r.h - d, cx = r.x + r.w / 2, cy = r.y + r.h / 2;
   return [[x1, cy - d], [x1, y0], [cx + d, y0], [cx + d, y1], [x1, y1], [x1, cy + d], [x0, cy + d], [x0, y1], [cx - d, y1], [cx - d, y0], [x0, y0], [x0, cy - d]];
 }
-// The path: from the middle, on the outermost loop's line across it — lobe
-// 4's top going on into 1's — round every loop; to the next by an S over
-// lobe 4's top, Ring change long or as much as the side has, landing where
-// the next loop's line crosses the middle; the side too short, straight on
-// a step in. The last loop closed where it began. Every corner its radius, .r.
+// The path (the owner, 2026-10-20, St_John/ Screenshot 10.29.11 AM … 10.31.29
+// AM, after the first test, IMG_1215 and Screenshot 10.14.40 AM, the brush
+// begun in the middle and on to the lobes: "we need it the other way round —
+// first the top left lobe, from there it pushes the paint into the bottom
+// left, then into the bottom right"): from lobe 1's innermost ring, the top
+// left, out loop after loop — round 1, down into 2, along into 3, up into 4,
+// along back into 1 — each loop along lobe 1's bottom, leftwards, to where
+// it began, and on to the next ring out by an S there, Ring change long or
+// as much as the side has, landing in the bottom's middle, or where its
+// turn begins if further on; the side too short, straight on a step out.
+// The first loop begins where it ends, the last ends where it began. Every
+// corner its radius, .r.
 export function johnPts(r, ds, o = {}) {
-  const cx = r.x + r.w / 2, cy = r.y + r.h / 2, corner = o.corner ?? CORNER_NEW, pts = [];
-  ds.forEach((d, k) => {
-    if (!k) pts.push([cx, cy - d]);
-    const rad = johnRadius(corner, d, ds[0]);
-    pts.push(...johnLoop(r, d).map(v => Object.assign(v, { r: rad })));
-    const n = ds[k + 1];
-    if (n === undefined) { pts.push(k ? [cx - d, cy - d] : [cx, cy - d]); return; }
-    const B = [cx - n, cy - n], s = n - d, room = B[0] - (r.x + d + rad);
-    if (room >= s) { const L = Math.min(room, Math.max(s, o.change ?? CHANGE_NEW)), A = [B[0] - L, cy - d], t = {}; A.S = t; B.S = t; pts.push(A, B); }
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2, corner = o.corner ?? CORNER_NEW, out = ds.slice().reverse(), pts = [];
+  const rad = d => johnRadius(corner, d, ds[0]), turn = d => Math.min(rad(d), Math.max(0, (r.h / 2 - 2 * d) / 2));   // a corner's radius as roundOf turns it: no more than half its side
+  // where the brush goes on round ring d of lobe 1, along its bottom: its middle, or where its turn begins
+  const land = d => Math.max(r.x + r.w / 4, r.x + d + turn(d));
+  // the S from ring d on to ring n out: its start on d's bottom, Ring change before landing; the side too short, none
+  const sOf = (d, n) => { const s = d - n, room = (r.x + r.w - d - turn(d)) - land(n); return room >= s ? land(n) + Math.min(room, Math.max(s, o.change ?? CHANGE_NEW)) : null; };
+  let from = null;                                                               // where the loop began
+  out.forEach((d, k) => {
+    const n = out[k + 1], a = n === undefined ? null : sOf(d, n);
+    if (!k) pts.push(from = [Math.max(a ?? land(d), r.x + d + 2 * turn(d)), cy + d]);   // the first side's half its corner's: from the inner corner at most, the S's start after it
+    const L = johnLoop(r, d);                                                    // from lobe 1's bottom left corner on
+    pts.push(...[...L.slice(6), ...L.slice(0, 6)].map(v => Object.assign(v, { r: rad(d) })));
+    if (n === undefined) { pts.push([from[0], cy + d]); return; }
+    const B = [land(n), cy + n];
+    if (a !== null) { const A = [a, cy + d], t = {}; A.S = t; B.S = t; pts.push(A, B); }
     else pts.push(B);
+    from = B;
   });
   return pts;
 }
