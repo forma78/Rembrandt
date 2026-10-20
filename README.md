@@ -57,6 +57,7 @@ Rembrandt/
     adjustments.html Adjustments (new)
     calibration.html Calibration (from RUBENS)
     library.html     Library (from RUBENS)
+    prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js)
     style.css        RUBENS tokens
     rembrandt.py     server and USB board (from rubens.py)
     src/             ES modules, no build step

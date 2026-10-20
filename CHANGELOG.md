@@ -9,6 +9,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).
 
+- **Preferences, a gear after Library; TEST 10 mm in, two dots at TL** (the
+  owner, 2026-10-20: "too big a margin — 20 mm … or better, after INK /
+  Calib. / Library create a gear, that will be Preferences. Second, on the
+  first top point I need two touches of the brush 5 seconds apart. When I
+  put a new canvas, I do not understand where to put it"). `prefs.html` and
+  `src/prefs.js`, the gear on every page, kept in this browser. TEST on
+  every tab: Margin 10 mm (20 before), at TL one dot or two — two at first,
+  5 s apart, the brush up between — then TR, BR, BL, home. The wait a
+  `wait` block, as the cup's dwell; `rembrandt.py` untouched.
+
 - **ST-JOHN: the ⌘ from the top left lobe's window out** (the owner,
   2026-10-20, the first tests, St_John/ IMG_1215 and Screenshot 10.14.40
   AM: "our main flaw — now it starts from the middle and as it goes it goes

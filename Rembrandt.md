@@ -81,6 +81,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
 | **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. Off the top row since 2026-10-05 (§1); the page stays. |
 | **Library** | Saved paintings, as in RUBENS. |
+| **Preferences** | The gear ⚙ after Library in the top row (2026-10-20, §1, §8), `prefs.html`, `src/prefs.js`: what holds for every tab, kept in this browser as the lamp's day and night. For now TEST's: the margin of its dots, 10 mm at first, and TL one dot or two, 5 s apart at first. Moves nothing by itself. |
 | **Reference** | An image attached on the Create tab with **Add new reference**. Shown under the canvas, traced, sampled for colours. Never painted as is. |
 | **Curve** | The one master path of a painting. Lines and arcs only. Every band is built from it. |
 | **Band** | The part of a layer on one side of the curve, N lanes wide. |
@@ -268,7 +269,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   update on GitHub, it is REMBRANDT v.1.0.8"); **v.1.0.9** on 2026-10-19,
   with INKA first and the top row cleaned (the owner: "this will be the
   v.1.0.9 update").
-- **The canvas lies from home; TEST's dots 20 mm in from its edges** (the
+- **The canvas lies from home; TEST's dots 20 mm in from its edges** (10 mm since 2026-10-20, below; the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
   under the image area, but lie on it"). On NOLAN the canvas's bottom left
@@ -853,6 +854,25 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   *Claude's choices*: where the S lies; ↺, the sign mirrored, from the top
   right. On his 40 × 40, Width 76, Corners 100, Step 3: 49.4 m, 25 loops,
   35 dips of TRACE (est.).
+- **Preferences, a gear after Library; TEST 10 mm in, two dots at TL**
+  (the owner, 2026-10-20, after the first ST-JOHN tests: "it puts four
+  points everywhere, that is all fine. But they have too big a margin —
+  20 mm. Let's reduce the margin to 10 mm everywhere — or better, after INK
+  / Calib. / Library create a gear (icon), that will be Preferences.
+  Second, on the first top point I need two touches of the brush 5
+  seconds apart. When I put a new canvas, I do not understand where to put
+  it. Two or one point in the test can also go into Preferences"):
+  `prefs.html`, the gear ⚙ after Library on every page; `src/prefs.js`, kept
+  in this browser (`rembrandt.prefs.v01`), as the lamp's day and night. TEST
+  on every tab reads it when pressed: its dots **Margin** in from both edges
+  of their corner, 10 mm at first (1 … 100); at **TL, the first corner,
+  one dot or two**, two at first, **Between** them 5 s at first (0 … 10, the
+  longest wait `rembrandt.py` takes): a dot, the brush up where it lifted,
+  the wait, a dot there again, then TR, BR, BL and home. *Claude's choices*:
+  kept in the browser, not on the Mac, so `rembrandt.py` is not touched —
+  another browser, the phone too, has its own, the defaults the owner's; the
+  wait a `wait` block, as the cup's dwell; the brush during it over the dot
+  at its lift height.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1270,7 +1290,8 @@ this section disagree, this section wins: the owner corrected the sketch on
   LOOM, NOLAN and Test off the row then; INKA after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
-  Job and New Yuri since 2026-10-06, §1), and on
+  Job and New Yuri since 2026-10-06, §1), and after Library the gear ⚙,
+  **Preferences** (2026-10-20, §1), on every page; and on
   Create the green **Open Job**. The second
   row, centred (the owner: "this can go in the centre of the second row"):
   Format; the toggles **Reference · Lanes · Drops**, then **Reach · Grid**;
