@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.9 — 2026-10-19
 
+- **BLEND: Key 2's loops from 6 o'clock** (the owner, 2026-10-26: "your
+  join is OVER the yellow cross, just where an even line is needed … start
+  at 6 in the evening! Then the brush's lifts hide under the yellow cross").
+  In turn, every series lands where its own loops meet: Key 1's at 12 on
+  A's top, Key 2's at 6 on Key 2's bottom, under the core.
+
 - **BLEND: K1 · K2 in turn, every contour once, the brush in the air
   between** (the owner, 2026-10-26, after the first run in paint: "with
   paint it gathers in little hills at the top … one line of Key 1, then one
