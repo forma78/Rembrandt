@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cleanRect, unitsOf, figuresOf, planOf, linksOf, dealFigure, dealFigures, dragRows, wipeBlocks, marksRows, simOf, spokesOf, figSausages, figName, INKA_META, lenOf, atPiece, BRUSH_NEW, SWELL_NEW, CORNER_NEW, trailOf, edgeOf, blendQuota, clouds, CLOUD_NB, BLEND_THIN, paletteOfPixels, barsOf } from '../src/inkaplan.js';
-import { BLEND, BLEND_1554, STEPS_NEW, STEPS_MAX, KEY_CORNER_MIN, keysOf, keyIn, shapesOf, turnOf, loopOf, coreDepths, seamSide, blendLoops, spokeGap } from '../src/blendplan.js';
+import { BLEND, BLEND_1554, STEPS_NEW, STEPS_MAX, KEY_CORNER_MIN, keysOf, keyIn, shapesOf, turnOf, loopOf, coreDepths, seamSide, blendLoops, spokeGap, spokesRound, SPOKE_GAP } from '../src/blendplan.js';
 import { PAINT } from '../src/tapeplan.js';
 import { linOf, toSrgb } from '../src/color.js';
 import { dragPasses } from '../src/ccdplan.js';
@@ -103,12 +103,14 @@ test('↺ mirrored; a key off the middle: the S\'s on the side the loops lie nea
 const PAL_1155 = { name: 'Reference', core: ['white', 'roseazo', 'purple', 'ultramarine', 'pink', 'p04'], accent: ['orange', 'black', 'magenta'], w: { white: 0.368, roseazo: 0.136, purple: 0.119, ultramarine: 0.098, pink: 0.05, p04: 0.046 }, spot: 'oyellow' };
 const mid = q => [(q.a[0] + q.b[0]) / 2, (q.a[1] + q.b[1]) / 2];
 
-test('the sausages: spokes all round, no further apart than the paint carries, from A\'s loop across every loop to the last, in pieces; the core\'s own X', () => {
+test('the sausages: spokes all round, at first one every ≈ 95 mm, from A\'s loop across every loop to the last, in pieces; the core\'s own X; their number the blend\'s, never the Density\'s', () => {
   const rs = [MIX()], P = planOf(rs, O), U = P.units[0], X = spokesOf(U, rs, O), K = keysOf(rs[0]), L = blendLoops(rs[0], { trail: trailOf(O), edge: edgeOf(O) }).loops, gap = spokeGap(50);
   assert.ok(gap > 70 && gap < 121, `${gap} mm: between the line full and the paint gone at 50 %`);
   const loops = X.filter(q => !q.core), ms = [...new Set(loops.map(q => q.m))];
   assert.equal(ms.length, 16, 'four a side on a 40 × 40'); assert.equal(X.filter(q => q.core).length, 4);
-  assert.ok(loops.every(q => Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1]) <= gap + 1e-6), 'no piece longer than the gap');
+  assert.equal(SPOKE_GAP, gap, 'at first as far apart as the paint carries at 50 %');
+  const R = spokesRound(rs[0], L[0]);
+  assert.ok(R.gap <= gap && loops.every(q => Math.hypot(q.b[0] - q.a[0], q.b[1] - q.a[1]) <= R.gap + 1e-6), 'no piece longer than the spokes lie apart');
   for (const q of loops) for (const p of [q.a, q.b]) assert.ok(p[0] > K[0].x && p[0] < K[0].x + K[0].w && p[1] > K[0].y && p[1] < K[0].y + K[0].h);
   for (const q of X.filter(q => q.core)) for (const p of [q.a, q.b]) assert.ok(p[0] > K[2].x && p[0] < K[2].x + K[2].w && p[1] > K[2].y && p[1] < K[2].y + K[2].h, 'the core\'s inside it');
   const first = m => loops.filter(q => q.m === m).sort((a, b) => a.j - b.j);
@@ -120,7 +122,12 @@ test('the sausages: spokes all round, no further apart than the paint carries, f
   assert.ok(ms.every(m => onLast(first(m).at(-1).b)), 'every spoke on to the last loop');
   const half = spokesOf(U, [{ ...rs[0], phase: 0.5 }], O).filter(q => !q.core && q.j === 0);
   assert.ok(half.every(q => Math.hypot(q.a[0] - (L0.x0 + k0), q.a[1] - (L0.y1 - k0)) > 10), 'phase ½: moved on along the sides, none on the apex');
-  assert.equal(new Set(spokesOf(U, rs, { ...O, density: 30 }).filter(q => !q.core).map(q => q.m)).size, 24, 'thinner paint, the spokes nearer');
+  for (const density of [30, 86]) assert.deepEqual(spokesOf(U, rs, { ...O, density }), X, `Density ${density} %: the spokes where they were`);
+  const mine = spokesRound({ ...rs[0], spokes: 24 }, L[0]);
+  assert.deepEqual(mine.n, [6, 6, 6, 6]); assert.equal(new Set(spokesOf(U, [{ ...rs[0], spokes: 24 }], O).filter(q => !q.core).map(q => q.m)).size, 24, 'Spokes 24: 24');
+  const tall = spokesRound({ ...rs[0], spokes: 10 }, { x0: 0, y0: 0, x1: 100, y1: 300, r: 5 });
+  assert.equal(tall.all, 10); assert.ok(tall.n[1] > tall.n[0] && tall.n.every(v => v >= 1), 'shared out by the sides\' lengths');
+  assert.equal(MIX({ spokes: 2 }).spokes, 0, 'fewer than four: none set'); assert.equal(MIX({ spokes: 31.4 }).spokes, 31);
 });
 
 test('the paints in patches: every paint its share of the sausages, an accent BLEND_THIN, thin; grown together; the core the spot; a press a new deal', () => {
@@ -129,31 +136,50 @@ test('the paints in patches: every paint its share of the sausages, an accent BL
   assert.equal(Q.get('orange'), Math.max(1, Math.round(n * BLEND_THIN)));
   assert.ok(Q.get('white') >= Q.get('roseazo') && Q.get('roseazo') >= Q.get('pink'), 'by the shares');
   const deals = [1, 2, 3].map(seed => dealFigure(rs, P.units, P.figs[0], PAL_1155, seed, 'colours', O).ss.get(0));
+  const pieces = spokesOf(P.units[0], rs, O).filter(q => !q.core).map(q => [(mid(q)[0] - rs[0].x) / rs[0].w, (mid(q)[1] - rs[0].y) / rs[0].h]);
+  const on = (p, q) => { const v = [q.b[0] - q.a[0], q.b[1] - q.a[1]], l2 = v[0] ** 2 + v[1] ** 2, t = Math.max(0, Math.min(1, ((p[0] - q.a[0]) * v[0] + (p[1] - q.a[1]) * v[1]) / l2)); return Math.hypot(p[0] - q.a[0] - t * v[0], p[1] - q.a[1] - t * v[1]) < 1e-6; };
   for (const ss of deals) {
     const lo = ss.filter(q => !q.core), count = {};
-    for (const q of lo) count[q.paint] = (count[q.paint] || 0) + 1;
-    for (const [p, c] of Q) assert.equal(count[p], c, `${p}: its share`);
+    for (const p of pieces) { const q = lo.find(q => on(p, q)); assert.ok(q, 'every piece in a sausage'); count[q.paint] = (count[q.paint] || 0) + 1; }
+    for (const [p, c] of Q) assert.equal(count[p], c, `${p}: its share of the pieces`);
+    assert.ok(lo.length < n, `${lo.length} sausages of ${n} pieces: a run of one paint one sausage`);
+    for (const a of lo) for (const b of lo) if (a !== b && a.m === b.m && a.paint === b.paint && Math.hypot(a.b[0] - b.a[0], a.b[1] - b.a[1]) < 1e-9) {
+      const u = [a.b[0] - a.a[0], a.b[1] - a.a[1]], v = [b.b[0] - b.a[0], b.b[1] - b.a[1]];
+      assert.ok(Math.abs(u[0] * v[1] - u[1] * v[0]) > 1e-9 * Math.hypot(...u) * Math.hypot(...v), 'one paint on along a stretch: joined');
+    }
     assert.ok(ss.filter(q => q.core).every(q => q.paint === 'oyellow'), 'the core the spot');
     assert.ok(lo.every(q => !!q.thin === ['orange', 'black', 'magenta'].includes(q.paint)), 'the accents thin');
-    const pts = lo.map(mid), d = (i, j) => Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]);
-    const together = lo.filter((q, i) => Q.get(q.paint) < 2 || pts.map((_, j) => j).filter(j => j !== i).sort((x, y) => d(i, x) - d(i, y)).slice(0, CLOUD_NB).some(j => lo[j].paint === q.paint)).length;
-    assert.ok(together >= 0.85 * lo.length, `${together} of ${lo.length} beside one of their own paint`);
+    const pp = pieces.map(p => lo.find(q => on(p, q)).paint), d = (i, j) => Math.hypot(pieces[i][0] - pieces[j][0], pieces[i][1] - pieces[j][1]);
+    const together = pp.filter((c, i) => Q.get(c) < 2 || pieces.map((_, j) => j).filter(j => j !== i).sort((x, y) => d(i, x) - d(i, y)).slice(0, CLOUD_NB).some(j => pp[j] === c)).length;
+    assert.ok(together >= 0.85 * n, `${together} of ${n} pieces beside one of their own paint`);
   }
   assert.notDeepEqual(deals[0].map(q => q.paint), deals[1].map(q => q.paint), 'a press, a new deal');
   const inka = dealFigure(rs, P.units, P.figs[0], INKA_META.Inka, 4, 'colours', O).ss.get(0), ci = {};
-  for (const q of inka.filter(q => !q.core && !q.thin)) ci[q.paint] = (ci[q.paint] || 0) + 1;
+  for (const p of pieces) { const q = inka.find(q => !q.core && on(p, q)); if (!q.thin) ci[q.paint] = (ci[q.paint] || 0) + 1; }
   assert.ok(Math.max(...Object.values(ci)) - Math.min(...Object.values(ci)) <= 1, 'no shares: the core paints alike');
   assert.ok(inka.filter(q => q.core).every(q => q.paint === 'brown'), 'the core Inka\'s pure paint');
   const ss = deals[0]; rs[0].ss = ss;
   assert.deepEqual(dealFigure(rs, P.units, P.figs[0], INKA_META['meta 1'], 99, 'spokes', O).ss.get(0).map(q => q.paint), ss.map(q => q.paint), 'New spokes, the places the same: the paints the same');
   const moved = dealFigure([{ ...rs[0], phase: 0.5 }], P.units, P.figs[0], INKA_META['meta 1'], 99, 'spokes', O).ss.get(0);
   assert.ok(moved.every(q => PAL_1155.core.concat(PAL_1155.accent, 'oyellow').includes(q.paint)), 'moved on: each the paint of the old one nearest');
+  const deep = { ...rs[0], step: 8 }, Pd = planOf([deep], O), relaid = dealFigure([deep], Pd.units, Pd.figs[0], INKA_META['meta 1'], 7, 'spokes', { ...O, density: 86 }).ss.get(0);
+  assert.deepEqual(relaid.filter(q => !q.core), ss.filter(q => !q.core), 'its loops unmoved, at Density 86 %: the loops\' sausages as they lay (Screenshot 1.03.27 PM)');
+  // the core's Step alone: its X on its new rings, its paint kept; every spoke as it lies, pieces cut as they were, even a hand-laid one
+  const odd = [...ss.filter(q => !q.core), { a: [0.2, 0.2], b: [0.25, 0.3], paint: 'lemon', thin: true, m: 3, j: 9 }, ...ss.filter(q => q.core).map(q => ({ ...q, paint: 'turquoise' }))];
+  const coreOnly = dealFigure([{ ...deep, ss: odd }], Pd.units, Pd.figs[0], INKA_META['meta 1'], 7, 'core', { ...O, density: 86 }).ss.get(0);
+  const round = qs => qs.filter(q => !q.core).map(q => ({ ...q, a: q.a.map(v => +v.toFixed(9)), b: q.b.map(v => +v.toFixed(9)) }));
+  assert.deepEqual(round(coreOnly), round(odd), 'the core\'s Step: the spokes, their pieces and paints, as they lay');
+  const cx = spokesOf(Pd.units[0], [deep], O).filter(q => q.core).map(q => [(q.a[0] - deep.x) / deep.w, (q.a[1] - deep.y) / deep.h, (q.b[0] - deep.x) / deep.w, (q.b[1] - deep.y) / deep.h].map(v => +v.toFixed(9)));
+  assert.notEqual(Pd.units[0].BP.rings, P.units[0].BP.rings, 'Step 8: fewer rings in the core');
+  assert.deepEqual(coreOnly.filter(q => q.core).map(q => [...q.a, ...q.b].map(v => +v.toFixed(9))), cx, 'its X on its new rings'); assert.ok(coreOnly.filter(q => q.core).every(q => q.paint === 'turquoise'), 'its paint kept');
   rs[0].ss = [{ a: [0.1, 0.1], b: [0.3, 0.3], paint: 'pink' }, { a: [0.5, 0.7], b: [0.5, 0.6], paint: 'black', core: true }];
-  assert.equal(dealFigure(rs, P.units, P.figs[0], PAL_1155, 5, 'colours', O).ss.get(0).length, n + 4, 'an X from before laid anew as spokes');
+  const fromX = dealFigure(rs, P.units, P.figs[0], PAL_1155, 5, 'colours', O).ss.get(0);
+  assert.ok(pieces.every(p => fromX.some(q => !q.core && on(p, q))) && fromX.filter(q => q.core).length === 4, 'an X from before laid anew as spokes');
   assert.equal(dealFigure(rs, P.units, P.figs[1], INKA_META.Inka, 3, 'colours', O).ss.size, 0, 'the core\'s figure: nothing on its own');
-  assert.equal(dealFigures(rs, P.units, P.figs, PAL_1155, 5, 'colours', O).ss.get(0).length, n + 4, 'all the figures at once: the blend dealt once');
+  const all = dealFigures(rs, P.units, P.figs, PAL_1155, 5, 'colours', O).ss.get(0);
+  assert.ok(pieces.every(p => all.some(q => !q.core && on(p, q))), 'all the figures at once: the blend dealt once');
   const noCore = MIX({ core: false }), Pn = planOf([noCore], O), sn = dealFigure([noCore], Pn.units, Pn.figs[0], PAL_1155, 2, 'colours', O).ss.get(0);
-  assert.equal(sn.filter(q => q.paint === 'oyellow').length, 1, 'no core: the spot one sausage');
+  assert.equal(sn.filter(q => q.paint === 'oyellow').length, 1, 'no core: the spot one piece');
 });
 
 test('patches: the counts kept, whatever the points; one paint, one patch', () => {

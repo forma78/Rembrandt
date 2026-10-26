@@ -1034,38 +1034,50 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
 // A blend's sausages (blendSpokes) dealt in patches (the owner, 2026-10-26,
 // BLEND/IMAGE 2026-10-26 11:55:05, soft clouds of pink, peach, orange, lilac
 // and navy running into one another: "I need an algorithm that turns it at
-// random into such a colour range"): the palette's core paints so many of
-// the sausages each as their shares (pal.w, the reference's; else alike), the
-// accents BLEND_THIN of them each, thin; every paint grown at random from its
-// seeds over the sausages' neighbours — their CLOUD_NB nearest — so it lies
-// in a patch, or more than one with more than CLOUD sausages, as the
-// picture's colours lie, one running into the next where they meet as the
-// brush drags it on; a press, a new deal. The core the palette's spot where
-// it goes here (the brightest speck, one place only), else its pure paint, as
-// a lone figure's; no core, the spot one sausage. 'spokes': the places laid
-// anew, each the paint of the old sausage nearest it, so the patches stay
-// where they lay; 'colours' with spokes lying keeps their places (an X's,
-// from before 2026-10-26, laid anew).
+// random into such a colour range"): the pieces of its spokes, the palette's
+// core paints so many of them each as their shares (pal.w, the reference's;
+// else alike), the accents BLEND_THIN of them each, thin; every paint grown
+// at random from its seeds over the pieces' neighbours — their CLOUD_NB
+// nearest — so it lies in a patch, or more than one with more than CLOUD
+// pieces, as the picture's colours lie, one running into the next where they
+// meet as the brush drags it on; a press, a new deal. A run of one paint
+// along a spoke from key to key one sausage, as it is squeezed — so the
+// sausages are what is seen (the owner, the same day: "I see 20 spokes on the
+// 60 × 60; 76 and 4 I do not see"). The core the palette's spot where it goes
+// here (the brightest speck, one place only), else its pure paint, as a lone
+// figure's; no core, the spot one piece. The places always the blend's spokes
+// as they lie now; 'spokes' (New spokes, and its keys, Steps, Corners, core
+// or Spokes changed) each piece the paint of the old sausage nearest it, so
+// the patches stay where they lay; 'core' (the core's Step: the owner, the
+// same day, "changing the core's rings' Step must work out its own way again
+// and, if need be, its own paint; the outer spokes, their pieces and their
+// paints must stay"), the core's X laid again on its rings, its paint kept,
+// every other sausage as it lies.
 export const BLEND_THIN = 0.04, CLOUD = 8, CLOUD_NB = 5;   // est., Claude's
 function dealBlend(rects, U, pal, r, mode, o, spot) {
-  const had = unitSausages(U, rects), core = q => !!q.core, mids = qs => qs.map(q => [(q.a[0] + q.b[0]) / 2, (q.a[1] + q.b[1]) / 2]);
-  const thin = p => pal.accent.includes(p) && !pal.core.includes(p), out = (q, paint) => ({ a: q.a, b: q.b, paint, ...(thin(paint) && !q.core ? { thin: true } : {}), ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}), ...(Number.isFinite(q.m) ? { m: q.m, j: q.j } : {}) });
-  if (mode === 'spokes' && had.length) {                                          // new places, each its nearest old sausage's paint
-    const old = had.filter(q => !core(q)), om = mids(old), pc = had.find(core)?.paint;
-    return spokesOf(U, rects, o).map((q, k) => {
-      if (q.core) return out(q, pc ?? (spot ? pal.spot : pureOf(pal)));
-      const [m] = mids([q]); let best = null, bd = Infinity;
-      om.forEach((p, i) => { const d = Math.hypot(p[0] - m[0], p[1] - m[1]); if (d < bd) { bd = d; best = old[i]; } });
-      return out(q, best?.paint ?? pal.core[k % pal.core.length]);
-    });
+  const had = unitSausages(U, rects), places = spokesOf(U, rects, o), rest = places.filter(q => !q.core), n = rest.length, mid = q => [(q.a[0] + q.b[0]) / 2, (q.a[1] + q.b[1]) / 2];
+  if (mode === 'core' && had.some(q => !q.core)) return [...had.filter(q => !q.core), ...places.filter(q => q.core).map(q => ({ a: q.a, b: q.b, paint: had.find(h => h.core)?.paint ?? (spot ? pal.spot : pureOf(pal)), core: true }))];
+  let paints, pc, thins = null;
+  const thin = (p, k) => thins ? thins[k] : pal.accent.includes(p) && !pal.core.includes(p), out = (q, paint, k) => ({ a: q.a, b: q.b, paint, ...(!q.core && thin(paint, k) ? { thin: true } : {}), ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}), ...(Number.isFinite(q.m) ? { m: q.m, j: q.j } : {}) });
+  if (mode === 'spokes' && had.length) {                                          // each piece its nearest old sausage's paint, thin or not
+    const old = had.filter(q => !q.core), near = rest.map(q => { const c = mid(q); let best = null, bd = Infinity; for (const p of old) { const d = segD(c, p.a, p.b); if (d < bd) { bd = d; best = p; } } return best; });
+    paints = near.map((q, k) => q?.paint ?? pal.core[k % pal.core.length]); thins = near.map(q => !!q?.thin);
+    pc = had.find(q => q.core)?.paint ?? (spot ? pal.spot : pureOf(pal));
+  } else {
+    const lone = spot && !places.some(q => q.core);
+    pc = spot ? pal.spot : pureOf(pal);
+    paints = clouds(rest.map(mid), blendQuota(pal, n - (lone && n ? 1 : 0)), r);
+    if (lone && n) paints[Math.floor(r() * n)] = pal.spot;
   }
-  const kept = mode === 'colours' && had.some(q => !core(q)) && had.every(q => core(q) || Number.isFinite(q.m));   // an X's from before laid anew as spokes
-  const places = kept ? had : spokesOf(U, rects, o), rest = places.filter(q => !core(q)), n = rest.length;
-  const pc = spot ? pal.spot : pureOf(pal), lone = spot && !places.some(core);
-  const paints = clouds(mids(rest), blendQuota(pal, n - (lone && n ? 1 : 0)), r);
-  if (lone && n) paints[Math.floor(r() * n)] = pal.spot;
-  let k = 0;
-  return places.map(q => q.core ? out(q, pc) : out(q, paints[k++]));
+  const ss = [];
+  let k = 0, prev = null;
+  for (const q of places) {
+    if (q.core) { ss.push(out(q, pc)); prev = null; continue; }
+    const p = paints[k], o1 = out(q, p, k++);
+    if (prev && prev.paint === p && !prev.thin === !o1.thin && prev.m === q.m && prev.s === q.s && Math.hypot(prev.b[0] - q.a[0], prev.b[1] - q.a[1]) < 1e-6) { prev.b = q.b; continue; }   // on along the spoke, one sausage
+    ss.push(prev = { ...o1, s: q.s });
+  }
+  return ss;
 }
 // so many sausages of n each paint: the core by its shares, an accent BLEND_THIN of them — the largest remainders rounded up, so they add up to n
 export function blendQuota(pal, n) {

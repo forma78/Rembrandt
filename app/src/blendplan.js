@@ -43,13 +43,13 @@ const fin = Number.isFinite, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- a blend as it may be kept ----------
 // a new blend's corners, all of them: IMG_1554's share of A's side, to half a mm
 export const cornerNew = (w, h) => Math.max(KEY_CORNER_MIN, Math.round(BLEND_1554.corner * Math.min(w, h) * 2) / 2);
-// { keys: [{ x, y, w, h }] in A's fractions, A's own left out; corners: mm, A's first; steps; core: the last key filled; phase: its spokes' places along the sides, of a gap }
+// { keys: [{ x, y, w, h }] in A's fractions, A's own left out; corners: mm, A's first; steps; core: the last key filled; phase: its spokes' places along the sides, of a gap; spokes: how many, 0 none set }
 export function cleanBlend(r, w, h) {
   const ok = q => q && [q.x, q.y, q.w, q.h].every(fin) && q.w > 0 && q.h > 0;
   const keys = (Array.isArray(r.keys) ? r.keys.filter(ok) : []).map(q => ({ x: q.x, y: q.y, w: q.w, h: q.h }));
   if (!keys.length) keys.push(...BLEND_1554.keys.map(q => ({ ...q })));
   const c0 = cornerNew(w, h);
-  return { keys, corners: [0, ...keys].map((_, k) => clamp(fin(r.corners?.[k]) ? r.corners[k] : c0, KEY_CORNER_MIN, KEY_CORNER_MAX)), steps: fin(r.steps) ? clamp(Math.round(r.steps), STEPS_MIN, STEPS_MAX) : STEPS_NEW, core: r.core !== false, phase: fin(r.phase) ? (r.phase % 1 + 1) % 1 : 0 };
+  return { keys, corners: [0, ...keys].map((_, k) => clamp(fin(r.corners?.[k]) ? r.corners[k] : c0, KEY_CORNER_MIN, KEY_CORNER_MAX)), steps: fin(r.steps) ? clamp(Math.round(r.steps), STEPS_MIN, STEPS_MAX) : STEPS_NEW, core: r.core !== false, phase: fin(r.phase) ? (r.phase % 1 + 1) % 1 : 0, spokes: fin(r.spokes) && r.spokes >= SPOKES_MIN ? clamp(Math.round(r.spokes), SPOKES_MIN, SPOKES_MAX) : 0 };
 }
 // its keys in canvas mm, A first: { x, y, w, h, c }
 export function keysOf(r) {
@@ -168,26 +168,31 @@ export function blendPaths(r, o) {
 // ---------- the sausages ----------
 // Spokes all round (the owner, 2026-10-26, Screenshots 11.43.09 and 11.43.17
 // AM, the X's Result dry over most of the loops: "no, unfortunately a plain X
-// will not do here — too much empty space stays unpainted"): every side of
-// A's loop parted evenly, from corner to corner, its places no further apart
-// than the brush carries a sausage's paint — gap, Density's reach, GAP_K of
-// the way from the line full to the paint gone (est.) — and from each place
-// a spoke across every loop to the same place on the last: the same piece of
-// it, its corner's turn or its side, the same share of that piece, straight
-// from key to key as the shapes go evenly from one to the next. Every
-// key-to-key stretch cut in pieces no longer than the gap, a sausage each, so
-// the paints can lie in patches over the loops, not only round them
-// (inkaplan.js, dealBlend). Phase 0, a spoke on every corner's apex, where
-// the X's arms were; New spokes moves them all on along the sides, phase of
-// a gap. The core an X of its own, from its outer ring's turns to its
-// innermost's ({ core }).
-// o: as blendLoops's, and density → [{ a, b, m: the spoke, j: the piece from outside, inner?: past the middle key, core? }]
-export const GAP_K = 0.5;
+// will not do here — too much empty space stays unpainted"): Spokes of them
+// shared out over the sides of A's loop by their lengths, one a side at
+// least, every side parted evenly from corner to corner — none set, one
+// every SPOKE_GAP, as far as Density 50 %'s paint carries, half way from the
+// line full to the paint gone (est.) — and from each place a spoke across
+// every loop to the same place on the last: the same piece of it, its
+// corner's turn or its side, the same share of that piece, straight from key
+// to key as the shapes go evenly from one to the next. Every key-to-key
+// stretch, s, cut in pieces no longer than the spokes lie apart, a sausage
+// each, so the paints can lie in patches over the loops, not only round them
+// (inkaplan.js, dealBlend). Their number the blend's, never the Density's
+// (the owner, the same day, Screenshots 1.03.27 and 1.03.40 PM, his Density
+// 86 %: the core's Step changed, "all the spokes fell apart" — laid again as
+// far apart as 86 % carries, two a side). Phase 0, a spoke on every corner's
+// apex, where the X's arms were; New spokes moves them all on along the
+// sides, phase of a gap. The core an X of its own, from its outer ring's
+// turns to its innermost's ({ core }).
+// o: as blendLoops's → [{ a, b, m: the spoke, s: the stretch, j: the piece from outside, inner?: past the middle key, core? }]
+export const GAP_K = 0.5, SPOKES_MIN = 4, SPOKES_MAX = 200;
 const GAPS = new Map();
 export function spokeGap(density = DENSITY_NEW) {
   if (!GAPS.has(density)) { const q = reachOf(density); GAPS.set(density, q.full + (q.gone - q.full) * GAP_K); }
   return GAPS.get(density);
 }
+export const SPOKE_GAP = spokeGap(DENSITY_NEW);
 const apex = (L, sx, sy) => { const k = L.r * (1 - Math.SQRT1_2); return [sx > 0 ? L.x1 - k : L.x0 + k, sy > 0 ? L.y1 - k : L.y0 + k]; };
 const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
 // A loop's corners' centres clockwise from the top left, and their apexes' angles
@@ -203,13 +208,27 @@ function sidePoint(L, k, p, u) {
   const n = APEX[k] - Q8;
   return [c0[0] + (c1[0] - c0[0]) * u + L.r * Math.cos(n), c0[1] + (c1[1] - c0[1]) * u + L.r * Math.sin(n)];
 }
+// How many spokes on each side of a loop, and how far apart round it: r.spokes shared out by the sides' lengths, the largest remainders
+// first, one a side at least — none set, one every SPOKE_GAP. → { n: [top, right, bottom, left], all, gap }
+export function spokesRound(r, L) {
+  const S = [0, 1, 2, 3].map(k => sideLens(L, k).reduce((a, b) => a + b, 0)), P = S.reduce((a, b) => a + b, 0);
+  let n;
+  if (!r.spokes) n = S.map(v => Math.max(1, Math.ceil(v / SPOKE_GAP - 1e-9)));
+  else {
+    const raw = S.map(v => P > 0 ? r.spokes * v / P : r.spokes / 4); n = raw.map(v => Math.max(1, Math.floor(v)));
+    raw.map((v, k) => [v - Math.floor(v), k]).sort((a, b) => b[0] - a[0]).forEach(([, k]) => { if (n.reduce((a, b) => a + b, 0) < r.spokes) n[k]++; });
+    while (n.reduce((a, b) => a + b, 0) > r.spokes && n.some(v => v > 1)) n[n.indexOf(Math.max(...n))]--;
+  }
+  const all = n.reduce((a, b) => a + b, 0);
+  return { n, all, gap: P / all };
+}
 export function blendSpokes(r, o) {
-  const B = blendLoops(r, o), L = B.loops, out = [], gap = spokeGap(o.density), far = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]) >= SAUSAGE_W;
+  const B = blendLoops(r, o), L = B.loops, out = [], far = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]) >= SAUSAGE_W;
   if (L.length) {
-    const at = L.map((q, i) => i).filter(i => !i || L[i].key >= 0 || i === L.length - 1), mid = (at.length - 1) / 2, phase = r.phase ?? 0;
+    const at = L.map((q, i) => i).filter(i => !i || L[i].key >= 0 || i === L.length - 1), mid = (at.length - 1) / 2, phase = r.phase ?? 0, R = spokesRound(r, L[0]), gap = R.gap;
     let m = 0;
     for (let k = 0; k < 4; k++) {
-      const ls = sideLens(L[0], k), S = ls[0] + ls[1] + ls[2], n = Math.max(1, Math.ceil(S / gap - 1e-9));
+      const ls = sideLens(L[0], k), S = ls[0] + ls[1] + ls[2], n = R.n[k];
       for (let i = 0; i < n; i++, m++) {
         let t = (i + phase) / n * S, p = 0;
         while (p < 2 && t > ls[p] + 1e-9) t -= ls[p++];
@@ -219,7 +238,7 @@ export function blendSpokes(r, o) {
           const a = ps[s], b = ps[s + 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
           if (!far(a, b)) continue;
           const cut = Math.max(1, Math.ceil(len / gap - 1e-9));
-          for (let c = 0; c < cut; c++, j++) out.push({ a: [a[0] + (b[0] - a[0]) * c / cut, a[1] + (b[1] - a[1]) * c / cut], b: [a[0] + (b[0] - a[0]) * (c + 1) / cut, a[1] + (b[1] - a[1]) * (c + 1) / cut], m, j, ...(s >= mid ? { inner: true } : {}) });
+          for (let c = 0; c < cut; c++, j++) out.push({ a: [a[0] + (b[0] - a[0]) * c / cut, a[1] + (b[1] - a[1]) * c / cut], b: [a[0] + (b[0] - a[0]) * (c + 1) / cut, a[1] + (b[1] - a[1]) * (c + 1) / cut], m, s, j, ...(s >= mid ? { inner: true } : {}) });
         }
       }
     }
