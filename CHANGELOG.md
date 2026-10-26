@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.9 — 2026-10-19
 
+- **BLEND's sausages all round, its paints in patches; several references**
+  (the owner, 2026-10-26: "a plain X will not do here. Too much empty space
+  stays unpainted"; IMAGE 2026-10-26 11:55:05: "an algorithm that turns it
+  at random into such a colour range"; "I like how you made Blend 1 / Key 1
+  / Key 2 / Key 3 — REFERENCE needs the same"). Spokes all round a blend, no
+  further apart than the paint carries at the Density (≈ 95 mm at 50 %,
+  est.), each across every loop, in pieces; the palette in patches, every
+  paint its share; New spokes moves them on along the sides. OK reads the
+  reference in tints on BLEND — a pale pink Rose Azo and White, not White.
+  A phone's status bar off every reference. Reference 1, 2 … on INKA,
+  ST-JOHN and BLEND, the chosen one's palette in sight; kept in IndexedDB.
+
 - **BLEND's page styled as INKA's**: every rule of `style.css` INKA and
   ST-JOHN share now BLEND's too — the paints' strip, the paints in use, MARKS
   · DRAG, the typed numbers; `data-tab="blend"` had been left out of them.

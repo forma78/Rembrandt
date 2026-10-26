@@ -66,14 +66,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Knife (on INKA)** | K in the Tools, under N: a line dragged across the canvas cuts every node it crosses, a click on a node cuts that one; the chain falls apart there (2026-10-19, the owner's "scalpel", where Clear nodes is the sledgehammer). |
 | **Turn (on INKA)** | The way the brush goes round a tile as it paints it, in or out: ↻ clockwise, ↺ anticlockwise; a block's its first rectangle's. |
 | **To buy · •** | A paint not in the owner's stock yet, shown in INKA's strip under his 24 with a red dot: four fluorescents read off his canvases (2026-10-19, `TO_BUY`). Not ⚠ and not INKA's **!**. |
-| **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19); its **spot**, the brightest speck, one tile only. |
+| **Reference palette (on INKA)** | The palette off the reference's painting — its wall and frame off, a phone's status bar too (2026-10-26) — in the owner's paints, a fluorescent to buy where his own are far: every pixel to the nearest of them (CIEDE2000), the six with the most of the picture the core, the next three thin, their shares its weights; OK in the Reference block deals it on every tile, at random in its shares (2026-10-19); its **spot**, the brightest speck, one tile only. Several references since 2026-10-26, **Reference 1, 2 …** as a blend's keys, the chosen one over the canvas, its palette in sight under the block. On BLEND read in **tints**: a pale colour its paint laid thin over the white, the pixel the paint's by how much of it there is, the rest White's — a pale pink Rose Azo and White, not White alone. |
 | **Spoke (on INKA)** | A sausage across a unit's rings, so every ring takes it up: since 2026-10-19 the arms of an X — from every corner of a tile along its diagonal to its innermost ring, its round end on the tile; a block's from every corner of its outline at 45° (before, eight from the sides, at most 60 mm apart). M lays the arm nearest the point clicked, or one where it is dragged. Not TAPE's spoke. |
 | **ST-JOHN** | INKA's page with ⌘, St. John's Arms, after INKA in the top row since 2026-10-19 (§1, §8): INKA's tiles, nodes, paints, DRAG and Result, ⌘ in the Tools between R and N, and TRACE in MARKS' place. `stjohn.html`, its body `data-tab="stjohn"`; INKA's page module `inka.js` and plan `inkaplan.js`, its own keep and Library label. The owner's references in `St_John/`. |
 | **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the top left, 2 the bottom left, 3 the bottom right, 4 the top right (since 2026-10-20; until then the bottom right first, the owner's numbers on the old sign) — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, down its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands on lobe 1's innermost ring, round its window, and goes loop after loop outward, from one to the next by the ring change, an S on lobe 1's bottom: one line, no lift (since 2026-10-20; from the middle inward before). ↺, the sign mirrored. **Width**: the loop edge to edge, as ALU-CUT's pipe — the rings only so far in from the sign's outline, a window in every lobe, the grid in the middle 2 Width across; at half a lobe the lobes filled; a new one's a fifth of its box, the owner's best, 74 mm on his 387. Its turns concentric: the outer ring's Corners, each ring inside it its depth less, never under 4 mm, never past half its ring's side — at Corners 100 every ring round, three quarters of a circle and its straight inner sides, the windows too. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
 | **TRACE (on ST-JOHN)** | In MARKS' place on ST-JOHN's deck (2026-10-19): every figure's path, the very line DRAG runs, at DRAG's speed, figure after figure, no wipe — with INK ON the same brush in tinted water from the cup, a dip every 1440 mm (TRACE_DIP, the owner's, 2026-10-19; est.; NOLAN's, ALU's and TAPE's 720), each next stretch on from 20 mm back (DIP_LAP); the trace the owner squeezes the paint on, as Florian, before DRAG. Not TYPE's TRACE of outlines. |
 | **BLEND** | The tab of Adobe Illustrator's blend for the machine, after ST-JOHN in the top row since 2026-10-26 (§1, §8): INKA's page, all of it, and **B**, the blend, in the Tools between R and N — the first tab whose lines lie over one another, not beside (the owner: "until now we made figures whose lines did not cross but lay side by side"). `blend.html`, its body `data-tab="blend"`; INKA's page module `inka.js` and plan `inkaplan.js`, the blend's `blendplan.js`; its own keep and Library label. The owner's references in `BLEND/`, IMG_1554 the key one. |
 | **Key · step · Steps (on BLEND)** | A key: one of the shapes a blend is made between, a rounded rectangle — key 1, A, the blend's box, the outermost; the others in A's fractions, so they move and stretch with it; the last one the core; every key its Corners, mm. A step: a shape between two keys, its edges and corner going evenly from the one to the next. Steps: how many between every two keys, Illustrator's Specified Steps — IMG_1554's 13, its three keys A, a square three eighths of it against its top, and the core against that one's bottom. |
-| **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. The loops one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Its sausages an X along every corner's way through the loops' turns, the outer half one paint and the inner half another, the core an X of its own. Not ST-JOHN's loop. |
+| **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. The loops one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Not ST-JOHN's loop. |
+| **Spokes · patches (on BLEND)** | A blend's sausages since 2026-10-26: **spokes** all round — every side of its outer loop parted evenly, no further apart than the brush carries a sausage's paint at the Density (≈ 95 mm at 50 %, est.), from each place across every loop to the same place on the last, straight from key to key, in pieces no longer than that, a sausage each; the core an X of its own. **Patches**: the palette dealt over them, every paint its share of the sausages, grown at random from seeds over their neighbours, so the colours lie in clouds over the loops, the brush running one into the next; the core the spot, else the pure paint. Before, an X along every corner's way, the outer half one paint, the inner half another. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -903,6 +904,42 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the core its own, the spot or the pure paint; a first visit IMG_1554 in
   black and orange. On a 40 × 40: 28 loops, the core's 6 rings, 16.3 m,
   ≈ 7 min at 40 mm/s (est.). Not run on the machine yet.
+- **BLEND's sausages all round, its paints in patches off a reference;
+  several references** (the owner, 2026-10-26, the same day, `BLEND/`
+  Screenshots 11.43.09 and 11.43.17 AM, the X's Result on a 60 × 60 dry over
+  most of the loops: "let's fix the colour palette and the sausages … no,
+  unfortunately a plain X will not do here. Too much empty space stays
+  unpainted"; IMAGE 2026-10-26 11:55:05, soft clouds of pink, peach, orange,
+  lilac and navy, among fourteen pictures of colour ranges: "I need an
+  algorithm that turns it at random into such a colour range — but our tool,
+  REFERENCE over the canvas, as tracing paper, needs work. Study it and
+  propose your solution"; "I like how you made Blend 1 / Key 1 / Key 2 /
+  Key 3 — REFERENCE needs the same"). *Claude's choices*: spokes all round —
+  every side of A's loop parted evenly, corner to corner, no further apart
+  than the brush carries a sausage's paint, half way from the line full to
+  the paint gone at the Density (≈ 95 mm at 50 %, est.), from each place
+  across every loop to the same place on the last, the same piece of it and
+  share of that piece, straight from key to key, cut in pieces no longer
+  than that: 16 spokes, 45 sausages and the core's X on a 40 × 40, 20 and
+  76 on a 60 × 60; phase 0 a spoke on every corner's apex, New spokes
+  moving them on along the sides, each new one the paint of the old one
+  nearest; the palette in patches — every core paint its share of the
+  sausages, an accent 4 % of them, thin, grown at random from seeds (one a
+  8) over every sausage's 5 nearest — a press a new deal; the core the spot,
+  else the pure paint; an X from before laid anew as spokes. The reference
+  read in tints on BLEND: every pixel the paint, at 0 · 30 · 55 · 75 · 88 %
+  white over it in linear light, nearest by CIEDE2000, its share the
+  paint's by how much of it, the rest White's — IMAGE 11:55:05 White 37 %,
+  Rose Azo 14, Purple 12, Ultramarine 10, Pink 5, 04 5; Orange, Black,
+  Magenta thin; the spot Orange Yellow (read plain: White 44, Pink 15,
+  Purple 11, Ultramarine 7) — INKA and ST-JOHN read plain, as before. A
+  phone's status bar off every reference: rows of one colour at the top or
+  the bottom, no more than 6 % of it (its grey had come out Viridian).
+  Reference 1, 2 … under the block's heading on INKA, ST-JOHN and BLEND,
+  the chosen one over the canvas and OK's, its palette under the block —
+  its paints and shares, the thin ones, the spot; 📎 adds one and chooses
+  it, × takes the chosen one away; kept in the browser's IndexedDB, a list
+  a tab, the one kept before the first.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1699,7 +1736,10 @@ this section disagree, this section wins: the owner corrected the sketch on
   where nearer — the core's rings. Drag, Result, ▶ Play the run and MARKS ·
   DRAG as INKA's, the core's badge in its own corner, a wipe before it. A
   first visit: IMG_1554 on the canvas, its loops black, its core orange.
-  💾 SAVE BLEND, the Library opening it here.
+  💾 SAVE BLEND, the Library opening it here. Its sausages spokes all round
+  in pieces, its paints in patches (2026-10-26); the Reference block, as
+  INKA's and ST-JOHN's, **Reference 1 … n** over the thumbnail, the chosen
+  one's palette under it, read in tints.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once
