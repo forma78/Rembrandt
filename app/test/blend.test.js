@@ -82,7 +82,8 @@ test('the core: a figure of its own right after the loops, from its middle out, 
   assert.ok(near(C.end[1], K.y + K.h - BRUSH_NEW / 2), 'out to its outer ring, on its top');
   const turned = C.pieces.reduce((s, g) => s + (g.t === 'A' ? (g.left ? 1 : -1) * lenOf(g) / g.r : 0), 0);   // the innermost too small for an S: a step down there, one turn left
   assert.ok(near(turned, -2 * Math.PI * ds.length, 0.6), `clockwise out, a turn a ring: ${turned}`);
-  const R = dragRows(P, O); assert.equal(R.runs, 2); assert.equal(R.stops.length, 1, 'a wipe before the core');
+  const R = dragRows(P, O); assert.equal(R.runs, 28 + 1, 'in turn a row a loop, the core\'s one'); assert.equal(R.stops.length, 1, 'a wipe before the core, none between the loops');
+  assert.equal(dragRows(planOf([MIX({ order: 'seq' })], O), O).runs, 2, 'key after key: one row the loops, one the core');
   assert.equal(planOf([MIX({ core: false })], O).figs.length, 1, 'the core off: the line on round it');
   assert.equal(planOf([MIX({ core: false })], O).figs[0].rings, 29);
   assert.deepEqual(coreDepths({ x0: 0, y0: 0, x1: 6, y1: 6 }, { trail: 9, edge: 1.75, step: 3 }), [1.75], 'narrower than the trail: one ring');
@@ -104,30 +105,38 @@ test('key after key, ↺ mirrored; a key off the middle: the S\'s on the side th
 const OWN = () => cleanRect({ id: 1, x: 39, y: 34, w: 523, h: 528.5, step: 3, kind: BLEND, steps: 25, corners: [100, 100, 15], keys: [{ x: 0.21414913957934992, y: 0.4153263954588458, w: 0.597354049072028, h: 0.5846736045411542 }, { x: 0.4359464627151052, y: 0.4153263954588458, w: 0.13748220576056297, h: 0.14493287653165826 }] });
 const O60 = { cw: 600, ch: 600, brush: 9, swell: 3, corner: 4, change: 30, density: 50 };
 
-test('K1 · K2 in turn (the owner, 2026-10-26, after the first run in paint): a loop of Key 1\'s, then one of Key 2\'s, and so on; the S\'s where Key 1\'s loops meet, the deep ones on the side across; never a kink', () => {
+test('K1 · K2 in turn (the owner, 2026-10-26, after the first run in paint): a loop of Key 1\'s, then one of Key 2\'s; every loop a stroke of its own, drawn once, from the middle of its top round to there, the brush up between', () => {
   assert.equal(MIX().order, 'turn', 'in turn, at first'); assert.equal(MIX({ order: 'seq' }).order, 'seq');
   for (const [r, o, n] of [[MIX(), O, 28], [OWN(), O60, 52]]) {
-    const P = planOf([r], o), F = P.figs[0], BP = P.units[0].BP, K = keysOf(r);
-    assert.equal(F.rings, n); assert.equal(BP.side, 'top', 'where Key 1\'s loops meet, the middle of the top'); assert.equal(BP.side2, 'bottom'); assert.ok(BP.over > 0 && BP.over < n - 1);
-    for (let i = 1; i < F.pieces.length; i++) {
-      const a = F.pieces[i - 1], b = F.pieces[i], e = atPiece(a, lenOf(a)), t = atPiece(b, 0).t;
-      assert.ok(Math.hypot(e.p[0] - b.a[0], e.p[1] - b.a[1]) < 1e-6 && Math.hypot(e.t[0] - t[0], e.t[1] - t[1]) < 1e-3, `piece ${i} a kink`);
-    }
-    const q = F.pieces.filter(g => g.t === 'A' && !g.left && near(lenOf(g) / g.r, Math.PI / 2));
-    const turned = F.pieces.reduce((t, g) => t + (g.t === 'A' ? (g.left ? 1 : -1) * lenOf(g) / g.r : 0), 0);
-    assert.ok(Math.abs(turned + 2 * Math.PI * n + Math.PI) < 1e-6, `clockwise: every loop round once, half a loop more where it goes over — ${turned}`);
-    const wide = j => { const g4 = q.slice(4 * j, 4 * j + 4), xs = g4.map(g => g.c[0]); return Math.max(...xs) - Math.min(...xs) + 2 * g4[0].r; };
-    assert.ok(near(wide(0), K[0].w - 2 * edgeOf(o), 1e-6) && near(wide(1), K[1].w - 2 * edgeOf(o), 1e-6) && wide(2) > K[1].w && wide(2) < wide(0) && wide(3) < wide(1), 'A\'s loop, Key 2\'s, Key 1\'s next, Key 2\'s next');
-    assert.ok(Math.abs(F.start[0] - (K[0].x + K[0].w / 2)) < 40 && near(F.start[1], K[0].y + K[0].h - edgeOf(o), 1e-6), 'from the middle of the top');
+    const P = planOf([r], o), F = P.figs[0], BP = P.units[0].BP, K = keysOf(r), L = blendLoops(r, { trail: trailOf(o), edge: edgeOf(o) }).loops;
+    assert.equal(F.rings, n); assert.equal(BP.side, 'top', 'where Key 1\'s loops meet'); assert.equal(BP.blend, null); assert.equal(F.strokes.length, n, 'a stroke a loop');
+    const sts = F.strokes.map(([a, b]) => F.pieces.slice(a, b)), wide = [];
+    sts.forEach((st, k) => {
+      for (let i = 1; i < st.length; i++) {
+        const a = st[i - 1], b = st[i], e = atPiece(a, lenOf(a)), t = atPiece(b, 0).t;
+        assert.ok(Math.hypot(e.p[0] - b.a[0], e.p[1] - b.a[1]) < 1e-6 && Math.hypot(e.t[0] - t[0], e.t[1] - t[1]) < 1e-3, `loop ${k + 1}, piece ${i}: a kink`);
+      }
+      const turned = st.reduce((t, g) => t + (g.t === 'A' ? (g.left ? 1 : -1) * lenOf(g) / g.r : 0), 0);
+      assert.ok(Math.abs(turned + 2 * Math.PI) < 1e-6, `loop ${k + 1} round once, clockwise: ${turned}`);
+      const a = st[0].a, z = st.at(-1).b, xs = st.filter(g => g.t === 'L' && near(g.a[0], g.b[0])).map(g => g.a[0]);
+      assert.ok(Math.hypot(z[0] - a[0], z[1] - a[1]) < 1e-6, `loop ${k + 1}: drawn once, to where it landed`);
+      assert.ok(Math.abs(a[0] - sts[0][0].a[0]) < 1e-6 && a[0] > K.at(-1).x && a[0] < K.at(-1).x + K.at(-1).w, 'landing in the middle, all on one column over the core');
+      wide.push(Math.max(...xs) - Math.min(...xs));                                   // its sides apart
+    });
+    assert.ok(near(wide[0], K[0].w - 2 * edgeOf(o), 1e-6) && near(wide[1], K[1].w - 2 * edgeOf(o), 1e-6) && wide[2] > K[1].w && wide[2] < wide[0] && wide[3] < wide[1], 'A\'s loop, Key 2\'s, Key 1\'s next, Key 2\'s next');
     assert.ok(F.pieces.filter(g => g.t === 'A').every(g => g.r >= 4 - 1e-9), 'no turn tighter than 4 mm');
+    const R = dragRows(P, o), run = plotRun({ ...RUN, rows: R.ps.length }, dragPasses(R));
+    assert.equal(R.ps.length, n + 1); assert.equal(run.fault, ''); assert.equal(wipeBlocks(run.blocks).filter(b => b.wipe).length, 1, 'a wipe before the core only');
+    const ups = run.blocks.filter(b => b.kind === 'arm' && /^J 2 /.test(b.cmd) && b.row >= 1 && b.row <= n).length, flights = run.blocks.filter(b => b.kind === 'move' && /^T /.test(b.cmds[0]) && b.row >= 2 && b.row <= n).length;
+    assert.ok(ups >= 2 * n && flights === n - 1, `the brush up and down at every loop (${ups}), in the air to the next ${flights} times`);
     const seq = planOf([{ ...r, order: 'seq' }], o).figs[0];
-    assert.ok(F.length > seq.length && F.length < 1.1 * seq.length, `${F.length} mm, key after key ${seq.length}: the S's in and out, and half a loop`);
+    const loops = L.reduce((t, q) => t + 2 * (q.x1 - q.x0 + q.y1 - q.y0) - (8 - 2 * Math.PI) * q.r, 0);
+    assert.ok(Math.abs(F.length - loops) < 0.01 * loops, `${F.length} mm: every contour once, ${loops} round them all (a few top turns on the column a little tighter), key after key ${seq.length}`);
   }
   const ccw = planOf([MIX({ turn: 'ccw' })], O).figs[0];
-  assert.ok(Math.abs(ccw.pieces.reduce((t, g) => t + (g.t === 'A' ? (g.left ? 1 : -1) * lenOf(g) / g.r : 0), 0) - 2 * Math.PI * 28 - Math.PI) < 1e-6, '↺, every loop round to the left, the half round too');
-  for (let i = 1; i < ccw.pieces.length; i++) { const a = ccw.pieces[i - 1], b = ccw.pieces[i], e = atPiece(a, lenOf(a)), t = atPiece(b, 0).t; assert.ok(Math.hypot(e.p[0] - b.a[0], e.p[1] - b.a[1]) < 1e-6 && Math.hypot(e.t[0] - t[0], e.t[1] - t[1]) < 1e-3, `↺ piece ${i} a kink`); }
-  const two = MIX({ keys: [{ x: 0.4, y: 0.4, w: 0.2, h: 0.2 }] });
-  assert.deepEqual(planOf([two], O).figs[0].pieces, planOf([{ ...two, order: 'seq' }], O).figs[0].pieces, 'one series: one after another as ever');
+  for (const [a, b] of ccw.strokes) { const st = ccw.pieces.slice(a, b), t = st.reduce((t, g) => t + (g.t === 'A' ? (g.left ? 1 : -1) * lenOf(g) / g.r : 0), 0); assert.ok(Math.abs(t - 2 * Math.PI) < 1e-6, '↺, every loop round to the left'); assert.ok(Math.hypot(st.at(-1).b[0] - st[0].a[0], st.at(-1).b[1] - st[0].a[1]) < 1e-6, '↺: drawn once'); }
+  const two = MIX({ keys: [{ x: 0.4, y: 0.4, w: 0.2, h: 0.2 }] }), P2 = planOf([two], O);
+  assert.equal(P2.figs[0].strokes, undefined, 'one series: one line'); assert.deepEqual(P2.figs[0].pieces, planOf([{ ...two, order: 'seq' }], O).figs[0].pieces);
 });
 
 // The reference IMAGE 2026-10-26 11:55:05 as the tints read it (Claude's run of it)

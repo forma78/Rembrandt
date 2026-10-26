@@ -722,9 +722,20 @@ export function planOf(rects, o) {
     const along = at.map(i => alongTo(pieces, pts[i]));
     return { ...F, pts: P, pieces, length, along, ends, cross, start: P[0], end: P.at(-1), rings: F.rings ?? F.us.reduce((a, id) => a + units[id].R.levels, 0) };
   };
+  // a blend's loops each a stroke of its own (blendplan.js, K1 · K2 in turn): their pieces one after another; strokes, where each begins and ends among them
+  const strokesLine = (F, S) => {
+    const pieces = [], strokes = [], pts = [];
+    for (const st of S) { const P = cleanPts(st), q = roundOf(P, o.corner ?? CORNER_NEW); strokes.push([pieces.length, pieces.length + q.length]); pieces.push(...q); pts.push(...P); }
+    return { ...F, pts, pieces, strokes, length: pieces.reduce((a, g) => a + lenOf(g), 0), along: [0], ends: [{ a: pts[0], b: pts.at(-1) }], cross: [null], start: pts[0], end: pts.at(-1), rings: F.rings ?? F.us.reduce((a, id) => a + units[id].R.levels, 0) };
+  };
   const figs = [];
   for (const F of F0) {
-    const pts = [], at = [], ends = [], cross = [];
+    const pts = [], at = [], ends = [], cross = [], B0 = F.us.length === 1 ? units[F.us[0]].BP : null;
+    if (B0?.strokes) {
+      figs.push(strokesLine(F, B0.strokes));
+      if (B0.core) figs.push(line({ ...F, core: true, box: B0.box, rings: B0.rings }, B0.core, [0], [{ a: B0.core[0], b: B0.core.at(-1) }], [null]));
+      continue;
+    }
     F.us.forEach((id, k) => {
       const U = units[id], next = F.us[k + 1], prev = pts.at(-1), nextMid = next !== undefined ? mid(units[next].box) : null;
       let s, x = null;
@@ -773,9 +784,12 @@ export function dragRows(P, o) {
   for (const F of P.figs) {
     if (!F.pieces.length) continue;
     if (ps.length) stops.push({ at: ps.length, why: wipeWhy(F, P.units) });
-    const row = ps.length + 1;
-    ps.push(F.pieces.map(g => ({ ...machinePiece(g, o), tilt: 0, row })));
-    info.push({ label: `${figName(F, P.units)} · the brush down all the way`, fi: F.n - 1, L: F.length });
+    const parts = F.strokes ?? [[0, F.pieces.length]];                               // a blend's loops in turn a row each: up between them, no wipe
+    parts.forEach(([a, b], k) => {
+      const row = ps.length + 1, gs = F.pieces.slice(a, b);
+      ps.push(gs.map(g => ({ ...machinePiece(g, o), tilt: 0, row })));
+      info.push({ label: `${figName(F, P.units)} · ${parts.length > 1 ? `loop ${k + 1} of ${parts.length}, the brush up and on in the air to the next` : 'the brush down all the way'}`, fi: F.n - 1, L: gs.reduce((s, g) => s + lenOf(g), 0) });
+    });
     length += F.length;
   }
   return { ps, info, stops, runs: ps.length, length };
@@ -850,11 +864,14 @@ export function wipeBlocks(blocks, up = WIPE_NEW) {
 const f2 = v => (Math.round(v * 100) / 100).toString();
 export function dragSvg(P, o) {
   const Y = v => o.ch - v, rows = P.figs.filter(F => F.pieces.length).map(F => {
-    const d = [`M${f2(F.pieces[0].a[0])} ${f2(Y(F.pieces[0].a[1]))}`];
-    for (const g of F.pieces) d.push(g.t === 'L' ? `L${f2(g.b[0])} ${f2(Y(g.b[1]))}` : `A${f2(g.r)} ${f2(g.r)} 0 0 ${g.left ? 0 : 1} ${f2(g.b[0])} ${f2(Y(g.b[1]))}`);
+    const d = [];
+    F.pieces.forEach((g, k) => {                                                     // M where a stroke begins: a blend's loops in turn, the brush up between
+      if (!k || Math.hypot(g.a[0] - F.pieces[k - 1].b[0], g.a[1] - F.pieces[k - 1].b[1]) > 1e-6) d.push(`M${f2(g.a[0])} ${f2(Y(g.a[1]))}`);
+      d.push(g.t === 'L' ? `L${f2(g.b[0])} ${f2(Y(g.b[1]))}` : `A${f2(g.r)} ${f2(g.r)} 0 0 ${g.left ? 0 : 1} ${f2(g.b[0])} ${f2(Y(g.b[1]))}`);
+    });
     return `  <path d="${d.join(' ')}" data-figure="${F.n}" data-units="${F.us.length}"/>`;
   });
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt INKA · drag · canvas ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one figure, the brush down all the way, in running order; a wipe between them. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n<g id="drag" data-ink="none" data-brush-mm="${o.brush}" data-trail-mm="${trailOf(o)}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>\n</svg>\n`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Rembrandt INKA · drag · canvas ${o.cw}x${o.ch} mm, y down, origin top left. Each <path> is one figure, the brush down all the way — a blend's loops in turn each its own M, the brush up between — in running order; a wipe between them. -->\n<svg xmlns="http://www.w3.org/2000/svg" width="${o.cw}mm" height="${o.ch}mm" viewBox="0 0 ${o.cw} ${o.ch}">\n<g id="drag" data-ink="none" data-brush-mm="${o.brush}" data-trail-mm="${trailOf(o)}" fill="none" stroke="#24221F" stroke-width="1">\n${rows.join('\n')}\n</g>\n</svg>\n`;
 }
 
 // ---------- the paints: sausages across the rings ----------
