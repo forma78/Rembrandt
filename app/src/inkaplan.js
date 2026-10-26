@@ -34,6 +34,7 @@ import { CCD_META, paintOf, DENSITY_NEW, FILM, PICK_BULK, PICK_FILM, DRY, THIN, 
 import { linOf, toLin, toSrgb, luminance } from './color.js';
 import { rng } from './util.js';
 import { ELBOW_MAX } from './ink.js';
+import { BLEND, isBlend, cleanBlend, blendPaths, blendSpokes } from './blendplan.js';
 
 export const STEP_NEW = 3, STEP_MIN = 1, STEP_MAX = 100;   // mm, ring to ring: the owner's on his canvas of 2026-10-17, the rings' paint over one another, its ridges the bristles'
 export const BRUSH_NEW = 3.5;                              // mm, the brush as he set it there
@@ -79,7 +80,9 @@ const EPS = 1e-7, fin = Number.isFinite;
 // { id, x, y, w, h, step, turn, ss: [{ a: [u, v], b: [u, v], paint, thin }], pal, kind }:
 // its id, for the nodes; the way the brush goes round it as it paints, ↻
 // 'cw' or ↺ 'ccw'; its sausages in its own fractions, so they move and
-// stretch with it; the palette of its figure; 'john', a ⌘, else a tile — a ⌘ its width
+// stretch with it; the palette of its figure; 'john', a ⌘, 'blend', a blend
+// (BLEND, blendplan.js), else a tile — a ⌘ its width, a blend its keys,
+// corners, steps and core; a blend's sausages its core's, or its inner half's
 const ids = a => Array.isArray(a) && a.every(id => PAINT[id]);
 const shares = w => w && typeof w === 'object' ? Object.fromEntries(Object.entries(w).filter(([k, v]) => PAINT[k] && fin(v) && v > 0)) : null;
 export const cleanPal = q => q && typeof q.name === 'string' && ids(q.core) && q.core.length && ids(q.accent ?? [])
@@ -87,11 +90,16 @@ export const cleanPal = q => q && typeof q.name === 'string' && ids(q.core) && q
 const pair = v => Array.isArray(v) && v.length === 2 && v.every(fin);
 export function cleanRect(r) {
   if (!r || ![r.x, r.y, r.w, r.h].every(fin)) return null;
-  const ss = Array.isArray(r.ss) ? r.ss.filter(q => q && pair(q.a) && pair(q.b) && PAINT[q.paint]).map(q => ({ a: q.a.slice(), b: q.b.slice(), paint: q.paint, ...(q.thin ? { thin: true } : {}) })) : [];
+  const ss = Array.isArray(r.ss) ? r.ss.filter(q => q && pair(q.a) && pair(q.b) && PAINT[q.paint]).map(q => ({ a: q.a.slice(), b: q.b.slice(), paint: q.paint, ...flags(q) })) : [];
   const pal = cleanPal(r.pal), w = Math.max(MIN_SIDE, r.w), h = Math.max(MIN_SIDE, r.h);
   return { ...(fin(r.id) ? { id: r.id } : {}), x: r.x, y: r.y, w, h, step: fin(r.step) ? Math.max(STEP_MIN, Math.min(STEP_MAX, r.step)) : STEP_NEW, turn: r.turn === 'ccw' ? 'ccw' : 'cw', ss, ...(pal ? { pal } : {}),
-    ...(isJohn(r) ? { kind: JOHN, width: fin(r.width) ? Math.max(JOHN_W_MIN, Math.min(JOHN_W_MAX, r.width)) : johnWidthNew({ w, h }) } : {}) };
+    ...(isJohn(r) ? { kind: JOHN, width: fin(r.width) ? Math.max(JOHN_W_MIN, Math.min(JOHN_W_MAX, r.width)) : johnWidthNew({ w, h }) } : {}),
+    ...(isBlend(r) ? { kind: BLEND, ...cleanBlend(r, w, h) } : {}) };
 }
+// a sausage's marks beyond its place and paint: thin; on a blend its core's, or its inner half's
+const flags = q => ({ ...(q.thin ? { thin: true } : {}), ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}) });
+// a ⌘ and a blend each a unit and a figure of their own: no block, no figure with tiles, no node
+const lone = r => isJohn(r) || isBlend(r);
 // every rectangle an id of its own: the missing and the repeated given new ones
 export function withIds(rects) {
   const seen = new Set();
@@ -114,13 +122,13 @@ export const overlaps = (a, b) => overX(a, b) > 0.01 && overY(a, b) > 0.01;
 export const touches = (a, b, join) => (-overX(a, b) <= join && overY(a, b) >= SHARE_MIN) || (-overY(a, b) <= join && overX(a, b) >= SHARE_MIN);
 const boxOf = rs => { const x0 = Math.min(...rs.map(r => r.x)), y0 = Math.min(...rs.map(r => r.y)), x1 = Math.max(...rs.map(r => r.x + r.w)), y1 = Math.max(...rs.map(r => r.y + r.h)); return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }; };
 const mid = b => [b.x + b.w / 2, b.y + b.h / 2];
-// The units: rectangles that overlap are one, a block; in the order of their first rectangle. A ⌘ a unit of its own, melting into none
+// The units: rectangles that overlap are one, a block; in the order of their first rectangle. A ⌘ or a blend a unit of its own, melting into none
 export function unitsOf(rects) {
   const up = rects.map((_, i) => i), find = i => up[i] === i ? i : (up[i] = find(up[i]));
-  for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) if (!isJohn(rects[i]) && !isJohn(rects[j]) && overlaps(rects[i], rects[j])) up[find(j)] = find(i);
+  for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) if (!lone(rects[i]) && !lone(rects[j]) && overlaps(rects[i], rects[j])) up[find(j)] = find(i);
   const by = new Map();
   rects.forEach((_, i) => { const k = find(i); if (!by.has(k)) by.set(k, []); by.get(k).push(i); });
-  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step, turn: rects[rs[0]].turn ?? 'cw', ...(isJohn(rects[rs[0]]) ? { john: true, width: rects[rs[0]].width ?? johnWidthNew(rects[rs[0]]) } : {}) }));
+  return [...by.values()].sort((a, b) => a[0] - b[0]).map((rs, id) => ({ id, rs, box: boxOf(rs.map(i => rects[i])), step: rects[rs[0]].step, turn: rects[rs[0]].turn ?? 'cw', ...(isJohn(rects[rs[0]]) ? { john: true, width: rects[rs[0]].width ?? johnWidthNew(rects[rs[0]]) } : {}), ...(isBlend(rects[rs[0]]) ? { blend: true } : {}) }));
 }
 const near = (A, B, rects, join) => A.rs.some(i => B.rs.some(j => touches(rects[i], rects[j], join)));
 // The units of a figure in a snake from its bottom left: up the way it went
@@ -153,9 +161,9 @@ export function snakeOf(us, units, adj) {
   while (left.size) { const p = c(out.at(-1)); let best = null, bd = Infinity; for (const k of left) { const q = c(k), d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; best = k; } } out.push(best); left.delete(best); }
   return out;
 }
-// The figures: units that touch, in the order of their first rectangle, each its units in their snake; a ⌘ a figure of its own
+// The figures: units that touch, in the order of their first rectangle, each its units in their snake; a ⌘ or a blend a figure of its own
 export function figuresOf(rects, units, join = JOIN_NEW) {
-  const n = units.length, adjM = units.map(A => units.map(B => A !== B && !A.john && !B.john && near(A, B, rects, join))), adj = (a, b) => adjM[a][b];
+  const n = units.length, adjM = units.map(A => units.map(B => A !== B && !A.john && !B.john && !A.blend && !B.blend && near(A, B, rects, join))), adj = (a, b) => adjM[a][b];
   const seen = new Array(n).fill(false), out = [];
   for (let i = 0; i < n; i++) {
     if (seen[i]) continue;
@@ -460,7 +468,7 @@ export function magnetsOf(U, rects) {
 function endOf(e, rects, units) {
   const ri = rects.findIndex(r => r.id === e.id); if (ri < 0) return null;
   const U = units.find(u => u.rs.includes(ri)), M = U?.M;
-  if (!U || U.john) return null;                                                   // a ⌘ no magnets: no node holds on it
+  if (!U || U.john || U.blend) return null;                                        // a ⌘ or a blend no magnets: no node holds on it
   if (e.m === 'c') return { u: U.id, ...M[0] };
   const q = magnetPoint(rects[ri], e.m, U.R.roots[0]?.d ?? 0), rim = M.filter(m => !m.c);
   if (!rim.length) return { u: U.id, ...M[0] };
@@ -689,7 +697,10 @@ export function johnPath(U, rects, o = {}) {
 // owner, 2026-10-17, on a node laid in and out of one middle by mistake,
 // Screenshot 3.54.39 PM: "maybe mark such a square with the sign !"):
 // cross, per unit, null, 'middle' or 'edge'.
-// o: { brush, swell, edgeOut, overlap, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross }], links, manual, length }
+// A blend (BLEND, blendplan.js) its loops, one line, the outermost first;
+// its core, filled, a figure of its own right after it ({ core, box }), so a
+// wipe comes between them and the core takes its pure paint.
+// o: { brush, swell, edgeOut, overlap, join, corner, change, nodes } → { units, figs: [{ n, us, ls, pts, pieces, length, along, ends, cross, rings, core?, box? }], links, manual, length }
 export function planOf(rects, o) {
   const trail = trailOf(o), edge = edgeOf(o), over = overDepth(o), units = unitsOf(rects), way = { trail, edge, over, corner: o.corner ?? CORNER_NEW, change: o.change ?? CHANGE_NEW };
   for (const U of units) {
@@ -697,16 +708,28 @@ export function planOf(rects, o) {
       const R = johnRings(rects[U.rs[0]], trail, U.step, edge, over);
       U.ds = johnBand(johnDepths(R), U.width - edge, U.step); U.R = { ...R, rings: U.ds.length, levels: U.ds.length }; U.M = []; continue;
     }
+    if (U.blend) {                                                                 // a blend: its loops, its core's rings
+      U.BP = blendPaths(rects[U.rs[0]], { ...way, step: U.step }); U.R = { roots: [], rings: U.BP.loops, levels: U.BP.loops }; U.M = []; continue;
+    }
     U.R = ringsOf(U.rs.map(i => rects[i]), trail, U.step, edge, over); U.M = magnetsOf(U, rects);
   }
   const links = o.nodes?.length ? linksOf(o.nodes, rects, units) : [], manual = links.length > 0;
   const F0 = manual ? figuresByNodes(rects, units, links, o.join ?? JOIN_NEW) : figuresOf(rects, units, o.join ?? JOIN_NEW).map(F => ({ ...F, ls: [] }));
-  const figs = F0.map(F => {
+  // a figure's line: its points cleaned, jogged where they turn back, every turn rounded; where each unit starts along it
+  const line = (F, pts, at, ends, cross) => {
+    const P = jogged(cleanPts(pts), trail / 2), pieces = roundOf(P, o.corner ?? CORNER_NEW), length = pieces.reduce((s, g) => s + lenOf(g), 0);
+    // where each unit starts, mm along the path: the nearest point of the rounded path to its first point
+    const along = at.map(i => alongTo(pieces, pts[i]));
+    return { ...F, pts: P, pieces, length, along, ends, cross, start: P[0], end: P.at(-1), rings: F.rings ?? F.us.reduce((a, id) => a + units[id].R.levels, 0) };
+  };
+  const figs = [];
+  for (const F of F0) {
     const pts = [], at = [], ends = [], cross = [];
     F.us.forEach((id, k) => {
       const U = units[id], next = F.us[k + 1], prev = pts.at(-1), nextMid = next !== undefined ? mid(units[next].box) : null;
       let s, x = null;
       if (U.john) s = johnPath(U, rects, way);
+      else if (U.blend) s = U.BP.blend;
       else if (!manual) { const out = k % 2 === 0; s = unitPath(U, rects, way, out ? 'out' : 'in', null, out ? nextMid ?? prev ?? null : prev ?? null); }
       else {
         const inE = k ? F.ls[k - 1].b : null, outE = next !== undefined ? F.ls[k].a : null, rim = e => e && !e.c;
@@ -719,11 +742,11 @@ export function planOf(rects, o) {
       }
       at.push(pts.length); ends.push({ a: s[0], b: s.at(-1) }); cross.push(x); pts.push(...s);
     });
-    const P = jogged(cleanPts(pts), trail / 2), pieces = roundOf(P, o.corner ?? CORNER_NEW), length = pieces.reduce((s, g) => s + lenOf(g), 0);
-    // where each unit starts, mm along the path: the nearest point of the rounded path to its first point
-    const along = at.map(i => alongTo(pieces, pts[i]));
-    return { ...F, pts: P, pieces, length, along, ends, cross, start: P[0], end: P.at(-1) };
-  });
+    figs.push(line(F, pts, at, ends, cross));
+    const B = units[F.us[0]].BP;
+    if (B?.core) figs.push(line({ ...F, core: true, box: B.box, rings: B.rings }, B.core, [0], [{ a: B.core[0], b: B.core.at(-1) }], [null]));
+  }
+  figs.forEach((F, k) => { F.n = k + 1; });
   return { units, figs, links, manual, length: figs.reduce((s, F) => s + F.length, 0) };
 }
 function alongTo(pieces, p) {
@@ -732,7 +755,7 @@ function alongTo(pieces, p) {
   return best;
 }
 // a figure's name, for the LCD and the stop
-export const figName = (F, units) => `Figure ${F.n}${F.us.length > 1 ? `, ${F.us.length} units` : units[F.us[0]].john ? ', ⌘ St. John\'s Arms' : units[F.us[0]].rs.length > 1 ? ', a block' : ', one tile'}`;
+export const figName = (F, units) => `Figure ${F.n}${F.us.length > 1 ? `, ${F.us.length} units` : F.core ? ', a blend\'s core' : units[F.us[0]].blend ? ', a blend' : units[F.us[0]].john ? ', ⌘ St. John\'s Arms' : units[F.us[0]].rs.length > 1 ? ', a block' : ', one tile'}`;
 export const wipeWhy = (F, units) => `${figName(F, units)}: the brush up — wipe it; are its sausages squeezed? Then Continue`;
 
 // DRAG's rows for plotRun, mm from the canvas's centre: a figure a row, one
@@ -845,12 +868,14 @@ export function dragSvg(P, o) {
 // A sausage: { a, b } canvas mm, along it the paint across the rings, SAUSAGE_W wide.
 export function sausagesOf(rects, ri) {
   const out = [];
-  rects.forEach((r, i) => { if (ri !== undefined && ri !== i) return; r.ss.forEach((q, k) => out.push({ ri: i, k, a: [r.x + q.a[0] * r.w, r.y + q.a[1] * r.h], b: [r.x + q.b[0] * r.w, r.y + q.b[1] * r.h], paint: q.paint, thin: !!q.thin })); });
+  rects.forEach((r, i) => { if (ri !== undefined && ri !== i) return; r.ss.forEach((q, k) => out.push({ ri: i, k, a: [r.x + q.a[0] * r.w, r.y + q.a[1] * r.h], b: [r.x + q.b[0] * r.w, r.y + q.b[1] * r.h], paint: q.paint, ...flags(q), thin: !!q.thin })); });
   return out;
 }
 const unitOfRect = (units, i) => units.find(U => U.rs.includes(i));
 // a unit's sausages, by its rectangles
 export const unitSausages = (U, rects) => U.rs.flatMap(i => sausagesOf(rects, i));
+// a figure's: its units', a blend's parted between its loops' figure and its core's
+export const figSausages = (F, units, rects) => F.us.flatMap(id => unitSausages(units[id], rects).filter(q => !units[id].blend || !q.core === !F.core));
 function erodeZero(G) {
   const inSet = (i, j) => i >= 0 && j >= 0 && i < G.nx && j < G.ny && !!G.inn[i * G.ny + j], cells = [];
   for (let i = 0; i < G.nx; i++) for (let j = 0; j < G.ny; j++) if (G.inn[i * G.ny + j]) cells.push([i, j]);
@@ -864,8 +889,9 @@ function erodeZero(G) {
 // on the tile at the corner, clear of both its sides. A block: from every
 // corner of its outline in at 45°, as far as the middle of its part goes, no
 // deeper than its innermost ring. A ⌘: every lobe its X, as a tile's, the
-// lobes in their order. → [{ a, b }]
+// lobes in their order. A blend: an X of its own (blendplan.js, blendSpokes). → [{ a, b }]
 export function spokesOf(U, rects, o = {}) {
+  if (U.blend) return blendSpokes(rects[U.rs[0]], { trail: trailOf(o), edge: edgeOf(o), step: U.step, change: o.change ?? CHANGE_NEW });
   const out = [], arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };
   // a rectangle's X, in to the innermost ring of half sides hx, hy round its
   // middle; turn: at a corner but `inner`, the rings' round turns — { d, R,
@@ -919,7 +945,7 @@ export function spokeAt(U, rects, p, o = {}) {
 // a sausage in the fractions of the rectangle of its unit its middle lies in
 export function keepIn(U, rects, q) {
   const m = [(q.a[0] + q.b[0]) / 2, (q.a[1] + q.b[1]) / 2], i = U.rs.find(j => { const r = rects[j]; return m[0] >= r.x - 1e-6 && m[0] <= r.x + r.w + 1e-6 && m[1] >= r.y - 1e-6 && m[1] <= r.y + r.h + 1e-6; }) ?? U.rs[0], r = rects[i];
-  return { i, s: { a: [(q.a[0] - r.x) / r.w, (q.a[1] - r.y) / r.h], b: [(q.b[0] - r.x) / r.w, (q.b[1] - r.y) / r.h], paint: q.paint, ...(q.thin ? { thin: true } : {}) } };
+  return { i, s: { a: [(q.a[0] - r.x) / r.w, (q.a[1] - r.y) / r.h], b: [(q.b[0] - r.x) / r.w, (q.b[1] - r.y) / r.h], paint: q.paint, ...flags(q) } };
 }
 
 // The palettes: CCD's (TAPE's families, meta 1 … 4) and INKA's own, in the
@@ -955,15 +981,24 @@ function paintsOfUnit(ss) {
 // 2026-10-19: "there is no random going through the colours, as in meta");
 // now and then a second, the next one's or an accent; one unit, the pure paint. st, a deal over many figures (dealFigures): its counts, and a
 // tile's neighbours in any figure; a lone one then its paint by the shares.
+// A blend its own (dealBlend); its core's figure dealt with its loops', so nothing on its own.
 // → Map(rect index → its sausages), the palette for every rectangle of the figure
 export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {}, st = null) {
   const r = rng(seed ^ 0x2545f491), pick = a => a[Math.floor(r() * a.length)], used = st?.used ?? {}, main = st?.main ?? {}, out = new Map();
+  if (F.core) return { ss: out, pal: { ...pal, seed } };
   for (const id of F.us) for (const i of units[id].rs) out.set(i, []);
   const spotU = !pal.spot ? null : st ? st.spot : F.us[Math.floor(r() * F.us.length)];   // the spot's one unit
   const lone = F.us.length === 1, total = (st?.total ?? F.us.length) - (pal.spot ? 1 : 0), Wsum = pal.core.reduce((s, q) => s + (pal.w?.[q] ?? 0), 0) || 1;
   const urn = c => { const ws = c.map(q => Math.max(0.05, (pal.w?.[q] ?? 0) / Wsum * total - (used[q] || 0))); let x = r() * ws.reduce((s, v) => s + v, 0); for (let k = 0; k < c.length; k++) if ((x -= ws[k]) <= 0) return c[k]; return c.at(-1); };
   F.us.forEach((id, k) => {
     const U = units[id], had = unitSausages(U, rects), was = paintsOfUnit(had);
+    if (U.blend) {                                                                 // a blend: its loops' first paint as a unit's, by the shares or the least used
+      const c = pal.core, least = Math.min(...c.map(q => used[q] || 0)), first = () => pal.w ? urn(c) : pick(c.filter(q => (used[q] || 0) === least));
+      const ss = dealBlend(rects, U, pal, r, mode, o, first, !!pal.spot && (st ? st.spot === id : true));
+      main[id] = ss.find(q => !q.core)?.paint ?? c[0]; used[main[id]] = (used[main[id]] || 0) + 1;
+      for (const q of ss) { const { i, s } = keepIn(U, rects, q); out.get(i).push(s); }
+      return;
+    }
     let p1, p2 = null;
     if (mode === 'spokes' && was.length) { p1 = was[0]; p2 = was[1] ?? null; }
     else if (id === spotU) p1 = pal.spot;                                         // the spot: this unit, all of it, and no other
@@ -996,6 +1031,25 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
   });
   return { ss: out, pal: { ...pal, seed } };
 }
+// A blend's sausages (blendSpokes): its loops' two paints, the outer half's
+// and the inner half's — the paint going over from the one to the other as
+// the shapes do (Illustrator blends the colours too) — the second another
+// core paint, BLEND_TWO of the time, else the first again; its core the
+// palette's spot where it goes here (the brightest speck, one place only),
+// else its pure paint, as a lone figure's, and never the loops' if the
+// palette has another. 'spokes' keeps the paints each part had; 'colours'
+// with sausages lying keeps their places. first(), the loops' first paint.
+export const BLEND_TWO = 0.75;   // Claude's
+function dealBlend(rects, U, pal, r, mode, o, first, spot) {
+  const had = unitSausages(U, rects), was = part => had.find(part)?.paint;
+  let p1, p2, pc;
+  if (mode === 'spokes' && had.length) { p1 = was(q => !q.core && !q.inner) ?? was(q => !q.core); p2 = was(q => q.inner) ?? p1; pc = was(q => q.core); }
+  else { p1 = first(); const other = pal.core.filter(q => q !== p1); p2 = other.length && r() < BLEND_TWO ? other[Math.floor(r() * other.length)] : p1; }
+  p1 = p1 ?? first(); p2 = p2 ?? p1;
+  if (!pc) { pc = spot ? pal.spot : pureOf(pal); if (pc === p1 || pc === p2) pc = [...pal.core, ...pal.accent].find(q => q !== p1 && q !== p2) ?? pc; }
+  const places = mode === 'colours' && had.length ? had : spokesOf(U, rects, o);
+  return places.map(q => ({ a: q.a, b: q.b, paint: q.core ? pc : q.inner ? p2 : p1, ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}) }));
+}
 // Every figure given dealt from one palette at once — the Reference key, and
 // the keys with the tiles chosen together: the paints spread in the
 // palette's shares over all of them, a tile never its touching neighbour's
@@ -1005,6 +1059,7 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
 // paint kept — else the one with the fewest.
 export const DEAL_TRIES = 20;
 export function dealFigures(rects, units, figs, pal, seed, mode = 'colours', o = {}) {
+  figs = figs.filter(F => !F.core);                                                // a blend's core dealt with its loops
   const us = figs.flatMap(F => F.us), nb = (a, b) => near(units[a], units[b], rects, o.join ?? JOIN_NEW), pairs = [];
   for (let i = 0; i < us.length; i++) for (let j = i + 1; j < us.length; j++) if (nb(us[i], us[j])) pairs.push([us[i], us[j]]);
   let best = null;
@@ -1120,7 +1175,7 @@ export function markOf(q, brush) {
 export function marksRows(P, rects, o) {
   const ps = [], info = [];
   let n = 0;
-  for (const F of P.figs) for (const id of F.us) for (const q of unitSausages(P.units[id], rects)) {
+  for (const F of P.figs) for (const q of figSausages(F, P.units, rects)) {
     const m = markOf(q, o.brush), g = { t: 'L', a: toM(o, m.a), b: toM(o, m.b) }, dip = n % MARKS_DIP === 0;
     n++; ps.push([{ ...g, tilt: 0, row: ps.length + 1, ...(o.ink && !dip ? { nodip: true } : {}) }]);
     info.push({ label: `Figure ${F.n} · ${PAINT[q.paint].name}`, fi: F.n - 1, L: pieceLen(g) });
@@ -1178,7 +1233,7 @@ export function simOf(P, rects, o) {
   const V = paintOf(o.density ?? DENSITY_NEW), brush = trailOf(o);
   // the sausages, squeezed: a capsule SAUSAGE_W wide along each
   let squeezed = 0;
-  for (const F of P.figs) for (const id of F.us) for (const q of unitSausages(P.units[id], rects)) {
+  for (const F of P.figs) for (const q of figSausages(F, P.units, rects)) {
     const add = V / SAUSAGE_W * (q.thin ? THIN : 1), l = logC(PAINT[q.paint].hex), R = SAUSAGE_W / 2, L2 = (q.b[0] - q.a[0]) ** 2 + (q.b[1] - q.a[1]) ** 2;
     const i0 = Math.max(0, Math.floor((Math.min(q.a[0], q.b[0]) - R) / h)), i1 = Math.min(nx - 1, Math.floor((Math.max(q.a[0], q.b[0]) + R) / h));
     const j0 = Math.max(0, Math.floor((Math.min(q.a[1], q.b[1]) - R) / h)), j1 = Math.min(ny - 1, Math.floor((Math.max(q.a[1], q.b[1]) + R) / h));
