@@ -272,7 +272,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   the genesis repeated and HOME (the owner: "now we can push and make an
   update on GitHub, it is REMBRANDT v.1.0.8"); **v.1.0.9** on 2026-10-19,
   with INKA first and the top row cleaned (the owner: "this will be the
-  v.1.0.9 update").
+  v.1.0.9 update"); **v.1.1.0**, Blend, on 2026-10-26, with BLEND — its
+  spokes and patches, Reference 1, 2 …, K1 · K2 in turn — after its first
+  run in paint (the owner: "it can be pushed to GitHub, and version
+  1.1.0").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (10 mm since 2026-10-20, below; the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -1417,7 +1420,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.9**, then the tabs **INKA · ST-JOHN · BLEND · ALU-CUT · CCD · BIAS ·
+  **v.1.1.0**, then the tabs **INKA · ST-JOHN · BLEND · ALU-CUT · CCD · BIAS ·
   ALU · SMKN · Ink · Calibration · Library** (BLEND after ST-JOHN since
   2026-10-26; ST-JOHN after INKA since the evening of 2026-10-19; INKA first since 2026-10-19, TAPE, BASF,
   LOOM, NOLAN and Test off the row then; INKA after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT

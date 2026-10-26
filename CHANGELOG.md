@@ -3,7 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## v.1.0.9 — 2026-10-19
+## v.1.1.0 — 2026-10-26 · Blend
+
+- **v.1.1.0 after the name, Blend** (the owner, 2026-10-26, the night after
+  BLEND's first run in paint: "it can be pushed to GitHub, and version
+  1.1.0"), on every tab and in the saved SVGs (`rembrandt: '1.1.0'` in
+  their metadata).
 
 - **BLEND: Key 2's loops from 6 o'clock** (the owner, 2026-10-26: "your
   join is OVER the yellow cross, just where an even line is needed … start
@@ -59,6 +64,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   own after a wipe. An X along every corner's way through the loops, the
   outer half one paint, the inner half another. On a 40 × 40: 28 loops,
   16.3 m, ≈ 7 min (est.). Not run on the machine yet.
+
+## v.1.0.9 — 2026-10-19
 
 - **v.1.0.9 after the name** (the owner, 2026-10-19, with the cleanup:
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
