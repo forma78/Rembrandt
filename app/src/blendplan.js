@@ -27,7 +27,7 @@
 //
 // mm from the canvas's bottom left corner, x right, y up. Lines and arcs. No DOM.
 
-import { SAUSAGE_W } from './ccdplan.js';
+import { SAUSAGE_W, DENSITY_NEW, reachOf } from './ccdplan.js';
 import { CORNER_NEW, CHANGE_NEW, GAP_MIN, RING_MIN, STEP_NEW } from './inkaplan.js';
 
 export const BLEND = 'blend', isBlend = r => r?.kind === BLEND;
@@ -43,13 +43,13 @@ const fin = Number.isFinite, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- a blend as it may be kept ----------
 // a new blend's corners, all of them: IMG_1554's share of A's side, to half a mm
 export const cornerNew = (w, h) => Math.max(KEY_CORNER_MIN, Math.round(BLEND_1554.corner * Math.min(w, h) * 2) / 2);
-// { keys: [{ x, y, w, h }] in A's fractions, A's own left out; corners: mm, A's first; steps; core: the last key filled }
+// { keys: [{ x, y, w, h }] in A's fractions, A's own left out; corners: mm, A's first; steps; core: the last key filled; phase: its spokes' places along the sides, of a gap }
 export function cleanBlend(r, w, h) {
   const ok = q => q && [q.x, q.y, q.w, q.h].every(fin) && q.w > 0 && q.h > 0;
   const keys = (Array.isArray(r.keys) ? r.keys.filter(ok) : []).map(q => ({ x: q.x, y: q.y, w: q.w, h: q.h }));
   if (!keys.length) keys.push(...BLEND_1554.keys.map(q => ({ ...q })));
   const c0 = cornerNew(w, h);
-  return { keys, corners: [0, ...keys].map((_, k) => clamp(fin(r.corners?.[k]) ? r.corners[k] : c0, KEY_CORNER_MIN, KEY_CORNER_MAX)), steps: fin(r.steps) ? clamp(Math.round(r.steps), STEPS_MIN, STEPS_MAX) : STEPS_NEW, core: r.core !== false };
+  return { keys, corners: [0, ...keys].map((_, k) => clamp(fin(r.corners?.[k]) ? r.corners[k] : c0, KEY_CORNER_MIN, KEY_CORNER_MAX)), steps: fin(r.steps) ? clamp(Math.round(r.steps), STEPS_MIN, STEPS_MAX) : STEPS_NEW, core: r.core !== false, phase: fin(r.phase) ? (r.phase % 1 + 1) % 1 : 0 };
 }
 // its keys in canvas mm, A first: { x, y, w, h, c }
 export function keysOf(r) {
@@ -166,26 +166,64 @@ export function blendPaths(r, o) {
 }
 
 // ---------- the sausages ----------
-// An X, as INKA's: every corner's way through the loops — the tops of their
-// round turns, the apex, where the brush crosses it — from A's to the last
-// loop's, a sausage from key to key; two keys, one cut in its middle. The
-// outer half the blend's first paint, the inner half its second ({ inner }):
-// the paint goes over from the one to the other as the shapes do. The core
-// an X of its own, from its outer ring's turns to its innermost's ({ core }).
-// → [{ a, b, inner?, core? }]
+// Spokes all round (the owner, 2026-10-26, Screenshots 11.43.09 and 11.43.17
+// AM, the X's Result dry over most of the loops: "no, unfortunately a plain X
+// will not do here — too much empty space stays unpainted"): every side of
+// A's loop parted evenly, from corner to corner, its places no further apart
+// than the brush carries a sausage's paint — gap, Density's reach, GAP_K of
+// the way from the line full to the paint gone (est.) — and from each place
+// a spoke across every loop to the same place on the last: the same piece of
+// it, its corner's turn or its side, the same share of that piece, straight
+// from key to key as the shapes go evenly from one to the next. Every
+// key-to-key stretch cut in pieces no longer than the gap, a sausage each, so
+// the paints can lie in patches over the loops, not only round them
+// (inkaplan.js, dealBlend). Phase 0, a spoke on every corner's apex, where
+// the X's arms were; New spokes moves them all on along the sides, phase of
+// a gap. The core an X of its own, from its outer ring's turns to its
+// innermost's ({ core }).
+// o: as blendLoops's, and density → [{ a, b, m: the spoke, j: the piece from outside, inner?: past the middle key, core? }]
+export const GAP_K = 0.5;
+const GAPS = new Map();
+export function spokeGap(density = DENSITY_NEW) {
+  if (!GAPS.has(density)) { const q = reachOf(density); GAPS.set(density, q.full + (q.gone - q.full) * GAP_K); }
+  return GAPS.get(density);
+}
 const apex = (L, sx, sy) => { const k = L.r * (1 - Math.SQRT1_2); return [sx > 0 ? L.x1 - k : L.x0 + k, sy > 0 ? L.y1 - k : L.y0 + k]; };
 const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+// A loop's corners' centres clockwise from the top left, and their apexes' angles
+const centres = L => [[L.x0 + L.r, L.y1 - L.r], [L.x1 - L.r, L.y1 - L.r], [L.x1 - L.r, L.y0 + L.r], [L.x0 + L.r, L.y0 + L.r]];
+const APEX = [135, 45, -45, -135].map(v => v * Math.PI / 180), Q8 = Math.PI / 4;
+// side k from its corner's apex to the next's: half a turn, the straight, half a turn → lengths
+const sideLens = (L, k) => { const C = centres(L), a = L.r * Q8; return [a, Math.hypot(C[(k + 1) % 4][0] - C[k][0], C[(k + 1) % 4][1] - C[k][1]), a]; };
+// the point of side k: its piece p (0 the first half turn, 1 the straight, 2 the last half turn), u of the way along it
+function sidePoint(L, k, p, u) {
+  const C = centres(L), c0 = C[k], c1 = C[(k + 1) % 4], at = (c, th) => [c[0] + L.r * Math.cos(th), c[1] + L.r * Math.sin(th)];
+  if (p === 0) return at(c0, APEX[k] - Q8 * u);
+  if (p === 2) return at(c1, APEX[k] - Q8 * (1 + u));
+  const n = APEX[k] - Q8;
+  return [c0[0] + (c1[0] - c0[0]) * u + L.r * Math.cos(n), c0[1] + (c1[1] - c0[1]) * u + L.r * Math.sin(n)];
+}
 export function blendSpokes(r, o) {
-  const B = blendLoops(r, o), L = B.loops, out = [], far = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]) > 0.5;
+  const B = blendLoops(r, o), L = B.loops, out = [], gap = spokeGap(o.density), far = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]) >= SAUSAGE_W;
   if (L.length) {
-    const at = L.map((q, i) => i).filter(i => !i || L[i].key >= 0 || i === L.length - 1);
-    for (const [sx, sy] of CORNERS) {
-      let ps = at.map(i => apex(L[i], sx, sy));
-      if (ps.length === 2) ps = [ps[0], [(ps[0][0] + ps[1][0]) / 2, (ps[0][1] + ps[1][1]) / 2], ps[1]];
-      const n = ps.length - 1;
-      for (let j = 0; j < n; j++) if (far(ps[j], ps[j + 1])) out.push({ a: ps[j], b: ps[j + 1], ...(j >= n / 2 ? { inner: true } : {}) });
+    const at = L.map((q, i) => i).filter(i => !i || L[i].key >= 0 || i === L.length - 1), mid = (at.length - 1) / 2, phase = r.phase ?? 0;
+    let m = 0;
+    for (let k = 0; k < 4; k++) {
+      const ls = sideLens(L[0], k), S = ls[0] + ls[1] + ls[2], n = Math.max(1, Math.ceil(S / gap - 1e-9));
+      for (let i = 0; i < n; i++, m++) {
+        let t = (i + phase) / n * S, p = 0;
+        while (p < 2 && t > ls[p] + 1e-9) t -= ls[p++];
+        const u = ls[p] > 1e-9 ? Math.min(1, t / ls[p]) : 0, ps = at.map(j => sidePoint(L[j], k, p, u));
+        let j = 0;
+        for (let s = 0; s + 1 < ps.length; s++) {
+          const a = ps[s], b = ps[s + 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          if (!far(a, b)) continue;
+          const cut = Math.max(1, Math.ceil(len / gap - 1e-9));
+          for (let c = 0; c < cut; c++, j++) out.push({ a: [a[0] + (b[0] - a[0]) * c / cut, a[1] + (b[1] - a[1]) * c / cut], b: [a[0] + (b[0] - a[0]) * (c + 1) / cut, a[1] + (b[1] - a[1]) * (c + 1) / cut], m, j, ...(s >= mid ? { inner: true } : {}) });
+        }
+      }
     }
   }
-  if (B.rings.length) for (const [sx, sy] of CORNERS) { const a = apex(B.rings[0], sx, sy), b = apex(B.rings.at(-1), sx, sy); if (far(a, b)) out.push({ a, b, core: true }); }
+  if (B.rings.length) for (const [sx, sy] of CORNERS) { const a = apex(B.rings[0], sx, sy), b = apex(B.rings.at(-1), sx, sy); if (Math.hypot(b[0] - a[0], b[1] - a[1]) > 0.5) out.push({ a, b, core: true }); }
   return out;
 }

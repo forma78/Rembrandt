@@ -96,8 +96,8 @@ export function cleanRect(r) {
     ...(isJohn(r) ? { kind: JOHN, width: fin(r.width) ? Math.max(JOHN_W_MIN, Math.min(JOHN_W_MAX, r.width)) : johnWidthNew({ w, h }) } : {}),
     ...(isBlend(r) ? { kind: BLEND, ...cleanBlend(r, w, h) } : {}) };
 }
-// a sausage's marks beyond its place and paint: thin; on a blend its core's, or its inner half's
-const flags = q => ({ ...(q.thin ? { thin: true } : {}), ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}) });
+// a sausage's marks beyond its place and paint: thin; on a blend its core's, or its inner half's, and its spoke and piece, m and j
+const flags = q => ({ ...(q.thin ? { thin: true } : {}), ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}), ...(fin(q.m) && fin(q.j) ? { m: q.m, j: q.j } : {}) });
 // a ⌘ and a blend each a unit and a figure of their own: no block, no figure with tiles, no node
 const lone = r => isJohn(r) || isBlend(r);
 // every rectangle an id of its own: the missing and the repeated given new ones
@@ -889,9 +889,9 @@ function erodeZero(G) {
 // on the tile at the corner, clear of both its sides. A block: from every
 // corner of its outline in at 45°, as far as the middle of its part goes, no
 // deeper than its innermost ring. A ⌘: every lobe its X, as a tile's, the
-// lobes in their order. A blend: an X of its own (blendplan.js, blendSpokes). → [{ a, b }]
+// lobes in their order. A blend: spokes all round, in pieces (blendplan.js, blendSpokes). → [{ a, b }]
 export function spokesOf(U, rects, o = {}) {
-  if (U.blend) return blendSpokes(rects[U.rs[0]], { trail: trailOf(o), edge: edgeOf(o), step: U.step, change: o.change ?? CHANGE_NEW });
+  if (U.blend) return blendSpokes(rects[U.rs[0]], { trail: trailOf(o), edge: edgeOf(o), step: U.step, change: o.change ?? CHANGE_NEW, density: o.density ?? DENSITY_NEW });
   const out = [], arm = (k, v, s0, s1) => { if (s1 > s0 + 0.5) out.push({ a: [k[0] + v[0] * s0, k[1] + v[1] * s0], b: [k[0] + v[0] * s1, k[1] + v[1] * s1] }); };
   // a rectangle's X, in to the innermost ring of half sides hx, hy round its
   // middle; turn: at a corner but `inner`, the rings' round turns — { d, R,
@@ -992,10 +992,10 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
   const urn = c => { const ws = c.map(q => Math.max(0.05, (pal.w?.[q] ?? 0) / Wsum * total - (used[q] || 0))); let x = r() * ws.reduce((s, v) => s + v, 0); for (let k = 0; k < c.length; k++) if ((x -= ws[k]) <= 0) return c[k]; return c.at(-1); };
   F.us.forEach((id, k) => {
     const U = units[id], had = unitSausages(U, rects), was = paintsOfUnit(had);
-    if (U.blend) {                                                                 // a blend: its loops' first paint as a unit's, by the shares or the least used
-      const c = pal.core, least = Math.min(...c.map(q => used[q] || 0)), first = () => pal.w ? urn(c) : pick(c.filter(q => (used[q] || 0) === least));
-      const ss = dealBlend(rects, U, pal, r, mode, o, first, !!pal.spot && (st ? st.spot === id : true));
-      main[id] = ss.find(q => !q.core)?.paint ?? c[0]; used[main[id]] = (used[main[id]] || 0) + 1;
+    if (U.blend) {                                                                 // a blend: its palette in patches over its sausages, the commonest its paint as a unit's
+      const ss = dealBlend(rects, U, pal, r, mode, o, !!pal.spot && (st ? st.spot === id : true)), n = {};
+      for (const q of ss) if (!q.core) n[q.paint] = (n[q.paint] || 0) + 1;
+      main[id] = Object.keys(n).sort((a, b) => n[b] - n[a])[0] ?? pal.core[0]; used[main[id]] = (used[main[id]] || 0) + 1;
       for (const q of ss) { const { i, s } = keepIn(U, rects, q); out.get(i).push(s); }
       return;
     }
@@ -1031,24 +1031,85 @@ export function dealFigure(rects, units, F, pal, seed, mode = 'colours', o = {},
   });
   return { ss: out, pal: { ...pal, seed } };
 }
-// A blend's sausages (blendSpokes): its loops' two paints, the outer half's
-// and the inner half's — the paint going over from the one to the other as
-// the shapes do (Illustrator blends the colours too) — the second another
-// core paint, BLEND_TWO of the time, else the first again; its core the
-// palette's spot where it goes here (the brightest speck, one place only),
-// else its pure paint, as a lone figure's, and never the loops' if the
-// palette has another. 'spokes' keeps the paints each part had; 'colours'
-// with sausages lying keeps their places. first(), the loops' first paint.
-export const BLEND_TWO = 0.75;   // Claude's
-function dealBlend(rects, U, pal, r, mode, o, first, spot) {
-  const had = unitSausages(U, rects), was = part => had.find(part)?.paint;
-  let p1, p2, pc;
-  if (mode === 'spokes' && had.length) { p1 = was(q => !q.core && !q.inner) ?? was(q => !q.core); p2 = was(q => q.inner) ?? p1; pc = was(q => q.core); }
-  else { p1 = first(); const other = pal.core.filter(q => q !== p1); p2 = other.length && r() < BLEND_TWO ? other[Math.floor(r() * other.length)] : p1; }
-  p1 = p1 ?? first(); p2 = p2 ?? p1;
-  if (!pc) { pc = spot ? pal.spot : pureOf(pal); if (pc === p1 || pc === p2) pc = [...pal.core, ...pal.accent].find(q => q !== p1 && q !== p2) ?? pc; }
-  const places = mode === 'colours' && had.length ? had : spokesOf(U, rects, o);
-  return places.map(q => ({ a: q.a, b: q.b, paint: q.core ? pc : q.inner ? p2 : p1, ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}) }));
+// A blend's sausages (blendSpokes) dealt in patches (the owner, 2026-10-26,
+// BLEND/IMAGE 2026-10-26 11:55:05, soft clouds of pink, peach, orange, lilac
+// and navy running into one another: "I need an algorithm that turns it at
+// random into such a colour range"): the palette's core paints so many of
+// the sausages each as their shares (pal.w, the reference's; else alike), the
+// accents BLEND_THIN of them each, thin; every paint grown at random from its
+// seeds over the sausages' neighbours — their CLOUD_NB nearest — so it lies
+// in a patch, or more than one with more than CLOUD sausages, as the
+// picture's colours lie, one running into the next where they meet as the
+// brush drags it on; a press, a new deal. The core the palette's spot where
+// it goes here (the brightest speck, one place only), else its pure paint, as
+// a lone figure's; no core, the spot one sausage. 'spokes': the places laid
+// anew, each the paint of the old sausage nearest it, so the patches stay
+// where they lay; 'colours' with spokes lying keeps their places (an X's,
+// from before 2026-10-26, laid anew).
+export const BLEND_THIN = 0.04, CLOUD = 8, CLOUD_NB = 5;   // est., Claude's
+function dealBlend(rects, U, pal, r, mode, o, spot) {
+  const had = unitSausages(U, rects), core = q => !!q.core, mids = qs => qs.map(q => [(q.a[0] + q.b[0]) / 2, (q.a[1] + q.b[1]) / 2]);
+  const thin = p => pal.accent.includes(p) && !pal.core.includes(p), out = (q, paint) => ({ a: q.a, b: q.b, paint, ...(thin(paint) && !q.core ? { thin: true } : {}), ...(q.core ? { core: true } : {}), ...(q.inner ? { inner: true } : {}), ...(Number.isFinite(q.m) ? { m: q.m, j: q.j } : {}) });
+  if (mode === 'spokes' && had.length) {                                          // new places, each its nearest old sausage's paint
+    const old = had.filter(q => !core(q)), om = mids(old), pc = had.find(core)?.paint;
+    return spokesOf(U, rects, o).map((q, k) => {
+      if (q.core) return out(q, pc ?? (spot ? pal.spot : pureOf(pal)));
+      const [m] = mids([q]); let best = null, bd = Infinity;
+      om.forEach((p, i) => { const d = Math.hypot(p[0] - m[0], p[1] - m[1]); if (d < bd) { bd = d; best = old[i]; } });
+      return out(q, best?.paint ?? pal.core[k % pal.core.length]);
+    });
+  }
+  const kept = mode === 'colours' && had.some(q => !core(q)) && had.every(q => core(q) || Number.isFinite(q.m));   // an X's from before laid anew as spokes
+  const places = kept ? had : spokesOf(U, rects, o), rest = places.filter(q => !core(q)), n = rest.length;
+  const pc = spot ? pal.spot : pureOf(pal), lone = spot && !places.some(core);
+  const paints = clouds(mids(rest), blendQuota(pal, n - (lone && n ? 1 : 0)), r);
+  if (lone && n) paints[Math.floor(r() * n)] = pal.spot;
+  let k = 0;
+  return places.map(q => q.core ? out(q, pc) : out(q, paints[k++]));
+}
+// so many sausages of n each paint: the core by its shares, an accent BLEND_THIN of them — the largest remainders rounded up, so they add up to n
+export function blendQuota(pal, n) {
+  if (n <= 0) return [];
+  const acc = pal.accent.filter(p => !pal.core.includes(p)), a = n >= 2 * (pal.core.length + acc.length) ? Math.max(1, Math.round(n * BLEND_THIN)) : 0;
+  const W = pal.core.map(p => pal.w ? pal.w[p] ?? 0 : 1), Ws = W.reduce((s, v) => s + v, 0) || 1, left = n - a * acc.length;
+  const raw = W.map(v => (Ws ? v / Ws : 1 / W.length) * left), q = raw.map(Math.floor);
+  raw.map((v, i) => [v - Math.floor(v), i]).sort((x, y) => y[0] - x[0]).slice(0, left - q.reduce((s, v) => s + v, 0)).forEach(([, i]) => q[i]++);
+  return [...pal.core.map((p, i) => [p, q[i]]), ...acc.map(p => [p, a])].filter(([, c]) => c > 0);
+}
+// Patches over points (the sausages' middles): each paint its count of
+// them, grown at random from seeds — one for every CLOUD, the seeds as far
+// from one another as a few tries find — over every point's CLOUD_NB nearest
+// and those that have it among theirs; a paint with no more room where it
+// lies seeded again where none is. pts: [[x, y]]; quota: [[paint, count]], adding up to pts' → paints
+export function clouds(pts, quota, r) {
+  const n = pts.length, out = Array(n).fill(null), nb = pts.map(() => new Set()), d = (i, j) => Math.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]);
+  for (let i = 0; i < n; i++) pts.map((_, j) => j).filter(j => j !== i).sort((x, y) => d(i, x) - d(i, y)).slice(0, CLOUD_NB).forEach(j => { nb[i].add(j); nb[j].add(i); });
+  const left = new Map(quota), seeds = [], blobs = [];
+  const free = () => out.map((v, i) => v ? -1 : i).filter(i => i >= 0);
+  const seed = p => {                                                              // the farthest from the seeds of a few free points tried
+    const f = free(); if (!f.length) return false;
+    let best = f[Math.floor(r() * f.length)];
+    if (seeds.length) for (let t = 0, bd = -1; t < 6; t++) { const i = f[Math.floor(r() * f.length)], v = Math.min(...seeds.map(s => d(i, s))); if (v > bd) { bd = v; best = i; } }
+    seeds.push(best); out[best] = p; left.set(p, left.get(p) - 1); blobs.push({ p, edge: new Set([...nb[best]].filter(j => !out[j])) });
+    return true;
+  };
+  const order = quota.map(([p]) => p).sort(() => r() - 0.5);
+  for (const p of order) for (let b = Math.max(1, Math.round(quota.find(q => q[0] === p)[1] / CLOUD)); b > 0 && left.get(p) > 0; b--) seed(p);
+  for (let guard = 0; out.includes(null) && guard < 4 * n; guard++) {
+    for (const B of blobs) for (const j of B.edge) if (out[j]) B.edge.delete(j);
+    const live = blobs.filter(B => left.get(B.p) > 0 && B.edge.size);
+    if (!live.length) {                                                            // a paint boxed in: a new patch where none is; none left to grow, the free ones their neighbours'
+      const p = order.find(q => left.get(q) > 0);
+      if (p && seed(p)) continue;
+      for (const i of free()) out[i] = [...nb[i]].map(j => out[j]).find(Boolean) ?? quota[0][0];
+      continue;
+    }
+    const B = live[Math.floor(r() * live.length)], e = [...B.edge], j = e[Math.floor(r() * e.length)];
+    out[j] = B.p; left.set(B.p, left.get(B.p) - 1); B.edge.delete(j);
+    for (const q of nb[j]) if (!out[q]) B.edge.add(q);
+  }
+  for (let i = 0; i < n; i++) if (!out[i]) out[i] = quota[0]?.[0] ?? null;
+  return out;
 }
 // Every figure given dealt from one palette at once — the Reference key, and
 // the keys with the tiles chosen together: the paints spread in the
@@ -1143,23 +1204,57 @@ export function paintingBox(px, w, h) {
 // painting or more; out of the accents with the paints like it, within
 // SPOT_DE (CIEDE2000) — the red band's orange edge — a paint of one tile (dealFigure).
 export const SPOT_C = 45, SPOT_MIN = 0.001, SPOT_DE = 12;
-// px, w, h: the picture; with w and h, its painting only (paintingBox)
-export function paletteOfPixels(px, w, h) {
-  const n = {}, ch = {}, seen = new Map(), B = w && h ? paintingBox(px, w, h) : null;
+// A phone's bars (the owner's references are screenshots off his phone:
+// BLEND/IMAGE 2026-10-26 11:55:05, the time and the signal on grey over its
+// top, read as Viridian): rows at the top or the bottom of one colour — their
+// median within BAR_DE of the first row's, BAR_FLAT of each so — cut, if no
+// more than BAR_MAX of the picture; more, they are the picture's (est.).
+// → { top, bottom }, rows
+export const BAR_DE = 6, BAR_FLAT = 0.6, BAR_MAX = 0.06;
+export function barsOf(px, w, h) {
+  const row = y => Array.from({ length: w }, (_, x) => { const i = 4 * (y * w + x); return labOf([px[i], px[i + 1], px[i + 2]].map(v => toLin(v / 255))); });
+  const med = R => [0, 1, 2].map(k => R.map(q => q[k]).sort((a, b) => a - b)[R.length >> 1]), d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]), most = Math.floor(BAR_MAX * h);
+  const run = (y0, dy) => {
+    const ref = med(row(y0));
+    let k = 0;
+    for (let y = y0; k <= most && y >= 0 && y < h; y += dy, k++) { const R = row(y), m = med(R); if (d(m, ref) > BAR_DE || R.filter(q => d(q, m) < BAR_DE).length < BAR_FLAT * w) break; }
+    return k <= most ? k : 0;
+  };
+  return w && h > 2 ? { top: run(0, 1), bottom: run(h - 1, -1) } : { top: 0, bottom: 0 };
+}
+// BLEND's reading, tints (the owner, 2026-10-26, IMAGE 2026-10-26 11:55:05,
+// its pale pinks, peaches and lilacs White before): a pale colour a paint laid
+// thin over the white ground, as the brush leaves it running dry — every
+// pixel the paint, at one of the TINTS of white over it in linear light,
+// nearest it by CIEDE2000; the pixel the paint's by how much of it there is,
+// the rest White's: a pale pink Rose Azo and White, a lilac Purple and White.
+export const TINTS = [0, 0.3, 0.55, 0.75, 0.88];
+let TINT_LABS = null;
+function nearestTint(lab) {
+  if (!TINT_LABS) { const W = linOf(PAINT.white.hex); TINT_LABS = Object.keys(PAINT).flatMap(id => (id === 'white' ? [0] : TINTS).map(t => ({ id, t, lab: labOf(linOf(PAINT[id].hex).map((v, k) => v * (1 - t) + W[k] * t)), k: PAINT[id].buy ? BUY_K : 1 }))); }
+  let best = TINT_LABS[0], bd = Infinity;
+  for (const q of TINT_LABS) { const d = de2000(lab, q.lab) * q.k; if (d < bd) { bd = d; best = q; } }
+  return best;
+}
+// px, w, h: the picture; with w and h, its painting only (paintingBox), a phone's bars off (barsOf); o.tints: BLEND's reading
+export function paletteOfPixels(px, w, h, o = {}) {
+  if (w && h) { const b = barsOf(px, w, h); if (b.top || b.bottom) { px = px.subarray(4 * w * b.top, 4 * w * (h - b.bottom)); h -= b.top + b.bottom; } }
+  const n = {}, cnt = {}, ch = {}, seen = new Map(), B = w && h ? paintingBox(px, w, h) : null;
   let all = 0;
   for (let i = 0; i + 3 < px.length; i += 4) {
     if (px[i + 3] < 128) continue;
     if (B) { const k = i >> 2, x = k % w, y = (k - x) / w; if (x < B.x0 || x >= B.x1 || y < B.y0 || y >= B.y1) continue; }
     const key = (px[i] >> 2) << 12 | (px[i + 1] >> 2) << 6 | px[i + 2] >> 2;
     let q = seen.get(key);
-    if (!q) { const rgb = [px[i], px[i + 1], px[i + 2]], L = labOf(rgb.map(v => toLin(v / 255))); q = { id: nearestPaint(rgb), c: Math.hypot(L[1], L[2]) }; seen.set(key, q); }
-    n[q.id] = (n[q.id] || 0) + 1; ch[q.id] = (ch[q.id] || 0) + q.c; all++;
+    if (!q) { const rgb = [px[i], px[i + 1], px[i + 2]], L = labOf(rgb.map(v => toLin(v / 255))), T = o.tints ? nearestTint(L) : null; q = { id: T ? T.id : nearestPaint(rgb), t: T ? T.t : 0, c: Math.hypot(L[1], L[2]) }; seen.set(key, q); }
+    n[q.id] = (n[q.id] || 0) + 1 - q.t; if (q.t) n.white = (n.white || 0) + q.t;
+    cnt[q.id] = (cnt[q.id] || 0) + 1; ch[q.id] = (ch[q.id] || 0) + q.c; all++;
   }
   if (!all) return null;
   const by = Object.keys(n).sort((a, b) => n[b] - n[a]), sh = Object.fromEntries(by.map(id => [id, Math.round(n[id] / all * 1000) / 1000]));
   const core = by.filter((id, k) => k === 0 || sh[id] >= CORE_MIN).slice(0, REF_CORE);
   const like = (a, b) => de2000(labP(a), labP(b)) < SPOT_DE;
-  const spot = by.filter(id => !core.includes(id) && !core.some(c => like(c, id)) && n[id] >= SPOT_MIN * all && ch[id] / n[id] >= SPOT_C).sort((a, b) => ch[b] / n[b] - ch[a] / n[a])[0] ?? null;
+  const spot = by.filter(id => cnt[id] && !core.includes(id) && !core.some(c => like(c, id)) && cnt[id] >= SPOT_MIN * all && ch[id] / cnt[id] >= SPOT_C).sort((a, b) => ch[b] / cnt[b] - ch[a] / cnt[a])[0] ?? null;
   const accent = by.filter(id => !core.includes(id) && id !== spot && !(spot && like(id, spot)) && sh[id] >= ACCENT_MIN).slice(0, REF_ACCENT);
   return { name: 'Reference', core, accent, w: Object.fromEntries(core.map(id => [id, sh[id]])), ...(spot ? { spot } : {}), seed: 0 };
 }
