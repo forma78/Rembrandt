@@ -367,6 +367,10 @@ body.create{grid-template-rows:56px auto 1fr 30px}
 .math .seg.side{display:inline-grid;grid-template-columns:auto auto;padding:2px}
 .math .seg.side button{padding:4px 9px;flex-direction:row;font-size:11px}
 .refrow{display:flex;gap:12px;align-items:flex-start}
+#refKeys{margin:0 0 8px}                                                          /* Reference 1, 2 … as a blend's keys (2026-10-26) */
+#refKeys[hidden]{display:none}
+#refKeys .tog{flex:none}
+#refPal{margin:8px 0 2px}
 .refthumb{flex:none;width:64px;height:96px;border-radius:6px;overflow:hidden;background:var(--well);box-shadow:var(--press);display:grid;place-items:center;text-align:center;font-size:10px;color:var(--mute)}
 .refthumb span{padding:4px}
 .refthumb img{width:100%;height:100%;object-fit:cover;display:block}

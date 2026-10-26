@@ -38,7 +38,7 @@ import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } fr
 import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, TRACE_DIP, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE, figSausages as figSausagesOf } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
-import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX } from './blendplan.js';
+import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap } from './blendplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -65,8 +65,9 @@ const S = {
   flights: false,                                                                    // the flights between figures on Drag (the owner, 2026-10-19: "I do not really need them")
   nodes: [], nodeSel: -1,                                                            // the brush's way by hand (inkaplan.js, linksOf); the node chosen
   key: 0,                                                                            // the chosen blend's chosen key: 0 A, its box, then its keys inside
+  ref: 0,                                                                            // the chosen reference: over the canvas, its palette OK's
 };
-const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'density'];
+const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density'];
 const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result'];
 let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
@@ -121,7 +122,7 @@ function blendTest() {
 }
 
 // ---------- the plan (inkaplan.js) ----------
-const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, swell: S.swell, edgeOut: S.edgeOut, overlap: S.overlap, join: S.join, corner: S.corner, change: S.change, nodes: S.nodes });
+const po = () => ({ cw: S.boardW, ch: S.boardH, brush: S.brush, swell: S.swell, edgeOut: S.edgeOut, overlap: S.overlap, join: S.join, corner: S.corner, change: S.change, nodes: S.nodes, density: S.density });
 const trail = () => paintTrail(po());   // what the brush lays with paint, swollen
 let PL = null, plKey = '';
 function planNow() {
@@ -1173,19 +1174,25 @@ $('#paintList').onclick = e => {
 $('#paintInfo').onclick = () => { $('#paintRead').hidden = !$('#paintRead').hidden; $('#paintInfo').classList.toggle('on', !$('#paintRead').hidden); };
 $('#btnPaintsClear').onclick = () => { const Fs = chosenFigs(); if (!Fs.some(F => figSausages(F).length)) return; undoPush(); for (const F of Fs) for (const i of figRects(F)) S.rects[i].ss = []; settle(); };
 $('#btnNewColours').onclick = () => { const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew(); dealOn(Fs, newPalette(seed, palOf(Fs[0])?.name), seed, 'colours'); S.view = 'result'; settle(); };
-$('#btnNewSpokes').onclick = () => { const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew(); dealOn(Fs, palOf(Fs[0]) || newPalette(seed), seed, 'spokes'); S.view = 'result'; settle(); };
+$('#btnNewSpokes').onclick = () => {
+  const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew();
+  for (const F of Fs) for (const i of figRects(F)) if (isBlend(S.rects[i])) S.rects[i].phase = Math.random();   // a blend's spokes moved on along its sides, the paints where they lay
+  dealOn(Fs, palOf(Fs[0]) || newPalette(seed), seed, 'spokes'); S.view = 'result'; settle();
+};
 document.querySelectorAll('[data-meta]').forEach(b => b.onclick = () => { const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew(); dealOn(Fs, structuredClone(INKA_META[b.dataset.meta]), seed, 'colours'); S.view = 'result'; settle(); });
 // Reference (the owner, 2026-10-19, Screenshot 4.15.26 PM: "pictures with the colour range there, appearing on all ten squares … the analysis must
-// match the colours we have in stock"): the palette off the reference, in his paints only (inkaplan.js, paletteOfPixels), dealt on every tile
-function refPixels() {
-  const img = REF.img, kk = Math.min(1, 160 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
+// match the colours we have in stock"): the palette off the chosen reference, in his paints only (inkaplan.js, paletteOfPixels), dealt on every
+// tile; on BLEND read in tints — a pale colour its paint laid thin over the white, the rest White's — and dealt over a blend in patches
+function refPixels(q) {
+  const img = q.img, kk = Math.min(1, 160 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
   c2.width = Math.max(1, Math.round(img.naturalWidth * kk)); c2.height = Math.max(1, Math.round(img.naturalHeight * kk));
   const c = c2.getContext('2d', { willReadFrequently: true }); c.drawImage(img, 0, 0, c2.width, c2.height);
   return { px: c.getImageData(0, 0, c2.width, c2.height).data, w: c2.width, h: c2.height };
 }
+const refPal = q => { if (q.pal === undefined) { const R = refPixels(q); q.pal = paletteOfPixels(R.px, R.w, R.h, { tints: BLEND }); } return q.pal; };
 $('#btnRefOk').onclick = () => {
   if (!REF) { $('#hint').textContent = 'No reference yet: 📎 Add new reference — its colours come in your paints.'; return; }
-  const P = planNow(), R = refPixels(), pal = paletteOfPixels(R.px, R.w, R.h); if (!pal || !P.figs.length) return;
+  const P = planNow(), pal = refPal(REF); if (!pal || !P.figs.length) return;
   undoPush(); const seed = seedNew(); dealOn(P.figs, pal, seed, 'colours'); S.view = 'result'; settle();
 };
 // Density: the paint in a sausage, as far as it carries the line (CCD's reachOf)
@@ -1221,6 +1228,7 @@ function showPaints() {
   if (document.activeElement !== $('#dens')) $('#dens').value = S.density;
   $('#o-dens').textContent = densityText();
   $('#paintRead').innerHTML = [
+    BLEND && `On a blend, spokes all round (the owner, 2026-10-26: «a plain X will not do here — too much empty space stays unpainted»): every side of its outer loop parted evenly, the spokes no further apart than the brush carries a sausage's paint at this Density, ≈ ${fmt(spokeGap(S.density), 0)} mm (est.), each across every loop to the last, in pieces no longer than that, a sausage each; the core an X of its own. The palette in patches over them, every paint its share of them, an accent a few, thin; the core the spot, else the pure paint. New colours: new patches, the sausages in their places; New spokes: the spokes moved on along the sides, the paints where they lay — and after the Density changed, laid as far apart as it carries. Reference, OK: the chosen reference's palette, read in tints — a pale colour its paint laid thin over the white, the rest White's.`,
     'The sausages, where you squeeze the paints: a cross, X, on every tile — from each corner along the diagonal in to the innermost ring (the owner, 2026-10-19: «logical and simple»), as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes; a block, from every corner of its outline. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. The keys act on the chosen tile\'s figure — with tiles chosen together (⌘A, ⇧ and a click) on all of theirs, the paints spread over them, a tile never its neighbour\'s. Reference, OK: the palette off the reference, in your paints only, on every tile, dealt anew at every press in the picture\'s shares. M and a paint in the strip: a click on a tile.',
     F && `<b>${ss.length}</b> sausage${ss.length === 1 ? '' : 's'} in figure ${F.n}, ${F.us.length} tile${F.us.length === 1 ? '' : 's'}`,
     `Density ${S.density} %: a sausage keeps the line full about ${fmt(reachAt(S.density).full, 0)} mm, gone by ${fmt(reachAt(S.density).gone, 0)}${S.density === DENSITY_NEW ? ' — the measure, TAPE-colors/IMAGE 2026-10-12 19:23:33' : ' (est.; 50 % the measure)'}`,
@@ -1298,36 +1306,67 @@ function showFiles() {
   };
 }
 
-// ---------- the reference: tracing paper over the canvas (CCD's) ----------
-let REF = null;
-function setRef(src, name, store) {
-  const img = new Image();
-  img.onload = () => {
-    REF = { img, name };
-    if (store) {
-      const kk = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
-      c2.width = Math.round(img.naturalWidth * kk); c2.height = Math.round(img.naturalHeight * kk);
-      c2.getContext('2d').drawImage(img, 0, 0, c2.width, c2.height);
-      REF.kept = true;
-      try { localStorage.setItem(REF_KEY, JSON.stringify({ name, src: c2.toDataURL('image/jpeg', 0.85) })); } catch { REF.kept = false; }   // the browser's room full: here till a reload
-    }
-    syncRef(); kick();
-  };
-  img.src = src;
+// ---------- the references: tracing paper over the canvas (CCD's) ----------
+// Several, as a blend's keys (the owner, 2026-10-26, fourteen pictures of
+// colour ranges in BLEND/: "I like how you made Blend 1 / Key 1 / Key 2 / Key
+// 3 — REFERENCE needs the same"): Reference 1, 2 … under the block's heading,
+// the chosen one over the canvas, its palette in sight under it, OK's; 📎
+// adds one and chooses it, × takes the chosen one away. Kept in the browser's
+// IndexedDB, a list a tab — room for many, where localStorage held one; that
+// one, from before, the first.
+let REFS = [], REF = null;
+const REFS_KEY = `${REF_KEY}s`;
+const IDB = {
+  db: null,
+  open() { return this.db ??= new Promise((ok, no) => { const q = indexedDB.open('rembrandt', 1); q.onupgradeneeded = () => q.result.createObjectStore('refs'); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); },
+  async get(k) { const d = await this.open(); return new Promise((ok, no) => { const q = d.transaction('refs').objectStore('refs').get(k); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); },
+  async put(k, v) { const d = await this.open(); return new Promise((ok, no) => { const t = d.transaction('refs', 'readwrite'); t.objectStore('refs').put(v, k); t.oncomplete = () => ok(); t.onerror = () => no(t.error); }); },
+};
+function keepRefs() { IDB.put(REFS_KEY, REFS.map(q => ({ name: q.name, src: q.src }))).then(() => REFS.forEach(q => q.kept = true), () => REFS.forEach(q => q.kept = false)).finally(syncRef); }   // no IndexedDB, a private window: here till a reload
+const imgOf = src => new Promise(ok => { const img = new Image(); img.onload = () => ok(img); img.onerror = () => ok(null); img.src = src; });
+async function addRef(src, name) {
+  const img = await imgOf(src); if (!img) return;
+  const kk = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight)), c2 = document.createElement('canvas');
+  c2.width = Math.round(img.naturalWidth * kk); c2.height = Math.round(img.naturalHeight * kk);
+  c2.getContext('2d').drawImage(img, 0, 0, c2.width, c2.height);
+  REFS.push({ img, name, src: c2.toDataURL('image/jpeg', 0.85) }); S.ref = REFS.length - 1; save(); keepRefs(); kick();
 }
-function deleteRef() { REF = null; try { localStorage.removeItem(REF_KEY); } catch { } syncRef(); kick(); }
+function deleteRef() { if (!REF) return; REFS.splice(S.ref, 1); S.ref = Math.max(0, Math.min(S.ref, REFS.length - 1)); save(); keepRefs(); kick(); }
 const esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+// its palette in sight: the core and their shares, the thin ones, the spot
+const palChips = pal => !pal ? '<span class="none">no colour read off it</span>' : [
+  ...pal.core.map(id => `<span class="pl" title="${PAINT[id].name}, ${Math.round((pal.w?.[id] ?? 0) * 100)} % of the picture (est.)"><i style="background:${PAINT[id].hex}"></i>${PAINT[id].name}${PAINT[id].buy ? ' <b class="buydot" title="To buy: not in stock yet">•</b>' : ''} <em>${Math.round((pal.w?.[id] ?? 0) * 100)} %</em></span>`),
+  ...pal.accent.map(id => `<span class="pl" title="${PAINT[id].name}, thin"><i style="background:${PAINT[id].hex}"></i>${PAINT[id].name}${PAINT[id].buy ? ' <b class="buydot" title="To buy: not in stock yet">•</b>' : ''} <em>thin</em></span>`),
+  ...(pal.spot ? [`<span class="pl" title="${PAINT[pal.spot].name}, the spot: the picture's brightest speck — one place only${BLEND ? ', a blend\'s core' : ''}"><i style="background:${PAINT[pal.spot].hex}"></i>${PAINT[pal.spot].name} <em>spot</em></span>`] : []),
+].join('');
 function syncRef() {
-  $('#refThumb').innerHTML = REF ? `<img src="${REF.img.src}" alt=""><button class="refdel" title="Delete the reference">×</button>` : '<span>no reference yet</span>';
+  S.ref = REFS.length ? Math.max(0, Math.min(Math.round(S.ref) || 0, REFS.length - 1)) : 0; REF = REFS[S.ref] ?? null;
+  $('#refKeys').innerHTML = REFS.map((q, i) => `<button class="tog${i === S.ref ? ' on' : ''}" data-ref="${i}" title="${esc(q.name)} — over the canvas, its palette OK's">Reference ${i + 1}</button>`).join('');
+  $('#refKeys').hidden = REFS.length < 1;
+  $('#refKeys').querySelectorAll('[data-ref]').forEach(b => b.onclick = () => { S.ref = +b.dataset.ref; save(); syncRef(); kick(); });
+  $('#refThumb').innerHTML = REF ? `<img src="${REF.img.src}" alt=""><button class="refdel" title="Delete reference ${S.ref + 1}">×</button>` : '<span>no reference yet</span>';
   if (REF) $('#refThumb .refdel').onclick = deleteRef;
   $('#btnRefOk').disabled = !REF;
   $('#refOp').value = S.refOpacity;
   $('#refRead').innerHTML = REF ? `${esc(REF.name)} · <b>${S.refOpacity} %</b>${REF.kept === false ? ' · <span class="warn">this browser has no room to keep it: gone after a reload</span>' : ''}` : 'Over the canvas, the whole of it inside, to lay the tiles to.';
+  $('#refPal').innerHTML = '';
+  if (REF && REF.pal === undefined) setTimeout(() => { if (REF) { refPal(REF); syncRef(); } }, 30);     // read once, after the key shows chosen
+  else if (REF) $('#refPal').innerHTML = palChips(REF.pal);
 }
 $('#btnRef').onclick = () => $('#refIn').click();
-$('#refIn').onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => setRef(rd.result, f.name, true); rd.readAsDataURL(f); e.target.value = ''; };
+$('#refIn').onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => addRef(rd.result, f.name); rd.readAsDataURL(f); e.target.value = ''; };
 $('#refOp').oninput = e => { S.refOpacity = +e.target.value; syncRef(); save(); kick(); };
-function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) setRef(o.src, o.name || 'reference', false); } catch { } }
+async function loadRef() {
+  let list = null;
+  try { list = await IDB.get(REFS_KEY); } catch { }
+  if (!Array.isArray(list)) {                                                      // the one reference kept before, the first
+    list = [];
+    try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) list.push({ name: o.name || 'reference', src: o.src }); } catch { }
+    if (list.length) IDB.put(REFS_KEY, list).catch(() => { });
+  }
+  for (const q of list) { const img = q?.src ? await imgOf(q.src) : null; if (img) REFS.push({ img, name: q.name || 'reference', src: q.src, kept: true }); }
+  syncRef(); kick();
+}
 
 // ---------- 💾 SAVE INKA ----------
 // As CCD's: an SVG of the canvas in mm — the tiles, the figures' paths, the

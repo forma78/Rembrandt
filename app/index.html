@@ -156,6 +156,8 @@
       <p class="read" id="paintRead" hidden></p>
       <!-- the reference under the paints, its palette the Reference key's (the owner, 2026-10-19: "put the Reference block up, near Paints, then BRUSH, DRAG — so it is all logical") -->
       <h4>Reference <span class="hint">over the canvas, as tracing paper</span></h4>
+      <!-- several, Reference 1, 2 … as a blend's keys (the owner, 2026-10-26: "I like how you made Blend 1 / Key 1 / Key 2 / Key 3 — REFERENCE needs the same") -->
+      <div class="toggles looks wrap" id="refKeys" hidden></div>
       <div class="refrow">
         <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
         <div class="refctl">
@@ -168,6 +170,7 @@
           </div>
         </div>
       </div>
+      <div class="paintlist" id="refPal" title="The chosen reference's palette, as OK deals it: its paints with their shares of the picture, the thin ones, the spot (est.)"></div>
       <input type="file" id="refIn" accept="image/*" hidden>
       <h4>Brush, DRAG</h4>
       <div class="sliders" id="slBrush"></div>
