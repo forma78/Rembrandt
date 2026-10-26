@@ -43,13 +43,13 @@ const fin = Number.isFinite, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- a blend as it may be kept ----------
 // a new blend's corners, all of them: IMG_1554's share of A's side, to half a mm
 export const cornerNew = (w, h) => Math.max(KEY_CORNER_MIN, Math.round(BLEND_1554.corner * Math.min(w, h) * 2) / 2);
-// { keys: [{ x, y, w, h }] in A's fractions, A's own left out; corners: mm, A's first; steps; core: the last key filled; phase: its spokes' places along the sides, of a gap; spokes: how many, 0 none set }
+// { keys: [{ x, y, w, h }] in A's fractions, A's own left out; corners: mm, A's first; steps; core: the last key filled; phase: its spokes' places along the sides, of a gap; spokes: how many, 0 none set; order: 'turn', the series in turn, or 'seq', key after key }
 export function cleanBlend(r, w, h) {
   const ok = q => q && [q.x, q.y, q.w, q.h].every(fin) && q.w > 0 && q.h > 0;
   const keys = (Array.isArray(r.keys) ? r.keys.filter(ok) : []).map(q => ({ x: q.x, y: q.y, w: q.w, h: q.h }));
   if (!keys.length) keys.push(...BLEND_1554.keys.map(q => ({ ...q })));
   const c0 = cornerNew(w, h);
-  return { keys, corners: [0, ...keys].map((_, k) => clamp(fin(r.corners?.[k]) ? r.corners[k] : c0, KEY_CORNER_MIN, KEY_CORNER_MAX)), steps: fin(r.steps) ? clamp(Math.round(r.steps), STEPS_MIN, STEPS_MAX) : STEPS_NEW, core: r.core !== false, phase: fin(r.phase) ? (r.phase % 1 + 1) % 1 : 0, spokes: fin(r.spokes) && r.spokes >= SPOKES_MIN ? clamp(Math.round(r.spokes), SPOKES_MIN, SPOKES_MAX) : 0 };
+  return { keys, corners: [0, ...keys].map((_, k) => clamp(fin(r.corners?.[k]) ? r.corners[k] : c0, KEY_CORNER_MIN, KEY_CORNER_MAX)), steps: fin(r.steps) ? clamp(Math.round(r.steps), STEPS_MIN, STEPS_MAX) : STEPS_NEW, core: r.core !== false, phase: fin(r.phase) ? (r.phase % 1 + 1) % 1 : 0, spokes: fin(r.spokes) && r.spokes >= SPOKES_MIN ? clamp(Math.round(r.spokes), SPOKES_MIN, SPOKES_MAX) : 0, order: r.order === 'seq' ? 'seq' : 'turn' };
 }
 // its keys in canvas mm, A first: { x, y, w, h, c }
 export function keysOf(r) {
@@ -128,15 +128,34 @@ function unframed(pts, side, ccw) { let P = ccw ? pts.map(p => keep(p, [-p[0], p
 // first loop begins where it ends, the last ends where it began; neither
 // nearer its corner than the turn's diameter, so roundOf runs it whole.
 // Every corner its radius, .r; an S's two ends one token, .S.
-function loopsLine(Ls, change) {
+// whole, the series in turn (inTurn): which loops run whole, 'inner' or
+// 'outer' — the others meet on the seam's side in one line, their tops' gap
+// at the column hidden under their own paint. In to a loop inside and out
+// again, the S's land on and leave the column on the whole ones: entered and
+// left there, nothing of them left out. No room for an S so — deep in, the
+// loops far apart — a step: a quarter turn down, as round as the room lets
+// (half the drop at most, R), straight on, a quarter turn back, its own side
+// of the column, the step in and the step out never on one line.
+function seams(Ls, change, whole = null) {
   const span = L => [L.x0 + L.r, L.x1 - L.r], S = [];
   for (let k = 0; k + 1 < Ls.length; k++) { const a = span(Ls[k]), b = span(Ls[k + 1]); S.push({ lo: Math.max(a[0], b[0]), hi: Math.min(a[1], b[1]), dy: Math.abs(Ls[k].y1 - Ls[k + 1].y1) }); }
   const col = S.length ? (S.at(-1).lo + S.at(-1).hi) / 2 : 0;
-  for (const s of S) {
+  S.forEach((s, k) => {
     const room = s.hi - s.lo;
+    if (whole) {
+      const A = span(Ls[k]), B = span(Ls[k + 1]), down = Ls[k + 1].y1 < Ls[k].y1 - 1e-9, land = down === (whole === 'inner');   // the S lands on the column, or leaves it
+      const c = land ? clamp(col, B[0], B[1]) : clamp(col, A[0], A[1]), Lx = Math.min(Math.max(s.dy, change), land ? c - A[0] : B[1] - c);
+      if (Lx >= s.dy - 1e-9 && Lx > 1e-6 && (land ? c - Lx <= A[1] + 1e-9 : c + Lx >= B[0] - 1e-9)) { s.a = land ? c - Lx : c; s.b = s.a + Lx; s.S = true; return; }
+      const R = Math.min(s.dy / 2, Math.max(0, Lx) / 2);
+      if (R >= RING_MIN && (land ? c - 2 * R <= A[1] + 1e-9 : c + 2 * R >= B[0] - 1e-9)) { s.a = s.b = land ? c - R : c + R; s.R = R; return; }
+    }
     if (room > 1e-6 && room >= s.dy - 1e-9) { const Lx = Math.min(room, Math.max(s.dy, change)); s.a = clamp(col - Lx / 2, s.lo, s.hi - Lx); s.b = s.a + Lx; s.S = true; }
     else { s.a = room > 0 ? clamp(col, s.lo, s.hi) : (s.lo + s.hi) / 2; s.b = s.a; }
-  }
+  });
+  return S;
+}
+function loopsLine(Ls, change, whole = null) {
+  const S = seams(Ls, change, whole);
   const pts = [], corners = L => [[L.x1, L.y1], [L.x1, L.y0], [L.x0, L.y0], [L.x0, L.y1]].map(v => Object.assign(v, { r: L.r }));
   let from = null;
   Ls.forEach((L, k) => {
@@ -146,23 +165,79 @@ function loopsLine(Ls, change) {
     if (!out) { pts.push([Math.max(from[0], L.x0 + 2 * L.r), L.y1]); return; }
     const A = [out.a, L.y1], B = [out.b, Ls[k + 1].y1];
     if (out.S) { const t = {}; A.S = t; B.S = t; }
+    if (out.R) A.r = B.r = out.R;
     pts.push(A, B); from = B;
   });
   return pts;
 }
-// The loops given as one line, canvas mm: outermost first, or `out`, from the innermost out; ccw the brush's way ↺
-export function lineOf(loops, side, ccw, o = {}, out = false) {
+// The loops given as one line, canvas mm, in their order, or `out`, the other way; ccw the brush's way ↺; whole, the series in turn (loopsLine)
+export function lineOf(loops, side, ccw, o = {}, out = false, whole = null) {
   if (!loops.length) return [];
-  const pts = unframed(loopsLine(framed(loops, side, ccw !== out), o.change ?? CHANGE_NEW), side, ccw !== out);
+  const pts = unframed(loopsLine(framed(loops, side, ccw !== out), o.change ?? CHANGE_NEW, whole), side, ccw !== out);
   return out ? pts.reverse() : pts;
 }
-// A blend's two lines: the loops, the outermost first, the next over it — the
-// side the S's on its own, where the loops lie nearest one another — and the
+// The series in turn (the owner, 2026-10-26, the evening, after the first
+// run in paint, Screenshots 8.51.21 and 8.51.38 PM — A's loops all first,
+// "at the top its lines always meet in one", "the paint gathers in little
+// hills at the top"; his drawing, 8.53.35 PM: "the first contour of Key 1
+// comes to the middle at the top and leaves it; instead of going on with
+// Key 1's big contour into the second spiral, it draws Key 2 straight away,
+// and only then from the middle of the top goes on to Key 1 … one line of
+// Key 1, then one of Key 2, then K1 again, and so in turn"): the loops
+// between every two keys a series, a loop of each in turn, the outermost
+// series first. → the loops in the brush's order
+export function inTurn(loops) {
+  const by = [];
+  for (const L of loops) (by[L.seg] ??= []).push(L);
+  const S = by.filter(Boolean), n = Math.max(0, ...S.map(q => q.length)), out = [];
+  for (let k = 0; k < n; k++) for (const q of S) if (k < q.length) out.push(q[k]);
+  return out;
+}
+// The series in turn on two sides: the S's where the outermost series' loops
+// meet (IMG_1554's top), as long as the loops inside lie near enough there,
+// then on the side across (its bottom, where the inner series meets) — the
+// owner's middle of the top for the first loops; deep in, by the core, an
+// inner loop's top lies far under A's, no S has room, and the brush would go
+// down and up one line in the middle every time. The loop where it goes over
+// runs on half round more, to the side across; where it goes over the least
+// way in all: the S's drops, an S with no room ten times, and the half round.
+const OPP = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
+const HALF = { top: [[1, 1], [1, 0]], right: [[1, 0], [0, 0]], bottom: [[0, 0], [0, 1]], left: [[0, 1], [1, 1]] };   // the corners on from a side to the one across, ↻: x1 or x0, y1 or y0
+const HALF_CCW = { top: [[0, 1], [0, 0]], right: [[1, 1], [0, 1]], bottom: [[1, 0], [1, 1]], left: [[0, 0], [1, 0]] };   // ↺
+function wholeOf(Fs) {                                                             // on this side the series that meets runs with the gaps, the other whole
+  const s0 = Math.min(...Fs.map(L => L.seg)), sp = q => { const v = Fs.filter(L => (L.seg === s0) === q).map(L => L.y1); return v.length > 1 ? Math.max(...v) - Math.min(...v) : 0; };
+  return sp(true) <= sp(false) ? 'inner' : 'outer';
+}
+const costs = (Fs, change, whole) => seams(Fs, change, whole).map(s => s.S ? s.dy : s.R ? s.dy + 5 * (s.dy - 2 * s.R) : 10 * s.dy + 100);   // an S its drop; a step its straight five times more; a plain step down ten
+function turnLine(Ls, side, ccw, o) {
+  const side2 = OPP[side], F1 = framed(Ls, side, ccw), F2 = framed(Ls, side2, ccw), w1 = wholeOf(F1), w2 = wholeOf(F2), change = o.change ?? CHANGE_NEW;
+  const c1 = costs(F1, change, w1), c2 = costs(F2, change, w2), n = Ls.length;
+  let best = { J: n - 1, v: c1.reduce((a, b) => a + b, 0) };
+  for (let J = 0; J < n - 1; J++) {
+    const L = Ls[J], half = J ? (L.x1 - L.x0 + L.y1 - L.y0 - (8 - 2 * Math.PI) * L.r) / 2 : 0;
+    const v = c1.slice(0, J).reduce((a, b) => a + b, 0) + c2.slice(J).reduce((a, b) => a + b, 0) + half;
+    if (v < best.v - 1e-6) best = { J, v };
+  }
+  const { J } = best;
+  if (J === n - 1) return { pts: lineOf(Ls, side, ccw, o, false, w1), side, side2: null, over: -1 };
+  if (J === 0) return { pts: lineOf(Ls, side2, ccw, o, false, w2), side: side2, side2: null, over: -1 };
+  const A = lineOf(Ls.slice(0, J + 1), side, ccw, o, false, w1), B = lineOf(Ls.slice(J), side2, ccw, o, false, w2), L = Ls[J];
+  const on = (ccw ? HALF_CCW : HALF)[side].map(([i, k]) => Object.assign([i ? L.x1 : L.x0, k ? L.y1 : L.y0], { r: L.r }));
+  return { pts: [...A, ...on, ...B.slice(5)], side, side2, over: J };
+}
+// A blend's two lines: the loops — the series in turn (order 'turn': above),
+// or key after key, the outermost first and every next over it ('seq'), the
+// S's on the side where those loops lie nearest one another — and the
 // core's, from its middle out, the S's on that side too.
-// o: as blendLoops's; turn 'cw' | 'ccw' → { side, blend, core, loops, rings, box }
+// o: as blendLoops's; turn 'cw' | 'ccw' → { side, side2: the side across where the S's go on, or null; over: the loop that goes over; blend, core, loops, rings, box }
 export function blendPaths(r, o) {
-  const B = blendLoops(r, o), side = seamSide(B.loops.length > 1 ? B.loops : B.rings), ccw = r.turn === 'ccw';
-  return { side, blend: lineOf(B.loops, side, ccw, o), core: B.core ? lineOf(B.rings, side, ccw, o, true) : null, loops: B.loops.length, rings: B.rings.length, box: B.core };
+  const B = blendLoops(r, o), ccw = r.turn === 'ccw', first = B.loops.filter(L => L.seg === B.loops[0]?.seg);
+  if (r.order !== 'seq' && new Set(B.loops.map(L => L.seg)).size > 1) {             // two series at least, else one after another as ever
+    const Ls = inTurn(B.loops), T = turnLine(Ls, seamSide(first.length > 1 ? first : Ls), ccw, o);
+    return { side: T.side, side2: T.side2, over: T.over, blend: T.pts, core: B.core ? lineOf(B.rings, T.side, ccw, o, true) : null, loops: B.loops.length, rings: B.rings.length, box: B.core };
+  }
+  const side = seamSide(B.loops.length > 1 ? B.loops : B.rings);
+  return { side, side2: null, over: -1, blend: lineOf(B.loops, side, ccw, o), core: B.core ? lineOf(B.rings, side, ccw, o, true) : null, loops: B.loops.length, rings: B.rings.length, box: B.core };
 }
 
 // ---------- the sausages ----------
