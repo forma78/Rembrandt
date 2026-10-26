@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.9 — 2026-10-19
 
+- **BLEND's page styled as INKA's**: every rule of `style.css` INKA and
+  ST-JOHN share now BLEND's too — the paints' strip, the paints in use, MARKS
+  · DRAG, the typed numbers; `data-tab="blend"` had been left out of them.
+
 - **BLEND, a new tab after ST-JOHN: Illustrator's blend** (the owner,
   2026-10-26: "we start a new tab with you, BLEND, as in Adobe Illustrator,
   but for our machine. Until now we made figures whose lines did not cross
