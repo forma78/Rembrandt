@@ -73,7 +73,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **TRACE (on ST-JOHN)** | In MARKS' place on ST-JOHN's deck (2026-10-19): every figure's path, the very line DRAG runs, at DRAG's speed, figure after figure, no wipe — with INK ON the same brush in tinted water from the cup, a dip every 1440 mm (TRACE_DIP, the owner's, 2026-10-19; est.; NOLAN's, ALU's and TAPE's 720), each next stretch on from 20 mm back (DIP_LAP); the trace the owner squeezes the paint on, as Florian, before DRAG. Not TYPE's TRACE of outlines. |
 | **BLEND** | The tab of Adobe Illustrator's blend for the machine, after ST-JOHN in the top row since 2026-10-26 (§1, §8): INKA's page, all of it, and **B**, the blend, in the Tools between R and N — the first tab whose lines lie over one another, not beside (the owner: "until now we made figures whose lines did not cross but lay side by side"). `blend.html`, its body `data-tab="blend"`; INKA's page module `inka.js` and plan `inkaplan.js`, the blend's `blendplan.js`; its own keep and Library label. The owner's references in `BLEND/`, IMG_1554 the key one. |
 | **Key · step · Steps (on BLEND)** | A key: one of the shapes a blend is made between, a rounded rectangle — key 1, A, the blend's box, the outermost; the others in A's fractions, so they move and stretch with it; the last one the core; every key its Corners, mm. A step: a shape between two keys, its edges and corner going evenly from the one to the next. Steps: how many between every two keys, Illustrator's Specified Steps — IMG_1554's 13, its three keys A, a square three eighths of it against its top, and the core against that one's bottom. |
-| **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. The loops one line: since 2026-10-26's evening **K1 · K2 in turn** — a loop of every two keys' series in turn, one of Key 1's, one of Key 2's, and so on, by S's where Key 1's loops meet, the deep ones by the core on the side across, one loop going on half round to it; or **Key after key**, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Not ST-JOHN's loop. |
+| **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. Since 2026-10-26's evening **K1 · K2 in turn** — a loop of every two keys' series in turn, one of Key 1's, one of Key 2's, and so on, every contour drawn once, a stroke of its own from the middle of its top round to there, the brush up and on in the air to the next; or **Key after key**, one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Not ST-JOHN's loop. |
 | **Spokes · patches (on BLEND)** | A blend's sausages since 2026-10-26: **spokes** all round — **Spokes** of them, the blend's own number in its panel, at first one every ≈ 95 mm, as far as the paint carries at Density 50 % (est.), never moved by the Density — shared out over the sides of its outer loop, every side parted evenly, from each place across every loop to the same place on the last, straight from key to key, in pieces as long as they lie apart; a run of one paint along a spoke one sausage; the core an X of its own, its Step moving that X alone. **Patches**: the palette dealt over them, every paint its share of the sausages, grown at random from seeds over their neighbours, so the colours lie in clouds over the loops, the brush running one into the next; the core the spot, else the pure paint. Before, an X along every corner's way, the outer half one paint, the inner half another. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
@@ -961,35 +961,40 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   and Spokes: the spokes laid again, each piece the paint of the old sausage
   nearest it; a run of one paint along a spoke, key to key, one sausage, so
   the sausages are what is seen.
-- **K1 · K2 in turn** (the owner, 2026-10-26, the evening, after the first
-  run in paint, Screenshots 8.51.21 and 8.51.38 PM, his drawing 8.53.35 PM:
-  "everything is fine, but we need to change how K 1 and K 2 are built. Now
-  they go one after the other — first the big square is built whole, at its
-  top the lines always meet in one, and then the inner Key 2 is drawn. But
-  with paint it gathers in little hills at the top"; "the first contour
-  drawing Key 1 comes to the middle at the top and leaves it. Instead of
-  going on with Key 1's big contour into the second spiral, it draws Key 2
-  straight away, and only then from the middle of the top goes on to Key 1
-  … one line of Key 1, then one line of Key 2, then K1 again, and so in
-  turn"). *Claude's choices*: the loops between every two keys a series, a
-  loop of each in turn, the outermost series first; the S's on the side
-  where Key 1's loops meet (IMG_1554's top), as long as the loops inside lie
-  near enough there; deep in, by the core, an inner loop's top lies far
-  under A's — on his blend 230 mm — no S has room, and the brush would go
-  down and up one line in the middle every time: there on the side across
-  (its bottom, where Key 2's loops meet), the loop where it goes over
-  running on half round, where it costs the least way in all (the S's drops,
-  a step with no room for an S five times its straight, the half round); on
-  each side the S's land on and leave a column on the loops that do not meet
-  there, so those run whole, the gaps on the ones that meet, under their own
-  paint; an S with no room, a step of two quarter turns as round as the room
-  lets, half the drop at most, the step in and the step out each its side of
-  the column. **K1 · K2 in turn · Key after key** in the blend's panel, in
-  turn at first; the spokes and their paints as they lie. His blend: 58.1 m
-  in turn, 55.9 key after key, ≈ 25 and 24 min at 40 mm/s (est.); no
-  white left inside A; A's top still under every one of Key 1's loops, 28
-  times — the order of the passes changes, not their number, the blend's
-  shape meeting there.
+- **K1 · K2 in turn, every contour once, the brush in the air between**
+  (the owner, 2026-10-26, the evening, after the first run in paint,
+  Screenshots 8.51.21 and 8.51.38 PM, his drawing 8.53.35 PM: "everything is
+  fine, but we need to change how K 1 and K 2 are built. Now they go one
+  after the other — first the big square is built whole, at its top the
+  lines always meet in one, and then the inner Key 2 is drawn. But with
+  paint it gathers in little hills at the top"; "the first contour drawing
+  Key 1 comes to the middle at the top and leaves it. Instead of going on
+  with Key 1's big contour into the second spiral, it draws Key 2 straight
+  away, and only then from the middle of the top goes on to Key 1 … one line
+  of Key 1, then one line of Key 2, then K1 again, and so in turn"). Claude
+  first kept it one line, an S from loop to loop — rejected the same hour,
+  Screenshots 9.28.24 and 9.29.47 PM, the line traced in green: "no, not
+  that … it goes down without a lift right over the host and makes a circle
+  not needed. The idea was just to keep from such an overlap. The brush must
+  lift, to draw this going over in the air"; "the right test here: every
+  contour of the blend drawn once, K1 and K2 in turn, the moves between
+  them in the air. The tops of the contours where they meet stay — the lift
+  takes away just the passes that join them, not needed". So: the loops
+  between every two keys a series, a loop of each in turn, the outermost
+  series first, every loop a stroke of its own — it lands in the middle of
+  its top (the side where Key 1's loops meet), goes round once to there,
+  lifts, and goes in the air to the next; DRAG a row a loop, the brush up and
+  on between them, no wipe till the core. *Claude's choices*: every landing
+  on one column, the middle of the narrowest loop, so the brush goes over
+  straight up and down; two radii clear of a loop's corners, or, not so on
+  that column, one, those two turns a little tighter; no lap over the
+  landing (each contour once); a blend of one series one line, as ever;
+  **K1 · K2 in turn · Key after key** in the blend's panel, in turn at first;
+  the spokes and their paints as they lie. His blend: 52 landings, 56.1 m,
+  ≈ 28 min at 40 mm/s, key after key 55.9 m, ≈ 24 (est.); no S, no white
+  left inside A; Key 1's 26 loops still meet on A's top and land on one spot
+  there.
+
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1791,8 +1796,9 @@ this section disagree, this section wins: the owner corrected the sketch on
   INKA's and ST-JOHN's, **Reference 1 … n** over the thumbnail, the chosen
   one's palette under it, read in tints. **Spokes** after Corners and Step;
   **K1 · K2 in turn · Key after key** over Core filled · Core empty (the
-  evening of 2026-10-26), its reading under **i**: the side its S's go on,
-  the side across and the loop that goes over.
+  evening of 2026-10-26), its reading under **i**: every contour once, where
+  the loops land, how many landings; with Flights ON the brush's way in the
+  air from loop to loop, dashed.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once
