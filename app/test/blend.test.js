@@ -110,6 +110,7 @@ test('K1 · K2 in turn (the owner, 2026-10-26, after the first run in paint): a 
   for (const [r, o, n] of [[MIX(), O, 28], [OWN(), O60, 52]]) {
     const P = planOf([r], o), F = P.figs[0], BP = P.units[0].BP, K = keysOf(r), L = blendLoops(r, { trail: trailOf(o), edge: edgeOf(o) }).loops;
     assert.equal(F.rings, n); assert.equal(BP.side, 'top', 'where Key 1\'s loops meet'); assert.equal(BP.blend, null); assert.equal(F.strokes.length, n, 'a stroke a loop');
+    assert.deepEqual(BP.sides, { 0: 'top', 1: 'bottom' }, 'every series lands where its own loops meet: Key 1\'s at 12, Key 2\'s at 6 (Screenshot 9.44.16 PM)');
     const sts = F.strokes.map(([a, b]) => F.pieces.slice(a, b)), wide = [];
     sts.forEach((st, k) => {
       for (let i = 1; i < st.length; i++) {
@@ -121,6 +122,9 @@ test('K1 · K2 in turn (the owner, 2026-10-26, after the first run in paint): a 
       const a = st[0].a, z = st.at(-1).b, xs = st.filter(g => g.t === 'L' && near(g.a[0], g.b[0])).map(g => g.a[0]);
       assert.ok(Math.hypot(z[0] - a[0], z[1] - a[1]) < 1e-6, `loop ${k + 1}: drawn once, to where it landed`);
       assert.ok(Math.abs(a[0] - sts[0][0].a[0]) < 1e-6 && a[0] > K.at(-1).x && a[0] < K.at(-1).x + K.at(-1).w, 'landing in the middle, all on one column over the core');
+      const ys = st.filter(g => g.t === 'L' && near(g.a[1], g.b[1])).map(g => g.a[1]);
+      if (k % 2 === 0) assert.ok(near(a[1], Math.max(...ys), 1e-6) && near(a[1], K[0].y + K[0].h - edgeOf(o), 1e-6), `Key 1's loop ${k / 2 + 1}: on its top, on A's`);
+      else assert.ok(near(a[1], Math.min(...ys), 1e-6) && near(a[1], K[1].y + edgeOf(o), 1e-6) && a[1] < K.at(-1).y + K.at(-1).h / 2, `Key 2's loop ${(k + 1) / 2}: on its bottom, Key 2's, under the core — its top smooth over it`);
       wide.push(Math.max(...xs) - Math.min(...xs));                                   // its sides apart
     });
     assert.ok(near(wide[0], K[0].w - 2 * edgeOf(o), 1e-6) && near(wide[1], K[1].w - 2 * edgeOf(o), 1e-6) && wide[2] > K[1].w && wide[2] < wide[0] && wide[3] < wide[1], 'A\'s loop, Key 2\'s, Key 1\'s next, Key 2\'s next');

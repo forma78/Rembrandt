@@ -169,7 +169,7 @@ export function lineOf(loops, side, ccw, o = {}, out = false) {
 // keep from such an overlap. The brush must lift, to draw this going over in
 // the air"): the loops between every two keys a series, a loop of each in
 // turn, the outermost series first — every loop a stroke of its own: the
-// brush lands in the middle of its top (the side where Key 1's loops meet),
+// brush lands in the middle of the side where its series meets (blendPaths),
 // goes round once to where it landed, lifts, and goes in the air to the next
 // one's. → the loops in the brush's order
 export function inTurn(loops) {
@@ -185,35 +185,46 @@ export function inTurn(loops) {
 // the lift takes away just the passes that join them, not needed"): a loop
 // ends where it landed, no lap over it.
 export const LOOP_LAP = 0;   // mm on over where a loop landed
-// Every loop its own stroke, canvas mm: in the frame where the side is on top
-// and the brush goes clockwise, from the column — the middle of the
-// narrowest loop's top, so the brush goes over in the air straight up and
+// Every loop its own stroke, canvas mm: in the frame where its side is on
+// top and the brush goes clockwise, from the column — the middle of the
+// narrowest loop there, so the brush goes over in the air straight up and
 // down — two radii clear of its corners, so it runs them whole, or, not so
 // on that column, one radius, those two turns a little tighter — round to
-// where it landed, and on lap mm along its top. → [points] a loop
-export function loopStrokes(loops, side, ccw, lap = LOOP_LAP) {
-  const Fs = framed(loops, side, ccw), span = L => [L.x0 + 2 * L.r, L.x1 - 2 * L.r];
-  const thin = Fs.reduce((a, L) => (L.x1 - L.x0 < a.x1 - a.x0 ? L : a), Fs[0]), col = thin ? (thin.x0 + thin.x1) / 2 : 0;
-  return Fs.map(L => {
+// where it landed, and on lap mm along it. sideOf(L): the side a loop lands on. → [points] a loop
+export function loopStrokes(loops, sideOf, ccw, lap = LOOP_LAP) {
+  const cols = {}, span = L => [L.x0 + 2 * L.r, L.x1 - 2 * L.r];
+  const colOf = side => cols[side] ??= (Fs => { const t = Fs.reduce((a, L) => (L.x1 - L.x0 < a.x1 - a.x0 ? L : a), Fs[0]); return t ? (t.x0 + t.x1) / 2 : 0; })(framed(loops, side, ccw));
+  return loops.map(L0 => {
+    const side = sideOf(L0), [L] = framed([L0], side, ccw), col = colOf(side);
     const [lo, hi] = span(L), m = (L.x0 + L.x1) / 2, c = col >= lo && col <= hi ? col : clamp(col, Math.min(L.x0 + L.r, m), Math.max(L.x1 - L.r, m)), e = Math.max(c, Math.min(c + lap, L.x1 - L.r));
     const pts = [[c, L.y1], ...[[L.x1, L.y1], [L.x1, L.y0], [L.x0, L.y0], [L.x0, L.y1]].map(v => Object.assign(v, { r: L.r })), [e, L.y1]];
     return unframed(pts, side, ccw);
   });
 }
 // A blend's lines: its loops — in turn (order 'turn'), every loop a stroke of
-// its own from the middle of the side where Key 1's loops meet; or key after
-// key ('seq'), one line, the outermost first and every next over it, on by
-// an S on the side where the loops lie nearest — and the core's, from its
-// middle out, the S's on that side too. A blend of one series runs one line.
-// o: as blendLoops's; turn 'cw' | 'ccw' → { side, blend: one line, or null; strokes: [lines], or null; core, loops, rings, box }
+// its own, every series landing in the middle of the side where its own
+// loops meet in one line, so the join lies under their paint and every other
+// side runs smooth: on IMG_1554 Key 1's at 12 o'clock, Key 2's at 6, under
+// the core (the owner, the same evening, Screenshot 9.44.16 PM, a red ring
+// over the core: "you did Key 1 right, but stumbled on Key 2 … your join, the
+// start and the end, is OVER the yellow cross, just where an even line is
+// needed, as below on Key 1. Turn the building of the second axis upside down
+// in Key 2: on a clock face you start at 12 noon — start at 6 in the
+// evening! Then the brush's lifts hide under the yellow cross and all the
+// lines are smooth"); or key after key ('seq'), one line, the outermost
+// first and every next over it, on by an S on the side where the loops lie
+// nearest — and the core's, from its middle out, the S's on Key 1's side. A
+// blend of one series runs one line.
+// o: as blendLoops's; turn 'cw' | 'ccw' → { side, sides: every series' side, or null; blend: one line, or null; strokes: [lines], or null; core, loops, rings, box }
 export function blendPaths(r, o) {
-  const B = blendLoops(r, o), ccw = r.turn === 'ccw', first = B.loops.filter(L => L.seg === B.loops[0]?.seg);
-  if (r.order !== 'seq' && new Set(B.loops.map(L => L.seg)).size > 1) {
-    const side = seamSide(first.length > 1 ? first : B.loops);
-    return { side, blend: null, strokes: loopStrokes(inTurn(B.loops), side, ccw), core: B.core ? lineOf(B.rings, side, ccw, o, true) : null, loops: B.loops.length, rings: B.rings.length, box: B.core };
+  const B = blendLoops(r, o), ccw = r.turn === 'ccw', segs = [...new Set(B.loops.map(L => L.seg))];
+  if (r.order !== 'seq' && segs.length > 1) {
+    const series = seg => B.loops.filter(L => L.seg === seg), side = seamSide(series(segs[0]).length > 1 ? series(segs[0]) : B.loops);
+    const sides = Object.fromEntries(segs.map(seg => [seg, series(seg).length > 1 ? seamSide(series(seg)) : side]));
+    return { side, sides, blend: null, strokes: loopStrokes(inTurn(B.loops), L => sides[L.seg], ccw), core: B.core ? lineOf(B.rings, side, ccw, o, true) : null, loops: B.loops.length, rings: B.rings.length, box: B.core };
   }
   const side = seamSide(B.loops.length > 1 ? B.loops : B.rings);
-  return { side, blend: lineOf(B.loops, side, ccw, o), strokes: null, core: B.core ? lineOf(B.rings, side, ccw, o, true) : null, loops: B.loops.length, rings: B.rings.length, box: B.core };
+  return { side, sides: null, blend: lineOf(B.loops, side, ccw, o), strokes: null, core: B.core ? lineOf(B.rings, side, ccw, o, true) : null, loops: B.loops.length, rings: B.rings.length, box: B.core };
 }
 
 // ---------- the sausages ----------
