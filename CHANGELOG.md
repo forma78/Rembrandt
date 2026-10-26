@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.9 — 2026-10-19
 
+- **A blend's Spokes its own; the core's Step moves the core alone** (the
+  owner, 2026-10-26, his Density 86 %: "I added rings to the core … and all
+  the spokes fell apart"; "the outer spokes, their pieces and their paints
+  must stay"). Spokes in the blend's panel, none set one every ≈ 95 mm; the
+  Density never moves them. The core's Step lays the core's X alone, its
+  paint kept, every spoke as it lies. A run of one paint along a spoke one
+  sausage.
+
 - **BLEND's sausages all round, its paints in patches; several references**
   (the owner, 2026-10-26: "a plain X will not do here. Too much empty space
   stays unpainted"; IMAGE 2026-10-26 11:55:05: "an algorithm that turns it

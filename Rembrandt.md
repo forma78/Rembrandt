@@ -74,7 +74,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **BLEND** | The tab of Adobe Illustrator's blend for the machine, after ST-JOHN in the top row since 2026-10-26 (§1, §8): INKA's page, all of it, and **B**, the blend, in the Tools between R and N — the first tab whose lines lie over one another, not beside (the owner: "until now we made figures whose lines did not cross but lay side by side"). `blend.html`, its body `data-tab="blend"`; INKA's page module `inka.js` and plan `inkaplan.js`, the blend's `blendplan.js`; its own keep and Library label. The owner's references in `BLEND/`, IMG_1554 the key one. |
 | **Key · step · Steps (on BLEND)** | A key: one of the shapes a blend is made between, a rounded rectangle — key 1, A, the blend's box, the outermost; the others in A's fractions, so they move and stretch with it; the last one the core; every key its Corners, mm. A step: a shape between two keys, its edges and corner going evenly from the one to the next. Steps: how many between every two keys, Illustrator's Specified Steps — IMG_1554's 13, its three keys A, a square three eighths of it against its top, and the core against that one's bottom. |
 | **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. The loops one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Not ST-JOHN's loop. |
-| **Spokes · patches (on BLEND)** | A blend's sausages since 2026-10-26: **spokes** all round — every side of its outer loop parted evenly, no further apart than the brush carries a sausage's paint at the Density (≈ 95 mm at 50 %, est.), from each place across every loop to the same place on the last, straight from key to key, in pieces no longer than that, a sausage each; the core an X of its own. **Patches**: the palette dealt over them, every paint its share of the sausages, grown at random from seeds over their neighbours, so the colours lie in clouds over the loops, the brush running one into the next; the core the spot, else the pure paint. Before, an X along every corner's way, the outer half one paint, the inner half another. |
+| **Spokes · patches (on BLEND)** | A blend's sausages since 2026-10-26: **spokes** all round — **Spokes** of them, the blend's own number in its panel, at first one every ≈ 95 mm, as far as the paint carries at Density 50 % (est.), never moved by the Density — shared out over the sides of its outer loop, every side parted evenly, from each place across every loop to the same place on the last, straight from key to key, in pieces as long as they lie apart; a run of one paint along a spoke one sausage; the core an X of its own, its Step moving that X alone. **Patches**: the palette dealt over them, every paint its share of the sausages, grown at random from seeds over their neighbours, so the colours lie in clouds over the loops, the brush running one into the next; the core the spot, else the pure paint. Before, an X along every corner's way, the outer half one paint, the inner half another. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -940,6 +940,27 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   its paints and shares, the thin ones, the spot; 📎 adds one and chooses
   it, × takes the chosen one away; kept in the browser's IndexedDB, a list
   a tab, the one kept before the first.
+- **A blend's Spokes its own, never the Density's; the core's Step moves
+  the core alone** (the owner, 2026-10-26, the same afternoon, Screenshots
+  12.57.59, 1.03.27 and 1.03.40 PM, his Density 86 %: "I see the 60 × 60 has
+  just 20 spokes; 76 and 4 I do not see"; "I added rings to the core (key 3,
+  core) — it was 15 / 12, now STEP, THE CORE'S RINGS 3 — and all the spokes
+  fell apart"; "changing the core's rings' Step must work out its inner way
+  again and, if need be, its own paint; the outer spokes, their pieces and
+  their paints must stay. Now the change lays the spokes all anew by the
+  Density, and a composition already set up falls apart"). The spokes had
+  been laid as far apart as the Density carries, and every change of the
+  blend laid them again — at 86 %, 262 mm, two a side. *Claude's choices*:
+  **Spokes** in the blend's panel (4 … 80 by the slider, to 200 typed), the
+  blend's own, shared out over A's sides by their lengths, none set one
+  every ≈ 95 mm (Density 50 %'s reach), the Density never moving them; its
+  reading under **i**: how many, on which sides, how far apart, and dry
+  between them where farther than the paint carries; the core's Step: the
+  core's X laid again on its rings, its paint kept, every other sausage as
+  it lies, its pieces and paints; keys, Steps, Corners, Core filled · empty
+  and Spokes: the spokes laid again, each piece the paint of the old sausage
+  nearest it; a run of one paint along a spoke, key to key, one sausage, so
+  the sausages are what is seen.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
