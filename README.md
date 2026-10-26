@@ -36,6 +36,7 @@ Rembrandt/
   app/
     index.html       INKA, Inca patterns: tiles a spiral each, the brush on through a figure without a lift, a wipe between figures (new, 2026-10-17; the first tab since 2026-10-19; INKA/)
     stjohn.html      ST-JOHN, INKA with ⌘, St. John's Arms: four lobes, every loop round all of them from the top left lobe's window out, their inner sides across the middle (new, 2026-10-19; INKA's inka.js and inkaplan.js; St_John/)
+    blend.html       BLEND, INKA with Illustrator's blend: keys and Steps shapes between every two, every shape a loop of the brush, the outermost first and every next over it, the core filled (new, 2026-10-26; INKA's inka.js and inkaplan.js, its blendplan.js; BLEND/)
     nolan.html       NOLAN, the ribbons (new; NOLAN.md; off the top row since 2026-10-19)
     newyuri.html     New Yuri, letters as rings (new; off the top row since 2026-10-06)
     glyphs.json      the owner's letters: skeletons of lines and arcs
@@ -84,7 +85,7 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 `pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
-Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs, 90's upright and across, the plain stripes), `loomplan.js` (LOOM's woven cloth, its hops and halves), `inkaplan.js` (INKA's tiles, blocks and figures, their spirals, the wipes, the Result on a grid of the canvas; ST-JOHN's ⌘, its lobes and loops), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
+Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs, 90's upright and across, the plain stripes), `loomplan.js` (LOOM's woven cloth, its hops and halves), `inkaplan.js` (INKA's tiles, blocks and figures, their spirals, the wipes, the Result on a grid of the canvas; ST-JOHN's ⌘, its lobes and loops), `blendplan.js` (BLEND's keys, steps, loops and core, its X), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
 (the watercolour on the board, NOLAN's and TYPE's), and pointer mode in
 `jobpage.js`.
 

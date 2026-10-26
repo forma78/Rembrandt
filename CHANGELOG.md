@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.9 — 2026-10-19
 
+- **BLEND, a new tab after ST-JOHN: Illustrator's blend** (the owner,
+  2026-10-26: "we start a new tab with you, BLEND, as in Adobe Illustrator,
+  but for our machine. Until now we made figures whose lines did not cross
+  but lay side by side"; "for BLEND take INKA as the base, it has all the
+  menu panels we need"; the key image `BLEND/IMG_1554.PNG`). `blend.html`,
+  INKA's page and module, `src/blendplan.js`. B lays a blend: keys —
+  IMG_1554's three, read off the picture — and Steps shapes between every
+  two, 13; a click in a key chooses it, its own handles. Every shape a loop
+  of the brush, the outermost first and every next over it, one line, the S
+  on the side where the loops lie nearest; the core filled, a figure of its
+  own after a wipe. An X along every corner's way through the loops, the
+  outer half one paint, the inner half another. On a 40 × 40: 28 loops,
+  16.3 m, ≈ 7 min (est.). Not run on the machine yet.
+
 - **v.1.0.9 after the name** (the owner, 2026-10-19, with the cleanup:
   "this will be the v.1.0.9 update"), on every tab and in the saved SVGs
   (`rembrandt: '1.0.9'` in their metadata).

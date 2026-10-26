@@ -71,6 +71,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **ST-JOHN** | INKA's page with ⌘, St. John's Arms, after INKA in the top row since 2026-10-19 (§1, §8): INKA's tiles, nodes, paints, DRAG and Result, ⌘ in the Tools between R and N, and TRACE in MARKS' place. `stjohn.html`, its body `data-tab="stjohn"`; INKA's page module `inka.js` and plan `inkaplan.js`, its own keep and Library label. The owner's references in `St_John/`. |
 | **⌘ · lobe · loop (on ST-JOHN)** | ⌘: St. John's Arms, a figure of its own laid with ⌘ (J), its box in four lobes, its quarters, in the brush's order — 1 the top left, 2 the bottom left, 3 the bottom right, 4 the top right (since 2026-10-20; until then the bottom right first, the owner's numbers on the old sign) — every lobe's rings a tile's. A loop: one ring of every lobe at one depth, as ⌘ is drawn in one line — round lobe 1 clockwise, down its inner side straight on through the middle into lobe 2, round it, on into 3, into 4, back into 1 — every lobe's inner sides going on across the middle, crossing there: the sign's middle a grid. The brush lands on lobe 1's innermost ring, round its window, and goes loop after loop outward, from one to the next by the ring change, an S on lobe 1's bottom: one line, no lift (since 2026-10-20; from the middle inward before). ↺, the sign mirrored. **Width**: the loop edge to edge, as ALU-CUT's pipe — the rings only so far in from the sign's outline, a window in every lobe, the grid in the middle 2 Width across; at half a lobe the lobes filled; a new one's a fifth of its box, the owner's best, 74 mm on his 387. Its turns concentric: the outer ring's Corners, each ring inside it its depth less, never under 4 mm, never past half its ring's side — at Corners 100 every ring round, three quarters of a circle and its straight inner sides, the windows too. No node holds on it; it melts into no tile and joins none. Its sausages an X on every lobe; one paint or two, the second on lobes 2 and 4. |
 | **TRACE (on ST-JOHN)** | In MARKS' place on ST-JOHN's deck (2026-10-19): every figure's path, the very line DRAG runs, at DRAG's speed, figure after figure, no wipe — with INK ON the same brush in tinted water from the cup, a dip every 1440 mm (TRACE_DIP, the owner's, 2026-10-19; est.; NOLAN's, ALU's and TAPE's 720), each next stretch on from 20 mm back (DIP_LAP); the trace the owner squeezes the paint on, as Florian, before DRAG. Not TYPE's TRACE of outlines. |
+| **BLEND** | The tab of Adobe Illustrator's blend for the machine, after ST-JOHN in the top row since 2026-10-26 (§1, §8): INKA's page, all of it, and **B**, the blend, in the Tools between R and N — the first tab whose lines lie over one another, not beside (the owner: "until now we made figures whose lines did not cross but lay side by side"). `blend.html`, its body `data-tab="blend"`; INKA's page module `inka.js` and plan `inkaplan.js`, the blend's `blendplan.js`; its own keep and Library label. The owner's references in `BLEND/`, IMG_1554 the key one. |
+| **Key · step · Steps (on BLEND)** | A key: one of the shapes a blend is made between, a rounded rectangle — key 1, A, the blend's box, the outermost; the others in A's fractions, so they move and stretch with it; the last one the core; every key its Corners, mm. A step: a shape between two keys, its edges and corner going evenly from the one to the next. Steps: how many between every two keys, Illustrator's Specified Steps — IMG_1554's 13, its three keys A, a square three eighths of it against its top, and the core against that one's bottom. |
+| **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. The loops one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Its sausages an X along every corner's way through the loops' turns, the outer half one paint and the inner half another, the core an X of its own. Not ST-JOHN's loop. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -873,6 +876,33 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   another browser, the phone too, has its own, the defaults the owner's; the
   wait a `wait` block, as the cup's dwell; the brush during it over the dot
   at its lift height.
+- **BLEND, a tab of its own: Illustrator's blend** (the owner, 2026-10-26,
+  a Monday, `BLEND/`: "we start a new tab with you, BLEND, as in Adobe
+  Illustrator, but for our machine. Until now we made figures whose lines
+  did not cross but lay side by side"; "the key image in the BLEND folder is
+  IMG_1554.PNG — we start testing with it. IMG_1555 and the next ones can
+  wait"; "for BLEND take INKA as the base, it has all the menu panels we
+  need"). After ST-JOHN: INKA · ST-JOHN · BLEND · ALU-CUT · CCD · BIAS · ALU
+  · SMKN · Ink · Calibration · Library. `blend.html`, INKA's page module and
+  plan, the blend's `blendplan.js`, its own keep and Library label; INKA and
+  ST-JOHN as they were. *Claude's choices*: IMG_1554 read as three keys — A,
+  a square three eighths of it against its top, the orange core against that
+  one's bottom — 13 steps between each two, one corner for all, 3.86 % of
+  A's side (off the picture: the lines 19 and 38 px apart outside, 7 and 14
+  inside, the outer ones' tops on A's, the inner ones' bottoms on the middle
+  key's); a blend a rectangle of its own kind, its keys in A's fractions,
+  every key its Corners; every shape a loop of the brush, its edge on the
+  outline as a tile's outer ring, the outermost first and every next over it
+  — as a blend's front objects lie over its back ones — one line, the S on
+  the side where the loops lie nearest (IMG_1554's top), the S's in one
+  column; the core filled, a figure of its own after a wipe, from its middle
+  out, its pure paint; B on the keyboard; a click in a key chooses it, its
+  own handles, A's stretching the whole; INKA's deck, MARKS · DRAG; its X
+  along every corner's way through the loops' turns, the outer half one
+  paint, the inner half another — the paint going over as the shapes do —
+  the core its own, the spot or the pure paint; a first visit IMG_1554 in
+  black and orange. On a 40 × 40: 28 loops, the core's 6 rings, 16.3 m,
+  ≈ 7 min at 40 mm/s (est.). Not run on the machine yet.
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
   centre, the tape painted by the machine with the brush, after Werner
@@ -1284,9 +1314,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.0.9**, then the tabs **INKA · ST-JOHN · ALU-CUT · CCD · BIAS · ALU ·
-  SMKN · Ink · Calibration · Library** (ST-JOHN after INKA since the evening
-  of 2026-10-19; INKA first since 2026-10-19, TAPE, BASF,
+  **v.1.0.9**, then the tabs **INKA · ST-JOHN · BLEND · ALU-CUT · CCD · BIAS ·
+  ALU · SMKN · Ink · Calibration · Library** (BLEND after ST-JOHN since
+  2026-10-26; ST-JOHN after INKA since the evening of 2026-10-19; INKA first since 2026-10-19, TAPE, BASF,
   LOOM, NOLAN and Test off the row then; INKA after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
@@ -1650,6 +1680,26 @@ this section disagree, this section wins: the owner corrected the sketch on
   dips and time.
   A first visit: one ⌘ the whole canvas, two paints. 💾 SAVE ST-JOHN, the
   Library opening it here.
+- **BLEND**, after ST-JOHN (2026-10-26, §1; `app/blend.html`, INKA's
+  `inka.js` and `inkaplan.js`, `app/src/blendplan.js`): INKA's page, all of
+  it, and **B**, the blend, in the Tools between R and N, B on the keyboard:
+  a drag lays one, IMG_1554's three keys, A the box dragged, its corners
+  IMG_1554's share of it to half a mm. Its keys dashed and rounded as they
+  are; a click in one chooses it — orange, its own eight handles, a drag in
+  it moving it alone, snapping to A's and the other keys' edges; in A
+  outside its keys, the whole blend, A's handles stretching it with its keys.
+  The panel's keys ⧉ n; the chosen blend's ↻ · ↺, **Key 1 · A … Key n ·
+  core**, **+ Key** (half way between the chosen and the next) · **− Key**,
+  **Steps** (1 … 60 by the slider, to 200 typed; 13), **Corners, key k**
+  (0.5 … 100, to 500 typed), **Step, the core's rings** with the core
+  filled, **Core filled · Core empty**, the chosen key by the ruler, Whole
+  canvas · Duplicate, Run earlier · Run later · Delete; its reading under
+  **i**: its loops, the side its S's go on, how far apart the loops lie —
+  white between them where wider than the trail, the paint over the paint
+  where nearer — the core's rings. Drag, Result, ▶ Play the run and MARKS ·
+  DRAG as INKA's, the core's badge in its own corner, a wipe before it. A
+  first visit: IMG_1554 on the canvas, its loops black, its core orange.
+  💾 SAVE BLEND, the Library opening it here.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once
