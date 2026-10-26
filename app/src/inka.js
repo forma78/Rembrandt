@@ -38,7 +38,7 @@ import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } fr
 import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, TRACE_DIP, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE, figSausages as figSausagesOf } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
-import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap } from './blendplan.js';
+import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap, spokesRound, SPOKE_GAP, SPOKES_MIN, SPOKES_MAX } from './blendplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -939,10 +939,11 @@ function blendText(i) {
   const P = planNow(), U = unitOfRect(i), F = figOfRect(i), r = S.rects[i], t = trail(); if (!U?.blend || !F) return '';
   const L = blendLoops(r, { trail: t, edge: edgeOf(po()), step: r.step }).loops, gaps = [];
   for (let k = 1; k < L.length; k++) for (const q of ['x0', 'y0', 'x1', 'y1']) gaps.push(Math.abs(L[k][q] - L[k - 1][q]));
-  const lo = Math.min(...gaps), hi = Math.max(...gaps);
+  const lo = Math.min(...gaps), hi = Math.max(...gaps), R = L.length ? spokesRound(r, L[0]) : null, reach = reachAt(S.density);
   return `A blend of <b>${r.keys.length + 1}</b> keys, <b>${r.steps}</b> steps between every two · figure ${F.n} of ${P.figs.length}: <b>${F.rings}</b> loop${F.rings === 1 ? '' : 's'}, one line, the outermost first and every next over it, ${U.turn === 'ccw' ? '↺' : '↻'}, on to the next by an S on ${SEAM[U.BP.side]}, where they lie nearest`
     + (gaps.length ? ` · the loops ${fmt(lo, 1)} … ${fmt(hi, 1)} mm apart, the trail ${fmt(t, 1)}: ${hi > t + 0.05 ? `white up to <b>${fmt(hi - t, 1)} mm</b> between them where they lie widest` : 'no white between them anywhere'}${lo < t - 0.05 ? `, their paint over one another where nearer — by <b>${fmt(t - Math.max(0, lo), 1)} mm</b> at the nearest` : ''}` : '')
-    + (r.core ? ` · the core filled, figure ${F.n + 1}: a wipe, then <b>${U.BP.rings}</b> ring${U.BP.rings === 1 ? '' : 's'}, Step ${fmt(r.step, 1)} mm, from its middle out` : ' · the core empty: the line goes round it, its loop the last');
+    + (r.core ? ` · the core filled, figure ${F.n + 1}: a wipe, then <b>${U.BP.rings}</b> ring${U.BP.rings === 1 ? '' : 's'}, Step ${fmt(r.step, 1)} mm, from its middle out` : ' · the core empty: the line goes round it, its loop the last')
+    + (R ? ` · <b>${R.all}</b> spokes, ${R.n.join(' · ')} on its sides, ≈ ${fmt(R.gap, 0)} mm apart round its outer loop; the paint carried ≈ ${fmt(reach.gone, 0)} mm at Density ${S.density} %${R.gap > reach.gone ? ' — <span class="warn">dry between them: more Spokes</span>' : ''}` : '');
 }
 function showRects() {
   const P = planNow();
@@ -1037,6 +1038,8 @@ function bindNum(sl, num, lo, hi, set, done, round = v => v) {
 // click one chosen, + one between it and the next, − it away; Steps; the
 // chosen key's Corners; the core filled or not, its rings' Step; the chosen
 // key's place and size by the ruler; A's whole canvas, a copy, the order
+// how many spokes a blend has now: its own, or none set, one every SPOKE_GAP round its outer loop
+function spokesNow(r) { const L = blendLoops(r, { trail: trail(), edge: edgeOf(po()), step: r.step }).loops; return L.length ? spokesRound(r, L[0]).all : r.spokes || SPOKES_MIN; }
 function showBlend(box, r, many) {
   const K = keysOf(r), last = K.length - 1, k = keyOn(), q = K[k], name = j => j === 0 ? 'A, the blend\'s box' : j === last ? 'the core' : 'between';
   S.key = k;
@@ -1044,13 +1047,13 @@ function showBlend(box, r, many) {
     <h4>Blend ${S.sel + 1} · ${fmt(r.w, 1)} × ${fmt(r.h, 1)} mm <button class="info${TILE_INFO ? ' on' : ''}" id="tileInfo" title="Its reading: its keys and loops, where the S's go, how far apart the loops lie, its core">i</button></h4>
     <div class="toggles looks" id="turnKeys"><button class="tog${r.turn !== 'ccw' ? ' on' : ''}" data-turn="cw" title="The brush goes round every loop clockwise, the core too">↻ Clockwise</button><button class="tog${r.turn === 'ccw' ? ' on' : ''}" data-turn="ccw" title="The brush goes round every loop anticlockwise, the core too">↺ Anticlockwise</button></div>
     <div class="toggles looks wrap" id="keyKeys">${K.map((_, j) => `<button class="tog${j === k ? ' on' : ''}" data-key="${j}" title="Key ${j + 1}, ${name(j)} — ${j ? 'its handles on the board stretch it, a drag in it moves it alone' : 'its handles stretch the whole blend, its keys with it'}">Key ${j + 1}${j === 0 ? ' · A' : j === last ? ' · core' : ''}</button>`).join('')}<button class="tog" id="keyAdd" title="A new key between the chosen one and the next, where the shape between them lies — the last chosen, between it and the one before">+ Key</button><button class="tog" id="keyDel"${k && K.length > 2 ? '' : ' disabled'} title="Take the chosen key away; A stays, and two keys at least">− Key</button></div>
-    <div class="sliders"><label class="sl" title="Illustrator's Specified Steps: the shapes between every two keys, their edges and corners going evenly from the one to the next — every one a loop of the brush. IMG_1554: 13"><span class="slh"><span>Steps</span><input class="num" type="number" id="bSn" min="${STEPS_MIN}" max="${STEPS_MAX}" step="1" value="${r.steps}" aria-label="Steps"></span><input class="slider" type="range" id="bS" min="${STEPS_MIN}" max="60" step="1" value="${Math.min(60, r.steps)}"></label><label class="sl" title="Key ${k + 1}'s round corners, mm; the shapes between go evenly from one key's to the next, every loop's turn its shape's less its depth, never under 4 mm, never past half a side. IMG_1554: one for all three, 3.86 % of A's side"><span class="slh"><span>Corners, key ${k + 1}</span><input class="num" type="number" id="bCn" min="${KEY_CORNER_MIN}" max="${KEY_CORNER_MAX}" step="0.5" value="${r.corners[k]}" aria-label="Corners"></span><input class="slider" type="range" id="bC" min="${KEY_CORNER_MIN}" max="100" step="0.5" value="${Math.min(100, r.corners[k])}"></label>${r.core ? `<label class="sl" title="The core's rings, ring to ring, as a tile's Step, ${STEP_MIN} … ${STEP_MAX} mm: the first at its edge, the innermost where its paint meets in the middle"><span class="slh"><span>Step, the core's rings</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label>` : ''}</div>
+    <div class="sliders"><label class="sl" title="Illustrator's Specified Steps: the shapes between every two keys, their edges and corners going evenly from the one to the next — every one a loop of the brush. IMG_1554: 13"><span class="slh"><span>Steps</span><input class="num" type="number" id="bSn" min="${STEPS_MIN}" max="${STEPS_MAX}" step="1" value="${r.steps}" aria-label="Steps"></span><input class="slider" type="range" id="bS" min="${STEPS_MIN}" max="60" step="1" value="${Math.min(60, r.steps)}"></label><label class="sl" title="Key ${k + 1}'s round corners, mm; the shapes between go evenly from one key's to the next, every loop's turn its shape's less its depth, never under 4 mm, never past half a side. IMG_1554: one for all three, 3.86 % of A's side"><span class="slh"><span>Corners, key ${k + 1}</span><input class="num" type="number" id="bCn" min="${KEY_CORNER_MIN}" max="${KEY_CORNER_MAX}" step="0.5" value="${r.corners[k]}" aria-label="Corners"></span><input class="slider" type="range" id="bC" min="${KEY_CORNER_MIN}" max="100" step="0.5" value="${Math.min(100, r.corners[k])}"></label>${r.core ? `<label class="sl" title="The core's rings, ring to ring, as a tile's Step, ${STEP_MIN} … ${STEP_MAX} mm: the first at its edge, the innermost where its paint meets in the middle"><span class="slh"><span>Step, the core's rings</span><input class="num" type="number" id="rSn" min="${STEP_MIN}" max="${STEP_MAX}" step="0.5" value="${r.step}" aria-label="Step"></span><input class="slider" type="range" id="rS" min="${STEP_MIN}" max="40" step="0.5" value="${Math.min(40, r.step)}"></label>` : ''}<label class="sl" title="The spokes round the blend, where you squeeze its paints: shared out over A's sides by their lengths, every side parted evenly from corner to corner, each spoke across every loop to the core, in pieces as long as they lie apart — ${r.spokes ? 'yours' : `none set yet: one every ≈ ${fmt(SPOKE_GAP, 0)} mm, as far as the paint carries at Density 50 % (est.)`}. The Density never moves them; its keys, Steps, Corners and core keep them, the paints where they lay"><span class="slh"><span>Spokes</span><input class="num" type="number" id="bPn" min="${SPOKES_MIN}" max="${SPOKES_MAX}" step="1" value="${spokesNow(r)}" aria-label="Spokes"></span><input class="slider" type="range" id="bP" min="${SPOKES_MIN}" max="80" step="1" value="${Math.min(80, spokesNow(r))}"></label></div>
     <div class="toggles looks" id="coreKeys"><button class="tog${r.core ? ' on' : ''}" data-core="1" title="The last key filled by rings of its own, a figure of its own after the loops: a wipe, its pure paint — IMG_1554's orange — from its middle out">Core filled</button><button class="tog${r.core ? '' : ' on'}" data-core="0" title="No core: the loops' line goes on round the last key too, its loop the last">Core empty</button></div>
     <p class="read" id="rGap"${TILE_INFO ? '' : ' hidden'}>${blendText(S.sel)}</p>
     <div class="grid4">${R_FIELDS.map(([f, l, t]) => `<label title="Key ${k + 1}, ${name(k)}: ${t}${k ? '' : ' — its keys with it'}">${l} <input data-r="${f}" type="number" step="0.5"${f === 'w' || f === 'h' ? ` min="${MIN_SIDE}"` : ''}><em>mm</em></label>`).join('')}</div>
     <div class="grid4 keys"><button class="btn" id="rFit" title="This blend the whole canvas, its keys with it">Whole canvas</button><button class="btn" id="rDup" title="A copy of it beside it on the right">Duplicate</button></div>
     <div class="grid4 keys three"><button class="btn" id="rEarly"${S.sel === 0 ? ' disabled' : ''} title="Earlier in the list: a figure runs in the order of its first tile">Run earlier</button><button class="btn" id="rLate"${S.sel === S.rects.length - 1 ? ' disabled' : ''} title="Later in the list">Run later</button><button class="btn" id="rDel" title="Take it away — or ⌫ on the keyboard; ⌘Z brings it back">Delete</button></div>`;
-  const again = () => { relaySpokes(S.sel); settle(); };                            // its X on its loops again, each part its paint
+  const again = () => { relaySpokes(S.sel); settle(); };                            // its spokes on its loops again, the paints where they lay
   box.querySelectorAll('[data-r]').forEach(inp => { inp.value = Math.round(q[inp.dataset.r] * 100) / 100; inp.onchange = () => {
     const v = +inp.value, f = inp.dataset.r; if (inp.value === '' || !fin(v)) return settle();
     undoPush();
@@ -1060,7 +1063,8 @@ function showBlend(box, r, many) {
   }; });
   bindNum($('#bS'), $('#bSn'), STEPS_MIN, STEPS_MAX, v => { r.steps = v; }, again, Math.round);
   bindNum($('#bC'), $('#bCn'), KEY_CORNER_MIN, KEY_CORNER_MAX, v => { r.corners[k] = v; }, again);
-  if ($('#rS')) bindNum($('#rS'), $('#rSn'), STEP_MIN, STEP_MAX, v => { r.step = v; }, again);
+  if ($('#rS')) bindNum($('#rS'), $('#rSn'), STEP_MIN, STEP_MAX, v => { r.step = v; }, () => { relaySpokes(S.sel, 'core'); settle(); });   // the core's own way and X again, the spokes as they lie
+  bindNum($('#bP'), $('#bPn'), SPOKES_MIN, SPOKES_MAX, v => { r.spokes = v; }, again, Math.round);
   const info = $('#tileInfo');
   info.onclick = () => { TILE_INFO = !TILE_INFO; $('#rGap').hidden = !TILE_INFO; info.classList.toggle('on', TILE_INFO); };
   box.querySelectorAll('[data-key]').forEach(b => b.onclick = () => { S.key = +b.dataset.key; save(); showRect(); kick(); });
@@ -1127,13 +1131,14 @@ const chosenFig = () => figOfRect(S.sel);
 // A ⌘'s X laid again where its loop now is, its paints kept — after its
 // Width, Corners or size changed, so no sausage lies in a lobe's window or
 // a box's corner the brush never comes to; a blend's after its keys, Steps,
-// Corners or core changed, each part its paint; i, the rectangle, or all
-function relaySpokes(i = null) {
+// Corners, core or Spokes changed, the paints where they lay — mode 'core',
+// its core's Step: its core's X alone, every spoke as it lies; i, the rectangle, or all
+function relaySpokes(i = null, mode = 'spokes') {
   const P = planNow();
   for (const F of P.figs) {
     const U = P.units[F.us[0]];
     if (F.core || !(U.john || U.blend) || (i !== null && !U.rs.includes(i)) || !figSausages(F).length) continue;
-    const pal = palOf(F); dealOn(F, pal, pal.seed ?? 1, 'spokes');
+    const pal = palOf(F); dealOn(F, pal, pal.seed ?? 1, mode);
   }
 }
 // the figures the keys act on: the chosen tile's, or with tiles chosen together (⌘A, ⇧) every one of theirs
@@ -1228,7 +1233,7 @@ function showPaints() {
   if (document.activeElement !== $('#dens')) $('#dens').value = S.density;
   $('#o-dens').textContent = densityText();
   $('#paintRead').innerHTML = [
-    BLEND && `On a blend, spokes all round (the owner, 2026-10-26: «a plain X will not do here — too much empty space stays unpainted»): every side of its outer loop parted evenly, the spokes no further apart than the brush carries a sausage's paint at this Density, ≈ ${fmt(spokeGap(S.density), 0)} mm (est.), each across every loop to the last, in pieces no longer than that, a sausage each; the core an X of its own. The palette in patches over them, every paint its share of them, an accent a few, thin; the core the spot, else the pure paint. New colours: new patches, the sausages in their places; New spokes: the spokes moved on along the sides, the paints where they lay — and after the Density changed, laid as far apart as it carries. Reference, OK: the chosen reference's palette, read in tints — a pale colour its paint laid thin over the white, the rest White's.`,
+    BLEND && `On a blend, spokes all round (the owner, 2026-10-26: «a plain X will not do here — too much empty space stays unpainted»): Spokes of them in the blend's panel, shared out over its sides — at first one every ≈ ${fmt(SPOKE_GAP, 0)} mm, as far as the paint carries at Density 50 % (est.); at ${S.density} % it carries ≈ ${fmt(spokeGap(S.density), 0)} — each across every loop to the last, in pieces as long as they lie apart; a run of one paint along a spoke one sausage; the core an X of its own. The palette in patches over the pieces, every paint its share of them, an accent a few, thin; the core the spot, else the pure paint. New colours: new patches; New spokes: the spokes moved on along the sides, the paints where they lay. The Density never moves them. Reference, OK: the chosen reference's palette, read in tints — a pale colour its paint laid thin over the white, the rest White's.`,
     'The sausages, where you squeeze the paints: a cross, X, on every tile — from each corner along the diagonal in to the innermost ring (the owner, 2026-10-19: «logical and simple»), as Florian squeezes his across every lane, so every ring takes the paint up as the brush passes; a block, from every corner of its outline. A tile its paint, never its neighbour\'s, now and then a second; a figure of one tile or block one pure paint, as Heather Day\'s flat blue. New colours: a palette at random, the sausages in their places — or, none lying, the spokes laid. New spokes: new places, the paints kept. The keys act on the chosen tile\'s figure — with tiles chosen together (⌘A, ⇧ and a click) on all of theirs, the paints spread over them, a tile never its neighbour\'s. Reference, OK: the palette off the reference, in your paints only, on every tile, dealt anew at every press in the picture\'s shares. M and a paint in the strip: a click on a tile.',
     F && `<b>${ss.length}</b> sausage${ss.length === 1 ? '' : 's'} in figure ${F.n}, ${F.us.length} tile${F.us.length === 1 ? '' : 's'}`,
     `Density ${S.density} %: a sausage keeps the line full about ${fmt(reachAt(S.density).full, 0)} mm, gone by ${fmt(reachAt(S.density).gone, 0)}${S.density === DENSITY_NEW ? ' — the measure, TAPE-colors/IMAGE 2026-10-12 19:23:33' : ' (est.; 50 % the measure)'}`,
