@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.0.9 — 2026-10-19
 
+- **BLEND: K1 · K2 in turn** (the owner, 2026-10-26, after the first run in
+  paint: "with paint it gathers in little hills at the top … one line of
+  Key 1, then one line of Key 2, then K1 again, and so in turn"). A loop of
+  every two keys' series in turn, by S's at the middle of the top where Key
+  1's loops meet; the deep ones by the core at the bottom, one loop going on
+  half round to it; a round step where an S has no room. Key after key, as
+  before, a key in the blend's panel. Not run on the machine yet.
+
 - **A blend's Spokes its own; the core's Step moves the core alone** (the
   owner, 2026-10-26, his Density 86 %: "I added rings to the core … and all
   the spokes fell apart"; "the outer spokes, their pieces and their paints
