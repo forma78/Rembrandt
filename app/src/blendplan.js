@@ -41,12 +41,14 @@ export const BLEND_1554 = { side: 0.759, corner: 0.0386, keys: [{ x: 0.313, y: 0
 const fin = Number.isFinite, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 // ---------- a blend as it may be kept ----------
+// a new blend's corners, all of them: IMG_1554's share of A's side, to half a mm
+export const cornerNew = (w, h) => Math.max(KEY_CORNER_MIN, Math.round(BLEND_1554.corner * Math.min(w, h) * 2) / 2);
 // { keys: [{ x, y, w, h }] in A's fractions, A's own left out; corners: mm, A's first; steps; core: the last key filled }
 export function cleanBlend(r, w, h) {
   const ok = q => q && [q.x, q.y, q.w, q.h].every(fin) && q.w > 0 && q.h > 0;
   const keys = (Array.isArray(r.keys) ? r.keys.filter(ok) : []).map(q => ({ x: q.x, y: q.y, w: q.w, h: q.h }));
   if (!keys.length) keys.push(...BLEND_1554.keys.map(q => ({ ...q })));
-  const c0 = BLEND_1554.corner * Math.min(w, h);
+  const c0 = cornerNew(w, h);
   return { keys, corners: [0, ...keys].map((_, k) => clamp(fin(r.corners?.[k]) ? r.corners[k] : c0, KEY_CORNER_MIN, KEY_CORNER_MAX)), steps: fin(r.steps) ? clamp(Math.round(r.steps), STEPS_MIN, STEPS_MAX) : STEPS_NEW, core: r.core !== false };
 }
 // its keys in canvas mm, A first: { x, y, w, h, c }

@@ -18,7 +18,7 @@ const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 test('a blend as kept: IMG_1554\'s keys in A\'s fractions, one corner 3.86 % of A, 13 steps, the core filled', () => {
   const r = MIX();
   assert.equal(r.kind, BLEND); assert.equal(r.steps, STEPS_NEW); assert.equal(r.core, true);
-  assert.deepEqual(r.keys, BLEND_1554.keys); assert.equal(r.corners.length, 3); assert.ok(r.corners.every(c => near(c, 0.0386 * SIDE)));
+  assert.deepEqual(r.keys, BLEND_1554.keys); assert.equal(r.corners.length, 3); assert.ok(r.corners.every(c => c === Math.round(0.0386 * SIDE * 2) / 2));
   assert.equal(MIX({ steps: 9999 }).steps, STEPS_MAX); assert.equal(MIX({ steps: 4.4 }).steps, 4); assert.equal(MIX({ corners: [0, 0, 0] }).corners[0], KEY_CORNER_MIN); assert.equal(MIX({ core: false }).core, false);
   assert.deepEqual(MIX({ keys: [{ x: 0.1, y: 0.1, w: 0.2, h: 0.3 }, { x: 0, y: 0, w: 0, h: 1 }] }).keys, [{ x: 0.1, y: 0.1, w: 0.2, h: 0.3 }], 'a key with no size dropped');
   const t = cleanRect({ x: 0, y: 0, w: 10, h: 10, keys: [{ x: 0, y: 0, w: 1, h: 1 }], steps: 3 });
@@ -66,7 +66,7 @@ test('the line: every loop one after another, the outermost first, round to wher
   const quarter = F.pieces.filter(g => g.t === 'A' && near(lenOf(g) / g.r, Math.PI / 2));
   assert.equal(quarter.length, 4 * 28, 'four turns a loop'); assert.ok(quarter.every(g => !g.left), 'clockwise');
   assert.ok(quarter.every((g, k) => k < 4 || Math.abs(g.c[0] - 200) <= Math.abs(quarter[k - 4].c[0] - 200) + 1e-6), 'every loop no wider than the one before');
-  assert.ok(quarter.every(g => g.r >= turnOf(11.7, BRUSH_NEW / 2) - 1e-6));
+  assert.ok(quarter.every(g => g.r >= turnOf(MIX().corners[0], BRUSH_NEW / 2) - 1e-6));
   const S = F.pieces.filter(g => g.t === 'A' && !near(lenOf(g) / g.r, Math.PI / 2));     // the S's arcs: the inner steps' only, the outer ones' tops one line
   assert.equal(S.length, 2 * 13); assert.ok(S.every(g => g.a[1] > 280 && near((g.a[0] + g.b[0]) / 2, 200, 15)), 'on the tops, over the core, one under another');
   assert.ok(F.length > 15000 && F.length < 16500, `${F.length} mm`);
