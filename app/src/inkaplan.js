@@ -773,7 +773,7 @@ export const wipeWhy = (F, units) => `${figName(F, units)}: the brush up — wip
 // block — no stop on the way, so no PAUSE before the figure's end; a stop
 // before every next figure
 const toM = (o, q) => toMachine([q[0] - o.cw / 2, o.ch / 2 - q[1]]);
-function machinePiece(g, o) {
+export function machinePiece(g, o) {
   if (g.t === 'L') return { t: 'L', a: toM(o, g.a), b: toM(o, g.b) };
   const A = toM(o, g.a), B = toM(o, g.b), C = toM(o, g.c);
   return { t: 'A', a: A, b: B, c: C, r: g.r, d: (A.x - C.x) * (B.y - C.y) - (A.y - C.y) * (B.x - C.x) >= 0 ? 1 : -1 };
@@ -1176,7 +1176,7 @@ export function dealFigures(rects, units, figs, pal, seed, mode = 'colours', o =
 // ACCENT_MIN or more; the shares its weights (est., Claude's).
 // px: RGBA bytes → { name: 'Reference', core, accent, w, seed }
 export const REF_CORE = 6, REF_ACCENT = 3, CORE_MIN = 0.04, ACCENT_MIN = 0.015;
-const labOf = lin => {
+export const labOf = lin => {
   const f = t => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116, [r, g, b] = lin;
   const X = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), Y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), Z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
   return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
