@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanPencils, PENCILS_NEW, runOrder, candidatesOf, regionsOf, shapeAt, pointOn, pieceLength, bandsOf, linesIn, runsOf, modulesOf, pencilPlan, LEAST_MM, LEAST_SHARE, hatchOf, lineLen, passesOf, drawRows, withChanges, changeWhy, PITCH } from '../src/dacheplan.js';
+import { cleanPencils, PENCILS_NEW, BOX_3, runOrder, candidatesOf, regionsOf, shapeAt, pointOn, pieceLength, bandsOf, linesIn, runsOf, modulesOf, pencilPlan, LEAST_MM, LEAST_SHARE, hatchOf, lineLen, passesOf, drawRows, withChanges, changeWhy, PITCH } from '../src/dacheplan.js';
 import { cleanRect, BRUSH_NEW } from '../src/inkaplan.js';
 import { BLEND, BLEND_1554, keysOf } from '../src/blendplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER, TAIL_MIN } from '../src/strokes.js';
@@ -20,18 +20,19 @@ const HALVES = resOf(x => x < 200 ? [36, 80, 158] : [235, 115, 37]);
 const near = (a, b, e = 1e-6) => Math.abs(a - b) < e;
 const joined = ps => ps.every((g, i) => !i || Math.hypot(g.a[0] - ps[i - 1].b[0], g.a[1] - ps[i - 1].b[1]) < 1e-6);
 
-test('the pencil box: eleven, black among them, white the light one; kept as it may be', () => {
-  assert.equal(P.length, 11);
+test('the pencil box: the owner\'s eleven, black among them, white the light one; five darker Prismacolors, eleven light ones; kept as it may be', () => {
+  assert.equal(P.length, 27);
   assert.ok(P.find(p => p.id === 'black')); assert.deepEqual(P.filter(p => p.light).map(p => p.id), ['white']);
-  assert.ok(P.every(p => p.on && p.brand === '' && p.code === ''));
-  const k = cleanPencils([{ id: 'a', name: 'Sunflower', hex: 'f2c21e', brand: 'Winsor & Newton' }, { id: 'a', hex: '#000000' }, { id: 'b', hex: 'nope' }, null]);
-  assert.deepEqual(k, [{ id: 'a', name: 'Sunflower', hex: '#F2C21E', brand: 'Winsor & Newton', code: '', light: false, on: true }]);
-  assert.equal(cleanPencils([]).length, 11, 'none kept: the eleven');
+  assert.ok(P.slice(0, 10).every(p => p.on && p.brand === '' && p.code === '')); assert.equal(P[10].code, 'PC 938');
+  assert.deepEqual(P.slice(11).map(p => `${p.name} ${p.code}`), ['Carmine Red PC 926', 'Tuscan Red PC 937', 'Dark Green PC 908', 'Burnt Ochre PC 943', 'Indigo Blue PC 901', 'Peach PC 939', 'Light Peach PC 927', 'Sand PC 940', '20% Cool Grey PC 1060', '20% Warm Grey PC 1051', 'Yellow Chartreuse PC 1004', 'Cloud Blue PC 1023', 'Putty Beige PC 1083', 'Ginger Root PC 1084', 'Cream PC 914', '20% French Grey PC 1069']);
+  const k = cleanPencils([{ id: 'a', name: 'Sunflower', hex: 'f2c21e', brand: 'Winsor & Newton', dark: 'b' }, { id: 'a', hex: '#000000' }, { id: 'b', hex: 'nope' }, null]);
+  assert.deepEqual(k, [{ id: 'a', name: 'Sunflower', hex: '#F2C21E', brand: 'Winsor & Newton', code: '', light: false, on: true, dark: 'b' }]);
+  assert.equal(cleanPencils([]).length, 27, 'none kept: the box new');
 });
 
 test('the run\'s order: light to dark, the owner\'s order over it, the light ones always last', () => {
   const ids = runOrder(P).map(p => p.id);
-  assert.equal(ids[0], 'yellow'); assert.equal(ids.at(-2), 'black'); assert.equal(ids.at(-1), 'white');
+  assert.equal(ids[0], 'cream'); assert.equal(ids.at(-2), 'black'); assert.equal(ids.at(-1), 'white');
   const mine = runOrder(P, ['white', 'blue', 'orange']).map(p => p.id);
   assert.deepEqual(mine.slice(0, 2), ['blue', 'orange']); assert.equal(mine.at(-1), 'white', 'white over the rest, whatever the order');
   assert.ok(!runOrder(P.map(p => p.id === 'grey' ? { ...p, on: false } : p)).some(p => p.id === 'grey'), 'a pencil off: not in the run');
@@ -39,11 +40,11 @@ test('the run\'s order: light to dark, the owner\'s order over it, the light one
 
 test('what a module may look like: the paper, a pencil, a pencil with white over it, paler; more coats darker', () => {
   const C = candidatesOf(P, 1), own = P.filter(p => !p.light).length;
-  assert.equal(C[0].own, null); assert.equal(C.length, 1 + own * 2);
+  assert.equal(C[0].own, null); assert.equal(C.length, 1 + own * 3, 'every pencil two tones, and white over it');
   const o = C.find(q => q.own === 'orange' && !q.light), ow = C.find(q => q.own === 'orange' && q.light === 'white');
   assert.ok(ow.lab[0] > o.lab[0], 'white over orange lighter');
-  assert.ok(candidatesOf(P, 3).find(q => q.own === 'orange' && !q.light).lab[0] < o.lab[0], 'three coats darker than one');
-  assert.equal(candidatesOf(P.map(p => ({ ...p, on: p.id !== 'white' })), 1).length, 1 + own, 'white off: no pairs');
+  assert.ok(C.find(q => q.own === 'orange' && !q.light && q.coats === 2).lab[0] < o.lab[0], 'a coat more darker');
+  assert.equal(candidatesOf(P.map(p => ({ ...p, on: p.id !== 'white' })), 1).length, 1 + own * 2, 'white off: no pairs');
 });
 
 test('the regions: a blend\'s every two keys and its core; a tile down to its middle', () => {
@@ -64,9 +65,9 @@ test('a shape\'s eight pieces: the sides and the corners, round it anticlockwise
   assert.ok(near(pieceLength({ ...s, c: 999 }, 2), 0), 'the corner no more than half a side');
 });
 
-test('bands Stroke lines wide where the keys lie furthest apart; lines PITCH apart, one in half a pitch, none in less', () => {
-  const R = { a: { x0: 0, y0: 0, x1: 100, y1: 100, c: 0 }, b: { x0: 20, y0: 30, x1: 80, y1: 100, c: 0 } };
-  assert.equal(bandsOf(R, 2), 15); assert.equal(bandsOf(R, 1), 30); assert.equal(bandsOf(R, 4), 8);
+test('the bands the blend\'s loops, a core\'s rings Step apart; lines PITCH apart, one in half a pitch, none in less', () => {
+  const R = regionsOf([MIX()]);
+  assert.deepEqual(R.map(bandsOf), [14, 14, Math.round(Math.max(...[0, 1, 2, 3].map(i => [R[2].b.y0 - R[2].a.y0, R[2].a.x1 - R[2].b.x1, R[2].a.y1 - R[2].b.y1, R[2].b.x0 - R[2].a.x0][i])) / 3)], 'IMG_1554: 13 steps, 14 loops between every two keys; its core, Step 3');
   assert.equal(linesIn(4), 4); assert.equal(linesIn(2.4), 2); assert.equal(linesIn(0.6), 1); assert.equal(linesIn(0.4), 0);
   assert.equal(PITCH, 1);
 });
@@ -157,7 +158,7 @@ test('a pencil with next to nothing to draw left out, its modules to the nearest
   const specks = resOf((x, y) => x < 200 ? [36, 80, 158] : (x > 300 && x < 308 && y > 200 && y < 208) ? grey : [235, 115, 37]);
   const all = modulesOf([MIX()], specks, { pencils: P }), D = pencilPlan([MIX()], specks, { pencils: P });
   assert.ok(all.modules.some(M => M.own === 'grey'), 'a speck of grey in the Result');
-  assert.deepEqual(D.few, ['grey']); assert.ok(!D.modules.some(M => M.own === 'grey'));
+  assert.ok(D.few.includes('grey')); assert.ok(!D.modules.some(M => M.own === 'grey'));
   assert.equal(LEAST_MM, 300);
   const F = { x0: 296, y0: 196, x1: 312, y1: 212 }, small = pencilPlan([MIX()], specks, { pencils: P, frame: F });
   assert.ok(small.modules.some(M => M.own === 'grey'), `in a small frame the speck is ${LEAST_SHARE * 100} % and more of it: kept`);
@@ -172,4 +173,34 @@ test('a narrow side its lines too: across all of its gap PITCH apart, shared out
     const R = D.regions[M.reg], gap = Math.abs(shapeAt(R, M.ts[0]).y1 - shapeAt(R, M.ts.at(-1)).y1);
     if (M.reg === 0 && M.p === 4 && M.n > 1) assert.ok(Math.abs(gap / (M.n - 1) - 16.5 / 17) < 1e-6, 'a line every 0.97 mm');
   }
+});
+
+test('a sausage\'s squares: where a line crosses it and the Preview is darker, a darker pencil, Cross; never merged away', () => {
+  // a blend, one ochre stripe of a Preview, a blue sausage across it darkening it where it lies — Screenshot 12.36.17 PM's squares
+  const r = { ...MIX(), ss: [{ a: [0.9, 0.05], b: [0.9, 0.3], paint: 'p03' }] }, K = keysOf(r), q = r.ss[0], A = [r.x + q.a[0] * r.w, r.y + q.a[1] * r.h], B = [r.x + q.b[0] * r.w, r.y + q.b[1] * r.h];
+  const near = (x, y) => { const t = Math.max(0, Math.min(1, ((x - A[0]) * (B[0] - A[0]) + (y - A[1]) * (B[1] - A[1])) / ((B[0] - A[0]) ** 2 + (B[1] - A[1]) ** 2))); return Math.hypot(x - A[0] - t * (B[0] - A[0]), y - A[1] - t * (B[1] - A[1])) < 1.5; };
+  const res = resOf((x, y) => near(x, y) ? [40, 90, 60] : [198, 143, 54]), D = modulesOf([r], res, { pencils: P, shortest: 2 });
+  const sq = D.modules.filter(M => M.sq);
+  assert.ok(sq.length > 3, `${sq.length} squares`);
+  assert.ok(sq.every(M => ['darkgreen', 'burntochre'].includes(M.own)) && sq.some(M => M.own === 'darkgreen'), `darker pencils, the nearest — Burnt Ochre where the line takes the square's edge: ${[...new Set(sq.map(M => M.own))]}`);
+  assert.ok(D.modules.filter(M => !M.sq).every(M => M.own === 'ochre'));
+  const S2 = passesOf(D, runOrder(P), { hatch: 'along' }), g = S2.find(p => p.pencil === 'darkgreen');
+  assert.ok(g && g.mm > sq.reduce((a, M) => a + M.len, 0) * 1.9, 'Cross: along and back, then across — or a line along and back twice');
+  const set = modulesOf([r], res, { pencils: P.map(p => p.id === 'ochre' ? { ...p, dark: 'tuscan' } : p) }).modules.filter(M => M.sq);
+  assert.ok(set.every(M => M.own === 'tuscan'), 'Squares with, set by hand');
+});
+
+test('the paper only next to white; the Preview\'s pale ones the light pencils, else a pencil and white over it, never grey; a stripe darker than its pencil a coat more', () => {
+  const pale = candidatesOf(P, 1).find(q => q.own === 'orange' && q.light === 'white').hex.match(/\w\w/g).map(v => parseInt(v, 16));
+  const D = modulesOf([MIX()], resOf(x => x < 120 ? [246, 248, 230] : x < 200 ? pale : x < 280 ? [200, 90, 30] : [235, 125, 45]), { pencils: P.filter(p => !BOX_3.some(q => q.id === p.id)) });
+  const at = x => D.modules.filter(M => { const m = pointOn(shapeAt(D.regions[M.reg], M.ts[0]), M.p, (M.fa + M.fb) / 2); return Math.abs(m[0] - x) < 10; });
+  assert.equal(at(80).length, 0, 'the white U\'s lightest stripe, #F6F8E6: the paper');
+  assert.ok(at(160).length && at(160).every(M => M.own === 'orange' && M.light === 'white'), 'a pale orange: orange, white over it');
+  const one = c => [...new Set(modulesOf([MIX()], resOf(() => c), { pencils: P }).modules.map(M => M.own))];
+  assert.deepEqual(one([237, 208, 185]), ['lightpeach'], 'the Preview\'s pale peach, #EDD0B9: Light Peach');
+  assert.deepEqual(one([241, 229, 210]), ['sand'], 'its cream, #F1E5D2: Sand');
+  assert.deepEqual(one([211, 211, 207]), ['frenchgrey20'], 'its light grey, #D3D3CF: 20 % French Grey');
+  assert.deepEqual(one([171, 215, 221]), ['cloudblue'], 'its pale aqua, #ABD7DD: Cloud Blue');
+  assert.ok(at(240).length && at(240).every(M => M.own === 'orange' && M.coats === 2), 'a dark orange: orange, a coat more');
+  assert.ok(at(320).length && at(320).every(M => M.own === 'orange' && M.coats === 1), 'orange as the pencil: one coat');
 });

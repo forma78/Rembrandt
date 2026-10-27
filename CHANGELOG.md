@@ -5,6 +5,26 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **DACHE after Preview: every line its own colour, the bands the blend's
+  loops, the sausages' squares, darker and lighter pencils** (the owner,
+  2026-10-27, Screenshots 12.24.10 and 12.36.17 PM: "I cannot accept this
+  work yet"; "the small squares from the sausages have gone … they lie
+  exactly where the sausages are"; "it is not paint — just give the squares
+  darker pencils"; "something near white can be taken from the 72"). Every 1
+  mm line samples the Preview every half mm, the Shortest 2 mm, so its
+  grooves — the television's grid — stay; the bands the loops (Stroke gone).
+  The pencil by hue and chroma against every pencil's colour and tones, its
+  tone by the lightness against the pencil's own — a coat more where
+  darker, white over where lighter: the stripes no longer one block, a dark
+  olive an ochre, not black, a pale peach Light Peach, not grey. The paper
+  only next to white. Where a line crosses a sausage and the Preview is
+  darker there, a square: never merged away, a darker pencil — Squares with,
+  or the nearest darker — hatched Cross (one line: along and back twice).
+  COVER est. 0.7. The box 27: his eleven (White PC 938), five darker
+  Prismacolors and Carmine Red, eleven of his light ones; added once into a
+  box kept before. Pencil drawn by module and tone. Four new tests. His
+  blend: ≈ 230 m, 25 pencils, ≈ 16 h (est.).
+
 - **DACHE: a narrow side's lines too; PROGRESS's type as everywhere, the
   next pencil, the hours in h and min; Preview** (the owner, 2026-10-27,
   Screenshot 12.09.03 PM, a red arrow over the blend's top: "why did the top

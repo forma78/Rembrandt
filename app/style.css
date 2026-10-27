@@ -812,3 +812,5 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 .askbox h3{margin:0 0 6px;font-size:13px;letter-spacing:.12em}
 .askbox p{margin:0 0 6px;font-size:13px}
 .askbox .btn{padding:14px 8px;font-size:13px;font-weight:600}
+.penciledit select{border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 6px;font:12px var(--mono);width:100%}
+html.night .penciledit select{background:#222427;color:var(--ink)}

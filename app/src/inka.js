@@ -46,7 +46,7 @@ import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, 
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE, figSausages as figSausagesOf } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap, spokesRound, SPOKE_GAP, SPOKES_MIN, SPOKES_MAX } from './blendplan.js';
-import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, STROKE_NEW, STROKE_MIN, STROKE_MAX, COATS_NEW, COATS_MIN, COATS_MAX,
+import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, BOX_2, BOX_3, BOX_4, moduleLines, COATS_NEW, COATS_MIN, COATS_MAX,
   SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
@@ -76,10 +76,10 @@ const S = {
   key: 0,                                                                            // the chosen blend's chosen key: 0 A, its box, then its keys inside
   ref: 0,                                                                            // the chosen reference: over the canvas, its palette OK's
   // DACHE: the pencil box and the run's order, the chosen pencil and the one shown alone; the lines; the frame, a piece to try on paper
-  ...(DACHE ? { pencils: cleanPencils(PENCILS_NEW), order: [], pencil: 'yellow', only: '', stroke: STROKE_NEW, hatch: 'along', coats: COATS_NEW, shortest: SHORTEST_NEW, pencilSpeed: PENCIL_SPEED_NEW, frame: null } : {}),
+  ...(DACHE ? { pencils: cleanPencils(PENCILS_NEW), boxV: 4, order: [], pencil: 'yellow', only: '', hatch: 'along', coats: COATS_NEW, shortest: SHORTEST_NEW, pencilSpeed: PENCIL_SPEED_NEW, frame: null } : {}),
 };
 if (DACHE) S.ink = false;                                                            // no cup: TEST's dots in pencil
-const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['stroke', 'coats', 'shortest', 'pencilSpeed'] : [])];
+const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : [])];
 const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result', ...(DACHE ? ['modules', 'pencil'] : [])];
 const BLEND_KEEP = 'rembrandt.blend.v01', BLEND_REFS = 'rembrandt.blend.refs';   // BLEND's keep and references, DACHE's first visit's
 let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
@@ -101,7 +101,13 @@ function load() {
       if (typeof o.pencil === 'string') S.pencil = o.pencil; S.only = typeof o.only === 'string' ? o.only : '';
       if (HATCHES.includes(o.hatch)) S.hatch = o.hatch; S.frame = cleanFrame(o.frame); S.ink = false;
       const to = (v, a, b) => Math.round(Math.max(a, Math.min(b, v)));
-      S.stroke = to(S.stroke, STROKE_MIN, STROKE_MAX); S.coats = to(S.coats, COATS_MIN, COATS_MAX); S.shortest = to(S.shortest, SHORTEST_MIN, SHORTEST_MAX); S.pencilSpeed = to(S.pencilSpeed, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX);
+      S.coats = to(S.coats, COATS_MIN, COATS_MAX); S.shortest = Math.max(SHORTEST_MIN, Math.min(SHORTEST_MAX, S.shortest)); S.pencilSpeed = to(S.pencilSpeed, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX);
+      const v = o.boxV ?? (o.box2 ? 2 : 1);                                            // the pencils added since, once, into a box kept before them (2026-10-27)
+      if (v < 2) S.pencils.push(...cleanPencils(BOX_2).filter(q => !S.pencils.some(p => p.id === q.id)));   // the darker ones and Carmine Red
+      if (v < 3) S.pencils.push(...cleanPencils(BOX_3).filter(q => !S.pencils.some(p => p.id === q.id)));   // the owner's light ones
+      if (v < 4) { S.pencils.push(...cleanPencils(BOX_4).filter(q => !S.pencils.some(p => p.id === q.id))); const w = S.pencils.find(p => p.id === 'white'); if (w && !w.code) Object.assign(w, { code: 'PC 938', brand: 'Prismacolor' }); }   // and the next of them; his White PC 938
+      if (v < 2 && S.shortest === 4) S.shortest = SHORTEST_NEW;                        // the old default: 4 mm ate the squares
+      S.boxV = 4; delete S.box2; delete S.stroke;                                      // the bands the blend's loops since the same day, no Stroke
     }
     FRESH = false;
   } catch { }
@@ -211,9 +217,9 @@ const pencilOf = id => S.pencils.find(p => p.id === id);
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 const layers = () => S.coats * (S.hatch === 'cross' ? 2 : 1);                     // over the paper: Cross lays every coat twice, along and across
 function dachePlan() {
-  const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.stroke, S.coats, S.shortest, S.frame, S.hatch, S.corner]);
+  const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.coats, S.shortest, S.frame, S.hatch, S.corner]);
   if (DPLAN?.key === key) return DPLAN;
-  const D = pencilPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, coats: layers(), stroke: S.stroke, shortest: S.shortest, frame: S.frame, corner: S.corner });
+  const D = pencilPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, coats: S.coats, shortest: S.shortest, frame: S.frame, corner: S.corner });
   const order = runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order);
   return (DPLAN = { key, ...D, order, passes: passesOf(D, order, { hatch: S.hatch, coats: S.coats }) });
 }
@@ -550,12 +556,15 @@ function dacheBitmap() {
     c.fillStyle = c.strokeStyle = D.candidates[M.k].hex; c.lineWidth = Math.max(0.15, 0.6 / px);
     c.beginPath(); pts.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); c.fill(); c.stroke();
   } else {
-    c.lineWidth = PITCH; c.lineCap = 'butt'; c.lineJoin = 'round';
-    for (const P of D.passes) {
-      const pc = pencilOf(P.pencil); if (!pc || (S.only && P.pencil !== S.only)) continue;
-      c.globalCompositeOperation = pc.light ? 'source-over' : 'multiply'; c.globalAlpha = pc.light ? LIGHT_OVER : 1 - (1 - COVER) ** layers(); c.strokeStyle = pc.hex;
-      P.boxes ??= P.strokes.map(boxOfPieces);
-      P.strokes.forEach((st, i) => { if (seen(P.boxes[i])) { trace(c, st); c.stroke(); } });
+    c.lineWidth = PITCH; c.lineCap = 'butt'; c.lineJoin = 'round';                      // every module's lines in its pencil, its tone: Coats, a coat more, Cross twice
+    const light = S.pencils.filter(p => p.light).map(p => p.id);
+    for (const pass of [0, 1]) for (const M of D.modules) {
+      const id = pass ? M.light : M.own, pc = id && pencilOf(id); if (!pc || (S.only && id !== S.only)) continue;
+      const pts = M.pts ??= outlineOf(D.regions[M.reg], M), b = M.box ??= boxOfPieces(pts.map(q => ({ a: q, b: q })));
+      if (!seen(b)) continue;
+      const n = (M.sq ? S.coats * 2 : M.coats ?? S.coats) * (S.hatch === 'cross' && !M.sq ? 2 : 1);
+      c.globalCompositeOperation = pass ? 'source-over' : 'multiply'; c.globalAlpha = pass ? LIGHT_OVER : 1 - (1 - COVER) ** n; c.strokeStyle = pc.hex;
+      for (const g of moduleLines(D.regions[M.reg], M)) { trace(c, [g]); c.stroke(); }
     }
   }
   return (DBMP = { key, c2, x0, x1, y0, y1 });
@@ -683,7 +692,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes', ...(DACHE ? ['pencils', 'order', 'stroke', 'hatch', 'coats', 'shortest', 'pencilSpeed', 'frame'] : [])];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes', ...(DACHE ? ['pencils', 'order', 'hatch', 'coats', 'shortest', 'pencilSpeed', 'frame'] : [])];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -1037,17 +1046,16 @@ $('#slBrush').querySelectorAll('input').forEach(inp => {
 // pencil its swatch, name, number and brand, its modules and metres; a click
 // chooses it for the fields under the box, a second shows its pass alone on
 // Modules and Pencil; ↑ ↓ move it in the run, within its group. The lines:
-// Along · Across · Cross (DACHE/stroke.png), Stroke, Coats, the shortest
+// Along · Across · Cross (DACHE/stroke.png), Coats, the shortest
 // module, the pencil's speed; the frame. Worked out a moment after a change,
 // the Result first — the reading and the LCD then.
-const PENCIL_SL = [['stroke', 'Stroke', 1, STROKE_MIN, STROKE_MAX], ['coats', 'Coats', 1, COATS_MIN, COATS_MAX], ['shortest', 'Shortest module', 1, SHORTEST_MIN, SHORTEST_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]];
+const PENCIL_SL = [['coats', 'Coats', 1, COATS_MIN, COATS_MAX], ['shortest', 'Shortest module', 0.5, SHORTEST_MIN, SHORTEST_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]];
 const PENCIL_TITLE = {
-  stroke: 'Lines a band across where the blend\'s keys lie furthest apart, PITCH (1 mm) apart — DACHE/stroke.png, 1 … 4 (the owner: «if the line is 4 mm, up and down four times»). Narrower where the keys lie nearer: as many lines as a band\'s width holds. A colour every band',
-  coats: 'Every module\'s lines so many times over, back over themselves, the pencil on the paper (the owner: «the lines go up and down, that is how the colour gains brightness on paper»); its colour on Modules by COVER a coat (est.)',
-  shortest: 'A piece of one colour along a band shorter than this goes to its longer neighbour: no specks, no pencil tapping (est.)',
+  coats: 'Every module\'s lines so many times over, back over themselves, the pencil on the paper (the owner: «the lines go up and down, that is how the colour gains brightness on paper»); a stripe darker than its pencil a coat more; its colour on Modules by COVER a coat (est.)',
+  shortest: 'A piece of one colour along a line shorter than this goes to its longer neighbour: no specks, no pencil tapping; a sausage\'s square stays whatever its length (est.)',
   pencilSpeed: 'The pencil along its lines; slower through the turns and its ups and downs (est.)',
 };
-const pencilVal = key => key === 'stroke' ? `${S.stroke} line${S.stroke === 1 ? '' : 's'} · ${S.stroke * PITCH} mm` : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${S.shortest} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
+const pencilVal = key => key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
 if (DACHE) {
   $('#slPencil').innerHTML = PENCIL_SL.map(([key, label, step, min, max]) => `<label class="sl" title="${PENCIL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
   $('#slPencil').querySelectorAll('input').forEach(inp => {
@@ -1101,11 +1109,12 @@ function showPencils() {
       <label class="f2"><span>Brand</span><input data-pf="brand" value="${esc(p.brand)}" maxlength="40" placeholder="Prismacolor"></label>
       <label class="ck"><input data-pf="light" type="checkbox"${p.light ? ' checked' : ''}><span>Light, over another</span></label>
       <label class="ck"><input data-pf="on" type="checkbox"${p.on ? ' checked' : ''}><span>In the box</span></label>
+      <label class="f2" title="The sausages' squares on this pencil's lines drawn with this one (the owner, 2026-10-27: «just give the squares darker pencils»); Auto: of those darker, the nearest to the square in the Preview"><span>Squares with</span><select data-pf="dark"><option value="">Auto: the nearest darker</option>${S.pencils.filter(q => q.id !== p.id && !q.light).map(q => `<option value="${esc(q.id)}"${p.dark === q.id ? ' selected' : ''}>${esc(q.name)}${q.code ? ` ${esc(q.code)}` : ''}</option>`).join('')}</select></label>
     </div>
     <div class="grid4 keys"><button class="btn" id="btnPencilDel" title="Take ${esc(p.name)} out of the box (⌘Z brings it back)"${S.pencils.length < 2 ? ' disabled' : ''}>Delete ${esc(p.name)}</button></div>`;
   $('#pencilEdit').querySelectorAll('[data-pf]').forEach(inp => inp.onchange = () => {
     undoPush(); const f = inp.dataset.pf;
-    p[f] = inp.type === 'checkbox' ? inp.checked : f === 'hex' ? inp.value.toUpperCase() : inp.value.trim().slice(0, f === 'code' ? 20 : 40) || (f === 'name' ? p.id : '');
+    p[f] = inp.type === 'checkbox' ? inp.checked : f === 'hex' ? inp.value.toUpperCase() : f === 'dark' ? inp.value : inp.value.trim().slice(0, f === 'code' ? 20 : 40) || (f === 'name' ? p.id : '');
     S.pencils = cleanPencils(S.pencils); settle();
   });
   $('#btnPencilDel')?.addEventListener('click', () => { undoPush(); S.pencils = S.pencils.filter(q => q.id !== p.id); S.pencil = S.pencils[0]?.id ?? ''; if (S.only === p.id) S.only = ''; settle(); });

@@ -1183,7 +1183,7 @@ export const labOf = lin => {
 };
 // ΔE, CIEDE2000: the hue weighed as an eye does — a photograph's neon pink
 // his Pink, not the dark 05; his navy Ultramarine
-export function de2000([L1, a1, b1], [L2, a2, b2]) {
+export function de2000([L1, a1, b1], [L2, a2, b2], kL = 1) {   // kL: the lightness weighed less, as for textiles (2)
   const rad = Math.PI / 180, c7 = c => Math.sqrt(c ** 7 / (c ** 7 + 25 ** 7)), Cb = (Math.hypot(a1, b1) + Math.hypot(a2, b2)) / 2, G = 0.5 * (1 - c7(Cb));
   const A1 = (1 + G) * a1, A2 = (1 + G) * a2, C1 = Math.hypot(A1, b1), C2 = Math.hypot(A2, b2), hue = (a, b) => { const v = Math.atan2(b, a) / rad; return v < 0 ? v + 360 : v; }, h1 = hue(A1, b1), h2 = hue(A2, b2);
   let dh = C1 * C2 ? h2 - h1 : 0; if (dh > 180) dh -= 360; else if (dh < -180) dh += 360;
@@ -1191,7 +1191,7 @@ export function de2000([L1, a1, b1], [L2, a2, b2]) {
   const hb = !(C1 * C2) ? h1 + h2 : Math.abs(h1 - h2) > 180 ? (h1 + h2 + 360) / 2 : (h1 + h2) / 2;
   const T = 1 - 0.17 * Math.cos((hb - 30) * rad) + 0.24 * Math.cos(2 * hb * rad) + 0.32 * Math.cos((3 * hb + 6) * rad) - 0.2 * Math.cos((4 * hb - 63) * rad);
   const SL = 1 + 0.015 * (Lb - 50) ** 2 / Math.sqrt(20 + (Lb - 50) ** 2), SC = 1 + 0.045 * Cp, SH = 1 + 0.015 * Cp * T, RT = -2 * c7(Cp) * Math.sin(60 * Math.exp(-(((hb - 275) / 25) ** 2)) * rad);
-  return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
+  return Math.sqrt((dL / (SL * kL)) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
 }
 export const BUY_K = 1.5;
 const LABS = new Map(), labP = id => { if (!LABS.has(id)) LABS.set(id, labOf(linOf(PAINT[id].hex))); return LABS.get(id); };
