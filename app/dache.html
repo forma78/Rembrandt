@@ -25,16 +25,16 @@
       <a href="stjohn.html">ST-JOHN</a>
       <a href="blend.html">BLEND</a>
       <a href="dache.html" class="on">DACHE</a>
+      <a href="caran.html">CARAN</a>
+      <a href="prisma.html">PRISMA</a>
       <a href="alucut.html">ALU-CUT</a>
       <a href="ccd.html">CCD</a>
-      <a href="bias.html">BIAS</a>
-      <a href="alu.html">ALU</a>
-      <a href="smkn.html">SMKN</a>
       <a href="ink.html">Ink</a>
       <a href="calibration.html">Calibration</a>
       <a href="library.html">Library</a>
       <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
     </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
   </div>
   <div class="top-mid"></div>
 </header>
@@ -140,8 +140,10 @@
 
     <div class="savebar">
       <button class="btn save" id="btnSave" title="Save the blends, the tiles and their paints in the Library, as a new save named by the date and time">💾 SAVE DACHE</button>
+      <button class="btn load" id="btnLoad" title="Lay a save from the Library here: this tab's whole, another's composition; ⌘Z takes it back">📂 LOAD</button>
       <span class="save-state" id="saveState">to the Library</span>
     </div>
+    <div class="loadlist" id="loadList" hidden></div>
     <section class="sec" id="pencilSec">
       <h3>Pencils <span class="hint">the box, in the run's order</span></h3>
       <!-- the box (the owner, 2026-10-27: eleven at first, black the eleventh; white light, over another, last) -->
@@ -228,6 +230,16 @@
     <h3>STOP</h3>
     <p>The carriage braked on its line, the pencil left on the paper.</p>
     <div class="grid4 keys"><button class="btn pass" id="askGo">▶ Continue drawing</button><button class="btn" id="askHome">⌂ Go home</button></div>
+  </div>
+</div>
+
+<div class="ask" id="drawAsk" hidden>
+  <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
+    <h3 id="drawAskTitle">DRAW</h3>
+    <div class="firstpen" id="drawAskFirst"></div>
+    <ol class="runlist one" id="drawAskList"></ol>
+    <p id="drawAskText"></p>
+    <div class="grid4 keys"><button class="btn pass" id="drawGo">✎ DRAW</button><button class="btn" id="drawNo">Cancel</button></div>
   </div>
 </div>
 

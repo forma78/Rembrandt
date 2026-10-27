@@ -1,6 +1,9 @@
 // Rembrandt · Preferences (the owner, 2026-10-20): what holds for every tab,
 // kept in this browser (prefs.js). TEST's dots: the margin in from the
-// board's edges, and TL, the first, one dot or two with a wait between.
+// board's edges, and TL, the first, one dot or two with a wait between. The
+// top row (2026-10-27, tabs.js): every tab with a tick, in the row or out of
+// it — Calibration and Library always — the row redrawn at once, here and on
+// the other tabs open in this browser.
 import './lamp.js';
 import { prefs, savePrefs, PREFS_NEW, PREFS_LIM } from './prefs.js';
 
@@ -15,7 +18,14 @@ $('#testNums').querySelectorAll('input').forEach(inp => inp.onchange = () => {
   set({ [k]: inp.value === '' ? PREFS_NEW[k] : +inp.value }, () => `${label} ${P[k]} ${unit}`);
 });
 $('#testFirst').querySelectorAll('button').forEach(b => b.onclick = () => set({ testFirst: +b.dataset.first }, +b.dataset.first === 2 ? 'Two dots at TL' : 'One dot at TL'));
-$('#btnDefaults').onclick = () => set({ ...PREFS_NEW }, 'Defaults');
+$('#btnDefaults').onclick = () => set({ ...PREFS_NEW }, 'TEST as at first');
+const TABS = globalThis.RembrandtTabs;   // tabs.js, run after the nav
+$('#tabList').onchange = e => {
+  const inp = e.target.closest('input[data-tab]'); if (!inp) return;
+  const q = TABS.TABS.find(t => t.href === inp.dataset.tab);
+  set({ tabs: { ...P.tabs, [q.href]: inp.checked } }, `${q.name} ${inp.checked ? 'in the top row' : 'hidden'}`);
+};
+$('#btnTabsDefaults').onclick = () => set({ tabs: {} }, 'The top row as at first');
 
 function set(change, what) {
   P = savePrefs({ ...P, ...change });
@@ -26,6 +36,8 @@ function set(change, what) {
 addEventListener('storage', e => { if (e.key === null || e.key === 'rembrandt.prefs.v01') { P = prefs(); show(); } });
 
 function show() {
+  TABS.render();
+  $('#tabList').innerHTML = TABS.shown(P.tabs).filter(q => !q.always).map(q => `<label class="ck" title="${q.name}, ${q.href}: ${q.on ? 'in the top row at first' : 'off the top row at first'}"><input type="checkbox" data-tab="${q.href}"${q.shown ? ' checked' : ''}><span>${q.name}</span></label>`).join('');
   for (const inp of $('#testNums').querySelectorAll('input')) if (document.activeElement !== inp) inp.value = P[inp.dataset.k];
   $('#testNums').querySelector('[data-k="testGap"]').disabled = P.testFirst < 2;
   $('#testFirst').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.first === P.testFirst));

@@ -184,7 +184,7 @@ export function pieceLength(s, p) {
 }
 // A shape's line on piece p from f0 to f1, as inkaplan.js's pieces: a line,
 // or an arc — its chord where too small to send as one
-function lineOn(s, p, f0, f1) {
+export function lineOn(s, p, f0, f1) {
   const a = pointOn(s, p, f0), b = pointOn(s, p, f1);
   if (p % 2 === 0) return { t: 'L', a, b };
   const r = rOf(s);
@@ -193,7 +193,7 @@ function lineOn(s, p, f0, f1) {
 }
 // A band's width on a piece, mm: on a side the keys' sides' distance apart,
 // in a corner across its middle
-function widthOn(R, p, ta, tb) {
+export function widthOn(R, p, ta, tb) {
   const A = shapeAt(R, ta), B = shapeAt(R, tb);
   if (p === 0) return Math.abs(B.y0 - A.y0);
   if (p === 2) return Math.abs(B.x1 - A.x1);
@@ -414,7 +414,7 @@ const flip = g => g.t === 'L' ? { t: 'L', a: g.b, b: g.a } : { ...g, a: g.b, b: 
 const gap = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 export const lineLen = g => g.t === 'L' ? gap(g.a, g.b) : g.r * Math.abs(Math.atan2((g.a[0] - g.c[0]) * (g.b[1] - g.c[1]) - (g.a[1] - g.c[1]) * (g.b[0] - g.c[0]), (g.a[0] - g.c[0]) * (g.b[0] - g.c[0]) + (g.a[1] - g.c[1]) * (g.b[1] - g.c[1])));
 // pieces one after another, a short line between where one ends and the next begins
-function chain(list) {
+export function chain(list) {
   const out = [];
   for (const g of list) {
     const e = out.at(-1)?.b;
@@ -479,7 +479,7 @@ export function passesOf(plan, order, o = {}) {
   return passes;
 }
 // The modules' ends in cells of a grid, the nearest one found ring by ring
-function gridOf(ends, cell = 20) {
+export function gridOf(ends, cell = 20) {
   const cells = new Map(), key = (x, y) => `${Math.floor(x / cell)},${Math.floor(y / cell)}`, taken = new Uint8Array(ends.length);
   ends.forEach((E, i) => E.forEach((p, e) => { const k = key(p[0], p[1]); if (!cells.has(k)) cells.set(k, []); cells.get(k).push([i, e]); }));
   let left = ends.length;

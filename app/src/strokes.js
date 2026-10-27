@@ -304,6 +304,11 @@ function onTheMove(p, o) {
   const touch = (q, k) => { if (k <= 1e-9) { line = null; return; } if (!line) trace.push(line = []); line.push({ x: q.x, y: q.y, k }); };
   const put = (g, on, row, w) => out.push({ g, on, row, v: g.t === 'A' ? arcSpeed(o.speed, g.r) : o.speed, ...w });
   const fast = deg => ({ w: deg, ws: WRIST_MAX });
+  // o.pencil { press, glide } (PRISMA, 2026-10-27, OPM/: the pencil marks at
+  // −1.4°, at −0.1° it touches and leaves next to nothing, at +4.6° it is
+  // just off): pressed at press, not 0°; through a turn gliding on the
+  // paper at glide, not up to ELBOW_UP — no time in the air; a tail between
+  const pen = o.pencil, deg = th => pen ? round1(pen.press + (pen.glide - pen.press) * th / ELBOW_LIFT) : round1(th);
   // The carriage starts the path at rest and stops at its end (firmware
   // path.h, ACCEL): near them it is slow, and the elbow keeps pace with it,
   // not with the speed it never reaches there — else it lifts before the end
@@ -316,8 +321,11 @@ function onTheMove(p, o) {
     if (G.up) {                                         // a turn in the air: up at its start, down to the lift-off by its end
       turns++;
       const tr = trackOf(G.p), L = tr.at(-1).s1;
-      cutTrack(tr, 0, L / 2).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_UP)));
-      cutTrack(tr, L / 2, L).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_LIFT)));
+      if (pen) cutTrack(tr, 0, L).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(pen.glide)));
+      else {
+        cutTrack(tr, 0, L / 2).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_UP)));
+        cutTrack(tr, L / 2, L).forEach((g, j) => put(g, 0, G.row, j ? {} : fast(ELBOW_LIFT)));
+      }
       line = null; off += L;
       return;
     }
@@ -326,10 +334,10 @@ function onTheMove(p, o) {
     const zone = (a, b) => {                            // a tail: the row cut every TAIL_STEP mm, a W 2 on each step
       const n = Math.max(1, Math.ceil((b - a) / TAIL_STEP)), ds = (b - a) / n;
       for (let j = 0; j < n; j++) {
-        const s0 = a + ds * j, s1 = s0 + ds, rate = Math.abs(th(s1) - th(s0)) / secs(s0, s1);
+        const s0 = a + ds * j, s1 = s0 + ds, rate = Math.abs(deg(th(s1)) - deg(th(s0))) / secs(s0, s1);
         need = Math.max(need, rate);
         const ws = j === 0 && !a ? WRIST_MAX : rate;    // the first of a landing comes down from the air too: as fast as it goes
-        cutTrack(tr, s0, s1).forEach((g, m) => put(g, 1, G.row, m ? {} : { w: round1(th(s1)), ws: Math.max(1, Math.min(WRIST_MAX, Math.ceil(ws))) }));
+        cutTrack(tr, s0, s1).forEach((g, m) => put(g, 1, G.row, m ? {} : { w: deg(th(s1)), ws: Math.max(1, Math.min(WRIST_MAX, Math.ceil(ws))) }));
       }
     };
     zone(0, z);

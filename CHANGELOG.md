@@ -5,6 +5,219 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **OPM, a new tab after PRISMA: contours in coloured pencils, the paints by
+  hand** (the owner, 2026-10-27, after the rubbed pencil on paper: "rubbed
+  like sandpaper the 40 × 40 takes thirty hours — impossible … back to the
+  paints, painted by hand along a contour drawn beforehand in pencils, every
+  pencil's colour its paint's"; "use the original geometry of the colour
+  strokes, not the screenshot; white areas with a thin contour of their
+  colour"; OPM/Rainbow Perspective Tile Grid.png, Kuzya's, "I like it most";
+  "columns — the sausages' strips 5 mm and the gaps between: yes, exactly";
+  "a switch: merge one colour's cells, or cells as Kuzya's"; "the whole
+  canvas painted, right?"). PRISMA's page, all of it, its plan
+  `opmplan.js`: the loops' bands a row 2.5 mm at least (a narrow side's
+  loops 0.6 mm apart — at first they merged into one snake of 740 cells, a V
+  with no contour), on a side cut by every sausage's strip; a corner's arc a
+  cell; every cell the pencil nearest the Preview in it, next to white the
+  lightest, none left bare. A corner's rows as the narrower side it runs
+  into (a sheared corner's band thins to it: the top right of
+  OPM/opm-cells.png had no contours, "a little is left in the top right
+  corner"). Its contour 0.7 mm in — a sharp tip cut across where its sides
+  are 2.1 mm apart, a short edge the inset turns back gone, as a true offset
+  — its corners rounded 1.5 mm, a closed stroke rubbed round and round
+  (Rubs 4), never back, lifted +1° between. Cells or Merged under Contours;
+  views Contour and Paint. On his BLEND of 23:47: 3038 cells, 2718
+  contours, none lost, ≈ 2 h 45 min at Rubs 4 (Merged: 524 contours, ≈ 1 h
+  17 min). Its own keep, a first visit PRISMA's; SAVE OPM, the Library
+  opening it there; in the top row after PRISMA. Tests for the cells, the
+  strip, the contours in their cells, Merged and the rubbing round.
+
+- **F: a click in the frame takes it away** (the owner, 2026-10-27: "a
+  frame can be set but not taken away. The simplest: F again and a click on
+  it, and it is gone"), on DACHE and PRISMA; ⌘Z brings it back, a click
+  outside it leaves it. Whole canvas under Pencils as before.
+
+- **PRISMA: the pencil rubbed, pressed, gliding** (the owner, 2026-10-27,
+  the first paper test, stopped at 43 %, OPM/IMG_1621.MOV and the photos:
+  "a pencil does not draw at one touch of the paper, it is not a felt pen …
+  it has to be rubbed like wood on sandpaper"; "the head keeps leaving the
+  paper and spends 60 % of its moves in the air"; the holder at −0.1° touches,
+  next to no trace, at −1.4° a pale line, at +4.6° just off; "8 or 16 times a
+  stroke for the dark, saturated colours, 16–32 for the light ones; if not
+  enough, 64. Let it draw seven hours"). The run pressed the pencil at 0°,
+  as the brush, and lifted it to +25° between strokes. Now: every stroke
+  **rubbed** there and back so many times — Rubs, the darkest pencil (8)
+  and the lightest (32), a pencil between by its lightness, by twos 1 … 64;
+  pressed at **Pressure** (−1.4°, down to −3.5°, the elbow's reach −5°);
+  from stroke to stroke **gliding** on the paper at **Between strokes**
+  (−0.1°), never up; it comes down to the paper the carriage standing. All
+  est. The time is the carriage's braking at every turn back (250 mm/s²,
+  the firmware's), not its speed: on his BLEND of 23:47, the 100 × 100 frame
+  ≈ 2 h 30 min at 8 … 32, the whole sheet 20 … 40 h. No rembrandt.py or
+  firmware change: −5 … +45° is the elbow's reach a run may use. The first
+  rubbed run (OPM/IMAGE 22:26:42; the owner: "now that is what I call it!"):
+  the red dense and bright; gliding at −0.1° the sharp, waxed tip leaves a
+  thin line from stroke to stroke — Between strokes +0.5 … +1° next, a lift
+  of a hair; its label says on the paper or just off.
+
+- **PRISMA: the run in the panel; DRAW asks with swatches** (the owner,
+  2026-10-27, Screenshot 9.09.17 PM: "a quite useless palette of sausages
+  … we need beside it, above, the list of the pencils used … I do not
+  understand which pencil to put in the machine now, which to have ready
+  next. The first colour could go into the window DRAW opens, as a swatch";
+  OPM/Screenshot 9.16.11 PM). Pencils on PRISMA starts with **the run**: every
+  pencil that draws in its order, two columns, its number, swatch and name;
+  a click chooses it. While DRAW runs, or Play Pencil plays, the one in the
+  machine is ringed — now, or put in at a change — the next marked, the done
+  ones dim; nothing running, the first. DRAW, on DACHE and PRISMA, asks in a
+  window of its own, no more the browser's text: the first pencil big, Put
+  in first, its name, number and brand; the run's order a swatch each with
+  its metres; the time and the paper; DRAW or Cancel, Esc Cancel. (A DRAW
+  refused with "from before the pencil's pause" was a rembrandt.py started
+  the night before p-pause: restarted, it draws.)
+
+- **PRISMA: no white between the rings; Nearest · Mixed** (the owner,
+  2026-10-27, the top right corner, Pencil beside the Preview: "I thought
+  more colours would bring Pencil nearer the Preview, but it still is not
+  right … I do not know how to fix it"; Kuzya: "an almost technical scheme
+  … many white gaps … a grid"). The gaps were the rings', not the colours':
+  a side narrower than the widest kept as many lines as it holds on
+  average, 0.7 and 1.3 mm apart in turn, and round a corner the lines came
+  in evenly while the band widened unevenly — white fans. Now on every side
+  and round every corner the first so many lines by rank that no gap is
+  wider than a line (1 mm), nested, every line starting or stopping once. On
+  his BLEND of 23:47 the look (2 mm cells, ΔE 2000 to the Preview) 8.05 →
+  5.79, the top right corner 12.9 → 6.8 ("wow, almost twice as accurate");
+  the lines 1.2 times the area where a side is narrow, DRAW 2 h 46 → 3 h 38
+  min at 60 mm/s. **Mixed** beside **Nearest** under Rings and rays ("maybe
+  we keep it?" — the raster, PRISMA/compare-corner.png): along every line
+  the Preview's colour and what the lines before it left over, the one of
+  its four nearest pencils, the paper one of them, nearest that, kept
+  Shortest at least, what it misses carried on (Floyd–Steinberg) — green,
+  orange and ochre intertwined; 6 h 26 min at Shortest 5, the look 6.8.
+  Tried and left: two pencils across the lines in shares (no better, +0.6
+  h); rays off (no better, the red stripes gone). Tests: no point of the
+  blend over half a line from one; Mixed's mix near the Preview's olive.
+
+- **PRISMA: twelve more Prismacolors for the four transitions** (the owner,
+  2026-10-27, PRISMA/new_colors.png: "blue → turquoise → green … white →
+  cream → peach → coral … yellow → gold → olive … red → terracotta → brown
+  — they need more half-tones"). His twenty there were the box's own pencils
+  read off the screen, each within ΔE 1–4 of one in it, numbered by the
+  strip: on his BLEND of 23:47 they made 50 pencils, 2 h 52 min, and the look
+  (2 mm cells, ΔE 2000 to the Preview) 8.56 → 8.40. Chosen instead, as the
+  fifteen before, one at a time off that Preview: Salmon Pink PC 1001,
+  Jasmine 1012, Pale Sage 1089, Light Cerulean Blue 904, Mineral Orange
+  1033, Kelp Green 1090, Caribbean Sea 1103, Moss Green 1097, Beige Sienna
+  1080, Light Aqua 992, Peacock Green 907, Blush Pink 928 (est.) — 44
+  pencils, 2 h 46 min, the look 8.05; the transitions 7.0 → 5.9, 5.9 → 5.4,
+  6.8 → 5.9, 6.4 → 6.0 (his choice). A kept box takes them once (`boxV` 6),
+  his own edits and ticks as they were; those he has not, In the box off.
+
+- **Play Pencil in PROGRESS** on DACHE and PRISMA (the owner, 2026-10-27,
+  PRISMA/Screenshot 7.32.59 PM: "the drawing builds, but the progress on the
+  screen does not change, and the build does not take the change of the
+  swatches. It would be great if, with Play Pencil, Progress showed which
+  pencil we draw with now"). While it plays and nothing runs, the LCD plays
+  the run: ▶ play · Pencil, the per cent, the time left and the total of
+  the run (est., by the metres drawn), the swatch of the pencil drawing,
+  its number of all and the next; the pencil ringed by the Tools (PRISMA)
+  or in the box (DACHE). A real run comes first on the LCD.
+
+- **📂 LOAD beside 💾 SAVE, and ⌘C ⌘V from tab to tab** on INKA, ST-JOHN,
+  BLEND, DACHE and PRISMA (the owner, 2026-10-27, the composition of BLEND
+  and DACHE deleted by chance: "we have SAVE BLEND — can't we just make LOAD
+  BLEND? I need this one (PRISMA/Screenshot 7.24.22 PM) on PRISMA. So LOAD
+  PRISMA, or ⌘C on BLEND and ⌘V on PRISMA"). LOAD lists the Library's saves
+  the tab draws, newest first, a picture each; its own save opens whole, as
+  from the Library, another tab's lays its composition — the tiles, the
+  nodes, the canvas, the brush and Density — the tab's own pencils, frame
+  and view kept. ⌘C is kept in this browser too: ⌘V on another tab lays
+  the tiles where they were there, every next one beside; INKA takes no
+  blends. ⌘Z takes either back. The Library's open on a tab takes the same
+  saves.
+
+- **SMKN, BIAS and ALU off the top row; every tab ticked in or out in
+  Preferences** (the owner, 2026-10-27: "hide the SMKN and BIAS tabs,
+  please — and in Preferences put all the hidden tabs, so that I do not ask
+  you every time: a check-box there, to hide them and bring them back. ALU
+  can be hidden too"). Preferences' new **Tabs**: every tab in its place in
+  the row, the hidden ones of before too (TAPE, BASF, LOOM, NOLAN, New Yuri,
+  TYPE, LOVE, Pencils, Test, Job, Create, Adjustments), a tick each, kept in
+  this browser with TEST's; The top row as at first. `src/tabs.js` draws the
+  row right after every page's nav, and again when Preferences change it on
+  another tab; Calibration and Library always; a page opened off the row
+  shows its own tab. Tests for the row at first, the ticks and every page.
+
+- **PRISMA, a new tab after CARAN: DACHE's Preview in rings and rays** (the
+  owner, 2026-10-27, PRISMA/ IMAGE 15:30:57 and 15:31:04: "this geometry
+  should have a rather simple construction. One part of the strokes goes
+  clockwise, draws different circles. The other part are like spokes or
+  rays, from the centre in different directions — the rays make a cross
+  hatching, a cross stroke. The rays are always short, the clockwise ones a
+  little longer"; Screenshot 3.04.49 PM, the red transverse stripes lost by
+  DACHE and CARAN; "maybe there were not enough colours? We can add twenty
+  more, dark, saturated"). DACHE's page, its plan `prismaplan.js`: the
+  pencil's lines 1 mm apart clockwise round every band, runs of one pencil
+  3 mm at least (Shortest, est.); along every sausage short zigzags a band
+  long, the Preview's pencil over each — the stripes. Every shade the nearest
+  pencil, its own colour; no coats or tones. A pencil one path, the pencil up
+  and down on the move (CARAN's `turn` pieces and `minPiece`), 60 mm/s (est.)
+  and 0.18 s a lift (est.): ≈ 2 h 39 min on the 12:02 composition, 2 h 46
+  min on 15:20 (≈ 0.7 h of it drawing), the pencil changes not counted —
+  not 17–21 h. Fifteen more Prismacolors in its box (est.):
+  Mediterranean Blue, Peacock Blue, Olive Green, Green Ochre, Pale
+  Vermilion, Poppy Red, Crimson Lake, Terra Cotta, Muted Turquoise, Jade
+  Green, Parrot Green, Light Umber, Yellowed Orange, Nectar, Sky Blue Light —
+  the mean ΔE 2000 of his two Previews of the day 9.1 → 6.5. DACHE and CARAN
+  untouched; `dacheplan.js` only exports four helpers. Tests for the box, the
+  ranks, the runs, the rings' way, the rays, the passes and the run.
+  DACHE's look too, every one of its style rules (the owner, the same day:
+  "there is the DRAG key for the brush … we need DRAW for the pencils —
+  Cream 914 is first, where do I press?"): DRAW alone, MARKS, DRAG and Ink
+  hidden, the paints in two columns. Then the pencils by the Tools (the
+  owner, the same day: "let us move all the pencils to the left, where the
+  tools are; they can be in three rows. And unload the panel on the right —
+  many say none there. If a pencil is not used, its colour should be
+  hidden"): in the paints' place three columns, only the pencils that draw,
+  in the run's order, its number under each; + the rest, to bring one back;
+  Paints, and M, the sausages' strip, Pencils back. On the right only the
+  chosen one, ↑ ↓ and its fields.
+
+- **CARAN: preserve the individual sausage squares' contrast** (the owner,
+  2026-10-27, Screenshot 12.36.17 PM: “I even drew these little squares on
+  the right; they are where the sausages are”). Preserve sausage squares,
+  on by default: if a genuinely darker source cell and both surrounding
+  sides would round to one pencil, assign a suitable darker pencil in its
+  hue family. Actual source contrast is required; flat areas gain nothing.
+  The frozen raster, coat count and old paint colours stay unchanged.
+  Independent switch, source-cell count and tests for preserved cells,
+  uniform sources, missing pencils and explicit coats.
+
+- **CARAN: the sausages as crosswise spokes, with the contour rings** (the
+  owner, 2026-10-27: “can we keep the sausages, so there are transverse
+  strokes”; Play Drawing showed a barrel's metal rings “without the wooden
+  boards”). Cross strokes on sausages, on by default, reserves the real
+  sausage footprints from the frozen source for strokes along their spokes.
+  Colours remain those assigned from the Result; explicit coats stay the
+  same. Existing snapshots work without recapture. The switch is independent
+  of small-detail hatching. Playback marks cross strokes, the plan reports
+  their metres, and SVG and DRAW use the same paths. Source-colour, direction,
+  frame, coats and runner tests cover the change.
+
+- **CARAN beside DACHE: frozen Result, continuous pencil passes** (the owner,
+  2026-10-27: “take a cast of the Preview, assign each shade its own pencil”;
+  “a full pass across the sheet … it lifts here and lands there”; small
+  squares perpendicular, “like weaving a basket”). The original native raster
+  is kept independently. Its pixels select actual pencils directly, with no
+  pigment mixing, inferred overlays, short-colour merging or omitted pencils.
+  Contour directions, local lifted flights and a perpendicular raster detail
+  pass feed one continuous path per pencil into the existing runner. Compare
+  the original, assigned palette and actual paths. Explicit coats, real-size
+  fragments, editable inventory, playback, Library saves and project/SVG
+  exports. Motion and lift estimates are shown separately; pencil changes are
+  excluded. Server and firmware unchanged; no physical run. See `CARAN.md`.
+
 - **DACHE: ▶ Play Preview · ▶ Play Pencil, one row** (the owner, 2026-10-27:
   "much better! Let's put two Play the run buttons in one row — Play Preview
   and Play Pencil. We need to watch how our picture is drawn in pencil").

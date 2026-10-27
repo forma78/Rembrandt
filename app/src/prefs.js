@@ -6,6 +6,9 @@
 // TL, one dot or two with a wait between ("on the first top point I need two
 // touches of the brush 5 seconds apart. When I put a new canvas I do not
 // understand where to put it … one or two points can go into Preferences").
+// And the top row (2026-10-27, tabs.js): which tabs are in it, a tick each
+// ("put all the hidden tabs there, a check-box to hide them and bring them
+// back") — only those the owner has ticked or unticked, the rest as at first.
 // No window (node, the tests): the defaults.
 
 export const PREFS_KEY = 'rembrandt.prefs.v01';
@@ -17,8 +20,11 @@ export function cleanPrefs(p = {}) {
   const out = { ...PREFS_NEW };
   for (const [k, [lo, hi]] of Object.entries(PREFS_LIM)) if (Number.isFinite(p?.[k])) out[k] = Math.max(lo, Math.min(hi, p[k]));
   out.testFirst = Math.round(out.testFirst);
+  out.tabs = cleanTabs(p?.tabs);
   return out;
 }
+// the row's ticks: { 'smkn.html': false, … } — a page and in or out
+export const cleanTabs = t => Object.fromEntries(Object.entries(t && typeof t === 'object' ? t : {}).filter(([k, v]) => /^[a-z]+\.html$/.test(k) && typeof v === 'boolean'));
 const store = () => { try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; } };
 export function prefs() {
   try { return cleanPrefs(JSON.parse(store()?.getItem(PREFS_KEY) ?? 'null') ?? {}); } catch { return { ...PREFS_NEW }; }

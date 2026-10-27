@@ -27,16 +27,16 @@
       <a href="stjohn.html">ST-JOHN</a>
       <a href="blend.html" class="on">BLEND</a>
       <a href="dache.html">DACHE</a>
+      <a href="caran.html">CARAN</a>
+      <a href="prisma.html">PRISMA</a>
       <a href="alucut.html">ALU-CUT</a>
       <a href="ccd.html">CCD</a>
-      <a href="bias.html">BIAS</a>
-      <a href="alu.html">ALU</a>
-      <a href="smkn.html">SMKN</a>
       <a href="ink.html">Ink</a>
       <a href="calibration.html">Calibration</a>
       <a href="library.html">Library</a>
       <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
     </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
   </div>
   <div class="top-mid"></div>
 </header>
@@ -131,8 +131,10 @@
 
     <div class="savebar">
       <button class="btn save" id="btnSave" title="Save the blends, the tiles and their paints in the Library, as a new save named by the date and time">💾 SAVE BLEND</button>
+      <button class="btn load" id="btnLoad" title="Lay a save from the Library here: this tab's whole, another's composition; ⌘Z takes it back">📂 LOAD</button>
       <span class="save-state" id="saveState">to the Library</span>
     </div>
+    <div class="loadlist" id="loadList" hidden></div>
     <section class="sec">
       <h3>BLEND <span class="hint">Illustrator's blend, and Inca tiles</span></h3>
       <h4 class="first">Blends and tiles, in the order of their figures</h4>

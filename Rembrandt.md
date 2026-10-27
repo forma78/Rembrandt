@@ -76,11 +76,18 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. Since 2026-10-26's evening **K1 · K2 in turn** — a loop of every two keys' series in turn, one of Key 1's, one of Key 2's, and so on, every contour drawn once, a stroke of its own from the middle of the side where its series' loops meet (IMG_1554: Key 1's at 12 o'clock, Key 2's at 6, under the core) round to there, the brush up and on in the air to the next; or **Key after key**, one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Not ST-JOHN's loop. |
 | **Spokes · patches (on BLEND)** | A blend's sausages since 2026-10-26: **spokes** all round — **Spokes** of them, the blend's own number in its panel, at first one every ≈ 95 mm, as far as the paint carries at Density 50 % (est.), never moved by the Density — shared out over the sides of its outer loop, every side parted evenly, from each place across every loop to the same place on the last, straight from key to key, in pieces as long as they lie apart; a run of one paint along a spoke one sausage; the core an X of its own, its Step moving that X alone. **Patches**: the palette dealt over them, every paint its share of the sausages, grown at random from seeds over their neighbours, so the colours lie in clouds over the loops, the brush running one into the next; the core the spot, else the pure paint. Before, an X along every corner's way, the outer half one paint, the inner half another. |
 | **DACHE** | The tab of coloured pencils on paper, after BLEND in the top row since 2026-10-27 (§1, §8), after CARAN D'ACHE: BLEND's page, all of it — its keys, loops, spokes, paints, references, Drag and Result — and the Result no longer a forecast of paint on a canvas but the colour the pencils draw. `dache.html`, its body `data-tab="dache"`; INKA's page module `inka.js` and plan `inkaplan.js`, the blend's `blendplan.js`; its own keep and Library label, a first visit BLEND's composition and references, copied. The owner's references in `DACHE/`. |
+| **CARAN** | Beside DACHE since 2026-10-27: a frozen native Result, each pixel assigned to one actual pencil, long contour passes lifting over other colours, small raster details filled perpendicularly. Snapshot, Pencils and Drawing compared at the same scale. Its own state, frozen raster, inventory and Library saves; `caran.html`, `caranplan.js`, `caran.js`, `caranworker.js`; `CARAN.md`. |
+| **Cross strokes on sausages (on CARAN)** | On by default, 2026-10-27: the real sausage strips stored with the frozen source filled along their spokes, across the contour rings — the owner's barrel needs wooden boards as well as metal rings. Their colours remain the Result's assigned pencils. An independent switch; existing frozen snapshots work without recapture. Same explicit coats; playback, exports and DRAW use the same cross strokes. |
+| **Preserve sausage squares (on CARAN)** | On by default, 2026-10-27, after the owner's hand-marked Screenshot 12.36.17 PM: keep the separate darker green and red rectangles at the crossings visible. If a darker source cell and both neighbouring sides would round to the same pencil, choose a suitable darker enabled pencil in its hue family (est. matching rule). The contrast must exist in the frozen source. No extra coats, no old paint colours, no new marks on flat areas. Independent of the cross-stroke switch. |
 | **Pencil box · light (on DACHE)** | The pencils DACHE draws with, in the run's order: a name, a number (PC 926), a brand, a colour (est., till read off a stroke card), in the box or off, and **Squares with**, the pencil its sausages' squares are drawn with. The owner's eleven at first (2026-10-27): yellow, ochre, orange, grass green, sky blue, emerald green, grey, blue, brown, black, white (PC 938); then, the same day, five darker Prismacolors for the squares and his red — Carmine Red PC 926, Tuscan Red PC 937, Dark Green PC 908, Burnt Ochre PC 943, Indigo Blue PC 901 — and his light ones, near white: Peach PC 939, Light Peach PC 927, Sand PC 940, 20% Cool Grey PC 1060, 20% Warm Grey PC 1051, Yellow Chartreuse PC 1004, Cloud Blue PC 1023, Putty Beige PC 1083, Ginger Root PC 1084, Cream PC 914, 20% French Grey PC 1069. **Light**: a pencil that shows only over another — white — over another's modules, last; the others autonomous. The run light to dark at first, the owner's ↑ ↓ over it, the light ones always last. |
 | **Band · module · square (on DACHE)** | A band: a loop of the blend — Steps of them between every two keys — or a core's or a tile's ring, Step apart. In it the pencil's lines 1 mm apart across all of the gap on every side and corner, shared out to the bands (since 2026-10-27: before, the owner's top "sagged"). Every line its own colour off the Preview, a sample every half mm, a piece shorter than the Shortest module to its neighbour; a module: a stretch of a line of one pencil and tone — on a side a piece of a trapezoid, its ends the rays from key to key, in a corner a piece of a ring; for Across and Cross the lines of one band side by side over the same stretch, one module. A square: where a line crosses a sausage and the Preview is darker there than the line round it, or of another colour (the owner: "the squares lie exactly where the sausages are") — a run of its own, never merged away, drawn with a darker pencil, Cross. |
 | **Line · pencil · tone (on DACHE)** | A line: the pencil's mark, 1 mm (PITCH, est.; the owner: "one line 1 mm"), lines 1 mm apart. Its pencil by the nearest of every pencil's colour and tones, its hue and chroma first (CIEDE2000, kL 2, est.); the paper only next to white (ΔE under 6, or L* over 94 with chroma under 12). Its tone by the lightness against the pencil's own: darker by 4 L* a coat more, lighter by 14 the light one over it (est.) — the Preview's paint darker and fuller than any pencil on paper, its stripes by how much darker or lighter. Stroke, the lines a band across, gone since the bands are the loops (2026-10-27). |
 | **Along · Across · Cross · Coats (on DACHE)** | How the pencil goes in a module, up and down with it on the paper, never back through the air (`DACHE/stroke.png`): **Along**, every line its length, the next back, 1 mm over — the horizontal; **Across**, short strokes from its inner side to its outer, 1 mm along every time — the vertical; **Cross**, Along and then Across over it. **Coats**: the whole again, back over itself; a coat covers COVER of the paper (70 %, est.), Cross every coat twice. |
 | **Pencil change · p-pause (on DACHE)** | At the start the holder down over the first module, and at every colour's end the pencil left on the paper: the run waits — the pencil out, the next one in, its tip on the paper, at the right height — then Continue lifts it and goes on. **p-pause**, the runner's pause of the pencil (`/run/p-pause`, a block of kind `p-pause`, 2026-10-27): Pause's, but nothing lifted, nothing put back; DACHE's PAUSE and STOP use it. |
+| **PRISMA** | DACHE's page, all of it, after CARAN in the top row since 2026-10-27 (§1, §8), the Preview drawn by the blend's own geometry (the owner, PRISMA/, IMAGE 15:30:57 and 15:31:04: "one part of the strokes goes clockwise, draws different circles; the other part like spokes or rays, from the centre in different directions — so the rays make a cross hatching, a cross stroke. The rays are always short, the clockwise ones a little longer"): **rings** and **rays**, every shade its own pencil — the nearest to the Preview, its own colour, CIEDE2000; the paper next to white — no coats, no tones, no modules. A pencil one path, the pencil up on the move where its colour ends and down where it begins (`turn` pieces, CARAN's way), no stop; DACHE's run order, p-pause and frame. Its box DACHE's 27 and fifteen more Prismacolors (est., Claude's pick off the owner's two Previews of the day: the paint's mid blue, olive, vermilion, turquoise, dark reds), and twelve more for his four transitions — blue → turquoise → green, white → cream → peach → coral, yellow → gold → olive, red → terracotta → brown (PRISMA/new_colors.png, the same evening; his twenty there were the box's own read off the screen, each within ΔE 1–4 of one in it; his choice: PC 1001, 1012, 1089, 904, 1033, 1090, 1103, 1097, 1080, 992, 907, 928, est.). Its pencils by the Tools, in the paints' place, three columns in the run's order, only those that draw (+ the rest; Paints and M the sausages' strip); on the right **the run** — every pencil that draws in its order, the one in the machine ringed as DRAW or Play Pencil goes, the next marked, the done dim — and the chosen one. DRAW asks in a window of its own, the first pencil's swatch big, the order a swatch each (2026-10-27, Screenshot 9.09.17 PM). A pencil is **rubbed**, not touched (the first paper test, OPM/, the same evening): every stroke there and back Rubs times — the darkest pencil 8, the lightest 32, between by lightness, 1 … 64 — pressed at **Pressure** (−1.4°, est.), gliding on the paper at **Between strokes** (−0.1°) from stroke to stroke, never up in the air. `prisma.html`, its body `data-tab="prisma"`, DACHE's look; `inka.js`, its plan `prismaplan.js`; its own keep and Library label, a first visit DACHE's composition, pencils and references, copied. The owner's references in `PRISMA/`. |
+| **Ring · ray (on PRISMA)** | A ring: one of the pencil's lines round a band — between two keys, in a core or a tile — PITCH apart, clockwise from 12 o'clock, a whole round; on a side narrower than the widest and round a corner as the band widens, the first so many by rank that no gap is wider than a line (the owner, 2026-10-27, the top right corner beside the Preview: the white between the rings, a grid; closed, the look ΔE 12.9 → 6.7 there, "almost twice as accurate"), every line starting or stopping once; its colour **Nearest** — a run of one pencil Shortest at least — or **Mixed**, the pencils intertwined, what one misses carried along and to the next line in (error diffusion; "maybe we keep it?": painterly, twice the time); a run of one pencil along it, Shortest at least (3 mm, est.), a stroke. A ray: along a sausage — a piece of a spoke, where the Preview shows the paint thick (Screenshot 3.04.49 PM: "here are clearly red transverse stripes") — its 5 mm in lines PITCH apart, a cell a band, up one and down the next, the Preview's pencil over it; the next cell of the same pencil on from where it ended. Not TAPE's or INKA's spoke. |
+| **OPM** (Optical Pigment Mixing) | PRISMA's page, all of it, after PRISMA in the top row since 2026-10-27 (§1): the machine draws a thin **contour** in coloured pencils on the canvas, a person paints it in by hand, every pencil's colour its paint's (the owner, after PRISMA on paper: "rubbed like sandpaper the 40 × 40 takes thirty hours … a person and a robot together"). **Cells** by the blend's own geometry, not the screenshot: the loops' bands, so many a row that a row is 2.5 mm at least (est.), on a side cut by the sausages' strips — a strip SAUSAGE_W wide a narrow cell, the gaps wide ones ("yes, exactly", OPM/Rainbow Perspective Tile Grid.png); on a corner the row's arc one cell. Every cell its pencil, the nearest to the Preview's colour in it, next to white the lightest — the whole canvas painted. Its contour 0.7 mm in from its edges (INSET, est.), two neighbours' never touching, its corners rounded 1.5 mm at most (est.) so the carriage goes round without stopping; a cell too narrow for one none, painted with a neighbour's. **Merged** (a switch: "I do not know without a test"): one pencil's cells side by side one area, one contour round it. A contour rubbed round and round (Rubs 4, est.), never back; lifted +1° between (est.). Views: Contour, as DRAW lays it; Paint, every cell in its colour. `opm.html`, `inka.js`, its plan `opmplan.js`; its own keep and Library label, a first visit PRISMA's. The owner's references in `OPM/`. |
+| **📂 LOAD · ⌘C ⌘V from tab to tab (INKA's page)** | LOAD, beside 💾 SAVE on INKA, ST-JOHN, BLEND, DACHE and PRISMA: the Library's saves the tab draws, newest first, a picture each — on BLEND, DACHE and PRISMA theirs and INKA's, on ST-JOHN its own and INKA's, on INKA its own; a click lays one here. Its own tab's save whole, as the Library opens it; another tab's its composition — the tiles, their nodes, the canvas, the brush and Density — this tab's own kept (the pencils, the frame, the view). ⌘C kept in this browser too: ⌘V on another tab of them lays the tiles where they were there, every next ⌘V beside; the Density the tab's own. ⌘Z takes either back. |
 | **Frame (on DACHE)** | A rectangle on the canvas, laid with **F**: only the modules in it drawn, at their place from home — a piece on paper first (the owner, 2026-10-27: "first we test on paper"), the paper taped there. **Whole canvas** takes it away. |
 | **Left out (on DACHE)** | A pencil with next to nothing to draw — under 300 mm of line, or 0.5 % of all of it on a small piece (est.) — not in the run: its modules to the nearest of the pencils with enough; no change of pencil for a few specks. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
@@ -93,7 +100,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Calibration** | Machine settings: steps, home, canvas corners, reach, wrist zero. Called "Calibrate" in talk. It belongs to the machine, never to paint. |
 | **Adjustments** | New tab. How each paint behaves: drop dose, smear length, swatches, muddy pairs. Everything about paint lives here. Off the top row since 2026-10-05 (§1); the page stays. |
 | **Library** | Saved paintings, as in RUBENS. |
-| **Preferences** | The gear ⚙ after Library in the top row (2026-10-20, §1, §8), `prefs.html`, `src/prefs.js`: what holds for every tab, kept in this browser as the lamp's day and night. For now TEST's: the margin of its dots, 10 mm at first, and TL one dot or two, 5 s apart at first. Moves nothing by itself. |
+| **Preferences** | The gear ⚙ after Library in the top row (2026-10-20, §1, §8), `prefs.html`, `src/prefs.js`: what holds for every tab, kept in this browser as the lamp's day and night. TEST's: the margin of its dots, 10 mm at first, and TL one dot or two, 5 s apart at first; and **Tabs**, every tab with a tick, in the top row or out of it (2026-10-27, `src/tabs.js`; Calibration and Library always). Moves nothing by itself. |
 | **Reference** | An image attached on the Create tab with **Add new reference**. Shown under the canvas, traced, sampled for colours. Never painted as is. |
 | **Curve** | The one master path of a painting. Lines and arcs only. Every band is built from it. |
 | **Band** | The part of a layer on one side of the curve, N lanes wide. |
@@ -869,6 +876,35 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   *Claude's choices*: where the S lies; ↺, the sign mirrored, from the top
   right. On his 40 × 40, Width 76, Corners 100, Step 3: 49.4 m, 25 loops,
   35 dips of TRACE (est.).
+- **OPM after PRISMA: contours by the machine, the paints by hand** (the
+  owner, 2026-10-27, after the paper test of the rubbed pencil: "rubbed like
+  sandpaper it takes thirty hours … two days for a 40 × 40 — impossible.
+  Back to the paints, painted by hand on the canvas along a contour drawn
+  beforehand in pencils, every pencil's colour its paint's; it is worth
+  more: a person and a robot together. PRISMA stays; a new tab, OPM"). Its
+  cells the blend's own geometry, Kuzya's Rainbow grid; Cells or Merged; the
+  whole canvas painted.
+- **📂 LOAD beside 💾 SAVE; ⌘C ⌘V from tab to tab** (the owner,
+  2026-10-27, having deleted the composition of BLEND and DACHE by chance:
+  "we have SAVE BLEND — can't we just make LOAD BLEND? I need this one
+  (PRISMA/Screenshot 7.24.22 PM) on PRISMA. So LOAD PRISMA is needed, or
+  ⌘C on BLEND and ⌘V on PRISMA"). INKA's page, every tab of it: LOAD lists
+  the Library's saves the tab draws, another tab's laid as its composition,
+  the tab's own pencils and frame kept; ⌘C ⌘V through this browser, the
+  first ⌘V on another tab where the tiles were. ⌘Z takes it back.
+- **SMKN, BIAS and ALU off the top row; every tab ticked in or out in
+  Preferences** (the owner, 2026-10-27: "hide the SMKN and BIAS tabs,
+  please — and in Preferences, the gear, put all the hidden tabs, so that I
+  do not ask you every time: a check-box there, to hide them and bring them
+  back. ALU can be hidden too, its box unticked"): INKA · ST-JOHN · BLEND ·
+  DACHE · CARAN · PRISMA · ALU-CUT · CCD · Ink · Calibration · Library ⚙.
+  Preferences lists every tab, the hidden ones of before too, in its place
+  in the row, a tick each; kept in this browser with TEST's
+  (`rembrandt.prefs.v01`, its `tabs`), the row redrawn at once on every tab
+  open. Calibration and Library always, the gear last; a page opened off the
+  row (from the Library) shows its own tab, pressed. `src/tabs.js`, a
+  classic script right after every page's nav, so the row is drawn once, as
+  it is to be. The pages stay, the Library opening their saves there.
 - **Preferences, a gear after Library; TEST 10 mm in, two dots at TL**
   (the owner, 2026-10-20, after the first ST-JOHN tests: "it puts four
   points everywhere, that is all fine. But they have too big a margin —
@@ -1083,6 +1119,18 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   "are you mixing the colours? It is not paint. We have 72 colours — just
   give the squares darker pencils"; "something near white can be taken from
   the 72" — his light ones, Prismacolor's, added the same afternoon.
+
+- **CARAN beside DACHE, a change of drawing principle** (the owner,
+  2026-10-27, after Screenshots 12.24.10 PM, 1.39.09 PM, 1.39.03 PM and
+  1.38.52 PM): “take a cast of the Preview, assign each shade its own pencil”;
+  “a full pass across the sheet, as the brush used to go — it lifts here
+  and lands there”; small squares perpendicular, “like weaving a basket”.
+  The Result is a fixed original. Each source pixel selects a real pencil;
+  contour geometry supplies the travel direction only. Continuous paths,
+  lifted gaps and perpendicular raster details replace the short repeated
+  module hatches on this new tab. Its own state and Library saves; DACHE's
+  drawing behaviour stays available. `CARAN.md` documents the implementation
+  and the estimated timing and physical limits.
 
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
@@ -1913,7 +1961,14 @@ this section disagree, this section wins: the owner corrected the sketch on
   2026-10-27: "we need to watch how our picture is drawn in pencil"): Play
   Pencil lays DRAW as it will run, pass after pass, every line up and down,
   its coats over again, the pencil's tip a ring in its colour, its pencil
-  and how far in the status line; 6 s and 0.15 ms a mm, 40 s at most. **Frame**: Draw a frame (F) · Whole canvas. The
+  and how far in the status line; 6 s and 0.15 ms a mm, 40 s at most.
+  While it plays, nothing running, PROGRESS plays the run too (the owner,
+  2026-10-27, PRISMA/Screenshot 7.32.59 PM: "the progress does not change on
+  the screen … it would be great if, with Play Pencil, Progress showed which
+  pencil we draw with now"): ▶ play · Pencil, the per cent, the time left
+  and the total of the run (est.), the pencil drawing's swatch, its number
+  and the next; that pencil ringed by the Tools on PRISMA, in the box on
+  DACHE. **Frame**: Draw a frame (F) · Whole canvas. The
   reading under it: pencils, modules, metres, ≈ hours, the left out, the
   frame, what is est. DRAW asks with the pencils listed in the run's order,
   to lay out left to right; refused by a `rembrandt.py` from before p-pause.
@@ -1925,6 +1980,16 @@ this section disagree, this section wins: the owner corrected the sketch on
   (p-pause), and asks **▶ Continue drawing · ⌂ Go home**; Esc stops at once.
   His blend of 2026-10-26 in his 27 pencils: ≈ 230 m of line, 25 of
   them, ≈ 16 h (est.). Not run on the machine yet.
+- **CARAN**, beside DACHE (2026-10-27; `app/caran.html`, `CARAN.md`):
+  Capture DACHE / Capture BLEND freezes the native Result. Snapshot,
+  Pencils and Drawing, compared at the same scale; a finite pencil box,
+  one real pencil per source pixel. Long contour strokes, lifted flights
+  ordered locally and perpendicular small details form one path per pencil.
+  Line spacing, nominal trace, speed, explicit coats, F at original size,
+  playback, project JSON and actual-path SVG exports, SAVE CARAN and Library
+  reopening. Motion and lift estimates separate, pencil changes excluded.
+  Existing `p-pause`, on-path elbow lifts and stop/resume; server and
+  firmware unchanged. Independent IndexedDB snapshot and browser settings.
 - **Pencils**, after BLEND (2026-10-26; `app/pencils.html`, `PENCILS.md`):
   the owner's “10 pencils — 10 passes”, first tests on A3. BLEND's keys
   and colour placements copied to an independent paper study. A finite,

@@ -38,6 +38,9 @@ Rembrandt/
     stjohn.html      ST-JOHN, INKA with ⌘, St. John's Arms: four lobes, every loop round all of them from the top left lobe's window out, their inner sides across the middle (new, 2026-10-19; INKA's inka.js and inkaplan.js; St_John/)
     blend.html       BLEND, INKA with Illustrator's blend: keys and Steps shapes between every two, every shape a loop of the brush, the outermost first and every next over it, the core filled (new, 2026-10-26; INKA's inka.js and inkaplan.js, its blendplan.js; BLEND/)
     dache.html       DACHE, BLEND in coloured pencils on paper: BLEND's page, all of it; the Result the colour the pencils draw (new, 2026-10-27; INKA's inka.js and inkaplan.js, blendplan.js; DACHE/)
+    caran.html       CARAN, a frozen Result assigned to real pencils, long contour passes with lifts and perpendicular small details (2026-10-27; CARAN.md; beside DACHE)
+    opm.html         OPM, Optical Pigment Mixing: the machine draws thin contours in coloured pencils, a person paints them in — cells by the blend's own geometry, the loops' bands cut by the sausages' strips, every one its pencil, its paint; or Merged, one pencil's cells one area (new, 2026-10-27; inka.js and opmplan.js; OPM/)
+    prisma.html      PRISMA, DACHE's Preview in rings and rays: the pencil's lines clockwise round the blend's loops and along its spokes, a cross stroke, every shade its own pencil, a pencil one path, up and down on the move (new, 2026-10-27; inka.js and prismaplan.js; PRISMA/)
     pencils.html     Pencils, BLEND compositions as separate pencil passes on paper: A3, editable inventory, coats, colour interleaving and SVG separations; planning/export (2026-10-26; PENCILS.md; off the top row since 2026-10-27, DACHE in its place)
     nolan.html       NOLAN, the ribbons (new; NOLAN.md; off the top row since 2026-10-19)
     newyuri.html     New Yuri, letters as rings (new; off the top row since 2026-10-06)
@@ -60,7 +63,7 @@ Rembrandt/
     adjustments.html Adjustments (new)
     calibration.html Calibration (from RUBENS)
     library.html     Library (from RUBENS)
-    prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js)
+    prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js; and the top row, every tab ticked in or out, 2026-10-27, src/tabs.js)
     style.css        RUBENS tokens
     rembrandt.py     server and USB board (from rubens.py)
     src/             ES modules, no build step
@@ -87,7 +90,7 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 `pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
-Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs, 90's upright and across, the plain stripes), `loomplan.js` (LOOM's woven cloth, its hops and halves), `inkaplan.js` (INKA's tiles, blocks and figures, their spirals, the wipes, the Result on a grid of the canvas; ST-JOHN's ⌘, its lobes and loops), `blendplan.js` (BLEND's keys, steps, loops and core, its spokes all round), `dacheplan.js` (DACHE's pencil box, bands and modules off the Result, the hatches, a pass a pencil, the pencil changes), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
+Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs, 90's upright and across, the plain stripes), `loomplan.js` (LOOM's woven cloth, its hops and halves), `inkaplan.js` (INKA's tiles, blocks and figures, their spirals, the wipes, the Result on a grid of the canvas; ST-JOHN's ⌘, its lobes and loops), `blendplan.js` (BLEND's keys, steps, loops and core, its spokes all round), `dacheplan.js` (DACHE's pencil box, bands and modules off the Result, the hatches, a pass a pencil, the pencil changes), `prismaplan.js` (PRISMA's rings and rays off the Preview, its twenty-seven more pencils, a pencil one path, rubbed), `opmplan.js` (OPM's cells, their pencils and contours, merged or not), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
 (the watercolour on the board, NOLAN's and TYPE's), and pointer mode in
 `jobpage.js`.
 

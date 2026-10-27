@@ -12,7 +12,8 @@
      Library make a gear — this will be Preferences"): what holds for every
      tab, kept in this browser (src/prefs.js). For now TEST's: its dots' margin
      from the board's edges, and its first one, TL, one dot or two with a wait
-     between. Nothing here moves the machine by itself. -->
+     between; and the top row, every tab with a tick (2026-10-27, src/tabs.js).
+     Nothing here moves the machine by itself. -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -22,16 +23,16 @@
       <a href="stjohn.html">ST-JOHN</a>
       <a href="blend.html">BLEND</a>
       <a href="dache.html">DACHE</a>
+      <a href="caran.html">CARAN</a>
+      <a href="prisma.html">PRISMA</a>
       <a href="alucut.html">ALU-CUT</a>
       <a href="ccd.html">CCD</a>
-      <a href="bias.html">BIAS</a>
-      <a href="alu.html">ALU</a>
-      <a href="smkn.html">SMKN</a>
       <a href="ink.html">Ink</a>
       <a href="calibration.html">Calibration</a>
       <a href="library.html">Library</a>
       <a href="prefs.html" class="gear on" title="Preferences" aria-label="Preferences"></a>
     </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
   </div>
   <div class="top-mid"></div>
   <div class="top-right"></div>
@@ -49,6 +50,13 @@
     <svg class="prefs-board" id="board" viewBox="0 0 220 220" aria-label="The board and TEST's dots"></svg>
     <p class="read" id="testRead"></p>
     <button class="btn wide" id="btnDefaults" title="Margin 10 mm, two dots at TL, 5 s between">Defaults</button>
+  </section>
+  <!-- the top row (the owner, 2026-10-27: "put all the hidden tabs there, a check-box to hide them and bring them back") -->
+  <section class="sec">
+    <h3>Tabs <span class="hint">the top row, in this browser</span></h3>
+    <div class="tablist" id="tabList"></div>
+    <p class="read">Ticked: in the top row, in this order; unticked: off it, the page kept — the Library still opens its saves there. Calibration and Library always, the gear last.</p>
+    <button class="btn wide" id="btnTabsDefaults" title="INKA · ST-JOHN · BLEND · DACHE · CARAN · PRISMA · ALU-CUT · CCD · Ink — the rest off">The top row as at first</button>
   </section>
 </main>
 
