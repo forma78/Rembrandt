@@ -75,6 +75,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Key · step · Steps (on BLEND)** | A key: one of the shapes a blend is made between, a rounded rectangle — key 1, A, the blend's box, the outermost; the others in A's fractions, so they move and stretch with it; the last one the core; every key its Corners, mm. A step: a shape between two keys, its edges and corner going evenly from the one to the next. Steps: how many between every two keys, Illustrator's Specified Steps — IMG_1554's 13, its three keys A, a square three eighths of it against its top, and the core against that one's bottom. |
 | **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. Since 2026-10-26's evening **K1 · K2 in turn** — a loop of every two keys' series in turn, one of Key 1's, one of Key 2's, and so on, every contour drawn once, a stroke of its own from the middle of the side where its series' loops meet (IMG_1554: Key 1's at 12 o'clock, Key 2's at 6, under the core) round to there, the brush up and on in the air to the next; or **Key after key**, one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Not ST-JOHN's loop. |
 | **Spokes · patches (on BLEND)** | A blend's sausages since 2026-10-26: **spokes** all round — **Spokes** of them, the blend's own number in its panel, at first one every ≈ 95 mm, as far as the paint carries at Density 50 % (est.), never moved by the Density — shared out over the sides of its outer loop, every side parted evenly, from each place across every loop to the same place on the last, straight from key to key, in pieces as long as they lie apart; a run of one paint along a spoke one sausage; the core an X of its own, its Step moving that X alone. **Patches**: the palette dealt over them, every paint its share of the sausages, grown at random from seeds over their neighbours, so the colours lie in clouds over the loops, the brush running one into the next; the core the spot, else the pure paint. Before, an X along every corner's way, the outer half one paint, the inner half another. |
+| **DACHE** | The tab of coloured pencils on paper, after BLEND in the top row since 2026-10-27 (§1, §8), after CARAN D'ACHE: BLEND's page, all of it — its keys, loops, spokes, paints, references, Drag and Result — and the Result no longer a forecast of paint on a canvas but the colour the pencils draw. `dache.html`, its body `data-tab="dache"`; INKA's page module `inka.js` and plan `inkaplan.js`, the blend's `blendplan.js`; its own keep and Library label, a first visit BLEND's composition and references, copied. The owner's references in `DACHE/`. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -1008,6 +1009,57 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   2's on Key 2's bottom, under the core — the join under their paint, every
   other side smooth; the brush in the air between, straight up and down the
   column. His blend: ≈ 29 min (est.).
+- **DACHE, BLEND in coloured pencils, on paper** (the owner, 2026-10-27, a
+  Tuesday, `DACHE/`, after CARAN D'ACHE: "for a month we used Rembrandt as
+  the software of a plotter that stands with a brush and smears paint over
+  the canvas … I cannot get on the canvas the same result as in the preview
+  in Rembrandt. Every time there was a problem with the amount of paint or
+  how it spread"; "in BLEND you have to drop white 84 times and orange 38
+  times … a gigantic, laborious process"; "we will create the tab DACHE and
+  move all the functions of BLEND there … the Result is not just a preview
+  of 'how it will be' — it damn well will not be so, paint mixes on the
+  canvas quite differently. So from the Result we make the base for the
+  rendering that follows: many rectangles and cubes" (Screenshot 2026-10-27
+  at 9.37.17 AM); "I will not squeeze paint on the canvas, I will simply use
+  coloured pencils"; "an imitation of real drawing by hand, one line 1 mm"
+  (`DACHE/stroke.png`); "the lines go up and down, that is how the colour
+  gains brightness on paper. It does not go back through the air. If the
+  line is 4 mm, up and down four times"; "first we test on paper" — the
+  fragment Screenshot 2026-10-26 at 11.04.34 PM, of 11.01.02 PM: "no colour
+  goes as a solid block, it is like the grid of an old television. The
+  green has its own module, with stripes in it", the blocks trapezoids,
+  "rays of a more global geometric figure"). After BLEND: INKA · ST-JOHN ·
+  BLEND · DACHE · ALU-CUT · CCD · BIAS · ALU · SMKN · Ink · Calibration ·
+  Library; BLEND as it is, for paint. Agreed the same morning, on Claude's
+  plan:
+  **DRAW** colour after colour, light to dark at first, the order his to
+  change, the pencils in that order listed before the run. At a colour's end
+  the machine stops and the head **does not lift** ("the pencil has to be
+  changed, its tip resting on the paper, not going in the air") — the change
+  right where the colour ended ("pencils are more intelligent and
+  well-mannered than felt-tips and Posca markers: they do not soil"); Pause,
+  to sharpen one, the same. In the runner a pause of the pencil's own,
+  **p-pause**, the brush's pause untouched ("p-pause is better"). The yellow
+  **PROGRESS** screen bigger on DACHE, the swatch of the pencil drawing now
+  in it ("I am used to our yellow PROGRESS screen. Can it be made bigger and
+  show right there the swatch of the colour being drawn now. Change the
+  screen for DACHE only, do not touch the other tabs"). **STOP** asks:
+  continue drawing, or go home ("after it we had a restart and the head
+  went back home … this time we would wait half an hour for it to come back
+  to where it was interrupted").
+  Eleven pencils at first: blue, sky blue, orange, yellow, two greens —
+  grass and emerald — ochre, brown, grey, white and black ("let the eleventh
+  be black; we close the base at once"). White a full colour, but its effect
+  only over another: last, in a group of its own, the light ones "under
+  watch"; the others autonomous, needing no second colour. Three brands in
+  stock — Caran d'Ache Museum Aquarelle (Gold Cadmium Yellow, 3510 · 530),
+  Winsor & Newton (24, no numbers: Sunflower), Prismacolor (72: Carmine Red
+  PC 926, Black PC 935, White PC 938, Sienna Brown PC 945); "the stock will
+  grow with Winsor & Newton … but later. First the tests". The time: "it is
+  worth it, we will wait … about 30 new colours, more time still. But so we
+  break away from the competitors and raise the value of the work." The
+  Pencils study of the night before off the top row ("it can be hidden, and
+  its ideas taken").
 
 - **TAPE, the first tab: a cassette and its tape** (the owner, 2026-10-12,
   `TAPE-Claude/`, said to chat-Claude: a hand-painted cassette in the
@@ -1420,9 +1472,9 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.1.0**, then the tabs **INKA · ST-JOHN · BLEND · ALU-CUT · CCD · BIAS ·
-  ALU · SMKN · Ink · Calibration · Library** (BLEND after ST-JOHN since
-  2026-10-26; ST-JOHN after INKA since the evening of 2026-10-19; INKA first since 2026-10-19, TAPE, BASF,
+  **v.1.1.0**, then the tabs **INKA · ST-JOHN · BLEND · DACHE · ALU-CUT · CCD ·
+  BIAS · ALU · SMKN · Ink · Calibration · Library** (DACHE after BLEND since
+  2026-10-27; BLEND after ST-JOHN since 2026-10-26; ST-JOHN after INKA since the evening of 2026-10-19; INKA first since 2026-10-19, TAPE, BASF,
   LOOM, NOLAN and Test off the row then; INKA after LOOM since 2026-10-17; LOOM after BIAS since 2026-10-16, Claude's own; BIAS after CCD since 2026-10-15; TAPE first and BASF after it since 2026-10-12; ALU-CUT
   first from 2026-10-11, TYPE and LOVE off the row then, CCD after it; LOVE since 2026-10-07, ALU and SMKN since
   2026-10-08; Create hidden since 2026-10-04, Adjustments since 2026-10-05,
@@ -1813,6 +1865,11 @@ this section disagree, this section wins: the owner corrected the sketch on
   evening of 2026-10-26), its reading under **i**: every contour once, where
   each series' loops land, how many landings; with Flights ON the brush's way in the
   air from loop to loop, dashed.
+- **DACHE**, after BLEND (2026-10-27, §1; `app/dache.html`, INKA's `inka.js`
+  and `inkaplan.js`, `app/src/blendplan.js`): BLEND's page, all of it, its
+  heading DACHE, BLEND in coloured pencils, on paper. A first visit BLEND's
+  composition and references, copied, BLEND's own untouched; 💾 SAVE DACHE,
+  the Library opening it here.
 - **Pencils**, after BLEND (2026-10-26; `app/pencils.html`, `PENCILS.md`):
   the owner's “10 pencils — 10 passes”, first tests on A3. BLEND's keys
   and colour placements copied to an independent paper study. A finite,

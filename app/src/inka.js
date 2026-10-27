@@ -27,6 +27,13 @@
 // or in the panel, moved and stretched by its own handles; its own keep and
 // Library label.
 //
+// DACHE (dache.html): BLEND, all of it, in coloured pencils on paper (the
+// owner, 2026-10-27, DACHE/, after CARAN D'ACHE: "we will create the tab
+// DACHE and move all the functions of BLEND there … I will not squeeze paint
+// on the canvas, I will simply use coloured pencils"); BLEND stays as it is,
+// for paint. Its own keep and Library label; its first visit BLEND's
+// composition and references, copied.
+//
 // A tile's mm: from the canvas's bottom left corner, x right, y up, as a
 // ruler reads them. The board's canvas mm from its centre, as CCD's.
 
@@ -46,9 +53,9 @@ import { cupOf, cupProblem, dipAt, ELBOW_MAX } from './ink.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const JOHN = document.body.dataset.tab === 'stjohn', BLEND = document.body.dataset.tab === 'blend';
+const JOHN = document.body.dataset.tab === 'stjohn', DACHE = document.body.dataset.tab === 'dache', BLEND = document.body.dataset.tab === 'blend' || DACHE;   // DACHE: BLEND's page, all of it
 const JOHN_CORNER = 100;   // ST-JOHN's Corners at first: a ⌘'s rings round, its windows too (the owner, 2026-10-19, Screenshot 9.27.36 PM: "the rings must be really round, not squares as now")
-const TAB = JOHN ? 'stjohn' : BLEND ? 'blend' : 'inka', TAB_NAME = JOHN ? 'ST-JOHN' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
+const TAB = JOHN ? 'stjohn' : DACHE ? 'dache' : BLEND ? 'blend' : 'inka', TAB_NAME = JOHN ? 'ST-JOHN' : DACHE ? 'DACHE' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const fin = v => Number.isFinite(v);
 
 // ---------- state ----------
@@ -69,10 +76,11 @@ const S = {
 };
 const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density'];
 const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result'];
+const BLEND_KEEP = 'rembrandt.blend.v01', BLEND_REFS = 'rembrandt.blend.refs';   // BLEND's keep and references, DACHE's first visit's
 let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
-    const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (!o) return;
+    const o = JSON.parse(localStorage.getItem(KEY) || (DACHE && localStorage.getItem(BLEND_KEEP)) || 'null'); if (!o) return;   // DACHE's first visit: BLEND's composition
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     if (Array.isArray(o.rects)) S.rects = withIds(o.rects.map(cleanRect).filter(Boolean));
     WIDTHLESS = Array.isArray(o.rects) && o.rects.some(r => isJohn(r) && !fin(r.width));   // a ⌘ kept before Width: its X laid again on its loop
@@ -1372,6 +1380,7 @@ $('#refOp').oninput = e => { S.refOpacity = +e.target.value; syncRef(); save(); 
 async function loadRef() {
   let list = null;
   try { list = await IDB.get(REFS_KEY); } catch { }
+  if (!Array.isArray(list) && DACHE) try { list = await IDB.get(BLEND_REFS); if (Array.isArray(list)) IDB.put(REFS_KEY, list).catch(() => { }); } catch { }   // DACHE's first visit: BLEND's references, copied
   if (!Array.isArray(list)) {                                                      // the one reference kept before, the first
     list = [];
     try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) list.push({ name: o.name || 'reference', src: o.src }); } catch { }

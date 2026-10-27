@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **DACHE, a new tab after BLEND: BLEND in coloured pencils, on paper** (the
+  owner, 2026-10-27, `DACHE/`: "we will create the tab DACHE and move all
+  the functions of BLEND there"; "I will not squeeze paint on the canvas, I
+  will simply use coloured pencils"). `dache.html`, its body
+  `data-tab="dache"`: BLEND's page and module, every panel of it; its own
+  keep, 💾 SAVE DACHE and Library label; a first visit BLEND's composition
+  and references, copied, BLEND's own untouched. DACHE after BLEND in every
+  page's top row. The pencils themselves next.
+
 - **Pencils, a separate paper model after BLEND** (the owner, 2026-10-26:
   “Take BLEND as the base, call the new tab Pencils”; “10 pencils — 10
   passes”; “at least test it on A3”). BLEND's keys and colour placements
