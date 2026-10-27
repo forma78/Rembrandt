@@ -1813,6 +1813,16 @@ this section disagree, this section wins: the owner corrected the sketch on
   evening of 2026-10-26), its reading under **i**: every contour once, where
   each series' loops land, how many landings; with Flights ON the brush's way in the
   air from loop to loop, dashed.
+- **Pencils**, after BLEND (2026-10-26; `app/pencils.html`, `PENCILS.md`):
+  the owner's “10 pencils — 10 passes”, first tests on A3. BLEND's keys
+  and colour placements copied to an independent paper study. A finite,
+  editable pencil inventory; narrow parallel tracks, colour regions
+  interleaved, white as paper, all coats of one pencil together. Paper
+  texture and swatches est. Individual passes, editable keys, undo/redo,
+  Library saves, SVG separations and a real-scale swatch sheet. This first
+  version plans and exports; the machine runner is unchanged. Off the top
+  row since 2026-10-27, DACHE in its place (the owner: "it can be hidden,
+  and its ideas taken"); the page stays.
 - **ALU-CUT**, the first tab from 2026-10-11 to 10-12, `alucut.html` since (2026-10-11, §1; chat-Claude's task,
   `ALU-cut-Claude/README.md`, and `ALU-Claude/ALU.md`, its section): ALU's
   page and plan with cuts. Master Flo's one drag through every paint at once

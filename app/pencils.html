@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · Pencils</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="pencils.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch { }</script>
+</head>
+<body class="adjust arm3 nolan type love alu ccd pencils" data-tab="pencils">
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span><span class="ver">v.1.1.0</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="index.html">INKA</a><a href="stjohn.html">ST-JOHN</a><a href="blend.html">BLEND</a>
+      <a href="alucut.html">ALU-CUT</a><a href="ccd.html">CCD</a>
+      <a href="bias.html">BIAS</a><a href="alu.html">ALU</a><a href="smkn.html">SMKN</a><a href="ink.html">Ink</a>
+      <a href="calibration.html">Calibration</a><a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+  </div>
+</header>
+<main>
+  <nav class="tools" aria-label="Drawing tools">
+    <button class="tool" id="btnEdit" title="Edit the blend's keys on paper (V)" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg><span>V</span></button>
+    <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 0 1 0 12"/></svg></button>
+    <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 0 0 0 12"/></svg></button>
+    <div class="sep"></div>
+    <div id="pencilStrip" aria-label="Choose a pencil pass"></div>
+  </nav>
+  <div class="zoombar">
+    <button class="zk" id="zoomOut" aria-label="Zoom out">−</button>
+    <button class="zk pct" id="zoomFit" title="Fit paper (⌘0)">100%</button>
+    <button class="zk" id="zoomIn" aria-label="Zoom in">+</button>
+    <span class="zoom-note" id="paperLabel">A3 · 297 × 420 mm</span>
+  </div>
+  <section class="stage" id="stage" aria-label="Pencil drawing preview">
+    <canvas id="cv" aria-label="Drawing and pencil paths"></canvas>
+    <div class="paper-tag" id="viewTag">PAPER · est.</div>
+    <div class="stage-message" id="stageMessage" hidden></div>
+  </section>
+  <aside class="panel">
+    <section class="sec">
+      <h3>Pencils <span id="lamp"></span></h3>
+      <div class="pencil-meter"><div><b id="passCount">—</b><span>pencil passes</span></div><div><b id="drawLength">—</b><span>drawn · m</span></div><div><b id="runTime">—</b><span>min · est.</span></div></div>
+      <p class="read">One pencil mounted for all its strokes and coats. Change it once the colour is finished.</p>
+      <div class="toggles looks" id="views" aria-label="Preview">
+        <button class="tog on" data-view="paper">Paper</button><button class="tog" data-view="paths">Paths</button><button class="tog" data-view="map">Colour map</button>
+      </div>
+      <div class="grid4 keys"><button class="btn" id="btnPlay" disabled>▶ Play the passes</button><button class="btn" id="btnAll">All colours</button></div>
+      <p class="read" id="passRead" aria-live="polite"></p>
+    </section>
+    <div class="savebar"><button class="btn save" id="btnSave" disabled>💾 SAVE PENCILS</button><span class="save-state" id="saveState">to the Library</span></div>
+    <section class="sec">
+      <h3>Composition <span class="hint">BLEND on paper</span></h3>
+      <div class="grid4 keys"><button class="btn" id="btnBlend">From current BLEND</button><button class="btn" id="btnStudy">Orange / green study</button></div>
+      <div class="source-row"><select id="blendLibrary" aria-label="Saved BLEND composition"><option value="">BLEND in the Library…</option></select><button class="btn" id="btnLibrary" disabled>Open</button></div>
+      <p class="read" id="sourceRead"></p>
+      <h4>Colour source</h4>
+      <div class="toggles looks" id="colourSources"><button class="tog" data-colours="result">BLEND Result</button><button class="tog" data-colours="placements">Placements</button></div>
+      <p class="read" id="colourSourceRead"></p>
+      <div class="grid4 keys"><button class="btn" id="btnFit">Fit drawing to paper</button><button class="btn" id="btnImport">Open project SVG</button></div>
+      <input type="file" id="projectIn" accept=".svg,image/svg+xml" hidden>
+      <h4>Blends</h4><div class="toggles looks wrap" id="blendKeys"></div>
+      <h4>Keys <span class="hint">V to move / resize on paper</span></h4><div class="toggles looks wrap" id="keyKeys"></div>
+      <div class="grid4" id="keyFields"></div>
+      <div class="grid4 keys"><button class="btn" id="btnAddKey">Add key</button><button class="btn" id="btnDeleteKey">Remove key</button></div>
+      <div class="grid4 geometry-fields"><label>Blend steps<input type="number" id="blendSteps" min="1" max="200" step="1"></label><label class="core-check"><input type="checkbox" id="fillCore">Fill core</label></div>
+      <h4>Paper</h4>
+      <div class="toggles looks" id="paperFormats"><button class="tog" data-size="297,420">A3 ↑</button><button class="tog" data-size="420,297">A3 →</button><button class="tog" data-size="210,297">A4 ↑</button></div>
+      <div class="grid4" id="paperFields"></div>
+      <p class="read">Paper size belongs to this study. Fit keeps the composition's proportions and centres it inside the margin.</p>
+    </section>
+    <section class="sec">
+      <h3>Pencil box <span class="hint" id="boxCount"></span></h3>
+      <p class="read first">Name your pencils and set their swatch colours. Initial swatches are est.; replace them with your paper tests.</p>
+      <div id="pencilBox"></div>
+      <div class="grid4 keys"><button class="btn" id="btnAddPencil">+ Pencil</button><button class="btn" id="btnSort">Light → dark</button></div>
+      <label class="paper-check"><input type="checkbox" id="whitePaper">White areas = untouched paper</label>
+      <h4 id="mappingHeading">BLEND → pencil <span class="hint">nearest swatch · est.</span></h4><div class="mapping" id="mapping"></div>
+      <p class="read">Green uses a green pencil. At colour boundaries, strokes of the neighbouring pencils alternate.</p>
+    </section>
+    <section class="sec">
+      <h3>Mark making</h3>
+      <div id="markFields"></div>
+      <p class="read">Coats repeat the same paths with the same pencil. Tone and paper grain are a visual estimate; tone does not set machine pressure.</p>
+      <div class="grid4 keys"><button class="btn" id="btnSeed">New interleaving</button><button class="btn" id="btnSwatch">Swatch sheet SVG</button></div>
+    </section>
+    <section class="sec">
+      <h3>Colour separations</h3>
+      <p class="read">SVG at 1:1 in mm. Each path is one stroke, with a lift before the next. Coats are included. Pencil changes follow the list below.</p>
+      <div id="separations"></div>
+      <div class="grid4 keys"><button class="btn" id="btnExport" disabled>Layered SVG</button><button class="btn" id="btnManifest" disabled>Pass list JSON</button></div>
+      <p class="read" id="exportRead" aria-live="polite">Planning and export. Machine execution is not connected on this tab.</p>
+    </section>
+  </aside>
+</main>
+<footer class="status"><span id="hint">Pencils · one colour at a time</span><span id="stats"></span></footer>
+<script type="module" src="src/pencils.js"></script>
+</body>
+</html>

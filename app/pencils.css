@@ -1,0 +1,87 @@
+/* Pencils keeps Rembrandt's Braun controls, with the paper as its centre. */
+body.pencils{grid-template-columns:62px minmax(0,1fr) 336px}
+.pencils [hidden]{display:none}
+.pencils .top{padding:0 10px}
+.pencils .brand{min-width:0;width:100%}
+.pencils .tabs{overflow-x:auto;min-width:0;scrollbar-width:none}
+.pencils .tabs a{flex:none}
+.pencils .stage{display:block;touch-action:none;cursor:grab}
+.pencils #cv{width:100%;height:100%;display:block}
+.pencils .tools{padding:10px 6px;overflow-y:auto}
+.pencils .tool{width:44px;flex:none}
+#pencilStrip{display:flex;flex-direction:column;gap:5px;align-items:center;width:100%;margin-top:5px}
+.pencil-chip{position:relative;width:32px;height:30px;border:1px solid rgba(0,0,0,.25);border-radius:7px;box-shadow:inset 0 1px 0 #ffffff35,0 1px 2px #0002;display:grid;place-items:center;font:10px var(--mono);color:#fff;text-shadow:0 1px 2px #000a;padding:0}
+.pencil-chip.on{outline:2px solid var(--orange);outline-offset:2px}
+.pencil-chip.empty{opacity:.35}
+.pencil-chip.all{color:var(--ink);text-shadow:none;background:var(--key);font-size:9px}
+.pencils .zoom-note{font:10px var(--mono);color:var(--mute);margin-left:5px}
+.paper-tag{position:absolute;left:20px;bottom:16px;font:10px var(--mono);letter-spacing:.12em;color:var(--mute);pointer-events:none}
+.stage-message{position:absolute;top:20px;left:20px;right:20px;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;color:var(--ink)}
+.pencils .panel{padding-top:6px}
+.pencils .sec{padding:14px 16px 18px}
+.pencils .sec h3{display:flex;justify-content:space-between;align-items:center;letter-spacing:.08em}
+.pencils h4{font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:500;margin:18px 0 8px;color:var(--mute)}
+.pencils .hint{font-size:10px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--mute)}
+.pencils .toggles{margin-top:9px}
+.pencils .toggles.wrap{flex-wrap:wrap}
+.pencils .looks .tog{padding:7px 5px;font-size:11px;flex:1;white-space:nowrap}
+.pencils .savebar{padding:12px 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.pencils .savebar .save{font-size:11px;padding:9px 12px;white-space:nowrap}
+.pencils .save-state{font-size:10px;color:var(--mute)}
+.pencil-meter{display:grid;grid-template-columns:repeat(3,1fr);margin:15px 0 12px;background:var(--well);box-shadow:var(--press);border-radius:8px;padding:12px 6px}
+.pencil-meter div{display:flex;flex-direction:column;align-items:center;gap:5px;border-right:1px solid var(--line)}
+.pencil-meter div:last-child{border:0}
+.pencil-meter b{font:24px var(--mono);font-weight:400;font-variant-numeric:tabular-nums}
+.pencil-meter span{font-size:9px;color:var(--mute)}
+.source-row{display:flex;gap:6px;margin-top:8px}
+.source-row select{width:0;flex:1;font-size:11px;border:1px solid var(--line);border-radius:5px;background:var(--panel);padding:7px 5px}
+.source-row button{font-size:11px;padding:5px 12px}
+.geometry-fields{margin-top:10px}
+.pencils .grid4 .core-check{flex-direction:row;align-items:center;justify-content:center;gap:6px}
+.pencils .grid4 input[type=checkbox]{width:auto}
+.pencils input[type=number],.pencils input[type=text]{background:var(--panel);color:var(--ink)}
+.pencils .grid4 input{border-color:var(--line)}
+.pencil-row{display:grid;grid-template-columns:16px 26px minmax(0,1fr) 38px 20px;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--rule)}
+.pencil-row input[type=checkbox]{margin:0;accent-color:var(--orange)}
+.pencil-row input[type=color]{width:26px;height:26px;border:0;padding:0;background:none;cursor:pointer}
+.pencil-row input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+.pencil-row input[type=color]::-webkit-color-swatch{border:1px solid #0003;border-radius:5px}
+.pencil-row input[type=text]{min-width:0;width:100%;border:1px solid transparent;border-radius:4px;padding:5px 3px;font-size:11px;background:none}
+.pencil-row input[type=text]:focus{border-color:var(--line);background:var(--panel)}
+.pencil-row input[type=number]{min-width:0;width:38px;font:11px var(--mono);padding:4px 1px 4px 4px;border:1px solid var(--line);border-radius:4px}
+.pencil-row button{padding:0;border:0;color:var(--mute);background:none;font-size:18px}
+.pencil-row.disabled{opacity:.45}
+.paper-check{display:flex;align-items:center;gap:6px;font-size:11px;margin:14px 0 0}
+.paper-check input{accent-color:var(--orange)}
+.mapping{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;font-size:10px;color:var(--mute)}
+.map-pair{display:flex;gap:5px;align-items:center;min-width:0}
+.map-pair i{width:10px;height:10px;border:1px solid #0002;border-radius:2px;flex:none}
+.map-pair span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.map-pair select{width:0;min-width:0;flex:1;font-size:10px;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:4px 0;color:var(--ink)}
+.mark-field{margin:13px 0 16px}
+.mark-field label{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);margin-bottom:7px}
+.mark-field output{font:11px var(--mono);white-space:nowrap;color:var(--ink);text-transform:none;letter-spacing:0}
+.mark-field .slider{width:100%}
+.separation{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:7px;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule)}
+.separation.on{color:var(--orange)}
+.separation .colour{height:16px;width:16px;border:1px solid #0002;border-radius:4px;cursor:pointer}
+.separation .pass-name{font-size:11px;border:0;padding:0;background:none;color:inherit;text-align:left}
+.separation small{display:block;color:var(--mute);font:9px var(--mono);margin-top:3px}
+.separation .btn{padding:5px 8px;font-size:10px}
+.pencils .status{justify-content:space-between;min-width:0;gap:10px}
+.pencils .status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pencils .status #stats{font:10px var(--mono)}
+@media(max-width:1000px) and (min-width:761px){.pencils .logo{font-size:15px}.pencils .ver{display:none}.pencils .zoom-note{display:none}}
+@media(max-width:760px){
+  body.pencils{display:flex;flex-direction:column;height:auto;min-height:100svh;overflow:auto}
+  .pencils .top{order:0;min-height:84px;flex:none;overflow:visible}
+  .pencils .brand{flex-wrap:wrap;gap:8px}
+  .pencils .tabs{width:100%;flex-basis:100%}
+  .pencils .zoombar{order:1;flex:none;height:40px}
+  .pencils .stage{order:2;flex:none;height:calc(100svh - 160px);min-height:340px}
+  .pencils .tools{order:3;flex-direction:row;flex:none;min-height:56px;gap:6px;overflow-x:auto;width:100%;padding:8px}
+  #pencilStrip{flex-direction:row;margin:0;width:auto;gap:7px}.pencil-chip{flex:none}
+  .pencils .tools .sep{display:none}
+  .pencils .panel{order:4;overflow:visible;flex:none;border-left:0}
+  .pencils .status{order:5;min-height:40px;flex:none}
+}

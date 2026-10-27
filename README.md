@@ -37,6 +37,7 @@ Rembrandt/
     index.html       INKA, Inca patterns: tiles a spiral each, the brush on through a figure without a lift, a wipe between figures (new, 2026-10-17; the first tab since 2026-10-19; INKA/)
     stjohn.html      ST-JOHN, INKA with ⌘, St. John's Arms: four lobes, every loop round all of them from the top left lobe's window out, their inner sides across the middle (new, 2026-10-19; INKA's inka.js and inkaplan.js; St_John/)
     blend.html       BLEND, INKA with Illustrator's blend: keys and Steps shapes between every two, every shape a loop of the brush, the outermost first and every next over it, the core filled (new, 2026-10-26; INKA's inka.js and inkaplan.js, its blendplan.js; BLEND/)
+    pencils.html     Pencils, BLEND compositions as separate pencil passes on paper: A3, editable inventory, coats, colour interleaving and SVG separations; planning/export (2026-10-26; PENCILS.md; off the top row since 2026-10-27, DACHE in its place)
     nolan.html       NOLAN, the ribbons (new; NOLAN.md; off the top row since 2026-10-19)
     newyuri.html     New Yuri, letters as rings (new; off the top row since 2026-10-06)
     glyphs.json      the owner's letters: skeletons of lines and arcs

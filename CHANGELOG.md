@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **Pencils, a separate paper model after BLEND** (the owner, 2026-10-26:
+  “Take BLEND as the base, call the new tab Pencils”; “10 pencils — 10
+  passes”; “at least test it on A3”). BLEND's keys and colour placements
+  become narrow pencil tracks, one mounted pencil per colour, all its coats
+  together. Digital BLEND Result as a colour reference, or the original
+  placement map. Editable pencil inventory, explicit green, white as paper,
+  colour interleaving, A3 fit, individual passes and paper texture (est.).
+  Project/colour/layered SVGs, swatch sheet, pass manifest and Library saves.
+  Planning/export only; machine execution unchanged. See `PENCILS.md`.
+  Off the top row since 2026-10-27, DACHE in its place (the owner: "it can
+  be hidden, and its ideas taken"); the page stays, at its address.
+
 - **v.1.1.0 after the name, Blend** (the owner, 2026-10-26, the night after
   BLEND's first run in paint: "it can be pushed to GitHub, and version
   1.1.0"), on every tab and in the saved SVGs (`rembrandt: '1.1.0'` in
