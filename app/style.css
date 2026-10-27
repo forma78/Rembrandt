@@ -768,21 +768,24 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 }
 
 /* ---------- DACHE (2026-10-27): BLEND in coloured pencils, on paper ----------
-   DRAW in MARKS' and DRAG's place, no cup; the pencil box; the yellow
-   PROGRESS bigger, the pencil's swatch in it (the owner: "make it bigger and
-   show right there the swatch of the colour being drawn now … for DACHE only,
-   do not touch the other tabs"); STOP's question. */
+   DRAW in MARKS' and DRAG's place, no cup; the pencil box; in the yellow
+   PROGRESS the pencil's swatch, big, and the next one's, small (the owner:
+   "show right there the swatch of the colour being drawn now … for DACHE
+   only"; its type as everywhere, the same day: "bring back the original
+   font sizes"); the hours in h and min; STOP's question. */
 [data-tab="dache"] #btnMarks,[data-tab="dache"] #btnDrag,[data-tab="dache"] #inkRow{display:none}
 [data-tab="dache"] .runkeys.deck.passes #btnPencils{grid-column:1/-1}
 [data-tab="dache"] #views .tog{flex:1;padding-left:4px;padding-right:4px}
-[data-tab="dache"] .lcd{padding:12px 14px;font-size:11px}
-[data-tab="dache"] .lcd .bars{height:16px}
-[data-tab="dache"] .lcd-big .u{font-size:18px}
+.lcd-times .hm{display:flex;align-items:flex-end;gap:3px}                    /* DACHE: 4 h 59 min */
+.lcd-times .tu{font-size:9px;margin-right:3px}
 .lcd-pencil{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin:2px 0 8px}
-.lcd-pencil i{width:46px;height:46px;border-radius:7px;box-shadow:inset 0 0 0 1.5px var(--lcd-ink),0 1px 0 rgba(255,255,255,.5)}
-.lcd-pencil .pn{font-size:16px;letter-spacing:.05em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcd-pencil .sw{width:46px;height:46px;border-radius:7px;box-shadow:inset 0 0 0 1.5px var(--lcd-ink),0 1px 0 rgba(255,255,255,.5)}
+.lcd-pencil .pt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.lcd-pencil .pn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lcd-pencil .pk{opacity:.75;white-space:nowrap}
-.lcd-pencil.in .pk{opacity:1;animation:pencilIn 1.2s steps(2) infinite}         /* put it in: blinking, as the LCD's own */
+.lcd-pencil .nx{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.lcd-pencil .nx i{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--lcd-ink)}
+.lcd-pencil.in .pt .pk{opacity:1;animation:pencilIn 1.2s steps(2) infinite}     /* put it in: blinking, as the LCD's own */
 @keyframes pencilIn{50%{opacity:.25}}
 .pencilbox{display:flex;flex-direction:column;gap:2px;margin-top:6px}
 .pencilbox h5{margin:8px 0 2px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600}

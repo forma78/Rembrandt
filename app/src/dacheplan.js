@@ -10,7 +10,12 @@
 // BLEND's keys the geometry. Between every two keys of a blend, in its core
 // and in a tile: bands, shapes evenly between the outer key and the inner one
 // as the blend's own loops are, Stroke lines wide where the keys lie furthest
-// apart (DACHE/stroke.png, 1 … 4). A band is cut along where the Result's
+// apart (DACHE/stroke.png, 1 … 4). On every side and corner the lines PITCH
+// apart across all of the keys' gap there, shared out to the bands — a narrow
+// side's band has a line or none, never a sliver of paper left between them
+// (the owner, 2026-10-27, Screenshot 12.09.03 PM: the top "sagged", 16.5 mm
+// between his A and Key 2 there, 76 bands of 0.22 mm, none with a line). A
+// band is cut along where the Result's
 // colour turns to another pencil, and at its sides' and corners' ends: a
 // module — on a side a trapezoid, its ends rays from key to key (the owner:
 // "the blocks a kind of trapezoid, rays of a more global geometric figure"),
@@ -206,30 +211,33 @@ export function runsOf(ks, L, shortest) {
 
 // ---------- the modules ----------
 // o: { pencils, coats, stroke, shortest, frame: { x0, y0, x1, y1 } or null, corner }
-// → { regions, candidates, modules: [{ reg, band, p, fa, fb, ta, tb, n, len, w, k, own, light }] }
+// → { regions, candidates, modules: [{ reg, band, p, fa, fb, ta, tb (what its lines cover), ts (its lines), n, len, w, k, own, light }] }
 export function modulesOf(rects, res, o = {}) {
   const pencils = o.pencils ?? cleanPencils(PENCILS_NEW), coats = o.coats ?? COATS_NEW, stroke = o.stroke ?? STROKE_NEW, shortest = o.shortest ?? SHORTEST_NEW, F = o.frame;
   const regions = regionsOf(rects, o), C = candidatesOf(pencils, coats), near = nearestOf(C), modules = [];
   const inFrame = (x, y) => !F || (x >= F.x0 && x <= F.x1 && y >= F.y0 && y <= F.y1);
   regions.forEach((R, reg) => {
     const nb = bandsOf(R, stroke);
-    for (let b = 0; b < nb; b++) {
-      const ta = b / nb, tb = (b + 1) / nb, M = shapeAt(R, (ta + tb) / 2), T = [0.17, 0.5, 0.83].map(q => lerp(ta, tb, q)).map(t => shapeAt(R, t));
-      for (let p = 0; p < 8; p++) {
-        const len = pieceLength(M, p), w = widthOn(R, p, ta, tb), n = linesIn(w);
-        if (len < SAMPLE_MM / 2 || !n) continue;
+    for (let p = 0; p < 8; p++) {
+      const N = linesIn(widthOn(R, p, 0, 1)), all = Array.from({ length: N }, (_, j) => (j + 0.5) / N);   // the piece's lines across the whole gap
+      for (let b = 0; b < nb; b++) {
+        const ts = all.filter(t => t >= b / nb && t < (b + 1) / nb);
+        if (!ts.length) continue;
+        const ta = ts[0] - 0.5 / N, tb = ts.at(-1) + 0.5 / N, M = shapeAt(R, (ta + tb) / 2), T = [0.17, 0.5, 0.83].map(q => shapeAt(R, lerp(ta, tb, q)));   // what its lines cover
+        const len = pieceLength(M, p);
+        if (len < SAMPLE_MM / 2) continue;
         const ns = Math.max(1, Math.round(len / SAMPLE_MM)), ks = [];
         for (let i = 0; i < ns; i++) {
           const f = (i + 0.5) / ns, m = pointOn(M, p, f);
           if (!inFrame(m[0], m[1])) { ks.push(-1); continue; }
           const acc = [0, 0, 0]; let got = 0;
-          for (const s of T) { const q = pointOn(s, p, f); got += sample(res, q[0], q[1], acc); }
+          for (const sh of T) { const q = pointOn(sh, p, f); got += sample(res, q[0], q[1], acc); }
           ks.push(got ? near(acc.map(v => v / got)) : 0);
         }
         for (const q of runsOf(ks, len / ns, shortest)) {
           const c = C[q.k];
-          if (q.k <= 0 || !c?.own) continue;                                                  // outside the frame, or the paper
-          modules.push({ reg, band: b, p, fa: q.i0 / ns, fb: (q.i1 + 1) / ns, ta, tb, n, len: q.L, w, k: q.k, own: c.own, light: c.light });
+          if (q.k <= 0 || !c?.own) continue;                                                // outside the frame, or the paper
+          modules.push({ reg, band: b, p, fa: q.i0 / ns, fb: (q.i1 + 1) / ns, ta, tb, ts, n: ts.length, len: q.L, w: widthOn(R, p, ta, tb), k: q.k, own: c.own, light: c.light });
         }
       }
     }
@@ -277,7 +285,7 @@ function chain(list) {
 // where it ended. Coats: the whole again, back over itself. From the module's
 // fa end, or its fb end. → canvas pieces, continuous
 export function hatchOf(R, M, hatch = 'along', coats = 1, fromB = false) {
-  const ts = Array.from({ length: M.n }, (_, m) => M.ta + (m + 0.5) / M.n * (M.tb - M.ta)), S = ts.map(t => shapeAt(R, t));
+  const ts = M.ts ?? Array.from({ length: M.n }, (_, m) => M.ta + (m + 0.5) / M.n * (M.tb - M.ta)), S = ts.map(t => shapeAt(R, t));
   const [f0, f1] = fromB ? [M.fb, M.fa] : [M.fa, M.fb];
   const along = () => S.map((s, m) => m % 2 ? lineOn(s, M.p, f1, f0) : lineOn(s, M.p, f0, f1));
   const across = (start, fwd) => {
@@ -308,7 +316,7 @@ export function passesOf(plan, order, o = {}) {
   for (const pc of order) {
     const mine = plan.modules.filter(M => pc.light ? M.light === pc.id : M.own === pc.id);
     if (!mine.length) continue;
-    const ends = mine.map(M => { const R = plan.regions[M.reg], s = shapeAt(R, M.ta + 0.5 / M.n * (M.tb - M.ta)); return [pointOn(s, M.p, M.fa), pointOn(s, M.p, M.fb)]; });
+    const ends = mine.map(M => { const R = plan.regions[M.reg], s = shapeAt(R, M.ts?.[0] ?? M.ta + 0.5 / M.n * (M.tb - M.ta)); return [pointOn(s, M.p, M.fa), pointOn(s, M.p, M.fb)]; });
     const G = gridOf(ends), strokes = [];
     let cur = null, mm = 0;
     for (let left = mine.length; left > 0; left--) {

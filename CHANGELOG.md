@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **DACHE: a narrow side's lines too; PROGRESS's type as everywhere, the
+  next pencil, the hours in h and min; Preview** (the owner, 2026-10-27,
+  Screenshot 12.09.03 PM, a red arrow over the blend's top: "why did the top
+  sag?"; "bring back the original font sizes as everywhere"; "243 minutes …
+  an hour has 60 minutes — 4 hours 59 minutes"; "I would add next and a
+  small circle of Sky Blue"; "rename Result to Preview"). The top was 16.5
+  mm between his A and Key 2, cut into 76 bands of 0.22 mm, none with a
+  line: paper. Now every side's lines 1 mm apart across all of its gap,
+  shared out to the bands — the top 17 lines. PROGRESS: the digits back to
+  46 and 17, the big swatch kept, next with a small circle; left and total
+  from an hour on as 2 h 58 min; h and min in the reading and DRAW's
+  question too. The Result's key on DACHE is Preview. A test for the top.
+
 - **DACHE's pencils on the page: DRAW, Modules · Pencil, the box, the frame;
   PROGRESS bigger with the pencil's swatch; STOP asks** (the owner,
   2026-10-27, on Claude's plan: "I am used to our yellow PROGRESS screen.

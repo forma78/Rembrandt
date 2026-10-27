@@ -208,6 +208,7 @@ function traceRun() {
 // pencil on the paper from a module to the next, p-pause at every change
 let DPLAN = null, DRAW_RUN = null;
 const pencilOf = id => S.pencils.find(p => p.id === id);
+const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 const layers = () => S.coats * (S.hatch === 'cross' ? 2 : 1);                     // over the paper: Cross lays every coat twice, along and across
 function dachePlan() {
   const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.stroke, S.coats, S.shortest, S.frame, S.hatch, S.corner]);
@@ -1110,21 +1111,21 @@ function showPencils() {
   $('#btnPencilDel')?.addEventListener('click', () => { undoPush(); S.pencils = S.pencils.filter(q => q.id !== p.id); S.pencil = S.pencils[0]?.id ?? ''; if (S.only === p.id) S.only = ''; settle(); });
   const R = DRAW_RUN, F = S.frame, lines = [];
   if (D && R) {
-    lines.push(R.passes.length ? `DRAW: <b>${R.passes.length}</b> pencil${R.passes.length === 1 ? '' : 's'}, <b>${D.modules.length}</b> modules, ${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ <b>${fmt(R.seconds / 3600, 1)} h</b> (est.) — ${S.hatch === 'along' ? 'Along' : S.hatch === 'across' ? 'Across' : 'Cross'}, ${S.coats} coat${S.coats === 1 ? '' : 's'}; the pencil changed ${R.passes.length} time${R.passes.length === 1 ? '' : 's'}, the first too, its tip on the paper` : 'DRAW: nothing to draw — the Result is paper here, or no pencil near its colours.');
+    lines.push(R.passes.length ? `DRAW: <b>${R.passes.length}</b> pencil${R.passes.length === 1 ? '' : 's'}, <b>${D.modules.length}</b> modules, ${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ <b>${hm(R.seconds)}</b> (est.) — ${S.hatch === 'along' ? 'Along' : S.hatch === 'across' ? 'Across' : 'Cross'}, ${S.coats} coat${S.coats === 1 ? '' : 's'}; the pencil changed ${R.passes.length} time${R.passes.length === 1 ? '' : 's'}, the first too, its tip on the paper` : 'DRAW: nothing to draw — the Preview is paper here, or no pencil near its colours.');
     if (D.few.length) lines.push(`Left out, next to nothing to draw — under ${LEAST_MM} mm of line, or ${LEAST_SHARE * 100} % of all: ${D.few.map(id => pencilOf(id)?.name ?? id).join(', ')} — their modules to the nearest of the rest`);
-  } else lines.push('Working out the modules off the Result …');
+  } else lines.push('Working out the modules off the Preview …');
   lines.push(F ? `Frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm, its bottom left corner ${fmt(F.x0, 1)} → ${fmt(F.y0, 1)} ↑ mm from the canvas's: only the modules in it, the paper taped there.` : 'No frame: the whole canvas. F draws one round a piece to try on paper first.');
   lines.push(`The colours est.: one coat of lines ${PITCH} mm apart covers ${Math.round(COVER * 100)} % of the paper, white over another ${Math.round(LIGHT_OVER * 100)} % of the way to white — till measured on a stroke card.`);
   $('#pencilRead').innerHTML = lines.join(' · ');
 }
-// a moment after a change: the Result, the modules, the passes, DRAW's run — then the box, the stats, the LCD
+// a moment after a change: the Preview (BLEND's Result), the modules, the passes, DRAW's run — then the box, the stats, the LCD
 let dacheT = 0;
 function dacheSoon() {
   clearTimeout(dacheT);
   dacheT = setTimeout(() => {
     const R = pencilRun();
     showPencils(); kick(); lastLcd && lcd(lastLcd);
-    $('#stats').textContent = `${what()} · DRAW ${fmt(R.mm / 1000, 1)} m, ${R.passes.length} pencil${R.passes.length === 1 ? '' : 's'} ≈ ${fmt(R.seconds / 3600, 1)} h (est.)${S.frame ? ' · in the frame' : ''}`;
+    $('#stats').textContent = `${what()} · DRAW ${fmt(R.mm / 1000, 1)} m, ${R.passes.length} pencil${R.passes.length === 1 ? '' : 's'} ≈ ${hm(R.seconds)} (est.)${S.frame ? ' · in the frame' : ''}`;
   }, 80);
 }
 // a tile's place: its figure, its turn in it, its rings, its way
@@ -1743,7 +1744,7 @@ if (DACHE) {
     settle(); clearTimeout(dacheT);
     const R = pencilRun();
     if (lastSt && ['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) { $('#runState').innerHTML = '<span class="warn">A run is on: STOP it first.</span>'; return; }
-    if (!R.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to draw: the Result is paper here, or no pencil in the box near its colours.</span>'; return; }
+    if (!R.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to draw: the Preview is paper here, or no pencil in the box near its colours.</span>'; return; }
     if (R.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${R.fault}.</span>`; return; }
     if (walls(R)) { $('#runState').innerHTML = `<span class="warn">${walls(R)}</span>`; return; }
     const probe = await pencilPause();                                               // idle: 409 from a rembrandt.py that knows p-pause, 404 from one before it
@@ -1753,7 +1754,7 @@ if (DACHE) {
     const list = R.passes.map((q, i) => `${i + 1}. ${nm(q.pencil)} — ${q.modules} module${q.modules === 1 ? '' : 's'}, ${fmt(q.mm / 1000, 1)} m`).join('\n'), F = S.frame;
     if (!confirm(`DRAW ${TAB_NAME}: ${R.passes.length} pencil${R.passes.length === 1 ? '' : 's'}, one after another — lay them out left to right:\n\n${list}\n\n`
       + `The carriage goes over the first module and puts the holder down: the first pencil in, its tip on the paper, then Continue. At every colour's end it stops with the pencil on the paper: the next one in its place, its tip on the paper, Continue. `
-      + `${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ ${fmt(R.seconds / 3600, 1)} h (est.).`
+      + `${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ ${hm(R.seconds)} (est.).`
       + (F ? `\n\nOnly the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm, ${fmt(F.x0, 0)} mm right and ${fmt(F.y0, 0)} mm up from the canvas's bottom left corner — is the paper taped there?` : '\n\nThe whole canvas: is the paper on it?'))) return;
     S.view = 'pencil'; settle();
     await start('pencils', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
@@ -1763,6 +1764,8 @@ if (DACHE) {
 
 // The LCD, as CCD's: DRAG's numbers while nothing runs.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+// DACHE's hours as a person says them (the owner, 2026-10-27: "243 minutes … an hour has 60 minutes — 4 hours 59 minutes"): an hour and more h and min, less mm:ss
+const lcdTime = t => !DACHE || (t || 0) < 3600 ? segments(mmss(t), 17) : `<span class="hm">${segments(String(Math.floor(t / 3600)), 17)}<span class="tu">h</span>${segments(String(Math.floor(t % 3600 / 60)).padStart(2, '0'), 17)}<span class="tu">min</span></span>`;
 let started = null, lastLcd = null;
 const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', trace: 'TRACE', drag: 'DRAG', pencils: 'DRAW' };
 function lcd(st) {
@@ -1778,7 +1781,7 @@ function lcd(st) {
   const waiting = st?.state === 'paused' && st.message;
   // DACHE: the pencil's swatch on the screen (the owner, 2026-10-27: "make it bigger and show right there the swatch of the colour being drawn now") — the one to put in at a change, the one drawing, or the first
   const pen = !DACHE ? null : b?.kind === 'p-pause' ? { id: b.pencil, say: 'in' } : live && row?.pencil ? { id: row.pencil, say: 'now' } : !live && DPLAN?.passes[0] ? { id: DPLAN.passes[0].pencil, say: 'first' } : null;
-  const ids = live ? RUN_INFO?.passes ?? [] : (DPLAN?.passes ?? []).map(q => q.pencil), pc = pen && pencilOf(pen.id);
+  const ids = live ? RUN_INFO?.passes ?? [] : (DPLAN?.passes ?? []).map(q => q.pencil), pc = pen && pencilOf(pen.id), nx = pc && pencilOf(ids[ids.indexOf(pen.id) + 1]);   // and the one after it, small (the owner, 2026-10-27)
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
@@ -1793,11 +1796,11 @@ function lcd(st) {
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
-      <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), DACHE ? 64 : 46)}<span class="u">%</span></div>
-      <div class="lcd-times"><span class="k">left</span>${segments(mmss(left), DACHE ? 22 : 17)}<span class="k">total</span>${segments(mmss(total), DACHE ? 22 : 17)}</div>
+      <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
+      <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>
     </div>
     ${sticks(pct / 100)}
-    ${pc ? `<div class="lcd-pencil${pen.say === 'in' ? ' in' : ''}"><i style="background:${pc.hex}"></i><span class="pn">${esc(pc.name)}${pc.code ? ` ${esc(pc.code)}` : ''}</span><span class="pk">${{ in: 'put in', now: 'drawing', first: 'first' }[pen.say]} · ${ids.indexOf(pen.id) + 1}/${ids.length}</span></div>` : ''}
+    ${pc ? `<div class="lcd-pencil${pen.say === 'in' ? ' in' : ''}"><i class="sw" style="background:${pc.hex}"></i><span class="pt"><span class="pn">${esc(pc.name)}${pc.code ? ` ${esc(pc.code)}` : ''}</span><span class="pk">${{ in: 'put in', now: 'drawing', first: 'first' }[pen.say]} · ${ids.indexOf(pen.id) + 1}/${ids.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
     <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
 }
 async function watch() {

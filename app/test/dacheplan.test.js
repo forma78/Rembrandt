@@ -162,3 +162,14 @@ test('a pencil with next to nothing to draw left out, its modules to the nearest
   const F = { x0: 296, y0: 196, x1: 312, y1: 212 }, small = pencilPlan([MIX()], specks, { pencils: P, frame: F });
   assert.ok(small.modules.some(M => M.own === 'grey'), `in a small frame the speck is ${LEAST_SHARE * 100} % and more of it: kept`);
 });
+
+test('a narrow side its lines too: across all of its gap PITCH apart, shared out to the bands — no paper left on it', () => {
+  // the owner's blend, Screenshot 2026-10-27 at 12.09.03 PM: 16.5 mm between A and Key 2 at the top, 151.5 at the bottom
+  const r = cleanRect({ id: 1, x: 15, y: 15, w: 370, h: 370, step: 3, kind: BLEND, keys: [{ x: 78 / 370, y: 151.5 / 370, w: 211.5 / 370, h: 202 / 370 }, { x: 0.43, y: 0.63, w: 0.14, h: 0.2 }] });
+  const D = modulesOf([r], resOf(() => [235, 115, 37]), { pencils: P, stroke: 2 }), lines = p => { const ts = new Set(); for (const M of D.modules) if (M.reg === 0 && M.p === p) M.ts.forEach(t => ts.add(t)); return ts.size; };
+  assert.equal(lines(4), 17, 'the top: 16.5 mm, 17 lines'); assert.equal(lines(0), 152, 'the bottom: 151.5 mm, 152');
+  for (const M of D.modules) {
+    const R = D.regions[M.reg], gap = Math.abs(shapeAt(R, M.ts[0]).y1 - shapeAt(R, M.ts.at(-1)).y1);
+    if (M.reg === 0 && M.p === 4 && M.n > 1) assert.ok(Math.abs(gap / (M.n - 1) - 16.5 / 17) < 1e-6, 'a line every 0.97 mm');
+  }
+});
