@@ -277,6 +277,7 @@ function draw() {
     }
   }
   if (g === ctx && (S.view !== 'result' || grab || (CUT && !PLAY))) guides();     // ALU-CUT: over the Result too, but for Play the run (the owner, 2026-10-11)
+  if (g === ctx && S.tool === 'draw') drawPreview();
   drawTrail();
 }
 
@@ -378,8 +379,8 @@ function drawLanes(c) {
       c.strokeStyle = r.mode === 'along' ? 'rgba(30,80,150,.85)' : r.mode === 'across' ? 'rgba(170,40,90,.85)' : 'rgba(40,120,60,.85)';
       c.lineWidth = 0.6; ln(c, r.pts); c.stroke();
     }
-  }
     c.fillStyle = ORANGE; c.beginPath(); c.arc(r.pts[0][0], r.pts[0][1], Math.max(0.6, Math.min(1.4, S.brush * 0.15)), 0, 7); c.fill(); prev = r.pts.at(-1);
+  }
 }
 // The guides (the prototype's): every pipe's centre line, the chosen one
 // orange with its points and its segment's edges dashed; the seams across.
@@ -406,6 +407,33 @@ function guides() {
   });
   const st = pipes[S.sel];
   if (st) for (const p of st.pts) { g.fillStyle = '#FBFAF7'; g.strokeStyle = ORANGE; g.lineWidth = px(1.4); g.beginPath(); g.arc(p[0], p[1], px(4), 0, 7); g.fill(); g.stroke(); }
+  g.restore();
+}
+
+// Draw's prediction (the owner, 2026-10-08, of NOLAN's Brush, Screenshot
+// 2026-10-08 at 3.56.16 PM.png: "here I see the trace as I draw — can you add
+// the same to SMKN, and to ALU? I am drawing blind now, with no prediction,
+// it is not clear what will come out"): the chosen pipe as it will be with
+// the next point under the pointer — its spine, the corners rounded by its
+// Corners and Largest corner radius — NOLAN's way: the band its whole width,
+// orange at a quarter, its centre line orange. Flat ends, as the pipe's are.
+// Over every view, the Result too; not clipped, a point may lie off the panel.
+let hover = null;                                                                    // panel mm under the pointer, with Draw
+const drawWidth = () => S.pipes[S.sel]?.w ?? Math.round(Math.min(50, S.cw / 3));    // a new pipe's, as New pipe makes it
+function drawPreview() {
+  const st = S.pipes[S.sel], w = drawWidth(), pts = [...(st?.pts || []), ...(hover ? [hover] : [])];
+  if (!pts.length) return;
+  g.save(); inPanel(g); g.strokeStyle = ORANGE; g.fillStyle = ORANGE; g.lineJoin = 'round';
+  const sp = pts.length > 1 ? spineOf({ round: 0.8, ...(st || {}), w, pts }) : null;
+  if (sp) {
+    g.globalAlpha = 0.25; g.lineCap = 'butt'; g.lineWidth = w; ln(g, sp.P); g.stroke();
+    g.globalAlpha = 1; g.lineWidth = 1.5 / k; ln(g, sp.P); g.stroke();
+  } else { g.globalAlpha = 0.25; g.beginPath(); g.arc(pts[0][0], pts[0][1], w / 2, 0, Math.PI * 2); g.fill(); }   // the first point: the pipe's width round it
+  if (hover) {                                                                       // where the next point goes, and the pipe's width
+    g.globalAlpha = 1; g.beginPath(); g.arc(hover[0], hover[1], 3 / k, 0, Math.PI * 2); g.fill();
+    g.setTransform(dpr, 0, 0, dpr, 0, 0); g.font = font(10); g.textAlign = 'left';
+    g.fillText(`${st ? `Pipe ${S.sel + 1}` : 'a new pipe'} · ${w} mm`, sx([hover[0] - S.cw / 2]) + 10, sy([0, hover[1] - S.ch / 2]) - 8);
+  }
   g.restore();
 }
 
@@ -657,11 +685,16 @@ cv.addEventListener('pointerdown', e => {
   const h = nearPipe(p); if (h) { S.sel = h.i; S.seg = h.seg; settle(); }               // the panel too: its segment, and New colours' readout
 });
 cv.addEventListener('pointermove', e => {
-  if (!grab) { cv.style.cursor = S.tool === 'edit' ? (nearPoint(toPanel(e)) ? 'move' : nearPipe(toPanel(e)) ? 'pointer' : '') : S.tool === 'draw' ? 'crosshair' : nearPipe(toPanel(e)) ? 'col-resize' : ''; return; }
+  if (!grab) {
+    cv.style.cursor = S.tool === 'edit' ? (nearPoint(toPanel(e)) ? 'move' : nearPipe(toPanel(e)) ? 'pointer' : '') : S.tool === 'draw' ? 'crosshair' : nearPipe(toPanel(e)) ? 'col-resize' : '';
+    if (S.tool === 'draw') { hover = clampPt(toPanel(e)); kick(); }                // Draw: the prediction follows the pointer
+    return;
+  }
   grab.moved = true; busy = true;
   S.pipes[grab.i].pts[grab.j] = clampPt(toPanel(e));
   kick();
 });
+cv.addEventListener('pointerleave', () => { if (hover) { hover = null; kick(); } });
 const drop = () => { if (!grab) return; const was = grab; grab = null; if (!was.moved) undoStack.pop(); settle(); };
 cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop);
 cv.addEventListener('dblclick', e => {
