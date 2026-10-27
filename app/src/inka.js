@@ -39,13 +39,15 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf } from './strokes.js';
+import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf, TAIL_MIN } from './strokes.js';
 import { cornerDots, testMargin, testSay, NO_DIP, DIP_LAP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
 import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, TRACE_DIP, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE, figSausages as figSausagesOf } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap, spokesRound, SPOKE_GAP, SPOKES_MIN, SPOKES_MAX } from './blendplan.js';
+import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, STROKE_NEW, STROKE_MIN, STROKE_MAX, COATS_NEW, COATS_MIN, COATS_MAX,
+  SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -73,9 +75,12 @@ const S = {
   nodes: [], nodeSel: -1,                                                            // the brush's way by hand (inkaplan.js, linksOf); the node chosen
   key: 0,                                                                            // the chosen blend's chosen key: 0 A, its box, then its keys inside
   ref: 0,                                                                            // the chosen reference: over the canvas, its palette OK's
+  // DACHE: the pencil box and the run's order, the chosen pencil and the one shown alone; the lines; the frame, a piece to try on paper
+  ...(DACHE ? { pencils: cleanPencils(PENCILS_NEW), order: [], pencil: 'yellow', only: '', stroke: STROKE_NEW, hatch: 'along', coats: COATS_NEW, shortest: SHORTEST_NEW, pencilSpeed: PENCIL_SPEED_NEW, frame: null } : {}),
 };
-const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density'];
-const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result'];
+if (DACHE) S.ink = false;                                                            // no cup: TEST's dots in pencil
+const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['stroke', 'coats', 'shortest', 'pencilSpeed'] : [])];
+const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result', ...(DACHE ? ['modules', 'pencil'] : [])];
 const BLEND_KEEP = 'rembrandt.blend.v01', BLEND_REFS = 'rembrandt.blend.refs';   // BLEND's keep and references, DACHE's first visit's
 let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
@@ -91,6 +96,13 @@ function load() {
     if (typeof o.flights === 'boolean') S.flights = o.flights;
     if (PAINT[o.paint]) S.paint = o.paint;
     S.sel = Math.max(0, Math.min(S.rects.length - 1, Math.round(S.sel)));
+    if (DACHE) {                                                                     // the pencils as kept, or the eleven; BLEND's keep has none
+      S.pencils = cleanPencils(o.pencils); S.order = Array.isArray(o.order) ? o.order.filter(id => typeof id === 'string') : [];
+      if (typeof o.pencil === 'string') S.pencil = o.pencil; S.only = typeof o.only === 'string' ? o.only : '';
+      if (HATCHES.includes(o.hatch)) S.hatch = o.hatch; S.frame = cleanFrame(o.frame); S.ink = false;
+      const to = (v, a, b) => Math.round(Math.max(a, Math.min(b, v)));
+      S.stroke = to(S.stroke, STROKE_MIN, STROKE_MAX); S.coats = to(S.coats, COATS_MIN, COATS_MAX); S.shortest = to(S.shortest, SHORTEST_MIN, SHORTEST_MAX); S.pencilSpeed = to(S.pencilSpeed, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX);
+    }
     FRESH = false;
   } catch { }
 }
@@ -191,6 +203,28 @@ function traceRun() {
   return TRACE_RUN;
 }
 
+// DACHE (dacheplan.js): the Result cut into modules, the pencils' passes in
+// the run's order — a pencil with next to nothing left out — and DRAW, the
+// pencil on the paper from a module to the next, p-pause at every change
+let DPLAN = null, DRAW_RUN = null;
+const pencilOf = id => S.pencils.find(p => p.id === id);
+const layers = () => S.coats * (S.hatch === 'cross' ? 2 : 1);                     // over the paper: Cross lays every coat twice, along and across
+function dachePlan() {
+  const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.stroke, S.coats, S.shortest, S.frame, S.hatch, S.corner]);
+  if (DPLAN?.key === key) return DPLAN;
+  const D = pencilPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, coats: layers(), stroke: S.stroke, shortest: S.shortest, frame: S.frame, corner: S.corner });
+  const order = runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order);
+  return (DPLAN = { key, ...D, order, passes: passesOf(D, order, { hatch: S.hatch, coats: S.coats }) });
+}
+function pencilRun() {
+  const D = dachePlan(), here = hereNow(), key = JSON.stringify([D.key, S.pencilSpeed, S.travel, here]);
+  if (DRAW_RUN?.key === key) return DRAW_RUN;
+  if (!D.passes.length) return (DRAW_RUN = { key, ...EMPTY, passes: [] });
+  const R = drawRows(D.passes, S.pencils, po());
+  const r = plotRun({ ...runOpts(R.ps.length), speed: S.pencilSpeed, tail: TAIL_MIN }, [{ key: 'DRAW', ps: R.ps, why: null }]);   // the pencil lands where it stands, no tail
+  return (DRAW_RUN = { key, ...r, blocks: withChanges(r.blocks, R, S.pencils, D.passes), rows: R.info, mm: D.passes.reduce((a, q) => a + q.mm, 0), passes: D.passes });
+}
+
 // ---------- the board (CCD's) ----------
 const cv = $('#cv'), ctx = cv.getContext('2d'), stage = $('#stage'), board = $('#board');
 let g = ctx;   // the context drawn on: the board's, or a PNG's for the Library
@@ -258,7 +292,8 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (S.view === 'result') drawResult(); else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }
+  if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil') drawPencils(); else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }
+  if (DACHE) drawFrame();
   if (REF && S.refOpacity > 0) {
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
     g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
@@ -488,6 +523,58 @@ function play() {
   requestAnimationFrame(tick);
 }
 function stopPlay() { if (!PLAY) return; PLAY = null; showPlay(); }
+// DACHE's two views (est.): Modules, every module flat in what its pencils
+// make — the Result in pencils, the owner's "rectangles and cubes"; Pencil,
+// every line PITCH wide in its pencil's colour over the paper, COVER a coat,
+// the light ones over the rest. A pencil's pass alone: its name in the box
+// clicked twice. Drawn into a bitmap of the canvas in sight at the zoom's own
+// resolution — every line sharp up close — while nothing changes.
+const PX_MAX = 4096;
+let DBMP = null;
+const boxOfPieces = ps => { const b = [Infinity, Infinity, -Infinity, -Infinity], put = (x, y, m = 0) => { b[0] = Math.min(b[0], x - m); b[1] = Math.min(b[1], y - m); b[2] = Math.max(b[2], x + m); b[3] = Math.max(b[3], y + m); }; for (const q of ps) { put(q.a[0], q.a[1]); put(q.b[0], q.b[1]); if (q.t === 'A') put(q.c[0], q.c[1], q.r); } return b; };
+function dacheBitmap() {
+  const D = dachePlan(), W = cv.width / dpr, H = cv.height / dpr, X0 = V.y0 + S.boardW / 2, Y1 = V.x1 + S.boardH / 2;
+  const x0 = Math.max(0, X0), x1 = Math.min(S.boardW, X0 + W / k), y0 = Math.max(0, Y1 - H / k), y1 = Math.min(S.boardH, Y1);
+  if (x1 <= x0 || y1 <= y0) return null;
+  const px = Math.min(k * dpr, PX_MAX / Math.max(x1 - x0, y1 - y0)), key = JSON.stringify([D.key, S.view, S.only, S.coats, [x0, x1, y0, y1].map(v => Math.round(v * 10)), Math.round(px * 100)]);
+  if (DBMP?.key === key) return DBMP;
+  const c2 = document.createElement('canvas'); c2.width = Math.max(1, Math.ceil((x1 - x0) * px)); c2.height = Math.max(1, Math.ceil((y1 - y0) * px));
+  const c = c2.getContext('2d'), seen = b => b[2] >= x0 && b[0] <= x1 && b[3] >= y0 && b[1] <= y1;
+  c.setTransform(px, 0, 0, -px, -x0 * px, y1 * px);
+  c.fillStyle = GROUND; c.fillRect(x0, y0, x1 - x0, y1 - y0);
+  if (S.view === 'modules') for (const M of D.modules) {
+    if (S.only && M.own !== S.only && M.light !== S.only) continue;
+    const pts = M.pts ??= outlineOf(D.regions[M.reg], M), b = M.box ??= boxOfPieces(pts.map(q => ({ a: q, b: q })));
+    if (!seen(b)) continue;
+    c.fillStyle = c.strokeStyle = D.candidates[M.k].hex; c.lineWidth = Math.max(0.15, 0.6 / px);
+    c.beginPath(); pts.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); c.fill(); c.stroke();
+  } else {
+    c.lineWidth = PITCH; c.lineCap = 'butt'; c.lineJoin = 'round';
+    for (const P of D.passes) {
+      const pc = pencilOf(P.pencil); if (!pc || (S.only && P.pencil !== S.only)) continue;
+      c.globalCompositeOperation = pc.light ? 'source-over' : 'multiply'; c.globalAlpha = pc.light ? LIGHT_OVER : 1 - (1 - COVER) ** layers(); c.strokeStyle = pc.hex;
+      P.boxes ??= P.strokes.map(boxOfPieces);
+      P.strokes.forEach((st, i) => { if (seen(P.boxes[i])) { trace(c, st); c.stroke(); } });
+    }
+  }
+  return (DBMP = { key, c2, x0, x1, y0, y1 });
+}
+function drawPencils() {
+  const B = dacheBitmap(); if (!B) return;
+  const a = scr([B.x0, B.y1]);
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(B.c2, a[0], a[1], (B.x1 - B.x0) * k, (B.y1 - B.y0) * k);
+  g.restore();
+}
+// the frame, dashed, its size by it: only what lies in it is drawn
+function drawFrame() {
+  const F = S.frame; if (!F) return;
+  const a = scr([F.x0, F.y1]), b = scr([F.x1, F.y0]);
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.strokeStyle = ORANGE; g.lineWidth = 1.5; g.setLineDash([7, 4]); g.strokeRect(a[0], a[1], b[0] - a[0], b[1] - a[1]);
+  g.setLineDash([]); g.fillStyle = '#B3470C'; g.font = font(10); g.textAlign = 'left';
+  g.fillText(`frame ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm`, a[0], a[1] - 6);
+  g.restore();
+}
 function showPlay() { const b = $('#btnPlay'); b.classList.toggle('on', !!PLAY); b.textContent = PLAY ? '■ Stop playing' : '▶ Play the run'; }
 $('#btnPlay').onclick = play;
 
@@ -595,7 +682,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes'];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes', ...(DACHE ? ['pencils', 'order', 'stroke', 'hatch', 'coats', 'shortest', 'pencilSpeed', 'frame'] : [])];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -703,6 +790,7 @@ cv.addEventListener('pointerdown', e => {
     if (mg) { grab = { kind: 'node', from: mg, to: mg.p, snap: null }; cv.setPointerCapture(e.pointerId); kick(); return; }
     S.nodeSel = nodeAt(e); showNodes(); kick(); return;
   }
+  if (S.tool === 'frame') { undoPush(); grab = { kind: 'frame', a: p, f0: S.frame, moved: false }; cv.setPointerCapture(e.pointerId); return; }   // F: a frame dragged
   const hd = nearHandle(e);
   if (hd) { undoPush(); grab = { kind: 'size', hx: hd.hx, hy: hd.hy, r0: { ...editBox() }, key: keyOn(), moved: false }; cv.setPointerCapture(e.pointerId); return; }
   if (S.tool === 'rect' || S.tool === 'john' || S.tool === 'blend') {                // R a tile, ⌘ a sign, B a blend
@@ -733,7 +821,7 @@ cv.addEventListener('pointermove', e => {
     const hd = S.tool === 'paint' ? null : nearHandle(e);
     if (S.tool === 'node') { const was = HOT; HOT = magnetAt(e); cv.style.cursor = HOT ? 'crosshair' : nodeAt(e) >= 0 ? 'pointer' : ''; if (was !== HOT) kick(); return; }
     if (S.tool === 'knife') { cv.style.cursor = 'crosshair'; return; }
-    cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' || S.tool === 'john' || S.tool === 'blend' || S.tool === 'paint' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
+    cv.style.cursor = hd ? CURSOR[`${hd.hx},${hd.hy}`] : S.tool === 'rect' || S.tool === 'john' || S.tool === 'blend' || S.tool === 'paint' || S.tool === 'frame' ? 'crosshair' : rectAt(toMm(e)) >= 0 ? 'move' : '';
     showTip(e);
     return;
   }
@@ -741,6 +829,11 @@ cv.addEventListener('pointermove', e => {
   if (grab.kind === 'node') { grab.to = p; const mg = magnetAt(e); grab.snap = mg && mg.u !== grab.from.u ? mg : null; kick(); return; }
   if (grab.kind === 'knife') { const q = grab.pts.at(-1); if (Math.hypot(p[0] - q[0], p[1] - q[1]) * k > 2) { grab.pts.push(p); kick(); } return; }
   if (grab.kind === 'paint') { grab.to = p; grab.moved = grab.moved || Math.hypot(p[0] - grab.from[0], p[1] - grab.from[1]) > 3; kick(); return; }
+  if (grab.kind === 'frame') {                                                       // within the canvas, to half a mm
+    const cx = v => half(Math.max(0, Math.min(S.boardW, v))), cy = v => half(Math.max(0, Math.min(S.boardH, v)));
+    S.frame = { x0: Math.min(cx(grab.a[0]), cx(p[0])), y0: Math.min(cy(grab.a[1]), cy(p[1])), x1: Math.max(cx(grab.a[0]), cx(p[0])), y1: Math.max(cy(grab.a[1]), cy(p[1])) };
+    grab.moved = true; kick(); return;
+  }
   grab.moved = true; busy = true;
   if (grab.kind === 'moveAll') {                                                     // the box of them snapping as one tile does
     const B = grab.box, X = snapMove(B.x + p[0] - grab.from[0], B.w, 'x', grab.skip), Y = snapMove(B.y + p[1] - grab.from[1], B.h, 'y', grab.skip);
@@ -765,6 +858,7 @@ const drop = () => {
   if (was.kind === 'paint') { if (was.moved) paintAlong(was.from, was.to); else paintAt(was.from); kick(); return; }
   if (was.kind === 'node') { if (was.snap) addNode(was.from, was.snap); else kick(); return; }
   if (was.kind === 'knife') { cutNodes(was.pts.length > 1 ? knifeCuts(was.pts) : was.hit >= 0 ? [was.hit] : []); return; }
+  if (was.kind === 'frame') { S.frame = was.moved ? cleanFrame(S.frame) : null; if (!S.frame) { S.frame = was.f0; undoStack.pop(); } else S.tool = 'edit'; settle(); return; }
   if (was.kind === 'new') {
     const r = S.rects[S.sel];
     if (!was.moved || r.w < 2 || r.h < 2) { S.rects.pop(); S.sel = Math.max(0, S.rects.length - 1); undoStack.pop(); }
@@ -833,6 +927,7 @@ const HINT = {
   john: '⌘, St. John\'s Arms: drag on the canvas to lay one, its step the chosen one\'s — four lobes, every lobe\'s rings as a tile\'s. The brush lands in the window of lobe 1, the top left, and goes loop after loop outward, every loop round the lobes 1 ↖ 2 ↙ 3 ↘ 4 ↗, each clockwise, their inner sides on across the middle — the grid. A figure of its own: it joins no tile, no node holds on it.',
   node: 'N: drag from a magnet of a tile — its middle, a corner, a side\'s middle — to one of the next: the brush\'s way. Into a tile\'s middle it spirals out to where its next node leaves; into its edge it spirals in from there to its middle. A tile one way out and one in: a new node takes the old one\'s place. A click on a node chooses it, ⌫ takes it away.',
   knife: 'K, the knife: drag a line across the nodes — every one it crosses is cut, the chain apart there; a click on a node cuts it. ⌘Z brings them back. N lays them again.',
+  frame: 'F, the frame: drag on the canvas round the piece to try on paper — only the modules in it are drawn, at their place from home: the paper taped there. Whole canvas, under Pencils, takes it away.',
   paint: 'M: a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal in to the innermost ring; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
 };
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
@@ -859,7 +954,7 @@ addEventListener('keydown', e => {
   if (cmd && e.key.toLowerCase() === 'v') { if (COPY) { e.preventDefault(); paste(); } return; }
   if (cmd) return;
   if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); if (S.tool === 'node' && S.nodeSel >= 0) deleteNode(); else deleteRect(); return; }
-  const tool = { v: 'edit', r: 'rect', ...(JOHN ? { j: 'john' } : {}), ...(BLEND ? { b: 'blend' } : {}), n: 'node', k: 'knife', m: 'paint' }[e.key.toLowerCase()];
+  const tool = { v: 'edit', r: 'rect', ...(JOHN ? { j: 'john' } : {}), ...(BLEND ? { b: 'blend' } : {}), ...(DACHE ? { f: 'frame' } : {}), n: 'node', k: 'knife', m: 'paint' }[e.key.toLowerCase()];
   if (tool) { setTool(tool); return; }
   const arrow = { ArrowUp: [0, 1], ArrowDown: [0, -1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
   if (arrow) { e.preventDefault(); const d = e.shiftKey ? 10 : 1; moveRect(arrow[0] * d, arrow[1] * d); }
@@ -936,6 +1031,102 @@ $('#slBrush').querySelectorAll('input').forEach(inp => {
   inp.oninput = () => { if (!busy) undoPush(); busy = true; S[inp.dataset.k] = +inp.value; showPanel(); kick(); };
   inp.onchange = () => { if (inp.dataset.k === 'corner') relaySpokes(); settle(); };   // a ⌘'s round turns: its X from where the paint now begins
 });
+// ---------- DACHE: the pencils ----------
+// The box in the run's order — the light ones after the rest, last — every
+// pencil its swatch, name, number and brand, its modules and metres; a click
+// chooses it for the fields under the box, a second shows its pass alone on
+// Modules and Pencil; ↑ ↓ move it in the run, within its group. The lines:
+// Along · Across · Cross (DACHE/stroke.png), Stroke, Coats, the shortest
+// module, the pencil's speed; the frame. Worked out a moment after a change,
+// the Result first — the reading and the LCD then.
+const PENCIL_SL = [['stroke', 'Stroke', 1, STROKE_MIN, STROKE_MAX], ['coats', 'Coats', 1, COATS_MIN, COATS_MAX], ['shortest', 'Shortest module', 1, SHORTEST_MIN, SHORTEST_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]];
+const PENCIL_TITLE = {
+  stroke: 'Lines a band across where the blend\'s keys lie furthest apart, PITCH (1 mm) apart — DACHE/stroke.png, 1 … 4 (the owner: «if the line is 4 mm, up and down four times»). Narrower where the keys lie nearer: as many lines as a band\'s width holds. A colour every band',
+  coats: 'Every module\'s lines so many times over, back over themselves, the pencil on the paper (the owner: «the lines go up and down, that is how the colour gains brightness on paper»); its colour on Modules by COVER a coat (est.)',
+  shortest: 'A piece of one colour along a band shorter than this goes to its longer neighbour: no specks, no pencil tapping (est.)',
+  pencilSpeed: 'The pencil along its lines; slower through the turns and its ups and downs (est.)',
+};
+const pencilVal = key => key === 'stroke' ? `${S.stroke} line${S.stroke === 1 ? '' : 's'} · ${S.stroke * PITCH} mm` : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${S.shortest} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
+if (DACHE) {
+  $('#slPencil').innerHTML = PENCIL_SL.map(([key, label, step, min, max]) => `<label class="sl" title="${PENCIL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
+  $('#slPencil').querySelectorAll('input').forEach(inp => {
+    inp.oninput = () => { if (!busy) undoPush(); busy = true; S[inp.dataset.k] = +inp.value; showPencils(); };
+    inp.onchange = () => settle();
+  });
+  document.querySelectorAll('#hatchKeys [data-hatch]').forEach(b => b.onclick = () => { if (S.hatch === b.dataset.hatch) return; undoPush(); S.hatch = b.dataset.hatch; settle(); });
+  $('#btnFrame').onclick = () => setTool('frame');
+  $('#btnNoFrame').onclick = () => { if (!S.frame) return; undoPush(); S.frame = null; settle(); };
+  $('#btnPencilAdd').onclick = () => {
+    undoPush(); let n = 1; while (pencilOf(`p${n}`)) n++;
+    S.pencils.push({ id: `p${n}`, name: `Pencil ${S.pencils.length + 1}`, hex: '#7F7F7F', brand: '', code: '', light: false, on: true }); S.pencil = `p${n}`; settle();
+  };
+  $('#pencilBox').onclick = e => {
+    const r = e.target.closest('[data-id]'); if (!r) return;
+    const id = r.dataset.id, mv = e.target.closest('[data-mv]');
+    if (mv) {                                                                        // ↑ ↓: within its group, the run's order kept from then on
+      const ids = runOrder(S.pencils, S.order).map(p => p.id), i = ids.indexOf(id), j = i + (mv.dataset.mv === 'up' ? -1 : 1);
+      if (i < 0 || j < 0 || j >= ids.length || !!pencilOf(ids[j]).light !== !!pencilOf(id).light) return;
+      undoPush(); [ids[i], ids[j]] = [ids[j], ids[i]]; S.order = ids; settle(); return;
+    }
+    if (S.pencil === id) { S.only = S.only === id ? '' : id; if (S.view !== 'modules' && S.view !== 'pencil') S.view = 'modules'; }   // a second click: its pass alone
+    else S.pencil = id;
+    save(); showPanel(); kick();
+  };
+}
+function showPencils() {
+  if (!DACHE) return;
+  for (const [key] of PENCIL_SL) {
+    const inp = $(`#slPencil input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
+    $(`#slPencil [data-v="${key}"]`).textContent = pencilVal(key);
+  }
+  document.querySelectorAll('#hatchKeys [data-hatch]').forEach(b => b.classList.toggle('on', b.dataset.hatch === S.hatch));
+  document.querySelectorAll('[data-tool="frame"]').forEach(b => b.classList.toggle('on', S.tool === 'frame'));
+  $('#btnNoFrame').disabled = !S.frame;
+  const D = DPLAN, at = new Map((D?.passes ?? []).map((q, i) => [q.pencil, { ...q, n: i + 1 }])), order = runOrder(S.pencils, S.order);
+  const row = p => {
+    const t = at.get(p.id), few = D?.few.includes(p.id);
+    return `<div class="pc${p.id === S.pencil ? ' sel' : ''}${p.on ? '' : ' off'}${S.only === p.id ? ' only' : ''}" data-id="${esc(p.id)}" title="${esc(p.name)}${p.code ? ` ${esc(p.code)}` : ''}${p.brand ? `, ${esc(p.brand)}` : ''} — its colour ${p.hex} est. A click chooses it, a second shows its pass alone">`
+      + `<span class="no">${t ? t.n : ''}</span><i class="sw" style="background:${p.hex}"></i><span class="nm">${esc(p.name)}${p.code ? ` <em>${esc(p.code)}</em>` : ''}${p.brand ? ` <em>${esc(p.brand)}</em>` : ''}</span>`
+      + `<span class="ct">${!p.on ? 'off' : few ? `<span title="Next to nothing to draw — under ${LEAST_MM} mm of line, or ${LEAST_SHARE * 100} % of all on a small piece: no change of pencil for it, its modules to the nearest of the rest">left out</span>` : t ? `${t.modules} · ${fmt(t.mm / 1000, 1)} m` : D ? 'none' : ''}</span>`
+      + (p.on ? `<span class="mv"><button data-mv="up" title="Earlier in the run">↑</button><button data-mv="down" title="Later in the run">↓</button></span>` : '<span class="mv"></span>') + '</div>';
+  };
+  const on = order.filter(p => !p.light), light = order.filter(p => p.light), off = S.pencils.filter(p => !p.on);
+  $('#pencilBox').innerHTML = on.map(row).join('') + (light.length ? `<h5>Light · over another, last</h5>${light.map(row).join('')}` : '') + (off.length ? `<h5>Off</h5>${off.map(row).join('')}` : '');
+  const p = pencilOf(S.pencil);
+  $('#pencilEdit').innerHTML = !p ? '' : `<div class="grid4">
+      <label class="f2"><span>Name</span><input data-pf="name" value="${esc(p.name)}" maxlength="40"></label>
+      <label><span>Number</span><input data-pf="code" value="${esc(p.code)}" maxlength="20" placeholder="PC 926"></label>
+      <label><span>Colour, est.</span><input data-pf="hex" type="color" value="${p.hex.toLowerCase()}"></label>
+      <label class="f2"><span>Brand</span><input data-pf="brand" value="${esc(p.brand)}" maxlength="40" placeholder="Prismacolor"></label>
+      <label class="ck"><input data-pf="light" type="checkbox"${p.light ? ' checked' : ''}><span>Light, over another</span></label>
+      <label class="ck"><input data-pf="on" type="checkbox"${p.on ? ' checked' : ''}><span>In the box</span></label>
+    </div>
+    <div class="grid4 keys"><button class="btn" id="btnPencilDel" title="Take ${esc(p.name)} out of the box (⌘Z brings it back)"${S.pencils.length < 2 ? ' disabled' : ''}>Delete ${esc(p.name)}</button></div>`;
+  $('#pencilEdit').querySelectorAll('[data-pf]').forEach(inp => inp.onchange = () => {
+    undoPush(); const f = inp.dataset.pf;
+    p[f] = inp.type === 'checkbox' ? inp.checked : f === 'hex' ? inp.value.toUpperCase() : inp.value.trim().slice(0, f === 'code' ? 20 : 40) || (f === 'name' ? p.id : '');
+    S.pencils = cleanPencils(S.pencils); settle();
+  });
+  $('#btnPencilDel')?.addEventListener('click', () => { undoPush(); S.pencils = S.pencils.filter(q => q.id !== p.id); S.pencil = S.pencils[0]?.id ?? ''; if (S.only === p.id) S.only = ''; settle(); });
+  const R = DRAW_RUN, F = S.frame, lines = [];
+  if (D && R) {
+    lines.push(R.passes.length ? `DRAW: <b>${R.passes.length}</b> pencil${R.passes.length === 1 ? '' : 's'}, <b>${D.modules.length}</b> modules, ${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ <b>${fmt(R.seconds / 3600, 1)} h</b> (est.) — ${S.hatch === 'along' ? 'Along' : S.hatch === 'across' ? 'Across' : 'Cross'}, ${S.coats} coat${S.coats === 1 ? '' : 's'}; the pencil changed ${R.passes.length} time${R.passes.length === 1 ? '' : 's'}, the first too, its tip on the paper` : 'DRAW: nothing to draw — the Result is paper here, or no pencil near its colours.');
+    if (D.few.length) lines.push(`Left out, next to nothing to draw — under ${LEAST_MM} mm of line, or ${LEAST_SHARE * 100} % of all: ${D.few.map(id => pencilOf(id)?.name ?? id).join(', ')} — their modules to the nearest of the rest`);
+  } else lines.push('Working out the modules off the Result …');
+  lines.push(F ? `Frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm, its bottom left corner ${fmt(F.x0, 1)} → ${fmt(F.y0, 1)} ↑ mm from the canvas's: only the modules in it, the paper taped there.` : 'No frame: the whole canvas. F draws one round a piece to try on paper first.');
+  lines.push(`The colours est.: one coat of lines ${PITCH} mm apart covers ${Math.round(COVER * 100)} % of the paper, white over another ${Math.round(LIGHT_OVER * 100)} % of the way to white — till measured on a stroke card.`);
+  $('#pencilRead').innerHTML = lines.join(' · ');
+}
+// a moment after a change: the Result, the modules, the passes, DRAW's run — then the box, the stats, the LCD
+let dacheT = 0;
+function dacheSoon() {
+  clearTimeout(dacheT);
+  dacheT = setTimeout(() => {
+    const R = pencilRun();
+    showPencils(); kick(); lastLcd && lcd(lastLcd);
+    $('#stats').textContent = `${what()} · DRAW ${fmt(R.mm / 1000, 1)} m, ${R.passes.length} pencil${R.passes.length === 1 ? '' : 's'} ≈ ${fmt(R.seconds / 3600, 1)} h (est.)${S.frame ? ' · in the frame' : ''}`;
+  }, 80);
+}
 // a tile's place: its figure, its turn in it, its rings, its way
 function tileText(i) {
   const P = planNow(), U = unitOfRect(i), F = figOfRect(i); if (!U || !F) return '';
@@ -1277,6 +1468,7 @@ function showPanel() {
   $('#ink').checked = S.ink; $('#inkOff').classList.toggle('on', !S.ink); $('#inkOn').classList.toggle('on', S.ink);
   $('#flights').checked = S.flights; $('#flightsOff').classList.toggle('on', !S.flights); $('#flightsOn').classList.toggle('on', S.flights);
   showPaints();
+  if (DACHE) showPencils();
 }
 const what = () => {
   const P = planNow(), j = S.rects.filter(isJohn).length, b = S.rects.filter(isBlend).length, t = S.rects.length - j - b;
@@ -1308,6 +1500,7 @@ function settle() {
   $('#stats').textContent = !P.figs.length ? 'no tiles' : `${what()}${JOHN ? (Tr.stretches ? ` · TRACE ≈ ${fmt(Tr.seconds / 60, 1)} min${S.ink ? `, ${Tr.dips} dips` : ''}` : '') : Mk.marks ? ` · ${Mk.marks} sausages · MARKS ≈ ${fmt(Mk.seconds / 60, 1)} min` : ''} · DRAG ${fmt(D.mm / 1000, 2)} m ≈ ${fmt(D.seconds / 60, 1)} min${D.stops ? `, ${D.stops} wipe${D.stops === 1 ? '' : 's'}` : ''} (est.)`;
   showFiles();
   showPanel(); showRects(); showNodes(); save(); layout(); lastLcd && lcd(lastLcd);
+  if (DACHE) dacheSoon();
 }
 function walls(P_) {
   const h = hereNow();
@@ -1518,16 +1711,63 @@ $('#btnTest').onclick = async () => {
 };
 $('#btnHome').onclick = () => start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, { page: TAB, label: `${TAB_NAME} · HOME`, here: hereNow() });
 let paused = false;
-$('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
-$('#btnStop').onclick = () => post('/run/stop');
+// DACHE: PAUSE and STOP leave the pencil on the paper, p-pause (rembrandt.py,
+// 2026-10-27); STOP then asks — go on drawing from right there, or home (the
+// owner: "this time we would wait half an hour for it to come back to where
+// it was interrupted"). A rembrandt.py from before p-pause: STOP as ever.
+const pencilPause = async () => { try { return (await fetch('/run/p-pause', { method: 'POST' })).status; } catch { return 0; } };
+const OLD_SERVER = '<span class="warn">rembrandt.py is from before the pencil\'s pause, p-pause: stop it (Ctrl+C) and start it again, then DRAW.</span>';
+$('#btnPause').onclick = async () => {
+  if (paused || !DACHE) return post(paused ? '/run/continue' : '/run/pause');
+  if (await pencilPause() === 404) $('#runState').innerHTML = OLD_SERVER;
+};
+$('#btnStop').onclick = async () => {
+  if (!DACHE || !lastSt || !['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) return post('/run/stop');
+  const s = await pencilPause();
+  if (s === 0 || s === 404) return post('/run/stop');
+  $('#stopAsk').hidden = false;
+};
+if (DACHE) {
+  $('#askGo').onclick = () => { $('#stopAsk').hidden = true; post('/run/continue'); };
+  $('#askHome').onclick = async () => {
+    $('#stopAsk').hidden = true; await post('/run/stop');
+    for (let i = 0; i < 80; i++) {                                                   // the run ended, then HOME: the pencil up, the carriage home
+      let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+      if (st && !['running', 'stopping', 'pausing', 'paused'].includes(st.state)) break;
+      await new Promise(ok => setTimeout(ok, 250));
+    }
+    start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, { page: TAB, label: `${TAB_NAME} · HOME`, here: hereNow() });
+  };
+  // DRAW: a pass a pencil, in the run's order, laid out left to right
+  $('#btnPencils').onclick = async () => {
+    settle(); clearTimeout(dacheT);
+    const R = pencilRun();
+    if (lastSt && ['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) { $('#runState').innerHTML = '<span class="warn">A run is on: STOP it first.</span>'; return; }
+    if (!R.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to draw: the Result is paper here, or no pencil in the box near its colours.</span>'; return; }
+    if (R.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${R.fault}.</span>`; return; }
+    if (walls(R)) { $('#runState').innerHTML = `<span class="warn">${walls(R)}</span>`; return; }
+    const probe = await pencilPause();                                               // idle: 409 from a rembrandt.py that knows p-pause, 404 from one before it
+    if (!probe) { $('#runState').textContent = 'start rembrandt.py'; return; }
+    if (probe === 404) { $('#runState').innerHTML = OLD_SERVER; return; }
+    const nm = id => { const p = pencilOf(id); return `${p.name}${p.code ? ` ${p.code}` : ''}${p.brand ? `, ${p.brand}` : ''}`; };
+    const list = R.passes.map((q, i) => `${i + 1}. ${nm(q.pencil)} — ${q.modules} module${q.modules === 1 ? '' : 's'}, ${fmt(q.mm / 1000, 1)} m`).join('\n'), F = S.frame;
+    if (!confirm(`DRAW ${TAB_NAME}: ${R.passes.length} pencil${R.passes.length === 1 ? '' : 's'}, one after another — lay them out left to right:\n\n${list}\n\n`
+      + `The carriage goes over the first module and puts the holder down: the first pencil in, its tip on the paper, then Continue. At every colour's end it stops with the pencil on the paper: the next one in its place, its tip on the paper, Continue. `
+      + `${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ ${fmt(R.seconds / 3600, 1)} h (est.).`
+      + (F ? `\n\nOnly the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm, ${fmt(F.x0, 0)} mm right and ${fmt(F.y0, 0)} mm up from the canvas's bottom left corner — is the paper taped there?` : '\n\nThe whole canvas: is the paper on it?'))) return;
+    S.view = 'pencil'; settle();
+    await start('pencils', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
+      { page: TAB, pass: 'draw', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(R.seconds) });
+  };
+}
 
 // The LCD, as CCD's: DRAG's numbers while nothing runs.
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 let started = null, lastLcd = null;
-const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', trace: 'TRACE', drag: 'DRAG' };
+const KEY_NAME = { test: 'TEST', home: 'HOME', marks: 'MARKS', trace: 'TRACE', drag: 'DRAG', pencils: 'DRAW' };
 function lcd(st) {
   lastLcd = st;
-  const P_ = dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
+  const P_ = DACHE ? DRAW_RUN ?? EMPTY : dragRun(), live = st && ['running', 'stopping', 'pausing', 'paused'].includes(st.state);   // DACHE: DRAW's numbers
   const pct = st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
   if (live && !started) started = st.started || Date.now() / 1000;
   if (!live) started = null;
@@ -1536,6 +1776,9 @@ function lcd(st) {
   const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b = st && (RUN || P_.blocks)[st.block], row = b && R_.rows[b.row - 1], now0 = row?.label;
   const waiting = st?.state === 'paused' && st.message;
+  // DACHE: the pencil's swatch on the screen (the owner, 2026-10-27: "make it bigger and show right there the swatch of the colour being drawn now") — the one to put in at a change, the one drawing, or the first
+  const pen = !DACHE ? null : b?.kind === 'p-pause' ? { id: b.pencil, say: 'in' } : live && row?.pencil ? { id: row.pencil, say: 'now' } : !live && DPLAN?.passes[0] ? { id: DPLAN.passes[0].pencil, say: 'first' } : null;
+  const ids = live ? RUN_INFO?.passes ?? [] : (DPLAN?.passes ?? []).map(q => q.pencil), pc = pen && pencilOf(pen.id);
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
@@ -1550,10 +1793,11 @@ function lcd(st) {
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
-      <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
-      <div class="lcd-times"><span class="k">left</span>${segments(mmss(left), 17)}<span class="k">total</span>${segments(mmss(total), 17)}</div>
+      <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), DACHE ? 64 : 46)}<span class="u">%</span></div>
+      <div class="lcd-times"><span class="k">left</span>${segments(mmss(left), DACHE ? 22 : 17)}<span class="k">total</span>${segments(mmss(total), DACHE ? 22 : 17)}</div>
     </div>
     ${sticks(pct / 100)}
+    ${pc ? `<div class="lcd-pencil${pen.say === 'in' ? ' in' : ''}"><i style="background:${pc.hex}"></i><span class="pn">${esc(pc.name)}${pc.code ? ` ${esc(pc.code)}` : ''}</span><span class="pk">${{ in: 'put in', now: 'drawing', first: 'first' }[pen.say]} · ${ids.indexOf(pen.id) + 1}/${ids.length}</span></div>` : ''}
     <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
 }
 async function watch() {

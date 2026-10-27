@@ -5,6 +5,38 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **DACHE's pencils on the page: DRAW, Modules · Pencil, the box, the frame;
+  PROGRESS bigger with the pencil's swatch; STOP asks** (the owner,
+  2026-10-27, on Claude's plan: "I am used to our yellow PROGRESS screen.
+  Can it be made bigger and show right there the swatch of the colour being
+  drawn now … for DACHE only"; "continue drawing, or go back home?"; "first
+  we test on paper"). DRAW in MARKS' and DRAG's place, the pencils listed in
+  the run's order to lay out left to right, a pencil change at the start and
+  every colour's end with the pencil on the paper; PAUSE and STOP the
+  pencil's pause, STOP then ▶ Continue drawing · ⌂ Go home. The views
+  Modules and Pencil (est.), sharp at every zoom; a pencil's pass alone. The
+  Pencils block: the box, its order, its fields, + Pencil; Along · Across ·
+  Cross, Stroke, Coats, Shortest module, Pencil speed; F, the frame, a piece
+  on paper first. No Ink row on DACHE. Not run on the machine yet:
+  `rembrandt.py` must be restarted for p-pause, DRAW refuses an older one.
+
+- **dacheplan.js, DACHE's plan: the Result cut into modules, a pass a
+  pencil** (the owner, 2026-10-27: "from the Result we make the base for
+  the rendering that follows: many rectangles and cubes"; "one line 1 mm";
+  "the lines go up and down … it does not go back through the air. If the
+  line is 4 mm, up and down four times"). The pencil box, eleven, white the
+  light one; the run light to dark, his order over it, the light last. Bands
+  between a blend's keys, in its core and a tile, Stroke lines wide where
+  widest; a band cut where the Result's colour turns to another pencil
+  (CIEDE2000; a pencil COVER 70 % a coat, white over another 35 %, est.), a
+  stretch shorter than Shortest module to its neighbour: modules, trapezoids
+  on the sides, rings in the corners. A module's hatch: Along · Across ·
+  Cross, Coats, one continuous line. The passes: nearest module next, on
+  without a lift within 1.5 mm. A pencil with next to nothing left out
+  (under 300 mm, or 0.5 % of all). Rows for plotRun, the last of a pass
+  ending on the paper; a p-pause over the first start and at every change.
+  Twelve tests. On IMG_1554 in HDay warm: ≈ 130 m, 8 pencils, ≈ 3 h (est.).
+
 - **p-pause, the pencil's pause, in the runner** (the owner, 2026-10-27, for
   DACHE: "the pencil has to be changed, its tip resting on the paper, not
   going in the air"; "it can be split … or keep pause as it is, and p-pause

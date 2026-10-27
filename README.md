@@ -87,7 +87,7 @@ with the owner, after a host test (`test_host/`), and tried in the air first.
 New modules: `curve.js` (the curve, lines and arcs), `bands.js` (offsets and
 blended lanes, clipping), `tubes.js` (inventory), `drops.js` (drop plan, ml),
 `pairs.js` (muddy pairs, keep-out, ⚠), `adjustments.js`, `rings.js` (New
-Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs, 90's upright and across, the plain stripes), `loomplan.js` (LOOM's woven cloth, its hops and halves), `inkaplan.js` (INKA's tiles, blocks and figures, their spirals, the wipes, the Result on a grid of the canvas; ST-JOHN's ⌘, its lobes and loops), `blendplan.js` (BLEND's keys, steps, loops and core, its spokes all round), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
+Yuri's letters as rings), `typeplan.js` (TYPE's bands and passes), `loveplan.js` (LOVE's copy of it), `aluplan.js` (ALU's pipes), `ccdplan.js` (CCD's rectangles of lanes), `biasplan.js` (BIAS's diagonal lanes and four runs, 90's upright and across, the plain stripes), `loomplan.js` (LOOM's woven cloth, its hops and halves), `inkaplan.js` (INKA's tiles, blocks and figures, their spirals, the wipes, the Result on a grid of the canvas; ST-JOHN's ⌘, its lobes and loops), `blendplan.js` (BLEND's keys, steps, loops and core, its spokes all round), `dacheplan.js` (DACHE's pencil box, bands and modules off the Result, the hatches, a pass a pencil, the pencil changes), `tapeplan.js` (TAPE's lanes round a cassette), `wash.js`
 (the watercolour on the board, NOLAN's and TYPE's), and pointer mode in
 `jobpage.js`.
 

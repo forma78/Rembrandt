@@ -54,6 +54,11 @@
       <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5" class="thin"/><rect x="7" y="3.5" width="10" height="11" rx="2.2" class="thin"/><rect x="9.8" y="8.5" width="4.4" height="6" rx="1.4" class="bold"/></svg>
       <span>B</span>
     </button>
+    <!-- the frame (DACHE, 2026-10-27, the owner: "first we test on paper"): a piece of the canvas, the only modules drawn, F on the keyboard -->
+    <button class="tool" data-tool="frame" title="Frame — drag on the canvas round the piece to try on paper: only the modules in it are drawn, at their place from home (F)">
+      <svg viewBox="0 0 24 24"><path d="M3.5 8V3.5H8M16 3.5h4.5V8M20.5 16v4.5H16M8 20.5H3.5V16"/><rect x="8" y="8" width="8" height="8" rx="0.5" class="thin"/></svg>
+      <span>F</span>
+    </button>
     <!-- the nodes (the owner, 2026-10-17: "add a nodes key to the TOOLS, N is free"): the brush's way from tile to tile, by hand -->
     <button class="tool" data-tool="node" title="Nodes — the brush's way, by hand: drag from a magnet of a tile — its middle, a corner, a side's middle — to a magnet of the next. Into a tile's middle, it spirals out to where the next node leaves; into its edge, it spirals in from there. A click on a node chooses it, ⌫ takes it away (N)">
       <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="0.5" class="thin"/><rect x="13.5" y="13.5" width="7" height="7" rx="0.5" class="thin"/><path d="M7 7l10 10" class="bold"/><circle cx="7" cy="7" r="1.6" class="dot"/><circle cx="17" cy="17" r="1.6" class="dot"/></svg>
@@ -98,25 +103,29 @@
       <!-- the cassette deck, CCD's: TEST and PAUSE; MARKS and DRAG — no Air (the owner, 2026-10-17: "AIR is not needed, only DRAG, a solid line"); STOP and HOME -->
       <div class="runkeys deck">
         <button class="btn" id="btnTest" title="TEST, before the runs: with INK ON one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
-        <button class="btn" id="btnPause" title="PAUSE: DRAG holds at the end of the figure — on the way it never stops; at a wipe, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
+        <button class="btn" id="btnPause" title="PAUSE: the carriage brakes on its line, the pencil left on the paper — to sharpen it, its tip back on the paper; CONT. goes on from there"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
+      <!-- DRAW (the owner, 2026-10-27): the pencils one after another, the pencil left on the paper at every change; MARKS and DRAG, the paint's, not shown -->
       <div class="runkeys deck passes">
+        <button class="btn pass" id="btnPencils" data-pass="pencils" title="DRAW: a pass a pencil, the lightest first — the pencil up and down in every module, on the paper from one to the next where they touch; at every colour's end it stops on the paper for the next pencil, its tip on the paper"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z"/><path d="M14.6 6.7l2.6 2.6" class="thin"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw</span></button>
         <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS: a dash along every sausage — with INK ON in watercolour from the cup, a dip every fourth; then squeeze the sausages on them"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><path d="M12 4v7M20 12h-7M4 12h7"/></svg><span>Marks</span></button>
         <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG: every figure one line, the brush down from its landing to its lift — tile after tile, a spiral each, the first from its middle out, the next from its outside in — never a stop on the way; between figures the brush up over the next one's start, a pause to wipe it, Continue; no dip"><svg viewBox="0 0 24 24"><path d="M12 12h2v-3h-5v6h8v-9h-11v12h14"/></svg><span>Drag</span></button>
       </div>
       <div class="stops deckstops">
-        <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
+        <button class="btn" id="btnStop" title="STOP: the carriage brakes on its line, the pencil on the paper — then the choice, go on drawing from there or home (Esc: the run stopped at once)">STOP</button>
         <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
       </div>
       <!-- INK, CCD's: ON MARKS in watercolour from the cup of the Ink tab, and TEST's dip; OFF no dip; DRAG never dips -->
-      <div class="inkrow" title="ON: MARKS in watercolour, dipping in the cup of the Ink tab, and TEST's dip; OFF: no dip. DRAG never dips">
+      <div class="inkrow" id="inkRow" hidden title="ON: MARKS in watercolour, dipping in the cup of the Ink tab, and TEST's dip; OFF: no dip. DRAG never dips">
         <span class="slh"><span>Ink</span></span>
         <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
       </div>
       <!-- the run as it will look; a view only -->
       <div class="toggles looks" id="views">
         <button class="tog" data-view="drag" title="DRAG: every figure's path, the order of its tiles, where the brush lands, the wipes; the sausages where you squeeze them, MARKS' dashes under them in watercolour">Drag</button>
-        <button class="tog" data-view="result" title="The painting: the brush through the sausages, figure by figure, the paints mixed as pigments (est.)">Result</button>
+        <button class="tog" data-view="result" title="The painting: the brush through the sausages, figure by figure, the paints mixed as pigments (est.) — the colour the pencils go by">Result</button>
+        <button class="tog" data-view="modules" title="The Result in pencils: every module flat in the colour its pencil makes — the light one over it too (est.)">Modules</button>
+        <button class="tog" data-view="pencil" title="The pencils' lines, 1 mm wide, in their colours over the paper, as DRAW lays them (est.)">Pencil</button>
       </div>
       <!-- the flights on Drag, OFF by default (the owner, 2026-10-19: "I do not really need them") -->
       <div class="inkrow" title="ON: on Drag the brush's flight through the air from a figure's end to the next one's start, dashed blue; OFF: none. ❚❚ wipe stays by every landing; the run on the machine is the same either way">
@@ -131,6 +140,24 @@
       <button class="btn save" id="btnSave" title="Save the blends, the tiles and their paints in the Library, as a new save named by the date and time">💾 SAVE DACHE</button>
       <span class="save-state" id="saveState">to the Library</span>
     </div>
+    <section class="sec" id="pencilSec">
+      <h3>Pencils <span class="hint">the box, in the run's order</span></h3>
+      <!-- the box (the owner, 2026-10-27: eleven at first, black the eleventh; white light, over another, last) -->
+      <div class="pencilbox" id="pencilBox"></div>
+      <div class="penciledit" id="pencilEdit"></div>
+      <div class="grid4 keys"><button class="btn" id="btnPencilAdd" title="One more pencil in the box: its name, number, brand and colour in the fields">+ Pencil</button></div>
+      <!-- the lines (DACHE/stroke.png): horizontal, vertical, cross stroke -->
+      <h4>Lines</h4>
+      <div class="toggles looks" id="hatchKeys">
+        <button class="tog" data-hatch="along" title="Along a module, its lines up and down its length, 1 mm over every time — stroke.png's horizontal">Along</button>
+        <button class="tog" data-hatch="across" title="Across a module, short strokes up and down from its inner side to its outer, 1 mm along every time — stroke.png's vertical">Across</button>
+        <button class="tog" data-hatch="cross" title="Along, then Across over it — stroke.png's cross stroke">Cross</button>
+      </div>
+      <div class="sliders" id="slPencil"></div>
+      <h4>Frame <span class="hint">a piece, on paper first</span></h4>
+      <div class="grid4 keys"><button class="btn" id="btnFrame" title="The F tool: drag round the piece to try on paper">Draw a frame (F)</button><button class="btn" id="btnNoFrame" title="No frame: the whole canvas">Whole canvas</button></div>
+      <p class="read" id="pencilRead"></p>
+    </section>
     <section class="sec">
       <h3>DACHE <span class="hint">BLEND in coloured pencils, on paper</span></h3>
       <h4 class="first">Blends and tiles, in the order of their figures</h4>
@@ -192,6 +219,15 @@
 
   </aside>
 </main>
+
+<!-- STOP's question (the owner, 2026-10-27: "continue drawing, or go back home?") -->
+<div class="ask" id="stopAsk" hidden>
+  <div class="askbox">
+    <h3>STOP</h3>
+    <p>The carriage braked on its line, the pencil left on the paper.</p>
+    <div class="grid4 keys"><button class="btn pass" id="askGo">▶ Continue drawing</button><button class="btn" id="askHome">⌂ Go home</button></div>
+  </div>
+</div>
 
 <footer class="status">
   <span id="hint"></span>

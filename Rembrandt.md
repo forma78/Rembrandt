@@ -76,6 +76,13 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 | **Loop · core (on BLEND)** | A loop: one shape of a blend as the brush paints it, its edge on the shape's outline as a tile's outer ring, its turns the shape's corner less its depth, never under 4 mm. Since 2026-10-26's evening **K1 · K2 in turn** — a loop of every two keys' series in turn, one of Key 1's, one of Key 2's, and so on, every contour drawn once, a stroke of its own from the middle of the side where its series' loops meet (IMG_1554: Key 1's at 12 o'clock, Key 2's at 6, under the core) round to there, the brush up and on in the air to the next; or **Key after key**, one line, the outermost first and every next over it — where the shapes close in, the paint over the paint — on from one to the next by an S on the side where they lie nearest, the S's one under another. The core: the last key filled by rings of its own, a tile's, a figure of its own after the loops — a wipe, its pure paint, from its middle out; Core empty, the line goes round it too. Not ST-JOHN's loop. |
 | **Spokes · patches (on BLEND)** | A blend's sausages since 2026-10-26: **spokes** all round — **Spokes** of them, the blend's own number in its panel, at first one every ≈ 95 mm, as far as the paint carries at Density 50 % (est.), never moved by the Density — shared out over the sides of its outer loop, every side parted evenly, from each place across every loop to the same place on the last, straight from key to key, in pieces as long as they lie apart; a run of one paint along a spoke one sausage; the core an X of its own, its Step moving that X alone. **Patches**: the palette dealt over them, every paint its share of the sausages, grown at random from seeds over their neighbours, so the colours lie in clouds over the loops, the brush running one into the next; the core the spot, else the pure paint. Before, an X along every corner's way, the outer half one paint, the inner half another. |
 | **DACHE** | The tab of coloured pencils on paper, after BLEND in the top row since 2026-10-27 (§1, §8), after CARAN D'ACHE: BLEND's page, all of it — its keys, loops, spokes, paints, references, Drag and Result — and the Result no longer a forecast of paint on a canvas but the colour the pencils draw. `dache.html`, its body `data-tab="dache"`; INKA's page module `inka.js` and plan `inkaplan.js`, the blend's `blendplan.js`; its own keep and Library label, a first visit BLEND's composition and references, copied. The owner's references in `DACHE/`. |
+| **Pencil box · light (on DACHE)** | The pencils DACHE draws with, in the run's order: a name, a number (PC 926), a brand, a colour (est., till read off a stroke card), in the box or off. Eleven at first, the owner's (2026-10-27): yellow, ochre, orange, grass green, sky blue, emerald green, grey, blue, brown, black, white. **Light**: a pencil that shows only over another — white — drawn over another's modules, last; the others autonomous. The run light to dark at first, the owner's ↑ ↓ over it, the light ones always last. |
+| **Band · module (on DACHE)** | A band: a ring of the blend between two shapes evenly between its keys, as its loops are — Stroke lines wide where the keys lie furthest apart, as many lines as it holds where nearer; a blend's every two keys, its core and a tile down to their middle. A module: a band's stretch of one colour — where the Result turns to another pencil, and at every side's and corner's end — on a side a trapezoid, its ends the rays from key to key (the owner: "rays of a more global geometric figure"), in a corner a piece of a ring; in it one pencil, or one with the light one over it, or the paper. Shorter than the Shortest module, a stretch goes to its longer neighbour. |
+| **Line · Stroke (on DACHE)** | A line: the pencil's mark, 1 mm (PITCH, est.; the owner: "one line 1 mm"), lines 1 mm apart. Stroke: how many lines a band is where widest, 1 … 4 (`DACHE/stroke.png`; the owner: "if the line is 4 mm, up and down four times"). |
+| **Along · Across · Cross · Coats (on DACHE)** | How the pencil goes in a module, up and down with it on the paper, never back through the air (`DACHE/stroke.png`): **Along**, every line its length, the next back, 1 mm over — the horizontal; **Across**, short strokes from its inner side to its outer, 1 mm along every time — the vertical; **Cross**, Along and then Across over it. **Coats**: the whole again, back over itself; a coat covers COVER of the paper (70 %, est.), Cross every coat twice. |
+| **Pencil change · p-pause (on DACHE)** | At the start the holder down over the first module, and at every colour's end the pencil left on the paper: the run waits — the pencil out, the next one in, its tip on the paper, at the right height — then Continue lifts it and goes on. **p-pause**, the runner's pause of the pencil (`/run/p-pause`, a block of kind `p-pause`, 2026-10-27): Pause's, but nothing lifted, nothing put back; DACHE's PAUSE and STOP use it. |
+| **Frame (on DACHE)** | A rectangle on the canvas, laid with **F**: only the modules in it drawn, at their place from home — a piece on paper first (the owner, 2026-10-27: "first we test on paper"), the paper taped there. **Whole canvas** takes it away. |
+| **Left out (on DACHE)** | A pencil with next to nothing to draw — under 300 mm of line, or 0.5 % of all of it on a small piece (est.) — not in the run: its modules to the nearest of the pencils with enough; no change of pencil for a few specks. |
 | **Pipe** | On ALU: one wide band of paint along a line of points laid on the tab, its corners rounded by arcs (Corners, Largest corner radius), so every lane of it is lines and arcs. |
 | **Whole lanes, Master Flo · Segments, Alu** | ALU's two brushes, named by the owner on 2026-10-08. Whole lanes: every lane the whole pipe in one run, the inside lane first — the owner's numbers, 1 the outside lane, n the inside one, run n … 1 — a lift after each, or the snake, back and forth with the brush down (2026-10-10, §8), the brush not washed between them; every mark right across the whole pipe in one paint, the paints along it, never across (2026-10-08, §1). Segments: the pipe cut by seams, each segment brushed along the line — its paints across the pipe, Lett's tubes, the Australian style — or across it; fan ends. |
 | **Paper test** | The owner's hand-made run of the machine on an A5 page, 2026-10-08, in black and white acrylic (`ALU-Claude/paper-test/`): eight whole lanes crossing their own way in one lane per step. The reference for Whole lanes, the fixture of its tests; its key on ALU gone since 2026-10-10 (the owner: "Remove Paper test. What 8 Oct? I do not need this key :)"). |
@@ -1866,10 +1873,32 @@ this section disagree, this section wins: the owner corrected the sketch on
   each series' loops land, how many landings; with Flights ON the brush's way in the
   air from loop to loop, dashed.
 - **DACHE**, after BLEND (2026-10-27, §1; `app/dache.html`, INKA's `inka.js`
-  and `inkaplan.js`, `app/src/blendplan.js`): BLEND's page, all of it, its
-  heading DACHE, BLEND in coloured pencils, on paper. A first visit BLEND's
-  composition and references, copied, BLEND's own untouched; 💾 SAVE DACHE,
-  the Library opening it here.
+  and `inkaplan.js`, `app/src/blendplan.js`, its `app/src/dacheplan.js`):
+  BLEND's page, all of it, its heading DACHE, BLEND in coloured pencils, on
+  paper. A first visit BLEND's composition and references, copied, BLEND's
+  own untouched; 💾 SAVE DACHE, the Library opening it here, the pencils and
+  the lines in the save. **F**, the frame, in the Tools after B. The deck:
+  TEST · PAUSE, **DRAW** in MARKS' and DRAG's place, STOP · HOME; no Ink
+  row, TEST's dots in pencil. The views **Drag · Result · Modules · Pencil**:
+  Modules every module flat in what its pencils make, Pencil every line 1 mm
+  in its pencil's colour over the paper (both est.), sharp at every zoom.
+  **Pencils**, a block of its own over the composition's: the box in the
+  run's order — its number in the run, swatch, name, number, brand, its
+  modules and metres, left out, off; ↑ ↓ within its group; a click chooses a
+  pencil for the fields under the box (Name, Number, Colour, Brand, Light,
+  In the box, Delete), a second shows its pass alone on Modules and Pencil;
+  **+ Pencil**. **Lines**: Along · Across · Cross; **Stroke** 1 … 4 lines,
+  **Coats** 1 … 4, **Shortest module** 1 … 30 mm (4), **Pencil speed** 5 …
+  120 mm/s (40, est.). **Frame**: Draw a frame (F) · Whole canvas. The
+  reading under it: pencils, modules, metres, ≈ hours, the left out, the
+  frame, what is est. DRAW asks with the pencils listed in the run's order,
+  to lay out left to right; refused by a `rembrandt.py` from before p-pause.
+  **PROGRESS** bigger on DACHE, the pencil's swatch in it, its name and
+  number: the first, the one drawing, or — blinking — the one to put in.
+  **STOP**: the carriage brakes on its line, the pencil on the paper
+  (p-pause), and asks **▶ Continue drawing · ⌂ Go home**; Esc stops at once.
+  On IMG_1554 in HDay warm, the whole blend: ≈ 130 m of line, 8 pencils,
+  ≈ 3 h (est.). Not run on the machine yet.
 - **Pencils**, after BLEND (2026-10-26; `app/pencils.html`, `PENCILS.md`):
   the owner's “10 pencils — 10 passes”, first tests on A3. BLEND's keys
   and colour placements copied to an independent paper study. A finite,

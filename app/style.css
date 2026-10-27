@@ -766,3 +766,46 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
   body.type .zoombar{height:38px}
   .stage{height:calc(100svh - 92px)}                                                /* the header and the zoom over it, the board on the first screen */
 }
+
+/* ---------- DACHE (2026-10-27): BLEND in coloured pencils, on paper ----------
+   DRAW in MARKS' and DRAG's place, no cup; the pencil box; the yellow
+   PROGRESS bigger, the pencil's swatch in it (the owner: "make it bigger and
+   show right there the swatch of the colour being drawn now … for DACHE only,
+   do not touch the other tabs"); STOP's question. */
+[data-tab="dache"] #btnMarks,[data-tab="dache"] #btnDrag,[data-tab="dache"] #inkRow{display:none}
+[data-tab="dache"] .runkeys.deck.passes #btnPencils{grid-column:1/-1}
+[data-tab="dache"] #views .tog{flex:1;padding-left:4px;padding-right:4px}
+[data-tab="dache"] .lcd{padding:12px 14px;font-size:11px}
+[data-tab="dache"] .lcd .bars{height:16px}
+[data-tab="dache"] .lcd-big .u{font-size:18px}
+.lcd-pencil{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin:2px 0 8px}
+.lcd-pencil i{width:46px;height:46px;border-radius:7px;box-shadow:inset 0 0 0 1.5px var(--lcd-ink),0 1px 0 rgba(255,255,255,.5)}
+.lcd-pencil .pn{font-size:16px;letter-spacing:.05em;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lcd-pencil .pk{opacity:.75;white-space:nowrap}
+.lcd-pencil.in .pk{opacity:1;animation:pencilIn 1.2s steps(2) infinite}         /* put it in: blinking, as the LCD's own */
+@keyframes pencilIn{50%{opacity:.25}}
+.pencilbox{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.pencilbox h5{margin:8px 0 2px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.pencilbox .pc{display:grid;grid-template-columns:18px 22px 1fr auto auto;align-items:center;gap:7px;padding:3px 6px;border-radius:6px;cursor:pointer;font-size:12px}
+.pencilbox .pc:hover{background:var(--well)}
+.pencilbox .pc.sel{box-shadow:0 0 0 1.5px var(--orange)}
+.pencilbox .pc.only{background:var(--well)}
+.pencilbox .pc.off{opacity:.5}
+.pencilbox .no{font:11px var(--mono);color:var(--mute);text-align:right}
+.pencilbox .sw{width:22px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.pencilbox .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pencilbox .nm em{font-style:normal;color:var(--mute);font-size:11px}
+.pencilbox .ct{font:11px var(--mono);color:var(--mute);white-space:nowrap}
+.pencilbox .mv{display:flex;gap:2px}
+.pencilbox .mv button{border:0;background:var(--key);box-shadow:var(--raise);border-radius:4px;width:20px;height:20px;padding:0;font-size:11px;color:var(--mute);cursor:pointer}
+.penciledit{margin-top:8px}
+.penciledit .f2{grid-column:1/-1}
+.penciledit input[type=color]{height:28px;padding:2px}
+.penciledit label.ck{flex-direction:row;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:12px;color:var(--ink)}
+.penciledit label.ck input{width:auto}
+.ask{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(20,18,15,.38)}
+.ask[hidden]{display:none}
+.askbox{background:var(--card,#F7F5F1);border-radius:14px;padding:18px 20px;width:min(380px,calc(100vw - 32px));box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.askbox h3{margin:0 0 6px;font-size:13px;letter-spacing:.12em}
+.askbox p{margin:0 0 6px;font-size:13px}
+.askbox .btn{padding:14px 8px;font-size:13px;font-weight:600}
