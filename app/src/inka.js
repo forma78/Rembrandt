@@ -299,7 +299,7 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil') drawPencils(); else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }
+  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil') drawPencils(); else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }
   if (DACHE) drawFrame();
   if (REF && S.refOpacity > 0) {
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
@@ -315,7 +315,7 @@ function draw() {
   g.restore();
   const hc = homeCorner(), home = { x: hc.x - h.x, y: hc.y - h.y }, hX = msx(home), hY = msy(home);
   g.strokeStyle = ink; g.lineWidth = 1.2; g.strokeRect(hX - 4, hY - 4, 8, 8); g.fillStyle = ink; g.textAlign = 'left'; g.fillText('home', hX + 8, hY - 6);
-  if (g === ctx && !PLAY) guides();
+  if (g === ctx && !PLAY && !PPLAY) guides();
   drawTrail();
 }
 
@@ -585,8 +585,76 @@ function drawFrame() {
   g.fillText(`frame ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm`, a[0], a[1] - 6);
   g.restore();
 }
-function showPlay() { const b = $('#btnPlay'); b.classList.toggle('on', !!PLAY); b.textContent = PLAY ? '■ Stop playing' : '▶ Play the run'; }
-$('#btnPlay').onclick = play;
+function showPlay() {
+  const b = $('#btnPlay'); b.classList.toggle('on', !!PLAY); b.textContent = PLAY ? '■ Stop playing' : DACHE ? '▶ Play Preview' : '▶ Play the run';
+  if (DACHE) { const q = $('#btnPlayPencil'); q.classList.toggle('on', !!PPLAY); q.textContent = PPLAY ? '■ Stop playing' : '▶ Play Pencil'; }
+}
+$('#btnPlay').onclick = () => { stopPencilPlay(); play(); };
+// ▶ Play Pencil (DACHE; the owner, 2026-10-27: "two buttons in one row, Play
+// Preview and Play Pencil — we need to watch how our picture is drawn in
+// pencil"): DRAW as it will run, pass after pass in the run's order, every
+// line up and down, its coats over again, Cross across — laid on a bitmap of
+// the canvas piece by piece, a piece no longer than PLAY_MM, the pencil's tip
+// a ring in its colour; its pencil, its number and how far in the status
+// line. 6 s and 0.15 ms a mm, 40 s at most; pressed again, it stops; on its
+// end the Pencil view.
+let PPLAY = null;
+const PLAY_MM = 4;
+function playPencil() {
+  if (PPLAY) { stopPencilPlay(); kick(); return; }
+  stopPlay();
+  const D = dachePlan(), list = [];
+  let mm = 0;
+  D.passes.forEach((P, n) => {
+    const pc = pencilOf(P.pencil); if (!pc) return;
+    for (const st of P.strokes) for (const g of st) {                                // long pieces cut, so the tip goes on smoothly
+      const L = lenOf(g), k2 = Math.max(1, Math.ceil(L / PLAY_MM));
+      for (let j = 0; j < k2; j++) {
+        const a = j ? atPiece(g, L * j / k2).p : g.a, b = j === k2 - 1 ? g.b : atPiece(g, L * (j + 1) / k2).p;
+        list.push({ g: g.t === 'L' ? { t: 'L', a, b } : { ...g, a, b }, pc, n, at: (mm += L / k2) });
+      }
+    }
+  });
+  if (!list.length) return;
+  const px = Math.min(k * dpr, PX_MAX / Math.max(S.boardW, S.boardH)), c2 = document.createElement('canvas');
+  c2.width = Math.ceil(S.boardW * px); c2.height = Math.ceil(S.boardH * px);
+  const c = c2.getContext('2d');
+  c.setTransform(px, 0, 0, -px, 0, S.boardH * px); c.fillStyle = GROUND; c.fillRect(0, 0, S.boardW, S.boardH);
+  c.lineWidth = PITCH; c.lineCap = 'butt'; c.lineJoin = 'round';
+  PPLAY = { list, mm, i: 0, c2, c, t0: performance.now(), ms: Math.min(40000, 6000 + mm * 0.15), passes: D.passes.length };
+  if (S.view !== 'pencil') { S.view = 'pencil'; save(); showPanel(); }
+  showPlay();
+  const tick = () => {
+    if (!PPLAY) return;
+    const Q = PPLAY, want = Math.min(Q.mm, (performance.now() - Q.t0) / Q.ms * Q.mm);
+    let pc = null;
+    for (; Q.i < Q.list.length && Q.list[Q.i].at <= want + 1e-9; Q.i++) {
+      const q = Q.list[Q.i];
+      if (q.pc !== pc) { pc = q.pc; c.globalCompositeOperation = pc.light ? 'source-over' : 'multiply'; c.globalAlpha = pc.light ? LIGHT_OVER : COVER; c.strokeStyle = pc.hex; }
+      trace(c, [q.g]); c.stroke();
+    }
+    const q = Q.list[Math.max(0, Q.i - 1)];
+    $('#hint').textContent = `Play Pencil · ${q.n + 1}/${Q.passes} ${q.pc.name}${q.pc.code ? ` ${q.pc.code}` : ''} · ${Math.round(want / Q.mm * 100)} % · ${fmt(want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m`;
+    draw();
+    if (Q.i >= Q.list.length) { stopPencilPlay(); kick(); return; }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function stopPencilPlay() { if (!PPLAY) return; PPLAY = null; showPlay(); showPanel(); }
+function drawPencilPlay() {
+  const Q = PPLAY, a = scr([0, S.boardH]);
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(Q.c2, a[0], a[1], S.boardW * k, S.boardH * k);
+  const q = Q.list[Math.max(0, Q.i - 1)];
+  if (q && Q.i) {                                                                    // the pencil's tip: a ring in its colour
+    const p = scr(q.g.b);
+    g.fillStyle = q.pc.hex; g.strokeStyle = '#24221F'; g.lineWidth = 1.5;
+    g.beginPath(); g.arc(p[0], p[1], 5, 0, 7); g.fill(); g.stroke();
+  }
+  g.restore();
+}
+if (DACHE) $('#btnPlayPencil').onclick = playPencil;
 
 // The guides: every tile's outline, the chosen one orange with its eight
 // handles; its number and step; its size while it is drawn or stretched. A
@@ -792,6 +860,7 @@ cv.addEventListener('pointerdown', e => {
   if (e.pointerType !== 'mouse') showTip(e);
   if (e.button !== 0) return;
   if (PLAY) { stopPlay(); kick(); }
+  if (PPLAY) { stopPencilPlay(); kick(); }
   const p = toMm(e);
   if (S.tool === 'paint') { grab = { kind: 'paint', from: p, to: p, moved: false }; cv.setPointerCapture(e.pointerId); return; }
   if (S.tool === 'knife') { grab = { kind: 'knife', pts: [p], hit: nodeAt(e) }; cv.setPointerCapture(e.pointerId); kick(); return; }   // K: a line drawn across the nodes
@@ -1423,7 +1492,7 @@ const densityText = () => `${S.density} % · full ≈ ${fmt(reachAt(S.density).f
 $('#slPaint').innerHTML = `<label class="sl" title="The paint in a sausage: at 50 % the measured one — the line full 70 mm, then fading (TAPE-colors/IMAGE 2026-10-12 19:23:33); twice as much every 25 % (the Result; est.)"><span class="slh"><span>Density</span><span class="val" id="o-dens"></span></span><input class="slider" type="range" id="dens" min="0" max="100" step="1"></label>`;
 $('#dens').oninput = e => { if (!busy) undoPush(); busy = true; S.density = +e.target.value; $('#o-dens').textContent = densityText(); kick(); };
 $('#dens').onchange = () => settle();
-document.querySelectorAll('#views [data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; if (S.view !== 'result') stopPlay(); $('#spokeTip').hidden = true; save(); showPanel(); kick(); });
+document.querySelectorAll('#views [data-view]').forEach(b => b.onclick = () => { S.view = b.dataset.view; if (S.view !== 'result') stopPlay(); stopPencilPlay(); $('#spokeTip').hidden = true; save(); showPanel(); kick(); });
 $('#ink').onchange = e => { S.ink = e.target.checked; settle(); };
 $('#inkOff').onclick = () => { S.ink = false; settle(); };
 $('#inkOn').onclick = () => { S.ink = true; settle(); };

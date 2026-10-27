@@ -1909,7 +1909,11 @@ this section disagree, this section wins: the owner corrected the sketch on
   · Cross; **Coats** 1 … 4, **Shortest module** 0.5 … 30 mm (2), **Pencil
   speed** 5 … 120 mm/s (40, est.); no Stroke since the bands are the
   blend's loops. Pencil draws every module in its pencil and tone, a
-  square doubled. **Frame**: Draw a frame (F) · Whole canvas. The
+  square doubled. **▶ Play Preview · ▶ Play Pencil** in one row (the owner,
+  2026-10-27: "we need to watch how our picture is drawn in pencil"): Play
+  Pencil lays DRAW as it will run, pass after pass, every line up and down,
+  its coats over again, the pencil's tip a ring in its colour, its pencil
+  and how far in the status line; 6 s and 0.15 ms a mm, 40 s at most. **Frame**: Draw a frame (F) · Whole canvas. The
   reading under it: pencils, modules, metres, ≈ hours, the left out, the
   frame, what is est. DRAW asks with the pencils listed in the run's order,
   to lay out left to right; refused by a `rembrandt.py` from before p-pause.

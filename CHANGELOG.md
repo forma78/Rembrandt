@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **DACHE: ▶ Play Preview · ▶ Play Pencil, one row** (the owner, 2026-10-27:
+  "much better! Let's put two Play the run buttons in one row — Play Preview
+  and Play Pencil. We need to watch how our picture is drawn in pencil").
+  Play Pencil lays DRAW's passes in the run's order on a bitmap of the
+  canvas, every piece of every stroke — the lines up and down, the coats
+  back over them, Cross across — no longer than 4 mm a step, multiplied in
+  at COVER, white over; the tip a ring in the pencil's colour; the status
+  line its pencil, number of passes, percent and metres. 6 s and 0.15 ms a
+  mm, 40 s at most; pressed again, a view chosen or a click on the canvas,
+  it stops; on its end the Pencil view. Play Preview, the old Play the run.
+
 - **DACHE after Preview: every line its own colour, the bands the blend's
   loops, the sausages' squares, darker and lighter pencils** (the owner,
   2026-10-27, Screenshots 12.24.10 and 12.36.17 PM: "I cannot accept this

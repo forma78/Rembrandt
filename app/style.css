@@ -775,6 +775,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
    font sizes"); the hours in h and min; STOP's question. */
 [data-tab="dache"] #btnMarks,[data-tab="dache"] #btnDrag,[data-tab="dache"] #inkRow{display:none}
 [data-tab="dache"] .runkeys.deck.passes #btnPencils{grid-column:1/-1}
+[data-tab="dache"] #btnPlay{grid-column:auto}                                    /* Play Preview · Play Pencil, one row */
 [data-tab="dache"] #views .tog{flex:1;padding-left:4px;padding-right:4px}
 .lcd-times .hm{display:flex;align-items:flex-end;gap:3px}                    /* DACHE: 4 h 59 min */
 .lcd-times .tu{font-size:9px;margin-right:3px}
