@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **p-pause, the pencil's pause, in the runner** (the owner, 2026-10-27, for
+  DACHE: "the pencil has to be changed, its tip resting on the paper, not
+  going in the air"; "it can be split … or keep pause as it is, and p-pause
+  a new kind for the pencil"; "p-pause is better"). A block of kind
+  `p-pause`, and POST `/run/p-pause`: Pause as ever — a pass brakes on its
+  line, the rest goes on from there — but nothing lifted and nothing put
+  back, the new pencil in the holder with its tip on the paper. The brush's
+  pause, `/run/pause`, as it was. The journal marks the pencil's pauses.
+  `rembrandt.py` takes it after a restart.
+
 - **DACHE, a new tab after BLEND: BLEND in coloured pencils, on paper** (the
   owner, 2026-10-27, `DACHE/`: "we will create the tab DACHE and move all
   the functions of BLEND there"; "I will not squeeze paint on the canvas, I

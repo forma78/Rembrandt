@@ -465,6 +465,52 @@ class PauseTest(unittest.TestCase):
         self.assertEqual(r.state, "stopped")
         self.assertEqual(b.log[-1], "K")
 
+    def test_the_pencils_pause_brakes_on_the_line_and_leaves_the_pencil_on_the_paper(self):
+        # DACHE (the owner, 2026-10-27): Pause to sharpen a pencil, the tip left on the paper
+        b = FakeBoard(rate=1)
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2)
+        ticks = {"n": 0, "done": False}
+        def later():
+            ticks["n"] += 1
+            if ticks["n"] == 4:
+                self.assertTrue(r.pause(pencil=True))
+            if r.state == "paused" and not ticks["done"]:
+                ticks["done"] = True
+                r.resume()
+        b.on_sleep = later
+        r.start([arm(False), paint(12), arm(True)])
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        i = b.log.index("S")
+        self.assertEqual(b.log.count(OFF), 1, "lifted only at the end")
+        self.assertEqual(b.log.count(ON), 1, "never put down again")
+        after = [c for c in b.log[i:] if c.startswith("L")]
+        self.assertEqual(after[-1], "L 12.00 50.00")                    # the pass is finished from where it braked
+        self.assertEqual(r.status()["percent"], 100.0)
+
+    def test_a_p_pause_block_waits_with_the_pencil_down_and_a_pause_after_it_lifts_again(self):
+        # DACHE: at a colour's end the pencil stays on the paper to be changed;
+        # the brush's pause later in the run lifts as ever
+        b, got = FakeBoard(rate=1), []
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2, log=got.append)
+        def later():
+            if r.state == "paused":
+                r.resume()
+        b.on_sleep = later
+        why = "Pencil 2 · Orange: in the holder, its tip on the paper, then Continue"
+        r.start([arm(False), paint(3), {"kind": "p-pause", "why": why}, arm(True), travel(30, 20), arm(False), paint(3),
+                 {"kind": "pause", "why": "the brush's"}, paint(3), arm(True)])
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        seg = b.log[b.log.index("L 3.00 50.00"):b.log.index("M 30 20")]
+        self.assertEqual(seg.count(OFF), 1, "only the next colour's own lift: the p-pause lifted nothing")
+        self.assertNotIn(ON, seg, "and put nothing back")
+        self.assertEqual([e["event"] for e in got], ["start", "pause", "continue", "pause", "continue", "done"])
+        self.assertEqual((got[1]["why"], got[1].get("pencil")), (why, True))
+        self.assertNotIn("pencil", got[3])
+        second = [j for j, c in enumerate(b.log) if c == "L 3.00 50.00"][1]
+        self.assertEqual(b.log[second + 1:second + 4], ["G", OFF, ON], "the brush's pause: off the canvas, and back")
+
     def test_continue_only_when_paused_and_no_new_start_meanwhile(self):
         r = Runner(FakeBoard().send)
         self.assertFalse(r.resume())

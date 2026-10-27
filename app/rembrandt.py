@@ -25,7 +25,8 @@ bridge.py of the old machine repo held it on port 8765.
 - /run: the runner (class Runner) — GET is its state; POST starts the machine
   blocks of job.json, or the blocks in its body (a calibration run); POST /run/stop brakes along the path, /run/kill stops at
   once; /run/pause and /run/continue pause a run and go on from the same point — a block marked
-  pauseAtEnd (ALU's DRAG) runs to its end first. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
+  pauseAtEnd (ALU's DRAG) runs to its end first; /run/p-pause, and a block of kind p-pause, the
+  pencil's pause (DACHE, 2026-10-27): the same, the pencil left on the paper. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
   (../firmware/CNCDM-001) fails a start on the first path command, and
@@ -693,6 +694,7 @@ class Runner:
         self.lift = 0                    # the elbow's last angle with the brush on: Continue puts it back
         self._stop = None                # None, "S" or "K"
         self._pause = False              # Pause asked for; Continue clears it
+        self._pencil = False             # that pause the pencil's, p-pause: nothing lifted (DACHE, 2026-10-27)
 
     def status(self):
         with self.lock:
@@ -736,7 +738,7 @@ class Runner:
                 return False, "already running"
             self.blocks, self.block, self.painted = list(blocks), 0, 0.0
             self.paint_total = sum(b.get("paintMM") or 0 for b in blocks if b.get("kind") == "move")
-            self.state, self.message, self._stop, self._pause = "running", "", None, False
+            self.state, self.message, self._stop, self._pause, self._pencil = "running", "", None, False, False
             self.started = time.time()
         self.log({"event": "start", "blocks": len(self.blocks), "paint_mm": round(self.paint_total, 1),
                   **(note if isinstance(note, dict) else {})})
@@ -768,15 +770,19 @@ class Runner:
                     self._stop = "K" if hard else "S"
                 self.state = "stopping"
 
-    def pause(self):
+    def pause(self, pencil=False):
         # Pause (the owner, 2026-09-28: a pencil gone blunt, to be sharpened
         # without starting the job over). On a pass the carriage brakes on
         # its line and the brush leaves the canvas; elsewhere the step in
         # hand ends first. STOP and HARD STOP work while paused.
+        # pencil, p-pause (DACHE, the owner, 2026-10-27: "the pencil has to be
+        # changed, its tip resting on the paper, not going in the air"; "p-pause
+        # is better"): the same, but nothing lifted — the new pencil goes into
+        # the holder with its tip on the paper, at the right height.
         with self.lock:
             if self.state != "running":
                 return False
-            self._pause, self.state = True, "pausing"
+            self._pause, self._pencil, self.state = True, pencil, "pausing"
         return True
 
     def resume(self):
@@ -818,9 +824,9 @@ class Runner:
                     self._joint(b)
                 elif b["kind"] == "wait":
                     self._wait(float(b["s"]))     # the axes still, the arm where it is; pinging, so STOP still gets through
-                elif b["kind"] == "pause":
+                elif b["kind"] in ("pause", "p-pause"):
                     with self.lock:
-                        self._pause, self.message = True, b.get("why") or "paused"
+                        self._pause, self._pencil, self.message = True, b["kind"] == "p-pause", b.get("why") or "paused"
                     if not self._hold():
                         break
                     with self.lock:
@@ -1062,19 +1068,21 @@ class Runner:
     def _hold(self):
         # Paused: the brush off the canvas, the motors still, the watchdog fed
         # by the pings. Continue puts the brush back as it was, tilted too.
-        was_on, lift = self.brush_on, self.lift
+        # The pencil's pause lifts nothing and puts nothing back.
+        was_on, lift = self.brush_on and not self._pencil, self.lift
         if was_on:
             self._arm(f"J 2 {BRUSH_UP_DEG}")
         with self.lock:
             if self._pause and not self._stop:
                 self.state = "paused"
             why = self.message or "Pause"
-        self.log({"event": "pause", "why": why, "block": self.block})
+        self.log({"event": "pause", "why": why, "block": self.block, **({"pencil": True} if self._pencil else {})})
         while self._pause and not self._stop:
             self.sleep(0.2)
             self._ping()
         if self._stop:
             return False
+        self._pencil = False
         self.log({"event": "continue", "block": self.block})
         if was_on:
             self._arm(f"J 2 {lift:g}")
@@ -1423,8 +1431,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(200, RUNNER.stop())
         if path == "/run/kill":
             return self.reply(200, RUNNER.stop(hard=True))
-        if path in ("/run/pause", "/run/continue"):
-            ok = RUNNER.pause() if path == "/run/pause" else RUNNER.resume()
+        if path in ("/run/pause", "/run/p-pause", "/run/continue"):
+            ok = RUNNER.resume() if path == "/run/continue" else RUNNER.pause(pencil=path == "/run/p-pause")
             return self.reply(200 if ok else 409, "ok" if ok else f"not now: the runner is {RUNNER.state}")
         if path in ("/shutdown", "/restore"):
             ok, msg, park = PARK.shut_down(RUNNER) if path == "/shutdown" else PARK.restore()
