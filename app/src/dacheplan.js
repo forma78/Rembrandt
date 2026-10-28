@@ -522,8 +522,13 @@ export const changeWhy = (pencils, passes, k) => {
 };
 // plotRun's blocks with the pencil changes: before the first row, the pencil
 // down over its start for the first one to go in; after the last row of every
-// pass, where the pencil stands on the paper, before it lifts — p-pause
-export function withChanges(blocks, D, pencils, passes) {
+// pass, where the pencil stands on the paper, before it lifts — p-pause. Every
+// pencil goes in with the elbow at the same pose, o.at (0° at first), its tip
+// on the paper: o.press, a pass pressed below it (PRISMA's and OPM's
+// Pressure, -1.4°), comes back up to it first, or the next pencil went in
+// pressed and drew with no pressure at all (2026-10-27, the night of OPM)
+export function withChanges(blocks, D, pencils, passes, o = {}) {
+  const IN = `J 2 ${o.at ?? 0}`;
   const firstRow = new Map(), lastRow = new Map();
   D.info.forEach((q, i) => { if (!firstRow.has(q.pass)) firstRow.set(q.pass, i + 1); lastRow.set(q.pass, i + 1); });
   const out = [], start = firstRow.get(0);
@@ -532,12 +537,12 @@ export function withChanges(blocks, D, pencils, passes) {
     const next = blocks[i + 1];
     if (b.kind === 'arm' && /^J 2 /.test(b.cmd) && blocks[i - 1]?.kind === 'move' && /^F /.test(blocks[i - 1].cmds[0])) {   // a row's lift, after its drawing move — not the hover after a travel
       const k = [...lastRow].find(([, r]) => r === b.row)?.[0];
-      if (k !== undefined && k + 1 < passes.length && blocks[i - 1].row === b.row) out.push({ kind: 'p-pause', why: changeWhy(pencils, passes, k + 1), row: b.row, pencil: passes[k + 1].pencil });
+      if (k !== undefined && k + 1 < passes.length && blocks[i - 1].row === b.row) out.push(...(o.press ? [{ kind: 'arm', cmd: IN, row: b.row }] : []), { kind: 'p-pause', why: changeWhy(pencils, passes, k + 1), row: b.row, pencil: passes[k + 1].pencil });
     }
     out.push(b);
     if (!begun && b.kind === 'move' && b.row === start && /^T /.test(b.cmds[0]) && next) {   // over the first module's start: down, the first pencil in
       begun = true;
-      out.push({ kind: 'arm', cmd: 'J 2 0', row: start }, { kind: 'p-pause', why: changeWhy(pencils, passes, 0), row: start, pencil: passes[0].pencil });
+      out.push({ kind: 'arm', cmd: IN, row: start }, { kind: 'p-pause', why: changeWhy(pencils, passes, 0), row: start, pencil: passes[0].pencil });
     }
   });
   return out;

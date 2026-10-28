@@ -10,7 +10,7 @@
 // tab of this browser. No document (node, the tests): the list only.
 (function () {
   const TABS = [
-    ['index.html', 'INKA', true], ['stjohn.html', 'ST-JOHN', true], ['blend.html', 'BLEND', true], ['dache.html', 'DACHE', true], ['caran.html', 'CARAN', true], ['prisma.html', 'PRISMA', true], ['opm.html', 'OPM', true],
+    ['index.html', 'INKA', true], ['stjohn.html', 'ST-JOHN', true], ['blend.html', 'BLEND', true], ['dache.html', 'DACHE', true], ['prisma.html', 'PRISMA', true], ['opm.html', 'OPM', true], ['opmb.html', 'OPM-B', true], ['opms.html', 'OPM-S', true],
     ['alucut.html', 'ALU-CUT', true], ['ccd.html', 'CCD', true], ['bias.html', 'BIAS', false], ['alu.html', 'ALU', false], ['smkn.html', 'SMKN', false],
     ['tape.html', 'TAPE', false], ['basf.html', 'BASF', false], ['loom.html', 'LOOM', false], ['nolan.html', 'NOLAN', false], ['newyuri.html', 'New Yuri', false],
     ['type.html', 'TYPE', false], ['love.html', 'LOVE', false], ['pencils.html', 'Pencils', false], ['test.html', 'Test', false], ['job.html', 'Job', false],

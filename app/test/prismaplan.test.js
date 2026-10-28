@@ -174,6 +174,8 @@ test('the pencil pressed and gliding: drawn at Pressure, from stroke to stroke a
   assert.ok(W.length > 100 && W.every(v => v >= -1.4 - 1e-9 && v <= -0.1 + 1e-9), `the elbow on the way between −1.4° and −0.1°: ${Math.min(...W)} … ${Math.max(...W)}`);
   assert.ok(W.includes(-1.4) && W.includes(-0.1));
   assert.ok(run.blocks.some(b => b.kind === 'arm' && b.cmd === 'J 2 -0.1'), 'it comes down to the paper, the carriage standing');
+  const B = withChanges(run.blocks, R, P, S, { press: -1.4 }), pp = B.filter(b => b.kind === 'p-pause');
+  assert.ok(pp.length === S.length && pp.every(b => { const i = B.indexOf(b); return B[i - 1].kind === 'arm' && B[i - 1].cmd === 'J 2 0'; }), 'every pencil in at 0°, the pressed one back up to it first');
 });
 
 test('a ray\'s pieces: K lines PITCH apart, the next back, a mm across at the ends', () => {

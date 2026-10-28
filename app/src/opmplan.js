@@ -21,7 +21,7 @@
 //
 // mm from the canvas's bottom left corner, x right, y up. No DOM.
 
-import { regionsOf, shapeAt, pointOn, pieceLength, bandsOf, widthOn, cleanPencils, LEAST_MM, LEAST_SHARE } from './dacheplan.js';
+import { regionsOf, shapeAt, pointOn, pieceLength, lineOn, bandsOf, widthOn, cleanPencils, lightnessOf, LEAST_MM, LEAST_SHARE } from './dacheplan.js';
 import { sausagesOf } from './inkaplan.js';
 import { SAUSAGE_W } from './ccdplan.js';
 import { nearestOf, tOf, PRISMA_PENCILS } from './prismaplan.js';
@@ -35,6 +35,14 @@ const CUT_EPS = 0.3;               // mm: two cuts closer, one
 const SAMPLE = 1;                  // mm, the Preview read in a cell on a grid so fine
 export const MIN_ROW = 2.5;        // mm, a row of cells across a band so thick at least: a narrow side's loops together (est.)
 export const MIN_W = 1.2;          // mm, a cell thinner (twice its area over its outline) goes in with its neighbour once: a sliver between two cuts
+// OPM-B's, the cells bigger (the owner, 2026-10-28, OPM on paper: "I cannot draw such thin lines with a
+// pencil — the rectangles bigger, there is no white left inside for the paint"; "the rays come out as dots,
+// a brush cannot get into them: wider, the rings round them pressed a little"): o.minRow, o.stripW, o.minW.
+// OPM's own, its outer rim alone, Key 1 · A's band (the owner, the same night, OPM and OPM-B side by side,
+// Screenshot 1.37.23 AM: "back to OPM, and take from OPM-B only the rim of Key 1 · A"): o.rim { minRow,
+// stripW, minW } there, OPM's sizes everywhere else
+const isRim = R => R.kind === 'blend' && R.key === 0;
+const sizeOf = (o, R, k) => (o.rim && isRim(R) ? o.rim : o)[k];
 
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], add = (a, b) => [a[0] + b[0], a[1] + b[1]], mul = (a, k) => [a[0] * k, a[1] * k];
 const len = v => Math.hypot(v[0], v[1]), unit = v => { const l = len(v) || 1; return [v[0] / l, v[1] / l]; };
@@ -85,10 +93,10 @@ function uOn(o, d, P0, P1) {
 // — a side by its width, a corner as the narrower side it runs into (a
 // sheared corner's band thins to that side's, OPM/opm-cells.png's top right)
 // — t's from 0 to 1
-function rowsOf(R, p) {
+function rowsOf(R, p, minRow = MIN_ROW) {
   const nb = bandsOf(R);
   const w = p % 2 === 0 ? widthOn(R, p, 0, 1) : Math.min(widthOn(R, (p + 7) % 8, 0, 1), widthOn(R, (p + 1) % 8, 0, 1));
-  const rows = Math.max(1, Math.min(nb, Math.floor(nb / Math.max(1, Math.ceil(MIN_ROW / Math.max(1e-6, w / nb))))));
+  const rows = Math.max(1, Math.min(nb, Math.floor(nb / Math.max(1, Math.ceil(minRow / Math.max(1e-6, w / nb))))));
   return Array.from({ length: rows + 1 }, (_, i) => Math.round(i * nb / rows) / nb);
 }
 // the sausages' strips on every side: { 'reg:p': [{ a, u, n, t0, t1 }] }, t0 … t1 the bands they cross
@@ -106,12 +114,12 @@ function stripsOf(rects, regions) {
   return out;
 }
 // the cuts across a side's row from A (t0) to B (t1): [{ uA, uB }], u along A's side and B's, no two the same, never crossing
-function cutsIn(R, p, A, B, t0, t1, strips) {
+function cutsIn(R, p, A, B, t0, t1, strips, W = SAUSAGE_W) {
   const PA = [pointOn(A, p, 0), pointOn(A, p, 1)], PB = [pointOn(B, p, 0), pointOn(B, p, 1)], lA = len(sub(...PA)), lB = len(sub(...PB)), list = [];
   for (const q of strips) {
     if (q.t1 <= t0 + 1e-9 || q.t0 >= t1 - 1e-9) continue;
     for (const k of [-0.5, 0.5]) {
-      const o = add(q.a, mul(q.n, k * SAUSAGE_W)), uA = uOn(o, q.u, ...PA), uB = uOn(o, q.u, ...PB);
+      const o = add(q.a, mul(q.n, k * W)), uA = uOn(o, q.u, ...PA), uB = uOn(o, q.u, ...PB);
       if (uA === null || uB === null || uA < -0.02 || uA > 1.02 || uB < -0.02 || uB > 1.02) continue;
       list.push({ uA: Math.max(0, Math.min(1, uA)), uB: Math.max(0, Math.min(1, uB)) });
     }
@@ -132,8 +140,8 @@ function cutsIn(R, p, A, B, t0, t1, strips) {
 export function cellsOf(rects, o = {}) {
   const regions = regionsOf(rects, o), strips = stripsOf(rects, regions), breaks = new Map(), plan = [];
   const brk = (s, p, u) => { const k = lineKey(s, p); (breaks.get(k) ?? breaks.set(k, new Set([0, 1])).get(k)).add(u); };
-  regions.forEach((R, reg) => { for (let p = 0; p < 8; p++) { const ts = rowsOf(R, p); for (let j = 0; j + 1 < ts.length; j++) {
-    const A = shapeAt(R, ts[j]), B = shapeAt(R, ts[j + 1]), cuts = p % 2 ? [] : cutsIn(R, p, A, B, ts[j], ts[j + 1], strips[`${reg}:${p}`] ?? []);
+  regions.forEach((R, reg) => { for (let p = 0; p < 8; p++) { const ts = rowsOf(R, p, sizeOf(o, R, 'minRow')); for (let j = 0; j + 1 < ts.length; j++) {
+    const A = shapeAt(R, ts[j]), B = shapeAt(R, ts[j + 1]), cuts = p % 2 ? [] : cutsIn(R, p, A, B, ts[j], ts[j + 1], strips[`${reg}:${p}`] ?? [], sizeOf(o, R, 'stripW'));
     for (const c of cuts) { brk(A, p, c.uA); brk(B, p, c.uB); }
     plan.push({ reg, row: j, p, A, B, cuts });
   } } });
@@ -161,7 +169,7 @@ export function cellsOf(rects, o = {}) {
 // A sliver of a cell — two cuts close — into its neighbour, the one it
 // shares the most edge with, once.
 // → cells, every one a polygon (the union's outline), its parts' cells
-function thickened(cells) {
+function thickened(cells, minWOf = () => MIN_W) {
   const up = cells.map((_, i) => i), find = i => up[i] === i ? i : (up[i] = find(up[i]));
   const ek = (a, b) => `${keyOf(a)}>${keyOf(b)}`, owner = new Map(), E = cells.map(c => c.poly.map((p, j) => [p, c.poly[(j + 1) % c.poly.length]]));
   E.forEach((es, i) => es.forEach(([a, b]) => owner.set(ek(a, b), i)));
@@ -170,7 +178,7 @@ function thickened(cells) {
     let moved = false;
     const shared = new Map();                                                           // a group's boundary length with each neighbour
     E.forEach((es, i) => { const gi = find(i); for (const [a, b] of es) { const j = owner.get(ek(b, a)); if (j === undefined) continue; const gj = find(j); if (gj === gi) continue; const m = shared.get(gi) ?? shared.set(gi, new Map()).get(gi); m.set(gj, (m.get(gj) ?? 0) + len(sub(b, a))); } });
-    const thin = [...shared.keys()].filter(g => 2 * area[g] / per[g] < MIN_W).sort((a, b) => 2 * area[a] / per[a] - 2 * area[b] / per[b]);
+    const thin = [...shared.keys()].filter(g => 2 * area[g] / per[g] < (minWOf(cells[g]) ?? MIN_W)).sort((a, b) => 2 * area[a] / per[a] - 2 * area[b] / per[b]);
     for (const g of thin) {
       if (find(g) !== g) continue;
       const m = shared.get(g); let best = -1, bl = 0;
@@ -296,19 +304,20 @@ function loopsOf(cells, merge) {
 }
 
 // ---------- the plan ----------
-// o: { pencils, corner, frame, merge, inset, round } → { regions, cells (every
+// o: { pencils, corner, frame, merge, inset, round, minRow, stripW, minW, rim } → { regions, cells (every
 // one its pencil), areas, modules: a contour each { kind: 'cell', pencil,
 // pieces, mm }, few, lost: cells too narrow for a contour }
 export function opmPlan(rects, res, o = {}) {
-  const pencils = o.pencils ?? cleanPencils(PRISMA_PENCILS), F = o.frame, { regions, cells: all } = cellsOf(rects, o);
+  const pencils = o.pencils ?? cleanPencils(PRISMA_PENCILS), F = o.frame, { regions, cells: all } = cellsOf(rects, o), minWOf = c => sizeOf(o, regions[c.reg], 'minW');
   const inF = P => { if (!F) return true; const c = P.reduce((a, p) => add(a, mul(p, 1 / P.length)), [0, 0]); return c[0] >= F.x0 && c[0] <= F.x1 && c[1] >= F.y0 && c[1] <= F.y1; };
-  const cells = thickened(all).filter(c => inF(c.poly)).map(c => ({ ...c, lin: meanIn(res, c.poly) }));
+  const cells = thickened(all, minWOf).filter(c => inF(c.poly)).map(c => ({ ...c, lin: meanIn(res, c.poly) }));
   const once = ps => {
     const near = nearestOf(ps, -Infinity), mine = cells.map(c => ({ ...c, pencil: c.lin ? near(c.lin) : null })), drawn = mine.filter(c => c.pencil);   // never the canvas's own: the whole of it painted (the owner, 2026-10-27), next to white the lightest pencil
     const areas = loopsOf(drawn, !!o.merge), modules = [];
     let lost = 0;
+    const d = o.inset ?? INSET;                                                         // 0: on the cell's own edge, its neighbour's line its own (OPM-S, 2026-10-28)
     for (const A of areas) for (const L of A.loops) {
-      const Q = L.length >= 3 && insetOf(L, o.inset ?? INSET);
+      const Q = L.length >= 3 && (d > 0 ? insetOf(L, d) : L);
       if (!Q) { lost++; continue; }
       const pieces = roundedOf(Q, o.round ?? ROUND);
       modules.push({ kind: 'cell', pencil: A.pencil, pieces, mm: pieces.reduce((s, g) => s + pieceLenOf(g), 0) });
@@ -322,3 +331,21 @@ export function opmPlan(rects, res, o = {}) {
   return { ...once(pencils.map(p => few.includes(p.id) ? { ...p, on: false } : p)), few, rings: [], rays: [] };
 }
 const pieceLenOf = g => g.t === 'L' ? len(sub(g.b, g.a)) : g.r * Math.abs(Math.atan2(cross(sub(g.a, g.c), sub(g.b, g.c)), dot(sub(g.a, g.c), sub(g.b, g.c))));
+
+// ---------- OPM-S: FRAME and DRAW BW (the owner, 2026-10-28) ----------
+// FRAME, "only the outer big frame, so that I can lay the canvas perfectly
+// straight; only after this we draw with the pencils": the picture's outer
+// contour alone — every blend's Key 1 · A, a tile's own box — on its line,
+// its corners as they are, a closed stroke. → modules as opmPlan's, o.pencil
+// theirs
+export function outerOf(rects, o = {}) {
+  return regionsOf(rects, o).filter(R => R.key === 0).map(R => {
+    const pieces = [0, 1, 2, 3, 4, 5, 6, 7].map(p => lineOn(R.a, p, 0, 1)).filter(g => pieceLenOf(g) > 1e-6);
+    return { kind: 'cell', pencil: o.pencil ?? null, pieces, mm: pieces.reduce((s, g) => s + pieceLenOf(g), 0) };
+  }).filter(M => M.pieces.length >= 2);
+}
+// DRAW BW, "without a change of pencils, at once": every contour in one
+// pencil, the one in the box that shows best on the ground, its lightness
+// the farthest from the ground's — on the white the darkest, on black the
+// lightest (the owner, 2026-10-28: "on a black background"); FRAME's too
+export const boldestOf = (pencils, ground = '#FBFAF7') => { const L = lightnessOf(ground), far = p => Math.abs(lightnessOf(p.hex) - L); return pencils.filter(p => p.on !== false).reduce((a, p) => !a || far(p) > far(a) ? p : a, null); };

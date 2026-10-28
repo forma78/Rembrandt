@@ -5,6 +5,165 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.0 — 2026-10-26 · Blend
 
+- **OPM-S: the ground, in a second column of the Tools** (the owner,
+  2026-10-28, Screenshot 8.25.31 PM: "how do you like the idea of making
+  it on a black background (choosing the background in general)? In
+  TOOLS again, but in a second row. A choice of background, white by
+  default, but any colour may be set"). The Tools in two columns on
+  OPM-S: the drawing tools; Align and GROUND — White, Black, and a chip
+  for any colour. Preview, Contour, Paint and both Plays show it; Drag
+  stays on the white, its lines drawn for it. The pencils and the cells
+  as they were: they go by the Preview on the white, so a new ground
+  re-lays nothing. DRAW BW and FRAME take the pencil that shows best on
+  it, its lightness the farthest from the ground's — the darkest on the
+  white, as before, the lightest on black (`boldestOf`, opmplan.js).
+- **OPM-S: a new palette shows in Paint** (the owner, 2026-10-28: "when
+  I work with PAINTS, Figure 1, New colours / Inka, the screen goes to
+  Preview by itself … for OPM-S, when I choose a colour, as the palette
+  changes, let the result show as the fourth key, Paint"). New colours,
+  New spokes, the palettes (Inka …) and the reference's OK go to Paint on
+  OPM-S, the cells in their pencils' colours; Preview on every other tab.
+- **OPM-S: Align in the Tools** (the owner, 2026-10-28, Screenshot
+  7.17.39 PM, three blends on a 600 × 800: "I need a primitive alignment to
+  the centre, an even distance between three / two figures. In the left
+  vertical menu, TOOLS, please, for OPM-S"). Four keys under the
+  sausages', as Illustrator's: Centre left to right, Centre top to bottom,
+  Even gaps left to right, Even gaps top to bottom — on the figures chosen
+  together (⇧ and a click, ⌘A), or else on all of them. Centre moves their
+  box into the middle of the canvas; figures side by side (one above
+  another) each its own middle on the canvas's, so they line up. Even gaps:
+  the outermost two stay, every gap the same; two figures have one gap, as
+  it is. ⌘Z takes it back; the hint says the mm. `src/align.js`, its tests.
+- **OPM-S: Construction and Drawing machine, two blocks** (the owner,
+  2026-10-28, Screenshot 5.01.58 PM, playing with the settings: "let us
+  separate the construction and adjustment from the drawing machine's
+  functions — two blocks, so that it is clear what is on the screen and
+  what on the canvas"; of DRAW's reading: "all this into an (i) icon").
+  Construction, on the screen: Cells · Merged and the cells' four sliders.
+  Drawing machine, on the canvas: the Rubs, Pencil in at, Pressure, Between
+  strokes, Pencil speed and the frame laid with F; DRAW's numbers under
+  its (i), as Paints' and Canvas'. Shortest stroke gone from OPM-S: PRISMA's
+  rings', it changed nothing there. The Pencils block the box alone.
+
+- **OPM-S: the mosaic pressed together, its corners sharp** (the owner,
+  2026-10-28, after OPM-S's first sheets, OPM/IMAGE 15:21:52 … 15:22:04 and
+  IMG_1678, Screenshot 4.09.27 PM circled in red: "big distances between
+  the cells and rounded corners on the contours — in the colour there are
+  sharp corners everywhere. I would keep the mosaic, many squares and
+  rectangles inside one colour, but press the borders together as far as
+  they go and take the rounding off the corners"). Every contour on its
+  cell's own edge (opmPlan's o.inset 0: no inset, nothing lost), two
+  neighbours one line, its corners sharp (o.round 0). Two sliders under
+  Contours, Contour in from the edge (0 … 1.5 mm) and Corners rounded
+  (0 … 3 mm), est.; OPM and OPM-B 0.7 and 1.5 as they were. The carriage
+  stops at every corner: on IMG_1554's blend on a 200 × 200, 133 contours,
+  38.2 m, ≈ 17.8 min (rounded 33.0 m, ≈ 15.6 min).
+
+- **OPM-S, a third OPM tab after OPM-B: FRAME, DRAW BW and DRAW CLR**
+  (the owner, 2026-10-28, OPM/Screenshot 2.19.43 PM, a 200 × 200: "a third
+  tab, OPM-S (Small) … a second test: next to it a button Frame, it draws
+  only the outer big frame, so that I can lay the canvas perfectly
+  straight; only after this we draw with the pencils … instead of one Draw
+  button two in a row: DRAW BW, without a change of pencils, at once, and
+  DRAW CLR, colour, with the change of pencils as now"; asked, the same
+  day: the picture's outer contour, not the canvas's edges; OPM as it is).
+  OPM's page, all of it. TEST · FRAME · PAUSE: FRAME every blend's Key 1 ·
+  A on its own line (opmplan.js's outerOf), in the darkest pencil in the box
+  (darkestOf, Black), rubbed as its contours, its question how far in from
+  the canvas's four edges it lies. DRAW BW · DRAW CLR: BW every contour
+  CLR draws in that one pencil, one path nearest next, the pencil in once
+  — on the 500 × 700's first visit 698 contours, 142 m, ≈ 1 h 11 min
+  (est.), FRAME 6 m, ≈ 2 min. ELBOW LIVE in all three. Its own keep, a
+  first visit OPM's; SAVE OPM-S, its own Library label; in the top row
+  after OPM-B. rembrandt.py: OPM-B and OPM-S pencil pages too, the elbow
+  resting on the paper as on OPM (OPM-B was left out of it).
+
+- **OPM: OPM-B's cells in the rim of Key 1 · A alone** (the owner,
+  2026-10-28, OPM and OPM-B side by side on a 600 × 600, Screenshot 1.37.23
+  AM: "you made every contour bigger. Back to the old OPM, and take from
+  OPM-B only the rim of Key 1 · A … I tried fewer Steps, the drawing fell
+  apart; I like how it came out after five tries, only the rectangles of
+  Key 1 · A are left to do"). opmplan.js's o.rim: the blend's outer band,
+  from Key 1 · A to Key 2, its rows 6 mm at least, its rays 10 mm, a sliver
+  under 2.5 mm in with its neighbour — Key 2 to the core and the core cell
+  for cell as before. Two sliders on OPM, Key 1 · A: rows at least, Key 1 ·
+  A: rays wide. On his BLEND of 23:47: 2071 contours (2718), ≈ 2 h 13 min
+  at Rubs 4. OPM-B as it was.
+
+- **OPM-B, a new tab after OPM: OPM bigger** (the owner, 2026-10-28, OPM's
+  first contours on paper, "a little victory", OPM/IMAGE 01:04:01 … 05 and
+  Screenshot 1.11.33 AM: "lift the pencil a little, let it go through the
+  air — the lines show a lot"; "the side lines … about 8 rounds? down to
+  four"; "I cannot draw such thin lines with a pencil — the rectangles
+  bigger, there is no white inside for the paint, the strips come out filled";
+  "the rays come out as dots, a brush cannot get into them: wider, the
+  clockwise rims pressed a little, room for the rays"; "a reserve tab — OPM
+  untouched — OPM-B, as big: the 60 × 60 cm canvases come tomorrow").
+  OPM's page, all of it, its plan opmplan.js with o.minRow, o.stripW and
+  o.minW: Rows at least 6 mm (OPM 2.5), Rays wide 10 mm (OPM 5), a sliver
+  under 2.5 mm in with its neighbour (OPM 1.2); four rounds; Between
+  strokes +3° from Pencil in at, the elbow +8° (OPM +1°: the thin lines
+  from contour to contour). On his BLEND of 23:47: 1025 contours, ≈ 1 h 36
+  min at Rubs 4 (OPM 2718, 2 h 45 min). Its own keep, a first visit OPM's
+  (its rounds, lift and cells OPM-B's); SAVE OPM-B; in the top row after
+  OPM. FLIGHTS lifts nothing: Drag's view of the flights only.
+
+- **rembrandt.py: a pencil's elbow may rest on the paper** (2026-10-28,
+  OPM: "J 2 5: the elbow does not get to 5.0°" — it stood at +6.1°, a pencil
+  left in the holder already on the paper above the pose a pencil goes in
+  at; the owner, of that check, the night before: "can this rule be
+  ignored?", and "rembrandt.py may be changed"). On a pencil's run (its
+  page DACHE, PRISMA or OPM) the elbow going down and stopped 10° above
+  where it was sent at most rests on what is under it: the run goes on, the
+  journal says where ("rests") — at the pencil's pause the old one out, the
+  elbow down to its pose. The brush and every other J as before: it gets
+  there or the run stops. Tests: a pencil resting a degree above goes on;
+  the brush, or 18° above, stops.
+
+- **PROGRESS: NEXT over the next pencil** (the owner, 2026-10-28: "next
+  runs into DRAWING 1/18 — next on one line, to the right as STEP 6/100, on
+  the second the dot and SALMON PINK"), on DACHE, PRISMA and OPM.
+
+- **ELBOW LIVE on PRISMA and OPM; rembrandt.py's trim** (the owner,
+  2026-10-28, OPM on the machine, the elbow's degrees on Calibration not
+  as he expected: "isn't it time to think of an elbow adjustment right
+  while it draws? Quicker to pull a slider than to switch the machine off,
+  take a screwdriver, re-set the pencil or put card under the canvas, then
+  DRAW again — +4.2° +5.1° +5.7°, or the other way; set it apart"; "yes,
+  do it, rembrandt.py may be changed"). Under PROGRESS, in the LCD's
+  yellow — then at PROGRESS's foot, before SAVE, a green slider ("before
+  SAVE OPM, and green", Screenshots 12.18.57 and 12.20.01 AM) — the elbow
+  while the pencil draws, as Calibration shows it
+  (Pencil in at and Pressure), ▼ ▲ by 0.1° and a slider. Nothing running,
+  it is Pressure; in a DRAW, from the next stroke on: rembrandt.py adds
+  the change since DRAW to every W 2 it sends (POST /run/trim?deg=, ±6° at
+  most, the elbow within its reach, 0 at every start; never a J — a pencil
+  goes in where it always does), and Pressure keeps it for the next DRAW.
+  Between strokes goes with it. A red dot by its name while it acts on a
+  run, the trim on the LCD's top line, rembrandt.py's own: "LIVE · DRAW
+  +2.7°" (the owner: "we have a screen — just add it there").
+  Pressure −6 … +3° from Pencil in at now, the elbow never under −4.5°.
+  rembrandt.py to be started again once. Tests: the trim on every W 2, its
+  reach, 0 at a start.
+
+- **CARAN taken out** (the owner, 2026-10-27, the night of OPM: "CARAN can
+  go altogether, it is a useless tab now"): its page, plan, worker, styles,
+  test and CARAN.md; its place in the top row and the Library. Kuzya's work,
+  in git's history (8033754). PRISMA after DACHE in the row.
+
+- **PRISMA and OPM: every pencil in at Pencil in at, +5°; Pressure from
+  there** (2026-10-27, the night of OPM, the machine stopping at "J 2 0: the
+  elbow does not get to 0.0°", reloaded, again; the owner: "can this rule be
+  ignored?"). The pencil went in with the holder down at 0°, a move the
+  server checks — something on the surface before it, it never got there.
+  Now every pencil goes in with the elbow at **Pencil in at** (+5°, a
+  slider 0 … 15°, est.), up off the paper or the canvas, its tip let down
+  onto it and tightened there; Pressure and Between strokes count from that
+  pose (−1.4° pressed = +3.6°, +1° between = +6°). At every change the
+  elbow comes back up to it first: the next pencil went in at the pressed
+  pose before and drew with no pressure. The server's check kept: it keeps
+  a servo from pushing into something for good.
+
 - **OPM, a new tab after PRISMA: contours in coloured pencils, the paints by
   hand** (the owner, 2026-10-27, after the rubbed pencil on paper: "rubbed
   like sandpaper the 40 × 40 takes thirty hours — impossible … back to the

@@ -142,6 +142,11 @@
       <!-- Play the run, ALU's (the owner, 2026-10-17: "add the button ■ Stop playing / Play the run, as it is made in ALU") -->
       <!-- Play Preview and Play Pencil, in one row (the owner, 2026-10-27: "we need to watch how our picture is drawn in pencil") -->
       <div class="grid4 keys"><button class="btn" id="btnPlay" title="The Preview laid again in the brush's order, from the squeezed sausages on; pressed again, it stops. A view: it moves nothing on the machine">▶ Play Preview</button><button class="btn" id="btnPlayPencil" title="DRAW as it will run: pencil after pencil in the run's order, round the rings and along the rays; the pencil's tip a ring in its colour, its name and how far in the status line. Pressed again, it stops. A view: it moves nothing on the machine">▶ Play Pencil</button></div>
+      <!-- ELBOW LIVE (the owner, 2026-10-28: "pull a slider while it draws: +4.2° +5.1° +5.7°, or the other way"; "before SAVE OPM, and green", Screenshots 12.18.57 and 12.20.01 AM): the elbow while the pencil draws, as Calibration shows it; in a run, from the next stroke on -->
+      <div class="elbowlive" id="elbowLive">
+        <div class="elh"><span class="elk">Elbow live</span><span class="elv" id="elbowNow">+3.6°</span></div>
+        <div class="elrow"><button class="btn" data-trim="-0.1" title="The pencil 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="elbowSl" step="0.1"><button class="btn" data-trim="0.1" title="The pencil 0.1° higher: less pressure">▲</button></div>
+      </div>
     </section>
 
     <div class="savebar">

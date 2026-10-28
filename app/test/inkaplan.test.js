@@ -183,6 +183,13 @@ test('the Result: the brush drags a tile\'s paint round its rings and on; wiped 
   assert.ok(S.wiped() > 0);
   const img = new Uint8ClampedArray(S.nx * S.ny * 4); S.rgba(img, true);
   assert.ok(img.some((v, i) => i % 4 === 0 && v < 200), 'paint on it');
+  // OPM-S's ground (2026-10-28, "on a black background"): the bare canvas black, the paint where it lay as it was
+  const bare = [...Array(S.N).keys()].filter(c => S.amt[c] < 0.03), full = [...Array(S.N).keys()].filter(c => S.amt[c] >= 1);
+  const dark = new Uint8ClampedArray(img.length); S.rgba(dark, true, [22, 21, 20]);
+  const px = c => 4 * ((S.ny - 1 - Math.floor(c / S.nx)) * S.nx + c % S.nx);
+  assert.ok(bare.length && full.length);
+  assert.ok(bare.every(c => dark[px(c)] === 22 && img[px(c)] === 251), 'the bare canvas the ground given');
+  assert.ok(full.every(c => [0, 1, 2].every(q => dark[px(c) + q] === img[px(c) + q])), 'the paint covering it the same on either');
 });
 
 test('the SVG: a path a figure, lines and arcs', () => {

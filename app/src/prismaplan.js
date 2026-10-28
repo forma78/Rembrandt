@@ -106,7 +106,14 @@ export const RUBS_DARK_NEW = 8, RUBS_LIGHT_NEW = 32, RUBS_MIN = 1, RUBS_MAX = 64
 // the air (OPM/IMAGE 21:47:32 … 21:47:45: −0.1° it touches, next to no
 // trace; −1.4° a pale line; +4.6° just off): degrees, minus down; −5° the
 // elbow's reach (rembrandt.py), the reserve below −3.5 left alone
-export const PRESS_NEW = -1.4, PRESS_MIN = -3.5, PRESS_MAX = 0, GLIDE_NEW = -0.1, GLIDE_MIN = -0.5, GLIDE_MAX = 5;
+export const PRESS_NEW = -1.4, PRESS_MIN = -6, PRESS_MAX = 3;   // from Pencil in at; ELBOW LIVE either way (2026-10-28), the elbow never under ELBOW_MIN
+export const ELBOW_MIN = -4.5;    // the elbow at most so low while it draws: −5° its reach, the rest the reserve (rembrandt.py's REACH)
+export const GLIDE_NEW = -0.1, GLIDE_MIN = -0.5, GLIDE_MAX = 5;
+// the pose every pencil goes in at, its tip on the paper or the canvas: Pressure
+// and Between strokes from it. Up off the surface, so the elbow always gets
+// there (2026-10-27, the night of OPM: "J 2 0: the elbow does not get to
+// 0.0°" — at 0° something already touched; "can this rule be ignored?")
+export const TOUCH_NEW = 5, TOUCH_MIN = 0, TOUCH_MAX = 15;
 const L_DARK = 35, L_LIGHT = 90;                                          // CIELAB L* of the darkest pencil and the lightest, for the rubs between (est.)
 export function rubsOf(pencil, dark = RUBS_DARK_NEW, light = RUBS_LIGHT_NEW) {
   if (!pencil) return 1;

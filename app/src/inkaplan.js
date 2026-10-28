@@ -1421,15 +1421,16 @@ export function simOf(P, rects, o) {
     }
     return i >= T.n;
   }
-  // its cells into rgba, row 0 the canvas's top: all of them, or those changed since
-  function rgba(img, all = false) {
+  // its cells into rgba, row 0 the canvas's top: all of them, or those changed
+  // since; the paint over the ground given, GROUND the white canvas
+  function rgba(img, all = false, ground = GROUND) {
     const list = all ? null : dlist.splice(0);
     const one = c => {
       dirty[c] = 0;
       const ix = c % nx, iy = (c - ix) / nx, p = 4 * ((ny - 1 - iy) * nx + ix), cov = Math.min(1, amt[c]);
-      if (cov < 0.03) { img[p] = GROUND[0]; img[p + 1] = GROUND[1]; img[p + 2] = GROUND[2]; img[p + 3] = 255; return; }
+      if (cov < 0.03) { img[p] = ground[0]; img[p + 1] = ground[1]; img[p + 2] = ground[2]; img[p + 3] = 255; return; }
       const k = 1 + sh[c];
-      for (let q = 0; q < 3; q++) img[p + q] = GROUND[q] + (Math.min(255, toSrgb(Math.exp(lc[3 * c + q])) * 255 * k) - GROUND[q]) * cov;
+      for (let q = 0; q < 3; q++) img[p + q] = ground[q] + (Math.min(255, toSrgb(Math.exp(lc[3 * c + q])) * 255 * k) - ground[q]) * cov;
       img[p + 3] = 255;
     };
     if (all) { for (let c = 0; c < N; c++) one(c); dlist.length = 0; } else for (const c of list) one(c);

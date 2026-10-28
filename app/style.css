@@ -691,16 +691,16 @@ body.type .status{grid-column:1/4;grid-row:4}
 .ccd #rects .none{font-size:12px;color:var(--mute);padding:5px 6px}
 .ccd #rectEdit .grid4{margin-top:8px}
 .ccd #rGap{margin:4px 0 0}
-:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* MARKS · DRAG: Snake · Air; under them Duo Snake · Duo Air (2026-10-13) */
-:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .runkeys.deck.passes.duo #btnDuoSnake{grid-column:2}
+:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* MARKS · DRAG: Snake · Air; under them Duo Snake · Duo Air (2026-10-13) */
+:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .runkeys.deck.passes.duo #btnDuoSnake{grid-column:2}
 [data-tab="bias"] .runkeys.deck.passes:is(.plain,.ninety,.two){grid-template-columns:1fr 1fr}   /* under MARKS · 45: SNAKE PLAIN → · ↑, 90 SNAKE · 90 AIR, BIAS SNAKE · BIAS AIR, each pair the whole width as STOP · HOME (the owner, 2026-10-16) */
 [data-tab="bias"] #modeKeys{display:grid;grid-template-rows:auto auto;grid-auto-flow:column;grid-auto-columns:1fr}   /* the views in pairs: 45 · Plain · 90 · Bias, the snakes over the airs (Plain: → over ↑) */
 [data-tab="bias"] #modeKeys .tog{padding-left:4px;padding-right:4px}
-:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #modeKeys{margin-top:6px}
-:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #modeKeys .tog{font-size:11px}
-:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #metaKeys{margin:8px 0 2px}
-:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .slh input.num{width:66px;padding:2px 4px 2px 7px;font:12px var(--mono);color:var(--ink);text-transform:none;letter-spacing:0;background:#FBFBF9;border:1px solid rgba(0,0,0,.13);border-radius:6px;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}   /* Lanes typed, its arrows step it (2026-10-13) */
-html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .slh input.num{background:#222427;border-color:var(--line)}
+:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #modeKeys{margin-top:6px}
+:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #modeKeys .tog{font-size:11px}
+:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #metaKeys{margin:8px 0 2px}
+:is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .slh input.num{width:66px;padding:2px 4px 2px 7px;font:12px var(--mono);color:var(--ink);text-transform:none;letter-spacing:0;background:#FBFBF9;border:1px solid rgba(0,0,0,.13);border-radius:6px;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}   /* Lanes typed, its arrows step it (2026-10-13) */
+html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .slh input.num{background:#222427;border-color:var(--line)}
 
 /* TAPE (2026-10-12): CCD's page, the first tab; TRACE · Snake · Air on the deck; the colours in the Tools, LOVE's chips */
 .tape .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* TRACE · DRAG: Snake · Air */
@@ -709,35 +709,35 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 .tape #dirKeys{margin-bottom:4px}
 .tape #playRead{margin:6px 0 0}
 .tape #planRead,.tape #planWarn{line-height:1.55}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintstrip{width:78px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(12,auto);grid-template-columns:30px 30px;justify-content:center;align-content:start;column-gap:6px;row-gap:3px;padding:8px 0}   /* the owner's 24 paints, two columns of 12 ("maybe in two rows of 12") */
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip{width:78px;display:grid;grid-auto-flow:column;grid-template-rows:repeat(12,auto);grid-template-columns:30px 30px;justify-content:center;align-content:start;column-gap:6px;row-gap:3px;padding:8px 0}   /* the owner's 24 paints, two columns of 12 ("maybe in two rows of 12") */
 .tape #laneKeys{margin:8px 0 2px}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist{display:flex;flex-wrap:wrap;gap:4px 12px;margin:10px 0 2px;font-size:12px;color:var(--ink)}   /* the paints in use, in sight */
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist:empty{display:none}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .spoke-tip{position:absolute;z-index:3;pointer-events:none;display:flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border-radius:7px;background:var(--panel);color:var(--ink);font:12px/16px var(--sans);white-space:nowrap;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 3px 10px rgba(40,30,20,.18)}   /* the drop's name under the pointer, on Drag */
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .spoke-tip[hidden]{display:none}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .spoke-tip i{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .spoke-tip em{font-style:normal;color:var(--mute)}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl i{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl em{font-style:normal;color:var(--mute);font:11px var(--mono)}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl.none{opacity:.55}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl{position:relative;cursor:pointer;padding:2px 14px 2px 3px;border-radius:5px}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl:hover{background:var(--well)}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl.on{box-shadow:0 0 0 1.5px var(--orange)}                  /* chosen to change: then a paint in the strip */
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl .x{position:absolute;right:2px;top:1px;display:none;font:600 11px var(--mono);color:var(--mute)}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl:hover .x{display:block}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintlist .pl.add{padding:2px 8px;font-weight:600;color:var(--mute)}
-:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintstrip.editing .chip .sw{box-shadow:0 0 0 1px var(--orange)}       /* a paint to pick for the palette */
-:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintstrip{grid-template-rows:repeat(14,auto)}                 /* INKA: his 24 and, under each column, two to buy */
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist{display:flex;flex-wrap:wrap;gap:4px 12px;margin:10px 0 2px;font-size:12px;color:var(--ink)}   /* the paints in use, in sight */
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist:empty{display:none}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .spoke-tip{position:absolute;z-index:3;pointer-events:none;display:flex;align-items:center;gap:6px;padding:4px 9px 4px 6px;border-radius:7px;background:var(--panel);color:var(--ink);font:12px/16px var(--sans);white-space:nowrap;box-shadow:0 0 0 1px rgba(0,0,0,.12),0 3px 10px rgba(40,30,20,.18)}   /* the drop's name under the pointer, on Drag */
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .spoke-tip[hidden]{display:none}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .spoke-tip i{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .spoke-tip em{font-style:normal;color:var(--mute)}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl i{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl em{font-style:normal;color:var(--mute);font:11px var(--mono)}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl.none{opacity:.55}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl{position:relative;cursor:pointer;padding:2px 14px 2px 3px;border-radius:5px}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl:hover{background:var(--well)}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl.on{box-shadow:0 0 0 1.5px var(--orange)}                  /* chosen to change: then a paint in the strip */
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl .x{position:absolute;right:2px;top:1px;display:none;font:600 11px var(--mono);color:var(--mute)}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl:hover .x{display:block}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintlist .pl.add{padding:2px 8px;font-weight:600;color:var(--mute)}
+:is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip.editing .chip .sw{box-shadow:0 0 0 1px var(--orange)}       /* a paint to pick for the palette */
+:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip{grid-template-rows:repeat(14,auto)}                 /* INKA: his 24 and, under each column, two to buy */
 .paintstrip .chip.buy::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#E5203A;box-shadow:0 0 0 1.5px var(--panel);pointer-events:none}   /* • to buy, not in stock yet (the owner, 2026-10-19) */
 .paintlist .buydot{color:#E5203A}
 .tape #metaKeys{margin:8px 0 2px}
 /* INKA (2026-10-17): CCD's page, MARKS · DRAG a pair, Play the run under the views, the palette keys two rows */
-:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .runkeys.deck.passes{grid-template-columns:1fr 1fr}
-:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #btnPlay{grid-column:1/-1}
-:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #inkaKeys{margin:4px 0 2px}
-:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #views + .grid4.keys{margin-top:8px}
-:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #rects .bang{color:#E5203A;font-weight:700}   /* a tile marked !: its nodes both in its middle, or both on its edge (the owner, 2026-10-17) */
+:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .runkeys.deck.passes{grid-template-columns:1fr 1fr}
+:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #btnPlay{grid-column:1/-1}
+:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #inkaKeys{margin:4px 0 2px}
+:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #views + .grid4.keys{margin-top:8px}
+:is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #rects .bang{color:#E5203A;font-weight:700}   /* a tile marked !: its nodes both in its middle, or both on its edge (the owner, 2026-10-17) */
 
 /* ---------- the phone (the owner, 2026-10-13, on the iPhone over the home
    Wi-Fi: "the right panel with the clock covers the screen; the top row of
@@ -761,6 +761,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
   .tools{order:3;flex-direction:row;flex-wrap:wrap;justify-content:center;border-right:0;border-bottom:1px solid var(--line);padding:6px 8px}
   .tools .sep{width:1px;height:26px;margin:0 4px}
   .love .tools .ground{flex-direction:row}
+  [data-tab="opms"] .tools .tcol{display:contents}
   .panel{order:4;border-left:0;overflow:visible;padding-bottom:16px}
   .status{order:5;flex:none;flex-wrap:wrap;gap:4px 16px;padding:8px 12px}
   .status #hint,.status #stats,.adjust .status #hint,.adjust .status #stats{white-space:normal;flex:1 1 100%}
@@ -768,10 +769,10 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 @media (max-width: 760px) and (orientation: portrait) {
   .stage{height:calc(100vw + 30px)}
   .tape .stage{height:calc(100vw + 100px)}
-  :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintstrip{top:auto;bottom:0;right:0;width:auto;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(12,26px);column-gap:3px;row-gap:2px;padding:6px 0 4px;border-right:0;border-top:1px solid var(--line);overflow:visible}
-  :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintstrip .chip{width:26px}
-  :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintstrip .chip .sw{width:26px;height:26px;border-radius:6px}
-  :is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .paintstrip .chip.buy{order:1}                                /* on the phone, rows of 12: the ones to buy last */
+  :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip{top:auto;bottom:0;right:0;width:auto;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(12,26px);column-gap:3px;row-gap:2px;padding:6px 0 4px;border-right:0;border-top:1px solid var(--line);overflow:visible}
+  :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip .chip{width:26px}
+  :is(.tape,[data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip .chip .sw{width:26px;height:26px;border-radius:6px}
+  :is([data-tab="inka"],[data-tab="stjohn"],[data-tab="blend"],[data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip .chip.buy{order:1}                                /* on the phone, rows of 12: the ones to buy last */
 }
 @media (max-height: 500px) and (orientation: landscape) {
   .top{flex-wrap:nowrap;padding:6px 12px}
@@ -787,10 +788,20 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
    "show right there the swatch of the colour being drawn now … for DACHE
    only"; its type as everywhere, the same day: "bring back the original
    font sizes"); the hours in h and min; STOP's question. */
-:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) :is(#btnMarks,#btnDrag,#inkRow){display:none}   /* PRISMA too: DACHE's page, all of it (2026-10-27) */
-:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) .runkeys.deck.passes #btnPencils{grid-column:1/-1}
-:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #btnPlay{grid-column:auto}           /* Play Preview · Play Pencil, one row */
-:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"]) #views .tog{flex:1;padding-left:4px;padding-right:4px}
+:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) :is(#btnMarks,#btnDrag,#inkRow){display:none}   /* PRISMA too: DACHE's page, all of it (2026-10-27) */
+:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .runkeys.deck.passes #btnPencils{grid-column:1/-1}
+:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #btnPlay{grid-column:auto}           /* Play Preview · Play Pencil, one row */
+:is([data-tab="dache"],[data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #views .tog{flex:1;padding-left:4px;padding-right:4px}
+[data-tab="opms"] .runkeys.deck:not(.passes){grid-template-columns:repeat(3,1fr)}   /* OPM-S: TEST · FRAME · PAUSE (the owner, 2026-10-28: "next to it a button Frame") */
+[data-tab="opms"] .runkeys.deck.passes #btnPencils{grid-column:auto}                /* DRAW BW · DRAW CLR, in a row */
+@media (min-width: 761px) and (min-height: 501px) {                               /* OPM-S: the Tools in two columns (the owner, 2026-10-28: "in TOOLS, but in a second row"); on a phone one row, as every tab's */
+  body.type[data-tab="opms"]{grid-template-columns:108px minmax(0,1fr) 340px}
+  [data-tab="opms"] .tools{flex-direction:row;align-items:flex-start;justify-content:center;gap:4px}
+  [data-tab="opms"] .tools .tcol{display:flex;flex-direction:column;align-items:center;gap:6px}
+}
+[data-tab="opms"] .gk[data-bg=white]{background:#FBFAF7}
+[data-tab="opms"] .gk[data-bg=black]{background:#161514}
+[data-tab="opms"] .gc.on::after{content:"";position:absolute;top:-3px;right:-3px;width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 1.5px var(--bg)}
 .lcd-times .hm{display:flex;align-items:flex-end;gap:3px}                    /* DACHE: 4 h 59 min */
 .lcd-times .tu{font-size:9px;margin-right:3px}
 .lcd-pencil{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;margin:2px 0 8px}
@@ -798,7 +809,9 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 .lcd-pencil .pt{display:flex;flex-direction:column;gap:3px;min-width:0}
 .lcd-pencil .pn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lcd-pencil .pk{opacity:.75;white-space:nowrap}
-.lcd-pencil .nx{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.lcd-pencil .nx{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap;text-align:right}   /* NEXT over the next one's dot and name, to the right as STEP (the owner, 2026-10-28: it ran into DRAWING 1/18) */
+.lcd-pencil .nx .nn{display:flex;align-items:center;gap:5px}
+.lcd-pencil .pt .pk{overflow:hidden;text-overflow:ellipsis}
 .lcd-pencil .nx i{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px var(--lcd-ink)}
 .lcd-pencil.in .pt .pk{opacity:1;animation:pencilIn 1.2s steps(2) infinite}     /* put it in: blinking, as the LCD's own */
 @keyframes pencilIn{50%{opacity:.25}}
@@ -806,13 +819,13 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
    order, its number under each; those that do not draw hidden, + to see them;
    Paints and Pencils, one strip or the other */
 .paintstrip[hidden]{display:none}
-:is([data-tab="prisma"],[data-tab="opm"]) .paintstrip.pencilstrip{width:112px;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(3,30px)}
+:is([data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip.pencilstrip{width:112px;grid-auto-flow:row;grid-template-rows:none;grid-template-columns:repeat(3,30px)}
 .paintstrip .more{grid-column:1/-1;margin-top:6px;padding:4px 0;border:0;border-radius:6px;background:var(--key);box-shadow:var(--raise);font:9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);cursor:pointer}
 .paintstrip .more:hover{color:var(--ink)}
-:is([data-tab="prisma"],[data-tab="opm"]) #paints .more{grid-row:15}
+:is([data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #paints .more{grid-row:15}
 @media (max-width: 760px) and (orientation: portrait) {
-  :is([data-tab="prisma"],[data-tab="opm"]) .paintstrip.pencilstrip{width:auto;grid-template-columns:repeat(12,26px)}   /* on the phone the pencils as the paints, rows of 12 along the bottom */
-  :is([data-tab="prisma"],[data-tab="opm"]) #paints .more{grid-row:auto}
+  :is([data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) .paintstrip.pencilstrip{width:auto;grid-template-columns:repeat(12,26px)}   /* on the phone the pencils as the paints, rows of 12 along the bottom */
+  :is([data-tab="prisma"],[data-tab="opm"],[data-tab="opmb"],[data-tab="opms"]) #paints .more{grid-row:auto}
 }
 .pencilstrip .chip.none,.pencilstrip .chip.off{opacity:.45}
 .pencilstrip .chip.only .sw{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px var(--ink)}
@@ -847,6 +860,18 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 .askbox h3{margin:0 0 6px;font-size:13px;letter-spacing:.12em}
 .askbox p{margin:0 0 6px;font-size:13px}
 .askbox .btn{padding:14px 8px;font-size:13px;font-weight:600}
+/* ELBOW LIVE (PRISMA, OPM; 2026-10-28): the elbow while the pencil draws, pulled during the run — at PROGRESS's foot, before SAVE, a green slider ("before SAVE OPM, and green", CCD's INK green) */
+.elbowlive{margin:12px 0 2px}
+.elbowlive .elh{display:flex;justify-content:space-between;align-items:baseline;font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.elbowlive .elv{font:700 18px var(--mono);letter-spacing:.02em;color:var(--ink)}
+.elbowlive .elrow{display:grid;grid-template-columns:22px 1fr 22px;gap:8px;align-items:center;margin-top:6px}
+.elbowlive .btn{padding:2px 0;font-size:8px;line-height:16px;border-radius:6px}
+.elbowlive .slider{margin:0;width:100%;-webkit-appearance:none;appearance:none;background:none;height:22px}
+.elbowlive .slider::-webkit-slider-runnable-track{height:14px;border-radius:7px;background:#5B9A2F;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+.elbowlive .slider::-moz-range-track{height:14px;border-radius:7px;background:#5B9A2F;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+.elbowlive .slider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-3px;border-radius:50%;background:linear-gradient(#E9E8E4,#BDBCB8);box-shadow:0 0 0 1px rgba(0,0,0,.25),0 1px 3px rgba(0,0,0,.35)}
+.elbowlive .slider::-moz-range-thumb{width:20px;height:20px;border:0;border-radius:50%;background:linear-gradient(#E9E8E4,#BDBCB8);box-shadow:0 0 0 1px rgba(0,0,0,.25),0 1px 3px rgba(0,0,0,.35)}
+.elbowlive.live .elk::before{content:"";display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:#E5203A;vertical-align:1px}   /* on a run now */
 /* the run, a pencil a row (PRISMA's panel, DRAW's question; 2026-10-27: "which pencil to put in now, which to have ready next") */
 .runlist{list-style:none;margin:2px 0 10px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:1px 8px;font:11px var(--mono)}
 .runlist.one{grid-template-columns:1fr;max-height:min(42vh,330px);overflow:auto;margin:8px 0;padding:4px;border-radius:10px;background:var(--well);box-shadow:var(--press)}
