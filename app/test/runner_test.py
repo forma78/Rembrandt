@@ -122,6 +122,8 @@ class FakeBoard:
         for j in (1, 2, 3):                              # moveArm: every zeroed joint, one packet
             if self.zt[j] >= 0:
                 self.raw[j] = max(0, min(4095, self.zt[j] + round(self.SIGN[j] * (self.tdeg[j] + self.OFF[j]) * TICKS_PER_DEG)))
+        if getattr(self, "elbow_cap", None) is not None:  # something under the elbow: its raw no further
+            self.raw[2] = min(self.raw[2], self.elbow_cap)
 
 
     def sleep(self, dt):
@@ -790,6 +792,77 @@ class ElbowOnPathTest(unittest.TestCase):
         self.assertEqual([arm_at_piece(cmds, j) for j in range(4)], [10, 0, 12, 12])
         self.assertIsNone(arm_at_piece(["F 20", "L 1 0", "G"], 0))
         self.assertIsNone(arm_at_piece(["W 3 10 50", "L 1 0", "G"], 0), "the wrist's W is not the elbow's")
+
+
+class TrimTest(unittest.TestCase):
+    """ELBOW LIVE (the owner, 2026-10-28: "pull a slider while it draws"): a
+    trim on every W 2 as it goes to the board, never on a J; within reach; 0 at
+    a start."""
+
+    def setUp(self):
+        self.t = ElbowOnPathTest()
+
+    def run_with(self, trim):
+        b = FakeBoard()
+        r = self.t.runner(b)
+        b.on_sleep = lambda: r.trim == trim or r.set_trim(trim)     # once the run is under way, before its pass
+        r.start(self.t.blocks())
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        return b, r
+
+    def test_a_trim_rides_on_every_w_2_of_the_pass(self):
+        b, r = self.run_with(1.0)
+        self.assertEqual([c for c in b.log if c.startswith("W ")], ["W 2 19.0 211", "W 2 24.0 88", "W 2 19.0 88", "W 2 14.0 88"])   # 6, 1, 6, 11 from +25°
+        self.assertLess(abs(self.t.elbow(b) - BRUSH_UP_DEG), 1, "a J where it says: up at the end")
+        self.assertEqual(r.status()["trim"], 1.0)
+
+    def test_never_past_the_elbows_reach(self):
+        b, _ = self.run_with(-6.0)
+        self.assertEqual([c for c in b.log if c.startswith("W ")], ["W 2 26.0 211", "W 2 30.0 88", "W 2 26.0 88", "W 2 21.0 88"])   # -1, -5 (not -6), -1, 4
+
+    def test_set_rounded_and_held_within_trim_max_and_0_at_a_start(self):
+        r = Runner(FakeBoard().send)
+        self.assertEqual(r.set_trim("0.26"), 0.3)
+        self.assertEqual(r.set_trim(40), rubens.TRIM_MAX)
+        self.assertRaises(ValueError, r.set_trim, "nan")
+        r.start([travel(10, 10)]); r.thread.join(5)
+        self.assertEqual(r.trim, 0.0)
+
+
+class RestTest(unittest.TestCase):
+    """A pencil's elbow resting on the paper above the pose it was sent to
+    (2026-10-28, OPM): the run goes on — a pencil's run only, going down, so
+    far above at most."""
+
+    def blocks(self):
+        return [{"kind": "arm", "cmd": "J 2 25", "row": 0}, travel(100, 20), {"kind": "arm", "cmd": "J 2 5", "row": 1},
+                {"kind": "move", "cmds": ["F 20", "W 2 6 211", "L 1.00 20.00", "G"], "paintMM": 1.0, "painted": [1]}, {"kind": "arm", "cmd": "J 2 25", "row": 1}]
+
+    def run_on(self, page, rest_at):
+        b = FakeBoard()
+        t = ElbowOnPathTest()
+        r = t.runner(b)
+        b.elbow_cap = t.ZERO["elbow"] - round(rest_at * TICKS_PER_DEG)          # the elbow no lower than rest_at
+        r.start(self.blocks(), {"page": page})
+        r.thread.join(60)
+        return r, b, t
+
+    def test_a_pencil_resting_a_degree_above_goes_on(self):
+        r, b, t = self.run_on("opm", 6.1)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertGreaterEqual(t.elbow(b), 5.9)
+
+    def test_opm_b_and_opm_s_are_pencil_pages_too(self):
+        for page in ("opmb", "opms"):
+            r, b, t = self.run_on(page, 6.1)
+            self.assertEqual(r.state, "done", f"{page}: {r.message}")
+
+    def test_the_brush_or_too_far_above_stops_as_before(self):
+        r, _, _ = self.run_on("ccd", 6.1)
+        self.assertEqual(r.state, "error"); self.assertIn("J 2 5", r.message)
+        r, _, _ = self.run_on("opm", 18)
+        self.assertEqual(r.state, "error"); self.assertIn("does not get to", r.message)
 
 
 class ArmTest(unittest.TestCase):

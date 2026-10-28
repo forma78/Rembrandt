@@ -26,7 +26,9 @@ bridge.py of the old machine repo held it on port 8765.
   blocks of job.json, or the blocks in its body (a calibration run); POST /run/stop brakes along the path, /run/kill stops at
   once; /run/pause and /run/continue pause a run and go on from the same point — a block marked
   pauseAtEnd (ALU's DRAG) runs to its end first; /run/p-pause, and a block of kind p-pause, the
-  pencil's pause (DACHE, 2026-10-27): the same, the pencil left on the paper. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
+  pencil's pause (DACHE, 2026-10-27): the same, the pencil left on the paper.
+  POST /run/trim?deg=<d>: the elbow's live trim, added to every W 2 of the
+  run as it goes to the board (PRISMA and OPM's ELBOW LIVE, 2026-10-28). POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
   (../firmware/CNCDM-001) fails a start on the first path command, and
@@ -347,6 +349,24 @@ ELBOW_LIFT_DEG, WRIST_LIFT_DEG = 10, 60
 # The brush on and off by the elbow since the new arm: 0° pressed, put away
 # at +25° (est.: where the owner left it, 10° past the lift-off).
 BRUSH_UP_DEG = 25
+# ELBOW LIVE (the owner, 2026-10-28, OPM on the machine: "isn't it time for
+# an elbow adjustment right while it draws? Quicker to pull a slider than to
+# switch the machine off, take a screwdriver, re-set the pencil or put card
+# under the canvas, and DRAW again"): degrees added to every W 2 of the run
+# as it is sent — the pressure of the pencil drawing and its height between
+# strokes, never the poses a J goes to (a pencil goes in where it always
+# does). Within the elbow's reach; this far either way at most; 0 at a start.
+TRIM_MAX = 6
+# A pencil's elbow resting on the paper (2026-10-28, OPM: "J 2 5: the elbow
+# does not get to 5.0°", it stood at +6.1° — a pencil in the holder already
+# on the paper above the pose a pencil goes in at; the owner, of the check:
+# "can this rule be ignored?"): on a pencil's run (DACHE, PRISMA, OPM) the
+# elbow going down and stopped so many degrees above where it was sent at
+# most rests on what is under it, and the run goes on — the pencil's pause
+# next, the old one out, the elbow down to its pose. The brush, every other
+# J: as before, it gets there or the run stops.
+REST_MAX = 10
+PENCIL_PAGES = ("dache", "prisma", "opm", "opmb", "opms")   # OPM-B and OPM-S OPM's too (2026-10-28)
 # A wait block's longest: the brush in the cup's paint for a second (the
 # owner, 2026-10-03: "1 second is perfect"); ten at most.
 WAIT_MAX_S = 10
@@ -695,6 +715,33 @@ class Runner:
         self._stop = None                # None, "S" or "K"
         self._pause = False              # Pause asked for; Continue clears it
         self._pencil = False             # that pause the pencil's, p-pause: nothing lifted (DACHE, 2026-10-27)
+        self.trim = 0.0                  # ELBOW LIVE: degrees on every W 2 as it is sent (2026-10-28)
+        self.page = None                 # the page that started the run (its log note): a pencil's, the elbow may rest
+        self._wbase = {}                 # the joints where a move's W were taken from (_arm_steps)
+
+    def set_trim(self, deg):
+        # ELBOW LIVE: from the next W 2 sent on, the board's queue of pieces
+        # still as it was
+        d = float(deg)
+        if not math.isfinite(d):
+            raise ValueError(deg)
+        t = max(-TRIM_MAX, min(TRIM_MAX, round(d, 1)))
+        with self.lock:
+            self.trim = t
+        self.log({"event": "trim", "deg": t, "block": self.block})
+        return t
+
+    def _trimmed(self, c):
+        # a W 2 as _arm_steps made it (the firmware's degrees from where the
+        # elbow stood), the trim on it, the elbow kept within its reach
+        p = c.split()
+        if len(p) < 3 or p[0] != "W" or p[1] != "2" or not self.trim:
+            return c
+        turn, a = (TURN["elbow"], self._wbase.get("elbow", 0.0)) if self.arm else (1, 0.0)
+        lo, hi = REACH["elbow"]
+        deg = min(hi, max(lo, a + float(p[2]) / turn + self.trim))
+        p[2] = f"{turn * (deg - a):.1f}"
+        return " ".join(p)
 
     def status(self):
         with self.lock:
@@ -705,7 +752,7 @@ class Runner:
                     "blocks": len(self.blocks), "painted_mm": round(self.painted, 1),
                     "paint_mm": round(self.paint_total, 1), "percent": round(pct, 1),
                     "x_mm": mm("x", 0), "y_mm": mm("y", 1), "brush_on": self.brush_on,
-                    "started": self.started}
+                    "started": self.started, "trim": self.trim}
 
     def start(self, blocks, note=None):
         # Every J and W within reach, before anything is sent. A job that puts
@@ -739,7 +786,8 @@ class Runner:
             self.blocks, self.block, self.painted = list(blocks), 0, 0.0
             self.paint_total = sum(b.get("paintMM") or 0 for b in blocks if b.get("kind") == "move")
             self.state, self.message, self._stop, self._pause, self._pencil = "running", "", None, False, False
-            self.started = time.time()
+            self.started, self.trim = time.time(), 0.0
+            self.page = note.get("page") if isinstance(note, dict) else None
         self.log({"event": "start", "blocks": len(self.blocks), "paint_mm": round(self.paint_total, 1),
                   **(note if isinstance(note, dict) else {})})
         self.thread = threading.Thread(target=self.run, daemon=True)
@@ -878,10 +926,14 @@ class Runner:
         name, deg = ARM_JOINT[int(p[1])], float(p[2])
         if self.arm:
             # in RUBENS's degrees, from where the joint really is (class Arm)
+            was = self.arm.angles()[0].get(name) if name == "elbow" and self.page in PENCIL_PAGES else None
             try:
                 self.arm.move_to(name, deg)
             except ArmError as e:
-                raise Abort(f"{cmd}: {e}")
+                got = self.arm.angles()[0].get(name) if was is not None and "does not get to" in str(e) else None
+                if got is None or not (was > deg and deg < got <= deg + REST_MAX and got < was):
+                    raise Abort(f"{cmd}: {e}")
+                self.log({"event": "rests", "joint": name, "deg": deg, "at": got, "block": self.block})   # on the paper above it: on
             if name == "elbow":
                 self._brush_at(deg)
             self._ping()
@@ -956,7 +1008,7 @@ class Runner:
                     return
                 if pausable and started and self._pause:
                     return self._brake(b, start, sent, base)
-                r = self._raw(c)
+                r = self._raw(self._trimmed(c) if wrists else c)
                 if r.startswith("ok "):
                     break
                 if "очередь полна" in r:
@@ -999,6 +1051,7 @@ class Runner:
                 if ang.get(k) is None:
                     raise Abort(f"W: the {k} does not answer: is the 12 V on?")
                 a[k] = ang[k]
+            self._wbase = dict(a)
             r = self.send("/zero")
             if not r.startswith("ok Z"):
                 raise Abort(f"arm zero: {in_english(r)}")
@@ -1431,6 +1484,12 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(200, RUNNER.stop())
         if path == "/run/kill":
             return self.reply(200, RUNNER.stop(hard=True))
+        if path == "/run/trim":
+            try:
+                t = RUNNER.set_trim(parse_qs(urlparse(self.path).query)["deg"][0])
+            except (KeyError, IndexError, ValueError):
+                return self.reply(400, "trim: /run/trim?deg=<degrees>")
+            return self.reply(200, json.dumps({"ok": True, "trim": t}), "application/json")
         if path in ("/run/pause", "/run/p-pause", "/run/continue"):
             ok = RUNNER.resume() if path == "/run/continue" else RUNNER.pause(pencil=path == "/run/p-pause")
             return self.reply(200 if ok else 409, "ok" if ok else f"not now: the runner is {RUNNER.state}")
