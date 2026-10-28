@@ -278,7 +278,7 @@ export function pencilPlan(raw, reference = null) {
 export function svgOf(plan, only = null, state = plan.settings) {
   const o = plan.settings, layers = only ? plan.passes.filter(p => p.id === only) : plan.passes;
   const f = v => String(Math.round(v * 1000) / 1000);
-  const meta = JSON.stringify({ rembrandt: '1.1.0', pencils: true, label: `PENCILS · ${o.paperW} × ${o.paperH} mm · ${layers.length} colours`, settings: state }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c');
+  const meta = JSON.stringify({ rembrandt: '1.1.1', pencils: true, label: `PENCILS · ${o.paperW} × ${o.paperH} mm · ${layers.length} colours`, settings: state }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${o.paperW}mm" height="${o.paperH}mm" viewBox="0 0 ${o.paperW} ${o.paperH}">
 <title>${safe(o.source)} · Pencils</title>

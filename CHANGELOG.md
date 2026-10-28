@@ -3,7 +3,13 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## v.1.1.0 — 2026-10-26 · Blend
+## v.1.1.1 — 2026-10-28 · OPM
+
+- **v.1.1.1 after the name, OPM** (the owner, 2026-10-28, the evening of
+  OPM-S's ground: "let us call it v.1.1.1, and it can go up to GitHub …
+  a couple of lines there about today's update with the black background.
+  It can be pushed"), on every tab and in the saved SVGs (`rembrandt:
+  '1.1.1'` in their metadata).
 
 - **OPM-S: the ground, in a second column of the Tools** (the owner,
   2026-10-28, Screenshot 8.25.31 PM: "how do you like the idea of making
@@ -483,6 +489,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   Planning/export only; machine execution unchanged. See `PENCILS.md`.
   Off the top row since 2026-10-27, DACHE in its place (the owner: "it can
   be hidden, and its ideas taken"); the page stays, at its address.
+
+## v.1.1.0 — 2026-10-26 · Blend
 
 - **v.1.1.0 after the name, Blend** (the owner, 2026-10-26, the night after
   BLEND's first run in paint: "it can be pushed to GitHub, and version
