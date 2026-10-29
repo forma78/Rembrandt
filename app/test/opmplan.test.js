@@ -320,7 +320,7 @@ test('OPM-P, Fit the keys (12 = 6 + 6): every side\'s rows the brush exactly, 1,
     const F = fitKeys(OWNER, pitch), { regions } = blockCellsOf([F.r], { corner: 4, facets: 1, pitch });
     for (const R of regions) for (const B of R.blocks.filter(B => B.side && B.d > pitch / 2)) assert.ok(Math.abs(B.d / B.n - pitch) < 1e-9, `${R.kind} ${R.key}, side ${B.p}: ${(B.d / B.n).toFixed(4)} mm`);
     assert.ok(F.moved.every(q => [q.left, q.right, q.bottom, q.top].every(v => Math.abs(v) <= 30)), `moved ${JSON.stringify(F.moved.map(q => Math.max(...[q.left, q.right, q.bottom, q.top].map(Math.abs)).toFixed(1)))}`);
-    assert.ok(F.moved[0].left <= pitch / 2 + 1e-9 && Math.abs(F.r.w / (2 * pitch) - Math.round(F.r.w / (2 * pitch))) < 1e-9, 'Key 1 two brushes a whole number of times, about its middle');
+    assert.ok(Math.abs(F.moved[0].left) <= pitch / 4 + 1e-9 && Math.abs(F.r.w / pitch - Math.round(F.r.w / pitch)) < 1e-9, 'Key 1 a whole number of brushes, a quarter of one an edge at most, about its middle');
     assert.ok(fitKeys(F.r, pitch).moved.every(q => [q.left, q.right, q.bottom, q.top].every(v => Math.abs(v) < 1e-6)), 'fitted, it stays');
     const [k1] = keysOf(OWNER), [f1] = keysOf(F.r);
     assert.ok(Math.abs(k1.x + k1.w / 2 - (f1.x + f1.w / 2)) < 1e-9, 'Key 1 about its middle');
@@ -353,3 +353,24 @@ test('OPM-P, the rows as long as they go on (Screenshot 5.44.03 PM: "continuous 
   const own = opmpPlan([r], QUAD8, { pencils: P, corner: 4, facets: 1, pitch: PITCH_NEW, bound: false }).lines.filter(L => L.kind === 'row');
   assert.ok(rows.length < 0.6 * own.length, `fewer, longer lines bound: ${rows.length} against ${own.length}`);
 });
+// the owner's 200 × 200 of the first test (Library 2026-10-29 18-04): Key 2's corners eating its bottom and top
+// sides, its blocks there triangles, the rays meeting in their points and bending on to the core (Screenshot 6.00.41 PM)
+const FIG200 = cleanRect({ id: 1, x: 6, y: 5.75, w: 188, h: 188.5, step: 16, kind: BLEND, keys: [{ x: 0.20212765957446807, y: 0.12373225152129817, w: 0.6305376710868545, h: 0.7409892338898425 }, { x: 0.5079787234042553, y: 0.3010610079575597, w: 0.21442885771543085, h: 0.30238726790450926 }], corners: [60, 60, 29], steps: 27, core: true });
+test('OPM-P, the first test\'s 6 o\'clock: every ray straight, a bend a new stroke; Fit the keys leaves no key\'s side a point, no block a triangle', () => {
+  const opt = { pencils: P, corner: 4, facets: 4, pitch: 20, stripW: 3 }, res = resOf(() => [200, 200, 200], 200, 200, 2);
+  for (const r of [FIG200, fitKeys(FIG200, 20).r]) {
+    const D = opmpPlan([r], res, opt);
+    for (const L of D.lines.filter(L => L.kind === 'ray')) for (let i = 2; i < L.pts.length; i++) {
+      const u = [L.pts[i - 1][0] - L.pts[i - 2][0], L.pts[i - 1][1] - L.pts[i - 2][1]], v = [L.pts[i][0] - L.pts[i - 1][0], L.pts[i][1] - L.pts[i - 1][1]];
+      assert.ok(Math.abs(u[0] * v[1] - u[1] * v[0]) / Math.hypot(...u) / Math.hypot(...v) < Math.sin(2 * Math.PI / 180) + 1e-9, 'a ray bent');
+    }
+  }
+  const short = r => keysOf(r).map(k => Math.min(k.w, k.h) - 2 * Math.min(k.c, k.w / 2, k.h / 2));   // every key's shortest side
+  assert.ok(short(FIG200)[1] < 1, 'before: Key 2\'s bottom a point');
+  const F = fitKeys(FIG200, 20);
+  assert.ok(short(F.r).every(v => v >= 20 - 1e-9), `after: every side the brush long at least, ${short(F.r).map(v => v.toFixed(1))}`);
+  assert.deepEqual(F.corners[1].map(v => +v.toFixed(1)), [60, 50, 10]);
+  const { regions } = blockCellsOf([F.r], { corner: 4, facets: 4, pitch: 20 });
+  assert.ok(regions.filter(R => R.kind === 'blend').every(R => R.blocks.filter(B => B.side).every(B => len2(B.b) > 1)), 'no side block between two keys a triangle (the core\'s rings meet in its middle, as a tile\'s)');
+});
+const len2 = e => Math.hypot(e[1][0] - e[0][0], e[1][1] - e[0][1]);

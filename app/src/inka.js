@@ -2336,9 +2336,10 @@ if (OPMP) {
     if (!S.rects.length) return;
     undoPush();
     const most = [];
-    S.rects = S.rects.map(r => { const F = fitKeys(r, S.pitch); F.moved.forEach(q => { most[q.key - 1] = Math.max(most[q.key - 1] ?? 0, ...[q.left, q.right, q.bottom, q.top].map(Math.abs)); }); return cleanRect(F.r) ?? r; });
+    const cut = [];
+    S.rects = S.rects.map(r => { const F = fitKeys(r, S.pitch); F.moved.forEach(q => { most[q.key - 1] = Math.max(most[q.key - 1] ?? 0, ...[q.left, q.right, q.bottom, q.top].map(Math.abs)); }); (F.corners?.[1] ?? []).forEach((c, k) => { if (c < F.corners[0][k] - 1e-9) cut.push(`${k ? `Key ${k + 1}` : 'Key 1'}'s corner ${fmt(F.corners[0][k], 1)} → ${fmt(c, 1)} mm`); }); return cleanRect(F.r) ?? r; });
     settle();
-    $('#hint').textContent = `Fitted to the brush, ${fmt(S.pitch, 1)} mm: every side's rows the brush exactly, 1, 2, 4 … a band — ${most.map((v, k) => `${k ? k === most.length - 1 && S.rects.some(r => r.core) ? 'the core' : `Key ${k + 1}` : 'Key 1'} ${fmt(v, 1)} mm an edge at most`).join(', ')}. ⌘Z takes it back.`;
+    $('#hint').textContent = `Fitted to the brush, ${fmt(S.pitch, 1)} mm: every side's rows the brush exactly, 1, 2, 4 … a band — ${most.map((v, k) => `${k ? k === most.length - 1 && S.rects.some(r => r.core) ? 'the core' : `Key ${k + 1}` : 'Key 1'} ${fmt(v, 1)} mm an edge at most`).join(', ')}${cut.length ? `; no side a point: ${cut.join(', ')}` : ''}. ⌘Z takes it back.`;
   };
   $('#dragInfo').onclick = () => { $('#dragRead').hidden = !$('#dragRead').hidden; $('#dragInfo').classList.toggle('on', !$('#dragRead').hidden); };
 }

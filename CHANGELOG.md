@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.3 — 2026-10-29
 
+- **OPM-P: the rays straight, no key's side a point** (the owner, the
+  second test on paper, OPM/IMAGE 2026-10-29 17:58:29, Screenshot 6.00.41
+  PM, a video of the run: "better already; only the first row at the
+  bottom, at 6 o'clock, crooked as on the first … there one could simply
+  draw a ray from the centre; I do not know how to solve it as a system,
+  that is for you, the figure may change"). His Key 2's corners (60 mm on a
+  key 118.6 wide) had eaten its bottom side: the block there a triangle,
+  its rows short at its point, the rays from Key 1 meeting in it, and the
+  ray from the core bending on through it, drawn as one stroke. Now a ray
+  is drawn straight, a bend sharper than 2° a new stroke; and Fit the keys
+  leaves no key's side a point — every key's corner so much less that
+  every side is the brush long at least (his: Key 2 60 → 50, the core 29 →
+  10) — and moves Key 1 to a whole number of brushes, a quarter of one an
+  edge at most, where it moved two brushes' worth before (his 188 grew to
+  the canvas's 200 at a 20 mm step).
 - **OPM-P: DRAW BW's rows as long as they go on, rings round the figure**
   (the owner, the first test on paper, OPM/IMAGE 2026-10-29 17:38:27 and
   29, Screenshot 5.44.03 PM, the pencil from short piece to short piece:

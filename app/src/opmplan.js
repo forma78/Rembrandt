@@ -407,6 +407,9 @@ export const PITCH_NEW = 6, PITCH_MIN = 2, PITCH_MAX = 20;          // mm, the b
 export const DRAG_RUBS_NEW = 1, DRAG_RUBS_MIN = 1, DRAG_RUBS_MAX = 16;   // a colour's strokes so many times over, there and back
 export const FIT = 1.05;           // a row so much wider than the brush at most: a block's rows a whole number, never a white stripe between them (est.)
 const NF_ROUND = 8, RAY = Infinity;   // a round corner's chords; a ray's kind
+// a ray drawn straight: through a bend sharper than this the pencil up, a new stroke (the owner, 2026-10-29,
+// Screenshot 6.00.41 PM, a ray bent from the core to Key 2 and on to Key 1: "there one could simply draw a ray")
+const RAY_TURN = 2;
 // a block's rows: its gap over as many as come nearest the brush, more where one would be wider than FIT of it
 export const rowsIn = (d, pitch = PITCH_NEW) => { const n = Math.max(1, Math.round(d / pitch)); return d / n <= pitch * FIT + 1e-9 ? n : Math.max(1, Math.ceil(d / (pitch * FIT) - 1e-9)); };
 // a band's rows, Bound: 1, 2, 4, 8 … — two of one block's always one of its neighbour's ("12 mm = 6 + 6", never three against four) — the fewest that keep every one within FIT of the brush
@@ -439,11 +442,15 @@ export function blocksIn(R, pitch = PITCH_NEW, facets = 0, bound = true) {
 // times 1, 2, 4 … — the bands as many as change the keys least — so every row
 // of a side the brush exactly and every side's lines meet its neighbours';
 // the core, its least side two of the brush's times its rings — so Key 1 a
-// whole number of two brushes across and up, about its middle (3 mm an edge
-// at most). A side against the key round it stays against it; the bevels as
+// whole number of brushes across and up, about its middle (a quarter of a
+// brush an edge at most), the core's evenness by the gaps chosen. A side against the key round it stays against it; the bevels as
 // their keys' corners make them (one corner a key: their rows within FIT,
-// 1, 2, 4 … a band). The sausages where they lie on the canvas.
-// → { r, moved: [{ key, left, right, bottom, top }], bands: [N a gap] }
+// 1, 2, 4 … a band). No key's side a point (the owner, 2026-10-29, the first
+// test, OPM/IMAGE 17:58:29, Screenshot 6.00.41 PM: Key 2's corners eating its
+// bottom side, its block a triangle at 6 o'clock, the rays meeting in its
+// point and bending on to the core): every key's corner so much less that
+// every side of it is the brush long at least. The sausages where they lie on
+// the canvas. → { r, moved: [{ key, left, right, bottom, top }], bands: [N a gap], corners: [before, after] }
 const POW2 = [1, 2, 4, 8, 16, 32];
 export function fitKeys(r, pitch = PITCH_NEW) {
   if (!isBlend(r)) {                                                               // a tile: its least side two of the brush's times its rings, about its middle
@@ -451,7 +458,7 @@ export function fitKeys(r, pitch = PITCH_NEW) {
     return { r: { ...r, x: r.x + (r.w - W) / 2, y: r.y + (r.h - H) / 2, w: W, h: H }, moved: [{ key: 1, left: (W - r.w) / 2, right: (W - r.w) / 2, bottom: (H - r.h) / 2, top: (H - r.h) / 2 }], bands: [] };
   }
   const K = keysOf(r), box = q => ({ x0: q.x, y0: q.y, x1: q.x + q.w, y1: q.y + q.h }), two = 2 * pitch, moved = [], bands = [];
-  const W = Math.max(two, Math.round(r.w / two) * two), H = Math.max(two, Math.round(r.h / two) * two), A = { x: r.x + (r.w - W) / 2, y: r.y + (r.h - H) / 2, w: W, h: H };
+  const W = Math.max(two, Math.round(r.w / pitch) * pitch), H = Math.max(two, Math.round(r.h / pitch) * pitch), A = { x: r.x + (r.w - W) / 2, y: r.y + (r.h - H) / 2, w: W, h: H };   // a whole number of brushes: half a brush an edge at most; the core's evenness by its gaps
   const boxes = [box(A)];
   moved.push({ key: 1, left: (W - r.w) / 2, right: (W - r.w) / 2, bottom: (H - r.h) / 2, top: (H - r.h) / 2 });
   for (let k = 1; k < K.length; k++) {
@@ -473,8 +480,9 @@ export function fitKeys(r, pitch = PITCH_NEW) {
     moved.push({ key: k + 1, left: t.left - g.left, right: t.right - g.right, bottom: t.bottom - g.bottom, top: t.top - g.top }); bands.push(best.N);
   }
   const keys = boxes.slice(1).map(b => keyIn(A, { x: b.x0, y: b.y0, w: b.x1 - b.x0, h: b.y1 - b.y0 }));
+  const corners = boxes.map((b, k) => Math.max(0, Math.min(r.corners[k], (Math.min(b.x1 - b.x0, b.y1 - b.y0) - pitch) / 2)));   // every side the brush long at least
   const at = q => [(r.x + q[0] * r.w - A.x) / A.w, (r.y + q[1] * r.h - A.y) / A.h];   // a sausage where it lay on the canvas
-  return { r: { ...r, ...A, keys, ss: (r.ss ?? []).map(q => ({ ...q, a: at(q.a), b: at(q.b) })) }, moved, bands };
+  return { r: { ...r, ...A, keys, corners, ss: (r.ss ?? []).map(q => ({ ...q, a: at(q.a), b: at(q.b) })) }, moved, bands, corners: [r.corners, corners] };
 }
 // a row line's order: its figure, its key, its block, its depth
 const rowId = (R, blk, k) => ((R.rect * 100 + R.key) * 1000 + blk) * 1000 + k;
@@ -572,8 +580,9 @@ function turned(pts, c, cw) {
 const turnAt = (c, p, cw) => { const a = clock(c, p); return cw ? a : (2 * Math.PI - a) % (2 * Math.PI); };
 // a region's blocks in the brush's order: round from 12 o'clock
 const blockOrder = (R, cw) => { const c = centreOf(R), o = R.blocks.map((B, i) => [turnAt(c, B.at, cw), i]).sort((x, y) => x[0] - y[0]), at = []; o.forEach(([, i], j) => { at[i] = j; }); return at; };
-// edges into polylines, end to end; at a fork the straightest on (ray), else the first
-function chainsOf(edges, straight = false) {
+// edges into polylines, end to end; at a fork the straightest on; with
+// maxTurn (degrees) never on through a bend sharper — a ray straight
+function chainsOf(edges, maxTurn = Infinity) {
   const at = new Map(), used = new Set(), out = [];
   edges.forEach((e, i) => { for (const p of [e.a, e.b]) (at.get(keyOf(p)) ?? at.set(keyOf(p), []).get(keyOf(p))).push(i); });
   const other = (e, k) => keyOf(e.a) === k ? e.b : e.a;
@@ -582,7 +591,7 @@ function chainsOf(edges, straight = false) {
     while (j !== undefined) {
       used.add(j); const nx = other(edges[j], keyOf(cur)), d = unit(sub(nx, cur)); L.push(nx); cur = nx;
       const next = (at.get(keyOf(cur)) ?? []).filter(m => !used.has(m)).map(m => ({ m, c: dot(d, unit(sub(other(edges[m], keyOf(cur)), cur))) })).sort((x, y) => y.c - x.c);
-      j = next.length && (!straight || next[0].c > Math.cos(30 * Math.PI / 180)) ? next[0].m : undefined;
+      j = next.length && (maxTurn >= 180 || next[0].c > Math.cos(maxTurn * Math.PI / 180)) ? next[0].m : undefined;
     }
     return L;
   };
@@ -599,7 +608,8 @@ function chainsOf(edges, straight = false) {
 // piece: "we spoke of continuous rings, remember? … short pieces may be, but
 // not all") — a figure's keys in turn, from the outside in, every line the way
 // round from 12 o'clock — then the rays, by their place round the figure, from
-// the outside in. → [{ kind: 'row' | 'ray', pts }]
+// the outside in, every one straight — a bend, a new stroke.
+// → [{ kind: 'row' | 'ray', pts }]
 export function linesOf(cells, regions, o = {}) {
   const E = new Map(), cw = o.cw !== false;
   cells.forEach((c, i) => {
@@ -619,7 +629,7 @@ export function linesOf(cells, regions, o = {}) {
   for (const e of rays) { const r = regions[e.reg].rect; (byRect.get(r) ?? byRect.set(r, []).get(r)).push(e); }
   for (const r of [...byRect.keys()].sort((a, b) => a - b)) {
     const es = byRect.get(r), c = centreOf(regions[es[0].reg]), th = L => turnAt(c, mul(add(L[0], L.at(-1)), 0.5), cw);
-    out.push(...chainsOf(es, true).map(L => len(sub(L[0], c)) < len(sub(L.at(-1), c)) ? L.slice().reverse() : L).sort((x, y) => th(x) - th(y)).map(pts => ({ kind: 'ray', pts })));
+    out.push(...chainsOf(es, RAY_TURN).map(L => len(sub(L[0], c)) < len(sub(L.at(-1), c)) ? L.slice().reverse() : L).sort((x, y) => th(x) - th(y)).map(pts => ({ kind: 'ray', pts })));
   }
   return out;
 }
