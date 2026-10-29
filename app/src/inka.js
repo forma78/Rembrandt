@@ -320,10 +320,15 @@ function pencilRun() {
 }
 
 // PRISMA's passes as the machine runs them: a pass one path, the pencil up and down on the move; a lift's time on top (est.)
+// OPM-P's pencil between strokes in the air, PEN_AIR above where it presses at least (the owner, 2026-10-29,
+// IMAGE 19:31:25 and 19:32:39, the pencil drawing on from line to line: Pressure lightened to +0.4° by ELBOW
+// LIVE, Between strokes +1°, the elbow 2.4° drawing and 3.0° between — no lift); est.
+const PEN_AIR = 3;
+const glideAt = () => OPMP ? Math.max(S.touch + S.glide, Math.max(ELBOW_MIN, S.touch + S.press) + PEN_AIR) : S.touch + S.glide;
 function prismaRun(passes) {
   const R = prismaRows(passes, S.pencils, po());
   // pressed at Pressure, gliding on the paper between strokes, landing at Between strokes, the carriage standing (OPM/, 2026-10-27)
-  const r = plotRun({ ...runOpts(R.ps.length), speed: S.pencilSpeed, tail: TAIL_MIN, lift: true, minPiece: 0.005, pencil: { press: Math.max(ELBOW_MIN, S.touch + S.press), glide: S.touch + S.glide }, hover: S.touch + S.glide }, [{ key: 'DRAW', ps: R.ps, why: null }]);   // CARAN's: a landing's tail no sliver
+  const r = plotRun({ ...runOpts(R.ps.length), speed: S.pencilSpeed, tail: TAIL_MIN, lift: true, minPiece: 0.005, pencil: { press: Math.max(ELBOW_MIN, S.touch + S.press), glide: glideAt() }, hover: glideAt() }, [{ key: 'DRAW', ps: R.ps, why: null }]);   // CARAN's: a landing's tail no sliver
   return { ...r, lifts: R.lifts, blocks: withChanges(r.blocks, R, S.pencils, passes, { press: S.press, at: S.touch }), rows: R.info, mm: passes.reduce((a, q) => a + q.mm, 0), passes };
 }
 // OPM-S (the owner, 2026-10-28): DRAW BW, "without a change of pencils, at
@@ -1388,6 +1393,7 @@ const PENCIL_TITLE = PRISMA ? {
 if (OPMP) Object.assign(PENCIL_TITLE, {
   rayW: 'A ray\'s strip — the sausage\'s across the rows — so wide, mm; DRAG paints it along itself after the rings, side by side where it is wider than the brush (est.)',
   rubsDark: 'Every line of DRAW BW so many times over, there and back, round a closed one — one pencil, so one Rubs; 1 every line once (the owner, 2026-10-29: "at RUBS = 1 every piece once")',
+  glide: 'The elbow between strokes, from Pencil in at — on OPM-P never less than 3° above where the pencil presses, whatever Pressure ELBOW LIVE has left (2026-10-29: at +1° over a Pressure of +0.4° the pencil drew on from line to line); est.',
   pitch: 'The brush\'s working width, as it lays the paint, mm: every block — a side, a facet of a bevel — its own rows, parallel to its edge, so far apart at most, its gap shared out evenly into as many as keep every one within 5 % of it, no white between them; the rows end on the rays, from Key 1\'s corners to Key 2\'s (the owner, 2026-10-29: "every block its own rows … the blend\'s perspective stays, a row does not go over the corner") (est.)',
   dragRubs: 'Every DRAG stroke so many times over, there and back, round a closed ring (the owner, 2026-10-29: "the brush has its number of passes … RUBS, 1× or 8×"; "at RUBS = 1 every piece once, more are passes meant")',
   pspeed: 'The brush along the rows and the rays; slower through the turns, up and down on the move between strokes (est.)',
@@ -1500,7 +1506,7 @@ function showPencils() {
   const R = DRAW_RUN, F = S.frame, lines = [];
   if (D && R && OPMP) {                                                              // OPM-P: DRAW BW's lines here; DRAG's under Painting machine's (i)
     const B = oneRun('bw'), rows = D.lines.filter(L => L.kind === 'row').length, cells = D.cells.filter(q => q.pencil).length;
-    lines.push(`DRAW BW: <b>${D.lines.length}</b> line${D.lines.length === 1 ? '' : 's'}, every one once — ${rows} along the rows, block after block round ${S.cw ? '↻' : '↺'} from 12 o'clock, every block's from its outer edge in, then ${D.lines.length - rows} rays — ${S.merge ? 'none between two cells of one colour' : 'one between every two cells'}, ${cells} cells; rubbed ${S.rubsDark}×, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)}), ${S.glide <= 0 ? 'gliding on the canvas' : 'just off it'} between; ${fmt(B.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, ≈ <b>${hm(B.seconds)}</b> (est.)${B.pencil ? `, in ${esc(B.pencil.name)}` : ''}`);
+    lines.push(`DRAW BW: <b>${D.lines.length}</b> line${D.lines.length === 1 ? '' : 's'}, every one once — ${rows} along the rows, block after block round ${S.cw ? '↻' : '↺'} from 12 o'clock, every block's from its outer edge in, then ${D.lines.length - rows} rays — ${S.merge ? 'none between two cells of one colour' : 'one between every two cells'}, ${cells} cells; rubbed ${S.rubsDark}×, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)}), ${OPMP ? `up at ${sgn(glideAt())} between, ${sgn(glideAt() - Math.max(ELBOW_MIN, S.touch + S.press))} over pressing (${PEN_AIR}° at least)` : S.glide <= 0 ? 'gliding on the canvas' : 'just off it'} between; ${fmt(B.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, ≈ <b>${hm(B.seconds)}</b> (est.)${B.pencil ? `, in ${esc(B.pencil.name)}` : ''}`);
     const side = R_ => { const n = R_.sides, f = R_.blocks.filter(B => !B.side).map(B => B.n); return `${R_.bands ? `${R_.bands} bands, ` : ''}${n[4] ?? 0} top · ${n[2] ?? 0} right · ${n[0] ?? 0} bottom · ${n[6] ?? 0} left${f.length ? `, the bevels ${Math.min(...f)} … ${Math.max(...f)}` : ''}`; };
     const drag = [R.passes.length ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells — ${R.passes.reduce((a, q) => a + q.rows, 0)} strokes along the rows, block after block, then ${R.passes.reduce((a, q) => a + q.rays, 0)} along the rays — every one ${S.dragRubs}× (Rubs); ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up on the move ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° to wipe it and squeeze the next` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : 'DRAG: nothing to paint — the Preview bare here, or no colour near it',
       `${S.bind ? 'The blend\'s bands over the corners, every block\'s band in a whole number of rows' : 'Every block its own rows'}, ${fmt(S.pitch, 1)} mm apart at most, evenly: ${D.regions.map(R_ => `${R_.kind === 'blend' ? `Key ${R_.key + 1} → ${R_.key + 2}` : R_.kind === 'core' ? 'the core' : 'a tile'} ${side(R_)}`).join('; ')}`];

@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.3 — 2026-10-29
 
+- **OPM-P: the pencil up between lines, a short way from one to the
+  next** (the owner, the third test on paper, OPM/IMAGE 2026-10-29
+  19:31:25 and 19:32:39, Screenshot 7.30.41 PM: "it does not lift, our
+  pencil; it draws the lines without a break, though Flights is ON" —
+  Flights only shows the flights on Drag). His run: Pressure +0.4° (left
+  by ELBOW LIVE), Between strokes +1° — the elbow 2.4° drawing, 3.0°
+  between, no lift. Now the pencil between strokes PEN_AIR 3° above where
+  it presses at least (est.). And the order: a band at a time, its ring
+  from its point nearest the pencil, its pieces — a C where a block has
+  fewer rows — the nearest next, every one from its end nearer the pencil
+  (before, every C clockwise from its far end, across the gap); the rays
+  from the end nearer. On his 400 × 400 the pencil in the air 4.8 m for
+  18.4 m drawn, 13.7 m before.
 - **OPM-P: the rays straight, no key's side a point** (the owner, the
   second test on paper, OPM/IMAGE 2026-10-29 17:58:29, Screenshot 6.00.41
   PM, a video of the run: "better already; only the first row at the

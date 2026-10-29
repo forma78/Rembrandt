@@ -607,8 +607,10 @@ function chainsOf(edges, maxTurn = Infinity) {
 // 2026-10-29, Screenshot 5.44.03 PM, the pencil from short piece to short
 // piece: "we spoke of continuous rings, remember? … short pieces may be, but
 // not all") — a figure's keys in turn, from the outside in, every line the way
-// round from 12 o'clock — then the rays, by their place round the figure, from
-// the outside in, every one straight — a bend, a new stroke.
+// round, a band at a time — its ring first, from its point nearest the pencil,
+// then its pieces, the nearest next, every one from its end nearer the pencil
+// — then the rays, by their place round the figure, every one from its end
+// nearer the pencil, straight — a bend, a new stroke.
 // → [{ kind: 'row' | 'ray', pts }]
 export function linesOf(cells, regions, o = {}) {
   const E = new Map(), cw = o.cw !== false;
@@ -622,14 +624,40 @@ export function linesOf(cells, regions, o = {}) {
   const kept = [...E.values()].filter(e => e.cells.length === 1 || cells[e.cells[0]].group !== cells[e.cells[1]].group && (!o.merge || cells[e.cells[0]].pencil !== cells[e.cells[1]].pencil));
   const out = [], rows = kept.filter(e => e.kind !== RAY), at = new Map(), ek = (a, b) => { const ka = keyOf(a), kb = keyOf(b); return ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`; };
   for (const e of rows) at.set(ek(e.a, e.b), { reg: e.reg, key: keyOfRow(e.kind), t: e.kind % 1000 / regions[e.reg].blocks[blkOf(e.kind)].n });   // its figure and key, its depth in its block, 0 … 1
-  const lines = chainsOf(rows).map(L => { const q = at.get(ek(L[0], L[1])), c = centreOf(regions[q.reg]), P = turned(L, c, cw); return { ...q, P, at: turnAt(c, P[0], cw) }; });
-  lines.sort((x, y) => x.key - y.key || Math.round(x.t * 1e6) - Math.round(y.t * 1e6) || x.at - y.at);
-  out.push(...lines.map(L => ({ kind: 'row', pts: L.P })));
+  // a band at a time (the owner, 2026-10-29, IMAGE 19:31:25 and 19:32:39, the pencil across the
+  // figure from piece to piece): its ring first, then its pieces round the figure, a block's from
+  // its outer edge in — the pencil from one to the next a short way
+  const lines = chainsOf(rows).map(L => {
+    const q = at.get(ek(L[0], L[1])), R = regions[q.reg], c = centreOf(R), P = turned(L, c, cw), closed = len(sub(P[0], P.at(-1))) < 1e-6;
+    return { ...q, P, closed, band: R.bands ? Math.floor(q.t * R.bands + 1e-6) : 0, at: turnAt(c, P[0], cw) };
+  });
+  // a band's ring the way round, from its point nearest the pencil; its pieces — a C where a block has fewer
+  // rows — the nearest next, from its end nearer the pencil, not round from the far end across the gap
+  const tq = v => Math.round(v * 1e6), groups = new Map();
+  lines.sort((x, y) => x.key - y.key || x.band - y.band || (y.closed - x.closed) || tq(x.t) - tq(y.t) || x.at - y.at);
+  for (const L of lines) (groups.get(`${x0(L)}`) ?? groups.set(`${x0(L)}`, []).get(`${x0(L)}`)).push(L);
+  function x0(L) { return `${L.key}:${L.band}`; }
+  let pen = null;
+  for (const G of groups.values()) {
+    for (const L of G.filter(L => L.closed)) {
+      let P = L.P;
+      if (pen) { const ring = P.slice(0, -1), b = ring.reduce((m, q, i) => len(sub(q, pen)) < len(sub(ring[m], pen)) ? i : m, 0); P = [...ring.slice(b), ...ring.slice(0, b), ring[b]]; }
+      out.push({ kind: 'row', pts: P }); pen = P.at(-1);
+    }
+    const rest = G.filter(L => !L.closed);
+    while (rest.length) {
+      let bi = 0, flip = false;
+      if (pen) rest.forEach((L, i) => { for (const [q, f] of [[L.P[0], false], [L.P.at(-1), true]]) { const d = len(sub(q, pen)), b = rest[bi], db = len(sub(flip ? b.P.at(-1) : b.P[0], pen)); if (d < db - 1e-9) { bi = i; flip = f; } } });
+      const L = rest.splice(bi, 1)[0], P = flip ? L.P.slice().reverse() : L.P;
+      out.push({ kind: 'row', pts: P }); pen = P.at(-1);
+    }
+  }
   const rays = kept.filter(e => e.kind === RAY), byRect = new Map();
   for (const e of rays) { const r = regions[e.reg].rect; (byRect.get(r) ?? byRect.set(r, []).get(r)).push(e); }
   for (const r of [...byRect.keys()].sort((a, b) => a - b)) {
     const es = byRect.get(r), c = centreOf(regions[es[0].reg]), th = L => turnAt(c, mul(add(L[0], L.at(-1)), 0.5), cw);
-    out.push(...chainsOf(es, RAY_TURN).map(L => len(sub(L[0], c)) < len(sub(L.at(-1), c)) ? L.slice().reverse() : L).sort((x, y) => th(x) - th(y)).map(pts => ({ kind: 'ray', pts })));
+    const rs = chainsOf(es, RAY_TURN).sort((x, y) => th(x) - th(y));
+    for (const L of rs) { const pen = out.at(-1)?.pts.at(-1) ?? L[0]; out.push({ kind: 'ray', pts: len(sub(L.at(-1), pen)) < len(sub(L[0], pen)) ? L.slice().reverse() : L }); }   // from its end nearer the pencil
   }
   return out;
 }

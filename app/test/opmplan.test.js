@@ -270,7 +270,8 @@ test('OPM-P, the lines: every one once, none over another; the rows first, as lo
       return [(R.a.x0 + R.a.x1) / 2, (R.a.y0 + R.a.y1) / 2];
     };
     const turn = L => { const c = centre(L); return L.pts.slice(1).reduce((s, b, i) => s + (L.pts[i][0] - c[0]) * (b[1] - L.pts[i][1]) - (L.pts[i][1] - c[1]) * (b[0] - L.pts[i][0]), 0); };
-    assert.ok(D.lines.slice(0, first).every(L => Math.abs(turn(L)) < 1e-6 || (turn(L) < 0) === cw), cw ? 'every row line clockwise' : 'anticlockwise');
+    const ringsOnly = D.lines.slice(0, first).filter(L => Math.hypot(L.pts[0][0] - L.pts.at(-1)[0], L.pts[0][1] - L.pts.at(-1)[1]) < 1e-6);
+    assert.ok(ringsOnly.length && ringsOnly.every(L => Math.abs(turn(L)) < 1e-6 || (turn(L) < 0) === cw), cw ? 'every ring clockwise' : 'anticlockwise');   // a piece from its end nearer the pencil
     assert.equal(D.modules.length, D.lines.length);
   }
   const merged = opmpPlan([PERSP], QUAD, { pencils: P, corner: 4, facets: 3, pitch: PITCH_NEW, merge: true }), cellsLines = opmpPlan([PERSP], QUAD, { pencils: P, corner: 4, facets: 3, pitch: PITCH_NEW });
@@ -374,3 +375,10 @@ test('OPM-P, the first test\'s 6 o\'clock: every ray straight, a bend a new stro
   assert.ok(regions.filter(R => R.kind === 'blend').every(R => R.blocks.filter(B => B.side).every(B => len2(B.b) > 1)), 'no side block between two keys a triangle (the core\'s rings meet in its middle, as a tile\'s)');
 });
 const len2 = e => Math.hypot(e[1][0] - e[0][0], e[1][1] - e[0][1]);
+test('OPM-P, the pencil a short way from line to line (IMAGE 19:31:25 and 19:32:39: across the figure from piece to piece): a band at a time, the nearest next, from the end nearer', () => {
+  const r = cleanRect({ id: 1, x: 10.75, y: 9.38, w: 378.5, h: 381.25, step: 16, kind: BLEND, keys: [{ x: 0.29788639365918096, y: 0.17867540983606559, w: 0.6305376710868545, h: 0.64 }, { x: 0.48811096433289297, y: 0.31244590163934427, w: 0.21442885771543085, h: 0.21859800843588292 }], corners: [60, 60, 29], steps: 27, core: true });
+  const D = opmpPlan([r], resOf(() => [200, 200, 200], 400, 400, 2), { pencils: P, corner: 4, facets: 3, pitch: 14, stripW: 3 }), L = D.lines;
+  let travel = 0, drawn = 0;
+  L.forEach((l, i) => { drawn += l.pts.slice(1).reduce((a, b, j) => a + Math.hypot(b[0] - l.pts[j][0], b[1] - l.pts[j][1]), 0); if (i) travel += Math.hypot(l.pts[0][0] - L[i - 1].pts.at(-1)[0], l.pts[0][1] - L[i - 1].pts.at(-1)[1]); });
+  assert.ok(travel < 0.3 * drawn, `the pencil in the air ${(travel / 1000).toFixed(1)} m for ${(drawn / 1000).toFixed(1)} m drawn (13.7 m before)`);
+});
