@@ -3,6 +3,123 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## v.1.1.3 — 2026-10-29 · OPM-P
+
+- **v.1.1.3 after the name, OPM-P** (the owner, 2026-10-29: "today we make
+  version 1.1.3"), on every tab and in the saved SVGs (`rembrandt: '1.1.3'`
+  in their metadata).
+- **OPM-P, OPM-W for paint** (the owner, 2026-10-29: "a new tab, OPM-P
+  (Paint). This time without cardboard and without sticks; the straight
+  lines and the sharp corners stay"). `opmp.html`, after OPM-W in the top
+  row; OPM-W's page, all of it — FRAME, DRAW BW, Align, the ground, Corner
+  facets — `OPMP` within `OPMW` in `inka.js`, OPM-W untouched. Kuzya, of it,
+  in the owner's favour: "we are going from drawing contours to the
+  algorithmic control of laying the material".
+- **OPM-P: every block its own rows, bound by the blend's bands**
+  (OPM/Screenshot 2026-10-28 at 10.58.14 PM, the pink bevel top left: "it
+  exists as a separate object, not bound to the blocks beside it; the
+  rectangles in every block another thickness — that is what we change.
+  Back to INKA's and ST-JOHN's logic, the distance from one line to the
+  next the brush's thickness", Screenshot 2026-10-29 at 1.01.38 PM). Asked
+  how, with Key 2 off the middle, he chose INKA's rings first ("keep the
+  perspective Key 1 → Key 2 … do not put 45° diagonals in place of the
+  perspective's edges"); built so, its corners left big cells without rows
+  where a short side ended — "white gaps, there must be none" (Screenshot
+  3.05.15 PM) — and he took the third variant, "every block its own rows: a
+  side and a bevel filled with their own rows exactly the brush, parallel to
+  their own edge; the rows end on the rays, the diagonals from Key 1's
+  corner to Key 2's; a row does not go over the corner" (2.12.27 PM), then
+  the compromise ("we cannot make the exact number of lines on the sides
+  and at the top and bottom … 6 mm one strip, the least; two such strips can
+  equal one the other way, 12 mm vertical = 6 mm horizontal"; 3.24.37 PM,
+  OPM-W's blocks not meeting: "we had this already"). A block, a side or a
+  facet of a bevel between its two rays; **Bound** (at first): the blend's
+  loops the bands, as many as the narrowest block holds strips of the
+  brush, every block's band in a whole number of rows — the bands' lines go
+  on over the corners, the rows between end on the rays; **Own**: every
+  block its own count. Rows never wider than Brush width · the rows' step
+  (6 mm, est.) and 5 %, so no white between (`blocksIn`, `blockCellsOf`,
+  `opmplan.js`). Checked on his OPM-W blend of 2026-10-28 23:18. Every
+  cell's points one with its neighbours', so a shared line is one line.
+  A band 1, 2, 4 … rows, never three against four (Screenshot 3.28.26 PM,
+  two lines not meeting), so every line of the coarser block meets one of
+  the finer.
+- **OPM-P: Fit the keys · 12 = 6 + 6** (the owner: "let us look for the
+  compromise not in the lines but globally in the geometry: we may change
+  the size of Key 1, Key 2 and the core for the rule 12 = 6 + 6"; seeing it,
+  "great! hurray!"). A key in Construction: Key 2 and the core moved so
+  every side's gap is the brush times the bands times 1, 2, 4 … — every row
+  of a side the brush exactly — the bands as many as move the keys least;
+  Key 1 a whole number of two brushes about its middle, so the core's rings
+  come out exact too; a tile so; the sausages where they lie; ⌘Z back
+  (`fitKeys`). The bevels as their corners make them — one corner a key.
+  On his blend: Key 1 2.5 mm an edge, Key 2 26.9 at most, the core 13.9.
+- **OPM-P: every line once, the rings round first, then the rays**
+  (Screenshot 1.04.11 PM, Play drawing the cells a colour at a time;
+  IMG_1678, "much dirt from passing the same segments again and again"; "at
+  RUBS = 1 every piece once"): DRAW BW's lines every cell's edge, once — the
+  rows block after block round the figure from 12 o'clock, ↻ CW or ↺ CCW,
+  every block's from its outer edge in, then the rays by their place round
+  the figure (`linesOf`); FRAME and DRAW BW stay in one
+  pencil (his choice, asked), one Rubs.
+- **OPM-P: DRAG in DRAW CLR's place, a colour at a time** (the owner: "DRAG
+  comes back … the painting of one colour after another, but with one brush
+  and the different paints squeezed onto the canvas; not as DRAW CLR and —
+  important — not as the old ST-JOHN or INKA: the brush has its number of
+  passes, RUBS, 1× or 8×"; "the brush must not go through a neighbouring
+  piece of another colour"): along the middles of a colour's rows, block
+  after block, never through a cell of another colour, every stroke on to
+  where the brush covers its cells' ends — no white where a row meets a ray
+  at a slant; then along its rays' strips; every stroke Rubs times; up on the move between strokes;
+  between two colours the brush up to Wipe over the next one's start, the
+  run's pause to wipe it and squeeze that colour (his choice, asked)
+  (`dragsOf`, `dragRowsOf`). ▶ Play Drag and ▶ Play Pencil show the two.
+- **OPM-P: PAINTING MACHINE** (the owner: "on the right we need a new tab,
+  PAINTING MACHINE … RUBS, one, as there are no light or dark pencils any
+  more; and ELBOW LIVE, the degrees of the pressure while it draws"): ↻ CW ·
+  ↺ CCW, Brush width · the rows' step, Rubs, Brush speed, and ELBOW LIVE ·
+  brush — the brush pressed at so many degrees, pulled during DRAG,
+  rembrandt.py's trim as the pencil's. strokes.js's plotRun takes `press`,
+  the brush's degrees pressed; without it 0°, every other tab as it was.
+- **rembrandt.py: OPM-P among the pencil pages** (the owner, asked,
+  2026-10-29: FRAME and DRAW BW stay, "lines once"): its pencil's elbow,
+  as OPM-W's, may rest on the canvas up to 10° above its pose. The running
+  server needs a restart to know it.
+- PAUSE and STOP during OPM-P's DRAG the brush's, lifted, as INKA's; a DRAW
+  BW or DRAG question cancelled puts the page's reading back.
+
+## v.1.1.2 — 2026-10-28 · OPM-W
+
+- **v.1.1.2 after the name, OPM-W** (the owner, 2026-10-28, the night:
+  "this will be a new update, v.1.1.2"), on every tab and in the saved
+  SVGs (`rembrandt: '1.1.2'` in their metadata).
+- **OPM-W, OPM-S for wood: straight pieces, no arc** (the owner,
+  2026-10-28, the night: "I need a new tab on the basis of our very
+  latest, OPM-S … we will call it OPM-W (wood); all of the last OPM-Small's
+  functions in it, the black ground and the rest. The main difference: no
+  smooth semicircles and no rounded corners — all as in Screenshot
+  2.34.42 PM, straight lines at different slants. Why straight corners
+  now: I want to try cutting wooden sticks and gluing them straight onto
+  the canvas or a sheet of plywood. For now I experiment with paper angles,
+  IMAGE 22:12:25, but they do not look the part; I will try strips of foam
+  board"). `opmw.html`, after OPM-S in the top row; OPM-S's page, all of it
+  — FRAME, DRAW BW · CLR, Align, the ground, ELBOW LIVE — `OPMW` within
+  `OPMS` in `inka.js`, OPM-S untouched. Every corner — the blend's loops
+  and keys, a tile's rings, the core — **Corner facets** straight pieces
+  (`o.facets` in `opmplan.js`'s `cellsOf` and `outerOf`), every one the
+  same turn, every row's at the same slants: three at first, the
+  screenshot's 75°, 45° and 15°; 1 … 6 in Construction, in Corners
+  rounded's place — the contours' corners sharp, always. The keys'
+  outlines on the screen in the same pieces; the Preview as it was, the
+  colour the cells go by. Its own keep, a first visit OPM-S's composition
+  and references; SAVE OPM-W, its own Library label; LOAD and ⌘C ⌘V to and
+  from the other INKA-page tabs. Tests: the cells, the contours and FRAME
+  in straight pieces at the facets' slants (`opmplan.test.js`).
+- **rembrandt.py: OPM-W among the pencil pages** (the owner, asked,
+  2026-10-28: "yes, add it"): its elbow, as OPM-S's, may rest on the canvas
+  up to 10° above its pose and the run goes on. The running server needs a
+  restart to know it.
+
 ## v.1.1.1 — 2026-10-28 · OPM
 
 - **v.1.1.1 after the name, OPM** (the owner, 2026-10-28, the evening of

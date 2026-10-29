@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · OPM-P</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+</head>
+<body class="adjust arm3 nolan type love alu ccd" data-tab="opmp">
+<!-- Rembrandt · OPM-P, OPM-W for paint (the owner, 2026-10-29, v.1.1.3: "a new
+     tab, OPM-P (Paint) … without cardboard and without sticks, the straight
+     lines and the sharp corners stay"; Kuzya, of it: "we are going from
+     drawing contours to the algorithmic control of laying the material").
+     OPM-W's page, all of it — FRAME, DRAW BW, Align, the ground, the facets;
+     src/inka.js, src/opmplan.js (opmpPlan) — and three things new: the rows
+     brush's working width apart, as INKA's and ST-JOHN's, every block — a
+     side, a facet of a bevel — its own rows, parallel to its edge, ending on
+     the blend's perspective rays (OPM/Screenshot 2026-10-28 at 10.58.14 PM,
+     2026-10-29 at 1.01.38 PM, 2.12.27 PM, 3.00.14 PM); every line drawn once,
+     the rows block after block round the figure first, then the
+     rays (Screenshot 1.04.11 PM, IMG_1678); DRAG in DRAW CLR's place, a
+     colour after another with one brush, Rubs times, a pause between to wipe
+     it and squeeze the next, in PAINTING MACHINE with its ELBOW LIVE. OPM-W as
+     it was. Its own keep, its first visit OPM-W's; SAVE OPM-P and its own
+     Library label. -->
+
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.1.3</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="index.html">INKA</a>
+      <a href="stjohn.html">ST-JOHN</a>
+      <a href="blend.html">BLEND</a>
+      <a href="dache.html">DACHE</a>
+      <a href="prisma.html">PRISMA</a>
+      <a href="opm.html">OPM</a>
+      <a href="opmb.html">OPM-B</a>
+      <a href="opms.html">OPM-S</a>
+      <a href="opmw.html">OPM-W</a>
+      <a href="opmp.html" class="on">OPM-P</a>
+      <a href="alucut.html">ALU-CUT</a>
+      <a href="ccd.html">CCD</a>
+      <a href="ink.html">Ink</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <nav class="tools" aria-label="Tools">
+    <!-- two columns (the owner, 2026-10-28: "in TOOLS, but in a second row"): the drawing tools; Align and the ground -->
+    <div class="tcol">
+      <button class="tool" data-tool="edit" title="Edit — drag a tile to move it, its handles to stretch it; a click chooses it; the arrows move it a mm, with ⇧ ten; ⌫ takes it away (V)">
+        <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
+        <span>V</span>
+      </button>
+      <button class="tool" data-tool="rect" title="Tile — drag on the canvas to lay one. Tiles side by side are one figure, the brush on through them; a tile laid over another melts into it, one block, its rings round both — the &quot;[&quot; (R)">
+        <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="0.5"/><path d="M7.5 8.5h9v7h-6v-3.5h2.5" class="thin"/></svg>
+        <span>R</span>
+      </button>
+      <!-- the blend, Illustrator's (the owner, 2026-10-26: "BLEND, as in Adobe Illustrator, but for our machine"), B on the keyboard -->
+      <button class="tool" data-tool="blend" title="Blend — drag on the canvas to lay one: IMG_1554, three keys, A the box, 13 steps between every two; a click in a key chooses it, its own handles stretch it, a drag moves it alone. Every shape a loop of the brush, the outermost first, every next over it; the core filled, a figure of its own (B)">
+        <svg viewBox="0 0 24 24"><path d="M6 3.5h12l2.5 2.5v12L18 20.5H6L3.5 18V6z" class="thin"/><path d="M9.2 3.5h5.6l2.2 2.2v6.6l-2.2 2.2H9.2L7 12.3V5.7z" class="thin"/><path d="M11.2 8.5h1.6l1.4 1.4v3.2l-1.4 1.4h-1.6l-1.4-1.4V9.9z" class="bold"/></svg>
+        <span>B</span>
+      </button>
+      <!-- the frame (DACHE, 2026-10-27, the owner: "first we test on paper"): a piece of the canvas, the only lines drawn, F on the keyboard -->
+      <button class="tool" data-tool="frame" title="Frame — drag on the canvas round the piece to try on paper: only the lines in it are drawn, at their place from home (F)">
+        <svg viewBox="0 0 24 24"><path d="M3.5 8V3.5H8M16 3.5h4.5V8M20.5 16v4.5H16M8 20.5H3.5V16"/><rect x="8" y="8" width="8" height="8" rx="0.5" class="thin"/></svg>
+        <span>F</span>
+      </button>
+      <!-- the nodes (the owner, 2026-10-17: "add a nodes key to the TOOLS, N is free"): the brush's way from tile to tile, by hand -->
+      <button class="tool" data-tool="node" title="Nodes — the brush's way, by hand: drag from a magnet of a tile — its middle, a corner, a side's middle — to a magnet of the next. Into a tile's middle, it spirals out to where the next node leaves; into its edge, it spirals in from there. A click on a node chooses it, ⌫ takes it away (N)">
+        <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="0.5" class="thin"/><rect x="13.5" y="13.5" width="7" height="7" rx="0.5" class="thin"/><path d="M7 7l10 10" class="bold"/><circle cx="7" cy="7" r="1.6" class="dot"/><circle cx="17" cy="17" r="1.6" class="dot"/></svg>
+        <span>N</span>
+      </button>
+      <!-- the knife (the owner, 2026-10-19: "next to Nodes (N) we need a knife (K) that cuts the nodes") -->
+      <button class="tool" data-tool="knife" title="Knife — drag across nodes to cut them, every one the line crosses; a click on a node cuts it (K). ⌘Z brings them back">
+        <svg viewBox="0 0 24 24"><path d="M3.5 20.5l6-6" class="bold"/><path d="M9.5 14.5L19 5c1.6 3.4.2 7.6-5.5 11z"/><path d="M14 3.5l2.5 2.5M2.5 13.5l3 3" class="thin"/></svg>
+        <span>K</span>
+      </button>
+      <!-- the sausages by hand: a paint in the strip, then a click on a tile -->
+      <button class="tool" data-tool="paint" title="Sausages — a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal to the innermost ring; a drag lays one where you drag it; a click on one with its paint takes it away, with another paint repaints it (M)">
+        <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><rect x="8" y="8" width="8" height="8" rx="0.5" class="thin"/><path d="M12 4v8M20 12h-8" class="bold"/></svg>
+        <span>M</span>
+      </button>
+      <button class="tool" id="btnPaintsClear" title="Clear the chosen figure's sausages (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+      <div class="sep"></div>
+      <button class="tool" id="btnUndo" title="Undo (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/></svg></button>
+      <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
+      <div class="sep"></div>
+      <button class="tool" id="btnClear" title="Clear the canvas: no tiles (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+    </div>
+    <div class="tcol">
+      <!-- Align (the owner, 2026-10-28: "a primitive alignment to the centre, an even distance between three / two figures, in the TOOLS"): the figures chosen together (⇧ and a click, ⌘A), or else all of them; src/align.js -->
+      <button class="tool" data-align="midX" title="Centre left to right — the figures chosen together, or else all of them, moved as one: as far in from the left edge of the canvas as from the right; between them all as it was (⌘Z takes it back)">
+        <svg viewBox="0 0 24 24"><path d="M3.5 4v16M20.5 4v16M12 3v18" class="thin"/><rect x="7.5" y="6" width="9" height="5" rx="0.5"/><rect x="9" y="13" width="6" height="5" rx="0.5"/></svg>
+      </button>
+      <button class="tool" data-align="midY" title="Centre top to bottom — the figures chosen together, or else all of them, moved as one: as far down from the top of the canvas as up from the bottom (⌘Z takes it back)">
+        <svg viewBox="0 0 24 24"><path d="M4 3.5h16M4 20.5h16M3 12h18" class="thin"/><rect x="6" y="7.5" width="5" height="9" rx="0.5"/><rect x="13" y="9" width="5" height="6" rx="0.5"/></svg>
+      </button>
+      <button class="tool" data-align="gapX" title="Even gaps left to right — three figures or more, the chosen together or else all of them: the leftmost and the rightmost where they are, every gap between two the same; then Centre puts the row in the middle (⌘Z takes it back)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="6" width="4" height="12" rx="0.5"/><rect x="10" y="6" width="4" height="12" rx="0.5"/><rect x="17" y="6" width="4" height="12" rx="0.5"/><path d="M7.5 20.5h2M14.5 20.5h2" class="thin"/></svg>
+      </button>
+      <button class="tool" data-align="gapY" title="Even gaps top to bottom — three figures or more, the chosen together or else all of them: the top one and the bottom one where they are, every gap between two the same; then Centre puts the column in the middle (⌘Z takes it back)">
+        <svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="4" rx="0.5"/><rect x="6" y="10" width="12" height="4" rx="0.5"/><rect x="6" y="17" width="12" height="4" rx="0.5"/><path d="M20.5 7.5v2M20.5 14.5v2" class="thin"/></svg>
+      </button>
+      <div class="sep"></div>
+      <!-- the ground (the owner, 2026-10-28, Screenshot 8.25.31 PM: "on a black background … choose the background, in TOOLS, in a second row; white by default, but any colour may be set"): the canvas's colour under Preview, Contour and Paint -->
+      <div class="ground" id="bgTools" title="The ground, the canvas's colour under the picture — Preview, Contour and Paint show it; Drag stays on the white. DRAW BW and FRAME take the pencil that shows best on it">
+        <span class="glab">ground</span>
+        <button class="gk" data-bg="white" title="Ground: the white canvas" aria-label="White ground"></button>
+        <button class="gk" data-bg="black" title="Ground: black — DRAW BW and FRAME in the lightest pencil" aria-label="Black ground"></button>
+        <label class="gc" id="bgAny" title="Ground: any colour — a click chooses it"><span class="sw" id="bgSw"></span><input type="color" id="bgCol" aria-label="Ground colour"></label>
+      </div>
+    </div>
+  </nav>
+
+  <!-- the zoom, over the board, as on CCD -->
+  <div class="zoombar" id="zoombar">
+    <button class="zk" id="zoomOut" title="Zoom out (⌘−)" aria-label="Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button class="zk pct" id="zoomFit" title="Back to 100 %: the canvas and home (⌘0)">100%</button>
+    <button class="zk" id="zoomIn" title="Zoom in (⌘+). A pinch on the trackpad zooms where it is; two fingers move the board" aria-label="Zoom in"><svg viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+  </div>
+
+  <section class="stage" id="stage">
+    <!-- the owner's paints, CCD's strip: a chip a paint, its name on hover, how many sausages it has -->
+    <div class="paintstrip" id="paints" aria-label="Paints" hidden></div>
+    <!-- PRISMA's pencils by the Tools, three columns, in the run's order (the owner, 2026-10-27: "let us move all the pencils to the left, where the tools are") -->
+    <div class="paintstrip pencilstrip" id="pencilStrip" aria-label="Pencils"></div>
+    <div class="board" id="board"><canvas id="cv"></canvas><div class="spoke-tip" id="spokeTip" hidden></div></div>
+  </section>
+
+  <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <!-- the cassette deck, CCD's: TEST, FRAME and PAUSE; MARKS and DRAG — no Air (the owner, 2026-10-17: "AIR is not needed, only DRAG, a solid line"); STOP and HOME -->
+      <div class="runkeys deck">
+        <button class="btn" id="btnTest" title="TEST, before the runs: with INK ON one dip in the cup, a dot 20 mm in from each corner of the board — TL, TR, BR, BL — and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <!-- FRAME, the second test (the owner, 2026-10-28: "next to it a button Frame: it draws only the outer big frame, so that I can lay the canvas perfectly straight") -->
+        <button class="btn" id="btnOuter" data-pass="frame" title="FRAME, the second test, before DRAW: the picture's outer contour alone — Key 1 · A of every blend — in one pencil, the one that shows best on the ground — the darkest on the white, the lightest on black — rubbed as its contours; by it the canvas laid straight, then DRAW"><svg viewBox="0 0 24 24"><path d="M6.5 3.5h11l3 3v11l-3 3h-11l-3-3v-11z"/><path d="M9 8h6l1 1v6l-1 1H9l-1-1V9z" class="thin"/></svg><span>Frame</span></button>
+        <button class="btn" id="btnPause" title="PAUSE: the carriage brakes on its line, the pencil left on the paper — to sharpen it, its tip back on the paper; CONT. goes on from there"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
+      </div>
+      <!-- DRAW (the owner, 2026-10-27): the pencils one after another, the pencil left on the paper at every change; MARKS and DRAG, the paint's, not shown -->
+      <!-- in two, in a row (the owner, 2026-10-28): DRAW BW, no change of pencils; DRAW CLR, the colours, a change at every one -->
+      <!-- OPM-P (the owner, 2026-10-29: "instead of DRAW CLR, DRAG comes back"): DRAW BW, the lines once, the rows block after block first, then the rays; DRAG, a colour after another, one brush -->
+      <div class="runkeys deck passes">
+        <button class="btn pass" id="btnBw" data-pass="bw" title="DRAW BW: every line once, in one pencil, the one that shows best on the ground — the darkest on the white, the lightest on black — the rows first, block after block round the figure from 12 o'clock, every block's from its outer edge in, then the rays; no change of pencils; it stops once, over the first line, for the pencil to go in"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z" class="fill"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw BW</span></button>
+        <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG: a colour after another, one brush — along the middles of its rows, block after block round the figure, every block's from its outer edge in, then along its rays — never through a cell of another colour; every stroke Rubs times; between two colours the brush up over the next one's start, a pause to wipe it and squeeze that colour on its cells, Continue"><svg viewBox="0 0 24 24"><path d="M12 12h2v-3h-5v6h8v-9h-11v12h14"/></svg><span>Drag</span></button>
+        <button class="btn pass" id="btnPencils" hidden data-pass="pencils" title="DRAW CLR: a pass a pencil, the lightest first, one path — round the rings clockwise and along the rays, the pencil up and down on the move where its colour ends and begins; at every pencil's end it stops on the paper for the next one, its tip on the paper"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z"/><path d="M14.6 6.7l2.6 2.6" class="thin"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw CLR</span></button>
+        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS: a dash along every sausage — with INK ON in watercolour from the cup, a dip every fourth; then squeeze the sausages on them"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><path d="M12 4v7M20 12h-7M4 12h7"/></svg><span>Marks</span></button>
+      </div>
+      <div class="stops deckstops">
+        <button class="btn" id="btnStop" title="STOP: the carriage brakes on its line, the pencil on the paper — then the choice, go on drawing from there or home (Esc: the run stopped at once)">STOP</button>
+        <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
+      </div>
+      <!-- INK, CCD's: ON MARKS in watercolour from the cup of the Ink tab, and TEST's dip; OFF no dip; DRAG never dips -->
+      <div class="inkrow" id="inkRow" hidden title="ON: MARKS in watercolour, dipping in the cup of the Ink tab, and TEST's dip; OFF: no dip. DRAG never dips">
+        <span class="slh"><span>Ink</span></span>
+        <div class="inline check ink"><span class="side" id="inkOff">Off</span><input id="ink" type="checkbox" aria-label="Ink"><span class="side" id="inkOn">On</span></div>
+      </div>
+      <!-- the run as it will look; a view only -->
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="drag" title="DRAG: the brush's strokes a colour after another, as wide as it is, in their colours; the sausages, the rays' places">Drag</button>
+        <!-- Preview, BLEND's Result renamed for the pencils (the owner, 2026-10-27: "strange to see Result second at the start of the work") -->
+        <button class="tog" data-view="result" title="Preview: BLEND's digital painting — the brush through the sausages, the paints mixed as pigments (est.) — the colour the pencils go by, no forecast of the paper">Preview</button>
+        <button class="tog" data-view="pencil" title="The lines, 1 mm wide, in DRAW BW's pencil, every one once, as DRAW BW lays them (est.)">Contour</button>
+        <button class="tog" data-view="paint" title="Every cell painted in its pencil's colour, its contour over it: the picture once painted in by hand (est.)">Paint</button>
+      </div>
+      <!-- the flights on Drag, OFF by default (the owner, 2026-10-19: "I do not really need them") -->
+      <div class="inkrow" title="ON: on Drag the brush's flight through the air from a figure's end to the next one's start, dashed blue; OFF: none. ❚❚ wipe stays by every landing; the run on the machine is the same either way">
+        <span class="slh"><span>Flights</span></span>
+        <div class="inline check flights"><span class="side" id="flightsOff">Off</span><input id="flights" type="checkbox" aria-label="Flights"><span class="side" id="flightsOn">On</span></div>
+      </div>
+      <!-- Play the run, ALU's (the owner, 2026-10-17: "add the button ■ Stop playing / Play the run, as it is made in ALU") -->
+      <!-- Play Preview and Play Pencil, in one row (the owner, 2026-10-27: "we need to watch how our picture is drawn in pencil") -->
+      <div class="grid4 keys"><button class="btn" id="btnPlay" title="DRAG as it will run: a colour after another, along the rows block after block, then along the rays, the brush as wide as it is; its colour and how far in the status line. Pressed again, it stops. A view: it moves nothing on the machine">▶ Play Drag</button><button class="btn" id="btnPlayPencil" title="DRAW BW as it will run: every line once, the rings round first, then the rays; the pencil's tip a ring. Pressed again, it stops. A view: it moves nothing on the machine">▶ Play Pencil</button></div>
+      <!-- ELBOW LIVE (the owner, 2026-10-28: "pull a slider while it draws: +4.2° +5.1° +5.7°, or the other way"; "before SAVE OPM, and green", Screenshots 12.18.57 and 12.20.01 AM): the elbow while the pencil draws, as Calibration shows it; in a run, from the next stroke on -->
+      <div class="elbowlive" id="elbowLive">
+        <div class="elh"><span class="elk">Elbow live · pencil</span><span class="elv" id="elbowNow">+3.6°</span></div>
+        <div class="elrow"><button class="btn" data-trim="-0.1" title="The pencil 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="elbowSl" step="0.1"><button class="btn" data-trim="0.1" title="The pencil 0.1° higher: less pressure">▲</button></div>
+      </div>
+    </section>
+
+    <div class="savebar">
+      <button class="btn save" id="btnSave" title="Save the blends, the tiles and their paints in the Library, as a new save named by the date and time">💾 SAVE OPM-P</button>
+      <button class="btn load" id="btnLoad" title="Lay a save from the Library here: this tab's whole, another's composition; ⌘Z takes it back">📂 LOAD</button>
+      <span class="save-state" id="saveState">to the Library</span>
+    </div>
+    <div class="loadlist" id="loadList" hidden></div>
+    <section class="sec" id="pencilSec">
+      <h3>Colours <span class="hint">DRAG's run · the chosen one</span></h3>
+      <!-- the run (the owner, 2026-10-27, Screenshot 9.09.17 PM: "I do not understand which pencil to put in the machine now, which to have ready next") -->
+      <ol class="runlist" id="runList"></ol>
+      <!-- the box (the owner, 2026-10-27: eleven at first, black the eleventh; white light, over another, last) -->
+      <div class="pencilbox" id="pencilBox"></div>
+      <div class="penciledit" id="pencilEdit"></div>
+      <div class="grid4 keys"><button class="btn" id="btnPencilAdd" title="One more pencil in the box: its name, number, brand and colour in the fields">+ Pencil</button></div>
+    </section>
+    <!-- PAINTING MACHINE (the owner, 2026-10-29: "on the right we need a new tab, PAINTING MACHINE … RUBS, one, as there are no light or dark pencils any more; and ELBOW LIVE, the pressure's degrees while it draws"): DRAG's brush -->
+    <section class="sec" id="paintSec">
+      <h3><span>Painting machine <button class="info" id="dragInfo" title="DRAG's numbers: the colours, the strokes, the rubs, the metres and the time, the pauses">i</button></span><span class="hint">the brush on the canvas</span></h3>
+      <p class="read" id="dragRead" hidden></p>
+      <div class="toggles looks" id="turnKeys">
+        <button class="tog" data-cw="1" title="Clockwise: the blocks round the figure from 12 o'clock, every row line and stroke that way; the rays in that order — DRAG and DRAW BW">↻ CW</button>
+        <button class="tog" data-cw="0" title="Anticlockwise: the blocks round the figure from 12 o'clock, every row line and stroke that way; the rays in that order — DRAG and DRAW BW">↺ CCW</button>
+      </div>
+      <div class="sliders" id="slDrag"></div>
+      <!-- ELBOW LIVE for the brush (the owner, 2026-10-29: "we take ELBOW LIVE, the pressure's degrees adjusted while it draws") -->
+      <div class="elbowlive" id="elbowBrush">
+        <div class="elh"><span class="elk">Elbow live · brush</span><span class="elv" id="brushNow">0.0°</span></div>
+        <div class="elrow"><button class="btn" data-btrim="-0.1" title="The brush 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="brushSl" step="0.1"><button class="btn" data-btrim="0.1" title="The brush 0.1° higher: less pressure">▲</button></div>
+      </div>
+    </section>
+    <!-- two blocks (the owner, 2026-10-28, Screenshot 5.01.58 PM: "let us separate the construction and adjustment from the drawing machine's functions — two blocks, so that it is clear what is on the screen and what on the canvas"): the cells and their contours; the pencil and how it draws -->
+    <section class="sec" id="shapeSec">
+      <h3>Construction <span class="hint">on the screen</span></h3>
+      <!-- the lines (OPM/Rainbow Perspective Tile Grid.png): every cell's, or none between one colour's cells, merged; every corner straight pieces, Corner facets; every block's rows the brush's pitch apart, Painting machine's -->
+      <h4 class="first">Contours</h4>
+      <div class="toggles looks" id="mergeKeys">
+        <button class="tog" data-merge="0" title="A line between every two cells, as Kuzya's Rainbow grid: the rows, the rays across them — every line once">Cells</button>
+        <button class="tog" data-merge="1" title="No line between two cells of one colour: fewer lines, the colours' areas alone">Merged</button>
+      </div>
+      <!-- the rows (the owner, 2026-10-29, Screenshot 3.24.37 PM: "12 mm vertical = 6 mm horizontal"): the blend's bands over the corners, every block's band a whole number of rows; or every block its own count -->
+      <h4>Rows</h4>
+      <div class="toggles looks" id="bindKeys">
+        <button class="tog" data-bind="1" title="The blend's loops the bands, as many as the narrowest block holds strips of the brush; every band of every block in a whole number of rows, 1, 2, 3 … (the owner: &quot;12 mm vertical = 6 mm horizontal&quot;) — the bands' lines go on over the corners, the rows between them end on the rays">Bound</button>
+        <button class="tog" data-bind="0" title="Every block — a side, a facet of a bevel — its own count of rows, as near the brush as its gap allows; they meet on the rays where they happen to">Own</button>
+      </div>
+      <!-- the keys fitted to the brush (the owner, 2026-10-29: "the compromise not in the lines but globally in the geometry: we may change the size of Key 1, Key 2 and the core for the rule 12 = 6 + 6") -->
+      <div class="grid4 keys"><button class="btn" id="btnFit" title="Fit the keys to the brush: Key 2 and the core moved so every side's gap is the brush times the bands times 1, 2, 4 … — every row of a side the brush exactly, every side's lines meeting its neighbours' — the bands as many as move the keys least; Key 1 a whole number of two brushes, about its middle; the sausages where they lie. The bevels as their corners make them. ⌘Z takes it back">Fit the keys · 12 = 6 + 6</button></div>
+      <div class="sliders" id="slShape"></div>
+    </section>
+    <section class="sec" id="machineSec">
+      <!-- DRAW's numbers under the (i) (the owner, 2026-10-28: "all this into an (i) icon") -->
+      <h3><span>Drawing machine <button class="info" id="pencilInfo" title="DRAW's numbers: the contours and cells, the rubs, the elbow, the metres and the time, the pencils left out, the frame, the colours">i</button></span><span class="hint">on the canvas</span></h3>
+      <p class="read" id="pencilRead" hidden></p>
+      <div class="sliders" id="slPencil"></div>
+      <h4>Frame <span class="hint">a piece, on the canvas first</span></h4>
+      <div class="grid4 keys"><button class="btn" id="btnFrame" title="The F tool: drag round the piece to try on paper">Draw a frame (F)</button><button class="btn" id="btnNoFrame" title="No frame: the whole canvas">Whole canvas</button></div>
+    </section>
+    <section class="sec">
+      <h3>OPM-P <span class="hint">OPM-W for paint: every block its own rows, DRAG a colour at a time</span></h3>
+      <h4 class="first">Blends and tiles, in the order of their figures</h4>
+      <div class="toggles looks wrap" id="rects"></div>
+      <div class="grid4 keys">
+        <button class="btn" id="btnNew" title="A new blend the whole canvas, IMG_1554's keys; or the B tool to lay one by hand">New: whole canvas</button>
+        <button class="btn" id="btnDraw" title="The Blend tool: drag on the canvas (B)">Draw one (B)</button>
+      </div>
+      <!-- the nodes: the brush's way set by hand, or the snake -->
+      <h4>Nodes <span class="hint" id="nodesOf"></span></h4>
+      <p class="read" id="nodeRead"></p>
+      <div class="grid4 keys"><button class="btn" id="btnSnakeNodes" title="The snake laid as nodes — the way the brush would run by itself — to change them with N (⌘Z goes back)">From the snake</button><button class="btn" id="btnClearNodes" title="No nodes: the brush runs the snake by itself, tiles side by side one figure (⌘Z goes back)">Clear nodes</button></div>
+      <div class="edit" id="rectEdit"></div>
+      <!-- the chosen figure's paints, CCD's keys -->
+      <h4>Paints <span class="hint" id="paintsOf"></span> <button class="info" id="paintInfo" title="The spokes, the palette, its seed">i</button></h4>
+      <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random in your paints: every tile one of its paints, never its neighbour's, now and then a second; a lone figure one pure paint; the sausages stay in their places — or, none lying, the spokes laid (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="The sausages anew, an X on every tile of the figure, corner to the innermost ring; the paints as they are (⌘Z goes back)">New spokes</button></div>
+      <div class="toggles looks" id="metaKeys">
+        <button class="tog" data-meta="meta 1" title="TAPE's meta 1 (meta-tape-01): ultramarine, the blues, sky, white, black; orange, orange yellow and purple threads">meta 1</button>
+        <button class="tog" data-meta="meta 2" title="TAPE's meta 2 (meta-tape-02): purple, black, pink, sand, white, orange; ochre, ultramarine, red and rose azo threads">meta 2</button>
+        <button class="tog" data-meta="meta 3" title="TAPE-colors/IMAGE 2026-10-12 18:43:57: orange yellow, ochre, sky, white, pink, ultramarine; red, dark brown and 03 threads">meta 3</button>
+        <button class="tog" data-meta="meta 4" title="TAPE-colors/IMAGE 2026-10-12 18:43:59: ultramarine, 04, sky, white, purple, black; orange, red and orange yellow threads">meta 4</button>
+      </div>
+      <div class="toggles looks" id="inkaKeys">
+        <button class="tog" data-meta="Inka" title="Your paper test, INKA/personal_references/IMG_1027: sand, orange, ochre, pink, orange yellow, rose azo; a lone figure Dark Brown, the &quot;[&quot;">Inka</button>
+        <button class="tog" data-meta="HDay warm" title="Heather Day's warm (HDay/, the pit, color_01), in your paints: sand, pink, ochre, orange yellow, deep red, magenta; purple, sky, white threads; a lone figure purple (Claude's reading)">HDay warm</button>
+        <button class="tog" data-meta="HDay blue" title="Heather Day's blue (HDay/ Painting 12, color_02), in your paints: 04, sky, 03, viridian, white; orange, 01, green threads; a lone figure her flat ultramarine (Claude's reading)">HDay blue</button>
+      </div>
+      <div class="sliders" id="slPaint"></div>
+      <div class="paintlist" id="paintList"></div>
+      <p class="read" id="paintRead" hidden></p>
+      <!-- the reference under the paints, its palette the Reference key's (the owner, 2026-10-19: "put the Reference block up, near Paints, then BRUSH, DRAG — so it is all logical") -->
+      <h4>Reference <span class="hint">over the canvas, as tracing paper</span></h4>
+      <!-- several, Reference 1, 2 … as a blend's keys (the owner, 2026-10-26: "I like how you made Blend 1 / Key 1 / Key 2 / Key 3 — REFERENCE needs the same") -->
+      <div class="toggles looks wrap" id="refKeys" hidden></div>
+      <div class="refrow">
+        <div class="refthumb" id="refThumb"><span>no reference yet</span></div>
+        <div class="refctl">
+          <button class="btn" id="btnRef" title="An image over the canvas, to lay the tiles to, and the Reference key's palette: never painted as is">📎 Add new reference</button>
+          <p class="read" id="refRead"></p>
+          <!-- its opacity, and OK: its palette on every tile (the owner, 2026-10-19: "shrink the opacity slider and put an OK button beside it, big, in the style of MARKS / DRAG") -->
+          <div class="refok deck">
+            <input id="refOp" type="range" min="0" max="100" step="1" class="slider" aria-label="Opacity of the reference">
+            <button class="btn pass" id="btnRefOk" title="OK: the reference's colours on every tile — the painting off its wall and frame, every pixel to the nearest of your paints, a fluorescent to buy • where yours are far; the six with the most of it, the next three thin; dealt at random in the picture's shares, anew at every press, a tile never its neighbour's (⌘Z goes back)"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" class="bold"/></svg><span>OK</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="paintlist" id="refPal" title="The chosen reference's palette, as OK deals it: its paints with their shares of the picture, the thin ones, the spot (est.)"></div>
+      <input type="file" id="refIn" accept="image/*" hidden>
+      <h4>Brush · the Preview's, and the wipe</h4>
+      <div class="sliders" id="slBrush"></div>
+      <h4>Canvas <button class="info" id="planInfo" title="The plan: the figures, their tiles and rings, the wipes, where the canvas lies from home">i</button></h4>
+      <div class="grid4" id="fields"></div>
+      <p class="read" id="planRead" hidden></p>
+      <p class="read" id="planWarn" hidden></p>
+      <h4>Files for the machine</h4>
+      <div class="filekeys" id="files"></div>
+      <p class="read" id="fileRead"></p>
+    </section>
+
+  </aside>
+</main>
+
+<!-- STOP's question (the owner, 2026-10-27: "continue drawing, or go back home?") -->
+<div class="ask" id="stopAsk" hidden>
+  <div class="askbox">
+    <h3>STOP</h3>
+    <p>The carriage braked on its line, the pencil left on the paper.</p>
+    <div class="grid4 keys"><button class="btn pass" id="askGo">▶ Continue drawing</button><button class="btn" id="askHome">⌂ Go home</button></div>
+  </div>
+</div>
+
+<div class="ask" id="drawAsk" hidden>
+  <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
+    <h3 id="drawAskTitle">DRAW</h3>
+    <div class="firstpen" id="drawAskFirst"></div>
+    <ol class="runlist one" id="drawAskList"></ol>
+    <p id="drawAskText"></p>
+    <div class="grid4 keys"><button class="btn pass" id="drawGo">✎ DRAW</button><button class="btn" id="drawNo">Cancel</button></div>
+  </div>
+</div>
+
+<footer class="status">
+  <span id="hint"></span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/inka.js"></script>
+</body>
+</html>

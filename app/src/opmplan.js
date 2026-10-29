@@ -22,9 +22,10 @@
 // mm from the canvas's bottom left corner, x right, y up. No DOM.
 
 import { regionsOf, shapeAt, pointOn, pieceLength, lineOn, bandsOf, widthOn, cleanPencils, lightnessOf, LEAST_MM, LEAST_SHARE } from './dacheplan.js';
-import { sausagesOf } from './inkaplan.js';
+import { sausagesOf, machinePiece } from './inkaplan.js';
+import { keysOf, keyIn, isBlend } from './blendplan.js';
 import { SAUSAGE_W } from './ccdplan.js';
-import { nearestOf, tOf, PRISMA_PENCILS } from './prismaplan.js';
+import { nearestOf, tOf, rubbed, PRISMA_PENCILS } from './prismaplan.js';
 import { toLin } from './color.js';
 
 export const INSET = 0.7;          // mm, a contour in from its cell's edge: two neighbours' 1.4 apart (est.)
@@ -35,6 +36,11 @@ const CUT_EPS = 0.3;               // mm: two cuts closer, one
 const SAMPLE = 1;                  // mm, the Preview read in a cell on a grid so fine
 export const MIN_ROW = 2.5;        // mm, a row of cells across a band so thick at least: a narrow side's loops together (est.)
 export const MIN_W = 1.2;          // mm, a cell thinner (twice its area over its outline) goes in with its neighbour once: a sliver between two cuts
+// OPM-W's, no arc anywhere (the owner, 2026-10-28, OPM/Screenshot 2.34.42 PM: "no smooth semicircles and no
+// rounded corners … straight lines at different slants — I want to try cutting wooden sticks and gluing them
+// straight onto the canvas or a sheet of plywood"): o.facets, a corner so many straight pieces, every one the
+// same turn, every row's at the same slants — three, the owner's screenshot's, 75°, 45° and 15°
+export const FACETS_NEW = 3, FACETS_MIN = 1, FACETS_MAX = 6;
 // OPM-B's, the cells bigger (the owner, 2026-10-28, OPM on paper: "I cannot draw such thin lines with a
 // pencil — the rectangles bigger, there is no white left inside for the paint"; "the rays come out as dots,
 // a brush cannot get into them: wider, the rings round them pressed a little"): o.minRow, o.stripW, o.minW.
@@ -99,9 +105,10 @@ function rowsOf(R, p, minRow = MIN_ROW) {
   const rows = Math.max(1, Math.min(nb, Math.floor(nb / Math.max(1, Math.ceil(minRow / Math.max(1e-6, w / nb))))));
   return Array.from({ length: rows + 1 }, (_, i) => Math.round(i * nb / rows) / nb);
 }
-// the sausages' strips on every side: { 'reg:p': [{ a, u, n, t0, t1 }] }, t0 … t1 the bands they cross
+// the sausages' strips on every side: { 'reg:p': [{ id, a, u, n, t0, t1 }] }, t0 … t1 the bands they cross
 function stripsOf(rects, regions) {
   const out = {};
+  let id = 0;
   for (const q of sausagesOf(rects.map(r => ({ ...r, ss: r.ss ?? [] })))) {
     const v = sub(q.b, q.a), L = len(v); if (L < 0.5) continue;
     const u = unit(v), mid = mul(add(q.a, q.b), 0.5);
@@ -109,7 +116,7 @@ function stripsOf(rects, regions) {
     if (reg < 0) continue;
     const R = regions[reg], p = sideOf(R, mid); if (p < 0) continue;
     const ts = [q.a, q.b].map(e => { const t = tOf(R, e[0], e[1]); return t === 2 ? 1 : Math.max(0, Math.min(1, t)); });
-    (out[`${reg}:${p}`] ??= []).push({ a: q.a, u, n: left(u), t0: Math.min(...ts), t1: Math.max(...ts) });
+    (out[`${reg}:${p}`] ??= []).push({ id: id++, a: q.a, u, n: left(u), t0: Math.min(...ts), t1: Math.max(...ts) });
   }
   return out;
 }
@@ -149,7 +156,7 @@ export function cellsOf(rects, o = {}) {
     const us = [...(breaks.get(lineKey(s, p)) ?? [])].filter(u => u > Math.min(u0, u1) + 1e-9 && u < Math.max(u0, u1) - 1e-9).sort((a, b) => u0 < u1 ? a - b : b - a);
     return [u0, ...us, u1].map(u => pointOn(s, p, u));
   };
-  const arc = (s, p) => { const n = Math.max(2, Math.ceil(pieceLength(s, p) / ARC_MM)); return Array.from({ length: n + 1 }, (_, i) => pointOn(s, p, i / n)); };
+  const arc = (s, p) => { const n = o.facets ? Math.round(o.facets) : Math.max(2, Math.ceil(pieceLength(s, p) / ARC_MM)); return Array.from({ length: n + 1 }, (_, i) => pointOn(s, p, i / n)); };   // OPM-W: its facets, its chords
   const out = [];
   for (const { reg, row, p, A, B, cuts } of plan) {
     const polys = [];
@@ -170,6 +177,18 @@ export function cellsOf(rects, o = {}) {
 // shares the most edge with, once.
 // → cells, every one a polygon (the union's outline), its parts' cells
 function thickened(cells, minWOf = () => MIN_W) {
+  const find = sliversOf(cells, minWOf);
+  const by = new Map(); cells.forEach((c, i) => { const r = find(i); (by.get(r) ?? by.set(r, []).get(r)).push(i); });
+  const out = [];
+  for (const list of by.values()) {
+    if (list.length === 1) { out.push(cells[list[0]]); continue; }
+    const [L] = loopsOf(list.map(i => ({ ...cells[i], pencil: 1 })), true).flatMap(A => A.loops).sort((a, b) => Math.abs(areaOf(b)) - Math.abs(areaOf(a)));
+    if (L) out.push({ ...cells[list[0]], poly: L, area: areaOf(L), parts: list.length });
+  }
+  return out;
+}
+// the slivers' groups: i → the cell it went in with (itself if none)
+function sliversOf(cells, minWOf = () => MIN_W) {
   const up = cells.map((_, i) => i), find = i => up[i] === i ? i : (up[i] = find(up[i]));
   const ek = (a, b) => `${keyOf(a)}>${keyOf(b)}`, owner = new Map(), E = cells.map(c => c.poly.map((p, j) => [p, c.poly[(j + 1) % c.poly.length]]));
   E.forEach((es, i) => es.forEach(([a, b]) => owner.set(ek(a, b), i)));
@@ -188,14 +207,7 @@ function thickened(cells, minWOf = () => MIN_W) {
     }
     if (!moved) break;
   }
-  const by = new Map(); cells.forEach((c, i) => { const r = find(i); (by.get(r) ?? by.set(r, []).get(r)).push(i); });
-  const out = [];
-  for (const list of by.values()) {
-    if (list.length === 1) { out.push(cells[list[0]]); continue; }
-    const [L] = loopsOf(list.map(i => ({ ...cells[i], pencil: 1 })), true).flatMap(A => A.loops).sort((a, b) => Math.abs(areaOf(b)) - Math.abs(areaOf(a)));
-    if (L) out.push({ ...cells[list[0]], poly: L, area: areaOf(L), parts: list.length });
-  }
-  return out;
+  return find;
 }
 
 // ---------- the contours ----------
@@ -304,7 +316,7 @@ function loopsOf(cells, merge) {
 }
 
 // ---------- the plan ----------
-// o: { pencils, corner, frame, merge, inset, round, minRow, stripW, minW, rim } → { regions, cells (every
+// o: { pencils, corner, frame, merge, inset, round, minRow, stripW, minW, rim, facets } → { regions, cells (every
 // one its pencil), areas, modules: a contour each { kind: 'cell', pencil,
 // pieces, mm }, few, lost: cells too narrow for a contour }
 export function opmPlan(rects, res, o = {}) {
@@ -336,11 +348,12 @@ const pieceLenOf = g => g.t === 'L' ? len(sub(g.b, g.a)) : g.r * Math.abs(Math.a
 // FRAME, "only the outer big frame, so that I can lay the canvas perfectly
 // straight; only after this we draw with the pencils": the picture's outer
 // contour alone — every blend's Key 1 · A, a tile's own box — on its line,
-// its corners as they are, a closed stroke. → modules as opmPlan's, o.pencil
-// theirs
+// its corners as they are (OPM-W's in o.facets straight pieces, as its
+// cells'), a closed stroke. → modules as opmPlan's, o.pencil theirs
+const facetsOn = (s, p, n) => Array.from({ length: n }, (_, i) => ({ t: 'L', a: pointOn(s, p, i / n), b: pointOn(s, p, (i + 1) / n) }));
 export function outerOf(rects, o = {}) {
   return regionsOf(rects, o).filter(R => R.key === 0).map(R => {
-    const pieces = [0, 1, 2, 3, 4, 5, 6, 7].map(p => lineOn(R.a, p, 0, 1)).filter(g => pieceLenOf(g) > 1e-6);
+    const pieces = [0, 1, 2, 3, 4, 5, 6, 7].flatMap(p => p % 2 && o.facets ? facetsOn(R.a, p, Math.round(o.facets)) : [lineOn(R.a, p, 0, 1)]).filter(g => pieceLenOf(g) > 1e-6);
     return { kind: 'cell', pencil: o.pencil ?? null, pieces, mm: pieces.reduce((s, g) => s + pieceLenOf(g), 0) };
   }).filter(M => M.pieces.length >= 2);
 }
@@ -349,3 +362,348 @@ export function outerOf(rects, o = {}) {
 // the farthest from the ground's — on the white the darkest, on black the
 // lightest (the owner, 2026-10-28: "on a black background"); FRAME's too
 export const boldestOf = (pencils, ground = '#FBFAF7') => { const L = lightnessOf(ground), far = p => Math.abs(lightnessOf(p.hex) - L); return pencils.filter(p => p.on !== false).reduce((a, p) => !a || far(p) > far(a) ? p : a, null); };
+
+// ---------- OPM-P: every block its own rows, the lines once, DRAG a colour at a time (the owner, 2026-10-29) ----------
+// OPM-W's page for paint, "without cardboard and without sticks; the straight
+// lines and the sharp corners stay". The rows the brush apart, as INKA's and
+// ST-JOHN's ("the distance from one line to the next the brush's thickness"),
+// on the blend's perspective, every block its own rows (his choice, the
+// second time, OPM/Screenshot 2026-10-29 at 2.12.27 PM and 3.00.14 PM: "a side
+// and a bevel filled with their own rows exactly the brush, parallel to their
+// own edge; the rows end on the rays, the diagonals from Key 1's corner to Key
+// 2's; the blend's perspective stays, a row does not go over the corner: every
+// block its own number of rows"; the rings round the corner, the first try,
+// "nearer INKA's rings", left white gaps, Screenshot 3.05.15 PM), bound by
+// the compromise he set the same afternoon (Screenshot 3.24.37 PM, OPM-W's
+// blocks each its own rows, not meeting: "we had this already"; "we cannot
+// make the exact number of lines on the sides and at the top and bottom …
+// take a compromise as the rule: 6 mm one strip, the least; two such strips
+// can equal one the other way, 12 mm vertical = 6 mm horizontal"): the
+// blend's loops the bands, as many as the narrowest block's gap holds strips
+// of the brush, every band of every block a whole number of rows, 1, 2, 3 …
+// — the bands' lines go on over the corners, the rows between them end on
+// the rays (o.bound, at first; else every block its own count). The lines of
+// every cell drawn once ("no double passes over shared segments; at RUBS = 1
+// every piece once"): the rows first, block after block round the figure,
+// clockwise or not, then the rays ("then the rays, by the corner"). DRAG a
+// colour after another, one brush, a pause between to wipe it and squeeze the
+// next ("the brush must not go through a neighbouring piece of another
+// colour"): along the rows' middles, then along the rays' strips, every
+// stroke on to where the brush covers its cells' ends, Rubs times over. Kuzya,
+// of it: "we are going from drawing contours to the algorithmic control of
+// laying the material".
+export const PITCH_NEW = 6, PITCH_MIN = 2, PITCH_MAX = 20;          // mm, the brush's working width: the rows' step (est.)
+export const DRAG_RUBS_NEW = 1, DRAG_RUBS_MIN = 1, DRAG_RUBS_MAX = 16;   // a colour's strokes so many times over, there and back
+export const FIT = 1.05;           // a row so much wider than the brush at most: a block's rows a whole number, never a white stripe between them (est.)
+const NF_ROUND = 8, RAY = Infinity;   // a round corner's chords; a ray's kind
+// a block's rows: its gap over as many as come nearest the brush, more where one would be wider than FIT of it
+export const rowsIn = (d, pitch = PITCH_NEW) => { const n = Math.max(1, Math.round(d / pitch)); return d / n <= pitch * FIT + 1e-9 ? n : Math.max(1, Math.ceil(d / (pitch * FIT) - 1e-9)); };
+// a band's rows, Bound: 1, 2, 4, 8 … — two of one block's always one of its neighbour's ("12 mm = 6 + 6", never three against four) — the fewest that keep every one within FIT of the brush
+export const bandRows = (w, pitch = PITCH_NEW) => { let m = 1; while (w / m > pitch * FIT + 1e-9) m *= 2; return m; };
+// A region's blocks: its outline's points round it, anticlockwise — every
+// side's start, every corner's facets' — each with its ray from the outer
+// key's point to the inner one's; a block the piece between two rays, a side
+// or a facet of a bevel, its gap square to its edge, its rows.
+// → [{ p, side, a: [its outer edge's ends], b: [its inner edge's], d, n, at: its outer edge's middle }]
+export function blocksIn(R, pitch = PITCH_NEW, facets = 0, bound = true) {
+  const nf = facets ? Math.round(facets) : NF_ROUND, A = shapeAt(R, 0), B = shapeAt(R, 1), V = [];
+  for (let p = 0; p < 8; p++) for (const f of p % 2 ? Array.from({ length: nf }, (_, i) => i / nf) : [0]) V.push({ p, a: pointOn(A, p, f), b: pointOn(B, p, f) });
+  const W = V.filter((v, i) => { const w = V[(i + 1) % V.length]; return len(sub(v.a, w.a)) > 1e-7 || len(sub(v.b, w.b)) > 1e-7; });   // two rays one: no block between them
+  const K = W.map((v, i) => {
+    const w = W[(i + 1) % W.length], ea = sub(w.a, v.a), eb = sub(w.b, v.b), e = len(ea) >= len(eb) ? ea : eb;
+    const d = len(e) > 1e-9 ? Math.abs(dot(sub(v.b, v.a), left(unit(e)))) : 0;   // the outer edge's line to the inner one's, square to them (a side's, a facet's: parallel)
+    return { p: v.p, side: v.p % 2 === 0, a: [v.a, w.a], b: [v.b, w.b], d, n: rowsIn(d, pitch), m: 1, at: mul(add(v.a, w.a), 0.5) };
+  });
+  if (!bound) return K;
+  // bound: the bands as many as the narrowest side holds — one row a brush wide there ("6 mm one strip, the least"), a side or a bevel a sliver left out of the count — every block's band 1, 2, 4 … rows
+  const wide = K.filter(B => B.d >= pitch), ds = (wide.some(B => B.side) ? wide.filter(B => B.side) : wide).map(B => B.d), N = ds.length ? rowsIn(Math.min(...ds), pitch) : 1;
+  for (const B of K) { B.m = bandRows(B.d / N, pitch); B.n = N * B.m; }
+  return K;
+}
+// The keys fitted to the brush (the owner, 2026-10-29, the lines of three
+// rows against four not meeting, Screenshot 3.28.26 PM: "let us look for the
+// compromise not in the lines but globally in the geometry: we may change the
+// size of Key 1, Key 2 and the core for the rule 12 = 6 + 6"): every next key
+// moved so every side's gap to the key round it is the brush times the bands
+// times 1, 2, 4 … — the bands as many as change the keys least — so every row
+// of a side the brush exactly and every side's lines meet its neighbours';
+// the core, its least side two of the brush's times its rings — so Key 1 a
+// whole number of two brushes across and up, about its middle (3 mm an edge
+// at most). A side against the key round it stays against it; the bevels as
+// their keys' corners make them (one corner a key: their rows within FIT,
+// 1, 2, 4 … a band). The sausages where they lie on the canvas.
+// → { r, moved: [{ key, left, right, bottom, top }], bands: [N a gap] }
+const POW2 = [1, 2, 4, 8, 16, 32];
+export function fitKeys(r, pitch = PITCH_NEW) {
+  if (!isBlend(r)) {                                                               // a tile: its least side two of the brush's times its rings, about its middle
+    const two = 2 * pitch, W = Math.max(two, Math.round(r.w / two) * two), H = Math.max(two, Math.round(r.h / two) * two);
+    return { r: { ...r, x: r.x + (r.w - W) / 2, y: r.y + (r.h - H) / 2, w: W, h: H }, moved: [{ key: 1, left: (W - r.w) / 2, right: (W - r.w) / 2, bottom: (H - r.h) / 2, top: (H - r.h) / 2 }], bands: [] };
+  }
+  const K = keysOf(r), box = q => ({ x0: q.x, y0: q.y, x1: q.x + q.w, y1: q.y + q.h }), two = 2 * pitch, moved = [], bands = [];
+  const W = Math.max(two, Math.round(r.w / two) * two), H = Math.max(two, Math.round(r.h / two) * two), A = { x: r.x + (r.w - W) / 2, y: r.y + (r.h - H) / 2, w: W, h: H };
+  const boxes = [box(A)];
+  moved.push({ key: 1, left: (W - r.w) / 2, right: (W - r.w) / 2, bottom: (H - r.h) / 2, top: (H - r.h) / 2 });
+  for (let k = 1; k < K.length; k++) {
+    const P = boxes[k - 1], B = box(K[k]), last = k === K.length - 1 && r.core;
+    const g = { left: B.x0 - P.x0, right: P.x1 - B.x1, bottom: B.y0 - P.y0, top: P.y1 - B.y1 }, sides = Object.keys(g).filter(s => g[s] >= pitch / 2);
+    let best = null;
+    for (let N = 1; N <= Math.max(1, Math.round(Math.max(...Object.values(g)) / pitch)); N++) {
+      const u = N * pitch, t = {};
+      for (const s of Object.keys(g)) t[s] = sides.includes(s) ? u * POW2.reduce((a, m) => Math.abs(m * u - g[s]) < Math.abs(a * u - g[s]) ? m : a, 1) : Math.max(0, g[s]);
+      const w = P.x1 - P.x0 - t.left - t.right, h = P.y1 - P.y0 - t.bottom - t.top;
+      if (w < 2 * pitch || h < 2 * pitch) continue;
+      const odd = last && Math.abs(Math.min(w, h) / (2 * pitch) - Math.round(Math.min(w, h) / (2 * pitch))) > 1e-9;   // the core: its rings the brush exactly
+      const cost = sides.reduce((a, s) => a + Math.abs(t[s] - g[s]), 0) + (odd ? 1e6 : 0);
+      if (!best || cost < best.cost - 1e-9 || Math.abs(cost - best.cost) < 1e-9 && N > best.N) best = { N, t, cost };
+    }
+    if (!best) { boxes.push(B); moved.push({ key: k + 1, left: 0, right: 0, bottom: 0, top: 0 }); bands.push(0); continue; }
+    const { t } = best;
+    boxes.push({ x0: P.x0 + t.left, x1: P.x1 - t.right, y0: P.y0 + t.bottom, y1: P.y1 - t.top });
+    moved.push({ key: k + 1, left: t.left - g.left, right: t.right - g.right, bottom: t.bottom - g.bottom, top: t.top - g.top }); bands.push(best.N);
+  }
+  const keys = boxes.slice(1).map(b => keyIn(A, { x: b.x0, y: b.y0, w: b.x1 - b.x0, h: b.y1 - b.y0 }));
+  const at = q => [(r.x + q[0] * r.w - A.x) / A.w, (r.y + q[1] * r.h - A.y) / A.h];   // a sausage where it lay on the canvas
+  return { r: { ...r, ...A, keys, ss: (r.ss ?? []).map(q => ({ ...q, a: at(q.a), b: at(q.b) })) }, moved, bands };
+}
+// a row line's order: its figure, its key, its block, its depth
+const rowId = (R, blk, k) => ((R.rect * 100 + R.key) * 1000 + blk) * 1000 + k;
+const blkOf = id => Math.floor(id / 1000) % 1000, keyOfRow = id => Math.floor(id / 1e6);
+const lerpP = (a, b, f) => [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+// The cells: { reg, blk, row, p, poly (anticlockwise), kinds (the edge from
+// every point to the next: its row line, or RAY), area, mid (the row's middle
+// through it, anticlockwise), ends (its two ends across the row, the same
+// way), ray (a strip's id, -1 none), across and acrossEnds (a strip's cell: its
+// middle from the outer row line to the inner, its two ends), nrm (the strip's
+// normal) }
+export function blockCellsOf(rects, o = {}) {
+  const pitch = o.pitch ?? PITCH_NEW, W = o.stripW ?? SAUSAGE_W, regions = regionsOf(rects, o), strips = stripsOf(rects, regions), breaks = new Map(), plan = [];
+  const brk = (s, p, u) => { const k = lineKey(s, p); (breaks.get(k) ?? breaks.set(k, new Set([0, 1])).get(k)).add(u); };
+  regions.forEach((R, reg) => {
+    const K = R.blocks = blocksIn(R, pitch, o.facets, o.bound !== false), m = K.length, fr = n => Array.from({ length: n + 1 }, (_, k) => k / n);
+    R.sides = Object.fromEntries(K.filter(B => B.side).map(B => [B.p, B.n])); R.bands = o.bound !== false ? K[0].n / K[0].m : 0;
+    const rays = K.map((_, i) => [...new Set([...fr(K[(i + m - 1) % m].n), ...fr(K[i].n)].map(f => Math.round(f * 1e9) / 1e9))].sort((x, y) => x - y));   // ray i: where the rows of the blocks either side of it end on it
+    K.forEach((B, i) => {
+      for (let k = 0; k < B.n; k++) {
+        const t0 = k / B.n, t1 = (k + 1) / B.n, q = { reg, blk: i, row: k, p: B.p, t0, t1, B, ray0: rays[i], ray1: rays[(i + 1) % m] };
+        if (B.side) {
+          const A = shapeAt(R, t0), Bs = shapeAt(R, t1), list = (strips[`${reg}:${B.p}`] ?? []).filter(z => z.t1 > t0 + 1e-9 && z.t0 < t1 - 1e-9), cuts = cutsIn(R, B.p, A, Bs, t0, t1, list, W);
+          for (const c of cuts) { brk(A, B.p, c.uA); brk(Bs, B.p, c.uB); }
+          Object.assign(q, { A, Bs, cuts, list });
+        }
+        plan.push(q);
+      }
+    });
+  });
+  const along = (s, p, u0, u1) => {
+    const us = [...(breaks.get(lineKey(s, p)) ?? [])].filter(u => u > Math.min(u0, u1) + 1e-9 && u < Math.max(u0, u1) - 1e-9).sort((a, b) => u0 < u1 ? a - b : b - a);
+    return [u0, ...us, u1].map(u => pointOn(s, p, u));
+  };
+  const mid = (a, b) => mul(add(a, b), 0.5), out = [], seen = new Map(), HAIR = 1e-6;
+  const snap = v => {                                                                // one point a place: a neighbour's the same, to the last digit
+    const gx = Math.round(v[0] / (10 * HAIR)), gy = Math.round(v[1] / (10 * HAIR));
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const u of seen.get(`${gx + i},${gy + j}`) ?? []) if (Math.abs(u[0] - v[0]) <= HAIR && Math.abs(u[1] - v[1]) <= HAIR) return u;
+    (seen.get(`${gx},${gy}`) ?? seen.set(`${gx},${gy}`, []).get(`${gx},${gy}`)).push(v);
+    return v;
+  };
+  for (const q of plan) {
+    const { reg, blk, row, p, t0, t1, B } = q, R = regions[reg], line0 = rowId(R, blk, row), line1 = rowId(R, blk, row + 1), parts = [];
+    const on0 = f => lerpP(B.a[0], B.b[0], f), on1 = f => lerpP(B.a[1], B.b[1], f);                       // its two rays
+    const between = (ray, on, up) => ray.filter(f => f > t0 + 1e-9 && f < t1 - 1e-9).sort((x, y) => up ? x - y : y - x).map(f => [on(f), RAY]);   // where the next block's rows end on the ray
+    // a cell: its outer row line, the ray or the cut inward, its inner row line back, the ray or the cut outward — every point its edge's kind
+    const cell = (a, end1, b, end0) => [...a.map((v, i) => [v, i < a.length - 1 ? line0 : RAY]), ...end1, ...b.map((v, i) => [v, i < b.length - 1 ? line1 : RAY]), ...end0];
+    if (!B.side) {
+      const A0 = on0(t0), A1 = on1(t0), B0 = on0(t1), B1 = on1(t1);
+      parts.push({ pts: cell([A0, A1], between(q.ray1, on1, true), [B1, B0], between(q.ray0, on0, false)), mid: [mid(A0, B0), mid(A1, B1)], ends: [[A0, B0], [A1, B1]], ray: -1 });
+    } else {
+      const us = [{ uA: 0, uB: 0 }, ...q.cuts, { uA: 1, uB: 1 }];
+      for (let j = 0; j + 1 < us.length; j++) {
+        const a = along(q.A, p, us[j].uA, us[j + 1].uA), b = along(q.Bs, p, us[j + 1].uB, us[j].uB);
+        const A0 = a[0], A1 = a.at(-1), B1 = b[0], B0 = b.at(-1), m = mul(add(add(A0, A1), add(B0, B1)), 0.25);
+        const z = q.list.find(z => Math.abs(dot(sub(m, z.a), z.n)) < W / 2 - 1e-6);   // between a strip's two edges: a ray's cell
+        parts.push({ pts: cell(a, j + 2 === us.length ? between(q.ray1, on1, true) : [], b, j === 0 ? between(q.ray0, on0, false) : []), mid: [mid(A0, B0), mid(A1, B1)], ends: [[A0, B0], [A1, B1]], ray: z ? z.id : -1,
+          ...(z ? { across: [mid(A0, A1), mid(B0, B1)], acrossEnds: [[A0, A1], [B0, B1]], nrm: z.n } : {}) });
+      }
+    }
+    for (const P0 of parts) {
+      const S0 = P0.pts.map(([v, k]) => [snap(v), k]), C = S0.filter(([v], i) => v !== S0[(i + 1) % S0.length][0]), poly = C.map(e => e[0]), area = areaOf(poly);
+      if (poly.length >= 3 && area > 0.05) out.push({ reg, blk, row, p, poly, kinds: C.map(e => e[1]), area, mid: P0.mid, ends: P0.ends, ray: P0.ray, ...(P0.across ? { across: P0.across, acrossEnds: P0.acrossEnds, nrm: P0.nrm } : {}) });
+    }
+  }
+  return { regions, cells: out };
+}
+
+// a polyline's pieces
+const piecesOf = pts => pts.slice(1).map((b, i) => ({ t: 'L', a: pts[i], b }));
+// a stroke on to where the brush, square across it, covers its cells' ends — the far point of either end's edge — so no white is left where a row meets a ray at a slant
+function covering(pts, e0, e1) {
+  if (pts.length < 2 || len(sub(pts.at(-1), pts[0])) < 1e-6) return pts;
+  const P = pts.slice(), u0 = unit(sub(P[1], P[0])), u1 = unit(sub(P.at(-1), P.at(-2)));
+  P[0] = add(P[0], mul(u0, Math.min(0, ...e0.map(q => dot(sub(q, P[0]), u0)))));
+  P[P.length - 1] = add(P.at(-1), mul(u1, Math.max(0, ...e1.map(q => dot(sub(q, P.at(-1)), u1)))));
+  return P;
+}
+// the way round a region's middle: the angle from 12 o'clock clockwise, 0 … 2π
+const clock = (c, p) => { const a = Math.atan2(p[0] - c[0], p[1] - c[1]); return a < 0 ? a + 2 * Math.PI : a; };
+const centreOf = R => [(R.a.x0 + R.a.x1) / 2, (R.a.y0 + R.a.y1) / 2];
+// a line turned ↻ (cw) or ↺ about c
+function turned(pts, c, cw) {
+  let w = 0;
+  for (let i = 1; i < pts.length; i++) w += cross(sub(pts[i - 1], c), sub(pts[i], pts[i - 1]));
+  return w > 0 === cw ? pts.slice().reverse() : pts.slice();                          // w > 0: anticlockwise
+}
+// a place round c, in the way the brush goes
+const turnAt = (c, p, cw) => { const a = clock(c, p); return cw ? a : (2 * Math.PI - a) % (2 * Math.PI); };
+// a region's blocks in the brush's order: round from 12 o'clock
+const blockOrder = (R, cw) => { const c = centreOf(R), o = R.blocks.map((B, i) => [turnAt(c, B.at, cw), i]).sort((x, y) => x[0] - y[0]), at = []; o.forEach(([, i], j) => { at[i] = j; }); return at; };
+// edges into polylines, end to end; at a fork the straightest on (ray), else the first
+function chainsOf(edges, straight = false) {
+  const at = new Map(), used = new Set(), out = [];
+  edges.forEach((e, i) => { for (const p of [e.a, e.b]) (at.get(keyOf(p)) ?? at.set(keyOf(p), []).get(keyOf(p))).push(i); });
+  const other = (e, k) => keyOf(e.a) === k ? e.b : e.a;
+  const walk = (i, from) => {
+    const L = [from]; let j = i, cur = from;
+    while (j !== undefined) {
+      used.add(j); const nx = other(edges[j], keyOf(cur)), d = unit(sub(nx, cur)); L.push(nx); cur = nx;
+      const next = (at.get(keyOf(cur)) ?? []).filter(m => !used.has(m)).map(m => ({ m, c: dot(d, unit(sub(other(edges[m], keyOf(cur)), cur))) })).sort((x, y) => y.c - x.c);
+      j = next.length && (!straight || next[0].c > Math.cos(30 * Math.PI / 180)) ? next[0].m : undefined;
+    }
+    return L;
+  };
+  for (const [k, list] of at) for (const i of list) if (!used.has(i) && list.length !== 2) out.push(walk(i, keyOf(edges[i].a) === k ? edges[i].a : edges[i].b));   // from the ends first
+  edges.forEach((e, i) => { if (!used.has(i)) out.push(walk(i, e.a)); });                                                  // then the loops
+  return out;
+}
+// The lines, every one once (DRAW BW, FRAME's after it): a cell's edge where
+// it meets the canvas, a cell of another colour or (Cells) another cell;
+// Merged, one colour's neighbours none between them. The rows first — a
+// figure's keys in turn, the blocks round from 12 o'clock, every block's from
+// its outer edge in, every line the way round — then the rays, by their place
+// round the figure, from the outside in. → [{ kind: 'row' | 'ray', pts }]
+export function linesOf(cells, regions, o = {}) {
+  const E = new Map(), cw = o.cw !== false;
+  cells.forEach((c, i) => {
+    if (!c.pencil) return;
+    c.poly.forEach((a, j) => {
+      const b = c.poly[(j + 1) % c.poly.length], ka = keyOf(a), kb = keyOf(b), k = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`, e = E.get(k);
+      if (e) { e.cells.push(i); if (c.kinds[j] < e.kind) Object.assign(e, { kind: c.kinds[j], reg: c.reg }); } else E.set(k, { a, b, kind: c.kinds[j], cells: [i], reg: c.reg });
+    });
+  });
+  const kept = [...E.values()].filter(e => e.cells.length === 1 || cells[e.cells[0]].group !== cells[e.cells[1]].group && (!o.merge || cells[e.cells[0]].pencil !== cells[e.cells[1]].pencil));
+  const out = [], byLine = new Map(), orders = regions.map(R => blockOrder(R, cw));
+  for (const e of kept) if (e.kind !== RAY) (byLine.get(e.kind) ?? byLine.set(e.kind, []).get(e.kind)).push(e);
+  const rank = id => { const reg = byLine.get(id)[0].reg; return [keyOfRow(id), orders[reg][blkOf(id)], id % 1000]; };
+  const ids = [...byLine.keys()].map(id => [rank(id), id]).sort((x, y) => x[0][0] - y[0][0] || x[0][1] - y[0][1] || x[0][2] - y[0][2]).map(q => q[1]);
+  for (const id of ids) {
+    const es = byLine.get(id), c = centreOf(regions[es[0].reg]);
+    out.push(...chainsOf(es).map(L => turned(L, c, cw)).sort((x, y) => turnAt(c, x[0], cw) - turnAt(c, y[0], cw)).map(pts => ({ kind: 'row', pts })));
+  }
+  const rays = kept.filter(e => e.kind === RAY), byRect = new Map();
+  for (const e of rays) { const r = regions[e.reg].rect; (byRect.get(r) ?? byRect.set(r, []).get(r)).push(e); }
+  for (const r of [...byRect.keys()].sort((a, b) => a - b)) {
+    const es = byRect.get(r), c = centreOf(regions[es[0].reg]), th = L => turnAt(c, mul(add(L[0], L.at(-1)), 0.5), cw);
+    out.push(...chainsOf(es, true).map(L => len(sub(L[0], c)) < len(sub(L.at(-1), c)) ? L.slice().reverse() : L).sort((x, y) => th(x) - th(y)).map(pts => ({ kind: 'ray', pts })));
+  }
+  return out;
+}
+// DRAG, a colour's strokes (the owner, 2026-10-29): the brush along the
+// middles of its rows — a figure's keys in turn, the blocks round from 12
+// o'clock, every block's from its outer edge in, every stroke the way round —
+// a stroke the cells of its colour one after another along a row, never
+// through a cell of another colour or a ray's, on to where it covers their
+// ends; then its rays, along their strips, from the outside in, side by side
+// where wider than the brush. Every stroke rubbed.
+// → [{ pencil, strokes: [pieces], rows, rays, cells, mm, rubs }] in the order given
+export function dragsOf(cells, regions, order, o = {}) {
+  const pitch = o.pitch ?? PITCH_NEW, cw = o.cw !== false, rubs = Math.max(1, Math.round(o.rubs ?? DRAG_RUBS_NEW)), W = o.stripW ?? SAUSAGE_W, near = (a, b) => len(sub(a, b)) < 1e-3;
+  const rows = new Map(), strips = new Map(), orders = regions.map(R => blockOrder(R, cw));
+  cells.forEach((c, i) => {
+    if (!c.pencil) return;
+    if (c.ray >= 0) { (strips.get(c.ray) ?? strips.set(c.ray, []).get(c.ray)).push(i); return; }
+    const R = regions[c.reg], id = rowId(R, c.blk, c.row);
+    (rows.get(id) ?? rows.set(id, { reg: c.reg, list: [], rank: [keyOfRow(id), orders[c.reg][c.blk], c.row] }).get(id)).list.push(i);
+  });
+  const rowIds = [...rows.keys()].sort((x, y) => { const a = rows.get(x).rank, b = rows.get(y).rank; return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; }), passes = [];
+  for (const pc of order) {
+    const strokes = [];
+    let nr = 0, ny = 0, nc = 0;
+    for (const id of rowIds) {
+      const { reg, list } = rows.get(id), c = centreOf(regions[reg]), runs = [];
+      let cur = null;
+      list.slice().sort((a, b) => seqAlong(cells[a]) - seqAlong(cells[b])).forEach(i => {
+        const C = cells[i];
+        if (C.pencil !== pc) { cur = null; return; }
+        nc++;
+        if (cur && near(cur.pts.at(-1), C.mid[0])) { cur.pts.push(C.mid[1]); cur.e1 = C.ends[1]; } else runs.push(cur = { pts: C.mid.slice(), e0: C.ends[0], e1: C.ends[1] });
+      });
+      for (const r of runs) {
+        const t = turned(r.pts, c, cw), back = t[0] !== r.pts[0] && len(sub(t[0], r.pts[0])) > 1e-9;
+        strokes.push(rubbed(piecesOf(covering(t, back ? r.e1 : r.e0, back ? r.e0 : r.e1)), rubs)); nr++;
+      }
+    }
+    const rayRuns = [];
+    for (const [sid, list] of strips) {
+      const seq = list.slice().sort((a, b) => cells[a].row - cells[b].row), c = centreOf(regions[cells[seq[0]].reg]);
+      let cur = null;
+      seq.forEach(i => {
+        const C = cells[i];
+        if (C.pencil !== pc) { cur = null; return; }
+        nc++;
+        if (cur && near(cur.pts.at(-1), C.across[0])) { cur.pts.push(C.across[1]); cur.e1 = C.acrossEnds[1]; } else rayRuns.push(cur = { pts: C.across.slice(), e0: C.acrossEnds[0], e1: C.acrossEnds[1], nrm: C.nrm, c, sid });
+      });
+    }
+    rayRuns.sort((x, y) => turnAt(x.c, x.pts[0], cw) - turnAt(y.c, y.pts[0], cw));
+    for (const r of rayRuns) {
+      const k = Math.max(1, Math.ceil(W / (pitch * FIT) - 1e-9));                     // side by side, every pass within FIT of the brush
+      for (let j = 0; j < k; j++) {
+        const d = (j - (k - 1) / 2) * W / k, pts = covering(r.pts.map(q => add(q, mul(r.nrm, d))), r.e0, r.e1);
+        strokes.push(rubbed(piecesOf(j % 2 ? pts.slice().reverse() : pts), rubs)); ny++;
+      }
+    }
+    if (!strokes.length) continue;
+    passes.push({ pencil: pc.id ?? pc, strokes, rows: nr, rays: ny, cells: nc, rubs, mm: strokes.reduce((a, s) => a + s.reduce((b, g) => b + len(sub(g.b, g.a)), 0), 0) });
+  }
+  return passes;
+}
+// a side cell's place along its side, anticlockwise: the bottom left to right, the right up, the top right to left, the left down; a facet's one cell a row
+const seqAlong = C => { const m = C.mid[0]; return C.p % 2 ? 0 : [m[0], m[1], -m[0], -m[1]][C.p / 2]; };
+// The plan: o { pencils (the colours), order (the run's, ids), frame, merge,
+// pitch, stripW, minW, facets, cw, rubs } → { regions, cells (every one its
+// colour), lines (DRAW BW's, once each), drags (DRAG's, a colour each, in the
+// order), few: the colours with next to nothing to paint, their cells to the
+// nearest of the rest; modules: the lines as opmPlan's, for FRAME's and DRAW
+// BW's pencil }
+export function opmpPlan(rects, res, o = {}) {
+  const pencils = o.pencils ?? cleanPencils(PRISMA_PENCILS), F = o.frame, { regions, cells: all } = blockCellsOf(rects, o);
+  const inF = P => { if (!F) return true; const c = P.reduce((a, p) => add(a, mul(p, 1 / P.length)), [0, 0]); return c[0] >= F.x0 && c[0] <= F.x1 && c[1] >= F.y0 && c[1] <= F.y1; };
+  const cells = all.filter(c => inF(c.poly)).map(c => ({ ...c, lin: meanIn(res, c.poly) })), find = sliversOf(cells, () => o.minW ?? MIN_W);
+  const glin = new Map();                                                                  // a group's light, its parts' by their areas
+  cells.forEach((c, i) => { if (!c.lin) return; const r = find(i), g = glin.get(r) ?? glin.set(r, { a: 0, v: [0, 0, 0] }).get(r); g.a += c.area; c.lin.forEach((v, m) => { g.v[m] += v * c.area; }); });
+  const once = ps => {
+    const near = nearestOf(ps, -Infinity), gp = new Map([...glin].map(([r, g]) => [r, near(g.v.map(v => v / g.a))]));
+    const mine = cells.map((c, i) => ({ ...c, group: find(i), pencil: gp.get(find(i)) ?? null }));
+    const ids = (o.order ?? ps.filter(p => p.on !== false).map(p => p.id)).filter(id => mine.some(c => c.pencil === id));
+    const lines = linesOf(mine, regions, o), drags = dragsOf(mine, regions, ids, o);
+    const modules = lines.map(L => { const pieces = piecesOf(L.pts); return { kind: 'cell', line: L.kind, pencil: null, pieces, mm: pieces.reduce((s, g) => s + pieceLenOf(g), 0) }; });
+    return { regions, cells: mine, lines, drags, modules, areas: [], lost: 0 };
+  };
+  const D = once(pencils), total = D.drags.reduce((a, q) => a + q.mm, 0);
+  const least = Math.min(o.least ?? LEAST_MM, LEAST_SHARE * total), few = D.drags.filter(q => q.mm < least).map(q => q.pencil);
+  if (!few.length) return { ...D, few, rings: [], rays: [] };
+  return { ...once(pencils.map(p => few.includes(p.id) ? { ...p, on: false } : p)), few, rings: [], rays: [] };
+}
+// DRAG's rows for strokes.js's plotRun, machine mm from Here: a colour a row,
+// its strokes one after another, already rubbed, the brush up on the move
+// from the end of one to the start of the next (a turn: up through it, down
+// to land); between two rows the run's pause, to wipe the brush and squeeze
+// the next colour. info: a row's colour, for the LCD and its swatch
+export function dragRowsOf(passes, pencils, o) {
+  const ps = [], info = [], byId = Object.fromEntries(pencils.map(p => [p.id, p]));
+  let lifts = 0;
+  passes.forEach((P, k) => {
+    const row = k + 1, path = [];
+    P.strokes.forEach((s, j) => { if (j) { path.push({ t: 'L', a: path.at(-1).b, b: s[0].a, turn: true }); lifts++; } path.push(...s); });
+    ps.push(path.map(g => ({ ...machinePiece(g, o), tilt: 0, row, ...(g.turn ? { turn: true } : {}) })));
+    info.push({ label: `${row}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil}`, pencil: P.pencil, pass: k, L: P.mm });
+  });
+  return { ps, info, lifts };
+}

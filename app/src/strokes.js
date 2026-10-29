@@ -307,8 +307,10 @@ function onTheMove(p, o) {
   // o.pencil { press, glide } (PRISMA, 2026-10-27, OPM/: the pencil marks at
   // −1.4°, at −0.1° it touches and leaves next to nothing, at +4.6° it is
   // just off): pressed at press, not 0°; through a turn gliding on the
-  // paper at glide, not up to ELBOW_UP — no time in the air; a tail between
-  const pen = o.pencil, deg = th => pen ? round1(pen.press + (pen.glide - pen.press) * th / ELBOW_LIFT) : round1(th);
+  // paper at glide, not up to ELBOW_UP — no time in the air; a tail between.
+  // o.press (OPM-P's brush, 2026-10-29, ELBOW LIVE's): pressed at press, not
+  // 0°, the lift-off and the turns as ever; none, 0° as before
+  const pen = o.pencil, base = o.press ?? 0, deg = th => pen ? round1(pen.press + (pen.glide - pen.press) * th / ELBOW_LIFT) : round1(base + (ELBOW_LIFT - base) * th / ELBOW_LIFT);
   // The carriage starts the path at rest and stops at its end (firmware
   // path.h, ACCEL): near them it is slow, and the elbow keeps pace with it,
   // not with the speed it never reaches there — else it lifts before the end

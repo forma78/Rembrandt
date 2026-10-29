@@ -12,7 +12,7 @@ const APP = new URL('../', import.meta.url);
 
 test('the row at first: SMKN, BIAS and ALU off with the tabs hidden before; Calibration and Library always', () => {
   const row = shown({}).filter(q => q.shown).map(q => q.name);
-  assert.deepEqual(row, ['INKA', 'ST-JOHN', 'BLEND', 'DACHE', 'PRISMA', 'OPM', 'OPM-B', 'OPM-S', 'ALU-CUT', 'CCD', 'Ink', 'Calibration', 'Library']);
+  assert.deepEqual(row, ['INKA', 'ST-JOHN', 'BLEND', 'DACHE', 'PRISMA', 'OPM', 'OPM-B', 'OPM-S', 'OPM-W', 'OPM-P', 'ALU-CUT', 'CCD', 'Ink', 'Calibration', 'Library']);
   assert.deepEqual(TABS.filter(q => q.always).map(q => q.href), ['calibration.html', 'library.html']);
   const mine = shown({ 'bias.html': true, 'ink.html': false, 'library.html': false });
   assert.ok(mine.find(q => q.href === 'bias.html').shown && !mine.find(q => q.href === 'ink.html').shown, 'the owner\'s ticks over it');

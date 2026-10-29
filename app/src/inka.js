@@ -56,7 +56,7 @@ import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap, spokesRound, SPOKE_GAP, SPOKES_MIN, SPOKES_MAX } from './blendplan.js';
 import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, BOX_2, BOX_3, BOX_4, moduleLines, COATS_NEW, COATS_MIN, COATS_MAX,
   SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
-import { opmPlan, INSET, outerOf, boldestOf } from './opmplan.js';
+import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, fitKeys, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
 import { aligned } from './align.js';
 import { prismaPlan, passesOf as prismaPasses, drawRows as prismaRows, PRISMA_PENCILS, BOX_5, BOX_6, rubsOf, RUBS_DARK_NEW, RUBS_LIGHT_NEW, RUBS_MIN, RUBS_MAX, PRESS_NEW, PRESS_MIN, PRESS_MAX, GLIDE_NEW, GLIDE_MIN, GLIDE_MAX, TOUCH_NEW, TOUCH_MIN, TOUCH_MAX, ELBOW_MIN, SHORTEST_NEW as RUN_SHORTEST_NEW, SHORTEST_MIN as RUN_SHORTEST_MIN, SHORTEST_MAX as RUN_SHORTEST_MAX, SPEED_NEW as PRISMA_SPEED_NEW } from './prismaplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -67,12 +67,14 @@ import './ui.js';
 
 const $ = s => document.querySelector(s);
 const OPMB = document.body.dataset.tab === 'opmb';                                    // OPM-B: OPM's page, all of it, the cells bigger (2026-10-28)
-const OPMS = document.body.dataset.tab === 'opms';                                    // OPM-S: OPM's page, all of it, FRAME and DRAW BW · CLR (2026-10-28)
+const OPMP = document.body.dataset.tab === 'opmp';                                    // OPM-P: OPM-W's page, all of it, for paint — the brush's rings, the lines once, DRAG a colour at a time (2026-10-29)
+const OPMW = document.body.dataset.tab === 'opmw' || OPMP;                            // OPM-W: OPM-S's page, all of it, no arc — a corner straight pieces, for wood (2026-10-28)
+const OPMS = document.body.dataset.tab === 'opms' || OPMW;                             // OPM-S: OPM's page, all of it, FRAME and DRAW BW · CLR (2026-10-28)
 const OPM = document.body.dataset.tab === 'opm' || OPMB || OPMS;                     // OPM: PRISMA's page, all of it — contours, the paints by hand
 const PRISMA = document.body.dataset.tab === 'prisma' || OPM;                       // PRISMA: DACHE's page, all of it
 const JOHN = document.body.dataset.tab === 'stjohn', DACHE = document.body.dataset.tab === 'dache' || PRISMA, BLEND = document.body.dataset.tab === 'blend' || DACHE;   // DACHE: BLEND's page, all of it
 const JOHN_CORNER = 100;   // ST-JOHN's Corners at first: a ⌘'s rings round, its windows too (the owner, 2026-10-19, Screenshot 9.27.36 PM: "the rings must be really round, not squares as now")
-const TAB = JOHN ? 'stjohn' : OPMB ? 'opmb' : OPMS ? 'opms' : OPM ? 'opm' : PRISMA ? 'prisma' : DACHE ? 'dache' : BLEND ? 'blend' : 'inka', TAB_NAME = JOHN ? 'ST-JOHN' : OPMB ? 'OPM-B' : OPMS ? 'OPM-S' : OPM ? 'OPM' : PRISMA ? 'PRISMA' : DACHE ? 'DACHE' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
+const TAB = JOHN ? 'stjohn' : OPMB ? 'opmb' : OPMP ? 'opmp' : OPMW ? 'opmw' : OPMS ? 'opms' : OPM ? 'opm' : PRISMA ? 'prisma' : DACHE ? 'dache' : BLEND ? 'blend' : 'inka', TAB_NAME = JOHN ? 'ST-JOHN' : OPMB ? 'OPM-B' : OPMP ? 'OPM-P' : OPMW ? 'OPM-W' : OPMS ? 'OPM-S' : OPM ? 'OPM' : PRISMA ? 'PRISMA' : DACHE ? 'DACHE' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const fin = v => Number.isFinite(v);
 
 // ---------- state ----------
@@ -95,6 +97,9 @@ const OPMS_INSET = 0, OPMS_ROUND = 0, INSET_MAX = 1.5, ROUND_MAX = 3;
 // Screenshot 8.25.31 PM: "on a black background … choose the background;
 // white by default, but any colour may be set"), LOVE's black among them
 const BG = { white: '#FBFAF7', black: '#161514' };
+// OPM-P's brush (the owner, 2026-10-29): its speed along the rows, mm/s; pressed at so many degrees,
+// ELBOW LIVE's, 0° the brush's own pose (strokes.js), minus down; the rays as wide as it, at first (est.)
+const PSPEED_NEW = 40, PSPEED_MIN = 5, PSPEED_MAX = 120, BPRESS_MIN = -4, BPRESS_MAX = 8;
 const S = {
   rects: [], sel: 0, tool: 'edit',
   brush: BRUSH_NEW, swell: SWELL_NEW, edgeOut: EDGE_OUT_NEW, overlap: OVERLAP_NEW, drag: 40, corner: JOHN ? JOHN_CORNER : CORNER_NEW, change: CHANGE_NEW, join: JOIN_NEW, wipe: WIPE_NEW, travel: 180, tail: 3,
@@ -112,19 +117,23 @@ const S = {
   ...(OPM ? { merge: false, rubsDark: OPM_RUBS, rubsLight: OPM_RUBS, glide: OPMB ? OPMB_GLIDE : OPM_GLIDE, opmV: 1 } : {}),
   ...(OPM ? { rowMin: ROWMIN_NEW, rayW: RAYW_NEW } : {}), ...(OPMB ? { opmbV: 1 } : {}),   // OPM: Key 1 · A's rim alone so big; OPM-B: every cell
   ...(OPMS ? { inset: OPMS_INSET, round: OPMS_ROUND, bg: BG.white } : {}),             // OPM-S: the contours on the cells' edges, sharp; the white canvas
+  ...(OPMW ? { facets: FACETS_NEW } : {}),                                           // OPM-W: a corner three straight pieces (opmplan.js)
+  ...(OPMP ? { pitch: PITCH_NEW, dragRubs: DRAG_RUBS_NEW, pspeed: PSPEED_NEW, brushPress: 0, cw: true, bind: true, rayW: PITCH_NEW, opmpV: 1 } : {}),   // OPM-P: the rings the brush apart, DRAG's rubs, speed and pressure, round ↻
 };
 if (DACHE) S.ink = false;                                                            // no cup: TEST's dots in pencil
-const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : []), ...(PRISMA ? ['rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : [])];
+const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : []), ...(PRISMA ? ['rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress'] : [])];
 const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result', ...(OPM ? ['pencil', 'paint'] : PRISMA ? ['pencil'] : DACHE ? ['modules', 'pencil'] : [])];
 const BLEND_KEEP = 'rembrandt.blend.v01', BLEND_REFS = 'rembrandt.blend.refs';   // BLEND's keep and references, DACHE's first visit's
 const DACHE_KEEP = 'rembrandt.dache.v01', DACHE_REFS = 'rembrandt.dache.refs';   // DACHE's, PRISMA's first visit's
 const PRISMA_KEEP = 'rembrandt.prisma.v01', PRISMA_REFS = 'rembrandt.prisma.refs';   // PRISMA's, OPM's first visit's
 const OPM_KEEP = 'rembrandt.opm.v01', OPM_REFS = 'rembrandt.opm.refs';                 // OPM's, OPM-B's and OPM-S's first visit's
+const OPMS_KEEP = 'rembrandt.opms.v01', OPMS_REFS = 'rembrandt.opms.refs';             // OPM-S's, OPM-W's first visit's (the owner, 2026-10-28: "based on our very latest, OPM-S")
+const OPMW_KEEP = 'rembrandt.opmw.v01', OPMW_REFS = 'rembrandt.opmw.refs';             // OPM-W's, OPM-P's first visit's
 let STRIP_PAINTS = false, ALL_PENCILS = false;                                       // PRISMA: the paints by the Tools, not the pencils; the pencils that do not draw too
 let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
-    const o = JSON.parse(localStorage.getItem(KEY) || ((OPMB || OPMS) && localStorage.getItem(OPM_KEEP)) || (OPM && localStorage.getItem(PRISMA_KEEP)) || (PRISMA && localStorage.getItem(DACHE_KEEP)) || (DACHE && localStorage.getItem(BLEND_KEEP)) || 'null'); if (!o) return;   // DACHE's first visit: BLEND's composition; PRISMA's DACHE's, else BLEND's
+    const o = JSON.parse(localStorage.getItem(KEY) || (OPMP && localStorage.getItem(OPMW_KEEP)) || (OPMW && localStorage.getItem(OPMS_KEEP)) || ((OPMB || OPMS) && localStorage.getItem(OPM_KEEP)) || (OPM && localStorage.getItem(PRISMA_KEEP)) || (PRISMA && localStorage.getItem(DACHE_KEEP)) || (DACHE && localStorage.getItem(BLEND_KEEP)) || 'null'); if (!o) return;   // DACHE's first visit: BLEND's composition; PRISMA's DACHE's, else BLEND's
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     if (Array.isArray(o.rects)) S.rects = withIds(o.rects.map(cleanRect).filter(Boolean));
     WIDTHLESS = Array.isArray(o.rects) && o.rects.some(r => isJohn(r) && !fin(r.width));   // a ⌘ kept before Width: its X laid again on its loop
@@ -157,9 +166,16 @@ function load() {
         if (!o.opmbV) { S.rubsDark = S.rubsLight = OPM_RUBS; S.glide = OPMB_GLIDE; S.rowMin = ROWMIN_NEW; S.rayW = RAYW_NEW; }
         S.opmbV = 1;
       }
-      if (OPM) { S.rowMin = Math.max(ROWMIN_MIN, Math.min(ROWMIN_MAX, S.rowMin)); S.rayW = Math.max(RAYW_MIN, Math.min(RAYW_MAX, S.rayW)); }
+      if (OPM) { S.rowMin = Math.max(ROWMIN_MIN, Math.min(ROWMIN_MAX, S.rowMin)); S.rayW = Math.max(OPMP ? PITCH_MIN : RAYW_MIN, Math.min(RAYW_MAX, S.rayW)); }
       if (OPMS) { S.inset = Math.max(0, Math.min(INSET_MAX, S.inset)); S.round = Math.max(0, Math.min(ROUND_MAX, S.round)); }   // OPM's keep has neither: OPM-S's own at first
       if (OPMS && /^#[0-9a-f]{6}$/i.test(o.bg ?? '')) S.bg = o.bg.toUpperCase();
+      if (OPMW) { S.facets = Math.max(FACETS_MIN, Math.min(FACETS_MAX, Math.round(S.facets))); S.round = 0; }   // OPM-W: no rounded corner, whatever OPM-S's keep had
+      if (OPMP) {                                                                     // OPM-W's keep at first: OPM-P's brush, its rays as wide as it, the lines on the cells' edges
+        if (!o.opmpV) { S.pitch = PITCH_NEW; S.dragRubs = DRAG_RUBS_NEW; S.pspeed = PSPEED_NEW; S.brushPress = 0; S.rayW = PITCH_NEW; S.rubsLight = S.rubsDark; }
+        S.opmpV = 1; S.inset = 0; S.cw = o.cw !== false; S.bind = o.bind !== false;
+        S.pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, Math.round(S.pitch * 2) / 2)); S.dragRubs = Math.max(DRAG_RUBS_MIN, Math.min(DRAG_RUBS_MAX, Math.round(S.dragRubs)));
+        S.pspeed = Math.max(PSPEED_MIN, Math.min(PSPEED_MAX, Math.round(S.pspeed))); S.brushPress = Math.max(BPRESS_MIN, Math.min(BPRESS_MAX, Math.round(S.brushPress * 10) / 10));
+      }
       if (PRISMA) { S.rubsDark = to(S.rubsDark, RUBS_MIN, RUBS_MAX); S.rubsLight = to(S.rubsLight, RUBS_MIN, RUBS_MAX); const deg = (v, a, b) => Math.max(a, Math.min(b, Math.round(v * 10) / 10)); S.press = deg(S.press, PRESS_MIN, PRESS_MAX); S.glide = deg(S.glide, GLIDE_MIN, GLIDE_MAX); S.touch = deg(S.touch, TOUCH_MIN, TOUCH_MAX); }   // rubbed, pressed, gliding
       if (PRISMA) S.shortest = Math.max(RUN_SHORTEST_MIN, Math.min(RUN_SHORTEST_MAX, S.shortest));
       S.boxV = PRISMA ? 6 : 4; delete S.box2; delete S.stroke;                         // the bands the blend's loops since the same day, no Stroke
@@ -272,10 +288,14 @@ const pencilOf = id => S.pencils.find(p => p.id === id);
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 const layers = () => S.coats * (S.hatch === 'cross' ? 2 : 1);                     // over the paper: Cross lays every coat twice, along and across
 function dachePlan() {
-  const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.coats, S.shortest, S.frame, S.hatch, S.corner, S.mix, S.rubsDark, S.rubsLight, S.merge, S.rowMin, S.rayW, S.inset, S.round]);
+  const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.coats, S.shortest, S.frame, S.hatch, S.corner, S.mix, S.rubsDark, S.rubsLight, S.merge, S.rowMin, S.rayW, S.inset, S.round, S.facets, S.pitch, S.cw, S.dragRubs, S.bind]);
   if (DPLAN?.key === key) return DPLAN;
+  if (OPMP) {                                                                        // opmplan.js: the brush's rings, the lines once, DRAG a colour at a time in the run's order
+    const D = opmpPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, order: runOrder(S.pencils, S.order).map(p => p.id), frame: S.frame, corner: S.corner, merge: S.merge, pitch: S.pitch, stripW: S.rayW, facets: S.facets, cw: S.cw, rubs: S.dragRubs, bound: S.bind });
+    return (DPLAN = { key, ...D, order: runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order), passes: D.drags });
+  }
   if (OPM) {                                                                         // opmplan.js: the cells' contours, a pass a pencil, every contour rubbed round
-    const D = opmPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, frame: S.frame, corner: S.corner, merge: S.merge, ...(OPMB ? { minRow: S.rowMin, stripW: S.rayW, minW: OPMB_SLIVER } : { rim: { minRow: S.rowMin, stripW: S.rayW, minW: OPMB_SLIVER } }), ...(OPMS ? { inset: S.inset, round: S.round } : {}) });   // OPM: OPM-B's cells in Key 1 · A's rim alone (2026-10-28)
+    const D = opmPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, frame: S.frame, corner: S.corner, merge: S.merge, ...(OPMB ? { minRow: S.rowMin, stripW: S.rayW, minW: OPMB_SLIVER } : { rim: { minRow: S.rowMin, stripW: S.rayW, minW: OPMB_SLIVER } }), ...(OPMS ? { inset: S.inset, round: S.round } : {}), ...(OPMW ? { facets: S.facets } : {}) });   // OPM: OPM-B's cells in Key 1 · A's rim alone (2026-10-28); OPM-W: its corners straight pieces
     const order = runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order);
     return (DPLAN = { key, ...D, order, passes: prismaPasses(D, order, { rubs: id => rubsOf(pencilOf(id), S.rubsDark, S.rubsLight) }) });
   }
@@ -289,6 +309,7 @@ function dachePlan() {
   return (DPLAN = { key, ...D, order, passes: passesOf(D, order, { hatch: S.hatch, coats: S.coats }) });
 }
 function pencilRun() {
+  if (OPMP) return (DRAW_RUN = paintRun());                                          // OPM-P: the run is DRAG's, a colour at a time
   const D = dachePlan(), here = hereNow(), key = JSON.stringify([D.key, S.pencilSpeed, S.travel, here, S.press, S.glide, S.touch]);
   if (DRAW_RUN?.key === key) return DRAW_RUN;
   if (!D.passes.length) return (DRAW_RUN = { key, ...EMPTY, passes: [] });
@@ -315,11 +336,31 @@ function prismaRun(passes) {
 let ONE_RUN = {};
 function oneRun(kind) {
   const pc = boldestOf(S.pencils, S.bg), D = kind === 'bw' ? dachePlan() : null, here = hereNow();
-  const key = JSON.stringify([kind, D ? D.key : [S.rects, S.corner], pc, S.rubsDark, S.rubsLight, S.pencilSpeed, S.travel, here, S.press, S.glide, S.touch]);
+  const key = JSON.stringify([kind, D ? D.key : [S.rects, S.corner, S.facets], pc, S.rubsDark, S.rubsLight, S.pencilSpeed, S.travel, here, S.press, S.glide, S.touch]);
   if (ONE_RUN[kind]?.key === key) return ONE_RUN[kind];
-  const mods = !pc ? [] : D ? D.modules.map(M => ({ ...M, pencil: pc.id })) : outerOf(S.rects, { corner: S.corner, pencil: pc.id });
-  const passes = mods.length ? prismaPasses({ modules: mods }, [pc], { rubs: () => rubsOf(pc, S.rubsDark, S.rubsLight) }) : [];
+  const mods = !pc ? [] : D ? D.modules.map(M => ({ ...M, pencil: pc.id })) : outerOf(S.rects, { corner: S.corner, pencil: pc.id, ...(OPMW ? { facets: S.facets } : {}) });
+  // OPM-P's lines in their own order, the rings round first, then the rays (opmplan.js, linesOf): every one once, its own stroke; one Rubs, no light or dark pencil
+  const passes = !mods.length ? [] : OPMP ? [{ pencil: pc.id, strokes: mods.map(M => M.pieces), modules: mods.length, rows: mods.filter(M => M.line === 'row').length, rays: mods.filter(M => M.line === 'ray').length, rubs: S.rubsDark, mm: mods.reduce((a, M) => a + M.mm, 0) * S.rubsDark }]
+    : prismaPasses({ modules: mods }, [pc], { rubs: () => rubsOf(pc, S.rubsDark, S.rubsLight) });
   return (ONE_RUN[kind] = { key, pencil: pc, ...(passes.length ? prismaRun(passes) : { ...EMPTY, passes: [] }), modules: mods });
+}
+
+// OPM-P's DRAG (the owner, 2026-10-29: "DRAG comes back in DRAW CLR's place … the
+// painting of one colour after another, but with one brush, and I squeeze the
+// different paints onto the canvas … not as DRAW CLR, and — important — not
+// as the old ST-JOHN or INKA: the brush has its number of passes, RUBS"): a
+// colour a row, the brush down at Brush pressed (ELBOW LIVE's), up on the move
+// between its strokes; between two colours the brush up over the next one's
+// start to Wipe, the run's pause — wipe it, squeeze that colour on its cells,
+// Continue (inkaplan.js's wipeBlocks)
+let PAINT_RUN = null;
+function paintRun() {
+  const D = dachePlan(), here = hereNow(), key = JSON.stringify([D.key, S.pspeed, S.travel, S.tail, S.wipe, S.brushPress, here]);
+  if (PAINT_RUN?.key === key) return PAINT_RUN;
+  if (!D.passes.length) return (PAINT_RUN = { key, ...EMPTY, passes: [] });
+  const R = dragRowsOf(D.passes, S.pencils, po()), name = id => pencilOf(id)?.name ?? id;
+  const r = plotRun({ ...runOpts(R.ps.length), speed: S.pspeed, lift: true, press: S.brushPress }, R.ps.map((ps, k) => ({ key: 'DRAG', ps: [ps], why: k ? `wipe the brush, squeeze ${name(D.passes[k].pencil)} on its cells, then Continue` : null })));
+  return (PAINT_RUN = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: D.passes.reduce((a, q) => a + q.mm, 0), passes: D.passes });
 }
 
 // ---------- the board (CCD's) ----------
@@ -392,7 +433,7 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint') drawPencils(); else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }
+  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint') drawPencils(); else if (OPMP) { drawPencils(); drawSausages(); drawNodes(); } else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }   // OPM-P's Drag: the brush's strokes, a colour each
   if (DACHE) drawFrame();
   if (REF && S.refOpacity > 0) {
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
@@ -656,7 +697,22 @@ function dacheBitmap() {
       c.fillStyle = c.strokeStyle = pc.hex; c.lineWidth = 0.3; c.beginPath(); C.poly.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); c.fill(); c.stroke();   // its own edge too: no hairline between two
     }
     c.lineWidth = 0.35; c.lineJoin = 'round'; c.strokeStyle = 'rgba(36,34,31,.35)';
-    for (const P of D.passes) { if (S.only && P.pencil !== S.only) continue; for (const st of P.strokes) { trace(c, st); c.stroke(); } }
+    if (OPMP) for (const M of D.modules) { trace(c, M.pieces); c.stroke(); }          // OPM-P: its lines, every one once
+    else for (const P of D.passes) { if (S.only && P.pencil !== S.only) continue; for (const st of P.strokes) { trace(c, st); c.stroke(); } }
+  } else if (OPMP && S.view === 'drag') {                                            // OPM-P, Drag: every DRAG stroke as wide as the brush, in its colour, its middle over it
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    for (const P of D.passes) {
+      const pc = pencilOf(P.pencil); if (!pc || (S.only && P.pencil !== S.only)) continue;
+      c.lineWidth = S.pitch; c.strokeStyle = pc.hex; c.globalAlpha = 0.8;
+      for (const st of P.strokes) { const b = boxOfPieces(st); if (!seen(b)) continue; trace(c, st); c.stroke(); }
+      c.globalAlpha = 0.55; c.lineWidth = Math.max(0.15, 0.6 / px); c.strokeStyle = '#24221F';
+      for (const st of P.strokes) { const b = boxOfPieces(st); if (!seen(b)) continue; trace(c, st); c.stroke(); }
+    }
+    c.globalAlpha = 1;
+  } else if (OPMP) {                                                                  // OPM-P, Contour: DRAW BW's lines, 1 mm, in its pencil
+    const pc = boldestOf(S.pencils, S.bg);
+    c.lineWidth = PITCH; c.lineCap = 'butt'; c.lineJoin = 'round'; c.strokeStyle = pc?.hex ?? '#24221F';
+    for (const M of D.modules) { const b = boxOfPieces(M.pieces); if (!seen(b)) continue; trace(c, M.pieces); c.stroke(); }
   } else if (PRISMA) {                                                                // PRISMA: every pass's strokes, 1 mm wide, in its pencil's colour as it is (est.), the later over the earlier
     c.lineWidth = PITCH; c.lineCap = 'butt'; c.lineJoin = 'round';
     for (const P of D.passes) {
@@ -701,10 +757,10 @@ function drawFrame() {
   g.restore();
 }
 function showPlay() {
-  const b = $('#btnPlay'); b.classList.toggle('on', !!PLAY); b.textContent = PLAY ? '■ Stop playing' : DACHE ? '▶ Play Preview' : '▶ Play the run';
-  if (DACHE) { const q = $('#btnPlayPencil'); q.classList.toggle('on', !!PPLAY); q.textContent = PPLAY ? '■ Stop playing' : '▶ Play Pencil'; }
+  const b = $('#btnPlay'), on = OPMP ? PPLAY?.kind === 'drag' : !!PLAY; b.classList.toggle('on', on); b.textContent = on ? '■ Stop playing' : OPMP ? '▶ Play Drag' : DACHE ? '▶ Play Preview' : '▶ Play the run';
+  if (DACHE) { const q = $('#btnPlayPencil'), pon = !!PPLAY && PPLAY.kind !== 'drag'; q.classList.toggle('on', pon); q.textContent = pon ? '■ Stop playing' : '▶ Play Pencil'; }
 }
-$('#btnPlay').onclick = () => { stopPencilPlay(); play(); };
+$('#btnPlay').onclick = () => { if (OPMP) return playPencil('drag'); stopPencilPlay(); play(); };   // OPM-P: DRAG as it will run
 // ▶ Play Pencil (DACHE; the owner, 2026-10-27: "two buttons in one row, Play
 // Preview and Play Pencil — we need to watch how our picture is drawn in
 // pencil"): DRAW as it will run, pass after pass in the run's order, every
@@ -715,12 +771,16 @@ $('#btnPlay').onclick = () => { stopPencilPlay(); play(); };
 // end the Pencil view.
 let PPLAY = null;
 const PLAY_MM = 4;
-function playPencil() {
-  if (PPLAY) { stopPencilPlay(); kick(); return; }
+// OPM-P (2026-10-29): two of them — ▶ Play Drag, DRAG as it will run, a colour
+// at a time, the brush as wide as it is; ▶ Play Pencil, DRAW BW, every line
+// once, the rings round first, then the rays
+function playPencil(kind) {
+  kind = typeof kind === 'string' ? kind : 'pencil';
+  if (PPLAY) { const was = PPLAY.kind; stopPencilPlay(); kick(); if (was === kind || !OPMP) return; }
   stopPlay();
-  const D = dachePlan(), list = [];
+  const D = dachePlan(), list = [], B = OPMP && kind === 'pencil' ? oneRun('bw') : null, passes = B ? B.passes : D.passes;
   let mm = 0;
-  D.passes.forEach((P, n) => {
+  passes.forEach((P, n) => {
     const pc = pencilOf(P.pencil); if (!pc) return;
     for (const st of P.strokes) for (const g of st) {                                // long pieces cut, so the tip goes on smoothly
       const L = lenOf(g), k2 = Math.max(1, Math.ceil(L / PLAY_MM));
@@ -735,9 +795,10 @@ function playPencil() {
   c2.width = Math.ceil(S.boardW * px); c2.height = Math.ceil(S.boardH * px);
   const c = c2.getContext('2d');
   c.setTransform(px, 0, 0, -px, 0, S.boardH * px); c.fillStyle = groundNow(); c.fillRect(0, 0, S.boardW, S.boardH);
-  c.lineWidth = PITCH; c.lineCap = 'butt'; c.lineJoin = 'round';
-  PPLAY = { list, mm, i: 0, c2, c, t0: performance.now(), ms: Math.min(40000, 6000 + mm * 0.15), passes: D.passes.length, ids: D.passes.map(q => q.pencil), seconds: pencilRun().seconds, want: 0, n: list[0].n, say: '' };
-  if (S.view !== 'pencil') { S.view = 'pencil'; save(); showPanel(); }
+  c.lineWidth = OPMP && kind === 'drag' ? S.pitch : PITCH; c.lineCap = OPMP && kind === 'drag' ? 'round' : 'butt'; c.lineJoin = 'round';
+  PPLAY = { kind, list, mm, i: 0, c2, c, t0: performance.now(), ms: Math.min(40000, 6000 + mm * 0.15), passes: passes.length, ids: passes.map(q => q.pencil), seconds: B ? B.seconds : pencilRun().seconds, want: 0, n: list[0].n, say: '' };
+  const v = OPMP && kind === 'drag' ? 'drag' : 'pencil';
+  if (S.view !== v) { S.view = v; save(); showPanel(); }
   showPlay(); nowPencil(); lcd(lastLcd);
   const tick = () => {
     if (!PPLAY) return;
@@ -749,7 +810,7 @@ function playPencil() {
       trace(c, [q.g]); c.stroke();
     }
     const q = Q.list[Math.max(0, Q.i - 1)];
-    $('#hint').textContent = `Play Pencil · ${q.n + 1}/${Q.passes} ${q.pc.name}${q.pc.code ? ` ${q.pc.code}` : ''} · ${Math.round(want / Q.mm * 100)} % · ${fmt(want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m`;
+    $('#hint').textContent = `Play ${Q.kind === 'drag' ? 'Drag' : 'Pencil'} · ${q.n + 1}/${Q.passes} ${q.pc.name}${q.pc.code ? ` ${q.pc.code}` : ''} · ${Math.round(want / Q.mm * 100)} % · ${fmt(want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m`;
     Q.want = want;
     if (q.n !== Q.n) { Q.n = q.n; nowPencil(); }
     const say = `${Q.n}|${Math.floor(want / Q.mm * 100)}|${Math.round(Q.seconds * (1 - want / Q.mm))}`;
@@ -778,7 +839,7 @@ function drawPencilPlay() {
   }
   g.restore();
 }
-if (DACHE) $('#btnPlayPencil').onclick = playPencil;
+if (DACHE) $('#btnPlayPencil').onclick = () => playPencil('pencil');
 
 // The guides: every tile's outline, the chosen one orange with its eight
 // handles; its number and step; its size while it is drawn or stretched. A
@@ -794,6 +855,14 @@ function handlesOf(r) {
   for (const hx of [-1, 0, 1]) for (const hy of [-1, 0, 1]) if (hx || hy) out.push({ hx, hy, at: [r.x + (hx + 1) / 2 * r.w, r.y + (hy + 1) / 2 * r.h] });
   return out;
 }
+// a key's outline on the screen, qa its top left, qb its bottom right: rounded,
+// or on OPM-W its corners in S.facets straight pieces, as its cells'
+function keyPath(qa, qb, r) {
+  if (!OPMW || r <= 0) { g.roundRect(qa[0], qa[1], qb[0] - qa[0], qb[1] - qa[1], r); return; }
+  const n = S.facets, C = [[qa[0] + r, qa[1] + r, 1], [qb[0] - r, qa[1] + r, 1.5], [qb[0] - r, qb[1] - r, 0], [qa[0] + r, qb[1] - r, 0.5]];   // the screen's y down: top left from 9 o'clock, clockwise
+  C.forEach(([cx, cy, a0], j) => { for (let i = 0; i <= n; i++) { const a = (a0 + i / n / 2) * Math.PI; g[j || i ? 'lineTo' : 'moveTo'](cx + r * Math.cos(a), cy + r * Math.sin(a)); } });
+  g.closePath();
+}
 function guides() {
   g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.font = font(10); g.textBaseline = 'alphabetic';
   S.rects.forEach((r, i) => {
@@ -803,7 +872,7 @@ function guides() {
       keysOf(r).forEach((q, j) => {
         const qa = scr([q.x, q.y + q.h]), qb = scr([q.x + q.w, q.y]), ch = on && i === S.sel && MANY.size < 2 && j === S.key;
         if (j) { g.strokeStyle = ch ? ORANGE : 'rgba(36,34,31,.45)'; g.lineWidth = ch ? 1.5 : 1; g.setLineDash(ch ? [] : [4, 3]); }
-        g.beginPath(); g.roundRect(qa[0], qa[1], qb[0] - qa[0], qb[1] - qa[1], Math.min(q.c, q.w / 2, q.h / 2) * k); g.stroke();
+        g.beginPath(); keyPath(qa, qb, Math.min(q.c, q.w / 2, q.h / 2) * k); g.stroke();
         if (j && on && qb[0] - qa[0] > 22 && qb[1] - qa[1] > 18) { g.fillStyle = ch ? '#B3470C' : themeColor('--mute', '#7D776D'); g.textAlign = 'left'; g.fillText(String(j + 1), qa[0] + 4, qa[1] + 12); }
       });
     } else g.strokeRect(a[0], a[1], b[0] - a[0], b[1] - a[1]);
@@ -884,7 +953,7 @@ function startOf(B, i) {
 }
 
 // ---------- undo ----------
-const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes', ...(DACHE ? ['pencils', 'order', 'hatch', 'coats', 'shortest', 'pencilSpeed', 'frame', ...(PRISMA ? ['mix', 'rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['merge', 'rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : [])] : [])];
+const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes', ...(DACHE ? ['pencils', 'order', 'hatch', 'coats', 'shortest', 'pencilSpeed', 'frame', ...(PRISMA ? ['mix', 'rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['merge', 'rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress', 'cw', 'bind'] : [])] : [])];
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -1291,13 +1360,18 @@ $('#slBrush').querySelectorAll('input').forEach(inp => {
 // the Result first — the reading and the LCD then.
 // PRISMA's rubs by twos, 1 … 64 (the owner, 2026-10-27: "8 or 16 … 16–32 … if not enough, 64")
 const LOG_SL = new Set(PRISMA ? ['rubsDark', 'rubsLight'] : []);
-const PENCIL_SL = PRISMA ? [...(OPM ? [['rowMin', OPMB ? 'Rows at least' : 'Key 1 · A: rows at least', 0.5, ROWMIN_MIN, ROWMIN_MAX], ['rayW', OPMB ? 'Rays wide' : 'Key 1 · A: rays wide', 0.5, RAYW_MIN, RAYW_MAX]] : []), ...(OPMS ? [['inset', 'Contour in from the edge', 0.1, 0, INSET_MAX], ['round', 'Corners rounded', 0.5, 0, ROUND_MAX]] : []), ['rubsDark', 'Rubs, the darkest pencil', 1, 0, 6], ['rubsLight', 'Rubs, the lightest pencil', 1, 0, 6], ['touch', 'Pencil in at', 0.5, TOUCH_MIN, TOUCH_MAX], ['press', 'Pressure', 0.1, PRESS_MIN, PRESS_MAX], ['glide', 'Between strokes', 0.1, GLIDE_MIN, GLIDE_MAX],
+// OPM-P (2026-10-29): Construction its rays and facets — the rows by the brush; Drawing machine DRAW BW's one pencil, one Rubs;
+// Painting machine DRAG's brush: its width the rings' step, its Rubs, its speed (the owner: "RUBS, one, as there are no light or dark pencils any more")
+const PENCIL_SL = OPMP ? [['rayW', 'Rays wide', 0.5, PITCH_MIN, RAYW_MAX], ['facets', 'Corner facets', 1, FACETS_MIN, FACETS_MAX], ['rubsDark', 'Rubs', 1, 0, 6], ['touch', 'Pencil in at', 0.5, TOUCH_MIN, TOUCH_MAX], ['press', 'Pressure', 0.1, PRESS_MIN, PRESS_MAX], ['glide', 'Between strokes', 0.1, GLIDE_MIN, GLIDE_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX],
+    ['pitch', 'Brush width · the rows\' step', 0.5, PITCH_MIN, PITCH_MAX], ['dragRubs', 'Rubs', 1, DRAG_RUBS_MIN, DRAG_RUBS_MAX], ['pspeed', 'Brush speed', 5, PSPEED_MIN, PSPEED_MAX]]
+  : PRISMA ? [...(OPM ? [['rowMin', OPMB ? 'Rows at least' : 'Key 1 · A: rows at least', 0.5, ROWMIN_MIN, ROWMIN_MAX], ['rayW', OPMB ? 'Rays wide' : 'Key 1 · A: rays wide', 0.5, RAYW_MIN, RAYW_MAX]] : []), ...(OPMS ? [['inset', 'Contour in from the edge', 0.1, 0, INSET_MAX], OPMW ? ['facets', 'Corner facets', 1, FACETS_MIN, FACETS_MAX] : ['round', 'Corners rounded', 0.5, 0, ROUND_MAX]] : []), ['rubsDark', 'Rubs, the darkest pencil', 1, 0, 6], ['rubsLight', 'Rubs, the lightest pencil', 1, 0, 6], ['touch', 'Pencil in at', 0.5, TOUCH_MIN, TOUCH_MAX], ['press', 'Pressure', 0.1, PRESS_MIN, PRESS_MAX], ['glide', 'Between strokes', 0.1, GLIDE_MIN, GLIDE_MAX],
     ...(OPMS ? [] : [['shortest', 'Shortest stroke', 0.5, RUN_SHORTEST_MIN, RUN_SHORTEST_MAX]]), ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]]   // OPM-S: no Shortest, PRISMA's rings' and nothing of OPM's
   : [['coats', 'Coats', 1, COATS_MIN, COATS_MAX], ['shortest', 'Shortest module', 0.5, SHORTEST_MIN, SHORTEST_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]];
 const PENCIL_TITLE = PRISMA ? {
   rowMin: (OPMB ? '' : 'In the rim of Key 1 · A alone — the blend\'s outer band, OPM-B\'s cells there, OPM\'s everywhere else (the owner, 2026-10-28: "back to OPM, and take from OPM-B only the rim of Key 1 · A"). ') + 'A row of cells across the loops so thick at least, mm: a narrow side\'s loops taken together — white left inside a contour for the paint (the owner, 2026-10-28: "the rectangles bigger"); OPM 2.5 (est.)',
   rayW: (OPMB ? '' : 'In the rim of Key 1 · A alone. ') + 'A ray\'s cells — the sausage\'s strip across the rows — so wide, mm, the cells round it narrower for it (the owner, 2026-10-28: "the rays come out as dots, a brush cannot get into them: wider, the rings round them pressed a little"); OPM 5, the sausage\'s own (est.)',
   inset: 'A contour so far in from its cell\'s edge, mm: 0 on the edge itself, two neighbours one line, the mosaic pressed together (the owner, 2026-10-28: "press the borders together as far as they go"); OPM 0.7, two neighbours\' 1.4 apart (est.)',
+  facets: 'A corner of every loop, every key and the frame so many straight pieces, every one the same turn, every row\'s at the same slants — no arc anywhere, sticks of wood or foam board cut straight (the owner, 2026-10-28, OPM/Screenshot 2.34.42 PM: "straight lines at different slants"); 3 the owner\'s, 75°, 45° and 15°; 1 a corner cut off at 45°',
   round: 'A contour\'s corners rounded so much at most, mm: 0 sharp, as the colours\' are (the owner, 2026-10-28: "take the rounding off the corners") — the carriage slows down to a stop at every one; OPM 1.5, round without stopping (est.)',
   rubsDark: 'Every stroke of the darkest pencil so many times over, there and back, pressed — a pencil is rubbed, as wood on sandpaper, not touched (the owner, 2026-10-27: "8 or 16 times a stroke for the dark, saturated colours"); a pencil between the darkest and the lightest between, by its lightness (est.)',
   rubsLight: 'Every stroke of the lightest pencil so many times over (the owner: "16–32 for the light ones; if not enough, 64"); the time grows with it (est.)',
@@ -1311,18 +1385,25 @@ const PENCIL_TITLE = PRISMA ? {
   shortest: 'A piece of one colour along a line shorter than this goes to its longer neighbour: no specks, no pencil tapping; a sausage\'s square stays whatever its length (est.)',
   pencilSpeed: 'The pencil along its lines; slower through the turns and its ups and downs (est.)',
 };
+if (OPMP) Object.assign(PENCIL_TITLE, {
+  rayW: 'A ray\'s strip — the sausage\'s across the rows — so wide, mm; DRAG paints it along itself after the rings, side by side where it is wider than the brush (est.)',
+  rubsDark: 'Every line of DRAW BW so many times over, there and back, round a closed one — one pencil, so one Rubs; 1 every line once (the owner, 2026-10-29: "at RUBS = 1 every piece once")',
+  pitch: 'The brush\'s working width, as it lays the paint, mm: every block — a side, a facet of a bevel — its own rows, parallel to its edge, so far apart at most, its gap shared out evenly into as many as keep every one within 5 % of it, no white between them; the rows end on the rays, from Key 1\'s corners to Key 2\'s (the owner, 2026-10-29: "every block its own rows … the blend\'s perspective stays, a row does not go over the corner") (est.)',
+  dragRubs: 'Every DRAG stroke so many times over, there and back, round a closed ring (the owner, 2026-10-29: "the brush has its number of passes … RUBS, 1× or 8×"; "at RUBS = 1 every piece once, more are passes meant")',
+  pspeed: 'The brush along the rows and the rays; slower through the turns, up and down on the move between strokes (est.)',
+});
 const sgn = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
-const pencilVal = key => PRISMA ? ({ rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(S.touch + S.glide)} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
+const pencilVal = key => PRISMA ? ({ pitch: `${fmt(S.pitch, 1)} mm (est.)`, dragRubs: `${S.dragRubs} × (est.)`, pspeed: `${S.pspeed} mm/s (est.)`, rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', facets: `${S.facets} · ${fmt(90 / S.facets, 0)}° a turn`, rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(S.touch + S.glide)} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
 // OPM-S's two blocks (the owner, 2026-10-28, Screenshot 5.01.58 PM: "let us separate the construction and
 // adjustment from the drawing machine's functions — two blocks, so that it is clear what is on the screen and
 // what on the canvas"): the cells' sliders in Construction, #slShape; the pencil's in Drawing machine, #slPencil
-const SHAPE_SL = new Set(['rowMin', 'rayW', 'inset', 'round']);
-const slBox = key => SHAPE_SL.has(key) && $('#slShape') || $('#slPencil');
+const SHAPE_SL = new Set(['rowMin', 'rayW', 'inset', 'round', 'facets']), DRAG_SL = new Set(['pitch', 'dragRubs', 'pspeed']);   // OPM-P: DRAG's brush in Painting machine, #slDrag
+const slBox = key => DRAG_SL.has(key) && $('#slDrag') || SHAPE_SL.has(key) && $('#slShape') || $('#slPencil');
 const slOf = key => slBox(key).querySelector(`input[data-k="${key}"]`);
 if (DACHE) {
   for (const box of new Set(PENCIL_SL.map(([key]) => slBox(key)))) box.innerHTML = PENCIL_SL.filter(([key]) => slBox(key) === box).map(([key, label, step, min, max]) => `<label class="sl" title="${PENCIL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
   PENCIL_SL.map(([key]) => slOf(key)).forEach(inp => {
-    inp.oninput = () => { if (!busy) undoPush(); busy = true; S[inp.dataset.k] = LOG_SL.has(inp.dataset.k) ? 2 ** +inp.value : +inp.value; showPencils(); };
+    inp.oninput = () => { if (!busy) undoPush(); busy = true; S[inp.dataset.k] = LOG_SL.has(inp.dataset.k) ? 2 ** +inp.value : +inp.value; if (OPMP && inp.dataset.k === 'rubsDark') S.rubsLight = S.rubsDark; showPencils(); };   // OPM-P: one pencil, one Rubs
     inp.onchange = () => settle();
   });
   document.querySelectorAll('#hatchKeys [data-hatch]').forEach(b => b.onclick = () => { if (S.hatch === b.dataset.hatch) return; undoPush(); S.hatch = b.dataset.hatch; settle(); });
@@ -1383,7 +1464,7 @@ function showPencils() {
     const t = at.get(p.id), few = D?.few.includes(p.id);
     return `<div class="pc${p.id === S.pencil ? ' sel' : ''}${p.on ? '' : ' off'}${S.only === p.id ? ' only' : ''}${playing(p.id) ? ' now' : ''}" data-id="${esc(p.id)}" title="${esc(p.name)}${p.code ? ` ${esc(p.code)}` : ''}${p.brand ? `, ${esc(p.brand)}` : ''} — its colour ${p.hex} est. A click chooses it, a second shows its pass alone">`
       + `<span class="no">${t ? t.n : ''}</span><i class="sw" style="background:${p.hex}"></i><span class="nm">${esc(p.name)}${p.code ? ` <em>${esc(p.code)}</em>` : ''}${p.brand ? ` <em>${esc(p.brand)}</em>` : ''}</span>`
-      + `<span class="ct">${!p.on ? 'off' : few ? `<span title="Next to nothing to draw — under ${LEAST_MM} mm of line, or ${LEAST_SHARE * 100} % of all on a small piece: no change of pencil for it, its ${PRISMA ? 'strokes' : 'modules'} to the nearest of the rest">left out</span>` : t ? OPM ? `${t.modules} · ${fmt(t.mm / 1000, 1)} m` : PRISMA ? `<span title="${t.rings} strokes round the rings, ${t.rays} cells along the rays">${t.rings} · ${t.rays}</span> · ${fmt(t.mm / 1000, 1)} m` : `${t.modules} · ${fmt(t.mm / 1000, 1)} m` : D ? 'none' : ''}</span>`
+      + `<span class="ct">${!p.on ? 'off' : few ? `<span title="Next to nothing to draw — under ${LEAST_MM} mm of line, or ${LEAST_SHARE * 100} % of all on a small piece: no change of pencil for it, its ${PRISMA ? 'strokes' : 'modules'} to the nearest of the rest">left out</span>` : t ? OPMP ? `${t.cells} · ${fmt(t.mm / 1000, 1)} m` : OPM ? `${t.modules} · ${fmt(t.mm / 1000, 1)} m` : PRISMA ? `<span title="${t.rings} strokes round the rings, ${t.rays} cells along the rays">${t.rings} · ${t.rays}</span> · ${fmt(t.mm / 1000, 1)} m` : `${t.modules} · ${fmt(t.mm / 1000, 1)} m` : D ? 'none' : ''}</span>`
       + (p.on ? `<span class="mv"><button data-mv="up" title="Earlier in the run">↑</button><button data-mv="down" title="Later in the run">↓</button></span>` : '<span class="mv"></span>') + '</div>';
   };
   const on = order.filter(p => !p.light), light = order.filter(p => p.light), off = S.pencils.filter(p => !p.on);
@@ -1391,7 +1472,7 @@ function showPencils() {
   if (PRISMA) {                                                                      // the box by the Tools; here the chosen one, its fields
     const rest = S.pencils.filter(q => !at.has(q.id)), N = D?.passes.length ?? 0;
     const chip = q => {
-      const t = at.get(q.id), say = t ? `pencil ${t.n} of ${N}: ${OPM ? `${t.modules} contour${t.modules === 1 ? '' : 's'}` : `${t.rings} strokes round the rings, ${t.rays} cells along the rays`}, ${fmt(t.mm / 1000, 1)} m` : !q.on ? 'out of the box' : D?.few.includes(q.id) ? 'left out, next to nothing to draw' : 'not in this drawing';
+      const t = at.get(q.id), say = t ? OPMP ? `colour ${t.n} of ${N}: ${t.cells} cells, ${t.rows} strokes along the rows, ${t.rays} along the rays, ${fmt(t.mm / 1000, 1)} m of brush` : `pencil ${t.n} of ${N}: ${OPM ? `${t.modules} contour${t.modules === 1 ? '' : 's'}` : `${t.rings} strokes round the rings, ${t.rays} cells along the rays`}, ${fmt(t.mm / 1000, 1)} m` : !q.on ? 'out of the box' : D?.few.includes(q.id) ? 'left out, next to nothing to draw' : 'not in this drawing';
       return `<div class="chip${q.id === S.pencil ? ' pick' : ''}${S.only === q.id ? ' only' : ''}${t ? '' : q.on ? ' none' : ' off'}${playing(q.id) ? ' now' : ''}" data-id="${esc(q.id)}" title="${esc(q.name)}${q.code ? ` ${esc(q.code)}` : ''} — ${say}. A click chooses it, a second shows its pass alone"><button class="sw" style="background:${q.hex}" aria-label="${esc(q.name)}"></button><span class="cnt">${t ? t.n : q.on ? '–' : 'off'}</span></div>`;
     };
     $('#pencilStrip').innerHTML = [...at.values()].map(q => pencilOf(q.pencil)).filter(Boolean).map(chip).join('') + (ALL_PENCILS ? rest.map(chip).join('') : '')
@@ -1417,7 +1498,17 @@ function showPencils() {
   });
   $('#btnPencilDel')?.addEventListener('click', () => { undoPush(); S.pencils = S.pencils.filter(q => q.id !== p.id); S.pencil = S.pencils[0]?.id ?? ''; if (S.only === p.id) S.only = ''; settle(); });
   const R = DRAW_RUN, F = S.frame, lines = [];
-  if (D && R && OPM) {
+  if (D && R && OPMP) {                                                              // OPM-P: DRAW BW's lines here; DRAG's under Painting machine's (i)
+    const B = oneRun('bw'), rows = D.lines.filter(L => L.kind === 'row').length, cells = D.cells.filter(q => q.pencil).length;
+    lines.push(`DRAW BW: <b>${D.lines.length}</b> line${D.lines.length === 1 ? '' : 's'}, every one once — ${rows} along the rows, block after block round ${S.cw ? '↻' : '↺'} from 12 o'clock, every block's from its outer edge in, then ${D.lines.length - rows} rays — ${S.merge ? 'none between two cells of one colour' : 'one between every two cells'}, ${cells} cells; rubbed ${S.rubsDark}×, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)}), ${S.glide <= 0 ? 'gliding on the canvas' : 'just off it'} between; ${fmt(B.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, ≈ <b>${hm(B.seconds)}</b> (est.)${B.pencil ? `, in ${esc(B.pencil.name)}` : ''}`);
+    const side = R_ => { const n = R_.sides, f = R_.blocks.filter(B => !B.side).map(B => B.n); return `${R_.bands ? `${R_.bands} bands, ` : ''}${n[4] ?? 0} top · ${n[2] ?? 0} right · ${n[0] ?? 0} bottom · ${n[6] ?? 0} left${f.length ? `, the bevels ${Math.min(...f)} … ${Math.max(...f)}` : ''}`; };
+    const drag = [R.passes.length ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells — ${R.passes.reduce((a, q) => a + q.rows, 0)} strokes along the rows, block after block, then ${R.passes.reduce((a, q) => a + q.rays, 0)} along the rays — every one ${S.dragRubs}× (Rubs); ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up on the move ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° to wipe it and squeeze the next` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : 'DRAG: nothing to paint — the Preview bare here, or no colour near it',
+      `${S.bind ? 'The blend\'s bands over the corners, every block\'s band in a whole number of rows' : 'Every block its own rows'}, ${fmt(S.pitch, 1)} mm apart at most, evenly: ${D.regions.map(R_ => `${R_.kind === 'blend' ? `Key ${R_.key + 1} → ${R_.key + 2}` : R_.kind === 'core' ? 'the core' : 'a tile'} ${side(R_)}`).join('; ')}`];
+    if (D.few.length) drag.push(`Left out, next to nothing to paint — under ${LEAST_MM} mm of brush, or ${LEAST_SHARE * 100} % of all: ${D.few.map(id => pencilOf(id)?.name ?? id).join(', ')} — their cells to the nearest of the rest`);
+    $('#dragRead').innerHTML = drag.join(' · ');
+    document.querySelectorAll('#turnKeys [data-cw]').forEach(b => b.classList.toggle('on', (b.dataset.cw === '1') === S.cw));
+    document.querySelectorAll('#bindKeys [data-bind]').forEach(b => b.classList.toggle('on', (b.dataset.bind === '1') === S.bind));
+  } else if (D && R && OPM) {
     const n = D.modules.length, drawn = D.cells.filter(q => q.pencil).length, white = D.cells.length - drawn;
     lines.push(R.passes.length ? `DRAW: <b>${R.passes.length}</b> pencil${R.passes.length === 1 ? '' : 's'}, <b>${n}</b> contour${n === 1 ? '' : 's'} — ${S.merge ? `the cells of one pencil side by side merged, ${drawn} cells in them` : `a cell each, of ${drawn} cells`}${white ? `; ${white} off the Preview, none` : ''}; every contour rubbed round ${S.rubsDark}× the darkest pencil … ${S.rubsLight}× the lightest, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)} from it — as Calibration's ELBOW shows it), ${fmt(R.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, lifted to ${sgn(S.touch + S.glide)} from one to the next ${R.lifts} times, ≈ <b>${hm(R.seconds)}</b> (est.) without the ${R.passes.length} changes of pencil, the first too` : 'DRAW: nothing to draw — the Preview is white here, or no pencil near its colours.');
     if (D.lost) lines.push(`${D.lost} cell${D.lost === 1 ? '' : 's'} too narrow for a contour ${OPMS ? S.inset : INSET} mm in from its edges: none drawn, painted in with a neighbour's colour`);
@@ -1441,7 +1532,8 @@ function dacheSoon() {
   dacheT = setTimeout(() => {
     const R = pencilRun();
     showPencils(); kick(); lastLcd && lcd(lastLcd);
-    $('#stats').textContent = `${what()} · DRAW ${fmt(R.mm / 1000, 1)} m, ${R.passes.length} pencil${R.passes.length === 1 ? '' : 's'} ≈ ${hm(R.seconds)} (est.)${S.frame ? ' · in the frame' : ''}`;
+    $('#stats').textContent = OPMP ? `${what()} · DRAG ${fmt(R.mm / 1000, 1)} m, ${R.passes.length} colour${R.passes.length === 1 ? '' : 's'} ≈ ${hm(R.seconds)} · DRAW BW ≈ ${hm(oneRun('bw').seconds)} (est.)${S.frame ? ' · in the frame' : ''}`
+      : `${what()} · DRAW ${fmt(R.mm / 1000, 1)} m, ${R.passes.length} pencil${R.passes.length === 1 ? '' : 's'} ≈ ${hm(R.seconds)} (est.)${S.frame ? ' · in the frame' : ''}`;
   }, 80);
 }
 // a tile's place: its figure, its turn in it, its rings, its way
@@ -1900,7 +1992,7 @@ $('#refOp').oninput = e => { S.refOpacity = +e.target.value; syncRef(); save(); 
 async function loadRef() {
   let list = null;
   try { list = await IDB.get(REFS_KEY); } catch { }
-  if (!Array.isArray(list) && DACHE) try { if (OPMB || OPMS) list = await IDB.get(OPM_REFS); if (OPM && !Array.isArray(list)) list = await IDB.get(PRISMA_REFS); if (PRISMA && !Array.isArray(list)) list = await IDB.get(DACHE_REFS); if (!Array.isArray(list)) list = await IDB.get(BLEND_REFS); if (Array.isArray(list)) IDB.put(REFS_KEY, list).catch(() => { }); } catch { }   // DACHE's first visit: BLEND's references, copied; PRISMA's DACHE's, else BLEND's
+  if (!Array.isArray(list) && DACHE) try { if (OPMP) list = await IDB.get(OPMW_REFS); if (OPMW && !Array.isArray(list)) list = await IDB.get(OPMS_REFS); if ((OPMB || OPMS) && !Array.isArray(list)) list = await IDB.get(OPM_REFS); if (OPM && !Array.isArray(list)) list = await IDB.get(PRISMA_REFS); if (PRISMA && !Array.isArray(list)) list = await IDB.get(DACHE_REFS); if (!Array.isArray(list)) list = await IDB.get(BLEND_REFS); if (Array.isArray(list)) IDB.put(REFS_KEY, list).catch(() => { }); } catch { }   // DACHE's first visit: BLEND's references, copied; PRISMA's DACHE's, else BLEND's
   if (!Array.isArray(list)) {                                                      // the one reference kept before, the first
     list = [];
     try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) list.push({ name: o.name || 'reference', src: o.src }); } catch { }
@@ -1917,7 +2009,7 @@ async function loadRef() {
 const label = () => `${TAB_NAME} · ${what()} · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm, ${fmt(trail(), 1)} with paint`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
-  const meta = JSON.stringify({ rembrandt: '1.1.1', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.3', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rects = S.rects.map((r, i) => isBlend(r)
     ? keysOf(r).map((q, j) => `  <rect x="${f(q.x)}" y="${f(H - q.y - q.h)}" width="${f(q.w)}" height="${f(q.h)}" rx="${f(Math.min(q.c, q.w / 2, q.h / 2))}" data-tile="${i + 1}" data-kind="blend" data-key="${j + 1}"${j ? '' : ` data-steps="${r.steps}" data-step="${f(r.step)}"`}/>`).join('\n')
     : `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-tile="${i + 1}" data-step="${f(r.step)}"${isJohn(r) ? ' data-kind="john"' : ''}/>`).join('\n');
@@ -1925,7 +2017,7 @@ function svgOf() {
   const sausages = sausagesOf(S.rects).map(q => `  <line x1="${f(q.a[0])}" y1="${f(H - q.a[1])}" x2="${f(q.b[0])}" y2="${f(H - q.b[1])}" stroke="${PAINT[q.paint].hex}" data-paint="${q.paint}"${q.thin ? ' data-thin="1"' : ''}/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.1 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's figures in running order -->
+<!-- Rembrandt v.1.1.3 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's figures in running order -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${GROUND}" stroke="#24221F" stroke-width="0.5"/>
 <g id="paths" fill="none" stroke="#24221F" stroke-opacity="0.12" stroke-width="${f(trail())}" stroke-linejoin="round" stroke-linecap="round">
@@ -1980,8 +2072,8 @@ async function openFromLibrary(file) {
 // tab's its composition — the tiles, their nodes, the canvas, the brush and
 // Density — this tab's own (the pencils, the frame, the view) kept. ⌘Z takes
 // it back.
-const TAB_NAMES = [['inka', 'INKA'], ['stjohn', 'ST-JOHN'], ['blend', 'BLEND'], ['dache', 'DACHE'], ['prisma', 'PRISMA'], ['opm', 'OPM'], ['opmb', 'OPM-B'], ['opms', 'OPM-S']];
-const TAKES = JOHN ? ['stjohn', 'inka'] : BLEND ? ['opms', 'opmb', 'opm', 'prisma', 'dache', 'blend', 'inka'] : ['inka'];   // the tabs whose tiles this one draws
+const TAB_NAMES = [['inka', 'INKA'], ['stjohn', 'ST-JOHN'], ['blend', 'BLEND'], ['dache', 'DACHE'], ['prisma', 'PRISMA'], ['opm', 'OPM'], ['opmb', 'OPM-B'], ['opms', 'OPM-S'], ['opmw', 'OPM-W'], ['opmp', 'OPM-P']];
+const TAKES = JOHN ? ['stjohn', 'inka'] : BLEND ? ['opmp', 'opmw', 'opms', 'opmb', 'opm', 'prisma', 'dache', 'blend', 'inka'] : ['inka'];   // the tabs whose tiles this one draws
 const PICTURE = ['brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density'];
 function takeSave(o, from) {
   const st = o.settings;
@@ -2080,11 +2172,11 @@ let paused = false;
 const pencilPause = async () => { try { return (await fetch('/run/p-pause', { method: 'POST' })).status; } catch { return 0; } };
 const OLD_SERVER = '<span class="warn">rembrandt.py is from before the pencil\'s pause, p-pause: stop it (Ctrl+C) and start it again, then DRAW.</span>';
 $('#btnPause').onclick = async () => {
-  if (paused || !DACHE) return post(paused ? '/run/continue' : '/run/pause');
+  if (paused || !DACHE || OPMP && RUN_KEY === 'drag') return post(paused ? '/run/continue' : '/run/pause');   // OPM-P's DRAG: the brush lifted, as INKA's
   if (await pencilPause() === 404) $('#runState').innerHTML = OLD_SERVER;
 };
 $('#btnStop').onclick = async () => {
-  if (!DACHE || !lastSt || !['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) return post('/run/stop');
+  if (!DACHE || OPMP && RUN_KEY === 'drag' || !lastSt || !['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) return post('/run/stop');
   const s = await pencilPause();
   if (s === 0 || s === 404) return post('/run/stop');
   $('#stopAsk').hidden = false;
@@ -2120,6 +2212,25 @@ if (DACHE) {
       { page: TAB, pass: 'draw', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(R.seconds) });
   };
   if (OPMS) { $('#btnBw').onclick = () => oneDraw('bw'); $('#btnOuter').onclick = () => oneDraw('frame'); }
+  if (OPMP) $('#btnDrag').onclick = paintDrag;                                       // OPM-P: DRAG in DRAW CLR's place, a colour at a time
+}
+// OPM-P's DRAG: its question — the first colour to squeeze, the order, the pauses, the time — and its run
+async function paintDrag() {
+  settle(); clearTimeout(dacheT);
+  const R = paintRun(), warn = t => { $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
+  if (lastSt && ['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) return warn('A run is on: STOP it first.');
+  if (!R.rows.length) return warn('Nothing to paint: no blend or tile on the canvas, or the Preview bare.');
+  if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);
+  if (walls(R)) return warn(walls(R));
+  const n = R.passes.length, first = pencilOf(R.passes[0].pencil), F = S.frame;
+  const text = `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Squeeze ${first?.name ?? 'the first'} on its cells now — Drag shows where. `
+    + `The brush along the middles of its rows, block after block round the figure, then along its rays, never through a cell of another colour, every stroke ${S.dragRubs}× (Rubs), up on the move between strokes, pressed at ${sgn(S.brushPress)}. `
+    + (n > 1 ? `Between two colours it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the next colour's start — wipe it, squeeze that colour on its cells, Continue. ` : '')
+    + `${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, ≈ ${hm(R.seconds)} (est.).` + (F ? ` Only the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm.` : '');
+  if (!await askDraw(R.passes, text, { title: `DRAG ${TAB_NAME}`, go: '▶ DRAG', first: 'Squeeze first', what: 'colour' })) return dacheSoon();   // cancelled: the reading back
+  S.view = 'drag'; settle(); RUN_BPRESS = S.brushPress;                                // ELBOW LIVE from here: the change since
+  await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
+    { page: TAB, pass: 'drag', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(R.seconds) });
 }
 // DRAW's words on the frame laid with F, a piece, or the whole canvas
 function pieceSay() {
@@ -2144,7 +2255,7 @@ async function oneDraw(kind) {
     ? `The picture's outer contour alone, ${R.modules.length === 1 ? 'Key 1 · A' : `Key 1 · A of its ${R.modules.length} blends`}: ${fmt(x1 - x0, 0)} × ${fmt(y1 - y0, 0)} mm, ${fmt(x0, 0)} mm in from the canvas's left edge, ${fmt(S.boardW - x1, 0)} from its right, ${fmt(y0, 0)} from its bottom, ${fmt(S.boardH - y1, 0)} from its top. `
       + `The carriage goes over its start and puts the holder down: the pencil in, its tip on the canvas, then Continue; round it ${rubs} time${rubs === 1 ? '' : 's'}, ${run}, and home. The canvas is straight when the frame is so far in from all its edges; then DRAW.`
     : `Every contour in this one pencil, no change: ${R.modules.length} contours, one path. The carriage goes over the first one and puts the holder down: the pencil in, its tip on the paper, then Continue — no stop after it. ${run}.` + pieceSay();
-  if (!await askDraw(R.passes, text, { title: `${name} ${TAB_NAME}`, go: `✎ ${name}` })) return;
+  if (!await askDraw(R.passes, text, { title: `${name} ${TAB_NAME}`, go: `✎ ${name}` })) return dacheSoon();   // cancelled: the reading back
   if (!FR) S.view = 'pencil';
   settle(); RUN_PRESS = S.press;                                                     // ELBOW LIVE from here, as DRAW's
   await start(kind, R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
@@ -2182,12 +2293,51 @@ function setElbow(deg) {
   if (live) { clearTimeout(elbowT); elbowT = setTimeout(sendTrim, 120); }
   clearTimeout(elbowS); elbowS = setTimeout(() => { elbowS = null; settle(); }, 900);   // the plan's numbers once the pull is over
 }
-async function sendTrim() {
-  const t = Math.round((S.press - RUN_PRESS) * 10) / 10;
+async function sendTrim(t = Math.round((S.press - RUN_PRESS) * 10) / 10) {
   try {
     const r = await fetch(`/run/trim?deg=${t}`, { method: 'POST' });
     $('#runState').innerHTML = r.status === 404 ? '<span class="warn">rembrandt.py is from before ELBOW LIVE: stop it (Ctrl+C) and start it again.</span>' : r.ok ? '' : `<span class="warn">ELBOW LIVE: ${esc(await r.text())}</span>`;
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
+}
+// OPM-P's brush (the owner, 2026-10-29: "we take ELBOW LIVE, the pressure's
+// degrees while it draws"): in Painting machine, the brush pressed at so many
+// degrees — 0° its pose, minus down — DRAG's; in a DRAG from the next stroke
+// on, rembrandt.py's trim, the change since DRAG, and the brush's for the next
+let RUN_BPRESS = null, belbowT = null, belbowS = null;
+const dragLive = () => OPMP && !!lastSt && ['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state) && RUN_KEY === 'drag';
+function showBrushElbow() {
+  const box = $('#elbowBrush'); if (!box || !OPMP) return;
+  const sl = $('#brushSl'); sl.min = BPRESS_MIN; sl.max = BPRESS_MAX;
+  if (document.activeElement !== sl) sl.value = S.brushPress;
+  $('#brushNow').textContent = sgn(S.brushPress);
+  sl.title = `The brush pressed at ${sgn(S.brushPress)}: 0° its pose, minus down, more pressure; off the canvas at +10° (est.)`;
+  box.classList.toggle('live', dragLive());
+}
+function setBrushElbow(deg) {
+  const v = Math.max(BPRESS_MIN, Math.min(BPRESS_MAX, Math.round(deg * 10) / 10));
+  if (v === S.brushPress) return;
+  if (!belbowS) undoPush();                                                        // a pull one step back
+  const live = dragLive();
+  if (live && RUN_BPRESS === null) RUN_BPRESS = S.brushPress - (lastSt.trim ?? 0); // the page opened in the run: what DRAG sent
+  S.brushPress = v; save(); showBrushElbow();
+  if (live) { clearTimeout(belbowT); belbowT = setTimeout(() => sendTrim(Math.round((S.brushPress - RUN_BPRESS) * 10) / 10), 120); }
+  clearTimeout(belbowS); belbowS = setTimeout(() => { belbowS = null; settle(); }, 900);
+}
+if (OPMP) {
+  $('#brushSl').oninput = e => setBrushElbow(+e.target.value);
+  document.querySelectorAll('#elbowBrush [data-btrim]').forEach(b => b.onclick = () => setBrushElbow(S.brushPress + +b.dataset.btrim));
+  document.querySelectorAll('#turnKeys [data-cw]').forEach(b => b.onclick = () => { const v = b.dataset.cw === '1'; if (S.cw === v) return; undoPush(); S.cw = v; settle(); });
+  document.querySelectorAll('#bindKeys [data-bind]').forEach(b => b.onclick = () => { const v = b.dataset.bind === '1'; if (S.bind === v) return; undoPush(); S.bind = v; settle(); });   // the rows bound over the corners, or every block its own
+  // the keys fitted to the brush (the owner, 2026-10-29: "we may change the size of Key 1, Key 2 and the core for the rule 12 = 6 + 6"): every figure, ⌘Z back
+  $('#btnFit').onclick = () => {
+    if (!S.rects.length) return;
+    undoPush();
+    const most = [];
+    S.rects = S.rects.map(r => { const F = fitKeys(r, S.pitch); F.moved.forEach(q => { most[q.key - 1] = Math.max(most[q.key - 1] ?? 0, ...[q.left, q.right, q.bottom, q.top].map(Math.abs)); }); return cleanRect(F.r) ?? r; });
+    settle();
+    $('#hint').textContent = `Fitted to the brush, ${fmt(S.pitch, 1)} mm: every side's rows the brush exactly, 1, 2, 4 … a band — ${most.map((v, k) => `${k ? k === most.length - 1 && S.rects.some(r => r.core) ? 'the core' : `Key ${k + 1}` : 'Key 1'} ${fmt(v, 1)} mm an edge at most`).join(', ')}. ⌘Z takes it back.`;
+  };
+  $('#dragInfo').onclick = () => { $('#dragRead').hidden = !$('#dragRead').hidden; $('#dragInfo').classList.toggle('on', !$('#dragRead').hidden); };
 }
 if (PRISMA) {
   $('#elbowSl').oninput = e => setElbow(+e.target.value);
@@ -2218,9 +2368,9 @@ function markRun() {
 // swatch each, the time and the paper; DRAW or Cancel, Esc Cancel
 function askDraw(passes, text, o = {}) {
   const first = pencilOf(passes[0].pencil), box = $('#drawAsk');
-  $('#drawAskTitle').textContent = `${o.title ?? `DRAW ${TAB_NAME}`} · ${passes.length} pencil${passes.length === 1 ? '' : 's'}`;
+  $('#drawAskTitle').textContent = `${o.title ?? `DRAW ${TAB_NAME}`} · ${passes.length} ${o.what ?? 'pencil'}${passes.length === 1 ? '' : 's'}`;   // OPM-P's DRAG: colours
   $('#drawGo').textContent = o.go ?? '✎ DRAW';                                       // OPM-S: DRAW CLR, DRAW BW, FRAME
-  $('#drawAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">Put in first</span><b>${esc(first.name)}</b><span>${[first.code, first.brand].filter(Boolean).map(esc).join(', ')}</span></span>`;
+  $('#drawAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">${o.first ?? 'Put in first'}</span><b>${esc(first.name)}</b><span>${[first.code, first.brand].filter(Boolean).map(esc).join(', ')}</span></span>`;
   $('#drawAskList').innerHTML = runRows(passes, true);
   $('#drawAskText').textContent = text;
   box.hidden = false; $('#drawAskList').scrollTop = 0; $('#drawGo').focus();
@@ -2253,14 +2403,14 @@ function lcd(st) {
   const waiting = !Q && st?.state === 'paused' && st.message;
   // DACHE: the pencil's swatch on the screen (the owner, 2026-10-27: "make it bigger and show right there the swatch of the colour being drawn now") — the one to put in at a change, the one drawing, or the first
   const pen = !DACHE ? null : Q ? { id: Q.ids[Q.n], say: 'now' } : b?.kind === 'p-pause' ? { id: b.pencil, say: 'in' } : live && row?.pencil ? { id: row.pencil, say: 'now' } : !live && DPLAN?.passes[0] ? { id: DPLAN.passes[0].pencil, say: 'first' } : null;
-  RUN_PEN = (Q || live && !['bw', 'frame'].includes(RUN_KEY)) && pen ? pen : null; markRun(); showElbow();   // OPM-S's one pencil not the run's
+  RUN_PEN = (Q || live && !['bw', 'frame'].includes(RUN_KEY)) && pen ? pen : null; markRun(); showElbow(); showBrushElbow();   // OPM-S's one pencil not the run's
   const ids = Q ? Q.ids : live ? RUN_INFO?.passes ?? [] : (DPLAN?.passes ?? []).map(q => q.pencil), pc = pen && pencilOf(pen.id), nx = pc && pencilOf(ids[ids.indexOf(pen.id) + 1]);   // and the one after it, small (the owner, 2026-10-27)
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
   $('#btnHome').disabled = !!live;
   document.querySelectorAll('.deck [data-pass], #btnTest').forEach(el => el.classList.toggle('on', !!live && (el.dataset.pass || 'test') === RUN_KEY));
-  const now = Q ? `Play Pencil · ${fmt(Q.want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m · the run's time (est.)`
+  const now = Q ? `Play ${Q.kind === 'drag' ? 'Drag' : 'Pencil'} · ${fmt(Q.want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m · the run's time (est.)`
     : waiting ? `❚❚ ${st.message}`
     : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off')
     : live && b?.wipe ? `${now0} · the brush up to be wiped`
@@ -2268,13 +2418,13 @@ function lcd(st) {
     : live && now0 ? now0 + (st.brush_on ? ' · brush on' : ' · brush off')
     : `${what()} · ${fmt(P_.mm / 1000, 2)} m`;
   $('#lcd').innerHTML = `
-    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${Q ? ' · Pencil' : live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(Q.want / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
+    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${Q ? ` · ${Q.kind === 'drag' ? 'Drag' : 'Pencil'}` : live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(Q.want / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
       <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>
     </div>
     ${sticks(pct / 100)}
-    ${pc ? `<div class="lcd-pencil${pen.say === 'in' ? ' in' : ''}"><i class="sw" style="background:${pc.hex}"></i><span class="pt"><span class="pn">${esc(pc.name)}${pc.code ? ` ${esc(pc.code)}` : ''}</span><span class="pk">${{ in: 'put in', now: 'drawing', first: 'first' }[pen.say]} · ${ids.indexOf(pen.id) + 1}/${ids.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
+    ${pc ? `<div class="lcd-pencil${pen.say === 'in' ? ' in' : ''}"><i class="sw" style="background:${pc.hex}"></i><span class="pt"><span class="pn">${esc(pc.name)}${pc.code ? ` ${esc(pc.code)}` : ''}</span><span class="pk">${{ in: 'put in', now: OPMP && (RUN_KEY === 'drag' || Q?.kind === 'drag') ? 'painting' : 'drawing', first: 'first' }[pen.say]} · ${ids.indexOf(pen.id) + 1}/${ids.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
     <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
 }
 async function watch() {
