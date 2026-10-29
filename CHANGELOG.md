@@ -3,6 +3,17 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.1.3 — 2026-10-29
+
+- **OPM-P: FRAME four marks, not the whole contour** (the owner, the same
+  evening: "in Frame I do not need the whole contour drawn as now; four
+  lines are enough, one on every side, so there are no needless traces on
+  the canvas — 8 cm or so at most"). One mark in the middle of every side
+  of Key 1 · A, 80 mm at most (FRAME_MARK, his), on its line, clockwise
+  from the top, the pencil up between them; FRAME's question gives the
+  contour's distances to the canvas's edges as before. OPM-S and OPM-W
+  draw the whole contour still.
+
 ## v.1.1.3 — 2026-10-29 · OPM-P
 
 - **v.1.1.3 after the name, OPM-P** (the owner, 2026-10-29: "today we make

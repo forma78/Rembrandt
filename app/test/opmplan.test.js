@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW } from '../src/opmplan.js';
+import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW, FRAME_MARK } from '../src/opmplan.js';
 import { rubbed, passesOf, drawRows, PRISMA_PENCILS } from '../src/prismaplan.js';
 import { cleanPencils, runOrder, lineLen, withChanges, lightnessOf } from '../src/dacheplan.js';
 import { cleanRect, atPiece } from '../src/inkaplan.js';
@@ -329,4 +329,19 @@ test('OPM-P, Fit the keys (12 = 6 + 6): every side\'s rows the brush exactly, 1,
   S0.ss.forEach((q, i) => assert.ok(Math.hypot(...[0, 1].map(j => abs(S0, q.a)[j] - abs(F.r, F.r.ss[i].a)[j])) < 1e-9, 'a sausage where it lay'));
   const T = fitKeys(cleanRect({ id: 2, x: 10, y: 10, w: 97, h: 50, step: 3 }), PITCH_NEW).r;
   assert.deepEqual([T.w, T.h], [96, 48], 'a tile two brushes a whole number of times');
+});
+test('OPM-P, FRAME: four marks, one in the middle of every side of Key 1 · A, 80 mm at most, on its line, clockwise; a stroke each, one pencil in', () => {
+  assert.equal(FRAME_MARK, 80, 'the owner\'s 8 cm');
+  const M = outerOf([OWNER], { corner: 4, facets: 1, pencil: 'black', marks: FRAME_MARK }), [K] = keysOf(OWNER), c = [K.x + K.w / 2, K.y + K.h / 2];
+  assert.equal(M.length, 4);
+  assert.ok(M.every(m => m.pieces.length === 1 && Math.abs(m.mm - 80) < 1e-9), 'four lines, 80 mm each');
+  const mids = M.map(m => [(m.pieces[0].a[0] + m.pieces[0].b[0]) / 2, (m.pieces[0].a[1] + m.pieces[0].b[1]) / 2]);
+  assert.deepEqual(mids.map(q => q.map(v => +v.toFixed(6))), [[c[0], K.y + K.h], [K.x + K.w, c[1]], [c[0], K.y], [K.x, c[1]]].map(q => q.map(v => +v.toFixed(6))), 'top, right, bottom, left, each in its side\'s middle, on the line');
+  assert.ok(M.every(m => { const g = m.pieces[0]; return (g.a[0] - c[0]) * (g.b[1] - g.a[1]) - (g.a[1] - c[1]) * (g.b[0] - g.a[0]) < 0; }), 'every one clockwise');
+  const small = outerOf([cleanRect({ id: 3, x: 10, y: 10, w: 50, h: 120, step: 3 })], { corner: 4, pencil: 'black', marks: FRAME_MARK });
+  assert.ok(small.every(m => m.mm <= 80 + 1e-9) && small.some(m => m.mm < 50), 'a side shorter than 80 mm its own length');
+  const { run, blocks } = runOf([{ pencil: 'black', strokes: M.map(m => m.pieces), rubs: 4, mm: 320 }]);
+  assert.equal(run.fault, '');
+  assert.equal(blocks.filter(b => b.kind === 'p-pause').length, 1, 'one pencil in');
+  assert.equal(run.turns, 3, 'the pencil up between the four');
 });

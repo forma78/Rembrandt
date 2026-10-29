@@ -56,7 +56,7 @@ import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap, spokesRound, SPOKE_GAP, SPOKES_MIN, SPOKES_MAX } from './blendplan.js';
 import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, BOX_2, BOX_3, BOX_4, moduleLines, COATS_NEW, COATS_MIN, COATS_MAX,
   SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
-import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, fitKeys, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
+import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, fitKeys, FRAME_MARK, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
 import { aligned } from './align.js';
 import { prismaPlan, passesOf as prismaPasses, drawRows as prismaRows, PRISMA_PENCILS, BOX_5, BOX_6, rubsOf, RUBS_DARK_NEW, RUBS_LIGHT_NEW, RUBS_MIN, RUBS_MAX, PRESS_NEW, PRESS_MIN, PRESS_MAX, GLIDE_NEW, GLIDE_MIN, GLIDE_MAX, TOUCH_NEW, TOUCH_MIN, TOUCH_MAX, ELBOW_MIN, SHORTEST_NEW as RUN_SHORTEST_NEW, SHORTEST_MIN as RUN_SHORTEST_MIN, SHORTEST_MAX as RUN_SHORTEST_MAX, SPEED_NEW as PRISMA_SPEED_NEW } from './prismaplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -338,7 +338,7 @@ function oneRun(kind) {
   const pc = boldestOf(S.pencils, S.bg), D = kind === 'bw' ? dachePlan() : null, here = hereNow();
   const key = JSON.stringify([kind, D ? D.key : [S.rects, S.corner, S.facets], pc, S.rubsDark, S.rubsLight, S.pencilSpeed, S.travel, here, S.press, S.glide, S.touch]);
   if (ONE_RUN[kind]?.key === key) return ONE_RUN[kind];
-  const mods = !pc ? [] : D ? D.modules.map(M => ({ ...M, pencil: pc.id })) : outerOf(S.rects, { corner: S.corner, pencil: pc.id, ...(OPMW ? { facets: S.facets } : {}) });
+  const mods = !pc ? [] : D ? D.modules.map(M => ({ ...M, pencil: pc.id })) : outerOf(S.rects, { corner: S.corner, pencil: pc.id, ...(OPMW ? { facets: S.facets } : {}), ...(OPMP ? { marks: FRAME_MARK } : {}) });   // OPM-P: four marks, not the whole contour (2026-10-29)
   // OPM-P's lines in their own order, the rings round first, then the rays (opmplan.js, linesOf): every one once, its own stroke; one Rubs, no light or dark pencil
   const passes = !mods.length ? [] : OPMP ? [{ pencil: pc.id, strokes: mods.map(M => M.pieces), modules: mods.length, rows: mods.filter(M => M.line === 'row').length, rays: mods.filter(M => M.line === 'ray').length, rubs: S.rubsDark, mm: mods.reduce((a, M) => a + M.mm, 0) * S.rubsDark }]
     : prismaPasses({ modules: mods }, [pc], { rubs: () => rubsOf(pc, S.rubsDark, S.rubsLight) });
@@ -2251,7 +2251,10 @@ async function oneDraw(kind) {
   if (probe === 404) { $('#runState').innerHTML = OLD_SERVER; return; }
   const ends = R.modules.flatMap(M => M.pieces.flatMap(g => [g.a, g.b])), xs = ends.map(q => q[0]), ys = ends.map(q => q[1]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), rubs = R.passes[0].rubs, run = `${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ ${hm(R.seconds)} (est.)`;
-  const text = FR
+  const text = FR && OPMP
+    ? `Four marks of the picture's outer contour, ${R.modules.length === 4 ? 'Key 1 · A' : `Key 1 · A of its ${R.modules.length / 4} figures`}: one in the middle of every side, ${FRAME_MARK} mm at most, no more on the canvas than it takes to lay it straight. The contour ${fmt(x1 - x0, 0)} × ${fmt(y1 - y0, 0)} mm, ${fmt(x0, 0)} mm in from the canvas's left edge, ${fmt(S.boardW - x1, 0)} from its right, ${fmt(y0, 0)} from its bottom, ${fmt(S.boardH - y1, 0)} from its top. `
+      + `The carriage goes over the top one and puts the holder down: the pencil in, its tip on the canvas, then Continue; every mark rubbed ${rubs} time${rubs === 1 ? '' : 's'}, the pencil up between them, ${run}, and home. The canvas is straight when the marks are so far in from all its edges; then DRAW.`
+    : FR
     ? `The picture's outer contour alone, ${R.modules.length === 1 ? 'Key 1 · A' : `Key 1 · A of its ${R.modules.length} blends`}: ${fmt(x1 - x0, 0)} × ${fmt(y1 - y0, 0)} mm, ${fmt(x0, 0)} mm in from the canvas's left edge, ${fmt(S.boardW - x1, 0)} from its right, ${fmt(y0, 0)} from its bottom, ${fmt(S.boardH - y1, 0)} from its top. `
       + `The carriage goes over its start and puts the holder down: the pencil in, its tip on the canvas, then Continue; round it ${rubs} time${rubs === 1 ? '' : 's'}, ${run}, and home. The canvas is straight when the frame is so far in from all its edges; then DRAW.`
     : `Every contour in this one pencil, no change: ${R.modules.length} contours, one path. The carriage goes over the first one and puts the holder down: the pencil in, its tip on the paper, then Continue — no stop after it. ${run}.` + pieceSay();
@@ -2259,7 +2262,7 @@ async function oneDraw(kind) {
   if (!FR) S.view = 'pencil';
   settle(); RUN_PRESS = S.press;                                                     // ELBOW LIVE from here, as DRAW's
   await start(kind, R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
-    { page: TAB, pass: FR ? 'frame' : 'draw bw', label: FR ? `${TAB_NAME} · FRAME · the outer contour` : label(), ...(FR ? {} : { settings: S }), here: hereNow(), estimate_s: Math.round(R.seconds) });
+    { page: TAB, pass: FR ? 'frame' : 'draw bw', label: FR ? `${TAB_NAME} · FRAME · ${OPMP ? 'four marks of the outer contour' : 'the outer contour'}` : label(), ...(FR ? {} : { settings: S }), here: hereNow(), estimate_s: Math.round(R.seconds) });
 }
 
 // ---------- ELBOW LIVE (PRISMA, OPM) ----------

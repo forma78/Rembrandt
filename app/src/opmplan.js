@@ -351,7 +351,18 @@ const pieceLenOf = g => g.t === 'L' ? len(sub(g.b, g.a)) : g.r * Math.abs(Math.a
 // its corners as they are (OPM-W's in o.facets straight pieces, as its
 // cells'), a closed stroke. → modules as opmPlan's, o.pencil theirs
 const facetsOn = (s, p, n) => Array.from({ length: n }, (_, i) => ({ t: 'L', a: pointOn(s, p, i / n), b: pointOn(s, p, (i + 1) / n) }));
+// OPM-P's, o.marks (the owner, 2026-10-29: "in Frame I do not need the whole
+// contour drawn as now; four lines are enough, one on every side, so there
+// are no needless traces on the canvas — 8 cm or so at most"): one mark in
+// the middle of every side of Key 1 · A, so long at most, on its line — the
+// top, the right, the bottom, the left, every one clockwise — a stroke each,
+// the pencil up between. → modules as above, one a mark
+export const FRAME_MARK = 80;   // mm, a mark of FRAME at most (the owner's "8 cm or so at most")
 export function outerOf(rects, o = {}) {
+  if (o.marks) return regionsOf(rects, o).filter(R => R.key === 0).flatMap(R => [4, 2, 0, 6].map(p => {
+    const L = pieceLength(R.a, p), f = L > 1e-9 ? Math.min(1, o.marks / L) / 2 : 0, g = lineOn(R.a, p, 0.5 - f, 0.5 + f);
+    return { kind: 'cell', mark: true, pencil: o.pencil ?? null, pieces: [{ t: 'L', a: g.b, b: g.a }], mm: pieceLenOf(g) };   // its side anticlockwise as the shape goes: the other way, clockwise
+  }).filter(M => M.mm > 1e-6));
   return regionsOf(rects, o).filter(R => R.key === 0).map(R => {
     const pieces = [0, 1, 2, 3, 4, 5, 6, 7].flatMap(p => p % 2 && o.facets ? facetsOn(R.a, p, Math.round(o.facets)) : [lineOn(R.a, p, 0, 1)]).filter(g => pieceLenOf(g) > 1e-6);
     return { kind: 'cell', pencil: o.pencil ?? null, pieces, mm: pieces.reduce((s, g) => s + pieceLenOf(g), 0) };
