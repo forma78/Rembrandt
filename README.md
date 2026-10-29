@@ -121,7 +121,14 @@ the USB board: close RUBENS (port 8766) first.
   `rembrandt.py`, the contract with the firmware.
 - **Small commits**, one change each, with a line in `CHANGELOG.md`.
   An owner decision is recorded with its date and his words, in English.
-- **Rembrandt is private on GitHub** since 2026-10-11, the references of
+- **Rembrandt is public on GitHub** since 2026-10-29 (the owner: "open it,
+  please, for a minute, I want to show it to Kuzya"), and the works of
+  other artists are out of it and of its history ("maybe just delete the
+  others' works? keep ours and the photos of the machine"), INKA/ too ("do
+  not put it on GitHub at all, it is full of secret pictures"), TAPE-images/
+  ("stays on the disk, not to GitHub"): they stay
+  on this Mac, in `.gitignore`; a new reference by another artist goes
+  there too. Before that private since 2026-10-11, the references of
   ALU-cut-Claude/ in it (the owner: "put all the works in and close access;
   we will open it later if chat-Claude needs to be shown again"). Public
   earlier the same day ("unfortunately GitHub cannot be closed: private

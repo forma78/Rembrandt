@@ -9,3 +9,44 @@ logs/
 # over GitHub's 100 MB a file: kept on this Mac only (2026-10-27); a pattern,
 # for macOS puts a narrow space before PM in the name
 St_John/Movie on 10-19-26 at 10.52*PM.mov
+
+# Other artists' works, kept on this Mac only, out of the repository and its
+# history (the owner, 2026-10-29, the repository opened to show it to Kuzya:
+# "maybe just delete the others' works? keep ours and the photos of the
+# machine"): Florian Markus, Heather Day, Belém Lett, Plotbot Studio, Carlos
+# Cruz-Diez, Lakwena Maciver, Werner Bronkhorst and the digital works found
+# for inspiration
+INKA/HDay/
+INKA/master_flo_hires/
+master-FLO/
+ALU-cut-Claude/belem-lett/
+ALU-cut-Claude/plotbot-clone/
+inspiration/
+nolan-images/*
+!nolan-images/nolan-band-prototype.html
+Cruz-Diez/*
+!Cruz-Diez/IMAGE 2026-10-13 14:47:37.jpg
+!Cruz-Diez/IMAGE 2026-10-13 19:02:03.jpg
+references/images*.jpeg
+references/preview*
+references/braun_night-*
+references/IMG_9424.jpg
+references/IMG_9455.JPG
+references/IMG_9422_direction*.png
+St_John/preview.webp
+St_John/Screenshot 2026-10-19 at 8.50.53*PM.png
+BLEND/IMAGE 2026-10-26 11:5[4-6]:*.jpg
+BLEND/IMG_155[4-7].PNG
+TAPE-colors/*
+!TAPE-colors/IMAGE 2026-10-12 19:23:17.jpg
+BIAS-plaid/IMAGE 2026-10-15 10:29:5[137].jpg
+TYPE/*.png
+TYPE/*.jpg
+TYPE-Claude/*.png
+TYPE-Claude/*.PNG
+TYPE-Claude/*.jpg
+
+# INKA/, the owner's references and results, not for publication (2026-10-29: "INKA — do not put it on GitHub at all, it is full of secret pictures"): on this Mac only
+INKA/
+# TAPE-images/, the owner's photos of the machine and the paints, on this Mac only (2026-10-29: "TAPE-images stays on the disk, not to GitHub")
+TAPE-images/
