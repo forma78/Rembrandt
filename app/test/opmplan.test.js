@@ -254,7 +254,7 @@ test('OPM-P, the cells: the blend all over, no white gap; no row over a corner',
     assert.ok([...lines.values()].every(b => b.size === 1 || [...b].every(x => x.endsWith(`:${[...b][0].split(':')[1]}`))), 'a row line one block\'s');
   }
 });
-test('OPM-P, the lines: every one once, none over another; the rows first, block after block, ↻ or ↺, then the rays', () => {
+test('OPM-P, the lines: every one once, none over another; the rows first, as long as they go on, ↻ or ↺, then the rays', () => {
   for (const [r, facets, res] of CASES) for (const cw of [true, false]) {
     const D = opmpPlan([r], res, { pencils: P, corner: 4, facets, pitch: PITCH_NEW, stripW: PITCH_NEW, cw });
     const segs = D.lines.flatMap(L => L.pts.slice(1).map((b, i) => [L.pts[i], b])), seen = new Set();
@@ -344,4 +344,12 @@ test('OPM-P, FRAME: four marks, one in the middle of every side of Key 1 · A, 8
   assert.equal(run.fault, '');
   assert.equal(blocks.filter(b => b.kind === 'p-pause').length, 1, 'one pencil in');
   assert.equal(run.turns, 3, 'the pencil up between the four');
+});
+test('OPM-P, the rows as long as they go on (Screenshot 5.44.03 PM: "continuous rings … short pieces may be, but not all"): Bound, the bands rings round the figure, the outermost first', () => {
+  const r = fitKeys(OWNER, PITCH_NEW).r, D = opmpPlan([r], QUAD8, { pencils: P, corner: 4, facets: 1, pitch: PITCH_NEW }), rows = D.lines.filter(L => L.kind === 'row');
+  const closed = L => Math.hypot(L.pts[0][0] - L.pts.at(-1)[0], L.pts[0][1] - L.pts.at(-1)[1]) < 1e-6, mm = L => L.pts.slice(1).reduce((a, b, i) => a + Math.hypot(b[0] - L.pts[i][0], b[1] - L.pts[i][1]), 0);
+  assert.ok(rows.filter(closed).length >= 20, `${rows.filter(closed).length} rings`);
+  assert.ok(closed(rows[0]) && Math.abs(mm(rows[0]) - outerOf([r], { corner: 4, facets: 1 })[0].mm) < 1e-6, 'Key 1 · A first, all round');
+  const own = opmpPlan([r], QUAD8, { pencils: P, corner: 4, facets: 1, pitch: PITCH_NEW, bound: false }).lines.filter(L => L.kind === 'row');
+  assert.ok(rows.length < 0.6 * own.length, `fewer, longer lines bound: ${rows.length} against ${own.length}`);
 });

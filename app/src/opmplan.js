@@ -556,11 +556,17 @@ function covering(pts, e0, e1) {
 // the way round a region's middle: the angle from 12 o'clock clockwise, 0 … 2π
 const clock = (c, p) => { const a = Math.atan2(p[0] - c[0], p[1] - c[1]); return a < 0 ? a + 2 * Math.PI : a; };
 const centreOf = R => [(R.a.x0 + R.a.x1) / 2, (R.a.y0 + R.a.y1) / 2];
-// a line turned ↻ (cw) or ↺ about c
+// a line turned ↻ (cw) or ↺ about c; a closed one from its point nearest 12 o'clock
 function turned(pts, c, cw) {
   let w = 0;
   for (let i = 1; i < pts.length; i++) w += cross(sub(pts[i - 1], c), sub(pts[i], pts[i - 1]));
-  return w > 0 === cw ? pts.slice().reverse() : pts.slice();                          // w > 0: anticlockwise
+  let P = w > 0 === cw ? pts.slice().reverse() : pts.slice();                        // w > 0: anticlockwise
+  if (P.length > 2 && len(sub(P[0], P.at(-1))) < 1e-6) {
+    const ring = P.slice(0, -1), off = q => { const a = clock(c, q); return Math.min(a, 2 * Math.PI - a); };
+    const best = ring.reduce((b, q, i) => off(q) < off(ring[b]) - 1e-9 ? i : b, 0);
+    P = [...ring.slice(best), ...ring.slice(0, best), ring[best]];
+  }
+  return P;
 }
 // a place round c, in the way the brush goes
 const turnAt = (c, p, cw) => { const a = clock(c, p); return cw ? a : (2 * Math.PI - a) % (2 * Math.PI); };
@@ -586,10 +592,14 @@ function chainsOf(edges, straight = false) {
 }
 // The lines, every one once (DRAW BW, FRAME's after it): a cell's edge where
 // it meets the canvas, a cell of another colour or (Cells) another cell;
-// Merged, one colour's neighbours none between them. The rows first — a
-// figure's keys in turn, the blocks round from 12 o'clock, every block's from
-// its outer edge in, every line the way round — then the rays, by their place
-// round the figure, from the outside in. → [{ kind: 'row' | 'ray', pts }]
+// Merged, one colour's neighbours none between them. The rows first, every
+// line as long as it goes on: one block's line and the next one's where they
+// meet on a ray one line, a band's all round the figure a ring (the owner,
+// 2026-10-29, Screenshot 5.44.03 PM, the pencil from short piece to short
+// piece: "we spoke of continuous rings, remember? … short pieces may be, but
+// not all") — a figure's keys in turn, from the outside in, every line the way
+// round from 12 o'clock — then the rays, by their place round the figure, from
+// the outside in. → [{ kind: 'row' | 'ray', pts }]
 export function linesOf(cells, regions, o = {}) {
   const E = new Map(), cw = o.cw !== false;
   cells.forEach((c, i) => {
@@ -600,14 +610,11 @@ export function linesOf(cells, regions, o = {}) {
     });
   });
   const kept = [...E.values()].filter(e => e.cells.length === 1 || cells[e.cells[0]].group !== cells[e.cells[1]].group && (!o.merge || cells[e.cells[0]].pencil !== cells[e.cells[1]].pencil));
-  const out = [], byLine = new Map(), orders = regions.map(R => blockOrder(R, cw));
-  for (const e of kept) if (e.kind !== RAY) (byLine.get(e.kind) ?? byLine.set(e.kind, []).get(e.kind)).push(e);
-  const rank = id => { const reg = byLine.get(id)[0].reg; return [keyOfRow(id), orders[reg][blkOf(id)], id % 1000]; };
-  const ids = [...byLine.keys()].map(id => [rank(id), id]).sort((x, y) => x[0][0] - y[0][0] || x[0][1] - y[0][1] || x[0][2] - y[0][2]).map(q => q[1]);
-  for (const id of ids) {
-    const es = byLine.get(id), c = centreOf(regions[es[0].reg]);
-    out.push(...chainsOf(es).map(L => turned(L, c, cw)).sort((x, y) => turnAt(c, x[0], cw) - turnAt(c, y[0], cw)).map(pts => ({ kind: 'row', pts })));
-  }
+  const out = [], rows = kept.filter(e => e.kind !== RAY), at = new Map(), ek = (a, b) => { const ka = keyOf(a), kb = keyOf(b); return ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`; };
+  for (const e of rows) at.set(ek(e.a, e.b), { reg: e.reg, key: keyOfRow(e.kind), t: e.kind % 1000 / regions[e.reg].blocks[blkOf(e.kind)].n });   // its figure and key, its depth in its block, 0 … 1
+  const lines = chainsOf(rows).map(L => { const q = at.get(ek(L[0], L[1])), c = centreOf(regions[q.reg]), P = turned(L, c, cw); return { ...q, P, at: turnAt(c, P[0], cw) }; });
+  lines.sort((x, y) => x.key - y.key || Math.round(x.t * 1e6) - Math.round(y.t * 1e6) || x.at - y.at);
+  out.push(...lines.map(L => ({ kind: 'row', pts: L.P })));
   const rays = kept.filter(e => e.kind === RAY), byRect = new Map();
   for (const e of rays) { const r = regions[e.reg].rect; (byRect.get(r) ?? byRect.set(r, []).get(r)).push(e); }
   for (const r of [...byRect.keys()].sort((a, b) => a - b)) {

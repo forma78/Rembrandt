@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.3 — 2026-10-29
 
+- **OPM-P: DRAW BW's rows as long as they go on, rings round the figure**
+  (the owner, the first test on paper, OPM/IMAGE 2026-10-29 17:38:27 and
+  29, Screenshot 5.44.03 PM, the pencil from short piece to short piece:
+  "we spoke of continuous rings, remember? … short pieces may be, but not
+  all"). One block's line and the next one's, where they meet on a ray, one
+  line; Bound, every band all round the figure one ring, through the
+  bevels; the outermost first, every one clockwise from 12 o'clock; short
+  pieces only where a row ends on a ray. On his blend 150 row lines, 30 of
+  them rings, where every block's line was a stroke of its own — far fewer
+  landings and lifts of the pencil. The rays as before.
 - **OPM-P: FRAME four marks, not the whole contour** (the owner, the same
   evening: "in Frame I do not need the whole contour drawn as now; four
   lines are enough, one on every side, so there are no needless traces on
