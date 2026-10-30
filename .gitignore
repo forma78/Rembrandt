@@ -50,3 +50,7 @@ TYPE-Claude/*.jpg
 INKA/
 # TAPE-images/, the owner's photos of the machine and the paints, on this Mac only (2026-10-29: "TAPE-images stays on the disk, not to GitHub")
 TAPE-images/
+# FORM/, the Porsche 911 photographs, others' (2026-10-30): on this Mac only;
+# the owner's own screenshot of OPM-P stays in
+FORM/*
+!FORM/Screenshot 2026-10-30 at 11.15.13*AM.png
