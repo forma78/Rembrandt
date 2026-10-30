@@ -1244,7 +1244,7 @@ const HINT = {
   paint: 'M: a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal in to the innermost ring; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
 };
 if (FORM) Object.assign(HINT, {                                                       // FORM's own (form.js)
-  edit: 'V: a click chooses a form, ⇧ and a click one more or one less, ⌘A every one; a chosen form\'s point dragged, every form\'s point there with it; ⌫ the chosen out, the ground there, or back in. A pencil in the strip, a click: the chosen forms\' colour.',
+  edit: 'V: a click chooses a form, ⇧ and a click one more or one less, ⌘A every one; a chosen form\'s point dragged, every form\'s point there with it; a click on its border between two points a new point, dragged at once; ⌫ the chosen out, the ground there, or back in. A pencil in the strip, a click: the chosen forms\' colour.',
   knife: 'K, the knife: a line drawn across the forms cuts every one it crosses from its border to its border — the chosen ones only, if any; every piece its own rings. ⌘Z brings them back.',
   mirror: 'O, Reflect: a line drawn, the axis across the canvas — every form cut along it, the side with more painted kept, ⌥ the other, and mirrored onto the far one, its colours off the photo through the mirror. ⌘Z takes it back.',
   paint: 'M, the sausages: a paint in the strip; a click on a sausage in it takes it away, in another repaints it; a drag lays one; a click in a form a spoke through it from its outline in. The cells off the Preview from then on.',

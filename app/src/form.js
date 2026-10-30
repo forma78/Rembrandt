@@ -106,9 +106,30 @@ function pointAt(q) {
   for (const F of S.forms) if (S.fsel.includes(F.id)) for (const L of F.loops) for (const p of L) { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < bd) { bd = d; best = [p[0], p[1]]; } }
   return best;
 }
+// A new point on a chosen form's border (the owner, 2026-10-30, the pillars by the window, Screenshot 7.16.24 PM: "where I want
+// to add points to modify the form — now a triangle, I want a rectangle by adding a new point"): V, a click on its border between
+// two points, as Illustrator's Add Anchor Point — the point there, dragged at once; in every form's border it lies on, so a
+// shared one stays shared. → the point on the border nearest q, or null
+function edgeAt(q) {
+  const r = PICK_PX / A.k();
+  let best = null, bd = r;
+  for (const F of S.forms) if (S.fsel.includes(F.id)) for (const L of F.loops) L.forEach((a, i) => {
+    const b = L[(i + 1) % L.length], e = [b[0] - a[0], b[1] - a[1]], L2 = e[0] * e[0] + e[1] * e[1];
+    if (!L2) return;
+    const u = ((q[0] - a[0]) * e[0] + (q[1] - a[1]) * e[1]) / L2, at = [a[0] + u * e[0], a[1] + u * e[1]], d = Math.hypot(q[0] - at[0], q[1] - at[1]);
+    if (u > 0 && u < 1 && d < bd) { bd = d; best = at; }
+  });
+  return best;
+}
+function addPoint(at) {
+  for (const F of S.forms) for (const L of F.loops) for (let i = 0; i < L.length; i++) {
+    const a = L[i], b = L[(i + 1) % L.length], e = [b[0] - a[0], b[1] - a[1]], l = Math.hypot(e[0], e[1]), u = l ? ((at[0] - a[0]) * e[0] + (at[1] - a[1]) * e[1]) / (l * l) : -1;
+    if (u > 1e-9 && u < 1 - 1e-9 && Math.abs(e[0] * (at[1] - a[1]) - e[1] * (at[0] - a[0])) / l < 1e-6) { L.splice(i + 1, 0, at.slice()); break; }
+  }
+}
 // the photo, upright as the forms were made, over the canvas as tracing paper; the forms' outlines, the chosen ones
 // thick and their points; the knife's line
-let grab = null;
+let grab = null, hover = null;
 export function draw(g, live) {
   const R = A.ref(), img = R?.img, c = A.scr([S.boardW / 2, S.boardH / 2]), k = A.k();
   g.save(); g.setTransform(A.dpr(), 0, 0, A.dpr(), 0, 0);
@@ -132,6 +153,7 @@ export function draw(g, live) {
     }
     g.setLineDash([]);
     for (const F of S.forms) if (S.fsel.includes(F.id)) for (const L of F.loops) for (const p of L) { const q = A.scr(p); g.fillStyle = '#FFF'; g.strokeStyle = '#EB7A25'; g.lineWidth = 1; g.fillRect(q[0] - 2.5, q[1] - 2.5, 5, 5); g.strokeRect(q[0] - 2.5, q[1] - 2.5, 5, 5); }
+    if (hover && !grab && S.tool === 'edit') { const q = A.scr(hover); g.strokeStyle = '#EB7A25'; g.lineWidth = 1; g.setLineDash([2, 2]); g.strokeRect(q[0] - 3.5, q[1] - 3.5, 7, 7); g.setLineDash([]); g.beginPath(); g.moveTo(q[0] + 6, q[1] - 6); g.lineTo(q[0] + 12, q[1] - 6); g.moveTo(q[0] + 9, q[1] - 9); g.lineTo(q[0] + 9, q[1] - 3); g.stroke(); }   // a new point here: +
     if (S.tool === 'paint' || S.view === 'result') {                                 // the sausages: a capsule each in its paint
       g.lineCap = 'round';
       for (const q of preview().ss ?? []) { const a = A.scr(q.a), b = A.scr(q.b); g.strokeStyle = 'rgba(20,18,16,.75)'; g.lineWidth = SAUSAGE_W * k + 2; g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke(); g.strokeStyle = PAINT[q.paint]?.hex ?? '#888'; g.lineWidth = SAUSAGE_W * k; g.stroke(); }
@@ -160,13 +182,19 @@ export function pointer(type, e) {
     if (S.tool === 'knife') { grab = { kind: 'knife', a: p, b: p }; A.capture(e); A.kick(); return true; }
     const hit = S.fsel.length ? pointAt(p) : null;
     if (hit) { A.undoPush(); grab = { kind: 'point', at: hit, moved: false }; A.capture(e); return true; }
+    const at = S.fsel.length && !e.shiftKey ? edgeAt(p) : null;
+    if (at) { A.undoPush(); addPoint(at); grab = { kind: 'point', at, moved: false }; hover = null; A.capture(e); A.kick(); return true; }
     const F = formAt(p);
     if (e.shiftKey && F) S.fsel = S.fsel.includes(F.id) ? S.fsel.filter(id => id !== F.id) : [...S.fsel, F.id];
     else S.fsel = F ? [F.id] : [];
     A.save(); showForm(); A.kick(); return true;
   }
   if (type === 'move') {
-    if (!grab) { A.cursor(S.tool === 'knife' ? 'crosshair' : S.fsel.length && pointAt(p) ? 'grab' : formAt(p) ? 'pointer' : ''); return true; }
+    if (!grab) {
+      const pt = S.tool === 'edit' && S.fsel.length ? pointAt(p) : null, h = S.tool === 'edit' && S.fsel.length && !pt && !e.shiftKey ? edgeAt(p) : null;
+      if (h || hover) { hover = h; A.kick(); }
+      A.cursor(S.tool === 'knife' ? 'crosshair' : pt ? 'grab' : h ? 'copy' : formAt(p) ? 'pointer' : ''); return true;
+    }
     if (grab.kind === 'knife') { grab.b = p; A.kick(); return true; }
     const to = [Math.round(p[0] * 2) / 2, Math.round(p[1] * 2) / 2];               // half a mm, the grid of a hand
     for (const F of S.forms) for (const L of F.loops) for (const q of L) if (q[0] === grab.at[0] && q[1] === grab.at[1]) { q[0] = to[0]; q[1] = to[1]; }
@@ -403,7 +431,7 @@ export function showForm(D) {
   const shown = shownForms(), count = m => shown.filter(F => F.material === m).length, stuck = D?.regions?.filter(R => !R.ok).length ?? 0;
   A.$('#formRead').innerHTML = !A.ref() ? 'No photo yet: 📎 Add new reference, then <b>AUTO</b>.'
     : !S.forms.length ? 'The photo over the canvas: <b>AUTO</b> makes its forms.'
-    : `${S.aseed ? `Variation <b>${S.aseed % 1000}</b> · ` : ''}${S.fpal ? `paints <b>${S.fpal.name || 'new'}</b> · ` : ''}<b>${shown.length}</b> form${shown.length === 1 ? '' : 's'} painted — ${MATERIALS.map(m => `${count(m)} ${m}`).join(', ')}${S.forms.length > shown.length ? `; ${S.forms.length - shown.length} out (the background, or ⌫)` : ''}${D ? ` · ${D.cells.length} cells` : ''}${stuck ? ` · <span class="warn">${stuck} left empty: its border crosses itself, move a point (V)</span>` : ''}${sel.length ? `<br>Chosen: ${sel.length} — ${[...mats].map(m => MAT[m]).join(', ')}${sel.some(F => F.colour) ? ` · ${[...new Set(sel.filter(F => F.colour).map(F => F.colour))].map(id => { const p = S.pencils.find(q => q.id === id); return p ? `<span class="pl"><i style="background:${p.hex}"></i>${p.name}</span>` : id; }).join(' ')}` : ''}. Its colour: a pencil in the strip by the Tools, a click.` : '<br>V and a click chooses a form, ⇧ one more; its points dragged; K a line across cuts; a pencil in the strip by the Tools its colour.'}`;
+    : `${S.aseed ? `Variation <b>${S.aseed % 1000}</b> · ` : ''}${S.fpal ? `paints <b>${S.fpal.name || 'new'}</b> · ` : ''}<b>${shown.length}</b> form${shown.length === 1 ? '' : 's'} painted — ${MATERIALS.map(m => `${count(m)} ${m}`).join(', ')}${S.forms.length > shown.length ? `; ${S.forms.length - shown.length} out (the background, or ⌫)` : ''}${D ? ` · ${D.cells.length} cells` : ''}${stuck ? ` · <span class="warn">${stuck} left empty: its border crosses itself, move a point (V)</span>` : ''}${sel.length ? `<br>Chosen: ${sel.length} — ${[...mats].map(m => MAT[m]).join(', ')}${sel.some(F => F.colour) ? ` · ${[...new Set(sel.filter(F => F.colour).map(F => F.colour))].map(id => { const p = S.pencils.find(q => q.id === id); return p ? `<span class="pl"><i style="background:${p.hex}"></i>${p.name}</span>` : id; }).join(' ')}` : ''}. Its colour: a pencil in the strip by the Tools, a click.` : '<br>V and a click chooses a form, ⇧ one more; its points dragged, a click on its border a new point; K a line across cuts; a pencil in the strip by the Tools its colour.'}`;
 }
 
 // ---------- the view turned ----------

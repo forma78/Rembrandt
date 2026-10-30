@@ -43,6 +43,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   left its number on the panel as it was, the plan unchanged; the panel
   now drawn anew after every change. A slider let go gives ⌘Z back to the
   page.
+- **FORM: a new point on a form's border** (the owner, the evening,
+  Screenshot 7.16.24 PM, the pillars by the window: "where I want to add
+  points to modify the form — now a triangle, I want a rectangle by adding
+  a new point"): V, a chosen form, a click on its border between two
+  points — a dashed square and + under the pointer — puts a point there,
+  dragged at once, as Illustrator's Add Anchor Point; in every form whose
+  border it lies on, so a shared border stays shared. ⌘Z takes it back.
 - **FORM: a border crossing itself painted all the same** (the owner, the
   same evening, Screenshot 7.17.25 PM: the window's glass left empty,
   meta 1 · 2 and the sausages by hand dead on it). A point dragged a third
