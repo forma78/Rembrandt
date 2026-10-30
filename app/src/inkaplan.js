@@ -1357,7 +1357,7 @@ export function simOf(P, rects, o) {
   const V = paintOf(o.density ?? DENSITY_NEW), brush = trailOf(o);
   // the sausages, squeezed: a capsule SAUSAGE_W wide along each
   let squeezed = 0;
-  for (const F of P.figs) for (const q of figSausages(F, P.units, rects)) {
+  for (const q of P.sausages ?? P.figs.flatMap(F => figSausages(F, P.units, rects))) {   // FORM's its own, P.sausages (formplan.js)
     const add = V / SAUSAGE_W * (q.thin ? THIN : 1), l = logC(PAINT[q.paint].hex), R = SAUSAGE_W / 2, L2 = (q.b[0] - q.a[0]) ** 2 + (q.b[1] - q.a[1]) ** 2;
     const i0 = Math.max(0, Math.floor((Math.min(q.a[0], q.b[0]) - R) / h)), i1 = Math.min(nx - 1, Math.floor((Math.max(q.a[0], q.b[0]) + R) / h));
     const j0 = Math.max(0, Math.floor((Math.min(q.a[1], q.b[1]) - R) / h)), j1 = Math.min(ny - 1, Math.floor((Math.max(q.a[1], q.b[1]) + R) / h));

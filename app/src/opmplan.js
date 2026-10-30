@@ -70,7 +70,7 @@ function sample(res, x, y, acc) {
 }
 const inPoly = (P, x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
 // the Preview's mean in a polygon, linear light; null off the Result
-function meanIn(res, P) {
+export function meanIn(res, P) {
   const xs = P.map(p => p[0]), ys = P.map(p => p[1]), acc = [0, 0, 0];
   let got = 0;
   for (let y = Math.min(...ys) + SAMPLE / 2; y < Math.max(...ys); y += SAMPLE) for (let x = Math.min(...xs) + SAMPLE / 2; x < Math.max(...xs); x += SAMPLE) if (inPoly(P, x, y)) got += sample(res, x, y, acc);
@@ -188,7 +188,7 @@ function thickened(cells, minWOf = () => MIN_W) {
   return out;
 }
 // the slivers' groups: i → the cell it went in with (itself if none)
-function sliversOf(cells, minWOf = () => MIN_W) {
+export function sliversOf(cells, minWOf = () => MIN_W) {
   const up = cells.map((_, i) => i), find = i => up[i] === i ? i : (up[i] = find(up[i]));
   const ek = (a, b) => `${keyOf(a)}>${keyOf(b)}`, owner = new Map(), E = cells.map(c => c.poly.map((p, j) => [p, c.poly[(j + 1) % c.poly.length]]));
   E.forEach((es, i) => es.forEach(([a, b]) => owner.set(ek(a, b), i)));
@@ -689,7 +689,7 @@ export function dragsOf(cells, regions, order, o = {}) {
         const C = cells[i];
         if (C.pencil !== pc) { cur = null; return; }
         nc++;
-        if (cur && near(cur.pts.at(-1), C.mid[0])) { cur.pts.push(C.mid[1]); cur.e1 = C.ends[1]; } else runs.push(cur = { pts: C.mid.slice(), e0: C.ends[0], e1: C.ends[1] });
+        if (cur && near(cur.pts.at(-1), C.mid[0])) { cur.pts.push(...C.mid.slice(1)); cur.e1 = C.ends[1]; } else runs.push(cur = { pts: C.mid.slice(), e0: C.ends[0], e1: C.ends[1] });   // FORM's round cells: a middle of many points
       });
       for (const r of runs) {
         const t = turned(r.pts, c, cw), back = t[0] !== r.pts[0] && len(sub(t[0], r.pts[0])) > 1e-9;
@@ -720,8 +720,9 @@ export function dragsOf(cells, regions, order, o = {}) {
   }
   return passes;
 }
-// a side cell's place along its side, anticlockwise: the bottom left to right, the right up, the top right to left, the left down; a facet's one cell a row
-const seqAlong = C => { const m = C.mid[0]; return C.p % 2 ? 0 : [m[0], m[1], -m[0], -m[1]][C.p / 2]; };
+// a side cell's place along its side, anticlockwise: the bottom left to right, the right up, the top right to left, the left down; a facet's one cell a row;
+// FORM's its own, seq, along its side's line (formplan.js)
+const seqAlong = C => { if (C.seq !== undefined) return C.seq; const m = C.mid[0]; return C.p % 2 ? 0 : [m[0], m[1], -m[0], -m[1]][C.p / 2]; };
 // The plan: o { pencils (the colours), order (the run's, ids), frame, merge,
 // pitch, stripW, minW, facets, cw, rubs } → { regions, cells (every one its
 // colour), lines (DRAW BW's, once each), drags (DRAG's, a colour each, in the
