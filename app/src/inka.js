@@ -58,6 +58,7 @@ import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, wi
   SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
 import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, fitKeys, FRAME_MARK, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
 import { aligned } from './align.js';
+import { initForm, FORM_STATE, FORM_NUM, FORM_UNDO, loadForm, plan as formPlanNow, planKey as formPlanKey, preview as formPreviewNow, frameMods as formFrame, colour as formColour, align as formAlign, draw as formDraw, pointer as formPointer, key as formKey, showForm, turned as formTurned } from './form.js';
 import { prismaPlan, passesOf as prismaPasses, drawRows as prismaRows, PRISMA_PENCILS, BOX_5, BOX_6, rubsOf, RUBS_DARK_NEW, RUBS_LIGHT_NEW, RUBS_MIN, RUBS_MAX, PRESS_NEW, PRESS_MIN, PRESS_MAX, GLIDE_NEW, GLIDE_MIN, GLIDE_MAX, TOUCH_NEW, TOUCH_MIN, TOUCH_MAX, ELBOW_MIN, PEN_AIR, SHORTEST_NEW as RUN_SHORTEST_NEW, SHORTEST_MIN as RUN_SHORTEST_MIN, SHORTEST_MAX as RUN_SHORTEST_MAX, SPEED_NEW as PRISMA_SPEED_NEW } from './prismaplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
@@ -67,14 +68,15 @@ import './ui.js';
 
 const $ = s => document.querySelector(s);
 const OPMB = document.body.dataset.tab === 'opmb';                                    // OPM-B: OPM's page, all of it, the cells bigger (2026-10-28)
-const OPMP = document.body.dataset.tab === 'opmp';                                    // OPM-P: OPM-W's page, all of it, for paint — the brush's rings, the lines once, DRAG a colour at a time (2026-10-29)
+const FORM = document.body.dataset.tab === 'form';                                    // FORM: OPM-P's page, all of it, the forms off a photo in the blends' place (2026-10-30, form.js)
+const OPMP = document.body.dataset.tab === 'opmp' || FORM;                                    // OPM-P: OPM-W's page, all of it, for paint — the brush's rings, the lines once, DRAG a colour at a time (2026-10-29)
 const OPMW = document.body.dataset.tab === 'opmw' || OPMP;                            // OPM-W: OPM-S's page, all of it, no arc — a corner straight pieces, for wood (2026-10-28)
 const OPMS = document.body.dataset.tab === 'opms' || OPMW;                             // OPM-S: OPM's page, all of it, FRAME and DRAW BW · CLR (2026-10-28)
 const OPM = document.body.dataset.tab === 'opm' || OPMB || OPMS;                     // OPM: PRISMA's page, all of it — contours, the paints by hand
 const PRISMA = document.body.dataset.tab === 'prisma' || OPM;                       // PRISMA: DACHE's page, all of it
 const JOHN = document.body.dataset.tab === 'stjohn', DACHE = document.body.dataset.tab === 'dache' || PRISMA, BLEND = document.body.dataset.tab === 'blend' || DACHE;   // DACHE: BLEND's page, all of it
 const JOHN_CORNER = 100;   // ST-JOHN's Corners at first: a ⌘'s rings round, its windows too (the owner, 2026-10-19, Screenshot 9.27.36 PM: "the rings must be really round, not squares as now")
-const TAB = JOHN ? 'stjohn' : OPMB ? 'opmb' : OPMP ? 'opmp' : OPMW ? 'opmw' : OPMS ? 'opms' : OPM ? 'opm' : PRISMA ? 'prisma' : DACHE ? 'dache' : BLEND ? 'blend' : 'inka', TAB_NAME = JOHN ? 'ST-JOHN' : OPMB ? 'OPM-B' : OPMP ? 'OPM-P' : OPMW ? 'OPM-W' : OPMS ? 'OPM-S' : OPM ? 'OPM' : PRISMA ? 'PRISMA' : DACHE ? 'DACHE' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
+const TAB = FORM ? 'form' : JOHN ? 'stjohn' : OPMB ? 'opmb' : OPMP ? 'opmp' : OPMW ? 'opmw' : OPMS ? 'opms' : OPM ? 'opm' : PRISMA ? 'prisma' : DACHE ? 'dache' : BLEND ? 'blend' : 'inka', TAB_NAME = FORM ? 'FORM' : JOHN ? 'ST-JOHN' : OPMB ? 'OPM-B' : OPMP ? 'OPM-P' : OPMW ? 'OPM-W' : OPMS ? 'OPM-S' : OPM ? 'OPM' : PRISMA ? 'PRISMA' : DACHE ? 'DACHE' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const fin = v => Number.isFinite(v);
 
 // ---------- state ----------
@@ -118,22 +120,24 @@ const S = {
   ...(OPM ? { rowMin: ROWMIN_NEW, rayW: RAYW_NEW } : {}), ...(OPMB ? { opmbV: 1 } : {}),   // OPM: Key 1 · A's rim alone so big; OPM-B: every cell
   ...(OPMS ? { inset: OPMS_INSET, round: OPMS_ROUND, bg: BG.white } : {}),             // OPM-S: the contours on the cells' edges, sharp; the white canvas
   ...(OPMW ? { facets: FACETS_NEW } : {}),                                           // OPM-W: a corner three straight pieces (opmplan.js)
-  ...(OPMP ? { pitch: PITCH_NEW, dragRubs: DRAG_RUBS_NEW, pspeed: PSPEED_NEW, brushPress: 0, cw: true, bind: true, rayW: PITCH_NEW, opmpV: 1 } : {}),   // OPM-P: the rings the brush apart, DRAG's rubs, speed and pressure, round ↻
+  ...(OPMP ? { pitch: PITCH_NEW, dragRubs: DRAG_RUBS_NEW, pspeed: PSPEED_NEW, brushPress: 0, cw: true, bind: true, rayW: PITCH_NEW, opmpV: 1 } : {}),
+  ...(FORM ? structuredClone(FORM_STATE) : {}),                                      // FORM: the forms and the chosen ones, Bricks, the background, the cells' colours, the view turned   // OPM-P: the rings the brush apart, DRAG's rubs, speed and pressure, round ↻
 };
 if (DACHE) S.ink = false;                                                            // no cup: TEST's dots in pencil
-const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : []), ...(PRISMA ? ['rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress'] : [])];
-const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint'], VIEWS = ['drag', 'result', ...(OPM ? ['pencil', 'paint'] : PRISMA ? ['pencil'] : DACHE ? ['modules', 'pencil'] : [])];
+const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : []), ...(PRISMA ? ['rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress'] : []), ...(FORM ? FORM_NUM : [])];
+const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint', ...(FORM ? ['mirror'] : [])], VIEWS = ['drag', 'result', ...(FORM ? ['forms'] : []), ...(OPM ? ['pencil', 'paint'] : PRISMA ? ['pencil'] : DACHE ? ['modules', 'pencil'] : [])];
 const BLEND_KEEP = 'rembrandt.blend.v01', BLEND_REFS = 'rembrandt.blend.refs';   // BLEND's keep and references, DACHE's first visit's
 const DACHE_KEEP = 'rembrandt.dache.v01', DACHE_REFS = 'rembrandt.dache.refs';   // DACHE's, PRISMA's first visit's
 const PRISMA_KEEP = 'rembrandt.prisma.v01', PRISMA_REFS = 'rembrandt.prisma.refs';   // PRISMA's, OPM's first visit's
 const OPM_KEEP = 'rembrandt.opm.v01', OPM_REFS = 'rembrandt.opm.refs';                 // OPM's, OPM-B's and OPM-S's first visit's
 const OPMS_KEEP = 'rembrandt.opms.v01', OPMS_REFS = 'rembrandt.opms.refs';             // OPM-S's, OPM-W's first visit's (the owner, 2026-10-28: "based on our very latest, OPM-S")
-const OPMW_KEEP = 'rembrandt.opmw.v01', OPMW_REFS = 'rembrandt.opmw.refs';             // OPM-W's, OPM-P's first visit's
+const OPMW_KEEP = 'rembrandt.opmw.v01', OPMW_REFS = 'rembrandt.opmw.refs';
+const OPMP_KEEP = 'rembrandt.opmp.v01';                                                // OPM-P's, FORM's first visit's: its pencils, its brush, its machine             // OPM-W's, OPM-P's first visit's
 let STRIP_PAINTS = false, ALL_PENCILS = false;                                       // PRISMA: the paints by the Tools, not the pencils; the pencils that do not draw too
 let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
-    const o = JSON.parse(localStorage.getItem(KEY) || (OPMP && localStorage.getItem(OPMW_KEEP)) || (OPMW && localStorage.getItem(OPMS_KEEP)) || ((OPMB || OPMS) && localStorage.getItem(OPM_KEEP)) || (OPM && localStorage.getItem(PRISMA_KEEP)) || (PRISMA && localStorage.getItem(DACHE_KEEP)) || (DACHE && localStorage.getItem(BLEND_KEEP)) || 'null'); if (!o) return;   // DACHE's first visit: BLEND's composition; PRISMA's DACHE's, else BLEND's
+    const o = JSON.parse(localStorage.getItem(KEY) || (FORM && localStorage.getItem(OPMP_KEEP)) || (OPMP && localStorage.getItem(OPMW_KEEP)) || (OPMW && localStorage.getItem(OPMS_KEEP)) || ((OPMB || OPMS) && localStorage.getItem(OPM_KEEP)) || (OPM && localStorage.getItem(PRISMA_KEEP)) || (PRISMA && localStorage.getItem(DACHE_KEEP)) || (DACHE && localStorage.getItem(BLEND_KEEP)) || 'null'); if (!o) return;   // DACHE's first visit: BLEND's composition; PRISMA's DACHE's, else BLEND's
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     if (Array.isArray(o.rects)) S.rects = withIds(o.rects.map(cleanRect).filter(Boolean));
     WIDTHLESS = Array.isArray(o.rects) && o.rects.some(r => isJohn(r) && !fin(r.width));   // a ⌘ kept before Width: its X laid again on its loop
@@ -180,6 +184,7 @@ function load() {
       if (PRISMA) S.shortest = Math.max(RUN_SHORTEST_MIN, Math.min(RUN_SHORTEST_MAX, S.shortest));
       S.boxV = PRISMA ? 6 : 4; delete S.box2; delete S.stroke;                         // the bands the blend's loops since the same day, no Stroke
     }
+    if (FORM) loadForm(S, o);                                                        // the forms kept, no tiles
     FRESH = false;
   } catch { }
 }
@@ -288,6 +293,13 @@ const pencilOf = id => S.pencils.find(p => p.id === id);
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 const layers = () => S.coats * (S.hatch === 'cross' ? 2 : 1);                     // over the paper: Cross lays every coat twice, along and across
 function dachePlan() {
+  if (FORM) {                                                                        // FORM: the forms off the photo, OPM-P's lines and DRAG (form.js, formplan.js)
+    const key = JSON.stringify([formPlanKey(), S.pencils, S.order, S.frame, S.merge, S.pitch, S.cw, S.dragRubs, S.facets]);
+    if (DPLAN?.key === key) return DPLAN;
+    const D = formPlanNow({ pencils: S.pencils, order: runOrder(S.pencils, S.order).map(p => p.id), frame: S.frame, merge: S.merge, pitch: S.pitch, facets: S.facets, cw: S.cw, rubs: S.dragRubs }) ?? { regions: [], cells: [], lines: [], drags: [], modules: [], few: [] };
+    showForm(D);
+    return (DPLAN = { key, ...D, order: runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order), passes: D.drags });
+  }
   const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.coats, S.shortest, S.frame, S.hatch, S.corner, S.mix, S.rubsDark, S.rubsLight, S.merge, S.rowMin, S.rayW, S.inset, S.round, S.facets, S.pitch, S.cw, S.dragRubs, S.bind]);
   if (DPLAN?.key === key) return DPLAN;
   if (OPMP) {                                                                        // opmplan.js: the brush's rings, the lines once, DRAG a colour at a time in the run's order
@@ -340,9 +352,9 @@ function prismaRun(passes) {
 let ONE_RUN = {};
 function oneRun(kind) {
   const pc = boldestOf(S.pencils, S.bg), D = kind === 'bw' ? dachePlan() : null, here = hereNow();
-  const key = JSON.stringify([kind, D ? D.key : [S.rects, S.corner, S.facets], pc, S.rubsDark, S.rubsLight, S.pencilSpeed, S.travel, here, S.press, S.glide, S.touch]);
+  const key = JSON.stringify([kind, D ? D.key : [S.rects, S.corner, S.facets, FORM ? S.forms : 0], pc, S.rubsDark, S.rubsLight, S.pencilSpeed, S.travel, here, S.press, S.glide, S.touch]);
   if (ONE_RUN[kind]?.key === key) return ONE_RUN[kind];
-  const mods = !pc ? [] : D ? D.modules.map(M => ({ ...M, pencil: pc.id })) : outerOf(S.rects, { corner: S.corner, pencil: pc.id, ...(OPMW ? { facets: S.facets } : {}), ...(OPMP ? { marks: FRAME_MARK } : {}) });   // OPM-P: four marks, not the whole contour (2026-10-29)
+  const mods = !pc ? [] : D ? D.modules.map(M => ({ ...M, pencil: pc.id })) : FORM ? formFrame(pc.id) : outerOf(S.rects, { corner: S.corner, pencil: pc.id, ...(OPMW ? { facets: S.facets } : {}), ...(OPMP ? { marks: FRAME_MARK } : {}) });   // FORM: four marks round the forms painted   // OPM-P: four marks, not the whole contour (2026-10-29)
   // OPM-P's lines in their own order, the rings round first, then the rays (opmplan.js, linesOf): every one once, its own stroke; one Rubs, no light or dark pencil
   const passes = !mods.length ? [] : OPMP ? [{ pencil: pc.id, strokes: mods.map(M => M.pieces), modules: mods.length, rows: mods.filter(M => M.line === 'row').length, rays: mods.filter(M => M.line === 'ray').length, rubs: S.rubsDark, mm: mods.reduce((a, M) => a + M.mm, 0) * S.rubsDark }]
     : prismaPasses({ modules: mods }, [pc], { rubs: () => rubsOf(pc, S.rubsDark, S.rubsLight) });
@@ -388,7 +400,15 @@ function areaNow() {
 let V = view(), k = 1, dpr = 1, kFit = 1;
 const sx = p => (p[0] - V.y0) * k, sy = p => (V.x1 + p[1]) * k;
 const scr = q => [sx([q[0] - S.boardW / 2]), sy([0, S.boardH / 2 - q[1]])];       // canvas mm from its bottom left corner, y up → the screen
-const toCanvas = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / k + V.y0, (e.clientY - r.top) / k - V.x1]; };
+const toCanvas = e => {
+  const r = cv.getBoundingClientRect();
+  let px = e.clientX - r.left, py = e.clientY - r.top;
+  if (FORM && S.turn) {                                                              // FORM's board turned: the pointer turned back about its middle
+    const a = -S.turn * Math.PI / 180, cx = e.clientX - (r.left + r.width / 2), cy = e.clientY - (r.top + r.height / 2);
+    px = cx * Math.cos(a) - cy * Math.sin(a) + cv.offsetWidth / 2; py = cx * Math.sin(a) + cy * Math.cos(a) + cv.offsetHeight / 2;
+  }
+  return [px / k + V.y0, py / k - V.x1];
+};
 const toMm = e => { const c = toCanvas(e); return [c[0] + S.boardW / 2, S.boardH / 2 - c[1]]; };
 const inMm = c => { c.setTransform(k * dpr, 0, 0, -k * dpr, (-S.boardW / 2 - V.y0) * k * dpr, (V.x1 + S.boardH / 2) * k * dpr); return c; };
 const ZOOMS = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
@@ -397,16 +417,17 @@ function layout() {
   const F = view(), r = stage.getBoundingClientRect(), m = r.width < 600 ? 10 : 36, sw = F.y1 - F.y0, sh = F.x1 - F.x0;
   const ps = (PRISMA && !STRIP_PAINTS ? $('#pencilStrip') : $('#paints')).getBoundingClientRect(), side = ps.height >= r.height - 1;   // PRISMA: the pencils' strip, or the paints'
   const stripW = side ? ps.width : 0, stripH = side ? 0 : ps.height;
-  kFit = Math.max(0.2, Math.min((r.width - stripW - 2 * m) / sw, (r.height - stripH - 2 * m) / sh));
+  const rot = FORM && formTurned(), fw = rot ? sh : sw, fh = rot ? sw : sh;          // FORM's board turned a quarter: its width the screen's height
+  kFit = Math.max(0.2, Math.min((r.width - stripW - 2 * m) / fw, (r.height - stripH - 2 * m) / fh));
   k = kFit * Z;
   dpr = window.devicePixelRatio || 1;
-  const w = Math.round(Math.min(sw * k, r.width - stripW)), h = Math.round(Math.min(sh * k, r.height - stripH)), ww = w / k, hh = h / k;
+  const w = Math.round(Math.min(sw * k, rot ? r.height - stripH : r.width - stripW)), h = Math.round(Math.min(sh * k, rot ? r.width - stripW : r.height - stripH)), ww = w / k, hh = h / k;
   const mid = { x: (F.x0 + F.x1) / 2, y: (F.y0 + F.y1) / 2 }, c = ZC || mid;
   const cy = ww >= sw - 1e-6 ? mid.y : Math.max(F.y0 + ww / 2, Math.min(F.y1 - ww / 2, c.y));
   const cx = hh >= sh - 1e-6 ? mid.x : Math.max(F.x0 + hh / 2, Math.min(F.x1 - hh / 2, c.x));
   if (ZC) ZC = { x: cx, y: cy };
   V = { y0: cy - ww / 2, y1: cy + ww / 2, x0: cx - hh / 2, x1: cx + hh / 2 };
-  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.marginLeft = stripW + 'px'; board.style.marginBottom = stripH + 'px';
+  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.transform = FORM && S.turn ? `rotate(${S.turn}deg)` : ''; board.style.marginLeft = stripW + 'px'; board.style.marginBottom = stripH + 'px';
   cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
 }
@@ -437,9 +458,9 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint') drawPencils(); else if (OPMP) { drawPencils(); drawSausages(); drawNodes(); } else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }   // OPM-P's Drag: the brush's strokes, a colour each
+  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint') drawPencils(); else if (FORM && S.view === 'forms') { g.fillStyle = groundNow(); g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); } else if (OPMP) { drawPencils(); drawSausages(); drawNodes(); } else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }   // OPM-P's Drag: the brush's strokes, a colour each
   if (DACHE) drawFrame();
-  if (REF && S.refOpacity > 0) {
+  if (REF && S.refOpacity > 0 && !FORM) {                                            // FORM's own, turned as its forms were made (form.js)
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
     g.globalAlpha = S.refOpacity / 100; g.drawImage(img, sx([-w / 2]), sy([0, -h / 2]), w * k, h * k); g.globalAlpha = 1;
   }
@@ -455,6 +476,7 @@ function draw() {
   g.strokeStyle = ink; g.lineWidth = 1.2; g.strokeRect(hX - 4, hY - 4, 8, 8); g.fillStyle = ink; g.textAlign = 'left'; g.fillText('home', hX + 8, hY - 6);
   if (g === ctx && !PLAY && !PPLAY) guides();
   drawTrail();
+  if (FORM) formDraw(g, g === ctx && !PLAY && !PPLAY);                             // the photo, the forms, the chosen ones, the knife
 }
 
 // ---------- Drag: every figure's path ----------
@@ -631,6 +653,7 @@ function shownBitmap(B) {
   return SHOWN;
 }
 function resultBitmap() {
+  if (FORM) return formPreviewNow();                                                 // FORM's Preview: the brush round every form's rings through its sausages
   const key = resultKey();
   if (RESULT?.key === key) return RESULT;
   const sim = simOf(planNow(), S.rects, { ...po(), density: S.density });
@@ -958,6 +981,7 @@ function startOf(B, i) {
 
 // ---------- undo ----------
 const UNDO_KEYS = ['rects', 'sel', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density', 'nodes', ...(DACHE ? ['pencils', 'order', 'hatch', 'coats', 'shortest', 'pencilSpeed', 'frame', ...(PRISMA ? ['mix', 'rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['merge', 'rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress', 'cw', 'bind'] : [])] : [])];
+if (FORM) UNDO_KEYS.push(...FORM_UNDO);                                             // FORM's forms, ⌘Z
 let undoStack = [], redoStack = [];
 const snapshot = () => JSON.stringify(Object.fromEntries(UNDO_KEYS.map(q => [q, S[q]])));
 function undoPush() { undoStack.push(snapshot()); if (undoStack.length > 200) undoStack.shift(); redoStack = []; }
@@ -1056,6 +1080,7 @@ cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') $('#sp
 cv.addEventListener('pointerdown', e => {
   if (e.pointerType !== 'mouse') showTip(e);
   if (e.button !== 0) return;
+  if (FORM && formPointer('down', e)) return;                                       // FORM: V a form, its points; K the knife
   if (PLAY) { stopPlay(); kick(); }
   if (PPLAY) { stopPencilPlay(); kick(); }
   const p = toMm(e);
@@ -1093,6 +1118,7 @@ cv.addEventListener('pointerdown', e => {
   cv.setPointerCapture(e.pointerId); showRects(); kick();
 });
 cv.addEventListener('pointermove', e => {
+  if (FORM && formPointer('move', e)) return;
   if (!grab) {
     const hd = S.tool === 'paint' ? null : nearHandle(e);
     if (S.tool === 'node') { const was = HOT; HOT = magnetAt(e); cv.style.cursor = HOT ? 'crosshair' : nodeAt(e) >= 0 ? 'pointer' : ''; if (was !== HOT) kick(); return; }
@@ -1128,7 +1154,8 @@ cv.addEventListener('pointermove', e => {
   if (kk) r.keys[kk - 1] = keyIn(r, b);
   kick();
 });
-const drop = () => {
+const drop = e => {
+  if (FORM && formPointer('up', e)) return;
   if (!grab) return;
   const was = grab; grab = null;
   if (was.kind === 'paint') { if (was.moved) paintAlong(was.from, was.to); else paintAt(was.from); kick(); return; }
@@ -1196,10 +1223,12 @@ function deleteRect() {
   S.rects = S.rects.filter(r => !gone.has(r.id)); S.nodes = S.nodes.filter(q => !gone.has(q.a.id) && !gone.has(q.b.id));
   MANY.clear(); S.sel = Math.max(0, Math.min(S.rects.length - 1, Math.min(...idx) - 1)); settle();
 }
-function clearAll() { if (!S.rects.length) return; undoPush(); S.rects = []; S.nodes = []; MANY.clear(); S.sel = 0; S.tool = 'rect'; settle(); }
+function clearAll() {
+  if (FORM) { if (!S.forms.length) return; undoPush(); S.forms = []; S.fsel = []; S.tool = 'edit'; settle(); return; }   // FORM: no forms, the photo as it lies (the owner, 2026-10-30: "add [x] clear canvas as in OPM-P")
+  if (!S.rects.length) return; undoPush(); S.rects = []; S.nodes = []; MANY.clear(); S.sel = 0; S.tool = 'rect'; settle(); }
 // N with no nodes yet: the snake laid as nodes, the way the brush runs now, to change
 function setTool(t) {
-  S.tool = t; S.view = t === 'paint' || t === 'node' || t === 'knife' ? 'drag' : S.view;
+  S.tool = t; S.view = FORM ? (t === 'paint' ? 'result' : S.view) : t === 'paint' || t === 'node' || t === 'knife' ? 'drag' : S.view;   // FORM: M on the Preview, the sausages' doing seen
   if (PRISMA && t === 'paint' && !STRIP_PAINTS) showStrip(true);                     // M: the paints by the Tools
   if (t === 'node' && !S.nodes.length && planNow().figs.some(F => F.us.length > 1)) { undoPush(); S.nodes = snakeNodes(planNow(), S.rects); }
   settle();
@@ -1214,6 +1243,12 @@ const HINT = {
   frame: 'F, the frame: drag on the canvas round the piece to try on paper — only the modules in it are drawn, at their place from home: the paper taped there. A click in the frame takes it away, as Whole canvas under Pencils.',
   paint: 'M: a click on a tile lays the arm of its X nearest it in the chosen paint, from the corner along the diagonal in to the innermost ring; a drag lays one where you drag it; a click on a sausage with its paint takes it away, with another repaints it. A paint: the strip on the left.',
 };
+if (FORM) Object.assign(HINT, {                                                       // FORM's own (form.js)
+  edit: 'V: a click chooses a form, ⇧ and a click one more or one less, ⌘A every one; a chosen form\'s point dragged, every form\'s point there with it; ⌫ the chosen out, the ground there, or back in. A pencil in the strip, a click: the chosen forms\' colour.',
+  knife: 'K, the knife: a line drawn across the forms cuts every one it crosses from its border to its border — the chosen ones only, if any; every piece its own rings. ⌘Z brings them back.',
+  mirror: 'O, Reflect: a line drawn, the axis across the canvas — every form cut along it, the side with more painted kept, ⌥ the other, and mirrored onto the far one, its colours off the photo through the mirror. ⌘Z takes it back.',
+  paint: 'M, the sausages: a paint in the strip; a click on a sausage in it takes it away, in another repaints it; a drag lays one; a click in a form a spoke through it from its outline in. The cells off the Preview from then on.',
+});
 $('#btnUndo').onclick = undo; $('#btnRedo').onclick = redo; $('#btnClear').onclick = clearAll;
 // Align, OPM-S's four in the Tools (the owner, 2026-10-28: "a primitive
 // alignment to the centre, an even distance between three / two figures"):
@@ -1228,7 +1263,7 @@ function align(how) {
   $('#hint').textContent = how.startsWith('mid') ? `${ALIGN_SAY[how]}: ${who}${A.each ? `, ${how === 'midX' ? 'one above another' : 'side by side'}, every one its middle on the canvas's — in one line —` : ','} ${A.margin} mm from ${how === 'midX' ? 'the left and the right' : 'the top and the bottom'} edge of the canvas (⌘Z takes it back).`
     : `${ALIGN_SAY[how]}: ${who}, ${A.gap} mm between every two, the outermost two where they were; Centre puts them in the middle (⌘Z takes it back).`;
 }
-document.querySelectorAll('[data-align]').forEach(b => b.onclick = () => align(b.dataset.align));
+document.querySelectorAll('[data-align]').forEach(b => b.onclick = () => FORM ? formAlign(b.dataset.align) : align(b.dataset.align));   // FORM: the forms
 // the ground (OPM-S): white, black, or any colour by the chip; the picture over it
 function setBg(hex) { if (!/^#[0-9a-f]{6}$/i.test(hex ?? '')) return; S.bg = hex.toUpperCase(); settle(); }
 function showGround() {
@@ -1245,6 +1280,7 @@ addEventListener('keydown', e => {
   if (e.target.matches('input,select,textarea')) return;
   const cmd = e.metaKey || e.ctrlKey;
   if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (FORM && formKey(e)) return;                                                    // FORM: ⌫ the chosen forms out or in, ⌘A every form
   if (cmd && e.key.toLowerCase() === 'a') {                                          // every tile on the canvas
     e.preventDefault(); if (S.rects.length < 2) return;
     MANY = new Set(S.rects.map(r => r.id)); S.tool = 'edit'; settle();
@@ -1454,6 +1490,7 @@ if (DACHE) {
     $('#pencilStrip').onclick = e => {
       if (e.target.closest('[data-more]')) { ALL_PENCILS = !ALL_PENCILS; showPencils(); layout(); return; }
       if (e.target.closest('[data-strip]')) { showStrip(true); return; }
+      if (FORM && formColour(e)) return;                                              // FORM: a form chosen, the pencil its colour
       pickPencil(e);
     };
   }
@@ -1524,7 +1561,8 @@ function showPencils() {
     lines.push(`DRAW BW: <b>${D.lines.length}</b> line${D.lines.length === 1 ? '' : 's'}, every one once — ${rows} along the rows, block after block round ${S.cw ? '↻' : '↺'} from 12 o'clock, every block's from its outer edge in, then ${D.lines.length - rows} rays — ${S.merge ? 'none between two cells of one colour' : 'one between every two cells'}, ${cells} cells; rubbed ${S.rubsDark}×, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)}), ${OPMP ? `up at ${sgn(glideAt())} between, ${sgn(glideAt() - Math.max(ELBOW_MIN, S.touch + S.press))} over pressing (${PEN_AIR}° at least)` : S.glide <= 0 ? 'gliding on the canvas' : 'just off it'} between; ${fmt(B.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, ≈ <b>${hm(B.seconds)}</b> (est.)${B.pencil ? `, in ${esc(B.pencil.name)}` : ''}`);
     const side = R_ => { const n = R_.sides, f = R_.blocks.filter(B => !B.side).map(B => B.n); return `${R_.bands ? `${R_.bands} bands, ` : ''}${n[4] ?? 0} top · ${n[2] ?? 0} right · ${n[0] ?? 0} bottom · ${n[6] ?? 0} left${f.length ? `, the bevels ${Math.min(...f)} … ${Math.max(...f)}` : ''}`; };
     const drag = [R.passes.length ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells — ${R.passes.reduce((a, q) => a + q.rows, 0)} strokes along the rows, block after block, then ${R.passes.reduce((a, q) => a + q.rays, 0)} along the rays — every one ${S.dragRubs}× (Rubs); ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up on the move ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° to wipe it and squeeze the next` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : 'DRAG: nothing to paint — the Preview bare here, or no colour near it',
-      `${S.bind ? 'The blend\'s bands over the corners, every block\'s band in a whole number of rows' : 'Every block its own rows'}, ${fmt(S.pitch, 1)} mm apart at most, evenly: ${D.regions.map(R_ => `${R_.kind === 'blend' ? `Key ${R_.key + 1} → ${R_.key + 2}` : R_.kind === 'core' ? 'the core' : 'a tile'} ${side(R_)}`).join('; ')}`];
+      FORM ? `Every form its own rings, ${fmt(S.pitch, 1)} mm apart at most, its depth over a whole number of them: ${D.regions.length} form${D.regions.length === 1 ? '' : 's'}, ${D.regions.reduce((a, R_) => a + R_.bands, 0)} rings in all${D.regions.some(R_ => !R_.ok) ? `, ${D.regions.filter(R_ => !R_.ok).length} left empty` : ''}`   // FORM's forms: no sides, no bevels
+        : `${S.bind ? 'The blend\'s bands over the corners, every block\'s band in a whole number of rows' : 'Every block its own rows'}, ${fmt(S.pitch, 1)} mm apart at most, evenly: ${D.regions.map(R_ => `${R_.kind === 'blend' ? `Key ${R_.key + 1} → ${R_.key + 2}` : R_.kind === 'core' ? 'the core' : 'a tile'} ${side(R_)}`).join('; ')}`];
     if (D.few.length) drag.push(`Left out, next to nothing to paint — under ${LEAST_MM} mm of brush, or ${LEAST_SHARE * 100} % of all: ${D.few.map(id => pencilOf(id)?.name ?? id).join(', ')} — their cells to the nearest of the rest`);
     $('#dragRead').innerHTML = drag.join(' · ');
     document.querySelectorAll('#turnKeys [data-cw]').forEach(b => b.classList.toggle('on', (b.dataset.cw === '1') === S.cw));
@@ -2013,7 +2051,7 @@ $('#refOp').oninput = e => { S.refOpacity = +e.target.value; syncRef(); save(); 
 async function loadRef() {
   let list = null;
   try { list = await IDB.get(REFS_KEY); } catch { }
-  if (!Array.isArray(list) && DACHE) try { if (OPMP) list = await IDB.get(OPMW_REFS); if (OPMW && !Array.isArray(list)) list = await IDB.get(OPMS_REFS); if ((OPMB || OPMS) && !Array.isArray(list)) list = await IDB.get(OPM_REFS); if (OPM && !Array.isArray(list)) list = await IDB.get(PRISMA_REFS); if (PRISMA && !Array.isArray(list)) list = await IDB.get(DACHE_REFS); if (!Array.isArray(list)) list = await IDB.get(BLEND_REFS); if (Array.isArray(list)) IDB.put(REFS_KEY, list).catch(() => { }); } catch { }   // DACHE's first visit: BLEND's references, copied; PRISMA's DACHE's, else BLEND's
+  if (!Array.isArray(list) && DACHE && !FORM) try { if (OPMP) list = await IDB.get(OPMW_REFS); if (OPMW && !Array.isArray(list)) list = await IDB.get(OPMS_REFS); if ((OPMB || OPMS) && !Array.isArray(list)) list = await IDB.get(OPM_REFS); if (OPM && !Array.isArray(list)) list = await IDB.get(PRISMA_REFS); if (PRISMA && !Array.isArray(list)) list = await IDB.get(DACHE_REFS); if (!Array.isArray(list)) list = await IDB.get(BLEND_REFS); if (Array.isArray(list)) IDB.put(REFS_KEY, list).catch(() => { }); } catch { }   // DACHE's first visit: BLEND's references, copied; PRISMA's DACHE's, else BLEND's
   if (!Array.isArray(list)) {                                                      // the one reference kept before, the first
     list = [];
     try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) list.push({ name: o.name || 'reference', src: o.src }); } catch { }
@@ -2093,8 +2131,8 @@ async function openFromLibrary(file) {
 // tab's its composition — the tiles, their nodes, the canvas, the brush and
 // Density — this tab's own (the pencils, the frame, the view) kept. ⌘Z takes
 // it back.
-const TAB_NAMES = [['inka', 'INKA'], ['stjohn', 'ST-JOHN'], ['blend', 'BLEND'], ['dache', 'DACHE'], ['prisma', 'PRISMA'], ['opm', 'OPM'], ['opmb', 'OPM-B'], ['opms', 'OPM-S'], ['opmw', 'OPM-W'], ['opmp', 'OPM-P']];
-const TAKES = JOHN ? ['stjohn', 'inka'] : BLEND ? ['opmp', 'opmw', 'opms', 'opmb', 'opm', 'prisma', 'dache', 'blend', 'inka'] : ['inka'];   // the tabs whose tiles this one draws
+const TAB_NAMES = [['inka', 'INKA'], ['stjohn', 'ST-JOHN'], ['blend', 'BLEND'], ['dache', 'DACHE'], ['prisma', 'PRISMA'], ['opm', 'OPM'], ['opmb', 'OPM-B'], ['opms', 'OPM-S'], ['opmw', 'OPM-W'], ['opmp', 'OPM-P'], ['form', 'FORM']];
+const TAKES = FORM ? ['form'] : JOHN ? ['stjohn', 'inka'] : BLEND ? ['opmp', 'opmw', 'opms', 'opmb', 'opm', 'prisma', 'dache', 'blend', 'inka'] : ['inka'];   // the tabs whose tiles this one draws
 const PICTURE = ['brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density'];
 function takeSave(o, from) {
   const st = o.settings;
@@ -2277,7 +2315,7 @@ async function oneDraw(kind) {
   const ends = R.modules.flatMap(M => M.pieces.flatMap(g => [g.a, g.b])), xs = ends.map(q => q[0]), ys = ends.map(q => q[1]);
   const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), rubs = R.passes[0].rubs, run = `${fmt(R.mm / 1000, 1)} m of line at ${S.pencilSpeed} mm/s, ≈ ${hm(R.seconds)} (est.)`;
   const text = FR && OPMP
-    ? `Four marks of the picture's outer contour, ${R.modules.length === 4 ? 'Key 1 · A' : `Key 1 · A of its ${R.modules.length / 4} figures`}: one in the middle of every side, ${FRAME_MARK} mm at most, no more on the canvas than it takes to lay it straight. The contour ${fmt(x1 - x0, 0)} × ${fmt(y1 - y0, 0)} mm, ${fmt(x0, 0)} mm in from the canvas's left edge, ${fmt(S.boardW - x1, 0)} from its right, ${fmt(y0, 0)} from its bottom, ${fmt(S.boardH - y1, 0)} from its top. `
+    ? `Four marks of the picture's outer contour, ${FORM ? 'the box round the forms painted' : R.modules.length === 4 ? 'Key 1 · A' : `Key 1 · A of its ${R.modules.length / 4} figures`}: one in the middle of every side, ${FRAME_MARK} mm at most, no more on the canvas than it takes to lay it straight. The contour ${fmt(x1 - x0, 0)} × ${fmt(y1 - y0, 0)} mm, ${fmt(x0, 0)} mm in from the canvas's left edge, ${fmt(S.boardW - x1, 0)} from its right, ${fmt(y0, 0)} from its bottom, ${fmt(S.boardH - y1, 0)} from its top. `
       + `The carriage goes over the top one and puts the holder down: the pencil in, its tip on the canvas, then Continue; every mark rubbed ${rubs} time${rubs === 1 ? '' : 's'}, the pencil up between them, ${run}, and home. The canvas is straight when the marks are so far in from all its edges; then DRAW.`
     : FR
     ? `The picture's outer contour alone, ${R.modules.length === 1 ? 'Key 1 · A' : `Key 1 · A of its ${R.modules.length} blends`}: ${fmt(x1 - x0, 0)} × ${fmt(y1 - y0, 0)} mm, ${fmt(x0, 0)} mm in from the canvas's left edge, ${fmt(S.boardW - x1, 0)} from its right, ${fmt(y0, 0)} from its bottom, ${fmt(S.boardH - y1, 0)} from its top. `
@@ -2470,8 +2508,9 @@ async function watch() {
 
 // ---------- start ----------
 load(); Object.assign(S, canvasNow(S));
-if (FRESH) JOHN ? johnTest() : BLEND ? blendTest() : paperTest();                // a first visit: the owner's paper test on the canvas, on ST-JOHN a ⌘, on BLEND IMG_1554
+if (FRESH && !FORM) JOHN ? johnTest() : BLEND ? blendTest() : paperTest();                // a first visit: the owner's paper test on the canvas, on ST-JOHN a ⌘, on BLEND IMG_1554
 else if (WIDTHLESS) relaySpokes();
+if (FORM) initForm({ S, $, kick, settle, save, undoPush, layout, toMm, scr, k: () => k, dpr: () => dpr, ref: () => REF, bitmapOf, setTool, capture: e => cv.setPointerCapture(e.pointerId), cursor: c => { cv.style.cursor = c; } });   // FORM's panel, its tools, the view turned
 onCanvas(c => { Object.assign(S, c); settle(); });
 syncRef(); loadRef();
 lampSwitch($('#lamp'));

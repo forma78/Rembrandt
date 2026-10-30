@@ -3,6 +3,124 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.1.4 — 2026-10-30
+
+- **FORM, a new tab after OPM-P: figurative painting** (the owner,
+  2026-10-30: "a new tab FORM on the basis of our flagship, the leading tab
+  OPM-P … let us go over to figurative painting and try to make the little
+  car as here", FORM/Screenshot 2026-10-30 at 11.22.18 AM.png; "FORM is
+  v.1.1.5"). `form.html`, OPM-P's page, all of it — the pencil, DRAW BW,
+  FRAME, DRAG, PAINTING MACHINE, ELBOW LIVE, Play — and the forms off a
+  photo in the blends' place (`src/formplan.js`, `src/form.js`, `FORM`
+  within `OPMP` in `inka.js`). **Auto forms** (his choice, "automatic, then
+  I correct by hand"): the reference on a grid in the box's pencils, the
+  specks melted (Smallest form), the borders found once and straightened,
+  two neighbours sharing them point for point, a border straightened across
+  another straightened again, softer. Every form **OPM-P's rings and rays**
+  (his choice): the straight skeleton — every side moving in, a side's rows
+  its own block ending on the rays — its depth over a whole number of rows,
+  none wider than the brush by 5 %, a concave corner in facets; a form the
+  wavefront cannot run left empty, said. **Cells** cut square across where
+  the photo's nearest colour changes along a row (his choice, "every cell
+  the photo's colour"), then OPM-P's lines once and DRAG. On his red 911,
+  800 × 600: 19 forms, about a thousand cells, a second.
+- **FORM: no background** (the owner, the first prototype: "we do not need
+  the background, I think — you are making a cast of the photo"; the silver
+  one on its grey, Porsche-911-3-2019.jpg): grown from the photo's rim on a
+  2 mm grid, a square to the next while the colour steps little (ΔE 4) and
+  stays near the rim's (ΔE 15) — the backdrop's gradient on, the car's edge
+  a stop (est.); left out, the ground there; **Background** brings it back.
+- **FORM: Bricks, as of LEGO** (the owner: "Porsche-911-3-2019.jpg — as of
+  LEGO bricks, nearer to Screenshot 11.15.13 AM"): the photo on a grid two
+  brushes wide, the borders its steps, every corner sharp — every row the
+  brush exactly, the rays at 45°, the cells bricks on the brush's grid.
+- **FORM: the knife, Merge, Out · in, a point dragged** (the owner: "shall
+  we break the red body into separate elements that can be changed? the
+  wings, the door, the frame, the headlights, the bumper"): K, a line across
+  cuts every form it crosses from border to border, the chosen only if any,
+  through a window too, every piece its own rings; V a form chosen, ⇧ more,
+  its points dragged with every form's there; ⌫ out or in; Merge.
+- **FORM: metal, glass, rubber** (the owner, the window "smashed like glass,
+  a black hole": "the tyres are rubber, the windows glass, the door and the
+  wings metal — three materials may be solved differently"; glass "as INKA
+  and OPM-S, by way of an exception: half-round forms and curls, no sharp
+  geometry"; "we have the headlights too"): metal OPM-P's rings; glass its
+  outline as it is, every ring inside rounded more, a curl in the middle,
+  the adjacent glass pieces one form; rubber rounded, one paint. Guessed
+  off the photo, set by the Metal · Glass · Rubber keys. Its first try
+  rounded the outline and the neighbours' with it ("the glass caught the
+  whole geometry", the door in fans): now the rings inside only.
+- **FORM: the Preview, the brush through the sausages** (the owner: "as in
+  INKA and OPM: the trace with the sausages, winding — then the contour, our
+  mesh — then the result, the mosaic as OPM-P's"; his choice, asked):
+  spokes from every form's outline in, every run of one paint along one a
+  sausage, the photo's nearest of his paints; the brush round the rings from
+  the outside in, INKA's Result (`simOf` takes FORM's sausages,
+  `P.sausages`). The cells off the photo at first — the Preview's first try
+  lost the door's handle and the headlights ("in the earlier version there
+  were the handle on the door and the headlights") — off the Preview by
+  **Cells by Preview**.
+- **FORM: Rotate Canvas CCW · CW** by the zoom (the owner: "we have 60 × 60
+  canvases, the front with the headlights, and 60 × 80, the Porsche's
+  profile with its little wheels — that one I would turn, to draw more
+  comfortably"): the board a quarter turn on the screen, the canvas and its
+  forms with it, the pointer turned back; the photo upright as the view
+  stood at Auto forms.
+
+- **FORM: a form's own colour** (the owner, the tab's first look,
+  Screenshot 1.08.13 PM: "wow! and how do I set the colour?"): a form
+  chosen (V), a pencil in the strip by the Tools, a click — the form takes
+  it, a pencil out of the box back in. **Shaded** at first: the photo's
+  light and dark kept, every cell the pencil nearest the colour as much
+  lighter or darker as the photo there than in the form — the highlights,
+  the handle, in the new colour's family; **Flat**, one pencil every cell;
+  **Photo**, the photo's colours again.
+- **FORM: U, Unite in the Tools** (the owner, the front mirrored, its two
+  halves chosen: "we can merge the chosen objects here — not as
+  Construction's Cells / Merged — a new key in the Tools, next to O; give
+  it a letter yourself"): the chosen forms side by side one form,
+  Illustrator's Pathfinder Unite, its rings anew as one; the forms that
+  read the photo each their own way — a mirror's copy, a moved one — its
+  parts, every one read as it was, so a mirrored half stays mirrored. The
+  panel's Merge the same.
+- **FORM: Play, Flights and the ground working** (the owner: "Play Pencil,
+  Play Drag, Flights do not work, and the ground switch — I choose black,
+  it stays white"; "on OPM-W / P all works beautifully"): the DRAG reading
+  under Painting machine's (i) asked a form for a blend's sides and threw
+  after every change, the redraw never reached; FORM's own reading now —
+  its forms, their rings. The Forms view on the ground too. Found in a
+  headless Chrome over the DevTools protocol, the page driven as by hand.
+- **FORM: [x] Clear the canvas** (the owner: "add [x] clear canvas as in
+  OPM-P"): no forms, the photo as it lies, Auto forms makes them again;
+  ⌘Z brings them back.
+- **FORM: O, Reflect — the knife and the mirrored copy** (the owner, the
+  car's front, its right mirror lost to the background, Screenshot 1.16.15
+  PM: "a new tool, mirror — then the left part is simply mirrored; that is,
+  the knife and the mirrored duplicate"): a line drawn, the axis across the
+  canvas; every form cut along it, the side with more painted kept — ⌥ the
+  other — and mirrored onto the far one; a point on the axis the same in
+  both halves; the copy reading the photo through the mirror, its
+  highlights the kept side's, its sausages mirrored. Illustrator's key, O
+  (M the sausages'). A form's photo read since an affine of its own, `read`
+  — a move by Align, a mirror by Reflect — the shift of the hour before it
+  read into it.
+- **FORM: Align in the Tools, and the sausages by hand, M** (the owner:
+  "wait — let us bring the alignments back from OPM-P into the TOOLS menu
+  on the left, then the sausages [M] — to change the colour myself, to
+  correct what the algorithm makes"). Align, OPM-S's four: the chosen
+  forms, or every one, as one — Centre — or every group of forms side by
+  side a figure — Even gaps; a form moved reads the photo where it came
+  from (its shift), its sausages with it, the photo under them when they
+  all moved alike. M: a form's sausages the algorithm's off the photo till
+  it is touched, then its own — a click on one in the chosen paint takes it
+  away, in another repaints it, a drag lays one, a click elsewhere in a
+  form a spoke through it from its outline in; the cells off the Preview
+  from then on; **New spokes**, the algorithm's again. The knife shares a
+  form's sausages out to its pieces, Merge puts them together.
+- **FORM looks as OPM-P** (the owner: "fix the UI at once — the pencils on
+  the left in three columns; on the right TEST / FRAME / PAUSE on one line,
+  three buttons"): every rule of the stylesheet naming OPM-P names FORM too.
+
 ## v.1.1.4 — 2026-10-30 · Elbow live
 
 - **v.1.1.4 after the name** (the owner, 2026-10-30: "commit v.1.1.4 and
