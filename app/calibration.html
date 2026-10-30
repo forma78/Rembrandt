@@ -50,6 +50,21 @@
       </div>
     </section>
 
+    <!-- the wave test (2026-10-29): the same pencil lines on the canvas's left and right, each pair one line each way (src/wavetest.js) -->
+    <section class="sec">
+      <h3>Wave test <span class="hint">the pencil, left and right <button class="info" id="waveInfo" title="What it tells">i</button></span></h3>
+      <p class="read" id="waveHelp" hidden></p>
+      <h3 class="sub">Canvas <span class="hint">from home, the same on every tab</span></h3>
+      <div class="grid4" id="canvas"></div>
+      <label class="inline">Speed <input id="waveSpeed" type="number" min="5" max="250" step="5"> mm/s <span class="hint" id="waveSpeedHint"></span></label>
+      <p class="read" id="waveRead"></p>
+      <div class="row home-row">
+        <button class="btn primary" id="btnWave">Draw the wave test…</button>
+        <button class="btn" id="btnWaveStop" title="Stop the run, braking">Stop</button>
+      </div>
+      <p class="read" id="waveState"></p>
+    </section>
+
     <section class="sec">
       <h3>Jog <span class="hint">10 mm/s per level · Esc = STOP</span></h3>
       <div class="axis" id="axX">

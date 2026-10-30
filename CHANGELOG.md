@@ -5,6 +5,28 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.3 — 2026-10-29
 
+- **DRAW BW and FRAME: the debug of the pencil's downs** (the owner,
+  2026-10-29, the redraw at 82 %: the pencil up over several rings, then
+  drawing again — "before DRAW BW, a debug of the runner, looking for
+  exactly the «down» commands"). Before a run is sent, its blocks are read
+  as the board takes them (a W rides on the next piece, the last of
+  several; a piece under 0.001 mm takes none): every drawn piece must have
+  the elbow at Pressure. The question says "Debug ✓ 12 lines: 12 downs to
+  +1.4°, 12 ups to +4.4° …"; a piece not down — no run, where it is said
+  (`strokes.js`, `landingCheck`). His run was clean: the downs were all
+  sent; the elbow read +3.9° from the servo on a line told +1.4°.
+- **Calibration: the wave test** (the owner, OPM/IMAGE 2026-10-29
+  19:31:30 and 20:00:33: OPM-P's rays waved, the most at one end; "the X
+  motor pulls the two carriages from the right only — a sharp start drags
+  the right one, the left one comes a moment later"). The second module
+  after Home, with the canvas every tab lays from home (Board width, Board
+  height, the edges): in pencil, the same lines on the canvas's left and
+  right — a pair along Y alone (the beam standing), a pair down each
+  diagonal — and in the middle a pair along X; every pair one line each
+  way, the first → ↘ ↗ ↑. The pencil as OPM-P has it (pressed, PEN_AIR
+  over it between), its speed or one typed. Read on the paper: the Y pair
+  waving too — the pencil's holder; the diagonals only, more on the left —
+  the beam; one line of a pair — the way it goes (`wavetest.js`).
 - **OPM-P: the pencil up between lines, a short way from one to the
   next** (the owner, the third test on paper, OPM/IMAGE 2026-10-29
   19:31:25 and 19:32:39, Screenshot 7.30.41 PM: "it does not lift, our

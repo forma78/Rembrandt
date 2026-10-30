@@ -483,6 +483,48 @@ export function homeBlocks(travel) {
   const h = homeCorner(), f = v => (Math.round(v * 100) / 100).toFixed(2);
   return [{ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 1 }, { kind: 'move', cmds: [`T ${travel}`, `M ${f(h.x)} ${f(h.y)}`, 'G'], lengthMM: null, paintMM: 0, row: 1, home: true }];
 }
+// The pencil's downs and ups, checked before a run (the owner, 2026-10-29,
+// OPM-P's redraw at 82 %: the pencil up over several rings, then drawing
+// again — "we need a debug that, before DRAW BW, looks for exactly these
+// «down» commands"). The blocks read as the board takes them (firmware
+// main.cpp): a W rides on the next piece, the last of several; a piece
+// shorter than 0.001 mm takes none, its W waits for the next; a J 2 between
+// blocks sets the elbow. Every drawn piece longer than `least` mm must have
+// the elbow at press. → { ok, lines, downs, ups, drawn, pressed, bad: [{ at, mm, deg }] }
+export function landingCheck(blocks, press, glide, least = 0.2) {
+  const near = (u, v) => Math.abs(u - v) < 0.051, num = c => c.split(' ').slice(1).map(Number);
+  let deg = null, pos = null, wait = [], on = false, lines = 0, downs = 0, ups = 0, drawn = 0, pressed = 0;
+  const bad = [];
+  for (const b of blocks) {
+    if (b.kind === 'arm' && /^J 2 /.test(b.cmd)) { deg = num(b.cmd)[0]; continue; }
+    if (b.kind !== 'move') continue;
+    let k = 0;
+    for (const c of b.cmds) {
+      if (c[0] === 'W') { const [j, d] = num(c); if (j === 2) wait.push(d); continue; }
+      if (!'LAM'.includes(c[0])) continue;
+      const v = num(c), to = c[0] === 'A' ? { x: v[2], y: v[3] } : { x: v[0], y: v[1] };
+      let len = pos ? Math.hypot(to.x - pos.x, to.y - pos.y) : 0;
+      if (c[0] === 'A' && pos) {
+        const t0 = Math.atan2(pos.y - v[1], pos.x - v[0]), t1 = Math.atan2(to.y - v[1], to.x - v[0]), tau = 2 * Math.PI;
+        len = Math.hypot(pos.x - v[0], pos.y - v[1]) * (((v[4] > 0 ? t1 - t0 : t0 - t1) % tau + tau) % tau);
+      }
+      pos = to;
+      if (len < 0.001) continue;                                                   // the board's empty piece: the W waits
+      const was = deg;
+      if (wait.length) { deg = wait.at(-1); wait = []; }
+      if (deg !== was && near(deg, press)) downs++;
+      if (deg !== was && near(deg, glide)) ups++;
+      const paint = c[0] !== 'M' && !!(b.painted || [])[k++];
+      if (paint && !on) lines++;
+      on = paint;
+      if (!paint || len <= least) continue;
+      drawn += len;
+      if (deg !== null && deg <= press + 0.05) pressed += len;
+      else bad.push({ at: [+to.x.toFixed(1), +to.y.toFixed(1)], mm: +len.toFixed(2), deg });
+    }
+  }
+  return { ok: !bad.length && lines > 0, lines, downs, ups, drawn, pressed, bad };
+}
 export function plotRun(o, passes) {
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;

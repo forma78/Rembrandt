@@ -889,6 +889,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 .runlist li.next .tg{color:var(--ink);font-weight:600}
 .runlist li.done{opacity:.45}
 .drawask{width:min(440px,calc(100vw - 32px))}
+#drawAskText{white-space:pre-line}   /* DRAW BW's debug line above its question (2026-10-29) */
 .firstpen{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:14px;margin:10px 0 4px}
 .firstpen .sw{width:64px;height:64px;border-radius:10px;box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.3)}
 .firstpen .pt{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:13px}

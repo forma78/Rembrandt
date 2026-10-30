@@ -64,7 +64,7 @@ Rembrandt/
     test.html        Test, the test bench (new; off the top row since 2026-10-19)
     ink.html         Ink: the cup the brush dips into (new)
     adjustments.html Adjustments (new)
-    calibration.html Calibration (from RUBENS)
+    calibration.html Calibration (from RUBENS); the wave test, the pencil's lines left and right (wavetest.js, 2026-10-29)
     library.html     Library (from RUBENS)
     prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js; and the top row, every tab ticked in or out, 2026-10-27, src/tabs.js)
     style.css        RUBENS tokens

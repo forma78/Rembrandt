@@ -47,7 +47,7 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf, TAIL_MIN } from './strokes.js';
+import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf, TAIL_MIN, landingCheck } from './strokes.js';
 import { cornerDots, testMargin, testSay, NO_DIP, DIP_LAP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
 import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, TRACE_DIP, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
@@ -58,7 +58,7 @@ import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, wi
   SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
 import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, fitKeys, FRAME_MARK, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
 import { aligned } from './align.js';
-import { prismaPlan, passesOf as prismaPasses, drawRows as prismaRows, PRISMA_PENCILS, BOX_5, BOX_6, rubsOf, RUBS_DARK_NEW, RUBS_LIGHT_NEW, RUBS_MIN, RUBS_MAX, PRESS_NEW, PRESS_MIN, PRESS_MAX, GLIDE_NEW, GLIDE_MIN, GLIDE_MAX, TOUCH_NEW, TOUCH_MIN, TOUCH_MAX, ELBOW_MIN, SHORTEST_NEW as RUN_SHORTEST_NEW, SHORTEST_MIN as RUN_SHORTEST_MIN, SHORTEST_MAX as RUN_SHORTEST_MAX, SPEED_NEW as PRISMA_SPEED_NEW } from './prismaplan.js';
+import { prismaPlan, passesOf as prismaPasses, drawRows as prismaRows, PRISMA_PENCILS, BOX_5, BOX_6, rubsOf, RUBS_DARK_NEW, RUBS_LIGHT_NEW, RUBS_MIN, RUBS_MAX, PRESS_NEW, PRESS_MIN, PRESS_MAX, GLIDE_NEW, GLIDE_MIN, GLIDE_MAX, TOUCH_NEW, TOUCH_MIN, TOUCH_MAX, ELBOW_MIN, PEN_AIR, SHORTEST_NEW as RUN_SHORTEST_NEW, SHORTEST_MIN as RUN_SHORTEST_MIN, SHORTEST_MAX as RUN_SHORTEST_MAX, SPEED_NEW as PRISMA_SPEED_NEW } from './prismaplan.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
@@ -322,8 +322,7 @@ function pencilRun() {
 // PRISMA's passes as the machine runs them: a pass one path, the pencil up and down on the move; a lift's time on top (est.)
 // OPM-P's pencil between strokes in the air, PEN_AIR above where it presses at least (the owner, 2026-10-29,
 // IMAGE 19:31:25 and 19:32:39, the pencil drawing on from line to line: Pressure lightened to +0.4° by ELBOW
-// LIVE, Between strokes +1°, the elbow 2.4° drawing and 3.0° between — no lift); est.
-const PEN_AIR = 3;
+// LIVE, Between strokes +1°, the elbow 2.4° drawing and 3.0° between — no lift); est. PEN_AIR in prismaplan.js
 const glideAt = () => OPMP ? Math.max(S.touch + S.glide, Math.max(ELBOW_MIN, S.touch + S.press) + PEN_AIR) : S.touch + S.glide;
 function prismaRun(passes) {
   const R = prismaRows(passes, S.pencils, po());
@@ -2252,6 +2251,10 @@ async function oneDraw(kind) {
   if (!R.rows.length) return warn(FR ? 'Nothing to frame: no blend on the canvas.' : 'Nothing to draw: the Preview is paper here, or no pencil in the box near its colours.');
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);
   if (walls(R)) return warn(walls(R));
+  // the debug of the pencil's downs (the owner, 2026-10-29: "before DRAW BW, a debug of the runner, looking for exactly the «down» commands"): the blocks as the board takes them
+  const dbg = landingCheck(R.blocks, elbowAt(), glideAt());
+  if (!dbg.ok) return warn(`Not run — debug: ${dbg.bad.length} drawn piece${dbg.bad.length === 1 ? '' : 's'} with the pencil not down${dbg.bad.length ? `, the first at carriage X ${fmt(dbg.bad[0].at[0], 1)} · Y ${fmt(dbg.bad[0].at[1], 1)}, the elbow at ${dbg.bad[0].deg === null ? 'nothing yet' : sgn(dbg.bad[0].deg)}, not ${sgn(elbowAt())}` : ''}.`);
+  const dbgSay = `Debug ✓ ${dbg.lines} line${dbg.lines === 1 ? '' : 's'}: ${dbg.downs} down${dbg.downs === 1 ? '' : 's'} to ${sgn(elbowAt())}, ${dbg.ups} up${dbg.ups === 1 ? '' : 's'} to ${sgn(glideAt())}; ${fmt(dbg.pressed / 1000, 2)} m drawn, every mm of it with the pencil down.\n\n`;
   const probe = await pencilPause();                                                 // idle: 409 from a rembrandt.py that knows p-pause, 404 from one before it
   if (!probe) { $('#runState').textContent = 'start rembrandt.py'; return; }
   if (probe === 404) { $('#runState').innerHTML = OLD_SERVER; return; }
@@ -2264,11 +2267,11 @@ async function oneDraw(kind) {
     ? `The picture's outer contour alone, ${R.modules.length === 1 ? 'Key 1 · A' : `Key 1 · A of its ${R.modules.length} blends`}: ${fmt(x1 - x0, 0)} × ${fmt(y1 - y0, 0)} mm, ${fmt(x0, 0)} mm in from the canvas's left edge, ${fmt(S.boardW - x1, 0)} from its right, ${fmt(y0, 0)} from its bottom, ${fmt(S.boardH - y1, 0)} from its top. `
       + `The carriage goes over its start and puts the holder down: the pencil in, its tip on the canvas, then Continue; round it ${rubs} time${rubs === 1 ? '' : 's'}, ${run}, and home. The canvas is straight when the frame is so far in from all its edges; then DRAW.`
     : `Every contour in this one pencil, no change: ${R.modules.length} contours, one path. The carriage goes over the first one and puts the holder down: the pencil in, its tip on the paper, then Continue — no stop after it. ${run}.` + pieceSay();
-  if (!await askDraw(R.passes, text, { title: `${name} ${TAB_NAME}`, go: `✎ ${name}` })) return dacheSoon();   // cancelled: the reading back
+  if (!await askDraw(R.passes, dbgSay + text, { title: `${name} ${TAB_NAME}`, go: `✎ ${name}` })) return dacheSoon();   // cancelled: the reading back
   if (!FR) S.view = 'pencil';
   settle(); RUN_PRESS = S.press;                                                     // ELBOW LIVE from here, as DRAW's
   await start(kind, R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
-    { page: TAB, pass: FR ? 'frame' : 'draw bw', label: FR ? `${TAB_NAME} · FRAME · ${OPMP ? 'four marks of the outer contour' : 'the outer contour'}` : label(), ...(FR ? {} : { settings: S }), here: hereNow(), estimate_s: Math.round(R.seconds) });
+    { page: TAB, pass: FR ? 'frame' : 'draw bw', label: FR ? `${TAB_NAME} · FRAME · ${OPMP ? 'four marks of the outer contour' : 'the outer contour'}` : label(), ...(FR ? {} : { settings: S }), debug: { lines: dbg.lines, downs: dbg.downs, ups: dbg.ups, press: elbowAt(), glide: glideAt() }, here: hereNow(), estimate_s: Math.round(R.seconds) });
 }
 
 // ---------- ELBOW LIVE (PRISMA, OPM) ----------

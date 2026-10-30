@@ -7,6 +7,10 @@
 import { FORMATS } from './config.js';
 import { fmt } from './util.js';
 import { HOME_STEPS, STOPS, WALLS, CORNERS, EDGE_SIDES, toMm, parsePing, cornerAt, artboardCorner, canvasReport, canvasFromEdges, reach } from './machine.js';
+import { CANVAS_FIELDS, canvasNow, setCanvas, hereOf, onCanvas } from './canvas.js';
+import { waveLines, waveRun } from './wavetest.js';
+import { ELBOW_MIN, PEN_AIR, TOUCH_NEW, PRESS_NEW, GLIDE_NEW, SPEED_NEW as PENCIL_SPEED } from './prismaplan.js';
+import { SPEED_MAX } from './strokes.js';
 import './ui.js';
 import { isNight, themeColor } from './lamp.js';
 
@@ -207,6 +211,99 @@ $('#btnHomeYes').onclick = async () => {
   ping();
 };
 
+// ---------- the wave test ----------
+// The same pencil lines on the canvas's left and right (wavetest.js; the
+// owner, 2026-10-29: "make the test drawing, in Calibration, the second
+// module after Home — do not forget the canvas, Board width, Board height"),
+// on the canvas every tab lays from home (canvas.js) — typed here, it
+// changes on all of them. The pencil as OPM-P has it, read from its keep in
+// this browser: where the elbow presses, PEN_AIR over it between two lines
+// at least (inka.js, glideAt), its speed and travel; PRISMA's own before
+// OPM-P was ever opened. The pencil stays in the holder as it is.
+const WAVE_KEY = 'rembrandt.wave.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
+const r1 = v => Math.round(v * 10) / 10, sgn = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
+function opmpPencil() {
+  let o = {};
+  try { o = JSON.parse(localStorage.getItem('rembrandt.opmp.v01') || '{}') || {}; } catch { }
+  const num = (v, d) => Number.isFinite(v) ? v : d, touch = num(o.touch, TOUCH_NEW), press = r1(Math.max(ELBOW_MIN, touch + num(o.press, PRESS_NEW)));
+  return { press, glide: r1(Math.max(touch + num(o.glide, GLIDE_NEW), press + PEN_AIR)), speed: num(o.pencilSpeed, PENCIL_SPEED), travel: num(o.travel, 180), opmp: !!o.opmpV };
+}
+let waveSpeed = null;   // mm/s typed here; null: OPM-P's pencil speed
+try { const v = JSON.parse(localStorage.getItem(WAVE_KEY) || '{}').speed; if (Number.isFinite(v)) waveSpeed = v; } catch { }
+const speedNow = () => waveSpeed ?? opmpPencil().speed;
+function wavePlan() {
+  const C = canvasNow(), P = opmpPencil(), here = hereOf(C);
+  return { C, P, here, T: waveRun(C.boardW, C.boardH, { here, speed: speedNow(), travel: P.travel, press: P.press, glide: P.glide }) };
+}
+$('#canvas').innerHTML = CANVAS_FIELDS.map(([k, label, unit, step, title, any]) =>
+  `<label title="${title}"><span>${label}</span><input data-canvas="${k}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
+$('#canvas').querySelectorAll('input').forEach(inp => inp.onchange = () => {
+  const k = inp.dataset.canvas, v = +inp.value, [, label, unit, , , any] = CANVAS_FIELDS.find(f => f[0] === k);
+  if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) { setCanvas({ [k]: v }); $('#saved').textContent = `the canvas: ${label} ${v} ${unit} · on every tab`; }
+  showWave(); draw();
+});
+$('#waveSpeed').onchange = e => {
+  const v = +e.target.value;
+  waveSpeed = e.target.value === '' || !Number.isFinite(v) ? null : Math.max(5, Math.min(SPEED_MAX, Math.round(v)));
+  try { localStorage.setItem(WAVE_KEY, JSON.stringify({ speed: waveSpeed })); } catch { }
+  showWave();
+};
+function showWave() {
+  const { C, P, here, T } = wavePlan();
+  for (const inp of $('#canvas').querySelectorAll('input')) if (document.activeElement !== inp) inp.value = C[inp.dataset.canvas];
+  if (document.activeElement !== $('#waveSpeed')) $('#waveSpeed').value = waveSpeed ?? '';
+  $('#waveSpeed').placeholder = fmt(P.speed, 0);
+  $('#waveSpeedHint').textContent = `empty: OPM-P's, ${fmt(P.speed, 0)}`;
+  if (!T.lines.length) { $('#waveRead').innerHTML = `<span class="warn">No test: ${T.why}.</span>`; return; }
+  const past = T.pastWall > 0.05 || T.gone ? `<br><span class="warn">${fmt(T.pastWall, 0)} mm of it past the machine's walls: the canvas lies off its reach — Left edge, Bottom edge.</span>` : '';
+  $('#waveRead').innerHTML = `On the ${C.boardW} × ${C.boardH} mm canvas, its bottom left corner at carriage X ${fmt(here.x - C.boardH / 2, 1)} · Y ${fmt(here.y - C.boardW / 2, 1)}: `
+    + `<b>${T.lines.length} lines</b>, ${fmt(T.mm / 1000, 2)} m — on the left and on the right alike a pair along Y, ${fmt(T.w, 0)} mm, and a pair down each diagonal, ${fmt(T.b * Math.SQRT2, 0)} mm; in the middle a pair along X. `
+    + `The first line of every pair → ↘ ↗ ↑, the second back. The pencil as on OPM-P${P.opmp ? '' : ' (not opened in this browser yet: PRISMA\'s own)'}: the elbow at ${sgn(P.press)} drawing, ${sgn(P.glide)} between; `
+    + `${speedNow()} mm/s, ≈ ${fmt(T.seconds / 60, 1)} min (est.), then home.${past}`;
+}
+$('#waveInfo').onclick = () => { $('#waveHelp').hidden = !$('#waveHelp').hidden; $('#waveInfo').classList.toggle('on', !$('#waveHelp').hidden); };
+$('#waveHelp').innerHTML = 'Read it on the paper. <b>The Y pair</b> (at the top, the head alone moving along the beam) waving too — not the beam: the pencil\'s holder. '
+  + '<b>The diagonals</b> waving, the Y pair straight — the beam; more on the left, far from the X motor, than on the right — its left carriage late. '
+  + '<b>One line of a pair</b> only — the way it goes. Waves at a line\'s start, dying out along it — the start\'s jolt. Then again slower or faster: Speed.';
+onCanvas(() => { showWave(); draw(); });
+addEventListener('storage', e => { if (e.key === 'rembrandt.opmp.v01') showWave(); });   // OPM-P's Pressure, ELBOW LIVE's, in another window
+
+let waveTimer = 0;
+async function waveWatch() {
+  clearTimeout(waveTimer);
+  let st = null;
+  try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+  if (!st) { $('#waveState').textContent = 'start rembrandt.py'; return; }
+  const live = LIVE.includes(st.state);
+  $('#waveState').textContent = live ? `${st.state} · ${fmt(st.percent, 0)} %` : `${st.state}${st.message ? ` · ${st.message}` : ''}`;
+  if (live) waveTimer = setTimeout(waveWatch, 1000);
+}
+$('#btnWave').onclick = async () => {
+  const { C, P, here, T } = wavePlan(), warn = t => { $('#waveState').innerHTML = `<span class="warn">${t}</span>`; };
+  if (!T.lines.length) return warn(`No test: ${T.why}.`);
+  if (S.link !== 'ok') return warn('No board: start rembrandt.py, the board on USB and the 12 V.');
+  if (S.pos.x == null || S.pos.y == null) return warn('No zero on the axes: home and Set home first.');
+  if (moving()) return warn('Stop the axes first.');
+  if (T.fault) return warn(`Not run: the plan is wrong — ${T.fault}.`);
+  if (T.pastWall > 0.05 || T.gone) return warn(`Not run: ${fmt(T.pastWall, 0)} mm of it past the machine's walls — the canvas off its reach.`);
+  let st = null;
+  try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+  if (st && LIVE.includes(st.state)) return warn(`A run is on (${st.state}): not now.`);
+  if (!confirm(`WAVE TEST on the ${C.boardW} × ${C.boardH} canvas: ${T.lines.length} pencil lines, ${fmt(T.mm / 1000, 2)} m — the left column and the right one alike, a pair along X in the middle; `
+    + `the first line of every pair → ↘ ↗ ↑, the second back. The pencil as it is in the holder, as OPM-P put it in: pressed at ${sgn(P.press)}, up at ${sgn(P.glide)} between; `
+    + `${speedNow()} mm/s, ≈ ${fmt(T.seconds / 60, 1)} min (est.), then home.\n\nIs the pencil in, the paper on the canvas?`)) return;
+  try {
+    const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks: T.blocks, log: { page: 'calibration', pass: 'wave', label: `Calibration · the wave test · ${C.boardW} × ${C.boardH} mm · ${speedNow()} mm/s`, here, canvas: C, pencil: P, speed: speedNow(), estimate_s: Math.round(T.seconds) } }) });
+    $('#waveState').textContent = await r.text();
+    if (r.ok) setTimeout(waveWatch, 1000);
+  } catch { warn('start rembrandt.py'); }
+};
+$('#btnWaveStop').onclick = async () => {
+  try { $('#waveState').textContent = await (await fetch('/run/stop', { method: 'POST' })).text(); } catch { $('#waveState').textContent = 'start rembrandt.py'; }
+  setTimeout(waveWatch, 500);
+};
+
 // ---------- the canvas: four edges ----------
 // The canvas always lies parallel to the rails (the owner, 2026-09-30), so
 // it is four edges, one number each: where the tip stood at the edge, and
@@ -318,7 +415,8 @@ function draw() {
   const night = isNight(), ink = themeColor('--ink', INK), mute = themeColor('--mute', MUTE);   // on the table
 
   const F = fmtOf(), rep = canvasReport(S.cal.corners, F.w, F.h), C = canvasCorners(rep, F), R = reach();
-  const pts = [...Object.values(C).filter(Boolean), ...S.trail, ...(S.pos.x != null && S.pos.y != null ? [S.pos] : [])];
+  const B = canvasNow(), bh = hereOf(B), bm = q => ({ x: bh.x + q[1] - B.boardH / 2, y: bh.y + q[0] - B.boardW / 2 });   // the canvas of every tab, canvas mm → machine mm
+  const pts = [...Object.values(C).filter(Boolean), ...S.trail, ...(S.pos.x != null && S.pos.y != null ? [S.pos] : []), bm([0, 0]), bm([B.boardW, B.boardH])];
   const x0 = Math.min(STOPS.x.min ?? R.x.min ?? 0, ...pts.map(p => p.x)) - 25, x1 = Math.max(STOPS.x.max ?? R.x.max ?? 600, ...pts.map(p => p.x)) + 25;
   const y0 = Math.min(STOPS.y.min ?? 0, ...pts.map(p => p.y)) - 25, y1 = Math.max(R.y.max ?? 0, 620, ...pts.map(p => p.y)) + 25;
   const pad = 44, k = Math.min((W - 2 * pad) / (y1 - y0), (H - 2 * pad) / (x1 - x0));
@@ -373,6 +471,19 @@ function draw() {
     ctx.fillText(n.toUpperCase(), X + (n[1] === 'l' ? 8 : -8), Y + (n[0] === 't' ? 14 : -8));
   }
 
+  // The canvas of every tab, dashed, and the wave test on it: its lines, an arrow the way each goes
+  const b0 = bm([0, 0]), b1 = bm([B.boardW, B.boardH]);
+  ctx.save(); ctx.strokeStyle = mute; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+  ctx.strokeRect(sx(b0.y), sy(b1.x), (b1.y - b0.y) * k, (b1.x - b0.x) * k); ctx.restore();
+  ctx.fillStyle = mute; ctx.textAlign = 'left'; ctx.fillText(`canvas ${B.boardW} × ${B.boardH} · every tab · the wave test`, sx(b0.y), sy(b1.x) - 6);
+  ctx.strokeStyle = ink; ctx.lineWidth = 1;
+  for (const l of waveLines(B.boardW, B.boardH).lines) {
+    const a = bm(l.a), e = bm(l.b), A = [sx(a.y), sy(a.x)], E = [sx(e.y), sy(e.x)], t = Math.atan2(E[1] - A[1], E[0] - A[0]);
+    ctx.beginPath(); ctx.moveTo(...A); ctx.lineTo(...E);
+    for (const s of [-0.45, 0.45]) { ctx.moveTo(...E); ctx.lineTo(E[0] - 7 * Math.cos(t + s), E[1] - 7 * Math.sin(t + s)); }
+    ctx.stroke();
+  }
+
   // The walls: where the board stops the carriage. The stops themselves, a
   // few mm past them, are not drawn (the owner, 2026-09-30: with the canvas
   // wider than the rails their thick lines cut through it like a frame).
@@ -413,6 +524,6 @@ addEventListener('rembrandt-night', draw);
 
 // ---------- start ----------
 await load();
-renderEdges(); report(); draw();
+renderEdges(); report(); showWave(); draw();
 ping();
 setInterval(ping, 200);

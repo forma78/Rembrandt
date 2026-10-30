@@ -109,6 +109,7 @@ export const RUBS_DARK_NEW = 8, RUBS_LIGHT_NEW = 32, RUBS_MIN = 1, RUBS_MAX = 64
 export const PRESS_NEW = -1.4, PRESS_MIN = -6, PRESS_MAX = 3;   // from Pencil in at; ELBOW LIVE either way (2026-10-28), the elbow never under ELBOW_MIN
 export const ELBOW_MIN = -4.5;    // the elbow at most so low while it draws: −5° its reach, the rest the reserve (rembrandt.py's REACH)
 export const GLIDE_NEW = -0.1, GLIDE_MIN = -0.5, GLIDE_MAX = 5;
+export const PEN_AIR = 3;         // OPM-P: between strokes this far over pressing at least, whatever Between strokes says (inka.js, glideAt)
 // the pose every pencil goes in at, its tip on the paper or the canvas: Pressure
 // and Between strokes from it. Up off the surface, so the elbow always gets
 // there (2026-10-27, the night of OPM: "J 2 0: the elbow does not get to
