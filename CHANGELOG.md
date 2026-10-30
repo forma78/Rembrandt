@@ -5,6 +5,24 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.6 — 2026-10-30
 
+- **FORM: four things from Claude's own drawing** (the owner, the same
+  evening, having asked Claude to draw on an empty FORM — "you love vector
+  … and tell me your experience after"; the teal coupé, Library 21:34; on
+  the four found: "yes, let us do it"; "I had that with the wheels"):
+  - **the pen's snap seen**: a ring round the form's point a click will
+    land on, as near as 7 px; **⌥** none, the hand's half mm only (a
+    ducktail's point was caught by the body's, 6.9 px off, unseen);
+  - **a drawn form Flat at first**: its colour one click, a pencil in the
+    strip, no Flat after it;
+  - **a thin form chosen**: V's and E's click takes the smallest form it
+    lies in or 7 px from the border of (the ducktail, a wedge, never
+    caught by a click in it);
+  - **E leaves no scrap**: the place a form laid long ago leaves goes to
+    the neighbour it shares most border with, as if what lay under it
+    showed again, its colour and all; with none, the ground
+    (formplan.js's `settleLeft`). The sun made bigger left slivers, his
+    wheels moved left crescents.
+
 - **The hand: the space held, the view dragged; FORM's turned board kept
   in the middle at a zoom** (the owner, the same evening, Screenshot
   9.03.37 PM, the 911 turned at 187 %: "can the screen be fixed at a zoom?

@@ -10,7 +10,7 @@
 //
 // mm from the canvas's bottom left corner, x right, y up.
 
-import { autoForms, withMaterials, cutForms, mergeForms, reflectForms, layForms, transformForms, inside as pointIn, pencilIn, readMoved, paletteForms, formPlan, formPreview, spokeThrough, MATERIALS, SMALLEST_NEW, SMALLEST_MIN, SMALLEST_MAX, STRAIGHT_NEW, STRAIGHT_MIN, STRAIGHT_MAX, CORNER_NEW, CORNER_MIN, CORNER_MAX, SPOKE_NEW, SPOKE_MIN, SPOKE_MAX } from './formplan.js';
+import { autoForms, withMaterials, cutForms, mergeForms, reflectForms, layForms, transformForms, settleLeft, inside as pointIn, pencilIn, readMoved, paletteForms, formPlan, formPreview, spokeThrough, MATERIALS, SMALLEST_NEW, SMALLEST_MIN, SMALLEST_MAX, STRAIGHT_NEW, STRAIGHT_MIN, STRAIGHT_MAX, CORNER_NEW, CORNER_MIN, CORNER_MAX, SPOKE_NEW, SPOKE_MIN, SPOKE_MAX } from './formplan.js';
 import { areaOf, FRAME_MARK } from './opmplan.js';
 import { fmt } from './util.js';
 import { PAINT, newPalette } from './tapeplan.js';
@@ -100,6 +100,12 @@ export function frameMods(pencil) {
 const inLoop = (P, q) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > q[1]) !== (b[1] > q[1]) && q[0] < (b[0] - a[0]) * (q[1] - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
 const inForm = (F, q) => inLoop(F.loops[0], q) && !F.loops.slice(1).some(L => inLoop(L, q));
 const formAt = q => S.forms.filter(F => (S.background || !F.bg) && inForm(F, q)).sort((a, b) => Math.abs(a.area) - Math.abs(b.area))[0] ?? null;
+// a click's form, V's and E's: the smallest it lies in or a hand's reach (PICK_PX) from the border of — a thin one too (Claude's
+// drawing, 2026-10-30: the ducktail, a wedge, never caught by a click in it)
+function formNear(q) {
+  const r = PICK_PX / A.k();
+  return S.forms.filter(F => (S.background || !F.bg) && (inForm(F, q) || F.loops.some(L => L.some((a, i) => segDist(q, a, L[(i + 1) % L.length]) <= r)))).sort((a, b) => Math.abs(a.area) - Math.abs(b.area))[0] ?? null;
+}
 function pointAt(q) {
   const r = PICK_PX / A.k();
   let best = null, bd = r;
@@ -154,7 +160,8 @@ const PENS = ['penAdd', 'penDel'];
 // the Tools, to drag and modify"): a box round the forms, its eight handles stretch them, ⇧ in proportion, a drag in them moves
 // them. The figure just drawn or pasted has it at once (with V a drag in it moves it), and E, the Free Transform tool, gives it to
 // any form chosen — what lies in its holes with it, a tyre's wheel. Every time laid anew over the forms as they were before
-// (held.before), so what it leaves comes back; a form laid long ago leaves its place out, the ground there (⌫ brings it in).
+// (held.before), so what it leaves comes back; a form laid long ago leaves its place to the neighbour beside it, as if what
+// lay under it showed again, or the ground.
 // ⌘C ⌘V (the owner: "the wheels are the same: copy-paste"): the chosen forms, and what lies in their holes, laid again beside on
 // top, looking as they did, chosen, the box on them — dragged to the other wheel; ⇧⌘V in place.
 const OVAL_SIDE = 10;                // mm: an ellipse a side every so far round it, 12 … 64 sides (est.)
@@ -164,13 +171,17 @@ let fig = null;                      // the pen's figure in the making: { pts, a
 let held = null;                     // the forms on top, to move and stretch: { before: the forms under them, Fs: they as laid, after: the forms with them, carry }
 let CLIP = null, pastes = 0;         // ⌘C's forms; ⌘V's since
 const CLIP_KEY = 'rembrandt.form.copy';
-function snapPt(q, own = []) {
+// the point a pen's click lands on: a form's point near it, or the figure's own, else none — seen as a ring before the click,
+// ⌥ never (Claude's drawing, 2026-10-30: a ducktail's point caught by the body's 6.9 px off, unseen; the owner: "yes, let us")
+function snapOf(q, own = []) {
   const r = PICK_PX / A.k();
   let best = null, bd = r;
   for (const F of S.forms) if (S.background || !F.bg) for (const L of F.loops) for (const p of L) { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < bd) { bd = d; best = p; } }
   for (const p of own) { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < bd) { bd = d; best = p; } }
-  return best ? [best[0], best[1]] : [Math.round(q[0] * 2) / 2, Math.round(q[1] * 2) / 2];
+  return best;
 }
+function snapPt(q, own = [], free = false) { const b = free ? null : snapOf(q, own); return b ? [b[0], b[1]] : [Math.round(q[0] * 2) / 2, Math.round(q[1] * 2) / 2]; }
+let ring = null;                     // the pen: the point its next click lands on
 const half = q => [Math.round(q[0] * 2) / 2, Math.round(q[1] * 2) / 2];   // a shape's corners on the hand's half mm, no point near caught
 // ⇧: the next point at a multiple of 45° from the last
 const at45 = (a, q) => { const d = [q[0] - a[0], q[1] - a[1]], t = Math.round(Math.atan2(d[1], d[0]) / (Math.PI / 4)) * Math.PI / 4, l = Math.hypot(...d) * Math.cos(Math.atan2(d[1], d[0]) - t); return [Math.round((a[0] + l * Math.cos(t)) * 2) / 2, Math.round((a[1] + l * Math.sin(t)) * 2) / 2]; };
@@ -186,7 +197,9 @@ function shapeOf(G) {
 // forms laid on top of `before`, chosen, held for the free transform; the forms under them their sausages where they still are
 function lay(before, Fs, carry) {
   const ids = new Set(Fs.map(F => F.id)), mid = q => [(q.a[0] + q.b[0]) / 2, (q.a[1] + q.b[1]) / 2];
-  S.forms = layForms(before, Fs).map(F => !ids.has(F.id) && Array.isArray(F.ss) ? { ...F, ss: F.ss.filter(q => inForm(F, mid(q))) } : F);
+  let laid = layForms(before, Fs);
+  if (laid.some(F => F.left)) laid = settleLeft(laid, ids);                       // E's: the place left to its neighbour, or gone
+  S.forms = laid.map(F => !ids.has(F.id) && Array.isArray(F.ss) ? { ...F, ss: F.ss.filter(q => inForm(F, mid(q))) } : F);
   S.fsel = [...ids]; held = { before, Fs, after: S.forms, carry }; fig = null; hover = null; A.settle();
 }
 // the figure drawn a form, on top, reading the photo where it lies; too small or a line, none
@@ -195,7 +208,7 @@ function put(P) {
   if (P.length < 3 || Math.abs(areaOf(P)) < 1) { A.kick(); return; }
   A.undoPush();
   const loop = areaOf(P) < 0 ? P.slice().reverse() : P.slice();
-  lay(S.forms, [{ id: Math.max(-1, ...S.forms.map(F => F.id)) + 1, pencil: pencilIn(photo(), loop, S.pencils), loops: [loop], area: areaOf(loop), bg: false, material: 'metal', read: null }], false);
+  lay(S.forms, [{ id: Math.max(-1, ...S.forms.map(F => F.id)) + 1, pencil: pencilIn(photo(), loop, S.pencils), loops: [loop], area: areaOf(loop), bg: false, material: 'metal', flat: true, read: null }], false);   // Flat at first: its colour one click, a pencil
 }
 // the chosen forms and what lies in their holes, shown ones
 function withInner(ids) {
@@ -208,11 +221,12 @@ function withInner(ids) {
 }
 // the held forms, their material, colour, sausages as set on them since they were laid
 const refreshed = H => H.after !== S.forms ? H.Fs : H.Fs.map(F => { const c = S.forms.find(X => X.id === F.id); return c ? { ...F, material: c.material, colour: c.colour, flat: c.flat, bg: c.bg, pencil: c.pencil, ...(Array.isArray(c.ss) ? { ss: c.ss } : {}) } : F; });
-// E on forms laid long ago: they lifted, their places out — the ground there, ⌫ brings it in
+// E on forms laid long ago: they lifted, their places left — given to the neighbour each shares most border with, as if what lay
+// under them showed again; with none, the ground (settleLeft)
 function lift(Fs) {
   const ids = new Set(Fs.map(F => F.id));
   let next = Math.max(-1, ...S.forms.map(F => F.id)) + 1;
-  return { before: S.forms.map(F => ids.has(F.id) ? (({ ss, ...r }) => ({ ...r, id: next++, bg: true, colour: null }))(F) : F), Fs, after: S.forms, carry: true };
+  return { before: S.forms.map(F => ids.has(F.id) ? (({ ss, ...r }) => ({ ...r, id: next++, bg: true, colour: null, left: true }))(F) : F), Fs, after: S.forms, carry: true };
 }
 // what the box is on: the forms held — just drawn or pasted, nothing changed since, chosen — or, with E, the chosen ones
 const sameSel = ids => ids.length === S.fsel.length && ids.every(id => S.fsel.includes(id));
@@ -266,7 +280,7 @@ function boxUp(G) {
   return true;
 }
 function choose(shift, p) {
-  const F = formAt(p);
+  const F = formNear(p);
   if (shift && F) S.fsel = S.fsel.includes(F.id) ? S.fsel.filter(id => id !== F.id) : [...S.fsel, F.id];
   else S.fsel = F ? [F.id] : [];
   A.save(); showForm(); A.kick();
@@ -293,14 +307,19 @@ function pen(type, e) {
   if (type === 'down' && !fig && grabBox(e, p, false)) return true;
   if (type === 'move' && grab?.kind === 'box') return boxMove(e, p);
   if (type === 'up' && grab?.kind === 'box') { const G = grab; grab = null; return boxUp(G); }
-  const last = fig?.pts.at(-1), q = closing(p) ? fig.pts[0] : last && e.shiftKey ? at45(last, p) : snapPt(p, fig?.pts.slice(1));
+  const last = fig?.pts.at(-1), q = closing(p) ? fig.pts[0] : last && e.shiftKey ? at45(last, p) : snapPt(p, fig?.pts.slice(1), e.altKey);
   if (type === 'down') {
     if (closing(p)) { put(fig.pts); return true; }
     if (!fig) fig = { pts: [], at: p };
     if (!last || q[0] !== last[0] || q[1] !== last[1]) fig.pts.push(q);
     fig.at = q; A.kick(); return true;
   }
-  if (type === 'move') { if (fig) { fig.at = q; A.kick(); } const h = !fig && handleNear(p); A.cursor(h ? sizeCursor(h) : closing(p) ? NIB_CLOSE : NIB['']); return true; }
+  if (type === 'move') {
+    const was = ring; ring = closing(p) || e.altKey || last && e.shiftKey ? null : snapOf(p, fig?.pts.slice(1));
+    if (fig) fig.at = q;
+    if (fig || ring !== was) A.kick();
+    const h = !fig && handleNear(p); A.cursor(h ? sizeCursor(h) : closing(p) ? NIB_CLOSE : NIB['']); return true;
+  }
   return true;
 }
 // ⌘C the chosen forms and what lies in their holes; ⌘V a copy beside, on top, looking as they did, held; ⇧⌘V in place
@@ -346,6 +365,7 @@ export function draw(g, live) {
     }
     g.setLineDash([]);
     for (const F of S.forms) if (S.fsel.includes(F.id)) for (const L of F.loops) for (const p of L) { const q = A.scr(p); g.fillStyle = '#FFF'; g.strokeStyle = '#EB7A25'; g.lineWidth = 1; g.fillRect(q[0] - 2.5, q[1] - 2.5, 5, 5); g.strokeRect(q[0] - 2.5, q[1] - 2.5, 5, 5); }
+    if (ring && S.tool === 'pen') { const q = A.scr(ring); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.5; g.beginPath(); g.arc(q[0], q[1], 7, 0, 2 * Math.PI); g.stroke(); }   // the click lands here
     if (fig && S.tool === 'pen') {                                                    // the pen's figure: its points, the line after the pointer
       const P = fig.pts.map(A.scr), at = A.scr(fig.at), shut = closing(fig.at) || fig.at === fig.pts[0];
       g.strokeStyle = '#EB7A25'; g.lineWidth = 1.5; g.beginPath(); P.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.lineTo(at[0], at[1]); g.stroke();
@@ -405,7 +425,7 @@ export function pointer(type, e) {
     if (S.tool === 'edit' && !e.shiftKey && grabBox(e, p, true)) return true;      // …and a drag in it moves it
     const at = add && S.fsel.length && !e.shiftKey ? edgeAt(p) : null;
     if (at) { A.undoPush(); held = null; addPoint(at); grab = { kind: 'point', at, moved: false }; hover = null; A.capture(e); A.kick(); return true; }
-    const F = formAt(p);
+    const F = formNear(p);
     if (e.shiftKey && F) S.fsel = S.fsel.includes(F.id) ? S.fsel.filter(id => id !== F.id) : [...S.fsel, F.id];
     else S.fsel = F ? [F.id] : [];
     A.save(); showForm(); A.kick(); return true;
