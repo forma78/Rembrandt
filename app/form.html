@@ -208,6 +208,14 @@
       <span class="save-state" id="saveState">to the Library</span>
     </div>
     <div class="loadlist" id="loadList" hidden></div>
+    <!-- FORM's own, right under SAVE (the owner, 2026-10-30: "Add new reference next to the Auto key"; "Brush width · the rows' step is the key
+         tool, its place is not in PAINTING MACHINE"; FORM and FORMS confused): AUTO and the photo, the brush's step, Auto's sliders, every slider
+         its icon — form.js the rest, inka.js the step (#slFormPitch) -->
+    <section class="sec" id="formSec">
+      <div id="formTop"></div>
+      <div class="sliders" id="slFormPitch"></div>
+      <div id="formPanel"></div>
+    </section>
     <section class="sec" id="pencilSec">
       <h3>Colours <span class="hint">DRAG's run · the chosen one</span></h3>
       <!-- the run (the owner, 2026-10-27, Screenshot 9.09.17 PM: "I do not understand which pencil to put in the machine now, which to have ready next") -->
@@ -259,10 +267,8 @@
       <h4>Frame <span class="hint">a piece, on the canvas first</span></h4>
       <div class="grid4 keys"><button class="btn" id="btnFrame" title="The F tool: drag round the piece to try on paper">Draw a frame (F)</button><button class="btn" id="btnNoFrame" title="No frame: the whole canvas">Whole canvas</button></div>
     </section>
-    <!-- FORM's own (form.js): Auto forms, the materials, Merge, Out · in, Bricks, the background, the cells' colours, its sliders -->
-    <section class="sec" id="formSec"></section>
     <section class="sec">
-      <h3>FORM <span class="hint">the photo, the Preview's brush, the canvas</span></h3>
+      <h3>Canvas · files <span class="hint">where it lies from home, the machine's files</span></h3>
       <div class="formhide">
       <h4 class="first">Blends and tiles, in the order of their figures</h4>
       <div class="toggles looks wrap" id="rects"></div>
@@ -294,7 +300,7 @@
       <p class="read" id="paintRead" hidden></p>
       </div>
       <!-- the reference under the paints, its palette the Reference key's (the owner, 2026-10-19: "put the Reference block up, near Paints, then BRUSH, DRAG — so it is all logical") -->
-      <h4>Reference <span class="hint">over the canvas, as tracing paper</span></h4>
+      <h4 class="formhide">Reference <span class="hint">over the canvas, as tracing paper</span></h4>
       <!-- several, Reference 1, 2 … as a blend's keys (the owner, 2026-10-26: "I like how you made Blend 1 / Key 1 / Key 2 / Key 3 — REFERENCE needs the same") -->
       <div class="toggles looks wrap" id="refKeys" hidden></div>
       <div class="refrow">
@@ -311,8 +317,8 @@
       </div>
       <div class="paintlist formhide" id="refPal" title="The chosen reference's palette, as OK deals it: its paints with their shares of the picture, the thin ones, the spot (est.)"></div>
       <input type="file" id="refIn" accept="image/*" hidden>
-      <h4>Brush · the Preview's, and the wipe</h4>
-      <div class="sliders" id="slBrush"></div>
+      <h4 class="formhide">Brush · the Preview's, and the wipe</h4>
+      <div class="sliders formhide" id="slBrush"></div>
       <h4>Canvas <button class="info" id="planInfo" title="The plan: the figures, their tiles and rings, the wipes, where the canvas lies from home">i</button></h4>
       <div class="grid4" id="fields"></div>
       <p class="read" id="planRead" hidden></p>

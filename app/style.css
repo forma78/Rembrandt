@@ -900,3 +900,10 @@ html.night .penciledit select{background:#222427;color:var(--ink)}
 /* FORM (2026-10-30): OPM-P's page, the tiles', blends', nodes' and sausages' keys out of sight — still there for inka.js */
 [data-tab="form"] .formhide{display:none!important}
 .board{transition:transform .25s ease}   /* FORM's Rotate Canvas: a quarter turn, seen */
+/* FORM's block (2026-10-30): AUTO and Add new reference side by side, one line each; every slider its icon */
+.formkeys{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:4px 0 10px}
+.formkeys .btn{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;white-space:nowrap}
+.formkeys .btn svg{width:20px;height:20px}
+#formRef .refrow{margin-top:0}
+.slic svg{width:14px;height:14px;vertical-align:-3px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
+.slic svg .thin{stroke-width:1}

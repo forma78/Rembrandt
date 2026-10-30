@@ -95,14 +95,6 @@ test('FORM background: a form touching the photo\'s edge left out, the ground th
   assert.ok(Math.abs(A - 120 * 60) < 0.05 * 120 * 60, `the block alone: ${A}`);   // its corners a little cut by Straighten
 });
 
-test('FORM Bricks: the borders on a grid two brushes wide, every row the brush exactly, bricks cut on its grid', () => {
-  const pencils = cleanPencils(PRISMA_PENCILS), img = onGround(200, 120), forms = autoForms(img, 200, 120, { pencils, smallest: 20, grid: 12, bricks: true });
-  for (const F of forms) for (const L of F.loops) for (const p of L) assert.ok([p[0], p[1]].every(v => Math.abs(v / 12 - Math.round(v / 12)) < 1e-9 || v === 200 || v === 120), `${p} off the grid`);
-  const D = formPlan(forms, img, { pencils, pitch: 6, bricks: true });
-  assert.ok(D.regions.every(R => Math.abs(R.step - 6) < 1e-9), D.regions.map(R => R.step).join());
-  for (const c of D.cells) for (const p of c.poly) assert.ok([p[0], p[1]].every(v => Math.abs(v / 6 - Math.round(v / 6)) < 1e-6), `${p} off the brush's grid`);
-});
-
 test('FORM colour: a form its own pencil — Flat every cell it, Shaded the photo\'s light and dark in its family (the owner: "and how do I set the colour?")', () => {
   const pencils = cleanPencils(PRISMA_PENCILS), W = 200, H = 120, nx = W, ny = H, data = new Uint8ClampedArray(nx * ny * 4);
   for (let iy = 0; iy < ny; iy++) for (let ix = 0; ix < nx; ix++) {                 // a grey block, lighter at its top: a highlight
@@ -145,4 +137,19 @@ test('FORM Unite: a form and its mirror one form, the mirrored half still readin
   assert.ok(Math.abs(area(one[0].loops[0]) - 160 * 60) < 1e-6);
   const D = formPlan(one, img, { pencils, pitch: 6 }), ids = new Set(D.cells.map(c => c.pencil));
   assert.equal(ids.size, 1, [...ids].join());                                          // the right half red too, read through the mirror
+});
+
+import { paletteForms } from '../src/formplan.js';
+import { PAINT } from '../src/tapeplan.js';
+import { INKA_META, labOf } from '../src/inkaplan.js';
+import { linOf } from '../src/color.js';
+test('FORM AUTO a variation every press, and a palette over the sausages by lightness (the owner: "random generations on Auto"; "I miss the colours")', () => {
+  const pencils = cleanPencils(PRISMA_PENCILS), img = photo(160, 100);
+  const sig = fs => fs.map(F => F.loops[0].length + ':' + Math.round(F.area)).sort().join();
+  assert.equal(sig(autoForms(img, 160, 100, { pencils, smallest: 20 })), sig(autoForms(img, 160, 100, { pencils, smallest: 20 })));   // no seed: the same
+  assert.notEqual(sig(autoForms(img, 160, 100, { pencils, smallest: 20, seed: 7 })), sig(autoForms(img, 160, 100, { pencils, smallest: 20, seed: 8 })));
+  const L = id => labOf(linOf(PAINT[id].hex))[0], dark = { id: 0, loops: [R(0, 0, 60, 60)], ss: [{ a: [5, 30], b: [25, 30], paint: 'black' }] }, light = { id: 1, loops: [R(60, 0, 60, 60)], ss: [{ a: [70, 30], b: [90, 30], paint: 'white' }] };
+  const pal = INKA_META.Inka, out = paletteForms([dark, light], null, { ...pal, accent: [] }, 3);
+  assert.ok(out.every(F => F.ss.every(q => pal.core.includes(q.paint))));
+  assert.ok(L(out[0].ss[0].paint) <= L(out[1].ss[0].paint) + 25, 'the dark one the darker paint, near enough');
 });

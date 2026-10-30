@@ -26,11 +26,9 @@
 // the photo in it. Then OPM-P's own: the lines once (linesOf), DRAG a colour
 // at a time (dragsOf).
 //
-// Bricks (the owner, the same morning, Porsche-911-3-2019.jpg: "let us make it as of LEGO bricks, nearer
-// to Screenshot 11.15.13 AM", OPM-P's blend): here the geometry may give way after all, OPM-P's Fit the
-// keys — the photo read on a grid two brushes wide, the borders its steps, every corner sharp: every row
-// the brush exactly, the rows of two neighbours meeting, the rays at 45°, a row cut on the brush's grid,
-// bricks of one brush by one, two, three.
+// Bricks, as of LEGO — the photo on a grid two brushes wide, the borders its steps — tried the same morning
+// and taken out the same afternoon (the owner: "here it is no good at all, just a mess — let us take Bricks
+// away altogether, they do not suit our concept; Free we keep and take as the basis").
 //
 // Materials (the owner, the same day, the window "smashed like glass, a black hole": "the tyres are rubber, the
 // windows glass, the door and the wings metal — three materials may be solved differently"): metal, OPM-P's
@@ -152,14 +150,22 @@ function bgMask(img, W, H, step) {
 }
 // The forms: [{ id, pencil, loops: [the outline anticlockwise, its holes clockwise], area, bg }] — the
 // form on the left of every edge; bg, the background: the colours of the photo's rim reached from it, or no
-// photo under it; o { pencils, grid, smallest, straight, bricks, bgDE }
+// photo under it; o { pencils, grid, smallest, straight, bgDE, seed: a variation, AUTO's every press }
+// a seeded random, 0 … 1 (mulberry32)
+const mulberry = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 export function autoForms(img, W, H, o = {}) {
-  const g = o.grid ?? GRID_NEW, nx = Math.max(1, Math.ceil(W / g - 1e-9)), ny = Math.max(1, Math.ceil(H / g - 1e-9));
+  // AUTO a variation every press (the owner, 2026-10-30: "random generations on Auto, so it gives a different geometry every time"):
+  // o.seed — the grid laid off by a random part of a square, Smallest form and Straighten about the sliders', the grain smoothed
+  // more or less, neighbours of near colours now and then one
+  const rnd = o.seed ? mulberry(o.seed) : null, about = (a, b) => rnd ? a * Math.pow(b / a, rnd()) : 1;
+  const g = o.grid ?? GRID_NEW, ox = rnd ? rnd() * g : 0, oy = rnd ? rnd() * g : 0, nx = Math.max(1, Math.ceil((W + ox) / g - 1e-9)), ny = Math.max(1, Math.ceil((H + oy) / g - 1e-9));
+  const smallest = (o.smallest ?? SMALLEST_NEW) * about(0.6, 1.6), straight = (o.straight ?? STRAIGHT_NEW) * about(0.6, 2), smooth = rnd ? 1 + Math.floor(rnd() * 3) : SMOOTH, melt = rnd ? rnd() * 14 : 0;
+  const cx0 = i => Math.max(0, i * g - ox), cx1 = i => Math.min(W, (i + 1) * g - ox), cy0 = j => Math.max(0, j * g - oy), cy1 = j => Math.min(H, (j + 1) * g - oy);
   const near = nearestOf(o.pencils ?? cleanPencils(PRISMA_PENCILS), -Infinity), names = [], idx = new Map();
   let lab = new Int32Array(nx * ny);
   const st = Math.min(g, img.h);
   for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-    const x0 = i * g, x1 = Math.min(W, x0 + g), y0 = j * g, y1 = Math.min(H, y0 + g), acc = [0, 0, 0];
+    const x0 = cx0(i), x1 = cx1(i), y0 = cy0(j), y1 = cy1(j), acc = [0, 0, 0];
     let got = 0;
     for (let y = y0 + st / 2; y < y1; y += st) for (let x = x0 + st / 2; x < x1; x += st) got += pix(img, x, y, acc);
     if (!got) got = pix(img, (x0 + x1) / 2, (y0 + y1) / 2, acc);
@@ -167,7 +173,7 @@ export function autoForms(img, W, H, o = {}) {
     lab[j * nx + i] = id === null ? -1 : idx.get(id) ?? (idx.set(id, names.length), names.push(id), names.length - 1);
   }
   const at = (L, i, j) => i < 0 || j < 0 || i >= nx || j >= ny ? -2 : L[j * nx + i];
-  for (let pass = 0; pass < SMOOTH; pass++) {                                        // the grain off: a square to the most of its neighbours', its own on a tie
+  for (let pass = 0; pass < smooth; pass++) {                                        // the grain off: a square to the most of its neighbours', its own on a tie
     const nl = lab.slice(), cnt = new Map();
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
       cnt.clear();
@@ -186,7 +192,7 @@ export function autoForms(img, W, H, o = {}) {
     const M = bgMask(img, W, H, o.bgDE ?? BG_DE_NEW);
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
       let n = 0, b = 0;
-      for (let y = j * g + BG_GRID / 2; y < Math.min(H, (j + 1) * g); y += BG_GRID) for (let x = i * g + BG_GRID / 2; x < Math.min(W, (i + 1) * g); x += BG_GRID) { const a = Math.floor(x / BG_GRID), c = Math.floor(y / BG_GRID); if (a < M.nx && c < M.ny && M.seen[c * M.nx + a]) { n++; b += M.bg[c * M.nx + a]; } }
+      for (let y = cy0(j) + BG_GRID / 2; y < cy1(j); y += BG_GRID) for (let x = cx0(i) + BG_GRID / 2; x < cx1(i); x += BG_GRID) { const a = Math.floor(x / BG_GRID), c = Math.floor(y / BG_GRID); if (a < M.nx && c < M.ny && M.seen[c * M.nx + a]) { n++; b += M.bg[c * M.nx + a]; } }
       const m = j * nx + i;
       if (n && b * 2 > n && lab[m] >= 0) lab[m] += BG;
     }
@@ -206,21 +212,32 @@ export function autoForms(img, W, H, o = {}) {
     const a = comp[j * nx + i];
     for (const n of [i + 1 < nx ? j * nx + i + 1 : -1, j + 1 < ny ? (j + 1) * nx + i : -1]) { if (n < 0 || comp[n] === a) continue; const b = comp[n]; nb[a].set(b, (nb[a].get(b) ?? 0) + 1); nb[b].set(a, (nb[b].get(a) ?? 0) + 1); }
   }
-  const least = (o.smallest ?? SMALLEST_NEW) ** 2 / (g * g);
+  const least = smallest ** 2 / (g * g), cls = v => v < 0 ? -1 : v >= BG ? 1 : 0;
+  const into = (c, best) => {                                                        // c melted into best: its area, its borders
+    up[c] = best; area[best] += area[c];
+    for (const [m, l] of nb[c]) { const r = find(m); if (r === best || r === c) continue; nb[best].set(r, (nb[best].get(r) ?? 0) + l); nb[r].set(best, (nb[r].get(best) ?? 0) + l); nb[r].delete(c); }
+    nb[best].delete(c); nb[c] = new Map();
+  };
+  if (melt > 0) {                                                                     // a variation's: neighbours of near colours one, of one class
+    const hexOf = Object.fromEntries((o.pencils ?? cleanPencils(PRISMA_PENCILS)).map(q => [q.id, q.hex])), labs = names.map(id => labOf(linOf(hexOf[id] ?? '#808080')));
+    const de = (a, b) => { const p = labs[a % BG], q = labs[b % BG]; return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+    for (const c of area.map((_, i) => i).sort((a, b) => area[a] - area[b])) {
+      if (find(c) !== c || clab[c] < 0) continue;
+      const m = [...nb[c].keys()].map(find).find(r => r !== c && clab[r] >= 0 && cls(clab[r]) === cls(clab[c]) && de(clab[r], clab[c]) < melt && area[r] >= area[c]);
+      if (m !== undefined) into(c, m);
+    }
+  }
   for (let moved = true; moved;) {
     moved = false;
     for (const c of area.map((_, i) => i).filter(i => find(i) === i && area[i] < least).sort((a, b) => area[a] - area[b])) {
       if (find(c) !== c || area[c] >= least) continue;
       let best = -1, bl = -1;
-      const cls = v => v < 0 ? -1 : v >= BG ? 1 : 0;
       for (const mineFirst of [true, false]) {
         for (const [m, l] of nb[c]) { const r = find(m); if (r !== c && (!mineFirst || cls(clab[r]) === cls(clab[c])) && (l > bl || l === bl && area[r] > area[best])) { bl = l; best = r; } }
         if (best >= 0) break;
       }
       if (best < 0) continue;
-      up[c] = best; area[best] += area[c];
-      for (const [m, l] of nb[c]) { const r = find(m); if (r === best || r === c) continue; nb[best].set(r, (nb[best].get(r) ?? 0) + l); nb[r].set(best, (nb[r].get(best) ?? 0) + l); nb[r].delete(c); }
-      nb[best].delete(c); nb[c] = new Map(); moved = true;
+      into(c, best); moved = true;
     }
   }
   const rid = new Map(), reg = new Int32Array(nx * ny);
@@ -228,7 +245,7 @@ export function autoForms(img, W, H, o = {}) {
   const regLab = []; for (const [r, k] of rid) regLab[k] = clab[r];
   // the borders: cracks between squares of two regions, chains of them from junction to junction
   const R = (i, j) => i < 0 || j < 0 || i >= nx || j >= ny ? -1 : reg[j * nx + i];
-  const X = i => Math.min(W, i * g), Y = j => Math.min(H, j * g), D = [[1, 0], [0, 1], [-1, 0], [0, -1]];   // E N W S
+  const X = i => Math.max(0, Math.min(W, i * g - ox)), Y = j => Math.max(0, Math.min(H, j * g - oy)), D = [[1, 0], [0, 1], [-1, 0], [0, -1]];   // E N W S
   const has = (i, j, k) => k === 0 ? R(i, j) !== R(i, j - 1) : k === 1 ? R(i - 1, j) !== R(i, j) : k === 2 ? R(i - 1, j) !== R(i - 1, j - 1) : R(i - 1, j - 1) !== R(i, j - 1);
   const leftOf = (i, j, k) => k === 0 ? R(i, j) : k === 1 ? R(i - 1, j) : k === 2 ? R(i - 1, j - 1) : R(i, j - 1);
   const rightOf = (i, j, k) => k === 0 ? R(i, j - 1) : k === 1 ? R(i, j) : k === 2 ? R(i - 1, j) : R(i - 1, j - 1);
@@ -251,11 +268,11 @@ export function autoForms(img, W, H, o = {}) {
   };
   for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) if (isJ(i, j)) for (let k = 0; k < 4; k++) if (has(i, j, k) && !used(i, j, k)) walk(i, j, k);
   for (let j = 0; j <= ny; j++) for (let i = 0; i <= nx; i++) for (const k of [0, 1]) if (has(i, j, k) && !used(i, j, k)) walk(i, j, k);   // the islands: a loop, no junction
-  const tol = o.bricks ? 1e-6 : o.straight ?? STRAIGHT_NEW;                       // Bricks: the grid's steps kept, LEGO's
+  const tol = straight;
   for (const C of chains) {
     let P = C.pts.map(([i, j]) => [X(i), Y(j)]);
     const closed = C.pts.length > 2 && C.pts[0][0] === C.pts.at(-1)[0] && C.pts[0][1] === C.pts.at(-1)[1];
-    for (let it = 0; it < (o.bricks ? 0 : 2); it++) P = P.map((p, m) => m === 0 || m === P.length - 1 ? p : [(P[m - 1][0] + 2 * p[0] + P[m + 1][0]) / 4, (P[m - 1][1] + 2 * p[1] + P[m + 1][1]) / 4]);
+    for (let it = 0; it < 2; it++) P = P.map((p, m) => m === 0 || m === P.length - 1 ? p : [(P[m - 1][0] + 2 * p[0] + P[m + 1][0]) / 4, (P[m - 1][1] + 2 * p[1] + P[m + 1][1]) / 4]);
     if (closed) { const far = P.reduce((b, p, m) => len(sub(p, P[0])) > len(sub(P[b], P[0])) ? m : b, 0); C.mm = [...straightened(P.slice(0, far + 1), tol), ...straightened(P.slice(far), tol).slice(1)]; }
     else C.mm = straightened(P, tol);
     C.a = `${C.pts[0][0]},${C.pts[0][1]}`; C.b = `${C.pts.at(-1)[0]},${C.pts.at(-1)[1]}`; C.closed = closed; C.smooth = P; C.tol = tol;
@@ -614,21 +631,21 @@ function cutConvex(poly, kinds, d, s, snap) {
 }
 const convex = P => P.every((p, i) => cross(sub(P[(i + 1) % P.length], p), sub(P[(i + 2) % P.length], P[(i + 1) % P.length])) > -1e-9);
 // a row's colours: square slices SAMPLE long, the photo's nearest in each, read across the band's middle half
-function cutsOf(C, L, img, near, minLen, t0, t1, brick = 0) {
+function cutsOf(C, L, img, near, minLen, t0, t1) {
   const ss = C.poly.map(p => dot(L.d, p)), s0 = Math.min(...ss), s1 = Math.max(...ss);
   // where a square cut crosses from its outer row line to its inner one: both lines' common stretch
   const span = k => { const e = C.poly.flatMap((p, i) => C.kinds[i] === k ? [dot(L.d, p), dot(L.d, C.poly[(i + 1) % C.poly.length])] : []); return e.length ? [Math.min(...e), Math.max(...e)] : null; };
   const o = span(C.ring0), n = span(C.ring0 + 1);
   if (!o || !n) return [];
   const lo = Math.max(o[0], n[0]), hi = Math.min(o[1], n[1]);
-  if (hi - lo < (brick ? minLen : 2 * minLen) - 1e-9) return [];
-  // the row's pieces: SAMPLE long; Bricks, a brick each, from the brush's grid (o.brick, its length)
-  const edges = brick ? [s0, ...Array.from({ length: Math.max(0, Math.ceil(s1 / brick - 1e-9) - Math.floor(s0 / brick + 1e-9) - 1) }, (_, m) => (Math.floor(s0 / brick + 1e-9) + 1 + m) * brick), s1] : Array.from({ length: Math.max(1, Math.round((s1 - s0) / SAMPLE)) + 1 }, (_, m) => s0 + (s1 - s0) * m / Math.max(1, Math.round((s1 - s0) / SAMPLE)));
+  if (hi - lo < 2 * minLen - 1e-9) return [];
+  // the row's pieces, SAMPLE long
+  const edges = Array.from({ length: Math.max(1, Math.round((s1 - s0) / SAMPLE)) + 1 }, (_, m) => s0 + (s1 - s0) * m / Math.max(1, Math.round((s1 - s0) / SAMPLE)));
   const ids = [];
   for (let m = 0; m + 1 < edges.length; m++) {
-    const acc = [0, 0, 0], k = brick ? 3 : 1;
+    const acc = [0, 0, 0];
     let got = 0;
-    for (let a = 0; a < k; a++) for (const f of [0.25, 0.5, 0.75]) { const sv = edges[m] + (edges[m + 1] - edges[m]) * (a + 0.5) / k, t = t0 + (t1 - t0) * f, q = add(mul(L.d, sv), mul(L.n, L.c + t)); got += pix(img, q[0], q[1], acc); }
+    for (const f of [0.25, 0.5, 0.75]) { const sv = (edges[m] + edges[m + 1]) / 2, t = t0 + (t1 - t0) * f, q = add(mul(L.d, sv), mul(L.n, L.c + t)); got += pix(img, q[0], q[1], acc); }
     ids.push(got ? near(acc.map(v => v / got)) : null);
   }
   const runs = [];                                                                    // [{ id, a, b }] along the row
@@ -644,7 +661,7 @@ function cutsOf(C, L, img, near, minLen, t0, t1, brick = 0) {
     for (let m = runs.length - 1; m > 0; m--) if (runs[m].id === runs[m - 1].id) { runs[m - 1].b = runs[m].b; runs.splice(m, 1); }
     changed = true;
   }
-  return runs.slice(1).map(r => r.a).filter(s => brick ? s > lo + 1e-6 && s < hi - 1e-6 : s > lo + minLen / 2 && s < hi - minLen / 2);
+  return runs.slice(1).map(r => r.a).filter(s => s > lo + minLen / 2 && s < hi - minLen / 2);
 }
 // a row line's id, OPM-P's: its figure, its key (0), its block (the side's line), its depth
 const rowId = (f, blk, k) => (f * 100 * 1000 + blk) * 1000 + k;
@@ -686,8 +703,8 @@ function roundRings(cells, shots, lines, Rmax, s, snap) {
 // A form's cells: { region, cells: [{ reg, blk, row, p, poly, kinds, area, seq, mid, ends, ray }] }
 function formCells(F, f, img0, near, o, snap) {
   const img = o.shifted === false ? img0 : readOf(img0, F);
-  const pitch = o.pitch ?? PITCH_NEW, { lines, starts } = linesOf2(F.loops, o.bricks ? 0 : o.facets ?? FACETS_NEW);   // Bricks: every corner sharp, the rows square
-  const round = !o.bricks && (F.material === 'glass' || F.material === 'rubber') ? o.corner ?? CORNER_NEW : 0;
+  const pitch = o.pitch ?? PITCH_NEW, { lines, starts } = linesOf2(F.loops, o.facets ?? FACETS_NEW);
+  const round = F.material === 'glass' || F.material === 'rubber' ? o.corner ?? CORNER_NEW : 0;
   const box = F.loops[0].reduce((b, p) => ({ x0: Math.min(b.x0, p[0]), y0: Math.min(b.y0, p[1]), x1: Math.max(b.x1, p[0]), y1: Math.max(b.y1, p[1]) }), { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity });
   if (!starts.length || lines.length > 999) return null;
   const first = sweep(lines, starts), n = rowsIn(first.depth, pitch), s = first.depth / n;
@@ -703,7 +720,7 @@ function formCells(F, f, img0, near, o, snap) {
     const L = lines[e], t0 = band * s, t1 = Math.min(first.depth, (band + 1) * s);
     let pieces = [{ poly, kinds }];
     if (img && near && convex(poly)) {
-      const cuts = cutsOf({ poly, kinds, ring0: band }, L, img, near, minLen, t0, t1, o.bricks ? pitch : 0);
+      const cuts = cutsOf({ poly, kinds, ring0: band }, L, img, near, minLen, t0, t1);
       for (const c of cuts) pieces = pieces.flatMap(P => { const ss = P.poly.map(p => dot(L.d, p)); return c > Math.min(...ss) + 1e-6 && c < Math.max(...ss) - 1e-6 ? cutConvex(P.poly, P.kinds, L.d, c, snap) : [P]; });
     }
     for (const P of pieces) {
@@ -833,7 +850,7 @@ function spokeLen(F, p0, nrm, depth) {
   return Math.min(depth, hit - 0.3);
 }
 // a form's depth: the wavefront's last event
-function depthOf(F, o = {}) { const { lines, starts } = linesOf2(F.loops, o.bricks ? 0 : o.facets ?? FACETS_NEW); if (!starts.length || lines.length > 999) return 0; const r = sweep(lines, starts); return r.ok ? r.depth : 0; }
+function depthOf(F, o = {}) { const { lines, starts } = linesOf2(F.loops, o.facets ?? FACETS_NEW); if (!starts.length || lines.length > 999) return 0; const r = sweep(lines, starts); return r.ok ? r.depth : 0; }
 // The algorithm's sausages of a form: spokes evenly round every loop, square in from its side, to its depth or its
 // far border; every run of one paint along one a sausage — the photo's nearest of the owner's paints, no run shorter
 // than a sausage is wide; rubber one paint, the most of its spokes'. → [{ a, b, paint }]
@@ -872,6 +889,26 @@ export function spokesOf(F, img, o = {}, depth = depthOf(F, o)) {
   }
   return mine;
 }
+// The sausages in a palette (the owner, 2026-10-30: "I miss the colours — PAINTS, New colours, New spokes, meta 1 … 4, Inka, HDay
+// warm, HDay blue — and DENSITY, so the sausages paint"): every form's sausages, its own or the algorithm's off the photo, repainted in
+// the palette's paints by lightness — the photo's darkest the palette's darkest, its lightest the lightest, evenly between, the
+// picture as it was in other paints — now and then an accent, a thread; rubber one paint, the palette's darkest. seed: New colours
+// anew every press, neighbours in lightness trading places now and then. → the forms, every one its sausages
+export function paletteForms(forms, img, pal, seed, o = {}) {
+  const rnd = mulberry(seed || 1), core = (pal?.core ?? []).filter(id => PAINT[id]), accent = (pal?.accent ?? []).filter(id => PAINT[id]);
+  if (!core.length) return forms;
+  const Lof = new Map(), L = id => Lof.get(id) ?? (Lof.set(id, labOf(linOf(PAINT[id].hex))[0]), Lof.get(id));
+  const ranks = core.slice().sort((a, b) => L(a) - L(b));
+  for (let i = 0; i + 1 < ranks.length; i++) if (rnd() < 0.35) [ranks[i], ranks[i + 1]] = [ranks[i + 1], ranks[i]];
+  const near = paintNear(), all = forms.map(F => ({ F, ss: Array.isArray(F.ss) ? F.ss.map(q => ({ ...q })) : img ? spokesOf(F, readOf(img, F), { ...o, near }) : [] }));
+  const lights = all.flatMap(x => x.ss.map(q => L(q.paint))).sort((a, b) => a - b);
+  const rank = l => { let lo = 0, hi = lights.length; while (lo < hi) { const m = (lo + hi) >> 1; if (lights[m] < l) lo = m + 1; else hi = m; } return ranks[Math.min(ranks.length - 1, Math.floor(lo / Math.max(1, lights.length) * ranks.length))]; };
+  return all.map(({ F, ss }) => {
+    if (!ss.length) return F;
+    const next = ss.map(q => ({ a: q.a, b: q.b, paint: F.material === 'rubber' ? ranks[0] : accent.length && rnd() < 0.08 ? accent[Math.floor(rnd() * accent.length)] : rank(L(q.paint)) }));
+    return { ...F, ss: next };
+  });
+}
 // M's spoke through a point of a form: from the nearest point of its outline square in, to its depth or far border → { a, b }
 export function spokeThrough(F, p, o = {}) {
   let best = null;
@@ -882,11 +919,11 @@ export function spokeThrough(F, p, o = {}) {
 }
 // The Preview: every form a figure — the brush round its rings' middles from the outside in, every ring from its
 // point nearest the brush — its spokes from its outline in, a sausage a run of one paint along one (rubber: its
-// one paint); o { pitch, facets, bricks, spoke, density, h } → { img: the Preview as a photo, figs, sausages, sim }
+// one paint); o { pitch, facets, spoke, density, h } → { img: the Preview as a photo, figs, sausages, sim }
 export function formPreview(forms, img, o = {}) {
   const W = img.nx * img.h, H = img.ny * img.h, pitch = o.pitch ?? PITCH_NEW, near = paintNear(), figs = [], sausages = [], step = o.spoke ?? SPOKE_NEW;
   forms.forEach(F => {
-    const { lines, starts } = linesOf2(F.loops, o.bricks ? 0 : o.facets ?? FACETS_NEW);
+    const { lines, starts } = linesOf2(F.loops, o.facets ?? FACETS_NEW);
     if (!starts.length || lines.length > 999) return;
     const first = sweep(lines, starts);
     if (!first.ok || first.depth <= 1e-6) return;

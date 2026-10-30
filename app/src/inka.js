@@ -1442,7 +1442,7 @@ const SHAPE_SL = new Set(['rowMin', 'rayW', 'inset', 'round', 'facets']), DRAG_S
 // the elbow's degrees under ELBOW LIVE, #slElbow (the owner, 2026-10-29, after the redraw's gaps — Pressure 2.5° under the tip's
 // touch: "gather all the settings for the drawing's tilt next to ELBOW LIVE · PENCIL, the slider green only for the elbow's degree")
 const ELBOW_SL = new Set(['touch', 'press', 'glide']);
-const slBox = key => ELBOW_SL.has(key) && $('#slElbow') || DRAG_SL.has(key) && $('#slDrag') || SHAPE_SL.has(key) && $('#slShape') || $('#slPencil');
+const slBox = key => FORM && key === 'pitch' && $('#slFormPitch') || ELBOW_SL.has(key) && $('#slElbow') || DRAG_SL.has(key) && $('#slDrag') || SHAPE_SL.has(key) && $('#slShape') || $('#slPencil');   // FORM: the brush's step the forms' own ("the key tool, not PAINTING MACHINE's")
 const slOf = key => slBox(key).querySelector(`input[data-k="${key}"]`);
 if (DACHE) {
   // the elbow's three under ELBOW LIVE with its ▼ ▲ too, a step each (the owner, 2026-10-29: "duplicate ▼ ▲ on Pencil in at and Pressure —
@@ -1955,6 +1955,7 @@ const what = () => {
 // Settled: the mouse let go, a slider let go — the plan, the reading, the LCD.
 function settle() {
   busy = false;
+  if (FORM) queueMicrotask(() => showForm(dachePlan()));                             // FORM's panel as S is now: an undo of a slider too, the plan unchanged
   if (S.sel >= S.rects.length) S.sel = Math.max(0, S.rects.length - 1);
   {                                                                                    // the nodes the plan takes, in their order: one given way, or refused, gone
     const L = planNow().links;

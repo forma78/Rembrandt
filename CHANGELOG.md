@@ -3,6 +3,47 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.1.5 — 2026-10-30
+
+- **FORM: Bricks out, Free the basis** (the owner, the same afternoon,
+  his reference 11.22.04 in Bricks and in Free side by side: "here it is no
+  good at all, just a mess — let us take Bricks away altogether, they do
+  not suit our concept; Free is much better, we keep it and take it as the
+  basis, not to get confused").
+- **FORM: the forms' block in order** (the owner: "Brush width · the rows'
+  step is the key tool, its place is not in PAINTING MACHINE"; "FORMS and
+  FORM confused — some icons by the sliders, so it is clear what is for
+  what"; "Add new reference next to the Auto key, without the word FORMS,
+  not to make it two lines"). Right under SAVE: **AUTO** and **Add new
+  reference** side by side, the photo's thumb and opacity under them,
+  then Smallest form, Straighten and **Brush · rows' step** — moved out of
+  Painting machine — every slider its icon; then the materials, the
+  colour, Unite, the sausages, the background, the cells, Glass corners,
+  Spokes every. The old FORM block now **Canvas · files**; the Preview's
+  INKA brush, which the Preview never used, out of sight.
+- **FORM: AUTO a variation every press** (the owner: "random generations
+  on Auto, so it gives a different geometry"): every press its seed — the
+  photo's grid laid off by a random part of a square, Smallest form and
+  Straighten about the sliders' (0.6 … 1.6, 0.6 … 2 times), the grain
+  smoothed once to three times, neighbours of near colours now and then
+  one form; the variation's number on the panel, ⌘Z the one before.
+- **FORM: OPM-P's paints back, and Density** (the owner: "I miss the
+  colours — PAINTS, New colours, New spokes, meta 1 … 4, Inka, HDay warm,
+  HDay blue — and DENSITY, so the sausages paint"): in the forms' block,
+  Paints. A palette's key: the chosen forms', or every form's, sausages in
+  its paints by lightness — the photo's darkest the palette's darkest, its
+  lightest the lightest, now and then an accent thread, rubber the darkest
+  — the picture as it was in other paints; New colours the palette dealt
+  anew (none chosen, one at random in his paints); New spokes the photo's
+  sausages again, the palette over them; Density the paint in a sausage.
+  The cells off the Preview then, so Paint shows it.
+- **FORM: Undo seen on the panel** (the owner: "please check Redo Undo,
+  they seem not to work"): they worked — AUTO, the background, the
+  materials, a slider, by the keys and by ⌘Z · ⇧⌘Z — but an undone slider
+  left its number on the panel as it was, the plan unchanged; the panel
+  now drawn anew after every change. A slider let go gives ⌘Z back to the
+  page.
+
 ## v.1.1.5 — 2026-10-30 · FORM
 
 - **v.1.1.5 after the name, FORM** (the owner, 2026-10-30: "FORM is
