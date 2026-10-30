@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { autoForms, formCellsOf, formPlan, drawForms, layForms, transformForms } from '../src/formplan.js';
+import { autoForms, formCellsOf, formPlan, drawForms, layForms, transformForms, settleLeft } from '../src/formplan.js';
 import { cleanPencils } from '../src/dacheplan.js';
 import { PRISMA_PENCILS } from '../src/prismaplan.js';
 
@@ -98,6 +98,24 @@ test('FORM paste and free transform: a tyre and its wheel laid again elsewhere, 
   // stretched twice as wide about the origin, mirrored: still a ring and a disc
   const big = layForms([], transformForms(wheel, { sx: -2, sy: 1, tx: 0, ty: 0 }));
   assert.equal(big.find(F => F.id === t.id).loops.length, 2); assert.ok(Math.abs(big.reduce((s, F) => s + F.area, 0) - 2 * area(circle([100, 60], 50))) < 1e-6);
+});
+
+test('FORM free transform: the place a form left given to its neighbour, as if what lay under it showed again; with none, gone (the owner: "a scrap left where it was")', () => {
+  const circle = (c, r, n = 24) => Array.from({ length: n }, (_, i) => [c[0] + r * Math.cos(2 * Math.PI * i / n), c[1] + r * Math.sin(2 * Math.PI * i / n)]);
+  const body = { id: 0, loops: [R(0, 0, 400, 120)], material: 'metal', colour: 'blue' };
+  const w = drawForms([body], circle([100, 60], 40)), wheel = w.forms.find(F => F.id === w.id);
+  // the wheel lifted (its place left, out) and laid again 30 mm to the right
+  const before = w.forms.map(F => F.id === w.id ? { ...F, id: 9, bg: true, left: true } : F);
+  const out = settleLeft(layForms(before, transformForms([wheel], { sx: 1, sy: 1, tx: 30, ty: 0 })), new Set([w.id]));
+  assert.ok(!out.some(F => F.left), 'no scrap left');
+  const body2 = out.find(F => F.id === 0);
+  assert.equal(body2.colour, 'blue'); assert.ok(Math.abs(body2.area - (48000 - wheel.area)) < 1e-6, `${body2.area}`);
+  assert.ok(Math.abs(out.reduce((s, F) => s + F.area, 0) - 48000) < 1e-6, 'the canvas whole, once');
+  // a sun alone, made bigger about its corner: the slivers of its old place gone
+  const sun = drawForms([], circle([300, 300], 40)), S0 = sun.forms[0];
+  const lifted = [{ ...S0, id: 5, bg: true, left: true }], big = transformForms([S0], { sx: 1.3, sy: 1.3, tx: -260 * 0.3, ty: -260 * 0.3 });
+  const after = settleLeft(layForms(lifted, big), new Set([S0.id]));
+  assert.deepEqual(after.map(F => F.id), [S0.id]);
 });
 
 // a photo: its left half red, its right half blue, a small green speck in the red

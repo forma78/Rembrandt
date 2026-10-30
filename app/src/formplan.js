@@ -487,6 +487,28 @@ export function layForms(before, Fs) {
   }
   return forms;
 }
+// The place a free transform left (the owner, 2026-10-30: the sun made bigger, a scrap left where it was — "I had that with the
+// wheels"): every piece of it (left) given to the neighbour it shares the longest border with — as if what lay under the form
+// showed again — that neighbour's colour and all; with none but out forms or the forms moved (held) beside it, gone, the ground
+// there. → the forms
+export function settleLeft(forms, held = new Set()) {
+  let out = forms;
+  for (const L of forms.filter(F => F.left)) {
+    const mine = new Map();
+    for (const M of L.loops) M.forEach((p, i) => { const q = M[(i + 1) % M.length]; mine.set(`${keyOf(q)}>${keyOf(p)}`, len(sub(q, p))); });
+    let best = null, bl = 0;
+    for (const G of out) {
+      if (G.left || G.bg || held.has(G.id)) continue;
+      let l = 0;
+      for (const M of G.loops) M.forEach((p, i) => { l += mine.get(`${keyOf(p)}>${keyOf(M[(i + 1) % M.length])}`) ?? 0; });
+      if (l > bl) { bl = l; best = G; }
+    }
+    const merged = best ? mergeForms(out, [best.id, L.id]) : out;
+    if (merged === out) { out = out.filter(F => F.id !== L.id); continue; }
+    out = merged.map(F => F.id === best.id || F.id === L.id ? { ...best, loops: F.loops, area: F.area } : F);   // one of the two left, the neighbour's own
+  }
+  return out;
+}
 // forms moved and stretched: x' = sx·x + tx, y' = sy·y + ty; carry: reading the photo where they came from (a paste, a transform), else
 // where they lie now (a figure just drawn, traced)
 export function transformForms(Fs, T, carry = true) {
