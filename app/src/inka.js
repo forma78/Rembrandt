@@ -2075,7 +2075,7 @@ async function loadRef() {
 const label = () => `${TAB_NAME} · ${what()} · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm, ${fmt(trail(), 1)} with paint`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
-  const meta = JSON.stringify({ rembrandt: '1.1.5', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.6', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rects = S.rects.map((r, i) => isBlend(r)
     ? keysOf(r).map((q, j) => `  <rect x="${f(q.x)}" y="${f(H - q.y - q.h)}" width="${f(q.w)}" height="${f(q.h)}" rx="${f(Math.min(q.c, q.w / 2, q.h / 2))}" data-tile="${i + 1}" data-kind="blend" data-key="${j + 1}"${j ? '' : ` data-steps="${r.steps}" data-step="${f(r.step)}"`}/>`).join('\n')
     : `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-tile="${i + 1}" data-step="${f(r.step)}"${isJohn(r) ? ' data-kind="john"' : ''}/>`).join('\n');
@@ -2083,7 +2083,7 @@ function svgOf() {
   const sausages = sausagesOf(S.rects).map(q => `  <line x1="${f(q.a[0])}" y1="${f(H - q.a[1])}" x2="${f(q.b[0])}" y2="${f(H - q.b[1])}" stroke="${PAINT[q.paint].hex}" data-paint="${q.paint}"${q.thin ? ' data-thin="1"' : ''}/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.5 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's figures in running order -->
+<!-- Rembrandt v.1.1.6 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's figures in running order -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${GROUND}" stroke="#24221F" stroke-width="0.5"/>
 <g id="paths" fill="none" stroke="#24221F" stroke-opacity="0.12" stroke-width="${f(trail())}" stroke-linejoin="round" stroke-linecap="round">
