@@ -1398,18 +1398,34 @@ if (OPMP) Object.assign(PENCIL_TITLE, {
   pspeed: 'The brush along the rows and the rays; slower through the turns, up and down on the move between strokes (est.)',
 });
 const sgn = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
-const pencilVal = key => PRISMA ? ({ pitch: `${fmt(S.pitch, 1)} mm (est.)`, dragRubs: `${S.dragRubs} × (est.)`, pspeed: `${S.pspeed} mm/s (est.)`, rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', facets: `${S.facets} · ${fmt(90 / S.facets, 0)}° a turn`, rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(S.touch + S.glide)} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
+const pencilVal = key => PRISMA ? ({ pitch: `${fmt(S.pitch, 1)} mm (est.)`, dragRubs: `${S.dragRubs} × (est.)`, pspeed: `${S.pspeed} mm/s (est.)`, rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', facets: `${S.facets} · ${fmt(90 / S.facets, 0)}° a turn`, rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(glideAt())}${glideAt() > S.touch + S.glide + 1e-9 ? `, ${PEN_AIR}° over pressing` : ''} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
 // OPM-S's two blocks (the owner, 2026-10-28, Screenshot 5.01.58 PM: "let us separate the construction and
 // adjustment from the drawing machine's functions — two blocks, so that it is clear what is on the screen and
 // what on the canvas"): the cells' sliders in Construction, #slShape; the pencil's in Drawing machine, #slPencil
 const SHAPE_SL = new Set(['rowMin', 'rayW', 'inset', 'round', 'facets']), DRAG_SL = new Set(['pitch', 'dragRubs', 'pspeed']);   // OPM-P: DRAG's brush in Painting machine, #slDrag
-const slBox = key => DRAG_SL.has(key) && $('#slDrag') || SHAPE_SL.has(key) && $('#slShape') || $('#slPencil');
+// the elbow's degrees under ELBOW LIVE, #slElbow (the owner, 2026-10-29, after the redraw's gaps — Pressure 2.5° under the tip's
+// touch: "gather all the settings for the drawing's tilt next to ELBOW LIVE · PENCIL, the slider green only for the elbow's degree")
+const ELBOW_SL = new Set(['touch', 'press', 'glide']);
+const slBox = key => ELBOW_SL.has(key) && $('#slElbow') || DRAG_SL.has(key) && $('#slDrag') || SHAPE_SL.has(key) && $('#slShape') || $('#slPencil');
 const slOf = key => slBox(key).querySelector(`input[data-k="${key}"]`);
 if (DACHE) {
-  for (const box of new Set(PENCIL_SL.map(([key]) => slBox(key)))) box.innerHTML = PENCIL_SL.filter(([key]) => slBox(key) === box).map(([key, label, step, min, max]) => `<label class="sl" title="${PENCIL_TITLE[key]}"><span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span><input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}"></label>`).join('');
+  // the elbow's three under ELBOW LIVE with its ▼ ▲ too, a step each (the owner, 2026-10-29: "duplicate ▼ ▲ on Pencil in at and Pressure —
+  // handy, and all in one style"); a div, not a label: a label's click would go on to its ▼
+  const nudge = (key, label, step) => [-1, 1].map(d => `<button class="btn" data-nudge="${key}" data-d="${d}" title="${label} ${step}° ${d < 0 ? 'lower' : 'higher'}${key === 'press' ? `: ${d < 0 ? 'more' : 'less'} pressure` : ''}">${d < 0 ? '▼' : '▲'}</button>`);
+  for (const box of new Set(PENCIL_SL.map(([key]) => slBox(key)))) box.innerHTML = PENCIL_SL.filter(([key]) => slBox(key) === box).map(([key, label, step, min, max]) => {
+    const head = `<span class="slh"><span>${label}</span><span class="val" data-v="${key}"></span></span>`, inp = `<input class="slider" type="range" data-k="${key}" min="${min}" max="${max}" step="${step}">`;
+    if (box.id !== 'slElbow') return `<label class="sl" title="${PENCIL_TITLE[key]}">${head}${inp}</label>`;
+    const [dn, up] = nudge(key, label, step);
+    return `<div class="sl" title="${PENCIL_TITLE[key]}">${head}<div class="slrow">${dn}${inp}${up}</div></div>`;
+  }).join('');
   PENCIL_SL.map(([key]) => slOf(key)).forEach(inp => {
     inp.oninput = () => { if (!busy) undoPush(); busy = true; S[inp.dataset.k] = LOG_SL.has(inp.dataset.k) ? 2 ** +inp.value : +inp.value; if (OPMP && inp.dataset.k === 'rubsDark') S.rubsLight = S.rubsDark; showPencils(); };   // OPM-P: one pencil, one Rubs
     inp.onchange = () => settle();
+  });
+  document.querySelectorAll('[data-nudge]').forEach(b => b.onclick = () => {
+    const key = b.dataset.nudge, [, , step, min, max] = PENCIL_SL.find(f => f[0] === key), v = Math.round(Math.max(min, Math.min(max, S[key] + step * b.dataset.d)) * 10) / 10;
+    if (v === S[key]) return;
+    undoPush(); S[key] = v; settle();
   });
   document.querySelectorAll('#hatchKeys [data-hatch]').forEach(b => b.onclick = () => { if (S.hatch === b.dataset.hatch) return; undoPush(); S.hatch = b.dataset.hatch; settle(); });
   document.querySelectorAll('#mixKeys [data-mix]').forEach(b => b.onclick = () => { const m = b.dataset.mix === '1'; if (S.mix === m) return; undoPush(); S.mix = m; settle(); });

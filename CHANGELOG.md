@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.3 — 2026-10-29
 
+- **The elbow's degrees under ELBOW LIVE** (the owner, 2026-10-29, after
+  the redraw's gaps — Pressure 2.5° under where the tip met the canvas:
+  "gather all the settings for the drawing's tilt next to ELBOW LIVE ·
+  PENCIL, the slider green only for the elbow's degree"). Pencil in at,
+  Pressure and Between strokes moved from Drawing machine to right under
+  it, plain sliders, on OPM, OPM-B, OPM-S, OPM-W, OPM-P and PRISMA.
+  Between strokes on OPM-P says the elbow it really goes to, PEN_AIR over
+  pressing when that is higher (it said Pencil in at + Between strokes).
+  The three with ELBOW LIVE's ▼ ▲, a step each ("handy, and all in one
+  style"); ELBOW LIVE's slider as thin as every slider, its knob with the
+  mark, only its groove green ("too wide"). OPM-P: ▶ Play Pencil before
+  ▶ Play Drag ("the pencil comes first").
 - **DRAW BW and FRAME: the debug of the pencil's downs** (the owner,
   2026-10-29, the redraw at 82 %: the pencil up over several rings, then
   drawing again — "before DRAW BW, a debug of the runner, looking for
