@@ -52,7 +52,7 @@
   <nav class="tools" aria-label="Tools">
     <!-- two columns (the owner, 2026-10-28: "in TOOLS, but in a second row"): the drawing tools; Align and the ground -->
     <div class="tcol">
-      <button class="tool" data-tool="edit" title="V — a click chooses a form, ⇧ and a click one more or one less, ⌘A every one; a chosen form's point dragged, every form's point there with it; a click on its border between two points a new point, dragged at once; ⌫ the chosen out, the ground there, or back in (V)">
+      <button class="tool" data-tool="edit" title="V — a click chooses a form, ⇧ and a click one more or one less, ⌘A every one; a chosen form's point dragged, every form's point there with it; the figure just drawn or pasted its box's handles, a drag in it moves it; ⌘C ⌘V a copy beside; ⌫ the chosen out, the ground there, or back in (V)">
         <svg viewBox="0 0 24 24"><path d="M5 3l13 8-6 1.5L9 19z"/></svg>
         <span>V</span>
       </button>
@@ -101,6 +101,34 @@
       <button class="tool" id="btnRedo" title="Redo (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12"/></svg></button>
       <div class="sep"></div>
       <button class="tool" id="btnClear" title="Clear the canvas: no forms — the photo as it lies, Auto forms makes them again (⌘Z brings them back)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+    </div>
+    <div class="tcol">
+      <!-- the pen, Illustrator's (the owner, 2026-10-30: "a full pen, the pen with + and the pen with −, as in Adobe Illustrator"; "the gentleman's set of vector drawing — a square, a circle, free drawing"): P draws, + and − a form's points in or out; R, L the shapes -->
+      <button class="tool" data-tool="pen" title="Pen — a click a point, the line after the pointer; a click on the first point, or ⏎, closes it — a new form on top, the forms under it less that piece; ⌫ the last point back, ⇧ at 45°. On a form's point a click lands on it (P). Then its box's eight handles stretch it, as R's and L's. ⌘Z takes it back">
+        <svg viewBox="0 0 24 24"><path d="M4 20l2.8-9.2 6.4-3.2 3.2 3.2-3.2 6.4z"/><path d="M4 20l5.2-5.2" class="thin"/><circle cx="10" cy="14" r="1.3" class="dot"/><path d="M14.4 6.4l3.2 3.2 2.4-2.4-3.2-3.2z"/></svg>
+        <span>P</span>
+      </button>
+      <button class="tool" data-tool="penAdd" title="Add Anchor Point — a click on a chosen form's border between two points puts a point there, dragged at once, in every form whose border it lies on (+). ⌘Z takes it back">
+        <svg viewBox="0 0 24 24"><path d="M4 20l2.8-9.2 6.4-3.2 3.2 3.2-3.2 6.4z"/><path d="M4 20l5.2-5.2" class="thin"/><circle cx="10" cy="14" r="1.3" class="dot"/><path d="M14.4 6.4l3.2 3.2 2.4-2.4-3.2-3.2z"/><path d="M16.5 18h5M19 15.5v5" class="bold"/></svg>
+        <span>+</span>
+      </button>
+      <button class="tool" data-tool="penDel" title="Delete Anchor Point — a click on a chosen form's point takes it out of every form that has it, the border straight on between its neighbours (−). ⌘Z brings it back">
+        <svg viewBox="0 0 24 24"><path d="M4 20l2.8-9.2 6.4-3.2 3.2 3.2-3.2 6.4z"/><path d="M4 20l5.2-5.2" class="thin"/><circle cx="10" cy="14" r="1.3" class="dot"/><path d="M14.4 6.4l3.2 3.2 2.4-2.4-3.2-3.2z"/><path d="M16.5 18h5" class="bold"/></svg>
+        <span>−</span>
+      </button>
+      <button class="tool" data-tool="shapeRect" title="Rectangle — drag on the canvas: a new form on top, the forms under it less that piece; ⇧ a square, ⌥ from the middle. Then its box's eight handles stretch it, ⇧ in proportion; with V a drag in it moves it (R). ⌘Z takes it back">
+        <svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="0.5"/></svg>
+        <span>R</span>
+      </button>
+      <button class="tool" data-tool="shapeOval" title="Ellipse — drag on the canvas: a new form on top, the forms under it less that piece — a headlight, a wheel; ⇧ a circle, ⌥ from the middle. Then its box's eight handles stretch it, ⇧ in proportion; with V a drag in it moves it (L). ⌘Z takes it back">
+        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="7"/></svg>
+        <span>L</span>
+      </button>
+      <!-- Free Transform, Illustrator's E (the owner, 2026-10-30: "free transform in the Tools, to drag and modify"; "copy-paste, ⌘C ⌘V") -->
+      <button class="tool" data-tool="transform" title="Free Transform — a click chooses a form (⇧ one more), the box round the chosen and what lies in their holes: its eight handles stretch them, ⇧ in proportion, a drag in them moves them; laid again on top, the place they leave out (⌫ brings it in). ⌘C ⌘V a copy beside, ⇧⌘V in place (E). ⌘Z takes it back">
+        <svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="0.5" class="thin"/><path d="M3.5 3.5h3v3h-3zM17.5 3.5h3v3h-3zM17.5 17.5h3v3h-3zM3.5 17.5h3v3h-3z"/><path d="M10 10l5 5M15 11.5V15h-3.5" class="bold"/></svg>
+        <span>E</span>
+      </button>
     </div>
     <div class="tcol">
       <!-- Align (the owner, 2026-10-28: "a primitive alignment to the centre, an even distance between three / two figures, in the TOOLS"): the figures chosen together (⇧ and a click, ⌘A), or else all of them; src/align.js -->

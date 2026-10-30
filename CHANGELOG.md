@@ -65,6 +65,51 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   evening: "you may push, and close it please; it will be private
   again"), after a day public. The others' works stay out of it and of its
   history, as before.
+- **FORM: + and −, a form's points in and out** (the owner, the same
+  evening, Screenshot 7.53.56 PM, a point pulled out too far: "how about
+  a ( − ) too, to take a point away? Only let us make a full pen, the pen
+  with + and the pen with −, as in Adobe Illustrator"): **+**, Add Anchor
+  Point, a click on a chosen form's border puts a point there, dragged at
+  once; **−**, Delete Anchor Point, a click on its point takes it out of
+  every form that has it, the border straight on — never a loop left under
+  three points, a note says so. Illustrator's keys and cursors, the nib
+  with + or −. V chooses and drags only again, as Illustrator's Direct
+  Selection.
+- **FORM: drawing — P the pen, R a rectangle, L an ellipse; the Tools in
+  three columns** (the owner, the same evening, his save of 20:05, the
+  wheels taken out: "simpler to draw them from scratch than an automatic
+  trace … the gentleman's set of vector drawing — a square, a circle, free
+  drawing: the pen chosen, a click on the canvas, a line follows, a click,
+  the points stay, and so you build a figure — a mirror, a door; the
+  spoiler at the back too"; "round headlights too … and they must have
+  points for free transform"; "three columns, there is plenty of room on
+  the left"). **P**: a click a point, the line after the pointer, a click
+  on the first point or ⏎ closes it, ⌫ the last point back, ⇧ at 45°, a
+  click near a form's point lands on it. **R**, **L**: dragged, ⇧ a square
+  or a circle, ⌥ from the middle, the corners on the half mm; an ellipse a
+  side every 10 mm, 12 … 64 (est.). The figure a new form on top, as
+  Illustrator's: every form under it less that piece, the borders shared
+  point for point (formplan.js's drawForms) — a tyre's circle, the wheel's
+  in it, a ring and a disc; its colour off the photo, chosen, its material
+  next. **Free transform**: while it is the last thing drawn, its box's
+  eight handles stretch it, ⇧ in proportion, and with V a drag in it moves
+  it, laid anew over the forms as they were before it, so what it leaves
+  comes back. The Tools in three columns: V and the rest as they were; P,
+  +, −, R, L; Align and the ground. ⌘Z takes any of it back.
+- **FORM: E, Free Transform; ⌘C ⌘V** (the owner, the same evening,
+  Screenshot 8.25.06 PM, the 911 with its two wheels drawn: "let us add
+  free transform to the Tools, to drag and modify. And the wheels are the
+  same — I would like copy-paste, cmd+C and cmd+V"). **E**: a click
+  chooses a form, ⇧ one more; the box round the chosen and what lies in
+  their holes — a tyre and its wheel — its eight handles stretch them, ⇧ in
+  proportion, a drag in them moves them; laid again on top
+  (formplan.js's layForms), every one its id, material, colour and
+  sausages, looking as it did (`transformForms`, its photo read through the
+  move); the place a form laid long ago leaves out, the ground there, ⌫
+  brings it in. **⌘C** the chosen forms and what lies in their holes;
+  **⌘V** a copy 20 mm beside, on top, chosen, the box on it — dragged to the
+  other wheel, what it covered on the way back again; **⇧⌘V** in place.
+  The copy kept in this browser too. ⌘Z takes it back.
 
 ## v.1.1.5 — 2026-10-30 · FORM
 

@@ -799,6 +799,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
   body.type:is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="form"]){grid-template-columns:108px minmax(0,1fr) 340px}
   :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="form"]) .tools{flex-direction:row;align-items:flex-start;justify-content:center;gap:4px}
   :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="form"]) .tools .tcol{display:flex;flex-direction:column;align-items:center;gap:6px}
+  body.type[data-tab="form"]{grid-template-columns:156px minmax(0,1fr) 340px}   /* FORM: three, the pen and the shapes in the middle (the owner, 2026-10-30: "three columns, there is plenty of room on the left") */
 }
 :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="form"]) .gk[data-bg=white]{background:#FBFAF7}
 :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="form"]) .gk[data-bg=black]{background:#161514}
