@@ -3,6 +3,21 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.1.6 — 2026-10-30
+
+- **The hand: the space held, the view dragged; FORM's turned board kept
+  in the middle at a zoom** (the owner, the same evening, Screenshot
+  9.03.37 PM, the 911 turned at 187 %: "can the screen be fixed at a zoom?
+  it goes down somewhere, maybe because I turn it"; "it would be handy to
+  drag the picture with the space held: space, a paw appears, a click on
+  the picture and move it, zoomed in, to the corner you need"). The turned
+  board, taller than the stage before its turn, was laid from the stage's
+  top, its middle lower by half the difference: now put back on the
+  stage's. The space held: the hand, Illustrator's — a drag moves the view,
+  no tool touched; the space never presses a button with the focus (DRAG
+  and DRAW among them). On every tab of INKA's page. The trackpad's scroll
+  and pinch on FORM's turned board go the way the fingers go.
+
 ## v.1.1.6 — 2026-10-30 · Drawing
 
 - **v.1.1.6 after the name, Drawing** (the owner, 2026-10-30, the

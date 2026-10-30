@@ -410,6 +410,7 @@ const toCanvas = e => {
   return [px / k + V.y0, py / k - V.x1];
 };
 const toMm = e => { const c = toCanvas(e); return [c[0] + S.boardW / 2, S.boardH / 2 - c[1]]; };
+const unturn = (dx, dy) => { if (!FORM || !S.turn) return [dx, dy]; const a = -S.turn * Math.PI / 180; return [dx * Math.cos(a) - dy * Math.sin(a), dx * Math.sin(a) + dy * Math.cos(a)]; };   // a move on the screen, on the board turned
 const inMm = c => { c.setTransform(k * dpr, 0, 0, -k * dpr, (-S.boardW / 2 - V.y0) * k * dpr, (V.x1 + S.boardH / 2) * k * dpr); return c; };
 const ZOOMS = [0.5, 0.75, 1, 1.5, 2, 3, 4, 6, 8];
 let Z = 1, ZC = null;
@@ -427,7 +428,10 @@ function layout() {
   const cx = hh >= sh - 1e-6 ? mid.x : Math.max(F.x0 + hh / 2, Math.min(F.x1 - hh / 2, c.x));
   if (ZC) ZC = { x: cx, y: cy };
   V = { y0: cy - ww / 2, y1: cy + ww / 2, x0: cx - hh / 2, x1: cx + hh / 2 };
-  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.transform = FORM && S.turn ? `rotate(${S.turn}deg)` : ''; board.style.marginLeft = stripW + 'px'; board.style.marginBottom = stripH + 'px';
+  // FORM's board turned and zoomed in: taller (or wider) than the stage before its turn, the grid lays it from the top — its middle
+  // put back on the stage's (the owner, 2026-10-30, Screenshot 9.03.37 PM: "can the screen be fixed at a zoom? it goes down somewhere")
+  const dx = rot && w + stripW > r.width ? (r.width - stripW - w) / 2 : 0, dy = rot && h + stripH > r.height ? (r.height - stripH - h) / 2 : 0;
+  board.style.width = w + 'px'; board.style.height = h + 'px'; board.style.transform = FORM && S.turn ? `translate(${dx}px, ${dy}px) rotate(${S.turn}deg)` : ''; board.style.marginLeft = stripW + 'px'; board.style.marginBottom = stripH + 'px';
   cv.style.width = w + 'px'; cv.style.height = h + 'px'; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   draw();
 }
@@ -1080,6 +1084,7 @@ cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') $('#sp
 cv.addEventListener('pointerdown', e => {
   if (e.pointerType !== 'mouse') showTip(e);
   if (e.button !== 0) return;
+  if (pan('down', e)) return;                                                       // the space held: the hand
   if (FORM && formPointer('down', e)) return;                                       // FORM: V a form, its points; K the knife
   if (PLAY) { stopPlay(); kick(); }
   if (PPLAY) { stopPencilPlay(); kick(); }
@@ -1118,6 +1123,7 @@ cv.addEventListener('pointerdown', e => {
   cv.setPointerCapture(e.pointerId); showRects(); kick();
 });
 cv.addEventListener('pointermove', e => {
+  if (pan('move', e)) return;
   if (FORM && formPointer('move', e)) return;
   if (!grab) {
     const hd = S.tool === 'paint' ? null : nearHandle(e);
@@ -1155,6 +1161,7 @@ cv.addEventListener('pointermove', e => {
   kick();
 });
 const drop = e => {
+  if (pan('up', e)) return;
   if (FORM && formPointer('up', e)) return;
   if (!grab) return;
   const was = grab; grab = null;
@@ -1348,7 +1355,7 @@ function zoomTo(z, e) {
   if (Math.abs(z - 1) < 1e-6) { Z = 1; ZC = null; layout(); showZoom(); return; }
   const at = e ? toCanvas(e) : null, r = cv.getBoundingClientRect();
   if (at) {
-    const kz = kFit * z, ox = e.clientX - r.left - r.width / 2, oy = e.clientY - r.top - r.height / 2;
+    const kz = kFit * z, [ox, oy] = unturn(e.clientX - r.left - r.width / 2, e.clientY - r.top - r.height / 2);
     ZC = { y: at[0] - ox / kz, x: -at[1] + oy / kz };
   } else ZC = ZC || { x: (V.x0 + V.x1) / 2, y: (V.y0 + V.y1) / 2 };
   Z = z; layout(); showZoom();
@@ -1365,9 +1372,23 @@ cv.addEventListener('wheel', e => {
   e.preventDefault();
   if (e.ctrlKey) { zoomTo(Z * Math.exp(-e.deltaY * 0.01), e); return; }
   if (Z <= 1) return;
-  const c = ZC || { x: (V.x0 + V.x1) / 2, y: (V.y0 + V.y1) / 2 };
-  ZC = { x: c.x - e.deltaY / k, y: c.y + e.deltaX / k }; layout();
+  const c = ZC || { x: (V.x0 + V.x1) / 2, y: (V.y0 + V.y1) / 2 }, [ddx, ddy] = unturn(e.deltaX, e.deltaY);
+  ZC = { x: c.x - ddy / k, y: c.y + ddx / k }; layout();
 }, { passive: false });
+// The hand (the owner, 2026-10-30: "drag the picture with the space held: space, a paw, a click on the picture and move it, zoomed in,
+// to the corner you need"): space held, the board's view dragged by the pointer; the space never presses a button with the focus
+// (DRAG, DRAW among them)
+let SPACE = false, PAN = null;
+const typing = t => t?.matches?.('input,textarea,select,[contenteditable]');
+addEventListener('keydown', e => { if (e.code !== 'Space' || typing(e.target)) return; e.preventDefault(); if (!SPACE) { SPACE = true; if (!PAN) cv.style.cursor = 'grab'; } }, true);
+addEventListener('keyup', e => { if (e.code !== 'Space' || typing(e.target)) return; e.preventDefault(); SPACE = false; if (!PAN) cv.style.cursor = ''; }, true);
+addEventListener('blur', () => { SPACE = false; });
+function pan(type, e) {
+  if (type === 'down') { if (!SPACE) return false; PAN = { x: e.clientX, y: e.clientY, c: ZC || { x: (V.x0 + V.x1) / 2, y: (V.y0 + V.y1) / 2 } }; cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing'; return true; }
+  if (type === 'move') { if (!PAN) { if (SPACE) cv.style.cursor = 'grab'; return SPACE; } if (Z <= 1) return true; const [dx, dy] = unturn(e.clientX - PAN.x, e.clientY - PAN.y); ZC = { x: PAN.c.x + dy / k, y: PAN.c.y - dx / k }; layout(); return true; }
+  if (!PAN) return false;
+  PAN = null; cv.style.cursor = SPACE ? 'grab' : ''; return true;
+}
 addEventListener('keydown', e => {
   if (!(e.metaKey || e.ctrlKey) || e.target.matches('input,textarea')) return;
   if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomStep(true); }
