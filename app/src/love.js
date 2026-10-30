@@ -785,14 +785,14 @@ const used = () => [...new Set((paintNow()?.segs || []).flatMap(s => s.marks.map
 const label = () => `LOVE · ${textLabel() || 'no text'} · ${S.boardW} × ${S.boardH} mm · ${used().length} paints${S.ink ? ' · ink' : ''}`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
-  const meta = JSON.stringify({ rembrandt: '1.1.6', love: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.7', love: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const pts = q => q.map(p => `${f(W / 2 + p[0])},${f(H / 2 + p[1])}`).join(' ');
   const lines = (plan().trace || []).map(t => `  <polyline points="${pts(t.pts)}"/>`).join('\n');
   const L = paintNow(), marks = (L?.segs || []).flatMap(q => markPaths(q, L.R, S.width).map(m => `  <polyline points="${pts(m.pts)}" stroke="${hexOf(m.paint)}" data-paint="${m.paint + 1}"${m.tick ? ' data-tick="1"' : ''}/>`)).join('\n');
   const paints = S.paints.map((q, i) => `${i + 1} ${q.hex}`).join(' · ');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.6 · ${esc(label())}; 1 unit = 1 mm; TRACE, each outline with its lap -->
+<!-- Rembrandt v.1.1.7 · ${esc(label())}; 1 unit = 1 mm; TRACE, each outline with its lap -->
 <desc>Paints in stock: ${esc(paints)}</desc>
 <metadata id="rembrandt-test">${meta}</metadata>
 ${S.ground === 'gradient' ? `<defs><linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.groundTop}"/><stop offset="1" stop-color="${S.groundBottom}"/></linearGradient></defs>\n` : ''}<rect width="${W}" height="${H}" fill="${S.ground === 'gradient' ? 'url(#ground)' : S.ground === 'black' ? BLACK : '#FCFBF8'}" stroke="#24221F" stroke-width="0.5"/>

@@ -3,8 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.1.6 — 2026-10-30
+## v.1.1.7 — 2026-10-30 · Tools
 
+- **v.1.1.7 after the name, Tools** (the owner, 2026-10-30, the evening:
+  "a commit after the fixes and a push as v.1.1.7, with a little
+  explanation about the tools"), on every tab and in the saved SVGs
+  (`rembrandt: '1.1.7'` in their metadata).
 - **FORM: four things from Claude's own drawing** (the owner, the same
   evening, having asked Claude to draw on an empty FORM — "you love vector
   … and tell me your experience after"; the teal coupé, Library 21:34; on
