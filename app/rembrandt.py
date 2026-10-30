@@ -366,7 +366,7 @@ TRIM_MAX = 6
 # next, the old one out, the elbow down to its pose. The brush, every other
 # J: as before, it gets there or the run stops.
 REST_MAX = 10
-PENCIL_PAGES = ("dache", "prisma", "opm", "opmb", "opms", "opmw", "opmp")   # OPM-B, OPM-S and OPM-W OPM's too (2026-10-28); OPM-P's FRAME and DRAW BW (2026-10-29)
+PENCIL_PAGES = ("dache", "prisma", "opm", "opmb", "opms", "opmw", "opmp", "form")   # OPM-B, OPM-S and OPM-W OPM's too (2026-10-28); OPM-P's FRAME and DRAW BW (2026-10-29); FORM's, OPM-P's (2026-10-30)
 # A wait block's longest: the brush in the cup's paint for a second (the
 # owner, 2026-10-03: "1 second is perfect"); ten at most.
 WAIT_MAX_S = 10

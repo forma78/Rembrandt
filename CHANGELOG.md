@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.4 — 2026-10-30
 
+- **rembrandt.py: FORM among the pencil pages** (the owner, 2026-10-30:
+  "yes, add it please, and it can be pushed"): FORM's FRAME and DRAW BW as
+  OPM-P's — a pencil's elbow may rest on the paper there.
 - **FORM, a new tab after OPM-P: figurative painting** (the owner,
   2026-10-30: "a new tab FORM on the basis of our flagship, the leading tab
   OPM-P … let us go over to figurative painting and try to make the little
