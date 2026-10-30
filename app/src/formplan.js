@@ -92,7 +92,7 @@ const readOf = (img, F) => !img || !F ? img : F.parts?.length ? { ...img, tf: (x
 export const ID_READ = [1, 0, 0, 1, 0, 0];
 // a form's read after it moved by d, or after a point q of it went to Hq + r: the photo where it came from
 export const readMoved = (m0, d) => { const m = m0 ?? ID_READ; return [m[0], m[1], m[2], m[3], m[4] - (m[0] * d[0] + m[1] * d[1]), m[5] - (m[2] * d[0] + m[3] * d[1])]; };
-const readThrough = (m0, H, r, m = m0 ?? ID_READ) => [m[0] * H[0] + m[1] * H[2], m[0] * H[1] + m[1] * H[3], m[2] * H[0] + m[3] * H[2], m[2] * H[1] + m[3] * H[3], m[0] * r[0] + m[1] * r[1] + m[4], m[2] * r[0] + m[3] * r[1] + m[5]];
+export const readThrough = (m0, H, r, m = m0 ?? ID_READ) => [m[0] * H[0] + m[1] * H[2], m[0] * H[1] + m[1] * H[3], m[2] * H[0] + m[3] * H[2], m[2] * H[1] + m[3] * H[3], m[0] * r[0] + m[1] * r[1] + m[4], m[2] * r[0] + m[3] * r[1] + m[5]];
 function pix(img, x, y, acc) {
   if (img.tf) { const q = img.tf(x, y); x = q[0]; y = q[1]; }                       // a moved or a mirrored form: where the photo had it
   const ix = Math.floor(x / img.h), iy = Math.floor(y / img.h);
@@ -399,6 +399,105 @@ export function cutForms(forms, a, b, only = () => true) {
     return [p, ...ins];
   })) }));
 }
+
+// ---------- a form drawn ----------
+// A form drawn by hand (the owner, 2026-10-30, the evening, the wheels taken out: "simpler to draw them from scratch than an
+// automatic trace"; "the gentleman's set of vector drawing — a square, a circle, free drawing … a mirror, a door; the spoiler at
+// the back too"): the new form on top, as Illustrator's — every form under it loses that piece, its border the new one's, point
+// for point; a tyre's circle, then the wheel's in it, a ring and a disc.
+// a point just inside a loop, on the left of its longest edge
+export function inside(Q) {
+  let k = 0, best = -1;
+  Q.forEach((p, i) => { const l = len(sub(Q[(i + 1) % Q.length], p)); if (l > best) { best = l; k = i; } });
+  const a = Q[k], b = Q[(k + 1) % Q.length];
+  return add(mul(add(a, b), 0.5), mul(left(unit(sub(b, a))), Math.min(1e-3, best / 100)));
+}
+// F less the loop P (anticlockwise): every crossing of their borders a point of both, P's stretches inside F cuts, the pieces
+// inside P off → { forms: F's pieces (none, P over all of it; F, P missing it), points: the crossings }
+export function subtractForm(F, P) {
+  const snap = snapper(), hits = [];
+  P.forEach((a, pi) => {
+    const b = P[(pi + 1) % P.length], ab = sub(b, a);
+    F.loops.forEach((L, li) => L.forEach((p, i) => {
+      const q = L[(i + 1) % L.length], e = sub(q, p), den = cross(ab, e);
+      if (Math.abs(den) < 1e-12) return;
+      const t = cross(sub(p, a), e) / den, u = cross(sub(p, a), ab) / den;
+      if (t < -1e-9 || t > 1 + 1e-9 || u < -1e-9 || u > 1 + 1e-9) return;
+      hits.push({ pi, t, li, i, u, X: snap(u <= 1e-9 ? p : u >= 1 - 1e-9 ? q : t <= 1e-9 ? a : t >= 1 - 1e-9 ? b : add(p, mul(e, u))) });
+    }));
+  });
+  const thread = (L, on, at) => L.flatMap((p, i) => [snap(p), ...hits.filter(h => on(h, i) && at(h) > 1e-9 && at(h) < 1 - 1e-9).sort((x, y) => at(x) - at(y)).map(h => h.X)]).filter((p, i, A) => p !== A[(i + 1) % A.length]);
+  const loops = F.loops.map((L, li) => thread(L, (h, i) => h.li === li && h.i === i, h => h.u)), Pl = thread(P, (h, i) => h.pi === i, h => h.t);
+  const E = [], mine = new Set(), ek = (a, b) => `${keyOf(a)}>${keyOf(b)}`;
+  for (const L of loops) L.forEach((p, i) => { const q = L[(i + 1) % L.length]; E.push({ a: p, b: q }); mine.add(ek(p, q)); });
+  let cuts = 0;
+  Pl.forEach((p, i) => { const q = Pl[(i + 1) % Pl.length]; if (mine.has(ek(p, q)) || mine.has(ek(q, p)) || !inForm(F, mul(add(p, q), 0.5))) return; E.push({ a: p, b: q }, { a: q, b: p }); cuts++; });
+  if (!cuts) return { forms: inPoly(P, inside(F.loops[0])) ? [] : [F], points: [] };
+  const out = new Map(); for (const e of E) (out.get(e.a) ?? out.set(e.a, []).get(e.a)).push(e);
+  const used = new Set(), faces = [];
+  for (const e0 of E) {                                                               // the faces, every one on the left of its edges
+    if (used.has(e0)) continue;
+    const Q = [];
+    for (let e = e0, guard = 0; e && !used.has(e) && guard < 1e5; guard++) {
+      used.add(e); Q.push(e.a);
+      const d = unit(sub(e.b, e.a)), opts = (out.get(e.b) ?? []).filter(f => !used.has(f) && (f.b !== e.a || (out.get(e.b) ?? []).length === 1));
+      const turn = f => { const v = unit(sub(f.b, f.a)); return Math.atan2(cross(d, v), dot(d, v)); };
+      e = opts.length ? opts.reduce((x, y) => turn(y) > turn(x) ? y : x) : null;
+    }
+    if (Q.length >= 3 && Math.abs(areaOf(Q)) > 1e-6 && !inPoly(P, inside(Q))) faces.push(Q);
+  }
+  const outs = faces.filter(Q => areaOf(Q) > 0), holes = faces.filter(Q => areaOf(Q) < 0);
+  const forms = outs.map(O => { const hs = holes.filter(Hh => inPoly(O, inside(Hh))); return { ...F, loops: [O, ...hs], area: areaOf(O) + hs.reduce((s, Hh) => s + areaOf(Hh), 0) }; });
+  return { forms, points: [...new Set(hits.map(h => h.X))] };
+}
+// points put into every loop's edges they lie on
+const withPoints = (L, pts) => L.flatMap((p, i) => {
+  const q = L[(i + 1) % L.length], e = sub(q, p), L2 = dot(e, e);
+  if (L2 < 1e-12) return [p];
+  return [p, ...pts.filter(X => { const u = dot(sub(X, p), e) / L2; return u > 1e-9 && u < 1 - 1e-9 && Math.abs(cross(e, sub(X, p))) / Math.sqrt(L2) < HAIR; }).sort((x, y) => dot(sub(x, p), e) - dot(sub(y, p), e))];
+});
+// The loop P drawn over the forms: every one under it less that piece, a piece apart a form of its own (new ids from o.next on),
+// the crossings into every border they lie on; then P a form, on top → { forms, id: the new form's, next }. o: its pencil, its material
+export function drawForms(forms, P0, o = {}) {
+  const P = areaOf(P0) < 0 ? P0.slice().reverse() : P0.slice();
+  let next = o.next ?? Math.max(-1, ...forms.map(F => F.id)) + 1;
+  const res = [], pts = [];
+  for (const F of forms) {
+    const { forms: parts, points } = subtractForm(F, P);
+    pts.push(...points);
+    if (parts.length === 1 && parts[0] === F) { res.push(F); continue; }
+    parts.sort((x, y) => y.area - x.area).forEach((Q, k) => res.push(k ? { ...Q, id: next++ } : Q));
+  }
+  const all = res.map(F => pts.length ? { ...F, loops: F.loops.map(L => withPoints(L, pts)) } : F), loop = withPoints(P, pts);
+  const N = { id: next, pencil: o.pencil ?? null, loops: [loop], area: areaOf(loop), bg: false, material: o.material ?? 'metal', read: null };
+  return { forms: [...all, N], id: N.id, next: next + 1 };
+}
+// Forms laid on top of the forms `before` — a paste, a free transform (the owner, 2026-10-30: "the wheels are the same: copy-paste,
+// ⌘C ⌘V"; "free transform in the Tools, to drag and modify"): the outermost first, a tyre before the wheel in its hole, every one
+// its outline drawn over them (drawForms), its holes cut out of it after; every one its id, material, colour, sausages and the
+// way it reads the photo kept → the forms
+export function layForms(before, Fs) {
+  let forms = before, next = Math.max(-1, ...before.map(F => F.id), ...Fs.map(F => F.id)) + 1;
+  for (const F of Fs.slice().sort((a, b) => Math.abs(areaOf(b.loops[0])) - Math.abs(areaOf(a.loops[0])))) {
+    const r = drawForms(forms, F.loops[0], { next });
+    next = r.next;
+    let laid = r.forms.filter(X => X.id === r.id);
+    for (const Hh of F.loops.slice(1)) laid = laid.flatMap(X => subtractForm(X, areaOf(Hh) < 0 ? Hh.slice().reverse() : Hh).forms);
+    forms = [...r.forms.filter(X => X.id !== r.id), ...laid.map((X, k) => ({ ...F, loops: X.loops, area: X.area, id: k ? next++ : F.id }))];
+  }
+  return forms;
+}
+// forms moved and stretched: x' = sx·x + tx, y' = sy·y + ty; carry: reading the photo where they came from (a paste, a transform), else
+// where they lie now (a figure just drawn, traced)
+export function transformForms(Fs, T, carry = true) {
+  const f = q => [T.sx * q[0] + T.tx, T.sy * q[1] + T.ty], flip = T.sx * T.sy < 0, H = [1 / T.sx, 0, 0, 1 / T.sy], r = [-T.tx / T.sx, -T.ty / T.sy];
+  const loop = L => { const M = L.map(f); return flip ? M.reverse() : M; };
+  return Fs.map(F => ({ ...F, loops: F.loops.map(loop), ...(carry ? { read: readThrough(F.read, H, r) } : {}),
+    ...(F.parts?.length ? { parts: F.parts.map(q => ({ loop: loop(q.loop), read: carry ? readThrough(q.read, H, r) : q.read })) } : {}),
+    ...(Array.isArray(F.ss) ? { ss: F.ss.map(q => ({ ...q, a: f(q.a), b: f(q.b) })) } : {}) }));
+}
+// a loop's colour off the photo: the nearest of the pencils to its mean, or null
+export function pencilIn(img, P, pencils) { const m = img ? meanOf(img, P) : null; return m ? nearestOf(pencils, -Infinity)(m) : null; }
 
 // Reflect (the owner, 2026-10-30, the car's front, its right mirror lost, Screenshot 1.16.15 PM: "a new tool, mirror — then the
 // left part is simply mirrored; that is, the knife and the mirrored copy"): every form cut along the axis through a and b,

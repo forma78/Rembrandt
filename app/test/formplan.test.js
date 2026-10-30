@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { autoForms, formCellsOf, formPlan } from '../src/formplan.js';
+import { autoForms, formCellsOf, formPlan, drawForms, layForms, transformForms } from '../src/formplan.js';
 import { cleanPencils } from '../src/dacheplan.js';
 import { PRISMA_PENCILS } from '../src/prismaplan.js';
 
@@ -53,6 +53,51 @@ test('FORM rings: a border crossing itself still its cells — a slip past a nei
   const bow = formCellsOf([{ id: 0, loops: [[[0, 0], [40, 40], [40, 0], [0, 40]]] }], { pitch: 6 });
   assert.ok(bow.regions[0].ok);
   assert.ok(Math.abs(bow.cells.reduce((s, c) => s + c.area, 0) - 800) < 1e-6);
+});
+
+test('FORM drawn: a new form on top, the forms under it less that piece, their borders its own point for point (the owner: "a square, a circle, free drawing")', () => {
+  const F = { id: 0, loops: [R(0, 0, 100, 100)] }, G = { id: 1, loops: [[[100, 0], [200, 0], [200, 100], [100, 100]]] };
+  // inside one: a hole in it
+  const a = drawForms([F, G], R(20, 20, 40, 40));
+  assert.equal(a.forms.length, 3); assert.equal(a.id, 2);
+  assert.equal(a.forms[0].loops.length, 2); assert.ok(Math.abs(a.forms[0].area - (10000 - 1600)) < 1e-6);
+  assert.ok(Math.abs(a.forms[2].area - 1600) < 1e-6);
+  // across the border of two and past their top: both less their piece, the crossings in all three
+  const b = drawForms([F, G], R(80, 60, 40, 60));
+  const [F2, G2, N] = b.forms;
+  assert.ok(Math.abs(F2.area - (10000 - 20 * 40)) < 1e-6, `${F2.area}`); assert.ok(Math.abs(G2.area - (10000 - 20 * 40)) < 1e-6);
+  const has = (X, q) => X.loops.some(L => L.some(p => Math.abs(p[0] - q[0]) < 1e-9 && Math.abs(p[1] - q[1]) < 1e-9));
+  for (const q of [[100, 60], [80, 100], [120, 100]]) assert.ok(has(N, q) && (q[0] > 100 ? has(G2, q) : has(F2, q)), `${q}`);
+  assert.ok(has(G2, [100, 60]) && !has(F2, [100, 100]) && !has(G2, [100, 100]), 'the corner under it gone');
+  const { regions, cells } = formCellsOf(b.forms, { pitch: 6 });
+  assert.ok(regions.every(r => r.ok));
+  assert.ok(Math.abs(cells.reduce((s, c) => s + c.area, 0) - (20000 - 1600 + 2400)) < 1e-3, 'every piece painted once');
+  // a tyre, then the wheel in it: a ring and a disc
+  const circle = (c, r, n = 24) => Array.from({ length: n }, (_, i) => [c[0] + r * Math.cos(2 * Math.PI * i / n), c[1] + r * Math.sin(2 * Math.PI * i / n)]);
+  const t = drawForms([], circle([300, 300], 60)), w = drawForms(t.forms, circle([300, 300], 35));
+  const tyre = w.forms.find(X => X.id === t.id), wheel = w.forms.find(X => X.id === w.id);
+  assert.equal(tyre.loops.length, 2); assert.ok(tyre.area > 0 && wheel.area > 0);
+  assert.ok(Math.abs(tyre.area + wheel.area - area(circle([300, 300], 60))) < 1e-6);
+  // over all of a form: gone
+  assert.equal(drawForms([F], R(-10, -10, 120, 120)).forms.length, 1);
+});
+
+test('FORM paste and free transform: a tyre and its wheel laid again elsewhere, the ring and the disc, their ids and looks kept (the owner: "the wheels are the same: copy-paste")', () => {
+  const circle = (c, r, n = 24) => Array.from({ length: n }, (_, i) => [c[0] + r * Math.cos(2 * Math.PI * i / n), c[1] + r * Math.sin(2 * Math.PI * i / n)]);
+  const body = { id: 0, loops: [R(0, 0, 400, 120)], material: 'metal' };
+  const t = drawForms([body], circle([100, 60], 50)), w = drawForms(t.forms, circle([100, 60], 30));
+  const wheel = w.forms.filter(F => F.id === t.id || F.id === w.id).map(F => ({ ...F, material: F.id === t.id ? 'rubber' : 'metal' }));
+  const copy = transformForms(wheel, { sx: 1, sy: 1, tx: 200, ty: 0 }).map((F, i) => ({ ...F, id: 10 + i }));
+  const out = layForms(w.forms, copy), tyre2 = out.find(F => F.id === 10), disc2 = out.find(F => F.id === 11), body2 = out.find(F => F.id === 0);
+  assert.equal(tyre2.loops.length, 2, 'the tyre a ring'); assert.equal(tyre2.material, 'rubber');
+  assert.ok(Math.abs(tyre2.area - wheel[0].area) < 1e-6 && Math.abs(disc2.area - wheel[1].area) < 1e-6);
+  assert.deepEqual(tyre2.read, [1, 0, 0, 1, -200, 0], 'reading the photo where it came from');
+  assert.ok(Math.abs(body2.area - (48000 - area(circle([100, 60], 50)) - area(circle([300, 60], 50)))) < 1e-6, 'the body less both wheels');
+  const { regions, cells } = formCellsOf(out, { pitch: 6 });
+  assert.ok(regions.every(r => r.ok)); assert.ok(Math.abs(cells.reduce((s, c) => s + c.area, 0) - 48000) < 1e-3, 'the canvas painted once');
+  // stretched twice as wide about the origin, mirrored: still a ring and a disc
+  const big = layForms([], transformForms(wheel, { sx: -2, sy: 1, tx: 0, ty: 0 }));
+  assert.equal(big.find(F => F.id === t.id).loops.length, 2); assert.ok(Math.abs(big.reduce((s, F) => s + F.area, 0) - 2 * area(circle([100, 60], 50))) < 1e-6);
 });
 
 // a photo: its left half red, its right half blue, a small green speck in the red
