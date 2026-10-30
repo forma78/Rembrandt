@@ -61,6 +61,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   five forms of his save of 19:17 left empty all painted. And the cells'
   colours, by the photo or by the Preview, read from a keep again (lost in
   a comment when Bricks went).
+- **Rembrandt private on GitHub again** (the owner, 2026-10-30, the
+  evening: "you may push, and close it please; it will be private
+  again"), after a day public. The others' works stay out of it and of its
+  history, as before.
 
 ## v.1.1.5 — 2026-10-30 · FORM
 

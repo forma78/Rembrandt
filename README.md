@@ -122,7 +122,9 @@ the USB board: close RUBENS (port 8766) first.
   `rembrandt.py`, the contract with the firmware.
 - **Small commits**, one change each, with a line in `CHANGELOG.md`.
   An owner decision is recorded with its date and his words, in English.
-- **Rembrandt is public on GitHub** since 2026-10-29 (the owner: "open it,
+- **Rembrandt is private on GitHub** again since 2026-10-30, the evening
+  (the owner: "you may push, and close it please; it will be private
+  again"); public from 2026-10-29 (the owner: "open it,
   please, for a minute, I want to show it to Kuzya"), and the works of
   other artists are out of it and of its history ("maybe just delete the
   others' works? keep ours and the photos of the machine"), INKA/ too ("do
