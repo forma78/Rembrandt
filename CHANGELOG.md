@@ -3,8 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.1.3 — 2026-10-29
+## v.1.1.4 — 2026-10-30 · Elbow live
 
+- **v.1.1.4 after the name** (the owner, 2026-10-30: "commit v.1.1.4 and
+  write a couple of lines on GitHub about ELBOW LIVE. Yes, you may push"),
+  on every tab and in the saved SVGs (`rembrandt: '1.1.4'` in their
+  metadata): everything below, after v.1.1.3 on 2026-10-29.
 - **The elbow's degrees under ELBOW LIVE** (the owner, 2026-10-29, after
   the redraw's gaps — Pressure 2.5° under where the tip met the canvas:
   "gather all the settings for the drawing's tilt next to ELBOW LIVE ·

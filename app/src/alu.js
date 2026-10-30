@@ -1025,13 +1025,13 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 const label = () => `${TAB_NAME} · ${CUT ? '' : `${S.seed === 'paper' ? 'the paper test' : `composition ${S.seed}`} · `}${S.pipes.length} pipe${S.pipes.length === 1 ? '' : 's'} · ${S.boardW} × ${S.boardH} mm · ${planNow().nums.length} paints${S.ink ? ' · ink' : ''}`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
-  const meta = JSON.stringify({ rembrandt: '1.1.3', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.4', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const pts = q => q.map(p => `${f(p[0])},${f(p[1])}`).join(' ');
   const lines = (plan().trace || []).map(t => `  <polyline points="${pts(t.pts)}"/>`).join('\n');
   const marks = P.sessions.flatMap(s => s.marks).map(m => `  <polyline points="${pts(m.pts)}" stroke="${HEX[m.paint]}" data-paint="${paintNo(m.paint)}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.3 · ${esc(label())}; 1 unit = 1 mm; TRACE, each outline with its lap -->
+<!-- Rembrandt v.1.1.4 · ${esc(label())}; 1 unit = 1 mm; TRACE, each outline with its lap -->
 <desc>Paints: ${esc(P.nums.map((q, i) => `${i + 1} ${NAME[q]} ${HEX[q]}`).join(' · '))}</desc>
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${GROUND[S.ground]}" stroke="#24221F" stroke-width="0.5"/>

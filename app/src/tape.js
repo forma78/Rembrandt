@@ -876,7 +876,7 @@ function walls(P_) {
 const label = () => `${TAB_NAME} · ${PL?.K ?? 0} lanes · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, G = planNow(), f = v => (Math.round(v * 100) / 100).toString(), cb = G.cb;
-  const meta = JSON.stringify({ rembrandt: '1.1.3', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.4', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   let cass = '';
   if (CASS) {
     const doc = new DOMParser().parseFromString(CASS.text, 'image/svg+xml'), root = doc.documentElement;
@@ -888,7 +888,7 @@ function svgOf() {
   const segs = G.segs.map((sg, i) => `<path id="seg-${String(i + 1).padStart(3, '0')}" d="${pathD(piecesOf(G, sg.i0, sg.i1))}"/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="${f(-W / 2)} ${f(-H / 2)} ${W} ${H}">
-<!-- Rembrandt v.1.1.3 · ${esc(label())}; 1 unit = 1 mm from the canvas's centre, y down -->
+<!-- Rembrandt v.1.1.4 · ${esc(label())}; 1 unit = 1 mm from the canvas's centre, y down -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect id="canvas" x="${f(-W / 2)}" y="${f(-H / 2)}" width="${W}" height="${H}" fill="${S.ground}" stroke="#24221F" stroke-width="0.5"/>
 <g id="cassette">${BASF ? '' : cass}</g>
