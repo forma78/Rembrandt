@@ -43,6 +43,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   left its number on the panel as it was, the plan unchanged; the panel
   now drawn anew after every change. A slider let go gives ⌘Z back to the
   page.
+- **FORM: a border crossing itself painted all the same** (the owner, the
+  same evening, Screenshot 7.17.25 PM: the window's glass left empty,
+  meta 1 · 2 and the sausages by hand dead on it). A point dragged a third
+  of a mm past a neighbour's edge — the hand's half-mm grid — crossed the
+  glass's border with itself; its rings never closed, so it had no cells,
+  no spokes and no sausages. The plan now cuts such a loop at its
+  crossings: the slip's hair (under 1 mm, est.) off, a bow-tie's both
+  lobes painted, as the board shows them; the form as kept untouched. The
+  five forms of his save of 19:17 left empty all painted. And the cells'
+  colours, by the photo or by the Preview, read from a keep again (lost in
+  a comment when Bricks went).
 
 ## v.1.1.5 — 2026-10-30 · FORM
 

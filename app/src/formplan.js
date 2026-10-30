@@ -428,12 +428,36 @@ function cleanLoop(P0) {
   }
   return P;
 }
+// A loop crossing itself (the owner, 2026-10-30, the window's glass left empty, meta and M dead on it: a point dragged a third
+// of a mm past a neighbour's edge, the hand's half mm, Screenshot 7.17.25 PM): cut at every crossing into loops that do not,
+// every one turned the loop's way — the board fills it even-odd, so a bow-tie's both lobes — a hair thinner than TANGLE_W on
+// average off. The form as kept untouched: the plan only. sign: +1 the outline, −1 a hole
+const TANGLE_W = 1;                 // mm, a piece of a crossed loop so thin on average at least kept, the overshoot of a slip off (est.)
+function untangled(P, sign) {
+  const split = Q => {
+    const n = Q.length;
+    for (let i = 0; i < n; i++) for (let j = i + 2; j < n; j++) {
+      if (i === 0 && j === n - 1) continue;                                           // neighbours
+      const a = Q[i], r = sub(Q[i + 1], a), c = Q[j], s = sub(Q[(j + 1) % n], c), den = cross(r, s);
+      if (Math.abs(den) < 1e-12) continue;
+      const t = cross(sub(c, a), s) / den, u = cross(sub(c, a), r) / den;
+      if (t <= 1e-9 || t >= 1 - 1e-9 || u <= 1e-9 || u >= 1 - 1e-9) continue;
+      const X = add(a, mul(r, t));
+      return [...split([X, ...Q.slice(i + 1, j + 1)]), ...split([X, ...Q.slice(j + 1), ...Q.slice(0, i + 1)])];
+    }
+    return [Q];
+  };
+  const parts = split(P);
+  if (parts.length === 1) return parts;
+  return parts.filter(Q => Q.length >= 3 && 2 * Math.abs(areaOf(Q)) / Q.reduce((s, p, k) => s + len(sub(Q[(k + 1) % Q.length], p)), 0) >= TANGLE_W)
+    .map(Q => Math.sign(areaOf(Q)) === sign ? Q : Q.slice().reverse());
+}
 // A form's lines — every edge of its loops, and at every concave corner its
 // facets, OPM-W's: every one the same turn, 90° over Corner facets — each
 // moving in a mm a mm of time, n·x = c + t; its corners, a vertex each.
 function linesOf2(loops, facets) {
   const lines = [], starts = [];
-  for (const P0 of loops) {
+  for (const P0 of loops.flatMap((L, k) => untangled(L, k ? -1 : 1))) {
     const P = cleanLoop(P0), n = P.length;
     if (n < 3) continue;
     const base = lines.length, V = [];

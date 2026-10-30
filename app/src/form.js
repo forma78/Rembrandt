@@ -33,7 +33,8 @@ const okPt = p => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p
 export function loadForm(S, o) {
   S.forms = cleanForms(o.forms); S.fsel = Array.isArray(o.fsel) ? o.fsel.filter(Number.isFinite) : [];
   S.fpal = o.fpal && Array.isArray(o.fpal.core) && o.fpal.core.every(id => PAINT[id]) ? { name: String(o.fpal.name ?? ''), core: o.fpal.core.slice(), accent: (o.fpal.accent ?? []).filter(id => PAINT[id]) } : null;
-  S.background = o.background === true; delete S.bricks;                              // Bricks gone (2026-10-30) S.cellsBy = o.cellsBy === 'preview' ? 'preview' : 'photo';
+  S.background = o.background === true; delete S.bricks;                              // Bricks gone (2026-10-30)
+  S.cellsBy = o.cellsBy === 'preview' ? 'preview' : 'photo';
   const to = (v, a, b, d) => Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : d;
   S.smallest = to(S.smallest, SMALLEST_MIN, SMALLEST_MAX, SMALLEST_NEW); S.straight = to(S.straight, STRAIGHT_MIN, STRAIGHT_MAX, STRAIGHT_NEW);
   S.fcorner = to(S.fcorner, CORNER_MIN, CORNER_MAX, CORNER_NEW); S.spoke = to(S.spoke, SPOKE_MIN, SPOKE_MAX, SPOKE_NEW);

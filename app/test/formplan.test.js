@@ -45,6 +45,16 @@ test('FORM rings: a concave corner in facets, OPM-W\'s — a 90° corner three b
   assert.equal(three.lines.filter(L => L.facet).length, 3);
 });
 
+test('FORM rings: a border crossing itself still its cells — a slip past a neighbour\'s edge off, a bow-tie both lobes (the owner\'s glass left empty, 2026-10-30)', () => {
+  const slip = formCellsOf([{ id: 0, loops: [[[0, 0], [60, 0], [60, 60], [60.4, 45], [0, 60]]] }], { pitch: 6 });
+  assert.ok(slip.regions[0].ok, 'the wavefront ran to its end');
+  const kept = 60 * 60 - 60 * (60 - 45.1) / 2, got = slip.cells.reduce((s, c) => s + c.area, 0);
+  assert.ok(Math.abs(got - kept) < 1, `${got} of ${kept}`);
+  const bow = formCellsOf([{ id: 0, loops: [[[0, 0], [40, 40], [40, 0], [0, 40]]] }], { pitch: 6 });
+  assert.ok(bow.regions[0].ok);
+  assert.ok(Math.abs(bow.cells.reduce((s, c) => s + c.area, 0) - 800) < 1e-6);
+});
+
 // a photo: its left half red, its right half blue, a small green speck in the red
 function photo(W, H, h = 1) {
   const nx = W / h, ny = H / h, data = new Uint8ClampedArray(nx * ny * 4);
