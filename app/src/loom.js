@@ -785,7 +785,7 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 const label = () => `${TAB_NAME} · ${S.layers.map((c, i) => `${i + 1}: ${WEAVE_NAME[c.weave]} ${fmt(c.angle, 1)}° ${fmt(c.step, 1)} mm${c.pat?.palette ? ` ${c.pat.palette.name}` : ''}`).join(' · ')} · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), o = po();
-  const meta = JSON.stringify({ rembrandt: '1.1.4', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.5', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const layer = li => {
     const P = planNow(li), lanes = [];
     for (const run of P.runs) for (const st of run.strokes) if (st) for (const [a, b, hop] of piecesOf(st)) if (!hop) {
@@ -797,7 +797,7 @@ function svgOf() {
   };
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.4 · ${esc(label())}; 1 unit = 1 mm, y down; the strips with the brush down, the gaps the hops -->
+<!-- Rembrandt v.1.1.5 · ${esc(label())}; 1 unit = 1 mm, y down; the strips with the brush down, the gaps the hops -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${GROUND}" stroke="#24221F" stroke-width="0.5"/>
 ${[0, 1].map(layer).join('\n')}

@@ -595,7 +595,7 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 const label = () => `NEW YURI · ${S.figs.map(f => f.ch).join('') || 'no letters'} · ${S.boardW} × ${S.boardH} mm${S.ink ? ' · ink' : ''}`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2);
-  const meta = JSON.stringify({ rembrandt: '1.1.4', newyuri: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.5', newyuri: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rings = S.figs.flatMap(fg => {
     const l = letterNow(fg); if (!l) return [];
     return l.strokes.flatMap(st => fg.mode === 'coil' && !st.dot
@@ -605,7 +605,7 @@ function svgOf() {
   }).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.4 · ${label()}; 1 unit = 1 mm -->
+<!-- Rembrandt v.1.1.5 · ${label()}; 1 unit = 1 mm -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="#FCFBF8" stroke="#24221F" stroke-width="0.5"/>
 <g fill="none" stroke="#2A2826" stroke-width="${f(S.width)}">

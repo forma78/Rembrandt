@@ -3,8 +3,11 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.1.4 — 2026-10-30
+## v.1.1.5 — 2026-10-30 · FORM
 
+- **v.1.1.5 after the name, FORM** (the owner, 2026-10-30: "FORM is
+  v.1.1.5"; "yes, add it please, and it can be pushed"), on every tab and
+  in the saved SVGs (`rembrandt: '1.1.5'` in their metadata).
 - **rembrandt.py: FORM among the pencil pages** (the owner, 2026-10-30:
   "yes, add it please, and it can be pushed"): FORM's FRAME and DRAW BW as
   OPM-P's — a pencil's elbow may rest on the paper there.

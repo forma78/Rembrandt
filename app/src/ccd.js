@@ -864,13 +864,13 @@ function loadRef() { try { const o = JSON.parse(localStorage.getItem(REF_KEY) ||
 const label = () => `${TAB_NAME} · ${what()} · ${planNow().runs} lanes · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
-  const meta = JSON.stringify({ rembrandt: '1.1.4', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.5', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rects = P.rects.map(r => `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-dir="${r.dir}" data-lanes="${r.runs.length}"/>`).join('\n');
   const lanes = P.rects.flatMap(r => r.runs.map(ln => `  <line x1="${f(ln.a[0])}" y1="${f(H - ln.a[1])}" x2="${f(ln.b[0])}" y2="${f(H - ln.b[1])}"/>`)).join('\n');
   const sausages = P.rects.flatMap(r => sausagesOf(r, S.brush).map(q => { const a = placeOf(r, q.a, q.c0), b = placeOf(r, q.b, q.c1); return `  <rect x="${f(Math.min(a[0], b[0]))}" y="${f(H - Math.max(a[1], b[1]))}" width="${f(Math.abs(b[0] - a[0]))}" height="${f(Math.abs(b[1] - a[1]))}" fill="${PAINT[q.paint].hex}" data-paint="${q.paint}" data-rect="${r.i + 1}"${q.thin ? ' data-thin="1"' : ''}/>`; })).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.4 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's lanes in running order -->
+<!-- Rembrandt v.1.1.5 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's lanes in running order -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${GROUND}" stroke="#24221F" stroke-width="0.5"/>
 <g id="lanes" stroke="#24221F" stroke-opacity="0.12" stroke-width="${f(S.brush)}">

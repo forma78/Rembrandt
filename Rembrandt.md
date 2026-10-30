@@ -302,7 +302,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   OPM-P's four FRAME marks, its rings and straight rays, the pencil up
   between lines, the wave test, the debug of the downs and the elbow's
   degrees under ELBOW LIVE (the owner: "commit v.1.1.4 and write a couple
-  of lines on GitHub about ELBOW LIVE. Yes, you may push").
+  of lines on GitHub about ELBOW LIVE. Yes, you may push"); **v.1.1.5**,
+  FORM, on 2026-10-30, the same day, figurative painting off a photo (the
+  owner: "FORM is v.1.1.5"; "yes, add it please, and it can be pushed").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (10 mm since 2026-10-20, below; the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -1618,7 +1620,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.1.4**, then the tabs **INKA · ST-JOHN · BLEND · DACHE · PRISMA · OPM ·
+  **v.1.1.5**, then the tabs **INKA · ST-JOHN · BLEND · DACHE · PRISMA · OPM ·
   OPM-B · OPM-S · OPM-W · OPM-P · FORM · ALU-CUT · CCD · BIAS · ALU · SMKN · Ink · Calibration ·
   Library** (BIAS, ALU and SMKN unticked in Preferences at first since
   2026-10-27; OPM-B and OPM-S after OPM since 2026-10-28, OPM-W after OPM-S
