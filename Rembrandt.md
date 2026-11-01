@@ -974,7 +974,10 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   mixed with pouring medium (IMG_1954, IMG_1971), so **the acrylic thinned
   with pouring medium**, where `OPM-N.md` had the paint as it is ("if even
   you noticed the difference, we will have to take the trouble and thin our
-  acrylic; until now I was not sure it was needed"; the ratio to come); a
+  acrylic; until now I was not sure it was needed"), **≈ 1 : 1, 15 g of
+  acrylic and 15 g of pouring medium in a 50 g jar**, by eye (est.: "I have
+  no scales … probably 15 g of acrylic + 15 g of pouring medium"; the jars
+  the apprentice will serve later); a
   track's **bulb its start, its fork always its end**; the white between
   tracks, the bulbs and forks left by his hand nothing to correct for ("I
   cannot draw a line with even pressure and speed as a machine does … with
@@ -982,11 +985,15 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   smoothed by the program"); a dip's seam in a track kept ("a little of the
   brush's effect gives a warm, valve-amp charm; the main thing is that all
   strokes are alike, but this is not a digital print, so all is fine").
+  The brush's elbow on OPM-N may rest on the paper as a pencil's (below;
+  "yes, may and even must").
 - **A pencil's elbow may rest on the paper** (2026-10-28: "J 2 5: the
   elbow does not get to 5.0°"; the owner: "can this rule be ignored?",
   "rembrandt.py may be changed"): on a pencil's run the elbow going down
   and stopped up to 10° above its pose rests there and the run goes on;
-  the brush and every other J still get there or stop.
+  the brush and every other J still get there or stop. The rule goes by
+  the page (`PENCIL_PAGES`), so a brush there rests too — OPM-N's the one
+  meant (2026-11-01).
 - **ELBOW LIVE, the elbow pulled while the pencil draws** (the owner,
   2026-10-28: "quicker to pull a slider than to switch the machine off,
   take a screwdriver, re-set the pencil or put card under the canvas, and

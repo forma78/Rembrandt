@@ -73,8 +73,17 @@ tunnel blend, a ruler in the later ones); the owner answered.
   mixed with pouring medium"). So **the acrylic thinned with pouring
   medium** ("if even you noticed the difference, we will have to take the
   trouble and thin our acrylic; until now I was not sure it was needed").
-  The ratio to come; the journal keeps the medium and its ratio with the
-  paint, L differing two and a half times by it.
+  **The ratio ≈ 1 : 1: 15 g of acrylic and 15 g of pouring medium in a 50 g
+  jar** (est., by eye: "I have no scales. I am buying jars now — the ones
+  the second robot helper will serve later; 50 grams. I will not fill it
+  up, probably 15 g of acrylic + 15 g of pouring medium"). IMG_1971's
+  ratio was by eye too, so L is measured anew at 1 : 1. The journal keeps
+  the medium and its ratio with the paint, L differing two and a half
+  times by it.
+- **The brush's elbow may rest on the paper, as a pencil's** (`opmn` in
+  `PENCIL_PAGES`, `rembrandt.py`; "yes, may and even must"): else DRAW BW,
+  FRAME and DRAG stop when the brush lands and the elbow stays above its
+  pose.
 - **A track's bulb is its start, the fork always its end** ("the bulb is the
   start, the fork is always the end of a track").
 - **His hand's marks are not the machine's**: the white between tracks, the
@@ -196,7 +205,8 @@ above; est.). Later the apprentice dips every L mm by itself.
 
 ## 5 · Later: the apprentice
 
-Not now. A second small machine serving the cups to one dock by the
+Not now. A second small machine serving the cups (the owner's 50 g jars,
+above) to one dock by the
 canvas, so the brush always dips in one place, at one height, a wire to
 wipe on (§11). Talked over on 2026-11-01: the Freenove robot arm kit
 (FNK0036, three NEMA17, ±1 mm without load, 25 × 10 cm reach) as the
@@ -208,7 +218,8 @@ canvas. The journal's L per colour is what it will need.
 
 1. `opmn.html`, OPM-N as OPM-P's copy (`OPMN` within `OPMP` in `inka.js`),
    its own keep and Library label, a first visit OPM-P's composition; in
-   the top row before FORM (the owner's). Done 2026-11-01.
+   the top row before FORM (the owner's). Done 2026-11-01, `opmn` in
+   `PENCIL_PAGES` with it (the owner's yes).
 2. The numbers: ring and hour, the order, the labels on the board; tests.
 3. A cell's tracks, Snake · Air, Brush 2 … 4; tests.
 4. The run by cells, a colour's first dip from the cup; tests. **Ask before
@@ -217,4 +228,5 @@ canvas. The journal's L per colour is what it will need.
    Mac.**
 6. The journal and L per colour.
 
-`cd app && node --test` stays green (440 on 2026-11-01).
+`cd app && node --test` stays green (440 on 2026-11-01), and
+`python3 app/test/runner_test.py` (88).

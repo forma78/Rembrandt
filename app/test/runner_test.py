@@ -853,8 +853,8 @@ class RestTest(unittest.TestCase):
         self.assertEqual(r.state, "done", r.message)
         self.assertGreaterEqual(t.elbow(b), 5.9)
 
-    def test_opm_b_s_w_and_p_are_pencil_pages_too(self):
-        for page in ("opmb", "opms", "opmw", "opmp"):
+    def test_opm_b_s_w_p_and_n_are_pencil_pages_too(self):
+        for page in ("opmb", "opms", "opmw", "opmp", "opmn"):
             r, b, t = self.run_on(page, 6.1)
             self.assertEqual(r.state, "done", f"{page}: {r.message}")
 

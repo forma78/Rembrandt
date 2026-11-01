@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.7 — 2026-10-30 · 11-01, towards v.1.1.8
 
+- **OPM-N: the brush's elbow may rest on the paper; acrylic and pouring
+  medium ≈ 1 : 1** (the owner, 2026-11-01: "yes, may and even must"; "I
+  have no scales … probably 15 g of acrylic + 15 g of pouring medium" in a
+  50 g jar). `opmn` in `rembrandt.py`'s `PENCIL_PAGES`, as OPM-P's and
+  FORM's: a run on OPM-N goes on when the brush lands and the elbow stays
+  up to 10° above its pose; its runner test with OPM-B, S, W and P. The
+  ratio, by eye, in `OPM-N.md` and §1. `rembrandt.py` takes it at its next
+  start.
+
 - **OPM-N, a new tab before FORM: OPM-P's page under its own name** (the
   owner, 2026-11-01: "I propose to call the tab OPM-N (Numbers)"; "OPM-N is
   now v.1.1.8"; "before FORM, please"). The first of `OPM-N.md`'s steps:
