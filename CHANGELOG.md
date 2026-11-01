@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.7 — 2026-10-30
 
+- **FORM: P, R and L always draw; the box with V and E** (Claude's
+  hand redrawing of the blue 911 from the front, the owner's "can you
+  redraw this blue Porsche by hand?", Library 22:09): the roof's first
+  point lay on the body's box handle, just drawn, and the pen took the
+  handle — the figure never began, the next ones ran together. Now, as
+  Illustrator's, the drawing tools draw wherever they are clicked; the box
+  of the figure just drawn or pasted shows, and its handles take, with V
+  and E only.
+
 - **FORM: AUTO calmer — Merge colours, softer borders, Straighten never
   doubled** (the owner, the same evening, Screenshot 9.49.11 and 9.49.17
   PM, the blue 911 from the front, `images.jpeg`, Smallest form 6 mm,

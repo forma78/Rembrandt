@@ -158,7 +158,7 @@ const PENS = ['penAdd', 'penDel'];
 // near it, else the hand's half mm (a shape's corners the half mm only).
 // The free transform (the owner: "round headlights too … and they must have points for free transform"; then "free transform in
 // the Tools, to drag and modify"): a box round the forms, its eight handles stretch them, ⇧ in proportion, a drag in them moves
-// them. The figure just drawn or pasted has it at once (with V a drag in it moves it), and E, the Free Transform tool, gives it to
+// them. The figure just drawn or pasted has it with V, laid anew over what lay before it, and E, the Free Transform tool, gives it to
 // any form chosen — what lies in its holes with it, a tyre's wheel. Every time laid anew over the forms as they were before
 // (held.before), so what it leaves comes back; a form laid long ago leaves its place to the neighbour beside it, as if what
 // lay under it showed again, or the ground.
@@ -166,7 +166,7 @@ const PENS = ['penAdd', 'penDel'];
 // top, looking as they did, chosen, the box on them — dragged to the other wheel; ⇧⌘V in place.
 const OVAL_SIDE = 10;                // mm: an ellipse a side every so far round it, 12 … 64 sides (est.)
 const PASTE_OFF = 20;                // mm: a paste beside the copied, right and down, every next one so much farther
-const SHAPES = { shapeRect: 'rect', shapeOval: 'oval' }, DRAWS = ['pen', 'shapeRect', 'shapeOval'];
+const SHAPES = { shapeRect: 'rect', shapeOval: 'oval' };
 let fig = null;                      // the pen's figure in the making: { pts, at: the pointer }
 let held = null;                     // the forms on top, to move and stretch: { before: the forms under them, Fs: they as laid, after: the forms with them, carry }
 let CLIP = null, pastes = 0;         // ⌘C's forms; ⌘V's since
@@ -228,10 +228,12 @@ function lift(Fs) {
   let next = Math.max(-1, ...S.forms.map(F => F.id)) + 1;
   return { before: S.forms.map(F => ids.has(F.id) ? (({ ss, ...r }) => ({ ...r, id: next++, bg: true, colour: null, left: true }))(F) : F), Fs, after: S.forms, carry: true };
 }
-// what the box is on: the forms held — just drawn or pasted, nothing changed since, chosen — or, with E, the chosen ones
+// what the box is on: the forms held — just drawn or pasted, nothing changed since, chosen — or, with E, the chosen ones. With
+// V and E only: P, R and L always draw, as Illustrator's (Claude's drawing of the blue 911, 2026-10-30: the roof's first point
+// on the body's box handle, the pen took the handle, the figure never began)
 const sameSel = ids => ids.length === S.fsel.length && ids.every(id => S.fsel.includes(id));
 function target() {
-  if (fig || !(DRAWS.includes(S.tool) || S.tool === 'edit' || S.tool === 'transform')) return null;
+  if (fig || !(S.tool === 'edit' || S.tool === 'transform')) return null;
   if (held && held.after === S.forms && sameSel(held.Fs.map(F => F.id))) return { Fs: held.Fs, held };
   if (S.tool !== 'transform' || !S.fsel.length) return null;
   const Fs = withInner(S.fsel).filter(F => S.background || !F.bg);
@@ -295,18 +297,14 @@ function transform(type, e) {
 }
 function shape(type, e) {
   const p = A.toMm(e);
-  if (type === 'down') { if (grabBox(e, p, false)) return true; const a = half(p); grab = { kind: SHAPES[S.tool], a, b: a, shift: e.shiftKey, alt: e.altKey }; A.capture(e); A.kick(); return true; }
-  if (type === 'move') { if (grab?.kind === 'box') return boxMove(e, p); if (grab?.kind === 'rect' || grab?.kind === 'oval') { grab.b = half(p); grab.shift = e.shiftKey; grab.alt = e.altKey; A.kick(); } else { const h = handleNear(p); A.cursor(h ? sizeCursor(h) : 'crosshair'); } return true; }
+  if (type === 'down') { const a = half(p); grab = { kind: SHAPES[S.tool], a, b: a, shift: e.shiftKey, alt: e.altKey }; A.capture(e); A.kick(); return true; }
+  if (type === 'move') { if (grab?.kind === 'rect' || grab?.kind === 'oval') { grab.b = half(p); grab.shift = e.shiftKey; grab.alt = e.altKey; A.kick(); } else A.cursor('crosshair'); return true; }
   const G = grab; grab = null;
-  if (G?.kind === 'box') return boxUp(G);
   if ((G?.kind === 'rect' || G?.kind === 'oval') && Math.hypot(G.b[0] - G.a[0], G.b[1] - G.a[1]) > 2) put(shapeOf(G)); else A.kick();
   return true;
 }
 function pen(type, e) {
   const p = A.toMm(e);
-  if (type === 'down' && !fig && grabBox(e, p, false)) return true;
-  if (type === 'move' && grab?.kind === 'box') return boxMove(e, p);
-  if (type === 'up' && grab?.kind === 'box') { const G = grab; grab = null; return boxUp(G); }
   const last = fig?.pts.at(-1), q = closing(p) ? fig.pts[0] : last && e.shiftKey ? at45(last, p) : snapPt(p, fig?.pts.slice(1), e.altKey);
   if (type === 'down') {
     if (closing(p)) { put(fig.pts); return true; }
@@ -318,7 +316,7 @@ function pen(type, e) {
     const was = ring; ring = closing(p) || e.altKey || last && e.shiftKey ? null : snapOf(p, fig?.pts.slice(1));
     if (fig) fig.at = q;
     if (fig || ring !== was) A.kick();
-    const h = !fig && handleNear(p); A.cursor(h ? sizeCursor(h) : closing(p) ? NIB_CLOSE : NIB['']); return true;
+    A.cursor(closing(p) ? NIB_CLOSE : NIB['']); return true;
   }
   return true;
 }
