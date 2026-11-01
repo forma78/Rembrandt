@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.7 — 2026-10-30 · 11-01, towards v.1.1.8
 
+- **OPM-N: every colour's cells numbered** (the owner, 2026-11-01: "not
+  continuous numbering but by colours … the numbering goes from the centre
+  clockwise … 1 — by the clock face it is midnight"). `numbersOf` in
+  `opmplan.js`, step 2 of `OPM-N.md`: every painted cell its ring (the
+  blend's bands from the middle out, the core's first) and its hour (round
+  its band's own middle from 12 o'clock clockwise, one across 12 o'clock
+  the first); a colour's cells by figure, ring, hour, 1 … n. On Paint and
+  Contour in the cell's middle, as big as it holds, none under 6 px; the
+  chosen colour's strong, the rest faint; a line under Painting machine's
+  (i). Its test: 1 … n a colour, the middle out, clockwise, a figure after
+  another, every label in its cell.
+
 - **OPM-N: the brush's elbow may rest on the paper; acrylic and pouring
   medium ≈ 1 : 1** (the owner, 2026-11-01: "yes, may and even must"; "I
   have no scales … probably 15 g of acrylic + 15 g of pouring medium" in a

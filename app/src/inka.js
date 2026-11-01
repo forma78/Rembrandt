@@ -54,9 +54,9 @@ import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, 
   STEP_NEW, STEP_MIN, STEP_MAX, BRUSH_NEW, SWELL_NEW, trailOf as paintTrail, EDGE_OUT_NEW, edgeOf, OVERLAP_NEW, JOIN_NEW, CORNER_NEW, CHANGE_NEW, WIPE_NEW, OFF, MIN_SIDE, figSausages as figSausagesOf } from './inkaplan.js';
 import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap, spokesRound, SPOKE_GAP, SPOKES_MIN, SPOKES_MAX } from './blendplan.js';
-import { cleanPencils, PENCILS_NEW, runOrder, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, BOX_2, BOX_3, BOX_4, moduleLines, COATS_NEW, COATS_MIN, COATS_MAX,
+import { cleanPencils, PENCILS_NEW, runOrder, lightnessOf, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, BOX_2, BOX_3, BOX_4, moduleLines, COATS_NEW, COATS_MIN, COATS_MAX,
   SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
-import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, fitKeys, FRAME_MARK, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
+import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, numbersOf, fitKeys, FRAME_MARK, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
 import { aligned } from './align.js';
 import { initForm, FORM_STATE, FORM_NUM, FORM_UNDO, loadForm, plan as formPlanNow, planKey as formPlanKey, preview as formPreviewNow, frameMods as formFrame, colour as formColour, align as formAlign, draw as formDraw, pointer as formPointer, key as formKey, showForm, turned as formTurned } from './form.js';
 import { prismaPlan, passesOf as prismaPasses, drawRows as prismaRows, PRISMA_PENCILS, BOX_5, BOX_6, rubsOf, RUBS_DARK_NEW, RUBS_LIGHT_NEW, RUBS_MIN, RUBS_MAX, PRESS_NEW, PRESS_MIN, PRESS_MAX, GLIDE_NEW, GLIDE_MIN, GLIDE_MAX, TOUCH_NEW, TOUCH_MIN, TOUCH_MAX, ELBOW_MIN, PEN_AIR, SHORTEST_NEW as RUN_SHORTEST_NEW, SHORTEST_MIN as RUN_SHORTEST_MIN, SHORTEST_MAX as RUN_SHORTEST_MAX, SPEED_NEW as PRISMA_SPEED_NEW } from './prismaplan.js';
@@ -305,6 +305,7 @@ function dachePlan() {
   if (DPLAN?.key === key) return DPLAN;
   if (OPMP) {                                                                        // opmplan.js: the brush's rings, the lines once, DRAG a colour at a time in the run's order
     const D = opmpPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, order: runOrder(S.pencils, S.order).map(p => p.id), frame: S.frame, corner: S.corner, merge: S.merge, pitch: S.pitch, stripW: S.rayW, facets: S.facets, cw: S.cw, rubs: S.dragRubs, bound: S.bind });
+    if (OPMN) D.cells = numbersOf(D.cells, D.regions);                               // OPM-N: every colour's cells 1 … n, from the middle out, from 12 o'clock clockwise
     return (DPLAN = { key, ...D, order: runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order), passes: D.drags });
   }
   if (OPM) {                                                                         // opmplan.js: the cells' contours, a pass a pencil, every contour rubbed round
@@ -463,7 +464,7 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint') drawPencils(); else if (FORM && S.view === 'forms') { g.fillStyle = groundNow(); g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); } else if (OPMP) { drawPencils(); drawSausages(); drawNodes(); } else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }   // OPM-P's Drag: the brush's strokes, a colour each
+  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint') { drawPencils(); if (OPMN) drawNumbers(); } else if (FORM && S.view === 'forms') { g.fillStyle = groundNow(); g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); } else if (OPMP) { drawPencils(); drawSausages(); drawNodes(); } else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }   // OPM-P's Drag: the brush's strokes, a colour each
   if (DACHE) drawFrame();
   if (REF && S.refOpacity > 0 && !FORM) {                                            // FORM's own, turned as its forms were made (form.js)
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
@@ -777,6 +778,23 @@ function drawPencils() {
   const a = scr([B.x0, B.y1]);
   g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(B.c2, a[0], a[1], (B.x1 - B.x0) * k, (B.y1 - B.y0) * k);
+  g.restore();
+}
+// OPM-N, the cells' numbers on Paint and Contour (OPM-N.md: "the number in the
+// cell's middle, its size by the cell"): as big as the cell holds about its
+// middle, none where under NUM_MIN px — closer, they come; the chosen colour's
+// strong, the rest faint (all strong when the chosen one has none)
+const NUM_MIN = 6, NUM_MAX = 40, NUM_FAINT = 0.3;
+function drawNumbers() {
+  const D = dachePlan(), list = D.cells.filter(C => C.num && (!S.only || C.pencil === S.only)); if (!list.length) return;
+  const strong = list.some(C => C.pencil === S.pencil), paint = S.view === 'paint', dark = hex => lightnessOf(hex) < 55;
+  g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (const C of list) {
+    const lab = String(C.num), px = Math.min(NUM_MAX, C.fit[1] * k * 0.8, C.fit[0] * k * 0.9 / (0.62 * lab.length)); if (px < NUM_MIN) continue;
+    const q = scr(C.at), on = paint ? pencilOf(C.pencil)?.hex ?? '#FFFFFF' : groundNow();
+    g.globalAlpha = !strong || C.pencil === S.pencil ? 1 : NUM_FAINT; g.fillStyle = dark(on) ? '#FBFAF7' : '#24221F'; g.font = font(Math.round(px), 600);
+    g.fillText(lab, q[0], q[1] + 0.5);
+  }
   g.restore();
 }
 // the frame, dashed, its size by it: only what lies in it is drawn
@@ -1592,6 +1610,7 @@ function showPencils() {
       FORM ? `Every form its own rings, ${fmt(S.pitch, 1)} mm apart at most, its depth over a whole number of them: ${D.regions.length} form${D.regions.length === 1 ? '' : 's'}, ${D.regions.reduce((a, R_) => a + R_.bands, 0)} rings in all${D.regions.some(R_ => !R_.ok) ? `, ${D.regions.filter(R_ => !R_.ok).length} left empty` : ''}`   // FORM's forms: no sides, no bevels
         : `${S.bind ? 'The blend\'s bands over the corners, every block\'s band in a whole number of rows' : 'Every block its own rows'}, ${fmt(S.pitch, 1)} mm apart at most, evenly: ${D.regions.map(R_ => `${R_.kind === 'blend' ? `Key ${R_.key + 1} → ${R_.key + 2}` : R_.kind === 'core' ? 'the core' : 'a tile'} ${side(R_)}`).join('; ')}`];
     if (D.few.length) drag.push(`Left out, next to nothing to paint — under ${LEAST_MM} mm of brush, or ${LEAST_SHARE * 100} % of all: ${D.few.map(id => pencilOf(id)?.name ?? id).join(', ')} — their cells to the nearest of the rest`);
+    if (OPMN) { const n = D.cells.filter(q => q.num), by = new Set(n.map(q => q.pencil)); drag.push(`Numbers: ${n.length} cells, every colour its own 1 … n — ${by.size} colour${by.size === 1 ? '' : 's'} — the rings from the middle out, every ring from 12 o'clock clockwise, a figure after another; on Paint and Contour, the chosen colour's strong`); }
     $('#dragRead').innerHTML = drag.join(' · ');
     document.querySelectorAll('#turnKeys [data-cw]').forEach(b => b.classList.toggle('on', (b.dataset.cw === '1') === S.cw));
     document.querySelectorAll('#bindKeys [data-bind]').forEach(b => b.classList.toggle('on', (b.dataset.bind === '1') === S.bind));

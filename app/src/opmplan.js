@@ -748,6 +748,59 @@ export function opmpPlan(rects, res, o = {}) {
   if (!few.length) return { ...D, few, rings: [], rays: [] };
   return { ...once(pencils.map(p => few.includes(p.id) ? { ...p, on: false } : p)), few, rings: [], rays: [] };
 }
+// OPM-N's numbers (the owner, 2026-11-01, OPM-N.md: "not continuous numbering
+// but by colours: if we have 20 colours, every colour its own set of numbers";
+// "the numbering goes from the centre clockwise … 1 — by the clock face it is
+// midnight"): every painted cell its ring — its figure's bands from the middle
+// out, the core's first, then every key's further out — and its hour, the angle
+// of its middle round its band's own middle from 12 o'clock clockwise, one
+// across 12 o'clock 0; a colour's cells by figure (DRAG's order), ring, hour —
+// two rows of a band at one hour the inner first — numbered 1 … n. Its label:
+// a point in the cell, its middle if inside, and the room about it across and
+// up, mm.
+// → the cells, every painted one { num, ring, hour, at, fit: [w, h] } more
+const centroidOf = P => { let a = 0, x = 0, y = 0; P.forEach((p, i) => { const q = P[(i + 1) % P.length], c = p[0] * q[1] - q[0] * p[1]; a += c; x += (p[0] + q[0]) * c; y += (p[1] + q[1]) * c; }); return Math.abs(a) < 1e-12 ? P[0] : [x / (3 * a), y / (3 * a)]; };
+// where a line through p along axis (0 across, 1 up) is in P: [from, to] round p, or null outside
+function chordOf(P, p, axis) {
+  const u = 1 - axis, xs = [];
+  P.forEach((a, i) => { const b = P[(i + 1) % P.length]; if ((a[u] > p[u]) !== (b[u] > p[u])) xs.push(a[axis] + (b[axis] - a[axis]) * (p[u] - a[u]) / (b[u] - a[u])); });
+  xs.sort((x, y) => x - y);
+  for (let i = 0; i + 1 < xs.length; i += 2) if (xs[i] <= p[axis] && p[axis] <= xs[i + 1]) return [xs[i], xs[i + 1]];
+  return null;
+}
+function labelOf(P) {
+  let at = centroidOf(P), h = chordOf(P, at, 0);
+  if (!h) {                                                                          // a bent cell, its middle outside: the widest chord across at half its height
+    const ys = P.map(q => q[1]), y = (Math.min(...ys) + Math.max(...ys)) / 2, xs = [];
+    P.forEach((a, i) => { const b = P[(i + 1) % P.length]; if ((a[1] > y) !== (b[1] > y)) xs.push(a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])); });
+    xs.sort((x, x2) => x - x2);
+    let best = null; for (let i = 0; i + 1 < xs.length; i += 2) if (!best || xs[i + 1] - xs[i] > best[1] - best[0]) best = [xs[i], xs[i + 1]];
+    if (!best) return { at, fit: [0, 0] };
+    at = [(best[0] + best[1]) / 2, y]; h = best;
+  }
+  const v = chordOf(P, at, 1) ?? [at[1], at[1]];
+  return { at, fit: [2 * Math.min(at[0] - h[0], h[1] - at[0]), 2 * Math.min(at[1] - v[0], v[1] - at[1])] };   // the label centred on the point
+}
+export function numbersOf(cells, regions) {
+  const bandsIn = regions.map(R => R.bands || Math.min(...(R.blocks ?? [{ n: 1 }]).map(B => B.n))), base = regions.map(() => 0);
+  regions.forEach((R, i) => regions.forEach((Q, j) => { if (Q.rect === R.rect && Q.key > R.key) base[i] += bandsIn[j]; }));   // the bands inside it: a core's key the last
+  const tq = v => Math.round(v * 1e6), placed = [];
+  cells.forEach((c, i) => {
+    if (!c.pencil) return;
+    const R = regions[c.reg], N = bandsIn[c.reg], B = R.blocks?.[c.blk], band = B ? Math.min(N - 1, Math.floor((c.row + 0.5) / B.n * N)) : 0;
+    const s = shapeAt(R, (band + 0.5) / N), o = [(s.x0 + s.x1) / 2, (s.y0 + s.y1) / 2], m = centroidOf(c.poly), xs = c.poly.map(q => q[0]);
+    const across = m[1] > o[1] && Math.min(...xs) < o[0] - 1e-9 && Math.max(...xs) > o[0] + 1e-9;   // over 12 o'clock: the first, not the last
+    placed.push({ i, rect: R.rect, ring: base[c.reg] + N - 1 - band, hour: across ? 0 : clock(o, m), row: c.row });
+  });
+  placed.sort((a, b) => a.rect - b.rect || a.ring - b.ring || tq(a.hour) - tq(b.hour) || b.row - a.row);
+  const count = new Map(), out = cells.slice();
+  for (const q of placed) {
+    const c = cells[q.i], num = (count.get(c.pencil) ?? 0) + 1;
+    count.set(c.pencil, num);
+    out[q.i] = { ...c, num, ring: q.ring, hour: q.hour, ...labelOf(c.poly) };
+  }
+  return out;
+}
 // DRAG's rows for strokes.js's plotRun, machine mm from Here: a colour a row,
 // its strokes one after another, already rubbed, the brush up on the move
 // from the end of one to the start of the next (a turn: up through it, down

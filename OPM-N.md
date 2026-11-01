@@ -221,6 +221,12 @@ canvas. The journal's L per colour is what it will need.
    the top row before FORM (the owner's). Done 2026-11-01, `opmn` in
    `PENCIL_PAGES` with it (the owner's yes).
 2. The numbers: ring and hour, the order, the labels on the board; tests.
+   Done 2026-11-01 (`numbersOf` in `opmplan.js`): a ring every band of the
+   blend, the core's first; the hour round its band's own middle (a tunnel's
+   core off the figure's middle has its own 12 o'clock); two rows of a band
+   at one hour the inner first; a colour with no cell in the innermost ring
+   starts further out. On Paint and Contour as big as the cell holds, none
+   under 6 px (closer, they come); the chosen colour's strong, the rest faint.
 3. A cell's tracks, Snake · Air, Brush 2 … 4; tests.
 4. The run by cells, a colour's first dip from the cup; tests. **Ask before
    the runner.**
@@ -228,5 +234,5 @@ canvas. The journal's L per colour is what it will need.
    Mac.**
 6. The journal and L per colour.
 
-`cd app && node --test` stays green (440 on 2026-11-01), and
+`cd app && node --test` stays green (441 on 2026-11-01), and
 `python3 app/test/runner_test.py` (88).

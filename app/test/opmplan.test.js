@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW, FRAME_MARK } from '../src/opmplan.js';
+import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW, FRAME_MARK, numbersOf } from '../src/opmplan.js';
 import { rubbed, passesOf, drawRows, PRISMA_PENCILS } from '../src/prismaplan.js';
 import { cleanPencils, runOrder, lineLen, withChanges, lightnessOf } from '../src/dacheplan.js';
 import { cleanRect, atPiece } from '../src/inkaplan.js';
@@ -381,4 +381,43 @@ test('OPM-P, the pencil a short way from line to line (IMAGE 19:31:25 and 19:32:
   let travel = 0, drawn = 0;
   L.forEach((l, i) => { drawn += l.pts.slice(1).reduce((a, b, j) => a + Math.hypot(b[0] - l.pts[j][0], b[1] - l.pts[j][1]), 0); if (i) travel += Math.hypot(l.pts[0][0] - L[i - 1].pts.at(-1)[0], l.pts[0][1] - L[i - 1].pts.at(-1)[1]); });
   assert.ok(travel < 0.3 * drawn, `the pencil in the air ${(travel / 1000).toFixed(1)} m for ${(drawn / 1000).toFixed(1)} m drawn (13.7 m before)`);
+});
+
+test('OPM-N, the numbers: every colour its own 1 … n, from the middle out ring by ring, every ring from 12 o\'clock clockwise; a figure after another; the label in its cell', () => {
+  const ONE = resOf(() => BLUE, 600, 800, 2);
+  for (const [r, facets, res] of [...CASES, [OWNER, 1, ONE]]) {
+    const D = opmpPlan([r], res, { pencils: P, corner: 4, facets, pitch: PITCH_NEW, stripW: PITCH_NEW }), N = numbersOf(D.cells, D.regions);
+    assert.equal(N.length, D.cells.length);
+    assert.ok(N.every(c => !c.num === !c.pencil), 'every painted cell numbered, no other');
+    const by = new Map(); for (const c of N) if (c.num) (by.get(c.pencil) ?? by.set(c.pencil, []).get(c.pencil)).push(c);
+    for (const [id, list] of by) {
+      list.sort((a, b) => a.num - b.num);
+      assert.deepEqual(list.map(c => c.num), list.map((_, i) => i + 1), `${id}: 1 … n`);
+      list.forEach((c, i) => { if (i) assert.ok(c.ring > list[i - 1].ring || c.ring === list[i - 1].ring && c.hour >= list[i - 1].hour - 1e-9, `${id} ${c.num}: the middle out, clockwise`); });
+      for (const c of list) {
+        assert.ok(inPoly(c.poly, ...c.at), `${id} ${c.num}: its label in its cell`);
+        assert.ok(c.fit[0] > 0 && c.fit[1] > 0);
+      }
+    }
+    const core = D.regions.findIndex(R => R.kind === 'core'), inner = Math.max(...N.filter(c => c.num && c.reg === core).map(c => c.ring)), outer = Math.min(...N.filter(c => c.num && c.reg !== core).map(c => c.ring));
+    assert.ok(inner < outer, 'the core\'s rings first');
+    assert.equal(Math.min(...N.filter(c => c.num).map(c => c.ring)), 0);
+  }
+  // one colour all over (his drawing on the tunnel: the core's 1 at 12 o'clock, then the right, 6 o'clock, the left): every ring's 1 at 12 o'clock, its last left of it
+  const D = opmpPlan([OWNER], ONE, { pencils: P, corner: 4, facets: 1, pitch: PITCH_NEW, stripW: PITCH_NEW }), N = numbersOf(D.cells, D.regions).filter(c => c.num), rings = new Map();
+  assert.equal(new Set(N.map(c => c.pencil)).size, 1);
+  for (const c of N) (rings.get(c.ring) ?? rings.set(c.ring, []).get(c.ring)).push(c);
+  for (const [k, list] of rings) {
+    if (list.length < 4) continue;
+    list.sort((a, b) => a.num - b.num);
+    assert.ok(list[0].hour < Math.PI / 2, `ring ${k}: its first at 12 o'clock, ${list[0].hour}`);
+    assert.ok(list.at(-1).hour > 3 * Math.PI / 2, `ring ${k}: its last left of 12 o'clock`);
+    const half = list.find(c => c.hour >= Math.PI);
+    assert.ok(half && half.num > list.length / 4, `ring ${k}: 6 o'clock about its middle`);
+  }
+  // two figures: the first's all before the second's
+  const T1 = cleanRect({ id: 1, x: 20, y: 20, w: 120, h: 120, step: 6 }), T2 = cleanRect({ id: 2, x: 220, y: 20, w: 120, h: 120, step: 6 });
+  const D2 = opmpPlan([T1, T2], resOf(() => BLUE), { pencils: P, corner: 4, facets: 1, pitch: PITCH_NEW }), N2 = numbersOf(D2.cells, D2.regions).filter(c => c.num);
+  const last1 = Math.max(...N2.filter(c => D2.regions[c.reg].rect === 0).map(c => c.num)), first2 = Math.min(...N2.filter(c => D2.regions[c.reg].rect === 1).map(c => c.num));
+  assert.ok(N2.some(c => D2.regions[c.reg].rect === 1) && last1 < first2, `the first figure 1 … ${last1}, the second from ${first2}`);
 });
