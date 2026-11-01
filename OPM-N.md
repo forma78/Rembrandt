@@ -1,0 +1,220 @@
+# OPM-N — the task
+
+For Claude in VS Code. Written 2026-11-01 from the owner's talk with
+Claude in the cloud chat (the owner: "here we discuss, go to Amazon,
+comment the photos; in VS Code we test, and new commits go from there to
+GitHub"). Read `README.md`, then `Rembrandt.md` (glossary first), then this.
+
+**OPM-N (Numbers)**: OPM-P's page, all of it, and the paint no longer
+squeezed onto the canvas: every cell of a colour numbered, painted on its
+own by a thin brush that takes its paint from the cup, the owner dipping
+it from an iPhone remote, every dip written to a journal.
+
+The owner: "In essence we just need controllable, perfectly even lines
+that the machine draws with a brush."
+
+## Decisions of 2026-11-01 (for §1, with his words)
+
+- **No potter's wheel.** "We drop the idea of the potter's wheel, where the
+  brush goes round in a spiral and knocks down absolutely all the sausages
+  of paint, and in the end it comes out a dirty swill — we do not do that."
+  (IMG_5976, 2026-10-26: sausages, the brush, then a palette knife.)
+- **The paint from the cup, never squeezed on the canvas** — the way of §1
+  (2026-10-02, "the way ahead is the brush dipping into cups"). One cup for
+  now, the Ink tab's (`app/ink.json`, `dipAt` in `ink.js`); its colour
+  changed by hand at a colour's pause. A second machine, the apprentice,
+  serving the cups comes later (below).
+- **The paint as it is, no thinning** ("we will struggle diluting acrylic —
+  why? Let the brush go 25 mm/s, not 60, and dip more often"). Brush speed
+  25 mm/s at first. *The same evening, after his hand tests: thinned with
+  pouring medium after all — below.*
+- **The tab: OPM-N** ("I propose to call the tab OPM-N (Numbers)").
+- **Numbers by colour** ("not continuous numbering but by colours: if we
+  have 20 colours, every colour its own set of numbers").
+- **From the centre, clockwise** ("the numbering goes from the centre
+  clockwise. I started with deep blue: 1 — by the clock face it is
+  midnight, a new day — and so on to 8 in the morning"). His drawing on the
+  tunnel blend (2026-11-01): deep blue (the core) 1 at 12 o'clock, 2–4 on
+  the right, 5 at 6, 6–8 on the left; blue ring 1 1–8, ring 2 from 9 at 12
+  o'clock; light blue 1 and 2 on ring 2's right facets, 3 at its bottom, 4
+  on the left of the next ring.
+- **A cell in several passes** ("two options: back and forth, and through
+  the air"), **Rubs** as the pencil's ("as we did with the pencil, rubbed
+  like sandpaper"). **Brush 2 mm** at first, **2 … 4 mm in 0.5 mm** steps.
+- **Between two cells of a colour, through the air** ("the blue is already
+  painted, so the brush may not go over the canvas: it lifts and goes
+  through the air to the next cell").
+- **Back = DRAG again in this cell** ("of course there is no ⌘Z in the
+  physical world: repeat DRAG in the current cell"; Monopoly's "go back
+  three spaces").
+- **The dip by hand, from the iPhone** ("I will press the button 'dip into
+  paint' as the cells get painted; they are of different sizes and we do
+  not know yet how far a dip goes").
+- **The journal** ("a log that records with which cell I pressed 'dip' how
+  many times — data for the second robot helper; the colour too, so the
+  paint, its pigment and binder, may differ; the cell's length and the
+  number of runs; from it we find the right number of dips for every
+  colour").
+- **The iPhone remote** ("not only to pause the machine but to go back on
+  the runs of every rectangle").
+
+## Decisions of 2026-11-01, the evening, after his hand tests (`RoArte/`)
+
+Claude in VS Code read the photos (IMG_1905 … 1971, on paper over a pencil
+tunnel blend, a ruler in the later ones); the owner answered.
+
+- **One brush: 0 Raphaël Textura 860 round** ("I chose one brush").
+- **The tracks laid by the track's width, not the brush's size**: 2.5 … 3 mm
+  by the ruler (IMG_1949: six tracks ≈ 17.5 mm; est.) — INKA's trail and
+  swell ("I agree; that is why I took the photos with the ruler").
+- **A dip**: ≈ 30 mm of track in pure acrylic (IMG_1954, a seam in the
+  middle of its ~63 mm tracks: "pure acrylic — yes"); **75–80 mm mixed with
+  pouring medium** (IMG_1971, no seam: "all 75–80 mm if the acrylic is
+  mixed with pouring medium"). So **the acrylic thinned with pouring
+  medium** ("if even you noticed the difference, we will have to take the
+  trouble and thin our acrylic; until now I was not sure it was needed").
+  The ratio to come; the journal keeps the medium and its ratio with the
+  paint, L differing two and a half times by it.
+- **A track's bulb is its start, the fork always its end** ("the bulb is the
+  start, the fork is always the end of a track").
+- **His hand's marks are not the machine's**: the white between tracks, the
+  bulbs and forks ("I cannot draw a line with even pressure and speed as a
+  machine does, so white glints stayed; with the drawing machine there will
+  be none"; "the hand shakes; all this is smoothed by the program") — no
+  overlap or trick at the ends for them; the first run on the machine
+  shows.
+- **A dip's seam in a track kept** ("a little of the brush's effect gives a
+  warm, valve-amp charm; the main thing is that all strokes are alike, but
+  this is not a digital print, so all is fine"): DIP during a track as
+  below, back to the same point, no lap.
+- **`RoArte/`'s pictures of the arm kit stay** ("not authors' photographs
+  but working pictures; I would leave it as it is"); its HEICs JPEGs, for
+  GitHub later.
+- **OPM-N is v.1.1.8; before FORM in the top row** ("OPM-N is now
+  v.1.1.8"; "before FORM, please").
+
+## Proposed by cloud-Claude, confirmed by the owner the same day ("yes, all so; checked")
+
+- A colour starts with **one dip by itself**; every next dip is the owner's.
+- **DIP during a track**: the brush lifts at once, flies to the cup, dips
+  (in the paint 1 s, the Ink tab's), flies back to the same point, lands on
+  the move and goes on; the journal keeps the track and the mm.
+- **⏮ Back**: the brush lifts at once and DRAG runs this cell again from
+  its first track; no dip by itself.
+- Several figures on the canvas: a colour's numbers go on from one figure
+  to the next, in OPM-P's figure order.
+
+## 1 · Numbers
+
+Every cell of OPM-P's plan (`opmpPlan` in `opmplan.js`: `blocksIn`,
+`blockCellsOf`, `dragRowsOf`) gets a **colour** (its pencil/paint, as now)
+and a **number in that colour**:
+
+- its **ring**: the band it lies in, counted from the core out — the core's
+  own cells ring 0 (on a tile: its rings from the middle out);
+- its **hour**: the angle of the cell's centre round its figure's centre,
+  clockwise from 12 o'clock (0° at 12; a cell across 12 has ~0° and comes
+  first, one just left of 12 comes last);
+- sorted by ring, then by hour; numbered 1 … n in every colour.
+
+The board shows the numbers in the cells (the owner's drawings: the number
+in the cell's middle, its size by the cell), in the Paint view and in
+Contour; the chosen colour's numbers strong, the others faint. The run goes
+by them: a colour after another (the run's order, as OPM-P's), in a colour
+cell 1, 2, 3 …
+
+## 2 · A cell, the unit of the run
+
+Every cell on its own: the brush comes in the air, lands, paints its tracks,
+lifts. So the run can start at any cell.
+
+- **Tracks** along the cell's row (its long edges, as OPM-P's drag runs
+  along the rows' middles): k = ⌈W / B⌉ for a cell W wide and brush B,
+  evenly apart (W / k ≤ B, no white between), the outer ones B/2 in from
+  its contour; a trapezoid's tracks end on its rays.
+- **Snake** — back and forth with the brush down, turning inside the cell —
+  or **Air** — every track one way, the brush up and back through the air.
+  Every track **Rubs** times (OPM-P's).
+- **Brush** 2.0 mm, 2.0 … 4.0 in 0.5 (est.), on the panel — the tracks by
+  its track's width, 2.5 … 3 mm for the 0 Textura (est., above); **Brush speed**
+  25 mm/s (the owner's); the rest as PAINTING MACHINE has it (ELBOW LIVE ·
+  brush, ↻ CW · ↺ CCW).
+- Between cells of a colour: up, through the air, never over the canvas
+  low.
+- Between colours: OPM-P's pause — the brush up to Wipe; the owner wipes it,
+  puts the next colour in the cup, Continue; then that colour's first dip.
+
+## 3 · The iPhone remote
+
+A page of `rembrandt.py`, `/remote`, Safari on the same Wi-Fi, "Add to Home
+Screen" for an icon. Big keys, one hand:
+
+- on top: the colour's swatch and name, **"Deep blue 3 / 8"**, the ring,
+  the track;
+- **DIP** (the biggest), **⏸ / ▶**, **⏮ Back** (DRAG again in this cell),
+  **⏭ Skip**, **Go to №** (a number pad, in this colour), **■ STOP**;
+- at a colour's pause: "Next: Ultramarine — wipe the brush, change the cup,
+  ▶".
+
+**Network — ask the owner before this** (it moves the machine):
+`rembrandt.py` listens on `127.0.0.1:5164` only; the iPhone needs it on the
+home network. Then anyone on that Wi-Fi could move the machine, so the
+remote carries a **key**: OPM-N's page on the Mac shows a QR code with it,
+the iPhone scans it once; every `/remote` and `/run/*` call from another
+address without the key is refused.
+
+**The runner** (ask before changing it): today `/run/pause`,
+`/run/continue`, `/run/stop`, `/run/kill`, `/run/trim`. New: a dip now, a
+cell again, a cell skipped, go to a cell, and the state (colour, cell,
+track) for the remote. Dips, cells and flights are ordinary moves — the
+firmware's contract should not change; if it must, stop and ask.
+
+## 4 · The journal
+
+The owner: "this is robot training: first the leather one shows how it
+should be done, then the machine goes by itself, having got the data" —
+learning from demonstration: his DIP presses are the demonstration, the
+journal its record.
+
+Every run of OPM-N writes one, in `logs/` (kept off GitHub,
+`.gitignore`): a line an event — the time, the painting, the **colour**
+(its paint: name, pigment, brand), the **cell** (number, ring, hour), its
+**length C** (its tracks' mean), **width W**, **brush B**, **tracks k**,
+Rubs, speed, Snake or Air, and what happened: start, **dip** (on which
+track, at which mm), back, skip, done.
+
+After a run, per colour: the brush's way painted P = Σ k·C (times Rubs if
+the journal shows it matters), the dips pressed D, and **L = P / D, mm a
+dip** — shown on OPM-N and, once the owner says so, put into Adjustments as
+that paint's measured number (no longer est.).
+
+The formula the owner asked to check (he had C + B): dips in a cell
+**i = ⌈W / B⌉ · C / L** — the paint goes on an area, so a product, not a
+sum. A 6 × 40 mm cell, brush 2 mm: 3 tracks, 120 mm; at L 80 mm, 1.5 → 2
+dips — L 75–80 with pouring medium, ≈ 30 in pure acrylic, 4 dips (his tests,
+above; est.). Later the apprentice dips every L mm by itself.
+
+## 5 · Later: the apprentice
+
+Not now. A second small machine serving the cups to one dock by the
+canvas, so the brush always dips in one place, at one height, a wire to
+wipe on (§11). Talked over on 2026-11-01: the Freenove robot arm kit
+(FNK0036, three NEMA17, ±1 mm without load, 25 × 10 cm reach) as the
+apprentice, run by a spare ESP32 in place of a Raspberry Pi, on USB from
+`rembrandt.py` — never on the carriage, never squeezing paint on the
+canvas. The journal's L per colour is what it will need.
+
+## Order of work — small commits, a CHANGELOG line each
+
+1. `opmn.html`, OPM-N as OPM-P's copy (`OPMN` within `OPMP` in `inka.js`),
+   its own keep and Library label, a first visit OPM-P's composition; in
+   the top row before FORM (the owner's). Done 2026-11-01.
+2. The numbers: ring and hour, the order, the labels on the board; tests.
+3. A cell's tracks, Snake · Air, Brush 2 … 4; tests.
+4. The run by cells, a colour's first dip from the cup; tests. **Ask before
+   the runner.**
+5. `/remote` and the key. **Ask before `rembrandt.py` listens beyond the
+   Mac.**
+6. The journal and L per colour.
+
+`cd app && node --test` stays green (440 on 2026-11-01).

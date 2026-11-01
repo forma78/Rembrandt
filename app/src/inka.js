@@ -68,15 +68,16 @@ import './ui.js';
 
 const $ = s => document.querySelector(s);
 const OPMB = document.body.dataset.tab === 'opmb';                                    // OPM-B: OPM's page, all of it, the cells bigger (2026-10-28)
+const OPMN = document.body.dataset.tab === 'opmn';                                    // OPM-N: OPM-P's page, all of it, the cells numbered, a brush from the cup (2026-11-01, OPM-N.md)
 const FORM = document.body.dataset.tab === 'form';                                    // FORM: OPM-P's page, all of it, the forms off a photo in the blends' place (2026-10-30, form.js)
-const OPMP = document.body.dataset.tab === 'opmp' || FORM;                                    // OPM-P: OPM-W's page, all of it, for paint — the brush's rings, the lines once, DRAG a colour at a time (2026-10-29)
+const OPMP = document.body.dataset.tab === 'opmp' || FORM || OPMN;                                    // OPM-P: OPM-W's page, all of it, for paint — the brush's rings, the lines once, DRAG a colour at a time (2026-10-29)
 const OPMW = document.body.dataset.tab === 'opmw' || OPMP;                            // OPM-W: OPM-S's page, all of it, no arc — a corner straight pieces, for wood (2026-10-28)
 const OPMS = document.body.dataset.tab === 'opms' || OPMW;                             // OPM-S: OPM's page, all of it, FRAME and DRAW BW · CLR (2026-10-28)
 const OPM = document.body.dataset.tab === 'opm' || OPMB || OPMS;                     // OPM: PRISMA's page, all of it — contours, the paints by hand
 const PRISMA = document.body.dataset.tab === 'prisma' || OPM;                       // PRISMA: DACHE's page, all of it
 const JOHN = document.body.dataset.tab === 'stjohn', DACHE = document.body.dataset.tab === 'dache' || PRISMA, BLEND = document.body.dataset.tab === 'blend' || DACHE;   // DACHE: BLEND's page, all of it
 const JOHN_CORNER = 100;   // ST-JOHN's Corners at first: a ⌘'s rings round, its windows too (the owner, 2026-10-19, Screenshot 9.27.36 PM: "the rings must be really round, not squares as now")
-const TAB = FORM ? 'form' : JOHN ? 'stjohn' : OPMB ? 'opmb' : OPMP ? 'opmp' : OPMW ? 'opmw' : OPMS ? 'opms' : OPM ? 'opm' : PRISMA ? 'prisma' : DACHE ? 'dache' : BLEND ? 'blend' : 'inka', TAB_NAME = FORM ? 'FORM' : JOHN ? 'ST-JOHN' : OPMB ? 'OPM-B' : OPMP ? 'OPM-P' : OPMW ? 'OPM-W' : OPMS ? 'OPM-S' : OPM ? 'OPM' : PRISMA ? 'PRISMA' : DACHE ? 'DACHE' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
+const TAB = FORM ? 'form' : JOHN ? 'stjohn' : OPMB ? 'opmb' : OPMN ? 'opmn' : OPMP ? 'opmp' : OPMW ? 'opmw' : OPMS ? 'opms' : OPM ? 'opm' : PRISMA ? 'prisma' : DACHE ? 'dache' : BLEND ? 'blend' : 'inka', TAB_NAME = FORM ? 'FORM' : JOHN ? 'ST-JOHN' : OPMB ? 'OPM-B' : OPMN ? 'OPM-N' : OPMP ? 'OPM-P' : OPMW ? 'OPM-W' : OPMS ? 'OPM-S' : OPM ? 'OPM' : PRISMA ? 'PRISMA' : DACHE ? 'DACHE' : BLEND ? 'BLEND' : 'INKA', KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const fin = v => Number.isFinite(v);
 
 // ---------- state ----------
@@ -131,13 +132,13 @@ const DACHE_KEEP = 'rembrandt.dache.v01', DACHE_REFS = 'rembrandt.dache.refs';  
 const PRISMA_KEEP = 'rembrandt.prisma.v01', PRISMA_REFS = 'rembrandt.prisma.refs';   // PRISMA's, OPM's first visit's
 const OPM_KEEP = 'rembrandt.opm.v01', OPM_REFS = 'rembrandt.opm.refs';                 // OPM's, OPM-B's and OPM-S's first visit's
 const OPMS_KEEP = 'rembrandt.opms.v01', OPMS_REFS = 'rembrandt.opms.refs';             // OPM-S's, OPM-W's first visit's (the owner, 2026-10-28: "based on our very latest, OPM-S")
-const OPMW_KEEP = 'rembrandt.opmw.v01', OPMW_REFS = 'rembrandt.opmw.refs';
-const OPMP_KEEP = 'rembrandt.opmp.v01';                                                // OPM-P's, FORM's first visit's: its pencils, its brush, its machine             // OPM-W's, OPM-P's first visit's
+const OPMW_KEEP = 'rembrandt.opmw.v01', OPMW_REFS = 'rembrandt.opmw.refs';             // OPM-W's, OPM-P's first visit's
+const OPMP_KEEP = 'rembrandt.opmp.v01', OPMP_REFS = 'rembrandt.opmp.refs';             // OPM-P's, OPM-N's first visit's; FORM's: its pencils, its brush, its machine
 let STRIP_PAINTS = false, ALL_PENCILS = false;                                       // PRISMA: the paints by the Tools, not the pencils; the pencils that do not draw too
 let FRESH = true, WIDTHLESS = false;   // nothing kept yet: the owner's paper test laid on the canvas
 function load() {
   try {
-    const o = JSON.parse(localStorage.getItem(KEY) || (FORM && localStorage.getItem(OPMP_KEEP)) || (OPMP && localStorage.getItem(OPMW_KEEP)) || (OPMW && localStorage.getItem(OPMS_KEEP)) || ((OPMB || OPMS) && localStorage.getItem(OPM_KEEP)) || (OPM && localStorage.getItem(PRISMA_KEEP)) || (PRISMA && localStorage.getItem(DACHE_KEEP)) || (DACHE && localStorage.getItem(BLEND_KEEP)) || 'null'); if (!o) return;   // DACHE's first visit: BLEND's composition; PRISMA's DACHE's, else BLEND's
+    const o = JSON.parse(localStorage.getItem(KEY) || ((FORM || OPMN) && localStorage.getItem(OPMP_KEEP)) || (OPMP && localStorage.getItem(OPMW_KEEP)) || (OPMW && localStorage.getItem(OPMS_KEEP)) || ((OPMB || OPMS) && localStorage.getItem(OPM_KEEP)) || (OPM && localStorage.getItem(PRISMA_KEEP)) || (PRISMA && localStorage.getItem(DACHE_KEEP)) || (DACHE && localStorage.getItem(BLEND_KEEP)) || 'null'); if (!o) return;   // DACHE's first visit: BLEND's composition; PRISMA's DACHE's, else BLEND's
     for (const k of NUM) if (fin(o[k])) S[k] = o[k];
     if (Array.isArray(o.rects)) S.rects = withIds(o.rects.map(cleanRect).filter(Boolean));
     WIDTHLESS = Array.isArray(o.rects) && o.rects.some(r => isJohn(r) && !fin(r.width));   // a ⌘ kept before Width: its X laid again on its loop
@@ -2079,7 +2080,7 @@ $('#refOp').oninput = e => { S.refOpacity = +e.target.value; syncRef(); save(); 
 async function loadRef() {
   let list = null;
   try { list = await IDB.get(REFS_KEY); } catch { }
-  if (!Array.isArray(list) && DACHE && !FORM) try { if (OPMP) list = await IDB.get(OPMW_REFS); if (OPMW && !Array.isArray(list)) list = await IDB.get(OPMS_REFS); if ((OPMB || OPMS) && !Array.isArray(list)) list = await IDB.get(OPM_REFS); if (OPM && !Array.isArray(list)) list = await IDB.get(PRISMA_REFS); if (PRISMA && !Array.isArray(list)) list = await IDB.get(DACHE_REFS); if (!Array.isArray(list)) list = await IDB.get(BLEND_REFS); if (Array.isArray(list)) IDB.put(REFS_KEY, list).catch(() => { }); } catch { }   // DACHE's first visit: BLEND's references, copied; PRISMA's DACHE's, else BLEND's
+  if (!Array.isArray(list) && DACHE && !FORM) try { if (OPMN) list = await IDB.get(OPMP_REFS); if (OPMP && !Array.isArray(list)) list = await IDB.get(OPMW_REFS); if (OPMW && !Array.isArray(list)) list = await IDB.get(OPMS_REFS); if ((OPMB || OPMS) && !Array.isArray(list)) list = await IDB.get(OPM_REFS); if (OPM && !Array.isArray(list)) list = await IDB.get(PRISMA_REFS); if (PRISMA && !Array.isArray(list)) list = await IDB.get(DACHE_REFS); if (!Array.isArray(list)) list = await IDB.get(BLEND_REFS); if (Array.isArray(list)) IDB.put(REFS_KEY, list).catch(() => { }); } catch { }   // DACHE's first visit: BLEND's references, copied; PRISMA's DACHE's, else BLEND's
   if (!Array.isArray(list)) {                                                      // the one reference kept before, the first
     list = [];
     try { const o = JSON.parse(localStorage.getItem(REF_KEY) || 'null'); if (o && o.src) list.push({ name: o.name || 'reference', src: o.src }); } catch { }
@@ -2159,8 +2160,8 @@ async function openFromLibrary(file) {
 // tab's its composition — the tiles, their nodes, the canvas, the brush and
 // Density — this tab's own (the pencils, the frame, the view) kept. ⌘Z takes
 // it back.
-const TAB_NAMES = [['inka', 'INKA'], ['stjohn', 'ST-JOHN'], ['blend', 'BLEND'], ['dache', 'DACHE'], ['prisma', 'PRISMA'], ['opm', 'OPM'], ['opmb', 'OPM-B'], ['opms', 'OPM-S'], ['opmw', 'OPM-W'], ['opmp', 'OPM-P'], ['form', 'FORM']];
-const TAKES = FORM ? ['form'] : JOHN ? ['stjohn', 'inka'] : BLEND ? ['opmp', 'opmw', 'opms', 'opmb', 'opm', 'prisma', 'dache', 'blend', 'inka'] : ['inka'];   // the tabs whose tiles this one draws
+const TAB_NAMES = [['inka', 'INKA'], ['stjohn', 'ST-JOHN'], ['blend', 'BLEND'], ['dache', 'DACHE'], ['prisma', 'PRISMA'], ['opm', 'OPM'], ['opmb', 'OPM-B'], ['opms', 'OPM-S'], ['opmw', 'OPM-W'], ['opmp', 'OPM-P'], ['opmn', 'OPM-N'], ['form', 'FORM']];
+const TAKES = FORM ? ['form'] : JOHN ? ['stjohn', 'inka'] : BLEND ? ['opmn', 'opmp', 'opmw', 'opms', 'opmb', 'opm', 'prisma', 'dache', 'blend', 'inka'] : ['inka'];   // the tabs whose tiles this one draws
 const PICTURE = ['brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'density'];
 function takeSave(o, from) {
   const st = o.settings;

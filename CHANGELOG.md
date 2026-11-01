@@ -3,7 +3,20 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.1.7 — 2026-10-30
+## After v.1.1.7 — 2026-10-30 · 11-01, towards v.1.1.8
+
+- **OPM-N, a new tab before FORM: OPM-P's page under its own name** (the
+  owner, 2026-11-01: "I propose to call the tab OPM-N (Numbers)"; "OPM-N is
+  now v.1.1.8"; "before FORM, please"). The first of `OPM-N.md`'s steps:
+  `opmn.html`, `OPMN` within `OPMP` in `inka.js`, every stylesheet rule
+  naming OPM-P naming OPM-N too; its own keep, SAVE OPM-N and Library
+  label, LOAD and ⌘V among OPM-P's tabs; its first visit OPM-P's
+  composition and references. The numbers, a cell's tracks, the run by
+  cells, the remote and the journal next. Its decisions in §1 and
+  `OPM-N.md`, after his hand tests on paper (`RoArte/`): one brush, 0
+  Raphaël Textura 860 round, its track 2.5–3 mm; a dip ≈ 30 mm of track in
+  pure acrylic, 75–80 mm mixed with pouring medium — the acrylic thinned
+  with it; a track's bulb its start, the fork its end.
 
 - **FORM: P, R and L always draw; the box with V and E** (Claude's
   hand redrawing of the blue 911 from the front, the owner's "can you
