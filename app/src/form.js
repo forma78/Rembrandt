@@ -10,7 +10,7 @@
 //
 // mm from the canvas's bottom left corner, x right, y up.
 
-import { autoForms, withMaterials, cutForms, mergeForms, reflectForms, layForms, transformForms, settleLeft, inside as pointIn, pencilIn, readMoved, paletteForms, formPlan, formPreview, spokeThrough, MATERIALS, SMALLEST_NEW, SMALLEST_MIN, SMALLEST_MAX, STRAIGHT_NEW, STRAIGHT_MIN, STRAIGHT_MAX, CORNER_NEW, CORNER_MIN, CORNER_MAX, SPOKE_NEW, SPOKE_MIN, SPOKE_MAX } from './formplan.js';
+import { autoForms, withMaterials, cutForms, mergeForms, reflectForms, layForms, transformForms, settleLeft, inside as pointIn, pencilIn, readMoved, paletteForms, formPlan, formPreview, spokeThrough, MATERIALS, SMALLEST_NEW, SMALLEST_MIN, SMALLEST_MAX, STRAIGHT_NEW, STRAIGHT_MIN, STRAIGHT_MAX, MERGE_NEW, MERGE_MIN, MERGE_MAX, CORNER_NEW, CORNER_MIN, CORNER_MAX, SPOKE_NEW, SPOKE_MIN, SPOKE_MAX } from './formplan.js';
 import { areaOf, FRAME_MARK } from './opmplan.js';
 import { fmt } from './util.js';
 import { PAINT, newPalette } from './tapeplan.js';
@@ -19,9 +19,9 @@ import { SAUSAGE_W } from './ccdplan.js';
 
 const RES = 1;                      // mm, the photo read on the canvas a pixel so big
 const PICK_PX = 7;                  // px: a form's point so near the pointer taken
-export const FORM_STATE = { forms: [], fsel: [], fpal: null, fseed: 0, aseed: 0, background: false, cellsBy: 'photo', smallest: SMALLEST_NEW, straight: STRAIGHT_NEW, fcorner: CORNER_NEW, spoke: SPOKE_NEW, turn: 0, pturn: 0, formV: 1 };
-export const FORM_NUM = ['smallest', 'straight', 'fcorner', 'spoke', 'turn', 'pturn', 'fseed', 'aseed'];
-export const FORM_UNDO = ['forms', 'fsel', 'fpal', 'fseed', 'aseed', 'background', 'cellsBy', 'smallest', 'straight', 'fcorner', 'spoke', 'pturn'];
+export const FORM_STATE = { forms: [], fsel: [], fpal: null, fseed: 0, aseed: 0, background: false, cellsBy: 'photo', smallest: SMALLEST_NEW, straight: STRAIGHT_NEW, merge: MERGE_NEW, fcorner: CORNER_NEW, spoke: SPOKE_NEW, turn: 0, pturn: 0, formV: 1 };
+export const FORM_NUM = ['smallest', 'straight', 'merge', 'fcorner', 'spoke', 'turn', 'pturn', 'fseed', 'aseed'];
+export const FORM_UNDO = ['forms', 'fsel', 'fpal', 'fseed', 'aseed', 'background', 'cellsBy', 'smallest', 'straight', 'merge', 'fcorner', 'spoke', 'pturn'];
 const MAT = { metal: 'Metal', glass: 'Glass', rubber: 'Rubber' };
 const MAT_TINT = { metal: '#E07A5F', glass: '#5DA9E9', rubber: '#2B2B2B' };
 
@@ -36,7 +36,7 @@ export function loadForm(S, o) {
   S.background = o.background === true; delete S.bricks;                              // Bricks gone (2026-10-30)
   S.cellsBy = o.cellsBy === 'preview' ? 'preview' : 'photo';
   const to = (v, a, b, d) => Number.isFinite(v) ? Math.max(a, Math.min(b, v)) : d;
-  S.smallest = to(S.smallest, SMALLEST_MIN, SMALLEST_MAX, SMALLEST_NEW); S.straight = to(S.straight, STRAIGHT_MIN, STRAIGHT_MAX, STRAIGHT_NEW);
+  S.smallest = to(S.smallest, SMALLEST_MIN, SMALLEST_MAX, SMALLEST_NEW); S.straight = to(S.straight, STRAIGHT_MIN, STRAIGHT_MAX, STRAIGHT_NEW); S.merge = to(S.merge, MERGE_MIN, MERGE_MAX, MERGE_NEW);
   S.fcorner = to(S.fcorner, CORNER_MIN, CORNER_MAX, CORNER_NEW); S.spoke = to(S.spoke, SPOKE_MIN, SPOKE_MAX, SPOKE_NEW);
   S.turn = ((Math.round((S.turn || 0) / 90) * 90) % 360 + 360) % 360; S.pturn = ((Math.round((S.pturn || 0) / 90) * 90) % 360 + 360) % 360;
   S.rects = []; S.nodes = [];                                                        // no tiles here: OPM-P's keep, the first visit's, its blends left
@@ -575,12 +575,14 @@ const IC = {
   pitch: '<path d="M3 5h18M3 12h18M3 19h18"/><path d="M19.5 6.5v4M19.5 13.5v4" class="thin"/>',
   smallest: '<rect x="3" y="7" width="12" height="13" rx="0.5"/><rect x="16.5" y="3.5" width="4.5" height="4.5" rx="0.5" stroke-dasharray="2 1.5"/>',
   straight: '<path d="M3 17c2.5-5 4.5 3 7-2.5"/><path d="M13 12.5h8"/>',
+  merge: '<circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5" class="thin"/>',
   fcorner: '<path d="M5 20v-8a7 7 0 0 1 7-7h7"/><path d="M9 20v-6a5 5 0 0 1 5-5h5" class="thin"/>',
   spoke: '<path d="M6 5v14M12 5v14M18 5v14" stroke-width="3" stroke-linecap="round"/>',
 };
 export const icon = k => `<i class="slic"><svg viewBox="0 0 24 24">${IC[k]}</svg></i>`;
 const SL = [['smallest', 'Smallest form', 1, SMALLEST_MIN, SMALLEST_MAX, v => `${fmt(v, 0)} mm (est.)`, 'At AUTO: a patch of the photo smaller than this squared melts into its neighbour — bigger, fewer and simpler forms (est.)'],
   ['straight', 'Straighten', 0.5, STRAIGHT_MIN, STRAIGHT_MAX, v => `${fmt(v, 1)} mm (est.)`, 'At AUTO: a border straightened so far from the photo\'s at most — more, straighter lines (est.)'],
+  ['merge', 'Merge colours', 1, MERGE_MIN, MERGE_MAX, v => v ? `ΔE ${fmt(v, 0)} (est.)` : 'off', 'At AUTO: neighbours of colours so near one form — the paint\'s light and dark, its reflections, one panel; their shades stay in its cells, off the photo. Off: every colour its own form (est.)'],
   ['fcorner', 'Glass corners', 1, CORNER_MIN, CORNER_MAX, v => v ? `${fmt(v, 0)} mm (est.)` : 'sharp', 'Glass\'s and rubber\'s rings rounded so much at most: the outline as it is, every ring inside it more round, a curl in the middle (est.)'],
   ['spoke', 'Spokes every', 1, SPOKE_MIN, SPOKE_MAX, v => `${fmt(v, 0)} mm (est.)`, 'The Preview\'s sausages: a spoke every so far round a form\'s outline, from it in, every run of one paint along it a sausage (est.)']];
 const slider = ([k2, label, step, min, max, , tip]) => `<label class="sl" title="${tip}"><span class="slh"><span>${icon(k2)}${label}</span><span class="val" data-fv="${k2}"></span></span><input class="slider" type="range" data-fk="${k2}" min="${min}" max="${max}" step="${step}"></label>`;
@@ -590,9 +592,9 @@ function panel() {
   // the top: AUTO and the photo side by side (the owner: "Add new reference next to the Auto key — without the word FORMS, not to make it two
   // lines"), the photo's thumb and its opacity under them, Auto's sliders; the brush's step between (inka.js, #slFormPitch)
   top.innerHTML = `<h3>Forms <span class="hint">off the photo, by hand after</span></h3>
-    <div class="formkeys deck" id="formKeys"><button class="btn pass" id="btnAuto" title="AUTO: the forms off the chosen reference, upright as the view stands now — its colours in the box's pencils, the specks melted (Smallest form), the borders straightened (Straighten), the background left out, every material guessed; the forms you made go (⌘Z brings them back)"><svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 6 3-4 4 7z" class="fill"/><circle cx="17" cy="6.5" r="2" class="dot"/></svg><span>Auto</span></button></div>
+    <div class="formkeys deck" id="formKeys"><button class="btn pass" id="btnAuto" title="AUTO: the forms off the chosen reference, upright as the view stands now — its colours in the box's pencils, the specks melted (Smallest form), near colours one (Merge colours), the borders straightened (Straighten), the background left out, every material guessed; the forms you made go (⌘Z brings them back)"><svg viewBox="0 0 24 24"><path d="M4 18l5-9 4 6 3-4 4 7z" class="fill"/><circle cx="17" cy="6.5" r="2" class="dot"/></svg><span>Auto</span></button></div>
     <div id="formRef"></div>
-    <div class="sliders" id="slAuto">${SL.slice(0, 2).map(slider).join('')}</div>`;
+    <div class="sliders" id="slAuto">${SL.slice(0, 3).map(slider).join('')}</div>`;
   const keys = A.$('#formKeys'), ref = A.$('#formRef'), add = A.$('#btnRef');
   if (add) { add.classList.add('pass'); add.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15.5 7.5l-6.8 6.8a2 2 0 0 0 2.8 2.8l7.2-7.2a3.6 3.6 0 0 0-5.1-5.1L6.4 12a5.2 5.2 0 0 0 7.4 7.4l5.7-5.7"/></svg><span>Add new reference</span>'; keys.append(add); }
   for (const sel of ['#refKeys', '.refrow']) { const el = A.$(sel); if (el) ref.append(el); }
@@ -604,7 +606,7 @@ function panel() {
     <div class="grid4 keys"><button class="btn" id="btnMerge" title="Unite, U: the chosen forms side by side one form (⇧ and a click to choose more); ⌘Z takes it back">Unite (U)</button><button class="btn" id="btnFormOut" title="The chosen forms out, the ground there — or back in (⌫)">Out · in</button></div>
     <div class="toggles looks" id="formBg"><button class="tog" data-bg2="0" title="No background: the forms grown from the photo's rim left out, the ground there (the owner: &quot;we do not need the background&quot;)">No background</button><button class="tog" data-bg2="1" title="The background's forms painted too">Background</button></div>
     <div class="toggles looks" id="formCells"><button class="tog" data-cells="photo" title="Every cell the photo's colour in it, its nearest pencil — the door's handle, the headlights">Cells by photo</button><button class="tog" data-cells="preview" title="Every cell the Preview's colour in it — the brush through the sausages, as OPM-P's">Cells by Preview</button></div>
-    <div class="sliders" id="slForm">${SL.slice(2).map(slider).join('')}</div>
+    <div class="sliders" id="slForm">${SL.slice(3).map(slider).join('')}</div>
     <div id="formPaints"><h4>Paints <span class="hint">the sausages' colours — the chosen forms, or every one</span></h4></div>`;
   // OPM-P's Paints here (the owner: "I miss the colours … and DENSITY"): New colours · New spokes, the palettes, Density — FORM's
   const paints = A.$('#formPaints'), nc = A.$('#btnNewColours');
@@ -670,7 +672,7 @@ function auto() {
   if (!img) { A.$('#formRead').textContent = 'No photo: 📎 Add new reference first, then AUTO.'; return; }
   A.undoPush();
   S.aseed = newSeed();                                                               // a variation every press: ⌘Z the one before
-  S.forms = withMaterials(autoForms(img, S.boardW, S.boardH, { pencils: S.pencils, smallest: S.smallest, straight: S.straight, seed: S.aseed }), S.pencils);
+  S.forms = withMaterials(autoForms(img, S.boardW, S.boardH, { pencils: S.pencils, smallest: S.smallest, straight: S.straight, merge: S.merge, seed: S.aseed }), S.pencils);
   S.fsel = []; A.settle();
 }
 export function showForm(D) {

@@ -3,6 +3,23 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.1.7 — 2026-10-30
+
+- **FORM: AUTO calmer — Merge colours, softer borders, Straighten never
+  doubled** (the owner, the same evening, Screenshot 9.49.11 and 9.49.17
+  PM, the blue 911 from the front, `images.jpeg`, Smallest form 6 mm,
+  Straighten 5: "the little car comes out crooked and skewed, all its
+  geometry goes to pieces — can it be broken less aggressively, or is it
+  better redrawn by hand?"). The forms followed the paint's reflections, a
+  blob each (157 forms on his photo), and AUTO's variation stretched
+  Straighten up to twice the slider — the borders cut across in skewed
+  chords. **Merge colours** (ΔE 12 at first, 0 … 40, est.) under
+  Straighten: neighbours of colours so near one form — the hood one panel,
+  its light and dark left to its cells, off the photo (18 … 30 forms on
+  his photo); a border's grid steps smoothed six times before it is
+  straightened, not twice; a variation's Straighten up to the slider's,
+  never past it.
+
 ## v.1.1.7 — 2026-10-30 · Tools
 
 - **v.1.1.7 after the name, Tools** (the owner, 2026-10-30, the evening:

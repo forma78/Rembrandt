@@ -216,6 +216,16 @@ import { paletteForms } from '../src/formplan.js';
 import { PAINT } from '../src/tapeplan.js';
 import { INKA_META, labOf } from '../src/inkaplan.js';
 import { linOf } from '../src/color.js';
+test('FORM AUTO Merge colours: neighbours of near colours one form, their shades left to the cells (the owner: "can it be broken less aggressively?")', () => {
+  // a panel in two near blues, a light and a dark of one paint, beside a red
+  const W = 160, H = 100, data = new Uint8ClampedArray(W * H * 4);
+  for (let iy = 0; iy < H; iy++) for (let ix = 0; ix < W; ix++) { const q = 4 * ((H - 1 - iy) * W + ix), c = ix < 60 ? [70, 120, 200] : ix < 120 ? [40, 85, 165] : [210, 40, 40]; data[q] = c[0]; data[q + 1] = c[1]; data[q + 2] = c[2]; data[q + 3] = 255; }
+  const img = { nx: W, ny: H, h: 1, data }, pencils = cleanPencils(PRISMA_PENCILS);
+  const n = merge => autoForms(img, W, H, { pencils, smallest: 10, straight: 1, merge, bgDE: 0 }).length;
+  assert.equal(n(0), 3, 'every colour its own form');
+  assert.equal(n(30), 2, 'the two blues one, the red its own');
+});
+
 test('FORM AUTO a variation every press, and a palette over the sausages by lightness (the owner: "random generations on Auto"; "I miss the colours")', () => {
   const pencils = cleanPencils(PRISMA_PENCILS), img = photo(160, 100);
   const sig = fs => fs.map(F => F.loops[0].length + ':' + Math.round(F.area)).sort().join();

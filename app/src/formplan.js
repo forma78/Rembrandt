@@ -64,6 +64,11 @@ const HAIR = 1e-6;                  // mm: two points nearer, one
 export const GRID_NEW = 2, GRID_MIN = 1, GRID_MAX = 6;                   // mm, the photo read on a grid so fine (est.)
 export const SMALLEST_NEW = 24, SMALLEST_MIN = 6, SMALLEST_MAX = 120;     // mm: a form this squared at least, a speck smaller melts into its neighbour (est.)
 export const STRAIGHT_NEW = 2, STRAIGHT_MIN = 0.5, STRAIGHT_MAX = 8;      // mm, a border straightened so far from the photo's at most (est.)
+// Merge colours (the owner, 2026-10-30, the blue 911 from the front, images.jpeg: "the little car comes out crooked and skewed, all its
+// geometry goes to pieces — can it be broken less aggressively?"): the forms followed the paint's reflections, a blob each; neighbours
+// of colours so near one form — the hood one, its light and dark in its cells, off the photo
+export const MERGE_NEW = 12, MERGE_MIN = 0, MERGE_MAX = 40;               // ΔE76 (est.)
+const SOFTEN = 6;                   // a border's grid steps smoothed so many times before it is straightened: its curves, no stairs (2 till 2026-10-30)
 export const SHORTEST_NEW = 1, SHORTEST_MIN = 0.5, SHORTEST_MAX = 4;      // × the brush: a cell along its row so long at least, a colour shorter in with its neighbour (est.)
 const SMOOTH = 2;                   // the grid's colours: a square to the most of its eight neighbours', twice — the photo's grain off
 const SAMPLE = 1;                   // mm, a row read for its colours a step so long
@@ -155,11 +160,11 @@ function bgMask(img, W, H, step) {
 const mulberry = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 export function autoForms(img, W, H, o = {}) {
   // AUTO a variation every press (the owner, 2026-10-30: "random generations on Auto, so it gives a different geometry every time"):
-  // o.seed — the grid laid off by a random part of a square, Smallest form and Straighten about the sliders', the grain smoothed
-  // more or less, neighbours of near colours now and then one
+  // o.seed — the grid laid off by a random part of a square, Smallest form about the slider's, Straighten up to it (never past it:
+  // twice it, the borders cut across in skewed chords), Merge colours about it, the grain smoothed more or less
   const rnd = o.seed ? mulberry(o.seed) : null, about = (a, b) => rnd ? a * Math.pow(b / a, rnd()) : 1;
   const g = o.grid ?? GRID_NEW, ox = rnd ? rnd() * g : 0, oy = rnd ? rnd() * g : 0, nx = Math.max(1, Math.ceil((W + ox) / g - 1e-9)), ny = Math.max(1, Math.ceil((H + oy) / g - 1e-9));
-  const smallest = (o.smallest ?? SMALLEST_NEW) * about(0.6, 1.6), straight = (o.straight ?? STRAIGHT_NEW) * about(0.6, 2), smooth = rnd ? 1 + Math.floor(rnd() * 3) : SMOOTH, melt = rnd ? rnd() * 14 : 0;
+  const smallest = (o.smallest ?? SMALLEST_NEW) * about(0.6, 1.6), straight = (o.straight ?? STRAIGHT_NEW) * about(0.6, 1), smooth = rnd ? 1 + Math.floor(rnd() * 3) : SMOOTH, melt = o.merge !== undefined ? o.merge * about(0.7, 1.4) : rnd ? rnd() * 14 : 0;
   const cx0 = i => Math.max(0, i * g - ox), cx1 = i => Math.min(W, (i + 1) * g - ox), cy0 = j => Math.max(0, j * g - oy), cy1 = j => Math.min(H, (j + 1) * g - oy);
   const near = nearestOf(o.pencils ?? cleanPencils(PRISMA_PENCILS), -Infinity), names = [], idx = new Map();
   let lab = new Int32Array(nx * ny);
@@ -272,7 +277,7 @@ export function autoForms(img, W, H, o = {}) {
   for (const C of chains) {
     let P = C.pts.map(([i, j]) => [X(i), Y(j)]);
     const closed = C.pts.length > 2 && C.pts[0][0] === C.pts.at(-1)[0] && C.pts[0][1] === C.pts.at(-1)[1];
-    for (let it = 0; it < 2; it++) P = P.map((p, m) => m === 0 || m === P.length - 1 ? p : [(P[m - 1][0] + 2 * p[0] + P[m + 1][0]) / 4, (P[m - 1][1] + 2 * p[1] + P[m + 1][1]) / 4]);
+    for (let it = 0; it < (o.soften ?? SOFTEN); it++) P = P.map((p, m) => m === 0 || m === P.length - 1 ? p : [(P[m - 1][0] + 2 * p[0] + P[m + 1][0]) / 4, (P[m - 1][1] + 2 * p[1] + P[m + 1][1]) / 4]);
     if (closed) { const far = P.reduce((b, p, m) => len(sub(p, P[0])) > len(sub(P[b], P[0])) ? m : b, 0); C.mm = [...straightened(P.slice(0, far + 1), tol), ...straightened(P.slice(far), tol).slice(1)]; }
     else C.mm = straightened(P, tol);
     C.a = `${C.pts[0][0]},${C.pts[0][1]}`; C.b = `${C.pts.at(-1)[0]},${C.pts.at(-1)[1]}`; C.closed = closed; C.smooth = P; C.tol = tol;
