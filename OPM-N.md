@@ -149,6 +149,9 @@ tunnel blend, a ruler in the later ones); the owner answered.
   table every 70 mm" — the cup at x ≈ 867 mm made a run of 3 h 22 min
   without dips 10 h 28 min with them (est., the page's sum); the owner is
   to describe how the dip should work.
+- **The rows' step up to 45 mm** (Construction's slider, 20 at most till
+  then: "I need it up to 45 mm. It is important for big formats"); OPM-P's
+  brush width stays 20 at most.
 
 ## 1 · Numbers
 

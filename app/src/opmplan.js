@@ -840,6 +840,7 @@ export function numbersOf(cells, regions) {
 // Air's one way each.
 // → { k, W, C (its tracks' mean length), T, tracks: [[a, b]], strokes: [pieces], mm }
 export const TRACK_NEW = 2.5, TRACK_MIN = 2, TRACK_MAX = 4;   // mm, the 0 Textura 860's track on the canvas: 2.5 … 3 by the ruler, RoArte/IMG_1949 (est.)
+export const PITCH_MAX_N = 45;                                    // mm, OPM-N's rows' step at most: big formats (the owner, 2026-11-02: "up to 45 mm … important for big formats")
 export const DIP_EVERY_NEW = 75, DIP_EVERY_MAX = 200;          // mm of track a dip, for now (the owner, 2026-11-02): 75 … 80 with pouring medium, RoArte/IMG_1971; 0 a colour's first alone (est.)
 // the longest piece of the line through p along u inside P
 function chordAlong(P, p, u) {

@@ -56,7 +56,7 @@ import { TAPE_PAINTS, TO_BUY, PAINT, newPalette } from './tapeplan.js';
 import { BLEND as BLEND_KIND, isBlend, keysOf, keyIn, blendLoops, cornerNew, BLEND_1554, STEPS_MIN, STEPS_MAX, KEY_CORNER_MIN, KEY_CORNER_MAX, spokeGap, spokesRound, SPOKE_GAP, SPOKES_MIN, SPOKES_MAX } from './blendplan.js';
 import { cleanPencils, PENCILS_NEW, runOrder, lightnessOf, pencilPlan, passesOf, drawRows, withChanges, outlineOf, cleanFrame, PITCH, COVER, LIGHT_OVER, LEAST_MM, LEAST_SHARE, HATCHES, BOX_2, BOX_3, BOX_4, moduleLines, COATS_NEW, COATS_MIN, COATS_MAX,
   SHORTEST_NEW, SHORTEST_MIN, SHORTEST_MAX, SPEED_NEW as PENCIL_SPEED_NEW, SPEED_MIN as PENCIL_SPEED_MIN, SPEED_MAX as PENCIL_SPEED_MAX } from './dacheplan.js';
-import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, numbersOf, cellDragsOf, TRACK_NEW, TRACK_MIN, TRACK_MAX, DIP_EVERY_NEW, DIP_EVERY_MAX, FEW_CELLS, fitKeys, FRAME_MARK, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
+import { opmPlan, INSET, outerOf, boldestOf, FACETS_NEW, FACETS_MIN, FACETS_MAX, opmpPlan, numbersOf, cellDragsOf, TRACK_NEW, TRACK_MIN, TRACK_MAX, DIP_EVERY_NEW, DIP_EVERY_MAX, FEW_CELLS, PITCH_MAX_N, fitKeys, FRAME_MARK, dragRowsOf, PITCH_NEW, PITCH_MIN, PITCH_MAX, DRAG_RUBS_NEW, DRAG_RUBS_MIN, DRAG_RUBS_MAX } from './opmplan.js';
 import { aligned } from './align.js';
 import { initForm, FORM_STATE, FORM_NUM, FORM_UNDO, loadForm, plan as formPlanNow, planKey as formPlanKey, preview as formPreviewNow, frameMods as formFrame, colour as formColour, align as formAlign, draw as formDraw, pointer as formPointer, key as formKey, showForm, turned as formTurned } from './form.js';
 import { prismaPlan, passesOf as prismaPasses, drawRows as prismaRows, PRISMA_PENCILS, BOX_5, BOX_6, rubsOf, RUBS_DARK_NEW, RUBS_LIGHT_NEW, RUBS_MIN, RUBS_MAX, PRESS_NEW, PRESS_MIN, PRESS_MAX, GLIDE_NEW, GLIDE_MIN, GLIDE_MAX, TOUCH_NEW, TOUCH_MIN, TOUCH_MAX, ELBOW_MIN, PEN_AIR, SHORTEST_NEW as RUN_SHORTEST_NEW, SHORTEST_MIN as RUN_SHORTEST_MIN, SHORTEST_MAX as RUN_SHORTEST_MAX, SPEED_NEW as PRISMA_SPEED_NEW } from './prismaplan.js';
@@ -104,6 +104,7 @@ const BG = { white: '#FBFAF7', black: '#161514' };
 // OPM-P's brush (the owner, 2026-10-29): its speed along the rows, mm/s; pressed at so many degrees,
 // ELBOW LIVE's, 0° the brush's own pose (strokes.js), minus down; the rays as wide as it, at first (est.)
 const PSPEED_NEW = 40, PSPEED_MIN = 5, PSPEED_MAX = 120, BPRESS_MIN = -4, BPRESS_MAX = 8;
+const PITCH_TOP = OPMN ? PITCH_MAX_N : PITCH_MAX;   // the rows' step at most: OPM-N's up to 45 mm for big formats, OPM-P's brush 20
 const NSPEED_NEW = 25;   // OPM-N's thin brush from the cup, mm/s (the owner, 2026-11-01: "let the brush go 25 mm/s, not 60, and dip more often")
 const S = {
   rects: [], sel: 0, tool: 'edit',
@@ -181,7 +182,7 @@ function load() {
       if (OPMP) {                                                                     // OPM-W's keep at first: OPM-P's brush, its rays as wide as it, the lines on the cells' edges
         if (!o.opmpV) { S.pitch = PITCH_NEW; S.dragRubs = DRAG_RUBS_NEW; S.pspeed = PSPEED_NEW; S.brushPress = 0; S.rayW = PITCH_NEW; S.rubsLight = S.rubsDark; }
         S.opmpV = 1; S.inset = 0; S.cw = o.cw !== false; S.bind = o.bind !== false;
-        S.pitch = Math.max(PITCH_MIN, Math.min(PITCH_MAX, Math.round(S.pitch * 2) / 2)); S.dragRubs = Math.max(DRAG_RUBS_MIN, Math.min(DRAG_RUBS_MAX, Math.round(S.dragRubs)));
+        S.pitch = Math.max(PITCH_MIN, Math.min(PITCH_TOP, Math.round(S.pitch * 2) / 2)); S.dragRubs = Math.max(DRAG_RUBS_MIN, Math.min(DRAG_RUBS_MAX, Math.round(S.dragRubs)));
         S.pspeed = Math.max(PSPEED_MIN, Math.min(PSPEED_MAX, Math.round(S.pspeed))); S.brushPress = Math.max(BPRESS_MIN, Math.min(BPRESS_MAX, Math.round(S.brushPress * 10) / 10));
       }
       if (OPMN) {                                                                     // OPM-P's keep, or OPM-N's before its tracks: the thin brush's own
@@ -1462,7 +1463,7 @@ const LOG_SL = new Set(PRISMA ? ['rubsDark', 'rubsLight'] : []);
 // OPM-P (2026-10-29): Construction its rays and facets — the rows by the brush; Drawing machine DRAW BW's one pencil, one Rubs;
 // Painting machine DRAG's brush: its width the rings' step, its Rubs, its speed (the owner: "RUBS, one, as there are no light or dark pencils any more")
 const PENCIL_SL = OPMP ? [['rayW', 'Rays wide', 0.5, PITCH_MIN, RAYW_MAX], ['facets', 'Corner facets', 1, FACETS_MIN, FACETS_MAX], ['rubsDark', 'Rubs', 1, 0, 6], ['touch', 'Pencil in at', 0.5, TOUCH_MIN, TOUCH_MAX], ['press', 'Pressure', 0.1, PRESS_MIN, PRESS_MAX], ['glide', 'Between strokes', 0.1, GLIDE_MIN, GLIDE_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX],
-    ['pitch', OPMN ? 'The rows\' step' : 'Brush width · the rows\' step', 0.5, PITCH_MIN, PITCH_MAX], ...(OPMN ? [['track', 'Track width', 0.5, TRACK_MIN, TRACK_MAX], ['dipEvery', 'Dip every', 5, 0, DIP_EVERY_MAX]] : []), ['dragRubs', 'Rubs', 1, DRAG_RUBS_MIN, DRAG_RUBS_MAX], ['pspeed', 'Brush speed', 5, PSPEED_MIN, PSPEED_MAX]]
+    ['pitch', OPMN ? 'The rows\' step' : 'Brush width · the rows\' step', 0.5, PITCH_MIN, PITCH_TOP], ...(OPMN ? [['track', 'Track width', 0.5, TRACK_MIN, TRACK_MAX], ['dipEvery', 'Dip every', 5, 0, DIP_EVERY_MAX]] : []), ['dragRubs', 'Rubs', 1, DRAG_RUBS_MIN, DRAG_RUBS_MAX], ['pspeed', 'Brush speed', 5, PSPEED_MIN, PSPEED_MAX]]
   : PRISMA ? [...(OPM ? [['rowMin', OPMB ? 'Rows at least' : 'Key 1 · A: rows at least', 0.5, ROWMIN_MIN, ROWMIN_MAX], ['rayW', OPMB ? 'Rays wide' : 'Key 1 · A: rays wide', 0.5, RAYW_MIN, RAYW_MAX]] : []), ...(OPMS ? [['inset', 'Contour in from the edge', 0.1, 0, INSET_MAX], OPMW ? ['facets', 'Corner facets', 1, FACETS_MIN, FACETS_MAX] : ['round', 'Corners rounded', 0.5, 0, ROUND_MAX]] : []), ['rubsDark', 'Rubs, the darkest pencil', 1, 0, 6], ['rubsLight', 'Rubs, the lightest pencil', 1, 0, 6], ['touch', 'Pencil in at', 0.5, TOUCH_MIN, TOUCH_MAX], ['press', 'Pressure', 0.1, PRESS_MIN, PRESS_MAX], ['glide', 'Between strokes', 0.1, GLIDE_MIN, GLIDE_MAX],
     ...(OPMS ? [] : [['shortest', 'Shortest stroke', 0.5, RUN_SHORTEST_MIN, RUN_SHORTEST_MAX]]), ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]]   // OPM-S: no Shortest, PRISMA's rings' and nothing of OPM's
   : [['coats', 'Coats', 1, COATS_MIN, COATS_MAX], ['shortest', 'Shortest module', 0.5, SHORTEST_MIN, SHORTEST_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]];

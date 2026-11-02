@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **OPM-N: the rows' step up to 45 mm** (the owner, 2026-11-02: "I need it
+  up to 45 mm. It is important for big formats"). `PITCH_MAX_N` in
+  `opmplan.js`; OPM-P's brush width 20 at most, as it was.
 - **OPM-N: 🟥 STOP and ▶️ Go to on the iPhone** (the owner, 2026-11-02:
   "on the iPhone let us replace the Stop icon with 🟥 and add ▶️ Go to,
   without №"). The labels only; `remote.html` is read at every request, so
