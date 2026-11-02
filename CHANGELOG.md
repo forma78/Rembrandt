@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **OPM-N: 🟥 STOP and ▶️ Go to on the iPhone** (the owner, 2026-11-02:
+  "on the iPhone let us replace the Stop icon with 🟥 and add ▶️ Go to,
+  without №"). The labels only; `remote.html` is read at every request, so
+  a refresh on the iPhone shows them, no restart.
 - **OPM-N: ⏮ Back, ⏭ Skip, Go to № on the iPhone** (the end of step 5 of
   `OPM-N.md`; the owner, 2026-11-02, the remote open on his iPhone: "let us
   make ⏮ Back, ⏭ Skip and Go to №, the next step"). The runner's `goto`

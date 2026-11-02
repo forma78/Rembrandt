@@ -11,7 +11,7 @@
 <title>Rembrandt · Remote</title>
 <!-- The iPhone's remote (OPM-N, OPM-N.md §3; the owner, 2026-11-02: "yes, with the key"):
      Safari on the same Wi-Fi, "Add to Home Screen" for an icon. One hand: the colour and the
-     cell on top, DIP the biggest, then ⏮ Back · ⏭ Skip · Go to №, Pause · Continue and STOP.
+     cell on top, DIP the biggest, then ⏮ Back · ⏭ Skip · ▶️ Go to, Pause · Continue and 🟥 STOP.
      Its key from the QR code on OPM-N's page, in the address; every call carries it. -->
 <style>
   :root { --bg: #161514; --card: #24221F; --line: #3A3733; --ink: #F4F1EA; --dim: #9C978E; --amber: #F2A33A; --red: #D8453B; --green: #5BAF6A; }
@@ -67,13 +67,13 @@
   <div class="row three">
     <button id="back" disabled>⏮ Back</button>
     <button id="skip" disabled>⏭ Skip</button>
-    <button id="to" disabled>Go to №</button>
+    <button id="to" disabled>▶️ Go to</button>
   </div>
   <div class="row">
     <button id="go" disabled>⏸ Pause</button>
-    <button id="stop" disabled>■ STOP</button>
+    <button id="stop" disabled>🟥 STOP</button>
   </div>
-  <!-- Go to №: a number pad, a cell of the colour now -->
+  <!-- ▶️ Go to: a number pad, a cell of the colour now -->
   <div class="pad" id="pad" hidden>
     <h2 id="padHead">Go to cell</h2>
     <div class="num" id="padNum">&nbsp;</div>
@@ -108,7 +108,7 @@ function show() {
   const jump = busy || !live || s.state === 'stopping' || !s.cell || !c;
   $('#back').disabled = $('#skip').disabled = $('#to').disabled = jump;
   const go = $('#go'); go.disabled = busy || !live || s.state === 'stopping'; go.classList.toggle('cont', paused); go.textContent = paused ? '▶ Continue' : '⏸ Pause';
-  const stop = $('#stop'); stop.disabled = !live; if (!live) { armed = 0; stop.classList.remove('arm'); stop.textContent = '■ STOP'; }
+  const stop = $('#stop'); stop.disabled = !live; if (!live) { armed = 0; stop.classList.remove('arm'); stop.textContent = '🟥 STOP'; }
   $('#dips').innerHTML = s ? `dips <b>${s.dips || 0}</b>${s.cup ? '' : ' · no cup in this run'}` : '&nbsp;';
   $('#link').textContent = fails ? 'no connection' : '';
 }
@@ -127,7 +127,7 @@ if (KEY) {
   $('#dip').onclick = () => act('dip');
   $('#back').onclick = () => act('back');                                  // this cell again, from its first track
   $('#skip').onclick = () => act('skip');                                  // the next cell of this colour
-  // Go to №: the number typed, 1 … the colour's cells
+  // ▶️ Go to: the number typed, 1 … the colour's cells
   let typed = '';
   const N = () => st?.colour?.cells || 0, padShow = () => { const n = +typed; $('#padNum').textContent = typed || '\u00a0'; $('#padNum').classList.toggle('bad', !!typed && (n < 1 || n > N())); };
   $('#padKeys').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', 'Go'].map(k => `<button data-k="${k}"${k === 'Go' ? ' class="goto"' : ''}>${k}</button>`).join('');
@@ -143,9 +143,9 @@ if (KEY) {
   $('#go').onclick = () => act(['paused', 'pausing'].includes(st?.state) ? 'continue' : 'pause');
   // STOP twice, so a pocket never stops a run: the first tap arms it for three seconds
   $('#stop').onclick = () => {
-    if (Date.now() - armed < 3000) { armed = 0; $('#stop').classList.remove('arm'); $('#stop').textContent = '■ STOP'; act('stop'); return; }
+    if (Date.now() - armed < 3000) { armed = 0; $('#stop').classList.remove('arm'); $('#stop').textContent = '🟥 STOP'; act('stop'); return; }
     armed = Date.now(); $('#stop').classList.add('arm'); $('#stop').textContent = 'Tap again: STOP';
-    setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $('#stop').classList.remove('arm'); $('#stop').textContent = '■ STOP'; } }, 3100);
+    setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $('#stop').classList.remove('arm'); $('#stop').textContent = '🟥 STOP'; } }, 3100);
   };
   poll();
 }

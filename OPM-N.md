@@ -141,6 +141,14 @@ tunnel blend, a ruler in the later ones); the owner answered.
   the iPhone: "every 75 mm, for now"): the first of a colour by itself, as
   decided, then by itself every Dip every mm; whether it stays once DIP
   works is his to say.
+- **🟥 STOP and ▶️ Go to on the iPhone** ("on the iPhone let us replace
+  the Stop icon with 🟥 and add ▶️ Go to, without №"): the keys' labels
+  only, the same keys.
+- **The dip, open**: "it seems we will have to rework the INK tab and
+  rethink the dip, so the machine does not drive to the other end of the
+  table every 70 mm" — the cup at x ≈ 867 mm made a run of 3 h 22 min
+  without dips 10 h 28 min with them (est., the page's sum); the owner is
+  to describe how the dip should work.
 
 ## 1 · Numbers
 
@@ -190,7 +198,7 @@ Screen" for an icon. Big keys, one hand:
 - on top: the colour's swatch and name, **"Deep blue 3 / 8"**, the ring,
   the track;
 - **DIP** (the biggest), **⏸ / ▶**, **⏮ Back** (DRAG again in this cell),
-  **⏭ Skip**, **Go to №** (a number pad, in this colour), **■ STOP**;
+  **⏭ Skip**, **▶️ Go to** (a number pad, in this colour), **🟥 STOP**;
 - at a colour's pause: "Next: Ultramarine — wipe the brush, change the cup,
   ▶".
 
