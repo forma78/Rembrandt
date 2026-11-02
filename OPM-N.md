@@ -144,7 +144,7 @@ lifts. So the run can start at any cell.
 - **Snake** — back and forth with the brush down, turning inside the cell —
   or **Air** — every track one way, the brush up and back through the air.
   Every track **Rubs** times (OPM-P's).
-- **Brush** 2.0 mm, 2.0 … 4.0 in 0.5 (est.), on the panel — the tracks by
+- **Brush** 2.0 mm, 2.0 … 4.0 in 0.5 (est.), on the panel (**Track width**, 2.5 at first, since 2026-11-02) — the tracks by
   its track's width, 2.5 … 3 mm for the 0 Textura (est., above); **Brush speed**
   25 mm/s (the owner's); the rest as PAINTING MACHINE has it (ELBOW LIVE ·
   brush, ↻ CW · ↺ CCW).
@@ -227,12 +227,22 @@ canvas. The journal's L per colour is what it will need.
    at one hour the inner first; a colour with no cell in the innermost ring
    starts further out. On Paint and Contour as big as the cell holds, none
    under 6 px (closer, they come); the chosen colour's strong, the rest faint.
-3. A cell's tracks, Snake · Air, Brush 2 … 4; tests.
+3. A cell's tracks, Snake · Air, Brush 2 … 4; tests. Done 2026-11-02
+   (`tracksOf`, `cellDragsOf` in `opmplan.js`): **Track width** 2.5 mm at
+   first (2 … 4 in 0.5, est.), the panel's Brush; a wedge shorter along its
+   row than across — a core's corner — along its long edges, from its outer
+   row line to its inner (along its row it had tracks of 0.1 … 1 mm, the
+   brush's dabs); a cell within 5 % of the track one, in its middle, not two
+   a hair apart (OPM-P's FIT); a row cell's tracks from its outer edge in,
+   the way round, across ones side by side the way round. DRAG, Drag and
+   ▶ Play Drag by cells, a colour's by their numbers; Brush speed 25 mm/s;
+   the rows' step in Construction. No dip yet: DRAG asks to load the brush
+   by hand.
 4. The run by cells, a colour's first dip from the cup; tests. **Ask before
    the runner.**
 5. `/remote` and the key. **Ask before `rembrandt.py` listens beyond the
    Mac.**
 6. The journal and L per colour.
 
-`cd app && node --test` stays green (441 on 2026-11-01), and
+`cd app && node --test` stays green (441 on 2026-11-01, 443 on 2026-11-02), and
 `python3 app/test/runner_test.py` (88).

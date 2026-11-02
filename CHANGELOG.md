@@ -3,7 +3,25 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.1.7 — 2026-10-30 · 11-01, towards v.1.1.8
+## After v.1.1.7 — 2026-10-30 · 11-02, towards v.1.1.8
+
+- **OPM-N: a cell's tracks, Snake · Air, Track width** (step 3 of
+  `OPM-N.md`; the owner, 2026-11-01: "the tracks laid by the track's
+  width, not the brush's size"; "two options: back and forth, and through
+  the air"). `tracksOf` and `cellDragsOf` in `opmplan.js`: a cell on its
+  own, its tracks along its row — a ray's cell's along its strip, a wedge
+  shorter along its row than across along its long edges — k = ⌈W / T⌉,
+  the outer ones T/2 in, none further from the next than T (a cell within
+  5 % of T one, in its middle), cut by the contour, a trapezoid's ending on
+  its rays; Snake back and forth with the brush down, Air every track one
+  way, the brush up and back; every track Rubs times. DRAG, Drag and ▶ Play
+  Drag by them: a colour's cells by their numbers, up through the air from
+  cell to cell, a pause between colours. Painting machine: **Snake · Air**,
+  **Track width** 2.5 mm (2 … 4 in 0.5, est.), Brush speed 25 mm/s on
+  OPM-N's first visit since (the owner's); the rows' step in Construction
+  (it makes the cells now, not the brush). DRAG's question: no dip from the
+  cup yet (step 4), the brush loaded by hand. Its tests: the tracks of every
+  cell of two blends, and DRAG by cells on the machine, no fault.
 
 - **OPM-N: every colour's cells numbered** (the owner, 2026-11-01: "not
   continuous numbering but by colours … the numbering goes from the centre

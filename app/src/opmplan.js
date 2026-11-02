@@ -801,6 +801,73 @@ export function numbersOf(cells, regions) {
   }
   return out;
 }
+// OPM-N's tracks (OPM-N.md §2; the owner's hand tests, RoArte/: "the tracks
+// laid by the track's width, not the brush's size"): a cell painted on its
+// own — the brush lands, paints its tracks, lifts. Its tracks along its row,
+// a ray's cell's along its strip — a cell shorter along its row than across
+// it (a core's corner, a wedge) along its long edges, from its outer row line
+// to its inner: k = ⌈W / T⌉ for a cell W across and a track T wide (one up to
+// FIT of it, in its middle), evenly apart, the outer ones T/2 in from its
+// contour — none further from the next than T, no white between — every one
+// cut by the contour, a trapezoid's ending on its rays. Along its row from
+// its outer edge in, the way round; across, from the outside in, side by
+// side the way round. Snake: back and forth, the brush down, across to the
+// next track inside the cell; Air: every track one way, the brush up and
+// back through the air. Every track Rubs times: Snake's there and back,
+// Air's one way each.
+// → { k, W, C (its tracks' mean length), T, tracks: [[a, b]], strokes: [pieces], mm }
+export const TRACK_NEW = 2.5, TRACK_MIN = 2, TRACK_MAX = 4;   // mm, the 0 Textura 860's track on the canvas: 2.5 … 3 by the ruler, RoArte/IMG_1949 (est.)
+// the longest piece of the line through p along u inside P
+function chordAlong(P, p, u) {
+  const n = left(u), ts = [];
+  P.forEach((a, i) => { const b = P[(i + 1) % P.length], sa = dot(sub(a, p), n), sb = dot(sub(b, p), n); if ((sa > 0) !== (sb > 0)) ts.push(dot(sub(add(a, mul(sub(b, a), sa / (sa - sb))), p), u)); });
+  ts.sort((x, y) => x - y);
+  let best = null; for (let i = 0; i + 1 < ts.length; i += 2) if (!best || ts[i + 1] - ts[i] > best[1] - best[0]) best = [ts[i], ts[i + 1]];
+  return best && best[1] - best[0] > 1e-6 ? [add(p, mul(u, best[0])), add(p, mul(u, best[1]))] : null;
+}
+export function tracksOf(C, regions, o = {}) {
+  const T = o.track ?? TRACK_NEW, rubs = Math.max(1, Math.round(o.rubs ?? DRAG_RUBS_NEW)), cw = o.cw !== false, c = centreOf(regions[C.reg]), ray = C.ray >= 0 && !!C.across;
+  const row = turned([C.mid[0], C.mid.at(-1)], c, cw), out = ray ? C.across : [mul(add(C.ends[0][0], C.ends[1][0]), 0.5), mul(add(C.ends[0][1], C.ends[1][1]), 0.5)];   // along its row; from its outer row line to its inner
+  const ext = L => { const u = unit(sub(L.at(-1), L[0])), v = C.poly.map(q => dot(q, u)); return Math.max(...v) - Math.min(...v); }, side = ray || ext(out) > ext(row) + 1e-9;
+  const L = side ? out : row, u = unit(sub(L.at(-1), L[0])), n = left(u);
+  const s = C.poly.map(q => dot(sub(q, L[0]), n)), s0 = Math.min(...s), s1 = Math.max(...s), W = s1 - s0, k = W <= T * FIT + 1e-9 ? 1 : Math.ceil(W / T - 1e-9);   // within FIT of the track one, in its middle — not two a hair apart
+  const offs = k === 1 ? [(s0 + s1) / 2] : Array.from({ length: k }, (_, j) => s0 + T / 2 + j * (W - T) / (k - 1));
+  const m = centroidOf(C.poly), way = cw ? [m[1] - c[1], c[0] - m[0]] : [c[1] - m[1], m[0] - c[0]], outer = dot(sub(C.ends[0][0], L[0]), n);   // the way round at the cell; a row cell's outer row line, its ends' first point
+  if (side ? dot(n, way) < 0 : Math.abs(outer - s1) < Math.abs(outer - s0)) offs.reverse();
+  const tracks = offs.map(v => chordAlong(C.poly, add(L[0], mul(n, v)), u)).filter(Boolean), line = (a, b) => [{ t: 'L', a, b }];
+  let strokes;
+  if (o.snake !== false) {
+    const path = [];
+    for (const [a, b] of tracks) {
+      const at = path.at(-1)?.b, [p, q] = !at || len(sub(a, at)) <= len(sub(b, at)) + 1e-9 ? [a, b] : [b, a];
+      if (at && len(sub(p, at)) > 1e-6) path.push({ t: 'L', a: at, b: p });         // across to the next track, the brush down, inside the cell
+      path.push(...rubbed(line(p, q), rubs));
+    }
+    strokes = path.length ? [path] : [];
+  } else strokes = tracks.flatMap(([a, b]) => Array.from({ length: rubs }, () => line(a, b)));
+  const C_ = tracks.length ? tracks.reduce((a, [p, q]) => a + len(sub(q, p)), 0) / tracks.length : 0;
+  return { k: tracks.length, W, C: C_, T, tracks, strokes, mm: strokes.reduce((a, st) => a + st.reduce((b, g) => b + len(sub(g.b, g.a)), 0), 0) };
+}
+// OPM-N's DRAG: a colour after another in the run's order; in a colour its
+// cells by their numbers, 1, 2, 3 …, every one on its own (tracksOf), the
+// brush up through the air from one to the next — never over the canvas low.
+// → [{ pencil, strokes, cells (so many), byCell: [{ i, num, k, W, C, mm, from, to (its strokes) }], tracks, rows, rays (strokes), mm, rubs }] in the order given
+export function cellDragsOf(cells, regions, order, o = {}) {
+  const rubs = Math.max(1, Math.round(o.rubs ?? DRAG_RUBS_NEW)), passes = [];
+  for (const pc of order) {
+    const list = cells.map((C, i) => [C, i]).filter(([C]) => C.num && C.pencil === pc).sort((x, y) => x[0].num - y[0].num), strokes = [], byCell = [];
+    let tracks = 0, rows = 0, rays = 0, mm = 0;
+    for (const [C, i] of list) {
+      const t = tracksOf(C, regions, { ...o, rubs });
+      if (!t.strokes.length) continue;
+      byCell.push({ i, num: C.num, k: t.k, W: t.W, C: t.C, mm: t.mm, from: strokes.length, to: strokes.length + t.strokes.length });
+      strokes.push(...t.strokes); tracks += t.k; mm += t.mm;
+      if (C.ray >= 0) rays += t.strokes.length; else rows += t.strokes.length;
+    }
+    if (strokes.length) passes.push({ pencil: pc, strokes, cells: byCell.length, byCell, tracks, rows, rays, rubs, mm });
+  }
+  return passes;
+}
 // DRAG's rows for strokes.js's plotRun, machine mm from Here: a colour a row,
 // its strokes one after another, already rubbed, the brush up on the move
 // from the end of one to the start of the next (a turn: up through it, down

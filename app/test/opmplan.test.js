@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW, FRAME_MARK, numbersOf } from '../src/opmplan.js';
+import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW, FRAME_MARK, numbersOf, tracksOf, cellDragsOf, TRACK_NEW } from '../src/opmplan.js';
 import { rubbed, passesOf, drawRows, PRISMA_PENCILS } from '../src/prismaplan.js';
 import { cleanPencils, runOrder, lineLen, withChanges, lightnessOf } from '../src/dacheplan.js';
 import { cleanRect, atPiece } from '../src/inkaplan.js';
@@ -420,4 +420,68 @@ test('OPM-N, the numbers: every colour its own 1 … n, from the middle out ring
   const D2 = opmpPlan([T1, T2], resOf(() => BLUE), { pencils: P, corner: 4, facets: 1, pitch: PITCH_NEW }), N2 = numbersOf(D2.cells, D2.regions).filter(c => c.num);
   const last1 = Math.max(...N2.filter(c => D2.regions[c.reg].rect === 0).map(c => c.num)), first2 = Math.min(...N2.filter(c => D2.regions[c.reg].rect === 1).map(c => c.num));
   assert.ok(N2.some(c => D2.regions[c.reg].rect === 1) && last1 < first2, `the first figure 1 … ${last1}, the second from ${first2}`);
+});
+
+test('OPM-N, a cell\'s tracks: k = ⌈W / T⌉ along its row (a ray\'s cell along its strip), the outer ones T/2 in, none further from the next than T, ending on its contour; Snake one stroke, Air every track one way', () => {
+  const lineDist = (q, a, b) => { const u = [b[0] - a[0], b[1] - a[1]]; return Math.abs((q[0] - a[0]) * u[1] - (q[1] - a[1]) * u[0]) / Math.hypot(...u); };
+  const onContour = (Q, q) => Q.some((a, i) => segDist(q, a, Q[(i + 1) % Q.length]) < 1e-6);
+  let rays = 0;
+  for (const [r, facets, res] of CASES) for (const T of [2, TRACK_NEW, 4]) for (const rubs of [1, 2]) {
+    const D = opmpPlan([r], res, { pencils: P, corner: 4, facets, pitch: PITCH_NEW, stripW: PITCH_NEW }), N = numbersOf(D.cells, D.regions).filter(c => c.num);
+    for (const C of N) {
+      const t = tracksOf(C, D.regions, { track: T, rubs }), ext = (P, u) => { const v = P.map(q => q[0] * u[0] + q[1] * u[1]); return Math.max(...v) - Math.min(...v); };
+      const row = [C.mid[0], C.mid.at(-1)], out = [[(C.ends[0][0][0] + C.ends[1][0][0]) / 2, (C.ends[0][0][1] + C.ends[1][0][1]) / 2], [(C.ends[0][1][0] + C.ends[1][1][0]) / 2, (C.ends[0][1][1] + C.ends[1][1][1]) / 2]];
+      const ux = L => { const d = [L[1][0] - L[0][0], L[1][1] - L[0][1]], l = Math.hypot(...d); return [d[0] / l, d[1] / l]; };
+      const dir = C.ray >= 0 ? C.across : ext(C.poly, ux(out)) > ext(C.poly, ux(row)) + 1e-9 ? out : row;   // a wedge along its long edges
+      if (C.ray >= 0) rays++;
+      assert.equal(t.k, t.W <= T * FIT + 1e-9 ? 1 : Math.ceil(t.W / T - 1e-9), `${t.W} mm across, ${t.k} tracks`);
+      assert.ok(t.C >= T * 0.75 || t.C >= ext(C.poly, ux(dir)) - 1e-6, `along its long edges: ${t.C.toFixed(2)} mm`);
+      assert.ok(t.k === 1 || (t.W - T) / (t.k - 1) <= T + 1e-9, 'no white between two tracks');
+      for (const [a, b] of t.tracks) {
+        assert.ok(lineDist(b, a, [a[0] + dir[1][0] - dir[0][0], a[1] + dir[1][1] - dir[0][1]]) < 1e-6, 'along its row or its strip');
+        assert.ok(onContour(C.poly, a) && onContour(C.poly, b) && inPoly(C.poly, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2), 'from contour to contour, inside');
+      }
+      if (t.k > 1) {
+        const [a, b] = t.tracks[0], u = ux([a, b]), v = C.poly.map(q => (q[0] - a[0]) * -u[1] + (q[1] - a[1]) * u[0]), w = C.poly.map(q => (q[0] - t.tracks.at(-1)[0][0]) * -u[1] + (q[1] - t.tracks.at(-1)[0][1]) * u[0]);
+        const lo = Math.min(...v), hi = Math.max(...w);
+        assert.ok(Math.abs(Math.abs(lo) - T / 2) < 1e-6 && Math.abs(Math.abs(hi) - T / 2) < 1e-6 || Math.abs(Math.abs(Math.max(...v)) - T / 2) < 1e-6 && Math.abs(Math.abs(Math.min(...w)) - T / 2) < 1e-6, 'the outer ones T/2 in from the contour');
+        if (dir === row && C.ray < 0) assert.ok(lineDist(C.ends[0][0], ...t.tracks[0]) < lineDist(C.ends[0][0], ...t.tracks.at(-1)), 'from its outer edge in');
+      }
+      const [S] = t.strokes;
+      assert.equal(t.strokes.length, 1, 'Snake: the cell one stroke');
+      S.forEach((g, i) => { if (i) assert.ok(Math.hypot(g.a[0] - S[i - 1].b[0], g.a[1] - S[i - 1].b[1]) < 1e-9, 'the brush down all through'); });
+      const crossed = S.reduce((a, g) => a + Math.hypot(g.b[0] - g.a[0], g.b[1] - g.a[1]), 0) - rubs * t.k * t.C;
+      assert.ok(crossed > -1e-6, `every track ${rubs}×`);
+      for (const g of S) { const q = [(g.a[0] + g.b[0]) / 2, (g.a[1] + g.b[1]) / 2]; assert.ok(inPoly(C.poly, ...q) || onContour(C.poly, q), 'across to the next track inside the cell, or on its contour (a slanted ray)'); }
+      const A = tracksOf(C, D.regions, { track: T, rubs, snake: false });
+      assert.equal(A.strokes.length, t.k * rubs, 'Air: every track Rubs times, a stroke each');
+      const u0 = [A.strokes[0][0].b[0] - A.strokes[0][0].a[0], A.strokes[0][0].b[1] - A.strokes[0][0].a[1]];
+      assert.ok(A.strokes.every(s => s.length === 1 && (s[0].b[0] - s[0].a[0]) * u0[0] + (s[0].b[1] - s[0].a[1]) * u0[1] > 0), 'Air: every track one way');
+    }
+  }
+  assert.ok(rays > 0, 'a ray\'s cells among them');
+  // a 6 mm row, the 0 Textura's 2.5 mm track: three tracks, 1.25 mm in, 1.75 apart; a 4 mm one two; a 2 mm one one in its middle
+  const box = (w, h) => ({ reg: 0, ray: -1, poly: [[0, 0], [h, 0], [h, w], [0, w]], mid: [[0, w / 2], [h, w / 2]], ends: [[[0, 0], [0, w]], [[h, 0], [h, w]]] }), R0 = [{ a: { x0: -100, y0: -100, x1: -50, y1: -50 } }];
+  assert.deepEqual(tracksOf(box(6, 40), R0).tracks.map(([a]) => +a[1].toFixed(6)), [1.25, 3, 4.75]);
+  assert.deepEqual(tracksOf(box(4, 40), R0).tracks.map(([a]) => +a[1].toFixed(6)), [1.25, 2.75]);
+  assert.deepEqual(tracksOf(box(2, 40), R0).tracks.map(([a]) => +a[1].toFixed(6)), [1]);
+});
+test('OPM-N, DRAG by cells: a colour after another, its cells by their numbers, every one its tracks; on the machine the brush up between cells, a pause between colours', () => {
+  const D = opmpPlan([PERSP], QUAD, { pencils: P, corner: 4, facets: 3, pitch: PITCH_NEW, stripW: PITCH_NEW }), N = numbersOf(D.cells, D.regions), order = D.drags.map(q => q.pencil);
+  for (const snake of [true, false]) {
+    const passes = cellDragsOf(N, D.regions, order, { track: TRACK_NEW, rubs: 2, snake });
+    assert.deepEqual(passes.map(q => q.pencil), order, 'the run\'s order');
+    for (const q of passes) {
+      assert.deepEqual(q.byCell.map(c => c.num), N.filter(c => c.num && c.pencil === q.pencil).map(c => c.num).sort((a, b) => a - b), `${q.pencil}: every cell, 1, 2, 3 …`);
+      assert.equal(q.byCell.at(-1).to, q.strokes.length);
+      q.byCell.forEach((c, i) => assert.equal(c.from, i ? q.byCell[i - 1].to : 0));
+      assert.equal(q.strokes.length, snake ? q.cells : q.tracks * 2);
+      assert.ok(Math.abs(q.mm - q.byCell.reduce((a, c) => a + c.mm, 0)) < 1e-6);
+    }
+    const R = dragRowsOf(passes, P, { cw: 400, ch: 400 }), opts = { ...DEFAULTS, speed: 25, travel: 180, tail: 3, lift: true, ink: false, snake: true, pause: false, rows: R.ps.length, here: { x: 300, y: 300 }, hover: 12 };
+    const run = plotRun(opts, R.ps.map((ps, k) => ({ key: 'DRAG', ps: [ps], why: k ? 'the next colour' : null })));
+    assert.equal(run.fault, '');
+    assert.equal(run.blocks.filter(b => b.kind === 'pause').length, passes.length - 1);
+    assert.equal(R.lifts, passes.reduce((a, q) => a + q.strokes.length - 1, 0), 'up through the air between cells (and Air\'s tracks)');
+  }
 });
