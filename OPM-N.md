@@ -134,6 +134,13 @@ tunnel blend, a ruler in the later ones); the owner answered.
   new palette (Library 2026-11-02 14-53) 21 colours: "21 and even 25 are
   allowed, if the proportion is logical and adequate" — no cap on the
   number of colours.
+- **The iPhone remote, with the key** (asked: `rembrandt.py` on the home
+  Wi-Fi, a key by a QR code on OPM-N's page; "yes, with the key"); the
+  Mac's address on the Wi-Fi 192.168.0.227 that day. Step 5 goes on.
+- **A dip every 75 mm, for now** (asked how to paint till DIP comes from
+  the iPhone: "every 75 mm, for now"): the first of a colour by itself, as
+  decided, then by itself every Dip every mm; whether it stays once DIP
+  works is his to say.
 
 ## 1 · Numbers
 
@@ -265,7 +272,12 @@ canvas. The journal's L per colour is what it will need.
    ("Paint replaced by Numbers … the last one Result, the final version,
    without numbers").
 4. The run by cells, a colour's first dip from the cup; tests. **Ask before
-   the runner.**
+   the runner.** Done 2026-11-02, no runner change (plotRun's dips, the
+   Ink tab's cup): a dip at every colour's start, then every **Dip every**
+   mm of track, 75 at first (the owner's "every 75 mm, for now" till DIP
+   comes from the iPhone; 0 a colour's first alone) — between two strokes
+   when the brush has painted half of it, else in one, back to the same
+   point; the pause between colours over the cup.
 5. `/remote` and the key. **Ask before `rembrandt.py` listens beyond the
    Mac.**
 6. The journal and L per colour.

@@ -840,6 +840,7 @@ export function numbersOf(cells, regions) {
 // Air's one way each.
 // → { k, W, C (its tracks' mean length), T, tracks: [[a, b]], strokes: [pieces], mm }
 export const TRACK_NEW = 2.5, TRACK_MIN = 2, TRACK_MAX = 4;   // mm, the 0 Textura 860's track on the canvas: 2.5 … 3 by the ruler, RoArte/IMG_1949 (est.)
+export const DIP_EVERY_NEW = 75, DIP_EVERY_MAX = 200;          // mm of track a dip, for now (the owner, 2026-11-02): 75 … 80 with pouring medium, RoArte/IMG_1971; 0 a colour's first alone (est.)
 // the longest piece of the line through p along u inside P
 function chordAlong(P, p, u) {
   const n = left(u), ts = [];
@@ -895,15 +896,44 @@ export function cellDragsOf(cells, regions, order, o = {}) {
 // its strokes one after another, already rubbed, the brush up on the move
 // from the end of one to the start of the next (a turn: up through it, down
 // to land); between two rows the run's pause, to wipe the brush and squeeze
-// the next colour. info: a row's colour, for the LCD and its swatch
-export function dragRowsOf(passes, pencils, o) {
-  const ps = [], info = [], byId = Object.fromEntries(pencils.map(p => [p.id, p]));
+// the next colour. info: a row's colour, for the LCD and its swatch.
+// OPM-N's every (the owner, 2026-11-02, for now, till DIP comes from the
+// iPhone: "every 75 mm"): a colour's row cut where the brush has painted so
+// much, a row a dip from the cup — plotRun dips before every one. Between two
+// strokes when it has painted half of it at least and the next would go past
+// it, no seam; else in the stroke, the brush up at once, to the cup and back
+// to the same point (OPM-N.md: "a dip's seam kept"); never for the last
+// quarter of it. groups: a colour's rows, a pass of plotRun's each
+export function dragRowsOf(passes, pencils, o, every = 0) {
+  const ps = [], info = [], groups = [], byId = Object.fromEntries(pencils.map(p => [p.id, p])), segLen = g => len(sub(g.b, g.a));
   let lifts = 0;
   passes.forEach((P, k) => {
-    const row = k + 1, path = [];
+    const path = [];
     P.strokes.forEach((s, j) => { if (j) { path.push({ t: 'L', a: path.at(-1).b, b: s[0].a, turn: true }); lifts++; } path.push(...s); });
-    ps.push(path.map(g => ({ ...machinePiece(g, o), tilt: 0, row, ...(g.turn ? { turn: true } : {}) })));
-    info.push({ label: `${row}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil}`, pencil: P.pencil, pass: k, L: P.mm });
+    const rows = [[]], total = path.reduce((a, g) => a + (g.turn ? 0 : segLen(g)), 0);
+    let acc = 0, done = 0;
+    const cut = () => { const r = rows.at(-1); while (r.length && r.at(-1).turn) { r.pop(); lifts--; } rows.push([]); acc = 0; };   // the flight to the next start through the cup, no turn
+    path.forEach((g, i) => {
+      if (!every || g.turn) { if (rows.at(-1).length || !g.turn) rows.at(-1).push(g); else lifts--; return; }
+      if (i && path[i - 1].turn) {                                                   // a stroke's start: dip here when the next one would go past
+        let Ls = 0; for (let m = i; m < path.length && !path[m].turn; m++) Ls += segLen(path[m]);
+        if (acc >= every / 2 && acc + Ls > every && total - done > every / 4) cut();
+      }
+      let q = g;
+      for (let room = every - acc; acc + segLen(q) > every + 0.5 && total - done - Math.max(0, room) > every / 4; room = every - acc) {   // in the stroke: cut at every mm
+        if (room <= 0.5) { cut(); continue; }                                        // full on a piece's end: the dip before the next
+        const f = room / segLen(q), m = [q.a[0] + (q.b[0] - q.a[0]) * f, q.a[1] + (q.b[1] - q.a[1]) * f];
+        rows.at(-1).push({ t: 'L', a: q.a, b: m }); done += room; cut(); q = { t: 'L', a: m, b: q.b };
+      }
+      rows.at(-1).push(q); acc += segLen(q); done += segLen(q);
+    });
+    const list = rows.filter(r => r.length);
+    groups.push(list.map((r, j) => {
+      const row = ps.length + 1;
+      ps.push(r.map(g => ({ ...machinePiece(g, o), tilt: 0, row, ...(g.turn ? { turn: true } : {}) })));
+      info.push({ label: `${k + 1}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil}${list.length > 1 ? ` · dip ${j + 1}/${list.length}` : ''}`, pencil: P.pencil, pass: k, L: r.reduce((a, g) => a + (g.turn ? 0 : segLen(g)), 0) });
+      return ps.length - 1;
+    }));
   });
-  return { ps, info, lifts };
+  return { ps, info, lifts, groups };
 }

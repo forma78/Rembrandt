@@ -503,3 +503,27 @@ test('OPM-N, the colours (the owner, 2026-11-02, Crimson Lake in one cell, Salmo
   assert.equal(D.cells.filter(c => c.pencil).length, before.cells.filter(c => c.pencil).length, 'every cell painted still');
   assert.ok(D.drags.every(q => n.has(q.pencil)) && !('accent' in opmpPlan([PERSP], res, opt)), 'OPM-P as it was');
 });
+test('OPM-N, a dip every 75 mm for now (the owner, 2026-11-02): a colour\'s row cut where the brush has painted so much, between strokes when it can, in one at the same point else; plotRun dips before every one', () => {
+  const D = opmpPlan([PERSP], QUAD, { pencils: P, corner: 4, facets: 3, pitch: PITCH_NEW, stripW: PITCH_NEW }), N = numbersOf(D.cells, D.regions);
+  const painted = r => r.filter(g => !g.turn).reduce((a, g) => a + Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), 0);
+  for (const snake of [true, false]) {
+    const passes = cellDragsOf(N, D.regions, D.drags.map(q => q.pencil), { track: TRACK_NEW, rubs: 1, snake }), o = { cw: 400, ch: 400 };
+    const one = dragRowsOf(passes, P, o), R = dragRowsOf(passes, P, o, 75);
+    assert.deepEqual(one.groups, passes.map((_, k) => [k]), 'no every: a colour a row, as before');
+    assert.equal(R.groups.length, passes.length);
+    R.groups.forEach((g, k) => {
+      const rows = g.map(i => R.ps[i]), sum = rows.reduce((a, r) => a + painted(r), 0);
+      assert.ok(Math.abs(sum - painted(one.ps[k])) < 1e-6, `${passes[k].pencil}: every mm painted still`);
+      rows.forEach((r, j) => {
+        assert.ok(!r[0].turn && !r.at(-1).turn, 'a row from a stroke to a stroke');
+        assert.ok(painted(r) <= (j === rows.length - 1 ? 75 * 1.25 : 75) + 0.5 + 1e-6, `row ${j + 1} of ${rows.length}: ${painted(r).toFixed(1)} mm a dip`);
+      });
+    });
+    const cup = { x: 30, y: 30, rim: 20, dip: 5, dwell: 1, diameter: 40 };
+    const opts = { ...DEFAULTS, speed: 25, travel: 180, tail: 3, lift: true, ink: true, cup, noDipUnder: 0, snake: true, pause: false, rows: R.ps.length, here: { x: 300, y: 300 }, hover: 12 };
+    const run = plotRun(opts, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next colour' : null })));
+    assert.equal(run.fault, '');
+    assert.equal(run.dips, R.ps.length, 'a dip before every row, the first of a colour too');
+    assert.equal(run.blocks.filter(b => b.kind === 'pause').length, passes.length - 1, 'a pause between colours only');
+  }
+});

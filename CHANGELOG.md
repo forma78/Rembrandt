@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.7 — 2026-10-30 · 11-02, towards v.1.1.8
 
+- **OPM-N: the paint from the cup — a dip at every colour's start, then
+  every 75 mm of track, for now** (step 4 of `OPM-N.md`; the owner,
+  2026-11-02, asked how to paint till DIP comes from the iPhone: "every
+  75 mm, for now"). `dragRowsOf`'s `every`: a colour's row cut where the
+  brush has painted so much — between two strokes when it has painted half
+  of it at least and the next would go past, else in the stroke, back to
+  the same point; never for the last quarter of it — and plotRun dips in
+  the Ink tab's cup before every one, its pause between colours only, the
+  brush up over the cup to wipe it and put the next colour in. **Dip
+  every** in Painting machine, 75 mm (0 … 200, est.; 0 a colour's first
+  alone); DRAG asks for the first colour in the cup and stops if the cup
+  is not set. No runner change. On his save of 14-53: 1983 dips, 10 h 28
+  min where 3 h 22 without them — the cup 867 mm along X, far from the
+  canvas. Its test: every mm painted still, every row within 75 mm (the
+  last 25 % more), a dip before every row, no fault.
+
 - **OPM-N: DRAG SNAKE · DRAG AIR in the deck; the views Drag · Preview ·
   Contour · Numbers · Result** (the owner, 2026-11-02: "Painting machine is
   not very handy; let us make DRAG Snake / DRAG Air keys"; "Paint replaced
