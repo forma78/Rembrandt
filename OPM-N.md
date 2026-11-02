@@ -130,7 +130,10 @@ tunnel blend, a ruler in the later ones); the owner answered.
   again till none is; of those in a single cell one stays, the accent —
   the one its nearest would change most (ΔE 2000, Claude's choice). On
   OPM-N alone (`fewCells` in `opmpPlan`), in place of OPM-P's next to
-  nothing to paint (300 mm of brush), which took the one cell too.
+  nothing to paint (300 mm of brush), which took the one cell too. On his
+  new palette (Library 2026-11-02 14-53) 21 colours: "21 and even 25 are
+  allowed, if the proportion is logical and adequate" — no cap on the
+  number of colours.
 
 ## 1 · Numbers
 
