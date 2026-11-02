@@ -72,7 +72,8 @@ Rembrandt/
     library.html     Library (from RUBENS)
     prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js; and the top row, every tab ticked in or out, 2026-10-27, src/tabs.js)
     style.css        RUBENS tokens
-    rembrandt.py     server and USB board (from rubens.py)
+    rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git)
+    remote.html      the iPhone's remote, /remote: DIP, Pause · Continue, STOP, the colour and the cell now (OPM-N, 2026-11-02; its key by the QR code on OPM-N)
     src/             ES modules, no build step
     test/            node --test
 ```
@@ -110,6 +111,9 @@ cd app && node --test       # the tests
 ```
 
 `rembrandt.py` in the root only starts `app/rembrandt.py`; either works.
+Since 2026-11-02 it listens on the home Wi-Fi too, for the iPhone's remote
+(`/remote`, its key by the QR code on OPM-N); `REMBRANDT_LISTEN=127.0.0.1
+python3 rembrandt.py` keeps it on this Mac alone.
 
 Port 5164 — the owner's lucky number (2026-10-01). Only one program owns
 the USB board: close RUBENS (port 8766) first.

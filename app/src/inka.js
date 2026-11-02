@@ -64,6 +64,7 @@ import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canva
 import { segments, sticks } from './lcd.js';
 import { lampSwitch, themeColor } from './lamp.js';
 import { cupOf, cupProblem, dipAt, ELBOW_MAX } from './ink.js';
+import { qrSvg } from './qr.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
@@ -2364,8 +2365,23 @@ async function paintDrag(snake) {
   if (!await askDraw(R.passes, text, { title: `DRAG ${TAB_NAME}`, go: '▶ DRAG', first: OPMN ? 'In the cup first' : 'Squeeze first', what: 'colour' })) return dacheSoon();   // cancelled: the reading back
   S.view = 'drag'; settle(); RUN_BPRESS = S.brushPress;                                // ELBOW LIVE from here: the change since
   await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
-    { page: TAB, pass: 'drag', label: label(), settings: S, here: hereNow(), ...(OPMN ? { cup: cup() } : {}), estimate_s: Math.round(R.seconds) });
+    { page: TAB, pass: 'drag', label: label(), settings: S, here: hereNow(), ...(OPMN ? { cup: dipCup(), travel: S.travel, remote: remoteRows(R) } : {}), estimate_s: Math.round(R.seconds) });
 }
+// OPM-N: the run's colours and rows for rembrandt.py — the iPhone's colour and cell, the dips' in the journal
+function remoteRows(R) {
+  return { colours: R.passes.map(q => { const p = pencilOf(q.pencil); return { name: p?.name ?? q.pencil, hex: p?.hex ?? '#7F7F7F', code: p?.code ?? '', cells: q.cells }; }), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) };
+}
+// the iPhone's remote (the owner, 2026-11-02: "yes, with the key"): rembrandt.py's address with the key as a QR code
+if (OPMN) $('#btnRemote').onclick = async () => {
+  const box = $('#remoteBox'), b = $('#btnRemote');
+  if (!box.hidden) { box.hidden = true; b.classList.remove('on'); return; }
+  box.hidden = false; b.classList.add('on'); box.textContent = '…';
+  let L = null;
+  try { const r = await fetch('/remote/link', { cache: 'no-store' }); if (r.ok) L = await r.json(); } catch { }
+  box.innerHTML = L?.url ? `${qrSvg(L.url)}<p>The iPhone's camera on it, on the same Wi-Fi; in Safari Share → <b>Add to Home Screen</b> for an icon. DIP, Pause · Continue and STOP there, the colour and the cell.</p><code>${esc(L.url)}</code>`
+    : L ? '<p>rembrandt.py listens on this Mac only (REMBRANDT_LISTEN=127.0.0.1), or the Mac is on no Wi-Fi.</p>'
+    : '<p>rembrandt.py from before the iPhone: start it again when no run is on — Ctrl+C in its window, then <code>python3 rembrandt.py</code>. macOS may ask to let Python take connections: Allow.</p>';
+};
 // DRAW's words on the frame laid with F, a piece, or the whole canvas
 function pieceSay() {
   const F = S.frame;

@@ -5,6 +5,32 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **OPM-N: the iPhone remote — DIP, Pause · Continue, STOP, the colour and
+  the cell — with a key** (step 5 of `OPM-N.md`; the owner, 2026-11-02:
+  "I am ready to test, but for the iPhone I need the Wi-Fi address"; asked
+  whether `rembrandt.py` may listen on the home Wi-Fi with a key: "yes,
+  with the key"). `rembrandt.py` listens on the Wi-Fi too
+  (`REMBRANDT_LISTEN=127.0.0.1` keeps it on the Mac): from any address but
+  this Mac's only `/remote` and its calls, those with the key of
+  `app/remote.key` (made at the first start, kept off git). `remote.html`,
+  `/remote` on the iPhone: the colour's swatch and name, **Cell 3 / 8**,
+  the colour of so many, the per cent; **DIP** the biggest; ⏸ Pause · ▶
+  Continue; ■ STOP, a second tap within 3 s; at a colour's pause "Next: … —
+  wipe the brush, change the cup, ▶"; the dips so far. The runner's
+  **DIP** (`Runner.dip`, POST `/run/dip`, `/remote/dip`): a pass brakes on
+  its line as for Pause, the brush over the cup's rim, to the cup the run
+  was started with, into its paint for its dwell, back to the same point,
+  down, on; paused, it dips and stays paused; every dip in
+  `logs/runs.jsonl` with its colour and cell, the plan's own too ("by":
+  "plan" or "hand") — the journal's raw. OPM-N sends the cup, the travel
+  and its rows' colours and cells with DRAG; **iPhone remote** under
+  Painting machine shows the address with the key as a QR code (`qr.js`,
+  byte mode, M, versions 1 … 10 — every one read back by macOS's own
+  CoreImage). Verified on a second server on port 5199, no board: the
+  iPhone's page and the QR. Back, Skip and Go to № next. `rembrandt.py`
+  takes all this at its next start. Its tests: DIP on a pass and paused,
+  no cup no dip, the colour and the cell, the gate and the key.
+
 - **v.1.1.8 on every tab and in the saved SVGs** (`rembrandt: '1.1.8'` in
   their metadata; the owner, 2026-11-02: "and we are 1.1.8! :)"). Not
   pushed.

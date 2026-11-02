@@ -21,7 +21,7 @@ test('the row at first: SMKN, BIAS and ALU off with the tabs hidden before; Cali
 
 test('every tab a page of the app, every page the row\'s script right after its nav', () => {
   for (const q of TABS) assert.ok(fs.existsSync(new URL(q.href, APP)), q.href);
-  const pages = fs.readdirSync(APP).filter(f => f.endsWith('.html'));
+  const pages = fs.readdirSync(APP).filter(f => f.endsWith('.html') && f !== 'remote.html');   // the iPhone's remote, /remote: no row of tabs (2026-11-02)
   for (const f of pages) {
     const s = fs.readFileSync(new URL(f, APP), 'utf8'), i = s.indexOf('class="tabs"'), j = s.indexOf('</nav>', i);
     assert.ok(i > 0 && /^\s*<script src="src\/tabs\.js"><\/script>/.test(s.slice(j + 6)), `${f}: tabs.js after the nav`);

@@ -796,6 +796,10 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="opmn"],[data-tab="form"]) .runkeys.deck:not(.passes){grid-template-columns:repeat(3,1fr)}   /* OPM-S: TEST · FRAME · PAUSE (the owner, 2026-10-28: "next to it a button Frame") */
 :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="opmn"],[data-tab="form"]) .runkeys.deck.passes #btnPencils{grid-column:auto}                /* DRAW BW · DRAW CLR, in a row */
 [data-tab="opmn"] .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* OPM-N: DRAW BW · DRAG SNAKE · DRAG AIR (the owner, 2026-11-02) */
+[data-tab="opmn"] .remotebox{margin-top:8px;padding:10px;border-radius:8px;background:#fff;color:#24221F;font-size:11px;line-height:1.4}   /* OPM-N: the iPhone's QR code (2026-11-02) */
+[data-tab="opmn"] .remotebox svg{display:block;width:180px;height:180px;margin:0 auto 6px}
+[data-tab="opmn"] .remotebox p{margin:0 0 4px}
+[data-tab="opmn"] .remotebox code{display:block;word-break:break-all;font-size:10px;color:#6B665E}
 @media (min-width: 761px) and (min-height: 501px) {                               /* OPM-S: the Tools in two columns (the owner, 2026-10-28: "in TOOLS, but in a second row"); on a phone one row, as every tab's */
   body.type:is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="opmn"],[data-tab="form"]){grid-template-columns:108px minmax(0,1fr) 340px}
   :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="opmn"],[data-tab="form"]) .tools{flex-direction:row;align-items:flex-start;justify-content:center;gap:4px}

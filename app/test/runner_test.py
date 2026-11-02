@@ -537,6 +537,153 @@ class PauseTest(unittest.TestCase):
         self.assertEqual(piece_at((0, 0), path, (10, 0), first=1), 1)  # a joint: the later piece, if asked
 
 
+class DipTest(unittest.TestCase):
+    """OPM-N's DIP from the iPhone (OPM-N.md: "the brush lifts at once, flies to
+    the cup, dips, flies back to the same point, lands and goes on")."""
+
+    CUP = {"x": 300.0, "y": 20.0, "rim": 27, "dip": -4, "dwell": 1}
+
+    def dipped_run(self, blocks, when, note=None, then=None):
+        b, got = FakeBoard(rate=1), []
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2, log=got.append)
+        ticks = {"n": 0, "done": False}
+
+        def later():
+            ticks["n"] += 1
+            if ticks["n"] == when:
+                ticks["asked"] = r.dip()
+            if then and r.state == "paused" and not ticks["done"]:
+                ticks["done"] = True
+                then(r, b)
+        b.on_sleep = later
+        r.start(blocks, {"page": "opmn", "cup": self.CUP, "travel": 150, **(note or {})})
+        r.thread.join(10)
+        return r, b, got, ticks
+
+    def test_a_pass_brakes_dips_comes_back_to_the_same_point_and_goes_on(self):
+        r, b, got, t = self.dipped_run([arm(False), paint(12)], when=4)
+        self.assertTrue(t["asked"])
+        self.assertEqual(r.state, "done", r.message)
+        i = b.log.index("S")
+        self.assertEqual(b.log[i + 1:i + 3], [OFF, "J 2 27"], "off the canvas, over the rim")
+        j = b.log.index("M 300.00 20.00")
+        self.assertEqual([c for c in b.log[j:] if c.startswith("J 2")][:3], ["J 2 -4", "J 2 27", ON], "in the paint, over the rim, down on the canvas")
+        back = next(c for c in b.log[j + 1:] if c.startswith("M "))
+        self.assertLess(b.log.index(back), b.log.index(ON, j))
+        after = [c for c in b.log[j:] if c.startswith("L")]
+        self.assertEqual(after[-1], "L 12.00 50.00", "the pass finished after it")
+        self.assertNotIn("K", b.log)
+        self.assertEqual(r.status()["dips"], 1)
+        self.assertEqual(r.status()["percent"], 100.0)
+        ev = [e for e in got if e.get("event") == "dip"]
+        self.assertEqual(len(ev), 1)
+        self.assertEqual(ev[0]["by"], "hand")
+        self.assertFalse([e for e in got if e.get("event") == "pause"], "a dip is no pause in the journal")
+
+    def test_paused_it_dips_and_stays_paused_till_continue(self):
+        # the hook runs in the runner's own sleep: it asks, and Continues a tick after the dip
+        b = FakeBoard(rate=1)
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2)
+        seen = {}
+
+        def later():
+            if r.state == "paused" and "dip" not in seen:
+                seen["dip"] = r.dip()
+            elif "dip" in seen and r.dips == 1 and "state" not in seen:
+                seen["state"] = r.state
+                r.resume()
+        b.on_sleep = later
+        r.start([arm(False), paint(3), {"kind": "pause", "why": "the next colour"}, arm(False), paint(3)],
+                {"page": "opmn", "cup": self.CUP})
+        r.thread.join(10)
+        self.assertTrue(seen["dip"])
+        self.assertEqual(r.state, "done", r.message)
+        self.assertIn("M 300.00 20.00", b.log)
+        self.assertEqual(seen["state"], "paused", "still paused after the dip")
+
+    def test_no_cup_no_dip(self):
+        b = FakeBoard(rate=1)
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2)
+        self.assertFalse(r.dip(), "nothing running")
+        for bad in (None, {}, {"x": 1, "y": 2, "rim": 27}, {**self.CUP, "dip": 30}, {**self.CUP, "rim": 90}, {**self.CUP, "x": float("nan")}):
+            self.assertIsNone(rubens.cup_of(bad), bad)
+        self.assertEqual(rubens.cup_of(self.CUP)["dip"], -4)
+
+    def test_the_colour_and_the_cell_now_and_the_next_colour_at_a_pause(self):
+        rows = {"colours": [{"name": "Deep blue", "hex": "#123456"}, {"name": "Cream", "hex": "#FFF0D0"}],
+                "rows": [{"c": 0, "cells": [[1, 0], [2, 4.0], [3, 9.0]]}, {"c": 1, "cells": [[1, 0]]}]}
+        b = FakeBoard(rate=1)
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2)
+        r.start([{**paint(12, mm=12.0), "row": 1}, {"kind": "pause", "why": "Cream"}, {**paint(3, mm=3.0), "row": 2}], {"remote": rows, "cup": self.CUP})
+        r.thread.join(0.01)
+        r.stop(hard=True)
+        r.thread.join(10)
+        with r.lock:
+            r.row, r.row_base, r.painted, r.block, r.state = 1, {1: 0.0}, 5.0, 0, "running"
+        w = r.where()
+        self.assertEqual((w["colour"]["name"], w["colour_n"], w["colours"], w["cell"]), ("Deep blue", 1, 2, 2))
+        with r.lock:
+            r.painted, r.block, r.state = 12.0, 1, "paused"
+        w = r.where()
+        self.assertEqual((w["cell"], w["next"]["name"]), (3, "Cream"))
+
+
+class RemoteGateTest(unittest.TestCase):
+    """The iPhone on the Wi-Fi (OPM-N, the owner, 2026-11-02: "yes, with the
+    key"): from another address only /remote and its calls, those with the key."""
+
+    def ask(self, method, path, addr, headers=None):
+        h = object.__new__(rubens.Handler)
+        h.path, h.client_address, h.headers, got = path, (addr, 50000), headers or {}, {}
+        h.reply = lambda code, body, ctype="text/plain", board=None: got.update(code=code, body=body)
+        h.rfile = None
+        getattr(h, method)()
+        return got
+
+    def setUp(self):
+        self.was = rubens.REMOTE_KEY, rubens.RUNNER, rubens._LAN.copy()
+        rubens.REMOTE_KEY = "k3y-of-the-test"
+        rubens.RUNNER = Runner(FakeBoard().send)
+        rubens._LAN.update(ip="192.168.0.227", at=time.time())
+
+    def tearDown(self):
+        rubens.REMOTE_KEY, rubens.RUNNER = self.was[0], self.was[1]
+        rubens._LAN.update(self.was[2])
+
+    def test_another_address_gets_the_remote_alone_and_its_calls_with_the_key(self):
+        phone = "192.168.0.31"
+        self.assertEqual(self.ask("do_GET", "/run", phone)["code"], 403)
+        self.assertEqual(self.ask("do_GET", "/calibration", phone)["code"], 403)
+        self.assertEqual(self.ask("do_GET", "/remote.key", phone)["code"], 403)
+        self.assertEqual(self.ask("do_POST", "/run/stop", phone)["code"], 403)
+        self.assertEqual(self.ask("do_PUT", "/calibration", phone)["code"], 403)
+        self.assertEqual(self.ask("do_DELETE", "/library/x", phone)["code"], 403)
+        self.assertEqual(self.ask("do_GET", "/remote/state", phone)["code"], 403)
+        self.assertEqual(self.ask("do_GET", "/remote/state?k=wrong", phone)["code"], 403)
+        self.assertEqual(self.ask("do_POST", "/remote/dip", phone)["code"], 403)
+        self.assertEqual(self.ask("do_GET", "/remote/link", phone)["code"], 403, "the key's link for this Mac only")
+        got = self.ask("do_GET", "/remote/state?k=k3y-of-the-test", phone)
+        self.assertEqual((got["code"], json.loads(got["body"])["state"]), (200, "idle"))
+        self.assertEqual(self.ask("do_GET", "/remote/state", phone, {"X-Key": "k3y-of-the-test"})["code"], 200)
+        self.assertEqual(self.ask("do_POST", "/remote/dip?k=k3y-of-the-test", phone)["code"], 409, "nothing running: no dip")
+        self.assertEqual(self.ask("do_GET", "/remote", phone)["code"], 200, "the page itself for anyone on the Wi-Fi")
+
+    def test_this_mac_as_before_and_its_link_with_the_key(self):
+        for me in ("127.0.0.1", "::1", "192.168.0.227"):
+            self.assertEqual(self.ask("do_GET", "/run", me)["code"], 200, me)
+        link = json.loads(self.ask("do_GET", "/remote/link", "127.0.0.1")["body"])
+        if rubens.LISTEN != "127.0.0.1":
+            self.assertEqual(link["url"], f"http://192.168.0.227:{rubens.PORT}/remote?k=k3y-of-the-test")
+
+    def test_the_key_made_once_and_kept(self):
+        with tempfile.TemporaryDirectory() as d:
+            f = os.path.join(d, "remote.key")
+            k = rubens.remote_key(f)
+            self.assertGreaterEqual(len(k), 8)
+            self.assertEqual(rubens.remote_key(f), k)
+            self.assertEqual(os.stat(f).st_mode & 0o777, 0o600)
+
+
 class WaitTest(unittest.TestCase):
     """A wait block (2026-10-03, INK ON on the Test tab): the brush stands in
     the cup's paint a second, everything still."""

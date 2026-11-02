@@ -519,6 +519,11 @@ test('OPM-N, a dip every 75 mm for now (the owner, 2026-11-02): a colour\'s row 
         assert.ok(painted(r) <= (j === rows.length - 1 ? 75 * 1.25 : 75) + 0.5 + 1e-6, `row ${j + 1} of ${rows.length}: ${painted(r).toFixed(1)} mm a dip`);
       });
     });
+    R.groups.forEach((g, k) => {                                                     // every row its cells, a colour's 1 … n in turn, none lost at a cut
+      const nums = g.flatMap(i => R.info[i].cells.map(c => c[0])), want = passes[k].byCell.map(c => c.num);
+      assert.deepEqual([...new Set(nums)], want, `${passes[k].pencil}: the cells in their order`);
+      g.forEach(i => { const c = R.info[i].cells; assert.equal(c[0][1], 0); c.forEach((q, j) => { if (j) assert.ok(q[1] > c[j - 1][1]); assert.ok(q[1] <= R.info[i].L + 1e-6); }); });
+    });
     const cup = { x: 30, y: 30, rim: 20, dip: 5, dwell: 1, diameter: 40 };
     const opts = { ...DEFAULTS, speed: 25, travel: 180, tail: 3, lift: true, ink: true, cup, noDipUnder: 0, snake: true, pause: false, rows: R.ps.length, here: { x: 300, y: 300 }, hover: 12 };
     const run = plotRun(opts, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next colour' : null })));
@@ -526,4 +531,16 @@ test('OPM-N, a dip every 75 mm for now (the owner, 2026-11-02): a colour\'s row 
     assert.equal(run.dips, R.ps.length, 'a dip before every row, the first of a colour too');
     assert.equal(run.blocks.filter(b => b.kind === 'pause').length, passes.length - 1, 'a pause between colours only');
   }
+});
+test('the iPhone\'s QR code: its size by its version, the three finders, the timing; too long refused (CoreImage read every one of versions 1 … 10, 2026-11-02)', async () => {
+  const { qrOf, qrSvg } = await import('../src/qr.js');
+  for (const [t, v] of [['A', 1], ['http://192.168.0.227:5164/remote?k=AbC_d3-xYz12', 4], ['z'.repeat(140), 8], ['0123456789'.repeat(20), 10]]) {
+    const q = qrOf(t);
+    assert.equal(q.version, v); assert.equal(q.size, 17 + 4 * v);
+    for (const [cx, cy] of [[3, 3], [q.size - 4, 3], [3, q.size - 4]]) for (let d = -3; d <= 3; d++) assert.ok(q.dark(cx + d, cy - 3) && q.dark(cx - 3, cy + d) && q.dark(cx, cy), 'a finder');
+    for (let i = 8; i < q.size - 8; i++) assert.equal(q.dark(i, 6), i % 2 === 0, 'the timing');
+    assert.ok(q.dark(8, q.size - 8), 'the dark module');
+  }
+  assert.throws(() => qrOf('x'.repeat(300)));
+  assert.match(qrSvg('A'), /^<svg [^>]*viewBox="0 0 29 29"/);
 });

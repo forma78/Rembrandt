@@ -28,23 +28,35 @@ bridge.py of the old machine repo held it on port 8765.
   pauseAtEnd (ALU's DRAG) runs to its end first; /run/p-pause, and a block of kind p-pause, the
   pencil's pause (DACHE, 2026-10-27): the same, the pencil left on the paper.
   POST /run/trim?deg=<d>: the elbow's live trim, added to every W 2 of the
-  run as it goes to the board (PRISMA and OPM's ELBOW LIVE, 2026-10-28). POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
+  run as it goes to the board (PRISMA and OPM's ELBOW LIVE, 2026-10-28).
+  POST /run/dip: the brush to the cup the run was started with and back to
+  the same point (OPM-N's DIP, 2026-11-02).
+- /remote: the iPhone's remote (OPM-N, 2026-11-02): GET /remote the page,
+  GET /remote/state?k=<key> where the run is — its colour, its cell —
+  POST /remote/dip|pause|continue|stop?k=<key>; GET /remote/link (this Mac)
+  the address with the key, for OPM-N's QR code. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
   (../firmware/CNCDM-001) fails a start on the first path command, and
   nothing moves.
 
 Run:  python3 rubens.py   (needs pyserial for the board)
-Listens on this Mac only: the machine is driven from here, not from the
-network.
+Listens on the home Wi-Fi too since 2026-11-02, for the iPhone (the owner:
+"yes, with the key"): from any other address than this Mac's only /remote
+and its calls get through, those with the key of remote.key (made at the
+first start, kept off git). REMBRANDT_LISTEN=127.0.0.1 keeps it on this Mac
+alone, as before.
 """
 
 import base64
 import glob
+import hmac
 import json
 import math
 import os
 import re
+import secrets
+import socket
 import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -59,6 +71,9 @@ FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path
          "/tubes": os.path.join(HERE, "tubes.json"), "/ink": os.path.join(HERE, "ink.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
 LOG_FILE = os.path.join(HERE, "logs", "runs.jsonl")   # run_log: the run journal, on this Mac, not in git
+LISTEN = os.environ.get("REMBRANDT_LISTEN", "0.0.0.0")   # the home Wi-Fi too, for the iPhone (2026-11-02); 127.0.0.1 this Mac alone
+KEY_FILE = os.path.join(HERE, "remote.key")              # the iPhone's key, made at the first start; not in git
+REMOTE_KEY = None                                        # read at the start (remote_key)
 PASS = {"/ping", "/look", "/cmd", "/origin/x", "/origin/y", "/hold", "/scan", "/servo-id"}
 STEPS_PER_MM = (80.0, 3200.0 / 120.0)   # X, Y — the same as src/machine.js
 # The walls in mm (src/machine.js, the firmware). A carriage counted more
@@ -666,6 +681,66 @@ def piece_at(start, path, here, first=0):
     return None
 
 
+# DIP's travel to the cup and back when the run's note has none, mm/s (the pages' 180)
+TRAVEL_DIP = 180
+
+
+def cup_of(c):
+    # the cup a run note carries (the Ink tab's, where the brush dips): its
+    # carriage mm and the elbow over its rim and in it, its dwell; None if
+    # anything is missing or out of reach
+    try:
+        x, y, rim, dip = (float(c[k]) for k in ("x", "y", "rim", "dip"))
+        dwell = float(c.get("dwell", 1))
+    except (TypeError, KeyError, ValueError, AttributeError):
+        return None
+    if not all(math.isfinite(v) for v in (x, y, rim, dip, dwell)) or not 0 <= dwell <= WAIT_MAX_S:
+        return None
+    if arm_check(f"J 2 {rim:g}") or arm_check(f"J 2 {dip:g}") or dip >= rim:
+        return None
+    return {"x": x, "y": y, "rim": rim, "dip": dip, "dwell": dwell}
+
+
+def remote_key(path=None):
+    # the iPhone's key: the one in remote.key, or a new one written there —
+    # the same across restarts, so the iPhone's icon keeps working
+    path = path or KEY_FILE
+    try:
+        with open(path, encoding="utf-8") as f:
+            k = f.read().strip()
+        if len(k) >= 8:
+            return k
+    except OSError:
+        pass
+    k = secrets.token_urlsafe(9)
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(k + "\n")
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+    return k
+
+
+_LAN = {"ip": None, "at": 0.0}
+
+
+def lan_ip():
+    # this Mac's address on the home network (nothing is sent: a UDP socket
+    # only looks the way out up); looked again a minute later
+    if _LAN["ip"] and time.time() - _LAN["at"] < 60:
+        return _LAN["ip"]
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("10.254.254.254", 1))
+        _LAN["ip"], _LAN["at"] = s.getsockname()[0], time.time()
+    except OSError:
+        _LAN["ip"] = None
+    finally:
+        s.close()
+    return _LAN["ip"]
+
+
 def run_log(entry, path=None):
     """The run journal (the owner, 2026-10-02: "maybe keep logs, a journal of
     the settings?"): a JSON line for each start — with the settings the page
@@ -718,6 +793,14 @@ class Runner:
         self.trim = 0.0                  # ELBOW LIVE: degrees on every W 2 as it is sent (2026-10-28)
         self.page = None                 # the page that started the run (its log note): a pencil's, the elbow may rest
         self._wbase = {}                 # the joints where a move's W were taken from (_arm_steps)
+        # OPM-N's DIP (the owner, 2026-11-01: "I will press the button 'dip into paint' as the
+        # cells get painted"): the cup the run was started with, and its travel speed
+        self.cup, self.travel = None, TRAVEL_DIP
+        self._dip = False                # a dip asked for
+        self._auto = False               # that pause the dip's own: Continue by itself after it
+        self.dips = 0                    # the dips asked for in this run
+        self.rows = None                 # the page's rows, for the iPhone: {"colours": [...], "rows": [{"c", "cells"}]}
+        self.row, self.row_base = 0, {}  # the row run last, and the paint done before every row
 
     def set_trim(self, deg):
         # ELBOW LIVE: from the next W 2 sent on, the board's queue of pieces
@@ -752,7 +835,32 @@ class Runner:
                     "blocks": len(self.blocks), "painted_mm": round(self.painted, 1),
                     "paint_mm": round(self.paint_total, 1), "percent": round(pct, 1),
                     "x_mm": mm("x", 0), "y_mm": mm("y", 1), "brush_on": self.brush_on,
-                    "started": self.started, "trim": self.trim}
+                    "started": self.started, "trim": self.trim, "row": self.row,
+                    "in_row": round(self.painted - self.row_base.get(self.row, self.painted), 1),
+                    "dips": self.dips, "cup": bool(self.cup)}
+
+    def where(self):
+        # the colour and the cell now, by the page's rows: the row run last,
+        # the paint done in it; at a pause the next colour too (the iPhone)
+        st = self.status()
+        info = self.rows or {}
+        rows, cols = info.get("rows") or [], info.get("colours") or []
+        here = rows[st["row"] - 1] if 0 < st["row"] <= len(rows) else None
+        k = here.get("c") if isinstance(here, dict) else None
+        col = cols[k] if isinstance(k, int) and 0 <= k < len(cols) else None
+        cell = None
+        for q in (here or {}).get("cells") or []:
+            if q[1] <= st["in_row"] + 0.05:
+                cell = q[0]
+        nxt = None
+        if st["state"] in ("pausing", "paused"):
+            for b in self.blocks[self.block:]:
+                r = b.get("row") or 0
+                if 0 < r <= len(rows) and rows[r - 1].get("c") != k:
+                    c2 = rows[r - 1].get("c")
+                    nxt = cols[c2] if isinstance(c2, int) and 0 <= c2 < len(cols) else None
+                    break
+        return {**st, "colour": col, "colour_n": None if k is None else k + 1, "colours": len(cols), "cell": cell, "next": nxt}
 
     def start(self, blocks, note=None):
         # Every J and W within reach, before anything is sent. A job that puts
@@ -788,8 +896,14 @@ class Runner:
             self.state, self.message, self._stop, self._pause, self._pencil = "running", "", None, False, False
             self.started, self.trim = time.time(), 0.0
             self.page = note.get("page") if isinstance(note, dict) else None
+            self.cup = cup_of(note.get("cup")) if isinstance(note, dict) else None
+            t = note.get("travel") if isinstance(note, dict) else None
+            self.travel = t if isinstance(t, (int, float)) and not isinstance(t, bool) and 10 <= t <= 250 else TRAVEL_DIP
+            self.rows = note.get("remote") if isinstance(note, dict) and isinstance(note.get("remote"), dict) else None
+            self._dip = self._auto = False
+            self.dips, self.row, self.row_base = 0, 0, {}
         self.log({"event": "start", "blocks": len(self.blocks), "paint_mm": round(self.paint_total, 1),
-                  **(note if isinstance(note, dict) else {})})
+                  **({k: v for k, v in note.items() if k != "remote"} if isinstance(note, dict) else {})})
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
         return True, "started"
@@ -840,6 +954,20 @@ class Runner:
             self._pause, self.state = False, "running"
         return True
 
+    def dip(self):
+        # DIP (OPM-N.md: "the brush lifts at once, flies to the cup, dips, flies
+        # back to the same point, lands and goes on"): a pass brakes on its line
+        # as for Pause, elsewhere the step in hand ends first; then the cup the
+        # run was started with, and on by itself. Paused, it dips and stays
+        # paused. False: nothing running, or no cup in the run.
+        with self.lock:
+            if self.state not in ("running", "pausing", "paused") or not self.cup or self._stop:
+                return False
+            self._dip = True
+            if self.state == "running":
+                self._pause, self._auto, self._pencil, self.state = True, True, False, "pausing"
+        return True
+
     # ---- the run ----
     def run(self):
         try:
@@ -866,6 +994,12 @@ class Runner:
                     break
                 with self.lock:
                     self.block = i
+                    r = b.get("row")
+                    if isinstance(r, int) and r > 0 and b["kind"] == "move":
+                        self.row_base.setdefault(r, self.painted)
+                        self.row = r
+                if b.get("dip") and b["kind"] == "move":
+                    self.log({"event": "dip", "by": "plan", **self._dip_note()})   # the plan's own, for the journal
                 if b["kind"] == "arm":
                     self._arm(b["cmd"])
                 elif b["kind"] == "joint":
@@ -1129,17 +1263,55 @@ class Runner:
             if self._pause and not self._stop:
                 self.state = "paused"
             why = self.message or "Pause"
-        self.log({"event": "pause", "why": why, "block": self.block, **({"pencil": True} if self._pencil else {})})
+            auto = self._auto
+        if not auto:
+            self.log({"event": "pause", "why": why, "block": self.block, **({"pencil": True} if self._pencil else {})})
         while self._pause and not self._stop:
+            if self._dip:                                # DIP: to the cup and back here; its own pause ends with it
+                self._dip_now()
+                with self.lock:
+                    if self._auto and not self._stop:
+                        self._pause = self._auto = False
+                        self.state = "running"
+                continue
             self.sleep(0.2)
             self._ping()
         if self._stop:
             return False
         self._pencil = False
-        self.log({"event": "continue", "block": self.block})
+        if not auto:
+            self.log({"event": "continue", "block": self.block})
         if was_on:
             self._arm(f"J 2 {lift:g}")
         return True
+
+    def _dip_note(self):
+        # where a dip falls: the block, the row, the paint done in it, the colour and the cell (the journal)
+        w = self.where()
+        return {"block": self.block, "row": w["row"], "in_row": w["in_row"], "painted_mm": w["painted_mm"],
+                **({"colour": w["colour"].get("name")} if isinstance(w["colour"], dict) else {}),
+                **({"cell": w["cell"]} if w["cell"] is not None else {})}
+
+    def _dip_now(self):
+        # the brush over the cup's rim, to the cup, into its paint for its
+        # dwell, over the rim again, back to where it stood
+        c, here = self.cup, self._here()
+        with self.lock:
+            self._dip, why = False, self.message
+            self.message = "DIP: the brush to the cup and back"
+        note = self._dip_note()
+        self._arm(f"J 2 {c['rim']:g}")
+        self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {c['x']:.2f} {c['y']:.2f}", "G"], "paintMM": 0})
+        if not self._stop:
+            self._arm(f"J 2 {c['dip']:g}")
+            self._wait(c["dwell"])
+            self._arm(f"J 2 {c['rim']:g}")
+            self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {here[0]:.2f} {here[1]:.2f}", "G"], "paintMM": 0})
+        with self.lock:
+            self.dips += 1
+            if self.message.startswith("DIP:"):
+                self.message = why
+        self.log({"event": "dip", "by": "hand", "x": round(here[0], 2), "y": round(here[1], 2), **note})
 
     def _arrived(self, b):
         # Before the next block — above all before the brush goes down — the
@@ -1399,8 +1571,47 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def local(self):
+        # this Mac: the loopback, or its own address on the Wi-Fi
+        a = self.client_address[0]
+        a = a[7:] if a.startswith("::ffff:") else a
+        return a in ("127.0.0.1", "::1") or a == lan_ip()
+
+    def keyed(self, u):
+        k = parse_qs(u.query).get("k", [""])[0] or self.headers.get("X-Key", "")
+        return bool(REMOTE_KEY) and hmac.compare_digest(k.encode(), REMOTE_KEY.encode())
+
+    def remote(self, u, post):
+        # the iPhone (OPM-N, 2026-11-02): the page for anyone on the Wi-Fi, its
+        # calls with the key only; the link with the key for this Mac's page
+        if u.path == "/remote" and not post:
+            with open(os.path.join(HERE, "remote.html"), "rb") as f:
+                return self.reply(200, f.read(), "text/html; charset=utf-8")
+        if u.path == "/remote/link" and not post:
+            if not self.local():
+                return self.reply(403, "this Mac only")
+            ip = lan_ip()
+            on = LISTEN != "127.0.0.1" and bool(ip)
+            return self.reply(200, json.dumps({"url": f"http://{ip}:{PORT}/remote?k={REMOTE_KEY}" if on else None, "ip": ip, "lan": on}), "application/json")
+        if not self.keyed(u):
+            return self.reply(403, json.dumps({"ok": False, "message": "no key: scan the QR code on OPM-N"}), "application/json")
+        if u.path == "/remote/state" and not post:
+            return self.reply(200, json.dumps(RUNNER.where()), "application/json")
+        act = {"/remote/dip": RUNNER.dip, "/remote/pause": RUNNER.pause, "/remote/continue": RUNNER.resume}.get(u.path) if post else None
+        if post and u.path == "/remote/stop":
+            RUNNER.stop()
+            return self.reply(200, json.dumps({"ok": True, "state": RUNNER.state}), "application/json")
+        if act is None:
+            return self.reply(404, json.dumps({"ok": False}), "application/json")
+        ok = act()
+        return self.reply(200 if ok else 409, json.dumps({"ok": ok, "state": RUNNER.state}), "application/json")
+
     def do_GET(self):
         u = urlparse(self.path)
+        if u.path == "/remote" or u.path.startswith("/remote/"):
+            return self.remote(u, False)
+        if not self.local():
+            return self.reply(403, "this Mac only: the iPhone's remote is /remote")
         if u.path.startswith("/machine/"):
             return self.machine(u)
         if u.path == "/run":
@@ -1442,6 +1653,10 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path.startswith("/remote/"):
+            return self.remote(urlparse(self.path), True)
+        if not self.local():
+            return self.reply(403, "this Mac only")
         if path == "/library":
             # 💾 SAVE on the Create tab: {"svg": the drawing, "png": its preview as a data URL}
             try:
@@ -1490,6 +1705,9 @@ class Handler(SimpleHTTPRequestHandler):
             except (KeyError, IndexError, ValueError):
                 return self.reply(400, "trim: /run/trim?deg=<degrees>")
             return self.reply(200, json.dumps({"ok": True, "trim": t}), "application/json")
+        if path == "/run/dip":
+            ok = RUNNER.dip()
+            return self.reply(200 if ok else 409, "ok" if ok else f"not now: the runner is {RUNNER.state}, or no cup in the run")
         if path in ("/run/pause", "/run/p-pause", "/run/continue"):
             ok = RUNNER.resume() if path == "/run/continue" else RUNNER.pause(pencil=path == "/run/p-pause")
             return self.reply(200 if ok else 409, "ok" if ok else f"not now: the runner is {RUNNER.state}")
@@ -1521,6 +1739,8 @@ class Handler(SimpleHTTPRequestHandler):
         return self.reply(200 if ok else 409, msg)
 
     def do_DELETE(self):
+        if not self.local():
+            return self.reply(403, "this Mac only")
         path = unquote(urlparse(self.path).path)
         if not path.startswith("/library/"):
             return self.reply(404, "")
@@ -1528,6 +1748,8 @@ class Handler(SimpleHTTPRequestHandler):
         return self.reply(200 if ok else 404, "moved to library/.deleted" if ok else "no such drawing")
 
     def do_PUT(self):
+        if not self.local():
+            return self.reply(403, "this Mac only")
         path = FILES.get(urlparse(self.path).path)
         if not path:
             return self.reply(404, "")
@@ -1560,10 +1782,13 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)   # the port first: a second copy stops here
+    server = ThreadingHTTPServer((LISTEN, PORT), Handler)   # the port first: a second copy stops here
+    REMOTE_KEY = remote_key()
     BOARD = Board()
     BOARD.start()
     print(f"Rembrandt: http://localhost:{PORT}  (the board on USB, {PORT_GLOB})", flush=True)
+    if LISTEN != "127.0.0.1" and lan_ip():
+        print(f"The iPhone's remote: http://{lan_ip()}:{PORT}/remote — its key by the QR code on OPM-N", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

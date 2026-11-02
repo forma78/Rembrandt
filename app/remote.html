@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rembrandt">
+<meta name="theme-color" content="#161514">
+<title>Rembrandt · Remote</title>
+<!-- The iPhone's remote (OPM-N, OPM-N.md §3; the owner, 2026-11-02: "yes, with the key"):
+     Safari on the same Wi-Fi, "Add to Home Screen" for an icon. One hand: the colour and the
+     cell on top, DIP the biggest, then Pause · Continue and STOP. Its key from the QR code on
+     OPM-N's page, in the address; every call carries it. -->
+<style>
+  :root { --bg: #161514; --card: #24221F; --line: #3A3733; --ink: #F4F1EA; --dim: #9C978E; --amber: #F2A33A; --red: #D8453B; --green: #5BAF6A; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 16px/1.3 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; -webkit-user-select: none; user-select: none; }
+  body { display: flex; flex-direction: column; gap: 12px; padding: max(14px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+  .now { background: var(--card); border-radius: 18px; padding: 14px 16px; display: grid; grid-template-columns: 64px 1fr; gap: 4px 14px; align-items: center; }
+  .sw { grid-row: 1 / span 3; width: 64px; height: 64px; border-radius: 12px; background: #3A3733; box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); }
+  .name { font-size: 22px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cell { font-size: 30px; font-weight: 750; letter-spacing: -.01em; }
+  .cell small { font-size: 16px; font-weight: 500; color: var(--dim); }
+  .sub { font-size: 14px; color: var(--dim); }
+  .bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 6px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .6s; }
+  .say { min-height: 22px; font-size: 16px; color: var(--dim); text-align: center; }
+  .say.call { color: var(--amber); font-weight: 600; }
+  button { font: inherit; color: inherit; border: 0; border-radius: 22px; cursor: pointer; touch-action: manipulation; }
+  button:disabled { opacity: .35; }
+  #dip { flex: 1; min-height: 180px; background: var(--amber); color: #1E1A14; font-size: 56px; font-weight: 800; letter-spacing: .06em; box-shadow: 0 6px 24px rgba(242,163,58,.25); }
+  #dip:active:not(:disabled) { transform: scale(.98); }
+  #dip small { display: block; font-size: 15px; font-weight: 600; letter-spacing: 0; opacity: .7; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row button { height: 92px; background: var(--card); font-size: 22px; font-weight: 700; }
+  #go.cont { background: var(--green); color: #0F1A11; }
+  #stop { background: #3A1F1C; color: #FFB8B0; }
+  #stop.arm { background: var(--red); color: #fff; }
+  .foot { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
+  .foot b { color: var(--ink); font-weight: 600; }
+  .nokey { margin: auto 0; text-align: center; font-size: 18px; color: var(--dim); }
+</style>
+</head>
+<body>
+  <div class="now" id="now">
+    <i class="sw" id="sw"></i>
+    <div class="name" id="name">—</div>
+    <div class="cell" id="cell">&nbsp;</div>
+    <div class="sub" id="sub">&nbsp;</div>
+    <div class="bar"><i id="bar"></i></div>
+  </div>
+  <div class="say" id="say">Connecting …</div>
+  <button id="dip" disabled>DIP<small>the brush to the cup and back</small></button>
+  <div class="row">
+    <button id="go" disabled>⏸ Pause</button>
+    <button id="stop" disabled>■ STOP</button>
+  </div>
+  <div class="foot"><span id="dips">&nbsp;</span><span id="link">&nbsp;</span></div>
+<script>
+// the key: the address's ?k= (the QR code's), kept here too
+const q = new URLSearchParams(location.search);
+let KEY = q.get('k') || '';
+try { if (KEY) localStorage.setItem('rembrandt.remote.key', KEY); else KEY = localStorage.getItem('rembrandt.remote.key') || ''; } catch { }
+const $ = s => document.querySelector(s), LIVE = ['running', 'stopping', 'pausing', 'paused'];
+let st = null, busy = false, armed = 0, fails = 0;
+if (!KEY) document.body.innerHTML = '<p class="nokey">No key.<br><br>On the Mac, open OPM-N, press <b>iPhone</b> under Painting machine and scan its QR code with the camera.</p>';
+async function call(path, post) {
+  const r = await fetch(path + (path.includes('?') ? '&' : '?') + 'k=' + encodeURIComponent(KEY), { method: post ? 'POST' : 'GET', cache: 'no-store', headers: { 'X-Key': KEY } });
+  if (r.status === 403) throw new Error('key');
+  return r.json();
+}
+function show() {
+  const s = st, live = s && LIVE.includes(s.state), paused = s && ['paused', 'pausing'].includes(s.state), c = s?.colour;
+  $('#sw').style.background = c?.hex || '#3A3733';
+  $('#name').textContent = c ? c.name : live ? 'Running' : s ? ({ done: 'Done', stopped: 'Stopped', error: 'Error', idle: 'Nothing running' }[s.state] || s.state) : '—';
+  $('#cell').innerHTML = s?.cell ? `Cell ${s.cell}<small>${c?.cells ? ` / ${c.cells}` : ''}</small>` : '&nbsp;';
+  $('#sub').textContent = c && s.colour_n ? `colour ${s.colour_n} of ${s.colours} · ${Math.round(s.percent)} %` : s ? `${Math.round(s.percent || 0)} %` : '';
+  $('#bar').style.width = `${Math.max(0, Math.min(100, s?.percent || 0))}%`;
+  const say = $('#say');
+  say.classList.toggle('call', !!(paused && s.message));
+  say.textContent = !s ? 'Connecting …' : s.state === 'error' ? s.message : paused && s.next ? `Next: ${s.next.name} — wipe the brush, change the cup, ▶` : paused ? (s.message || 'Paused') : s.message || (live ? 'Painting' : 'Start DRAG on OPM-N');
+  $('#dip').disabled = busy || !live || !s.cup || s.state === 'stopping' || (s.message || '').startsWith('DIP:');
+  const go = $('#go'); go.disabled = busy || !live || s.state === 'stopping'; go.classList.toggle('cont', paused); go.textContent = paused ? '▶ Continue' : '⏸ Pause';
+  const stop = $('#stop'); stop.disabled = !live; if (!live) { armed = 0; stop.classList.remove('arm'); stop.textContent = '■ STOP'; }
+  $('#dips').innerHTML = s ? `dips <b>${s.dips || 0}</b>${s.cup ? '' : ' · no cup in this run'}` : '&nbsp;';
+  $('#link').textContent = fails ? 'no connection' : '';
+}
+async function poll() {
+  try { st = await call('/remote/state'); fails = 0; }
+  catch (e) { if (e.message === 'key') { document.body.innerHTML = '<p class="nokey">The key is wrong or old.<br><br>Scan the QR code on OPM-N again.</p>'; return; } fails++; }
+  show(); setTimeout(poll, 700);
+}
+async function act(what) {
+  busy = true; show();
+  try { await call('/remote/' + what, true); st = await call('/remote/state'); } catch { }
+  busy = false; show();
+}
+if (KEY) {
+  $('#dip').onclick = () => act('dip');
+  $('#go').onclick = () => act(['paused', 'pausing'].includes(st?.state) ? 'continue' : 'pause');
+  // STOP twice, so a pocket never stops a run: the first tap arms it for three seconds
+  $('#stop').onclick = () => {
+    if (Date.now() - armed < 3000) { armed = 0; $('#stop').classList.remove('arm'); $('#stop').textContent = '■ STOP'; act('stop'); return; }
+    armed = Date.now(); $('#stop').classList.add('arm'); $('#stop').textContent = 'Tap again: STOP';
+    setTimeout(() => { if (armed && Date.now() - armed >= 3000) { armed = 0; $('#stop').classList.remove('arm'); $('#stop').textContent = '■ STOP'; } }, 3100);
+  };
+  poll();
+}
+</script>
+</body>
+</html>

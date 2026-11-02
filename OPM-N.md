@@ -279,7 +279,10 @@ canvas. The journal's L per colour is what it will need.
    when the brush has painted half of it, else in one, back to the same
    point; the pause between colours over the cup.
 5. `/remote` and the key. **Ask before `rembrandt.py` listens beyond the
-   Mac.**
+   Mac.** Asked and answered 2026-11-02 ("yes, with the key"). Done the same
+   day: the Wi-Fi with the key (`app/remote.key`), `remote.html`, DIP in
+   the runner, Pause · Continue, STOP, the colour and the cell, the QR code
+   on OPM-N (**iPhone remote**). Still to come: ⏮ Back, ⏭ Skip, Go to №.
 6. The journal and L per colour.
 
 `cd app && node --test` stays green (441 on 2026-11-01, 444 on 2026-11-02), and

@@ -54,3 +54,6 @@ TAPE-images/
 # the owner's own screenshot of OPM-P stays in
 FORM/*
 !FORM/Screenshot 2026-10-30 at 11.15.13*AM.png
+
+# the iPhone remote's key (OPM-N, 2026-11-02): this Mac only
+app/remote.key
