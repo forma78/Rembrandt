@@ -228,8 +228,10 @@
     <!-- two blocks (the owner, 2026-10-28, Screenshot 5.01.58 PM: "let us separate the construction and adjustment from the drawing machine's functions — two blocks, so that it is clear what is on the screen and what on the canvas"): the cells and their contours; the pencil and how it draws -->
     <section class="sec" id="shapeSec">
       <h3>Construction <span class="hint">on the screen</span></h3>
+      <!-- the chosen blend, its keys, Steps, Corners, the core's Step, Spokes, the order (the owner, 2026-11-02: "into the CONSTRUCTION module at once"); the core always filled -->
+      <div class="edit" id="rectEdit"></div>
       <!-- the lines (OPM/Rainbow Perspective Tile Grid.png): every cell's, or none between one colour's cells, merged; every corner straight pieces, Corner facets; every block's rows the brush's pitch apart, Painting machine's -->
-      <h4 class="first">Contours</h4>
+      <h4>Contours</h4>
       <div class="toggles looks" id="mergeKeys">
         <button class="tog" data-merge="0" title="A line between every two cells, as Kuzya's Rainbow grid: the rows, the rays across them — every line once">Cells</button>
         <button class="tog" data-merge="1" title="No line between two cells of one colour: fewer lines, the colours' areas alone">Merged</button>
@@ -254,19 +256,9 @@
     </section>
     <section class="sec">
       <h3>OPM-N <span class="hint">OPM-P, all of it; every cell of a colour its number, on Paint and Contour; next, a brush from the cup</span></h3>
-      <h4 class="first">Blends and tiles, in the order of their figures</h4>
-      <div class="toggles looks wrap" id="rects"></div>
-      <div class="grid4 keys">
-        <button class="btn" id="btnNew" title="A new blend the whole canvas, IMG_1554's keys; or the B tool to lay one by hand">New: whole canvas</button>
-        <button class="btn" id="btnDraw" title="The Blend tool: drag on the canvas (B)">Draw one (B)</button>
-      </div>
-      <!-- the nodes: the brush's way set by hand, or the snake -->
-      <h4>Nodes <span class="hint" id="nodesOf"></span></h4>
-      <p class="read" id="nodeRead"></p>
-      <div class="grid4 keys"><button class="btn" id="btnSnakeNodes" title="The snake laid as nodes — the way the brush would run by itself — to change them with N (⌘Z goes back)">From the snake</button><button class="btn" id="btnClearNodes" title="No nodes: the brush runs the snake by itself, tiles side by side one figure (⌘Z goes back)">Clear nodes</button></div>
-      <div class="edit" id="rectEdit"></div>
+      <!-- no Blends and tiles list, no Nodes (the owner, 2026-11-02: "I do not use it, it only makes noise"); the chosen blend in Construction -->
       <!-- the chosen figure's paints, CCD's keys -->
-      <h4>Paints <span class="hint" id="paintsOf"></span> <button class="info" id="paintInfo" title="The spokes, the palette, its seed">i</button></h4>
+      <h4 class="first">Paints <span class="hint" id="paintsOf"></span> <button class="info" id="paintInfo" title="The spokes, the palette, its seed">i</button></h4>
       <div class="grid4 keys"><button class="btn" id="btnNewColours" title="A palette at random in your paints: every tile one of its paints, never its neighbour's, now and then a second; a lone figure one pure paint; the sausages stay in their places — or, none lying, the spokes laid (⌘Z goes back)">New colours</button><button class="btn" id="btnNewSpokes" title="The sausages anew, an X on every tile of the figure, corner to the innermost ring; the paints as they are (⌘Z goes back)">New spokes</button></div>
       <div class="toggles looks" id="metaKeys">
         <button class="tog" data-meta="meta 1" title="TAPE's meta 1 (meta-tape-01): ultramarine, the blues, sky, white, black; orange, orange yellow and purple threads">meta 1</button>

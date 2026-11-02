@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **OPM-N: the blend in Construction, the core always filled, no list or
+  Nodes** (the owner, 2026-11-02: "into the CONSTRUCTION module at once
+  … take away Core filled, Core empty — I never leave it empty"; of Blends
+  and tiles and Nodes: "I do not use it, it only makes noise"). The chosen
+  blend's editor first in Construction; Core filled · Core empty gone, a
+  blend's core filled at every load; the list, New, Draw one, Nodes, From
+  the snake and Clear nodes off the page — `inka.js` sets them only where
+  they are.
 - **OPM-N: the rows' step up to 45 mm** (the owner, 2026-11-02: "I need it
   up to 45 mm. It is important for big formats"). `PITCH_MAX_N` in
   `opmplan.js`; OPM-P's brush width 20 at most, as it was.

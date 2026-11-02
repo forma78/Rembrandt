@@ -152,6 +152,12 @@ tunnel blend, a ruler in the later ones); the owner answered.
 - **The rows' step up to 45 mm** (Construction's slider, 20 at most till
   then: "I need it up to 45 mm. It is important for big formats"); OPM-P's
   brush width stays 20 at most.
+- **The blend in Construction** ("into the CONSTRUCTION module at once":
+  Blend 1, ↻ · ↺, its keys, + Key · − Key, Steps, Corners, the core's
+  Step, Spokes, K1 · K2 in turn · Key after key); **the core always
+  filled** ("take away Core filled, Core empty — I never leave it empty");
+  **no Blends and tiles list, no Nodes** on the page ("I do not use it, it
+  only makes noise") — the B, N and K tools still in the Tools.
 
 ## 1 · Numbers
 
