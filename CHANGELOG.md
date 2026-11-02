@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **OPM-N: Dip overlap — after a dip in a track the brush starts 5 mm back
+  over it** (the owner, 2026-11-02, the first DRAG on paper, `OPM-N/IMG_2056`:
+  a 5–6 mm gap at every such dip; "maybe count in the coordinates not the
+  literal landing of the brush but with a compensating −5 mm"). The plan,
+  rebuilt from the journal's settings (17089 blocks, as run), went on from
+  the very point: the gap is the brush landing and lifting on the move.
+  `dragRowsOf`'s `lap`: a row after a dip in a stroke starts its last lap
+  mm again, half a dip at most, `info.lap`; between strokes none. A slider
+  in Painting machine, 0 … 15 mm, 5 (est.). On his run: 17225 blocks, ≈ 3
+  min more.
 - **OPM-N: the blend in Construction, the core always filled, no list or
   Nodes** (the owner, 2026-11-02: "into the CONSTRUCTION module at once
   … take away Core filled, Core empty — I never leave it empty"; of Blends

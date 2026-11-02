@@ -841,7 +841,8 @@ export function numbersOf(cells, regions) {
 // → { k, W, C (its tracks' mean length), T, tracks: [[a, b]], strokes: [pieces], mm }
 export const TRACK_NEW = 2.5, TRACK_MIN = 2, TRACK_MAX = 4;   // mm, the 0 Textura 860's track on the canvas: 2.5 … 3 by the ruler, RoArte/IMG_1949 (est.)
 export const PITCH_MAX_N = 45;                                    // mm, OPM-N's rows' step at most: big formats (the owner, 2026-11-02: "up to 45 mm … important for big formats")
-export const DIP_EVERY_NEW = 75, DIP_EVERY_MAX = 200;          // mm of track a dip, for now (the owner, 2026-11-02): 75 … 80 with pouring medium, RoArte/IMG_1971; 0 a colour's first alone (est.)
+export const DIP_EVERY_NEW = 75, DIP_EVERY_MAX = 200;
+export const DIP_LAP_NEW = 5, DIP_LAP_MAX = 15;                  // mm back over the track after a dip in one, the landing on paint (the owner, 2026-11-02: "with a compensating −5 mm"; IMG_2056, a 5 … 6 mm gap at every one) (est.)          // mm of track a dip, for now (the owner, 2026-11-02): 75 … 80 with pouring medium, RoArte/IMG_1971; 0 a colour's first alone (est.)
 // the longest piece of the line through p along u inside P
 function chordAlong(P, p, u) {
   const n = left(u), ts = [];
@@ -906,18 +907,32 @@ export function cellDragsOf(cells, regions, order, o = {}) {
 // to the same point (OPM-N.md: "a dip's seam kept"); never for the last
 // quarter of it. groups: a colour's rows, a pass of plotRun's each; OPM-N's
 // info.cells, [number, mm painted in the row where it starts] a cell, for the
-// iPhone and the journal
-export function dragRowsOf(passes, pencils, o, every = 0) {
+// iPhone and the journal. lap: a row going on after a dip in a stroke starts
+// so many mm back over it, its landing on what was painted (the owner,
+// 2026-11-02, OPM-N/IMG_2055, IMG_2056: the brush lands and lifts on the
+// move, a 5 … 6 mm gap at every such dip — "with a compensating −5 mm")
+export function dragRowsOf(passes, pencils, o, every = 0, lap = 0) {
   const ps = [], info = [], groups = [], byId = Object.fromEntries(pencils.map(p => [p.id, p])), segLen = g => len(sub(g.b, g.a));
   let lifts = 0;
   passes.forEach((P, k) => {
     const path = [];
     const cellAt = j => P.byCell?.find(c => j >= c.from && j < c.to)?.num;
     P.strokes.forEach((s, j) => { if (j) { path.push({ t: 'L', a: path.at(-1).b, b: s[0].a, turn: true }); lifts++; } const cell = cellAt(j); path.push(...(cell ? s.map(g => ({ ...g, cell })) : s)); });
-    const rows = [[]], total = path.reduce((a, g) => a + (g.turn ? 0 : segLen(g)), 0);
-    let acc = 0, done = 0;
-    const cut = () => { const r = rows.at(-1); while (r.length && r.at(-1).turn) { r.pop(); lifts--; } rows.push([]); acc = 0; };   // the flight to the next start through the cup, no turn
+    const rows = [[]], laps = [0], total = path.reduce((a, g) => a + (g.turn ? 0 : segLen(g)), 0);
+    let acc = 0, done = 0, stroke = [];                                              // stroke: the one now, so far
+    const cut = () => { const r = rows.at(-1); while (r.length && r.at(-1).turn) { r.pop(); lifts--; } rows.push([]); laps.push(0); acc = 0; };   // the flight to the next start through the cup, no turn
+    const put = g => { rows.at(-1).push(g); stroke.push(g); acc += segLen(g); };
+    const back = () => {                                                             // in a stroke, after a dip: its last lap mm again, the landing on them
+      const out = []; let need = Math.min(lap, every / 2, stroke.reduce((a, g) => a + segLen(g), 0));   // half a dip at most: the next one still ahead
+      for (let j = stroke.length - 1; j >= 0 && need > 1e-9; j--) {
+        const g = stroke[j], d = segLen(g);
+        if (d <= need + 1e-9) { out.unshift(g); need -= d; continue; }
+        const f = 1 - need / d; out.unshift({ t: 'L', a: [g.a[0] + (g.b[0] - g.a[0]) * f, g.a[1] + (g.b[1] - g.a[1]) * f], b: g.b, cell: g.cell }); need = 0;
+      }
+      out.forEach(put); laps[laps.length - 1] = out.reduce((a, g) => a + segLen(g), 0);
+    };
     path.forEach((g, i) => {
+      if (g.turn) stroke = [];
       if (!every || g.turn) { if (rows.at(-1).length || !g.turn) rows.at(-1).push(g); else lifts--; return; }
       if (i && path[i - 1].turn) {                                                   // a stroke's start: dip here when the next one would go past
         let Ls = 0; for (let m = i; m < path.length && !path[m].turn; m++) Ls += segLen(path[m]);
@@ -925,19 +940,19 @@ export function dragRowsOf(passes, pencils, o, every = 0) {
       }
       let q = g;
       for (let room = every - acc; acc + segLen(q) > every + 0.5 && total - done - Math.max(0, room) > every / 4; room = every - acc) {   // in the stroke: cut at every mm
-        if (room <= 0.5) { cut(); continue; }                                        // full on a piece's end: the dip before the next
+        if (room <= 0.5) { cut(); back(); continue; }                                // full on a piece's end: the dip before the next
         const f = room / segLen(q), m = [q.a[0] + (q.b[0] - q.a[0]) * f, q.a[1] + (q.b[1] - q.a[1]) * f];
-        rows.at(-1).push({ t: 'L', a: q.a, b: m, cell: q.cell }); done += room; cut(); q = { t: 'L', a: m, b: q.b, cell: q.cell };
+        put({ t: 'L', a: q.a, b: m, cell: q.cell }); done += room; cut(); back(); q = { t: 'L', a: m, b: q.b, cell: q.cell };
       }
-      rows.at(-1).push(q); acc += segLen(q); done += segLen(q);
+      put(q); done += segLen(q);
     });
-    const list = rows.filter(r => r.length);
-    groups.push(list.map((r, j) => {
+    const list = rows.map((r, j) => ({ r, lap: laps[j] })).filter(q => q.r.length);
+    groups.push(list.map(({ r, lap: back }, j) => {
       const row = ps.length + 1;
       ps.push(r.map(g => ({ ...machinePiece(g, o), tilt: 0, row, ...(g.turn ? { turn: true } : {}) })));
       const cells = []; let mm = 0;
       if (P.byCell) for (const g of r) { if (g.turn) continue; if (g.cell !== cells.at(-1)?.[0]) cells.push([g.cell, Math.round(mm * 10) / 10]); mm += segLen(g); }
-      info.push({ label: `${k + 1}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil}${list.length > 1 ? ` · dip ${j + 1}/${list.length}` : ''}`, pencil: P.pencil, pass: k, L: r.reduce((a, g) => a + (g.turn ? 0 : segLen(g)), 0), ...(P.byCell ? { cells } : {}) });
+      info.push({ label: `${k + 1}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil}${list.length > 1 ? ` · dip ${j + 1}/${list.length}` : ''}`, pencil: P.pencil, pass: k, L: r.reduce((a, g) => a + (g.turn ? 0 : segLen(g)), 0), ...(back > 1e-9 ? { lap: back } : {}), ...(P.byCell ? { cells } : {}) });
       return ps.length - 1;
     }));
   });

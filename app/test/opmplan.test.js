@@ -532,6 +532,39 @@ test('OPM-N, a dip every 75 mm for now (the owner, 2026-11-02): a colour\'s row 
     assert.equal(run.blocks.filter(b => b.kind === 'pause').length, passes.length - 1, 'a pause between colours only');
   }
 });
+test('OPM-N, Dip overlap (the owner, 2026-11-02, OPM-N/IMG_2056: a 5 … 6 mm gap at every dip in a track, "with a compensating −5 mm"): after a dip in a stroke the row starts lap mm back over it; between strokes none', () => {
+  const D = opmpPlan([PERSP], QUAD, { pencils: P, corner: 4, facets: 3, pitch: PITCH_NEW, stripW: PITCH_NEW }), N = numbersOf(D.cells, D.regions);
+  const seg = g => Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), near = (a, b) => Math.hypot(a.x - b.x, a.y - b.y) < 1e-6;
+  const onSeg = (q, g) => { const L = seg(g), t = ((q.x - g.a.x) * (g.b.x - g.a.x) + (q.y - g.a.y) * (g.b.y - g.a.y)) / (L * L); return t >= -1e-9 && t <= 1 + 1e-9 && Math.abs((q.x - g.a.x) * (g.b.y - g.a.y) - (q.y - g.a.y) * (g.b.x - g.a.x)) / L < 1e-6; };
+  const upTo = (r, q) => { let d = 0; for (const g of r) { if (g.turn) return -1; if (onSeg(q, g)) return d + Math.hypot(q.x - g.a.x, q.y - g.a.y); d += seg(g); } return -1; };   // mm along a row's first stroke to q
+  for (const snake of [true, false]) {
+    const passes = cellDragsOf(N, D.regions, D.drags.map(q => q.pencil), { track: TRACK_NEW, rubs: 1, snake }), o = { cw: 400, ch: 400 };
+    const R0 = dragRowsOf(passes, P, o, 75), R = dragRowsOf(passes, P, o, 75, 5);
+    let laps = 0, plain = 0;
+    R.groups.forEach(g => g.forEach((i, j) => {
+      if (!j) return;
+      const prev = R.ps[i - 1], row = R.ps[i], end = prev.at(-1).b;
+      const back = R.info[i].lap ?? 0;                                               // mm back over the track, the row's own word
+      if (!back) { plain++; return; }                                                // a dip between two strokes: the row from the next one's start
+      laps++;
+      let run = 0, at = -1;                                                          // the landing on the last one's track, so far back from its end
+      for (let m = prev.length - 1; m >= 0 && !prev[m].turn && at < 0; m--) { const g = prev[m]; if (onSeg(row[0].a, g)) at = run + Math.hypot(g.b.x - row[0].a.x, g.b.y - row[0].a.y); run += seg(g); }
+      assert.ok(Math.abs(at - back) < 1e-6, `row ${i + 1} lands ${back.toFixed(2)} mm back on the track the last one painted`);
+      assert.ok(back <= 5 + 1e-6, `row ${i + 1}: ${back.toFixed(2)} mm back, 5 at most`);
+      assert.ok(Math.abs(upTo(row, end) - back) < 1e-6, `row ${i + 1}: over the same track to where the last one ended, then on`);
+    }));
+    assert.ok(laps > 0 && plain > 0, `dips in tracks (${laps}) and between them (${plain})`);
+    assert.ok(R.info.some(q => Math.abs((q.lap ?? 0) - 5) < 1e-6), 'a full 5 mm back somewhere');
+    assert.ok(!R0.info.some(q => q.lap), 'no lap, none back');
+    const painted = X => X.ps.flat().filter(g => !g.turn).reduce((a, g) => a + seg(g), 0);
+    assert.ok(painted(R) > painted(R0) && painted(R) <= painted(R0) + 5 * laps + 1e-6, 'the overlaps painted besides, every mm still');
+    const cup = { x: 30, y: 30, rim: 20, dip: 5, dwell: 1, diameter: 40 };
+    const run = plotRun({ ...DEFAULTS, speed: 25, travel: 180, tail: 3, lift: true, ink: true, cup, noDipUnder: 0, snake: true, pause: false, rows: R.ps.length, here: { x: 300, y: 300 }, hover: 12 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next colour' : null })));
+    assert.equal(run.fault, '');
+    const tight = dragRowsOf(passes, P, o, 10, 15);                                 // half a dip at most: a short Dip every still ends
+    assert.ok(tight.ps.length > R.ps.length);
+  }
+});
 test('the iPhone\'s QR code: its size by its version, the three finders, the timing; too long refused (CoreImage read every one of versions 1 … 10, 2026-11-02)', async () => {
   const { qrOf, qrSvg } = await import('../src/qr.js');
   for (const [t, v] of [['A', 1], ['http://192.168.0.227:5164/remote?k=AbC_d3-xYz12', 4], ['z'.repeat(140), 8], ['0123456789'.repeat(20), 10]]) {

@@ -158,6 +158,24 @@ tunnel blend, a ruler in the later ones); the owner answered.
   filled** ("take away Core filled, Core empty — I never leave it empty");
   **no Blends and tiles list, no Nodes** on the page ("I do not use it, it
   only makes noise") — the B, N and K tools still in the Tools.
+- **The first DRAG on paper, a pencil in the brush's place** (22:18, DRAG
+  AIR, Light Peach, the run stopped in cell 10; his photos and screenshots
+  in `OPM-N/`, the HEICs made JPEGs on his word). TEST passed, the iPhone
+  remote worked over the Wi-Fi. "It cannot stay like this":
+  - **a 5–6 mm gap at every dip in a track** (IMG_2055, IMG_2056, cell 10)
+    — the plan, rebuilt from the journal's settings, goes on from the very
+    point; the brush lands and lifts on the move (README, "The brush lands
+    and lifts on the move"). His words: "maybe count in the coordinates not
+    the literal landing of the brush but with a compensating −5 mm" →
+    **Dip overlap**, 5 mm back over the track after a dip in one (est.);
+  - **a track's ends short of its cell's edges** (IMG_2052, IMG_2057, cells
+    4, 2, 3: "between the 4th and the 2nd a good 1 cm") — the plan's tracks
+    edge to edge; on paper each starts at the left edge with a hook and
+    stops 4–8 mm short of the right one. Open;
+  - **cell 4's first four tracks** (gone back to with ⏮ Back several times)
+    lie ~7 mm right of its other five; the plan has them all edge to edge,
+    the jump goes to the same commands. Not understood yet;
+  - cell 6 the best of them (IMG_2053).
 
 ## 1 · Numbers
 
