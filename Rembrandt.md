@@ -313,7 +313,8 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   pen's snap seen and ⌥, Flat at first, thin forms chosen, no scrap after
   E — and the hand on the space (the owner: "a push as v.1.1.7, with a
   little explanation about the tools"); **v.1.1.8**, OPM-N, from
-  2026-11-01 (the owner: "OPM-N is now v.1.1.8").
+  2026-11-01 (the owner: "OPM-N is now v.1.1.8"), on every tab since
+  2026-11-02 ("and we are 1.1.8! :)").
 - **The canvas lies from home; TEST's dots 20 mm in from its edges** (10 mm since 2026-10-20, below; the
   owner, 2026-10-05, `adobe_ai/500x700_image_area.png`: "home in
   Calibration is the bottom left corner"; "the canvas must not slide down
@@ -1674,7 +1675,7 @@ this section disagree, this section wins: the owner corrected the sketch on
 2026-10-01.
 
 - **Two rows, as in RUBENS.** The top row: REMBRANDT and its version,
-  **v.1.1.7**, then the tabs **INKA · ST-JOHN · BLEND · DACHE · PRISMA · OPM ·
+  **v.1.1.8**, then the tabs **INKA · ST-JOHN · BLEND · DACHE · PRISMA · OPM ·
   OPM-B · OPM-S · OPM-W · OPM-P · OPM-N · FORM · ALU-CUT · CCD · BIAS · ALU · SMKN · Ink · Calibration ·
   Library** (BIAS, ALU and SMKN unticked in Preferences at first since
   2026-10-27; OPM-B and OPM-S after OPM since 2026-10-28, OPM-W after OPM-S

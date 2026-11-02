@@ -3,8 +3,11 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.1.7 — 2026-10-30 · 11-02, towards v.1.1.8
+## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **v.1.1.8 on every tab and in the saved SVGs** (`rembrandt: '1.1.8'` in
+  their metadata; the owner, 2026-11-02: "and we are 1.1.8! :)"). Not
+  pushed.
 - **OPM-N: the paint from the cup — a dip at every colour's start, then
   every 75 mm of track, for now** (step 4 of `OPM-N.md`; the owner,
   2026-11-02, asked how to paint till DIP comes from the iPhone: "every
