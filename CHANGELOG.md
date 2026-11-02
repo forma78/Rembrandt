@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.7 — 2026-10-30 · 11-02, towards v.1.1.8
 
+- **OPM-N: no colour in fewer than five cells but one, the accent, in
+  one** (the owner, 2026-11-02, Crimson Lake in one cell, Salmon Pink in
+  two, Sky Blue and Sky Blue Light in one each, 29 colours: "one colour in
+  one cell; then at once five cells at least … not two colours of one cell
+  each in one picture, not three"; "change the brush for one stroke?").
+  `opmpPlan`'s `fewCells` (5, `FEW_CELLS`), OPM-N's alone, in place of
+  next to nothing to paint: a colour in fewer cells left out, its cells to
+  the nearest of the rest, again till none is; one in a single cell stays,
+  the accent — of those, the one its nearest would change most (ΔE 2000).
+  The accent `1 · accent` in the box; the left out under Painting
+  machine's (i). On his save of 2026-11-01 20-50, where 20% Warm Grey had
+  3 cells and Brown 1: every colour five at least, 20% French Grey the
+  accent in one, 26 colours as before. Its test.
+
 - **OPM-N: a cell's tracks, Snake · Air, Track width** (step 3 of
   `OPM-N.md`; the owner, 2026-11-01: "the tracks laid by the track's
   width, not the brush's size"; "two options: back and forth, and through

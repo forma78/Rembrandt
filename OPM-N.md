@@ -113,6 +113,25 @@ tunnel blend, a ruler in the later ones); the owner answered.
 - Several figures on the canvas: a colour's numbers go on from one figure
   to the next, in OPM-P's figure order.
 
+## Decisions of 2026-11-02
+
+- **No colour in fewer than five cells but one, the accent, in one** (his
+  OPM-N with 29 colours, RoArte/Screenshot 2026-11-02 at 2.11.07 and
+  2.11.21 PM: Crimson Lake in one cell, Salmon Pink in two; 2.29.29 and
+  2.29.37 PM: Sky Blue and Sky Blue Light in one each). The owner: "we
+  have 29 colours, but some are in one or two cells only. I would keep for
+  an accent only one colour that may be in one cell"; "the rule: one
+  colour in one cell; then at once five cells at least are allowed; not
+  two colours of one cell each in one picture, not three"; "I think the
+  colours can be cut to 20 from 29"; "change the brush for one stroke? —
+  a joke, simply"; Delete Yellow "a useful function, but I still have to
+  look through all 29 colours, not very handy". So, by itself: a colour in
+  fewer than five cells left out, its cells to the nearest of the rest,
+  again till none is; of those in a single cell one stays, the accent —
+  the one its nearest would change most (ΔE 2000, Claude's choice). On
+  OPM-N alone (`fewCells` in `opmpPlan`), in place of OPM-P's next to
+  nothing to paint (300 mm of brush), which took the one cell too.
+
 ## 1 · Numbers
 
 Every cell of OPM-P's plan (`opmpPlan` in `opmplan.js`: `blocksIn`,
@@ -244,5 +263,5 @@ canvas. The journal's L per colour is what it will need.
    Mac.**
 6. The journal and L per colour.
 
-`cd app && node --test` stays green (441 on 2026-11-01, 443 on 2026-11-02), and
+`cd app && node --test` stays green (441 on 2026-11-01, 444 on 2026-11-02), and
 `python3 app/test/runner_test.py` (88).

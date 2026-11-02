@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW, FRAME_MARK, numbersOf, tracksOf, cellDragsOf, TRACK_NEW } from '../src/opmplan.js';
+import { cellsOf, opmPlan, insetOf, roundedOf, areaOf, outerOf, boldestOf, INSET, MIN_ROW, FACETS_NEW, blockCellsOf, blocksIn, opmpPlan, dragRowsOf, rowsIn, bandRows, fitKeys, FIT, PITCH_NEW, FRAME_MARK, numbersOf, tracksOf, cellDragsOf, TRACK_NEW, FEW_CELLS } from '../src/opmplan.js';
 import { rubbed, passesOf, drawRows, PRISMA_PENCILS } from '../src/prismaplan.js';
 import { cleanPencils, runOrder, lineLen, withChanges, lightnessOf } from '../src/dacheplan.js';
 import { cleanRect, atPiece } from '../src/inkaplan.js';
@@ -484,4 +484,22 @@ test('OPM-N, DRAG by cells: a colour after another, its cells by their numbers, 
     assert.equal(run.blocks.filter(b => b.kind === 'pause').length, passes.length - 1);
     assert.equal(R.lifts, passes.reduce((a, q) => a + q.strokes.length - 1, 0), 'up through the air between cells (and Air\'s tracks)');
   }
+});
+test('OPM-N, the colours (the owner, 2026-11-02, Crimson Lake in one cell, Salmon Pink in two): none in fewer than five cells but one, the accent, in one', () => {
+  const opt = { pencils: P, corner: 4, facets: 3, pitch: PITCH_NEW, stripW: PITCH_NEW }, base = opmpPlan([PERSP], QUAD, opt).cells.filter(c => c.ray < 0 && c.area > 20);
+  const YELLOW = [250, 215, 30], PINK = [240, 150, 160], PURPLE = [210, 120, 220], TEAL = [20, 140, 140];
+  const spots = [[YELLOW, [base[40]]], [PINK, [base[300]]], [PURPLE, base.slice(150, 153)], [TEAL, base.slice(500, 508)]];
+  const res = resOf((x, y) => { for (const [c, cs] of spots) if (cs.some(q => inPoly(q.poly, x, y))) return c; return x < 200 ? (y < 200 ? BLUE : RED) : (y < 200 ? ORANGE : [80, 160, 70]); });
+  const count = D => { const n = new Map(); for (const c of D.cells) if (c.pencil) n.set(c.pencil, (n.get(c.pencil) ?? 0) + 1); return n; };
+  const before = opmpPlan([PERSP], res, opt), b = count(before);
+  const [y, p, u, t] = spots.map(([, cs]) => before.cells.find(c => Math.abs(c.area - cs[0].area) < 1e-9 && c.poly[0][0] === cs[0].poly[0][0] && c.poly[0][1] === cs[0].poly[0][1]).pencil);
+  assert.ok(new Set([y, p, u, t]).size === 4 && b.get(y) === 1 && b.get(p) === 1 && b.get(u) === 3 && b.get(t) >= FEW_CELLS, `before: ${y} 1, ${p} 1, ${u} ${b.get(u)}, ${t} ${b.get(t)}`);
+  const D = opmpPlan([PERSP], res, { ...opt, fewCells: FEW_CELLS }), n = count(D);
+  assert.ok([...n.values()].every(k => k === 1 || k >= FEW_CELLS), `no colour in 2 … 4 cells: ${JSON.stringify([...n])}`);
+  assert.ok([...n.values()].filter(k => k === 1).length <= 1, 'one colour in a single cell at most');
+  assert.ok(D.accent && n.get(D.accent) === 1, `the accent, ${D.accent}, in its one cell`);
+  assert.ok(D.few.includes(u) && [y, p].every(q => q === D.accent || D.few.includes(q)), 'the three-cell colour and the other single ones left out, their cells to the nearest');
+  assert.ok(n.get(t) >= FEW_CELLS && !D.few.includes(t), 'five cells and more stay');
+  assert.equal(D.cells.filter(c => c.pencil).length, before.cells.filter(c => c.pencil).length, 'every cell painted still');
+  assert.ok(D.drags.every(q => n.has(q.pencil)) && !('accent' in opmpPlan([PERSP], res, opt)), 'OPM-P as it was');
 });

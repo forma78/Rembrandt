@@ -22,11 +22,11 @@
 // mm from the canvas's bottom left corner, x right, y up. No DOM.
 
 import { regionsOf, shapeAt, pointOn, pieceLength, lineOn, bandsOf, widthOn, cleanPencils, lightnessOf, LEAST_MM, LEAST_SHARE } from './dacheplan.js';
-import { sausagesOf, machinePiece } from './inkaplan.js';
+import { sausagesOf, machinePiece, de2000, labOf } from './inkaplan.js';
 import { keysOf, keyIn, isBlend } from './blendplan.js';
 import { SAUSAGE_W } from './ccdplan.js';
 import { nearestOf, tOf, rubbed, PRISMA_PENCILS } from './prismaplan.js';
-import { toLin } from './color.js';
+import { toLin, linOf } from './color.js';
 
 export const INSET = 0.7;          // mm, a contour in from its cell's edge: two neighbours' 1.4 apart (est.)
 export const ROUND = 1.5;          // mm, a contour's corner rounded at most so much (est.)
@@ -724,11 +724,19 @@ export function dragsOf(cells, regions, order, o = {}) {
 // FORM's its own, seq, along its side's line (formplan.js)
 const seqAlong = C => { if (C.seq !== undefined) return C.seq; const m = C.mid[0]; return C.p % 2 ? 0 : [m[0], m[1], -m[0], -m[1]][C.p / 2]; };
 // The plan: o { pencils (the colours), order (the run's, ids), frame, merge,
-// pitch, stripW, minW, facets, cw, rubs } → { regions, cells (every one its
-// colour), lines (DRAW BW's, once each), drags (DRAG's, a colour each, in the
-// order), few: the colours with next to nothing to paint, their cells to the
-// nearest of the rest; modules: the lines as opmPlan's, for FRAME's and DRAW
-// BW's pencil }
+// pitch, stripW, minW, facets, cw, rubs, fewCells } → { regions, cells (every
+// one its colour), lines (DRAW BW's, once each), drags (DRAG's, a colour each,
+// in the order), few: the colours with next to nothing to paint, their cells
+// to the nearest of the rest; accent; modules: the lines as opmPlan's, for
+// FRAME's and DRAW BW's pencil }. OPM-N's o.fewCells (the owner, 2026-11-02,
+// RoArte/Screenshot 2.11.07 and 2.11.21 PM, Crimson Lake in one cell, Salmon
+// Pink in two, 29 colours: "one colour in one cell; then at once five cells at
+// least … not two colours of one cell each in one picture, not three"), in
+// place of next to nothing to paint: a colour in fewer cells left out, its
+// cells to the nearest of the rest, again till none is — but one in a single
+// cell, the accent: of those, the one its nearest of the rest would change
+// most (ΔE 2000).
+export const FEW_CELLS = 5;
 export function opmpPlan(rects, res, o = {}) {
   const pencils = o.pencils ?? cleanPencils(PRISMA_PENCILS), F = o.frame, { regions, cells: all } = blockCellsOf(rects, o);
   const inF = P => { if (!F) return true; const c = P.reduce((a, p) => add(a, mul(p, 1 / P.length)), [0, 0]); return c[0] >= F.x0 && c[0] <= F.x1 && c[1] >= F.y0 && c[1] <= F.y1; };
@@ -745,8 +753,23 @@ export function opmpPlan(rects, res, o = {}) {
   };
   const D = once(pencils), total = D.drags.reduce((a, q) => a + q.mm, 0);
   const least = Math.min(o.least ?? LEAST_MM, LEAST_SHARE * total), few = D.drags.filter(q => q.mm < least).map(q => q.pencil);
-  if (!few.length) return { ...D, few, rings: [], rays: [] };
-  return { ...once(pencils.map(p => few.includes(p.id) ? { ...p, on: false } : p)), few, rings: [], rays: [] };
+  const without = out => pencils.map(p => out.includes(p.id) ? { ...p, on: false } : p);
+  if (!o.fewCells) return few.length ? { ...once(without(few)), few, rings: [], rays: [] } : { ...D, few, rings: [], rays: [] };
+  const out = [];                                                                         // OPM-N: by the cells alone, so the accent's single one stays
+  for (let E = D; ;) {
+    const n = new Map(), one = new Map();
+    E.cells.forEach(c => { if (c.pencil) { n.set(c.pencil, (n.get(c.pencil) ?? 0) + 1); one.set(c.pencil, c); } });
+    let accent = null, most = -1;
+    for (const [id, k] of n) {
+      if (k !== 1) continue;
+      const g = glin.get(one.get(id).group), to = g && nearestOf(without([...out, id]), -Infinity)(g.v.map(v => v / g.a)), lab = q => labOf(linOf(pencils.find(p => p.id === q).hex));
+      const d = to ? de2000(lab(id), lab(to)) : Infinity;
+      if (d > most) { most = d; accent = id; }
+    }
+    const more = [...n].filter(([id, k]) => k < o.fewCells && id !== accent).map(([id]) => id);
+    if (!more.length) return { ...E, few: out, accent, rings: [], rays: [] };
+    out.push(...more); E = once(without(out));
+  }
 }
 // OPM-N's numbers (the owner, 2026-11-01, OPM-N.md: "not continuous numbering
 // but by colours: if we have 20 colours, every colour its own set of numbers";
