@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **OPM-N: 🖌️ Dip overlap, its slider green** (the owner, 2026-11-02:
+  "add a brush emoji at its start, please — a million settings there, but I
+  will see it at once; and the slider itself green, as ELBOW LIVE ·
+  PENCIL"). The label and the groove only.
 - **OPM-N: Dip overlap — after a dip in a track the brush starts 5 mm back
   over it** (the owner, 2026-11-02, the first DRAG on paper, `OPM-N/IMG_2056`:
   a 5–6 mm gap at every such dip; "maybe count in the coordinates not the

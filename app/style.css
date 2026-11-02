@@ -878,6 +878,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
 .elbowlive .elrow{display:grid;grid-template-columns:22px 1fr 22px;gap:8px;align-items:center;margin-top:6px}
 .elbowlive .btn{padding:2px 0;font-size:8px;line-height:16px;border-radius:6px}
 .elbowlive .slider{margin:0;--well:#5B9A2F}   /* thin as every slider, its knob with the mark; the groove green (the owner, 2026-10-29: "too wide, the knob without the | the others have — keep the green in the groove") */
+[data-tab="opmn"] .slider[data-k="dipLap"]{--well:#5B9A2F}   /* OPM-N's Dip overlap green as ELBOW LIVE's, a 🖌️ before it (the owner, 2026-11-02: "a million settings there, but I will see it at once") */
 .elbowlive.live .elk::before{content:"";display:inline-block;width:7px;height:7px;margin-right:6px;border-radius:50%;background:#E5203A;vertical-align:1px}   /* on a run now */
 /* the run, a pencil a row (PRISMA's panel, DRAW's question; 2026-10-27: "which pencil to put in now, which to have ready next") */
 .runlist{list-style:none;margin:2px 0 10px;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:1px 8px;font:11px var(--mono)}
