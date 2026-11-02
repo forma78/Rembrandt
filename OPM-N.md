@@ -282,7 +282,10 @@ canvas. The journal's L per colour is what it will need.
    Mac.** Asked and answered 2026-11-02 ("yes, with the key"). Done the same
    day: the Wi-Fi with the key (`app/remote.key`), `remote.html`, DIP in
    the runner, Pause · Continue, STOP, the colour and the cell, the QR code
-   on OPM-N (**iPhone remote**). Still to come: ⏮ Back, ⏭ Skip, Go to №.
+   on OPM-N (**iPhone remote**). ⏮ Back, ⏭ Skip and Go to № the same day
+   ("the next step"): the brush up at once, through the air to the cell's
+   first track, down, on; Skip after a colour's last cell to its pause;
+   Go to a cell of the colour now, by a number pad; no dip by itself.
 6. The journal and L per colour.
 
 `cd app && node --test` stays green (441 on 2026-11-01, 444 on 2026-11-02), and

@@ -33,7 +33,8 @@ bridge.py of the old machine repo held it on port 8765.
   the same point (OPM-N's DIP, 2026-11-02).
 - /remote: the iPhone's remote (OPM-N, 2026-11-02): GET /remote the page,
   GET /remote/state?k=<key> where the run is — its colour, its cell —
-  POST /remote/dip|pause|continue|stop?k=<key>; GET /remote/link (this Mac)
+  POST /remote/dip|pause|continue|stop|back|skip?k=<key>, /remote/goto?n=<cell>&k=<key>
+  (a cell of the colour now); GET /remote/link (this Mac)
   the address with the key, for OPM-N's QR code. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
@@ -627,6 +628,31 @@ def rest_of(cmds, j):
     return ([speed] if speed else []) + rest + ["G"]
 
 
+def from_piece(cmds, j):
+    """A move block's commands from its piece j on, as rest_of, and the W
+    riding on piece j itself too: a cell gone back to lands as the plan has
+    it there (OPM-N's Back, Skip, Go to, 2026-11-02)."""
+    rest, speed, k, wrist = [], None, -1, []
+    for c in cmds:
+        if c == "G":
+            continue
+        if c[0] in "FT":
+            if k < j:
+                speed = c
+            else:
+                rest.append(c)
+            continue
+        if c[0] == "W":
+            wrist.append(c)
+            continue
+        k += 1
+        if k >= j:
+            rest.extend(wrist)
+            rest.append(c)
+        wrist = []
+    return ([speed] if speed else []) + rest + ["G"]
+
+
 def arm_at_piece(cmds, j, joint=2):
     """A joint's angle in force on piece j of a move block, in RUBENS's
     degrees: the last W <joint> riding on a piece up to j — the elbow by
@@ -800,6 +826,7 @@ class Runner:
         self._auto = False               # that pause the dip's own: Continue by itself after it
         self.dips = 0                    # the dips asked for in this run
         self.rows = None                 # the page's rows, for the iPhone: {"colours": [...], "rows": [{"c", "cells"}]}
+        self._jump = None                # Back, Skip, Go to: (block, piece or None, what) to go on from
         self.row, self.row_base = 0, {}  # the row run last, and the paint done before every row
 
     def set_trim(self, deg):
@@ -901,6 +928,7 @@ class Runner:
             self.travel = t if isinstance(t, (int, float)) and not isinstance(t, bool) and 10 <= t <= 250 else TRAVEL_DIP
             self.rows = note.get("remote") if isinstance(note, dict) and isinstance(note.get("remote"), dict) else None
             self._dip = self._auto = False
+            self._jump = None
             self.dips, self.row, self.row_base = 0, 0, {}
         self.log({"event": "start", "blocks": len(self.blocks), "paint_mm": round(self.paint_total, 1),
                   **({k: v for k, v in note.items() if k != "remote"} if isinstance(note, dict) else {})})
@@ -968,6 +996,152 @@ class Runner:
                 self._pause, self._auto, self._pencil, self.state = True, True, False, "pausing"
         return True
 
+    def goto(self, colour, num, what="goto"):
+        # Go to № (OPM-N.md: "go back three spaces"): the run on from the first
+        # track of cell `num` of colour `colour` (0 the first) — the brush up at
+        # once, a pass braked on its line, through the air there, down, on.
+        # Back and Skip are this one with the cell now and the next. No dip by
+        # itself. False and why: nothing running, or no such cell.
+        with self.lock:
+            if self.state not in ("running", "pausing", "paused") or self._stop:
+                return False, f"the runner is {self.state}"
+        t = self._target(colour, num)
+        if t is None:
+            return False, f"no cell {num} in colour {colour + 1}"
+        with self.lock:
+            self._jump = (*t, what)
+            self._pause, self._auto = True, True
+            if self.state == "running":
+                self._pencil, self.state = False, "pausing"
+        return True, "ok"
+
+    def back(self):
+        w = self.where()
+        if not w["cell"] or not w["colour_n"]:
+            return False, "no cell now"
+        return self.goto(w["colour_n"] - 1, w["cell"], "back")
+
+    def skip(self):
+        # the next cell of this colour; after its last, on to the next colour's pause
+        w = self.where()
+        if not w["cell"] or not w["colour_n"]:
+            return False, "no cell now"
+        ok, why = self.goto(w["colour_n"] - 1, w["cell"] + 1, "skip")
+        if ok or not w["colour"] or w["cell"] < (w["colour"].get("cells") or 0):
+            return ok, why
+        end = self._colour_end(w["colour_n"] - 1)
+        if end is None:
+            return False, "the last colour's last cell"
+        with self.lock:
+            if self.state not in ("running", "pausing", "paused") or self._stop:
+                return False, f"the runner is {self.state}"
+            self._jump = (end, None, "skip")
+            self._pause, self._auto = True, True
+            if self.state == "running":
+                self._pencil, self.state = False, "pausing"
+        return True, "ok"
+
+    def _rows_of(self, colour):
+        rows = (self.rows or {}).get("rows") or []
+        return [r for r in range(1, len(rows) + 1) if isinstance(rows[r - 1], dict) and rows[r - 1].get("c") == colour]
+
+    def _colour_end(self, colour):
+        # the first block after the colour's last row
+        rs = self._rows_of(colour)
+        if not rs:
+            return None
+        last = max(i for i, b in enumerate(self.blocks) if b.get("row") == rs[-1])
+        return last + 1 if last + 1 < len(self.blocks) else None
+
+    def _target(self, colour, num):
+        # where cell `num` of `colour` starts: (block, piece) in its row's paint,
+        # or (its row's flight there, None) when it starts the row
+        rows = (self.rows or {}).get("rows") or []
+        for r in self._rows_of(colour):
+            mm0 = next((q[1] for q in rows[r - 1].get("cells") or [] if q[0] == num), None)
+            if mm0 is None:
+                continue
+            paints = [i for i, b in enumerate(self.blocks) if b.get("row") == r and b.get("kind") == "move" and (b.get("paintMM") or 0) > 0]
+            if not paints:
+                return None
+            if mm0 <= 0.05:
+                fly = next((i for i in range(paints[0] - 1, -1, -1) if self.blocks[i].get("kind") == "move" and not self.blocks[i].get("dip")
+                            and str((self.blocks[i].get("cmds") or [""])[0]).startswith("T")), None)
+                return (fly, None) if fly is not None else (paints[0], None)
+            # a cell inside a row starts right after a turn through the air: of those landings, the one
+            # nearest its mm (the tails' slivers leave a hair off the page's count)
+            # — or, where the last cell ended on its start and no turn is left between, the first piece at its mm
+            done, best, first = 0.0, None, None
+            for i in paints:
+                b = self.blocks[i]
+                start = self._block_start(i)
+                if start is None:
+                    return None
+                geo, marks = path_pieces(start, [c for c in b["cmds"] if c[0] in "LAM"]), b.get("painted") or []
+                on = [marks[j] if j < len(marks) else True for j in range(len(geo))]
+                for j, g in enumerate(geo):
+                    if on[j] and j > 0 and not on[j - 1] and (best is None or abs(done - mm0) < best[0]):
+                        best = (abs(done - mm0), i, j)
+                    if on[j] and j > 0 and first is None and done >= mm0 - 0.05:
+                        first = (i, j)
+                    if on[j]:
+                        done += g["len"]
+            return (best[1], best[2]) if best and best[0] <= 1.0 else first
+        return None
+
+    def _block_start(self, i):
+        # where a move block starts: the end of the move before it
+        for k in range(i - 1, -1, -1):
+            if self.blocks[k].get("kind") == "move":
+                return block_end(self.blocks[k]["cmds"])
+        return None
+
+    def _paint_before(self, i, j=None):
+        # the plan's paint before block i (and its piece j): the per cent there
+        got = sum(b.get("paintMM") or 0 for b in self.blocks[:i] if b.get("kind") == "move")
+        if j:
+            b, start = self.blocks[i], self._block_start(i)
+            if start is not None:
+                geo, marks = path_pieces(start, [c for c in b["cmds"] if c[0] in "LAM"]), b.get("painted") or []
+                got += sum(g["len"] for k, g in enumerate(geo[:j]) if (marks[k] if k < len(marks) else True))
+        return got
+
+    def _do_jump(self):
+        # through the air to the cell's start, the brush up, and on from there;
+        # → the block to go on with
+        i, j, what = self._jump
+        w = self.where()
+        with self.lock:
+            self._jump = None
+            if not self._stop:
+                self.state = "running"
+        self.log({"event": what, "block": self.block, "to_block": i, **({"from_cell": w["cell"]} if w["cell"] else {}),
+                  **({"colour": w["colour"].get("name")} if isinstance(w["colour"], dict) else {})})
+        if self.brush_on:
+            self._arm(f"J 2 {BRUSH_UP_DEG}")
+        r = self.blocks[i].get("row")
+        with self.lock:
+            self.painted = self._paint_before(i, j)
+            if isinstance(r, int) and r > 0:                 # a row not run yet: its paint from its first block
+                self.row_base.setdefault(r, self._paint_before(min(k for k, q in enumerate(self.blocks) if q.get("row") == r)))
+        if j is None:
+            return i
+        b = self.blocks[i]
+        at = block_end([[c for c in b["cmds"] if c[0] in "LAM"][j - 1]])
+        self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {at[0]:.2f} {at[1]:.2f}", "G"], "paintMM": 0})
+        if self._stop:
+            return len(self.blocks)
+        prev = arm_at_piece(b["cmds"], j - 1)
+        if prev is not None:
+            self._arm(f"J 2 {prev:g}")
+        with self.lock:
+            self.block, self.row = i, r if isinstance(r, int) and r > 0 else self.row
+        geo = path_pieces(at, [c for c in b["cmds"] if c[0] in "LAM"][j:])
+        marks = (b.get("painted") or [])[j:]
+        left = sum(g["len"] for k, g in enumerate(geo) if (marks[k] if k < len(marks) else True))
+        self._move({"kind": "move", "cmds": from_piece(b["cmds"], j), "paintMM": left, "painted": marks})
+        return i + 1
+
     # ---- the run ----
     def run(self):
         try:
@@ -987,13 +1161,19 @@ class Runner:
                     self.arm.hold()     # nothing moves; the whole arm holds from here on
                 except ArmError as e:
                     raise Abort(str(e))
-            for i, b in enumerate(self.blocks):
+            i = 0
+            while i < len(self.blocks):
                 if self._stop:
                     break
                 if self._pause and not self._hold():
                     break
+                if self._jump is not None:
+                    i = self._do_jump()
+                    continue
+                b = self.blocks[i]
+                i += 1
                 with self.lock:
-                    self.block = i
+                    self.block = i - 1
                     r = b.get("row")
                     if isinstance(r, int) and r > 0 and b["kind"] == "move":
                         self.row_base.setdefault(r, self.painted)
@@ -1246,7 +1426,7 @@ class Runner:
         deg = arm_at_piece(b["cmds"], j)                 # the board turned the elbow on the way (W)
         if deg is not None:
             self._brush_at(deg)
-        if not self._hold():
+        if not self._hold() or self._jump is not None:
             return
         left = max(0.0, (b.get("paintMM") or 0) - (self.painted - base))
         self._move({"kind": "move", "cmds": rest_of(b["cmds"], j), "paintMM": left,
@@ -1267,6 +1447,10 @@ class Runner:
         if not auto:
             self.log({"event": "pause", "why": why, "block": self.block, **({"pencil": True} if self._pencil else {})})
         while self._pause and not self._stop:
+            if self._jump is not None:                   # Back, Skip, Go to: the run goes on from there, the brush up
+                with self.lock:
+                    self._pause = self._auto = False
+                break
             if self._dip:                                # DIP: to the cup and back here; its own pause ends with it
                 self._dip_now()
                 with self.lock:
@@ -1281,7 +1465,7 @@ class Runner:
         self._pencil = False
         if not auto:
             self.log({"event": "continue", "block": self.block})
-        if was_on:
+        if was_on and self._jump is None:
             self._arm(f"J 2 {lift:g}")
         return True
 
@@ -1597,6 +1781,17 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(403, json.dumps({"ok": False, "message": "no key: scan the QR code on OPM-N"}), "application/json")
         if u.path == "/remote/state" and not post:
             return self.reply(200, json.dumps(RUNNER.where()), "application/json")
+        if post and u.path in ("/remote/back", "/remote/skip", "/remote/goto"):
+            if u.path == "/remote/goto":                 # a number in the colour now
+                w = RUNNER.where()
+                try:
+                    n = int(parse_qs(u.query).get("n", [""])[0])
+                except ValueError:
+                    return self.reply(400, json.dumps({"ok": False, "message": "goto?n=<cell>"}), "application/json")
+                ok, why = RUNNER.goto(w["colour_n"] - 1, n) if w["colour_n"] else (False, "no colour now")
+            else:
+                ok, why = RUNNER.back() if u.path == "/remote/back" else RUNNER.skip()
+            return self.reply(200 if ok else 409, json.dumps({"ok": ok, "message": why, "state": RUNNER.state}), "application/json")
         act = {"/remote/dip": RUNNER.dip, "/remote/pause": RUNNER.pause, "/remote/continue": RUNNER.resume}.get(u.path) if post else None
         if post and u.path == "/remote/stop":
             RUNNER.stop()

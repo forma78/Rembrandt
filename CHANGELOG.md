@@ -5,6 +5,25 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
+- **OPM-N: ⏮ Back, ⏭ Skip, Go to № on the iPhone** (the end of step 5 of
+  `OPM-N.md`; the owner, 2026-11-02, the remote open on his iPhone: "let us
+  make ⏮ Back, ⏭ Skip and Go to №, the next step"). The runner's `goto`
+  (`/remote/goto?n=`, a cell of the colour now), `back` (this cell again,
+  `/remote/back`) and `skip` (the next one; after the colour's last, on to
+  its pause, `/remote/skip`): the brush up at once — a pass braked on its
+  line as for Pause — through the air to the cell's first track, the elbow
+  as the plan has it there, down as the plan lands it, on; a cell that
+  starts its row by the row's own flight; no dip by itself; the per cent
+  where the cell is; every one in the journal. Where a cell starts, by the
+  page's rows: right after a turn through the air, the landing nearest its
+  mm, else the first piece at its mm. `from_piece`: a block from a piece
+  on, the W of that piece too. On the iPhone a row ⏮ Back · ⏭ Skip · Go to
+  №, Go to a number pad, 1 … the colour's cells; a refusal's why for three
+  seconds. Checked on the page's real blocks (plotRun, a dip every 75 mm):
+  all 1033 cells of the test blend found, Snake and Air, 0.08 mm off at
+  most. Its tests: Back in the middle of a cell, Go to a cell that starts
+  its row, Skip after the colour's last cell, no such cell.
+
 - **OPM-N: the iPhone remote — DIP, Pause · Continue, STOP, the colour and
   the cell — with a key** (step 5 of `OPM-N.md`; the owner, 2026-11-02:
   "I am ready to test, but for the iPhone I need the Wi-Fi address"; asked

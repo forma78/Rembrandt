@@ -11,8 +11,8 @@
 <title>Rembrandt · Remote</title>
 <!-- The iPhone's remote (OPM-N, OPM-N.md §3; the owner, 2026-11-02: "yes, with the key"):
      Safari on the same Wi-Fi, "Add to Home Screen" for an icon. One hand: the colour and the
-     cell on top, DIP the biggest, then Pause · Continue and STOP. Its key from the QR code on
-     OPM-N's page, in the address; every call carries it. -->
+     cell on top, DIP the biggest, then ⏮ Back · ⏭ Skip · Go to №, Pause · Continue and STOP.
+     Its key from the QR code on OPM-N's page, in the address; every call carries it. -->
 <style>
   :root { --bg: #161514; --card: #24221F; --line: #3A3733; --ink: #F4F1EA; --dim: #9C978E; --amber: #F2A33A; --red: #D8453B; --green: #5BAF6A; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -30,12 +30,23 @@
   .say.call { color: var(--amber); font-weight: 600; }
   button { font: inherit; color: inherit; border: 0; border-radius: 22px; cursor: pointer; touch-action: manipulation; }
   button:disabled { opacity: .35; }
-  #dip { flex: 1; min-height: 180px; background: var(--amber); color: #1E1A14; font-size: 56px; font-weight: 800; letter-spacing: .06em; box-shadow: 0 6px 24px rgba(242,163,58,.25); }
+  #dip { flex: 1; min-height: 150px; background: var(--amber); color: #1E1A14; font-size: 56px; font-weight: 800; letter-spacing: .06em; box-shadow: 0 6px 24px rgba(242,163,58,.25); }
   #dip:active:not(:disabled) { transform: scale(.98); }
   #dip small { display: block; font-size: 15px; font-weight: 600; letter-spacing: 0; opacity: .7; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .row button { height: 92px; background: var(--card); font-size: 22px; font-weight: 700; }
+  .row.three { grid-template-columns: 1fr 1fr 1fr; }
+  .row.three button { height: 70px; font-size: 18px; }
   #go.cont { background: var(--green); color: #0F1A11; }
+  .pad { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; gap: 12px; padding: max(18px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+  .pad[hidden] { display: none; }
+  .pad h2 { margin: 0; font-size: 18px; font-weight: 600; color: var(--dim); text-align: center; }
+  .pad .num { font-size: 64px; font-weight: 800; text-align: center; min-height: 80px; }
+  .pad .num.bad { color: var(--red); }
+  .pad .keys { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .pad .keys button { background: var(--card); font-size: 30px; font-weight: 700; }
+  .pad .keys .goto { background: var(--amber); color: #1E1A14; font-size: 22px; }
+  .pad .cancel { height: 56px; background: transparent; color: var(--dim); font-size: 18px; }
   #stop { background: #3A1F1C; color: #FFB8B0; }
   #stop.arm { background: var(--red); color: #fff; }
   .foot { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
@@ -53,9 +64,21 @@
   </div>
   <div class="say" id="say">Connecting …</div>
   <button id="dip" disabled>DIP<small>the brush to the cup and back</small></button>
+  <div class="row three">
+    <button id="back" disabled>⏮ Back</button>
+    <button id="skip" disabled>⏭ Skip</button>
+    <button id="to" disabled>Go to №</button>
+  </div>
   <div class="row">
     <button id="go" disabled>⏸ Pause</button>
     <button id="stop" disabled>■ STOP</button>
+  </div>
+  <!-- Go to №: a number pad, a cell of the colour now -->
+  <div class="pad" id="pad" hidden>
+    <h2 id="padHead">Go to cell</h2>
+    <div class="num" id="padNum">&nbsp;</div>
+    <div class="keys" id="padKeys"></div>
+    <button class="cancel" id="padNo">Cancel</button>
   </div>
   <div class="foot"><span id="dips">&nbsp;</span><span id="link">&nbsp;</span></div>
 <script>
@@ -80,8 +103,10 @@ function show() {
   $('#bar').style.width = `${Math.max(0, Math.min(100, s?.percent || 0))}%`;
   const say = $('#say');
   say.classList.toggle('call', !!(paused && s.message));
-  say.textContent = !s ? 'Connecting …' : s.state === 'error' ? s.message : paused && s.next ? `Next: ${s.next.name} — wipe the brush, change the cup, ▶` : paused ? (s.message || 'Paused') : s.message || (live ? 'Painting' : 'Start DRAG on OPM-N');
+  say.textContent = Date.now() - noteAt < 3000 ? note : !s ? 'Connecting …' : s.state === 'error' ? s.message : paused && s.next ? `Next: ${s.next.name} — wipe the brush, change the cup, ▶` : paused ? (s.message || 'Paused') : s.message || (live ? 'Painting' : 'Start DRAG on OPM-N');
   $('#dip').disabled = busy || !live || !s.cup || s.state === 'stopping' || (s.message || '').startsWith('DIP:');
+  const jump = busy || !live || s.state === 'stopping' || !s.cell || !c;
+  $('#back').disabled = $('#skip').disabled = $('#to').disabled = jump;
   const go = $('#go'); go.disabled = busy || !live || s.state === 'stopping'; go.classList.toggle('cont', paused); go.textContent = paused ? '▶ Continue' : '⏸ Pause';
   const stop = $('#stop'); stop.disabled = !live; if (!live) { armed = 0; stop.classList.remove('arm'); stop.textContent = '■ STOP'; }
   $('#dips').innerHTML = s ? `dips <b>${s.dips || 0}</b>${s.cup ? '' : ' · no cup in this run'}` : '&nbsp;';
@@ -92,13 +117,29 @@ async function poll() {
   catch (e) { if (e.message === 'key') { document.body.innerHTML = '<p class="nokey">The key is wrong or old.<br><br>Scan the QR code on OPM-N again.</p>'; return; } fails++; }
   show(); setTimeout(poll, 700);
 }
+let note = '', noteAt = 0;   // a refusal's why, for three seconds
 async function act(what) {
   busy = true; show();
-  try { await call('/remote/' + what, true); st = await call('/remote/state'); } catch { }
+  try { const r = await call('/remote/' + what, true); if (r && r.ok === false) { note = r.message || `not now: ${r.state}`; noteAt = Date.now(); } st = await call('/remote/state'); } catch { }
   busy = false; show();
 }
 if (KEY) {
   $('#dip').onclick = () => act('dip');
+  $('#back').onclick = () => act('back');                                  // this cell again, from its first track
+  $('#skip').onclick = () => act('skip');                                  // the next cell of this colour
+  // Go to №: the number typed, 1 … the colour's cells
+  let typed = '';
+  const N = () => st?.colour?.cells || 0, padShow = () => { const n = +typed; $('#padNum').textContent = typed || '\u00a0'; $('#padNum').classList.toggle('bad', !!typed && (n < 1 || n > N())); };
+  $('#padKeys').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', 'Go'].map(k => `<button data-k="${k}"${k === 'Go' ? ' class="goto"' : ''}>${k}</button>`).join('');
+  $('#padKeys').onclick = e => {
+    const k = e.target.closest('[data-k]')?.dataset.k; if (!k) return;
+    if (k === '⌫') typed = typed.slice(0, -1);
+    else if (k === 'Go') { const n = +typed; if (n >= 1 && n <= N()) { $('#pad').hidden = true; act('goto?n=' + n); } return; }
+    else if (typed.length < 4) typed = (typed + k).replace(/^0+/, '');
+    padShow();
+  };
+  $('#to').onclick = () => { typed = ''; $('#padHead').textContent = `Go to cell of ${st?.colour?.name ?? 'this colour'}: 1 … ${N()}`; padShow(); $('#pad').hidden = false; };
+  $('#padNo').onclick = () => { $('#pad').hidden = true; };
   $('#go').onclick = () => act(['paused', 'pausing'].includes(st?.state) ? 'continue' : 'pause');
   // STOP twice, so a pocket never stops a run: the first tap arms it for three seconds
   $('#stop').onclick = () => {

@@ -628,6 +628,90 @@ class DipTest(unittest.TestCase):
         self.assertEqual((w["cell"], w["next"]["name"]), (3, "Cream"))
 
 
+class GotoTest(unittest.TestCase):
+    """⏮ Back, ⏭ Skip and Go to № (OPM-N.md: "of course there is no ⌘Z in the
+    physical world: repeat DRAG in the current cell"): the brush up at once,
+    through the air to the cell's first track, down as the plan has it, on."""
+
+    ROWS = {"colours": [{"name": "Deep Blue", "hex": "#24408F", "cells": 2}, {"name": "Cream", "hex": "#F5E6C8", "cells": 1}],
+            "rows": [{"c": 0, "cells": [[1, 0], [2, 3.0]]}, {"c": 1, "cells": [[1, 0]]}]}
+
+    def blocks(self):
+        # as plotRun lays OPM-N's: a row's flight, the brush over the canvas, its paint — cell 1, a turn through the air, cell 2 — up; the pause; the next colour
+        row1 = {"kind": "move", "row": 1, "paintMM": 6.0, "painted": [1, 1, 1, 0, 0, 1, 1, 1],
+                "cmds": ["F 25", "W 2 0 200", "L 11.00 50.00", "L 12.00 50.00", "L 13.00 50.00", "W 2 25 211", "L 13.50 50.00",
+                         "W 2 10 211", "L 14.00 50.00", "W 2 0 200", "L 15.00 50.00", "L 16.00 50.00", "L 17.00 50.00", "G"]}
+        row2 = {"kind": "move", "row": 2, "paintMM": 3.0, "painted": [1, 1, 1], "cmds": ["F 25", "W 2 0 200", "L 21.00 50.00", "L 22.00 50.00", "L 23.00 50.00", "G"]}
+        return [{"kind": "move", "row": 1, "cmds": ["T 180", "M 10.00 50.00", "G"], "paintMM": 0}, {"kind": "arm", "cmd": "J 2 12", "row": 1}, row1,
+                {"kind": "arm", "cmd": OFF, "row": 1}, {"kind": "pause", "why": "wipe the brush, put Cream in the cup, then Continue", "row": 0},
+                {"kind": "move", "row": 2, "cmds": ["T 180", "M 20.00 50.00", "G"], "paintMM": 0}, {"kind": "arm", "cmd": "J 2 12", "row": 2}, row2,
+                {"kind": "arm", "cmd": OFF, "row": 2}]
+
+    def jumped(self, press, at_x):
+        # press(r) once the carriage is at_x mm along row 1; Continue at the colours' pause
+        b, got, seen = FakeBoard(rate=1), [], {}
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2, log=got.append)
+
+        def later():
+            if "asked" not in seen and r.state == "running" and r.block == 2 and b.x >= at_x * STEPS_PER_MM[0]:
+                seen["where"] = r.where()
+                seen["asked"] = press(r)
+            if r.state == "paused" and (r.message or "").startswith("wipe") and "paused" not in seen:
+                seen["paused"] = r.where()
+                r.resume()
+        b.on_sleep = later
+        r.start(self.blocks(), {"page": "opmn", "remote": self.ROWS, "cup": DipTest.CUP})
+        r.thread.join(10)
+        return r, b, got, seen
+
+    def test_back_paints_this_cell_again_from_its_first_track(self):
+        r, b, got, seen = self.jumped(lambda r: r.back(), 14.5)
+        self.assertEqual(seen["where"]["cell"], 2)
+        self.assertEqual(seen["asked"], (True, "ok"))
+        self.assertEqual(r.state, "done", r.message)
+        i = b.log.index("S")
+        self.assertEqual(b.log[i + 1], OFF, "the brush up at once")
+        j = b.log.index("M 14.00 50.00", i)
+        self.assertEqual(b.log[j + 2], "J 2 10", "over the canvas as the plan has it after the turn")
+        self.assertEqual([c for c in b.log[j:] if c.startswith("L 1")], ["L 15.00 50.00", "L 16.00 50.00", "L 17.00 50.00"], "cell 2 from its first track, to its end")
+        self.assertIn("W 2 0.0 200", b.log[j:], "down as the plan lands it")
+        self.assertNotIn("L 11.00 50.00", b.log[j:], "cell 1 not again")
+        self.assertEqual([c for c in b.log if c.startswith("L 2")], ["L 21.00 50.00", "L 22.00 50.00", "L 23.00 50.00"], "the next colour after it")
+        self.assertEqual([e["event"] for e in got if e["event"] in ("back", "pause")], ["back", "pause"], "Back is no pause in the journal")
+        self.assertEqual(r.status()["percent"], 100.0)
+
+    def test_go_to_a_cell_that_starts_its_row_flies_there_as_the_row_does(self):
+        r, b, got, seen = self.jumped(lambda r: r.goto(0, 1), 14.5)
+        self.assertEqual(r.state, "done", r.message)
+        i = b.log.index("S")
+        self.assertEqual(b.log[i + 1], OFF)
+        self.assertEqual(b.log.count("M 10.00 50.00"), 2, "the row's own flight again")
+        self.assertEqual(b.log.count("L 11.00 50.00"), 2, "cell 1 painted again")
+        self.assertNotIn("DIP:", "".join(e.get("why", "") for e in got), "no dip by itself")
+
+    def test_skip_after_the_colours_last_cell_goes_on_to_its_pause(self):
+        r, b, got, seen = self.jumped(lambda r: r.skip(), 14.5)
+        self.assertEqual(seen["asked"], (True, "ok"))
+        self.assertEqual(r.state, "done", r.message)
+        i = b.log.index("S")
+        self.assertNotIn("L 17.00 50.00", b.log[i:], "the rest of cell 2 skipped")
+        self.assertEqual(seen["paused"]["next"]["name"], "Cream", "at the colours' pause, the next one named")
+        self.assertIn("L 23.00 50.00", b.log)
+
+    def test_no_such_cell_nothing_running_refused(self):
+        r = Runner(FakeBoard().send)
+        self.assertFalse(r.goto(0, 1)[0])
+        r, b, got, seen = self.jumped(lambda r: r.goto(0, 9), 14.5)
+        self.assertEqual(seen["asked"], (False, "no cell 9 in colour 1"))
+        self.assertEqual(r.state, "done", r.message)
+        self.assertNotIn("S", b.log)
+
+    def test_from_piece_keeps_the_landing_of_its_piece(self):
+        c = ["F 25", "W 2 0 200", "L 1 0", "W 2 25 211", "L 2 0", "W 2 10 211", "L 3 0", "W 2 0 200", "L 4 0", "G"]
+        self.assertEqual(rubens.from_piece(c, 3), ["F 25", "W 2 0 200", "L 4 0", "G"])
+        self.assertEqual(rest_of(c, 3), ["F 25", "L 4 0", "G"], "Continue's own: the W turned already")
+
+
 class RemoteGateTest(unittest.TestCase):
     """The iPhone on the Wi-Fi (OPM-N, the owner, 2026-11-02: "yes, with the
     key"): from another address only /remote and its calls, those with the key."""
@@ -667,6 +751,9 @@ class RemoteGateTest(unittest.TestCase):
         self.assertEqual(self.ask("do_GET", "/remote/state", phone, {"X-Key": "k3y-of-the-test"})["code"], 200)
         self.assertEqual(self.ask("do_POST", "/remote/dip?k=k3y-of-the-test", phone)["code"], 409, "nothing running: no dip")
         self.assertEqual(self.ask("do_GET", "/remote", phone)["code"], 200, "the page itself for anyone on the Wi-Fi")
+        for path in ("/remote/back", "/remote/skip", "/remote/goto?n=3"):
+            self.assertEqual(self.ask("do_POST", path, phone)["code"], 403, path)
+            self.assertEqual(self.ask("do_POST", path + ("&" if "?" in path else "?") + "k=k3y-of-the-test", phone)["code"], 409, f"{path}: nothing running")
 
     def test_this_mac_as_before_and_its_link_with_the_key(self):
         for me in ("127.0.0.1", "::1", "192.168.0.227"):
