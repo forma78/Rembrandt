@@ -118,6 +118,36 @@ python3 rembrandt.py` keeps it on this Mac alone.
 Port 5164 — the owner's lucky number (2026-10-01). Only one program owns
 the USB board: close RUBENS (port 8766) first.
 
+## The brush lands and lifts on the move — gaps (it keeps coming back)
+
+The owner, 2026-11-02, after OPM-N's first DRAG: "we have this all the
+time; I would write it in the README, because it has been more than once".
+
+`plotRun` (`strokes.js`, `onTheMove`) lands the brush along the line
+itself and lifts it the same way, over `tail` mm at each end (3 by
+default), the elbow easing between the lift-off and pressed. The tip
+touches only near the end of a landing and leaves near the start of a
+lift, and the elbow lags the carriage. So **a line cut in two — the brush
+up, then down again at the same point — leaves a gap on the canvas**,
+though the plan has none, and a line's ends fall a few mm short.
+
+- 2026-10-04, NOLAN: the lines began 5–10 mm late, the elbow still on its
+  way down from +25° when the carriage set off → `ELBOW_HOVER` +12°; a
+  dip's split goes on 20 mm back (`DIP_LAP`, `band.js`).
+- 2026-10-12, TAPE: the landing and the lift-off, 3 mm each, ate half of
+  a 12.6 mm screw → a closed outline twice round.
+- INKA, ST-JOHN: TRACE after a dip on from `DIP_LAP` back.
+- 2026-11-02, OPM-N (`OPM-N/IMG_2055`, `IMG_2056`, a pencil in the brush's
+  place): a 5–6 mm gap at every dip in a track → **Dip overlap**, 5 mm
+  back (est.). A track's ends also stop 4–8 mm short of its cell's edges
+  (`IMG_2057`), and the tip slides a few mm sideways as the elbow turns
+  (the hooks at both ends) — open.
+
+**The rule:** wherever a new run cuts a line the brush paints — a dip, a
+segment, a stop — the part after the cut starts back over the part before
+it, by a lap on a slider marked est. Look for this before a new tab's
+first run, not after it.
+
 ## Working rules
 
 - **English everywhere**: UI, docs, code comments, commit messages.

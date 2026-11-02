@@ -15,6 +15,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   mm again, half a dip at most, `info.lap`; between strokes none. A slider
   in Painting machine, 0 … 15 mm, 5 (est.). On his run: 17225 blocks, ≈ 3
   min more.
+- **README: the brush lands and lifts on the move** (the owner, 2026-11-02:
+  "we have this all the time; I would write it in the README, because it
+  has been more than once"): the cause, NOLAN's, TAPE's, INKA's and OPM-N's
+  cases, and the rule — a line cut for a dip, a segment or a stop goes on
+  from back over itself.
 - **OPM-N: the blend in Construction, the core always filled, no list or
   Nodes** (the owner, 2026-11-02: "into the CONSTRUCTION module at once
   … take away Core filled, Core empty — I never leave it empty"; of Blends
