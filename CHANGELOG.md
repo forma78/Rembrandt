@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.1.7 — 2026-10-30 · 11-02, towards v.1.1.8
 
+- **OPM-N: DRAG SNAKE · DRAG AIR in the deck; the views Drag · Preview ·
+  Contour · Numbers · Result** (the owner, 2026-11-02: "Painting machine is
+  not very handy; let us make DRAG Snake / DRAG Air keys"; "Paint replaced
+  by Numbers, where the numbers are, and the last one Result — it has to be
+  added — the final version, without numbers"). DRAW BW · DRAG SNAKE · DRAG
+  AIR in a row, the Snake · Air switch gone from Painting machine; the key
+  pressed sets the way, the views and ▶ Play Drag go by it; the one running
+  lit. Numbers is Paint as it was; Result every cell in its colour, no
+  number, no contour, where a deal of new colours goes. Verified headless
+  on his save of 2026-11-02 14-53 (21 colours).
+
 - **OPM-N: no colour in fewer than five cells but one, the accent, in
   one** (the owner, 2026-11-02, Crimson Lake in one cell, Salmon Pink in
   two, Sky Blue and Sky Blue Light in one each, 29 colours: "one colour in

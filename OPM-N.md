@@ -256,7 +256,11 @@ canvas. The journal's L per colour is what it will need.
    the way round, across ones side by side the way round. DRAG, Drag and
    ▶ Play Drag by cells, a colour's by their numbers; Brush speed 25 mm/s;
    the rows' step in Construction. No dip yet: DRAG asks to load the brush
-   by hand.
+   by hand. The same day, after he tried it: **DRAG SNAKE · DRAG AIR** keys
+   in the deck in place of the switch ("Painting machine is not very
+   handy"), and the views **Drag · Preview · Contour · Numbers · Result**
+   ("Paint replaced by Numbers … the last one Result, the final version,
+   without numbers").
 4. The run by cells, a colour's first dip from the cup; tests. **Ask before
    the runner.**
 5. `/remote` and the key. **Ask before `rembrandt.py` listens beyond the

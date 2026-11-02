@@ -149,7 +149,9 @@
       <!-- OPM-P (the owner, 2026-10-29: "instead of DRAW CLR, DRAG comes back"): DRAW BW, the lines once, the rows first — rings where they go all round — then the rays; DRAG, a colour after another, one brush -->
       <div class="runkeys deck passes">
         <button class="btn pass" id="btnBw" data-pass="bw" title="DRAW BW: every line once, in one pencil, the one that shows best on the ground — the darkest on the white, the lightest on black — the rows first, every line as long as it goes on, the bands' rings all round, the outermost first, from 12 o'clock, then the rays; no change of pencils; it stops once, over the first line, for the pencil to go in"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z" class="fill"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw BW</span></button>
-        <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG: a colour after another, one brush — along the middles of its rows, block after block round the figure, every block's from its outer edge in, then along its rays — never through a cell of another colour; every stroke Rubs times; between two colours the brush up over the next one's start, a pause to wipe it and squeeze that colour on its cells, Continue"><svg viewBox="0 0 24 24"><path d="M12 12h2v-3h-5v6h8v-9h-11v12h14"/></svg><span>Drag</span></button>
+        <!-- OPM-N (the owner, 2026-11-02: "Painting machine is not very handy; let us make DRAG Snake / DRAG Air keys"): a cell's tracks back and forth, or one way each -->
+        <button class="btn pass" id="btnDrag" data-pass="drag" data-snake="1" title="DRAG SNAKE: a colour after another, one brush, its cells by their numbers, every one on its own — its tracks back and forth, the brush down, across to the next inside the cell, every one Rubs times; up through the air from cell to cell; between two colours a pause to wipe the brush and load the next"><svg viewBox="0 0 24 24"><path d="M5 6.5h12.5a2.75 2.75 0 0 1 0 5.5H6.5a2.75 2.75 0 0 0 0 5.5H19"/></svg><span>Drag Snake</span></button>
+        <button class="btn pass" id="btnDragAir" data-pass="drag" data-snake="0" title="DRAG AIR: a colour after another, one brush, its cells by their numbers, every one on its own — every track one way, the brush up and back through the air to the next one's start, every one Rubs times; up through the air from cell to cell; between two colours a pause to wipe the brush and load the next"><svg viewBox="0 0 24 24"><path d="M5 7h12M5 12h12M5 17h12"/><path d="M15 5l2.5 2-2.5 2M15 10l2.5 2-2.5 2M15 15l2.5 2-2.5 2" class="thin"/></svg><span>Drag Air</span></button>
         <button class="btn pass" id="btnPencils" hidden data-pass="pencils" title="DRAW CLR: a pass a pencil, the lightest first, one path — round the rings clockwise and along the rays, the pencil up and down on the move where its colour ends and begins; at every pencil's end it stops on the paper for the next one, its tip on the paper"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z"/><path d="M14.6 6.7l2.6 2.6" class="thin"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw CLR</span></button>
         <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS: a dash along every sausage — with INK ON in watercolour from the cup, a dip every fourth; then squeeze the sausages on them"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><path d="M12 4v7M20 12h-7M4 12h7"/></svg><span>Marks</span></button>
       </div>
@@ -168,7 +170,9 @@
         <!-- Preview, BLEND's Result renamed for the pencils (the owner, 2026-10-27: "strange to see Result second at the start of the work") -->
         <button class="tog" data-view="result" title="Preview: BLEND's digital painting — the brush through the sausages, the paints mixed as pigments (est.) — the colour the pencils go by, no forecast of the paper">Preview</button>
         <button class="tog" data-view="pencil" title="The lines, 1 mm wide, in DRAW BW's pencil, every one once, as DRAW BW lays them (est.)">Contour</button>
-        <button class="tog" data-view="paint" title="Every cell painted in its pencil's colour, its contour over it: the picture once painted in by hand (est.)">Paint</button>
+        <!-- OPM-N (the owner, 2026-11-02: "Paint replaced by Numbers, where the numbers are, and the last one Result, the final version, without numbers") -->
+        <button class="tog" data-view="paint" title="Numbers: every cell painted in its colour, its contour over it, its number in it — every colour 1 … n from the middle out, from 12 o'clock clockwise (est.)">Numbers</button>
+        <button class="tog" data-view="final" title="Result: the picture painted, every cell in its colour — no number, no contour (est.)">Result</button>
       </div>
       <!-- the flights on Drag, OFF by default (the owner, 2026-10-19: "I do not really need them") -->
       <div class="inkrow" title="ON: on Drag the brush's flight through the air from a figure's end to the next one's start, dashed blue; OFF: none. ❚❚ wipe stays by every landing; the run on the machine is the same either way">
@@ -210,11 +214,6 @@
       <div class="toggles looks" id="turnKeys">
         <button class="tog" data-cw="1" title="Clockwise: the blocks round the figure from 12 o'clock, every row line and stroke that way; the rays in that order — DRAG and DRAW BW">↻ CW</button>
         <button class="tog" data-cw="0" title="Anticlockwise: the blocks round the figure from 12 o'clock, every row line and stroke that way; the rays in that order — DRAG and DRAW BW">↺ CCW</button>
-      </div>
-      <!-- OPM-N (2026-11-01, OPM-N.md: "two options: back and forth, and through the air"): a cell's tracks -->
-      <div class="toggles looks" id="trackKeys">
-        <button class="tog" data-snake="1" title="Snake: a cell's tracks back and forth, the brush down, across to the next inside the cell — one landing a cell">Snake</button>
-        <button class="tog" data-snake="0" title="Air: every track of a cell one way, the brush up and back through the air to the next track's start — every track's bulb on one side">Air</button>
       </div>
       <div class="sliders" id="slDrag"></div>
       <!-- ELBOW LIVE for the brush (the owner, 2026-10-29: "we take ELBOW LIVE, the pressure's degrees adjusted while it draws") -->

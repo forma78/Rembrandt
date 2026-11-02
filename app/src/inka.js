@@ -128,7 +128,7 @@ const S = {
 };
 if (DACHE) S.ink = false;                                                            // no cup: TEST's dots in pencil
 const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : []), ...(PRISMA ? ['rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress'] : []), ...(OPMN ? ['track'] : []), ...(FORM ? FORM_NUM : [])];
-const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint', ...(FORM ? ['mirror'] : [])], VIEWS = ['drag', 'result', ...(FORM ? ['forms'] : []), ...(OPM ? ['pencil', 'paint'] : PRISMA ? ['pencil'] : DACHE ? ['modules', 'pencil'] : [])];
+const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint', ...(FORM ? ['mirror'] : [])], VIEWS = ['drag', 'result', ...(FORM ? ['forms'] : []), ...(OPM ? ['pencil', 'paint', ...(OPMN ? ['final'] : [])] : PRISMA ? ['pencil'] : DACHE ? ['modules', 'pencil'] : [])];
 const BLEND_KEEP = 'rembrandt.blend.v01', BLEND_REFS = 'rembrandt.blend.refs';   // BLEND's keep and references, DACHE's first visit's
 const DACHE_KEEP = 'rembrandt.dache.v01', DACHE_REFS = 'rembrandt.dache.refs';   // DACHE's, PRISMA's first visit's
 const PRISMA_KEEP = 'rembrandt.prisma.v01', PRISMA_REFS = 'rembrandt.prisma.refs';   // PRISMA's, OPM's first visit's
@@ -473,7 +473,7 @@ function draw() {
   g.strokeStyle = 'rgba(179,71,12,.45)'; g.lineWidth = 1;
   for (let d = -H; d < W; d += 7) { g.beginPath(); g.moveTo(d, H); g.lineTo(d + H, 0); g.stroke(); }
   g.restore();
-  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint') { drawPencils(); if (OPMN) drawNumbers(); } else if (FORM && S.view === 'forms') { g.fillStyle = groundNow(); g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); } else if (OPMP) { drawPencils(); drawSausages(); drawNodes(); } else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }   // OPM-P's Drag: the brush's strokes, a colour each
+  if (PPLAY && g === ctx) drawPencilPlay(); else if (S.view === 'result') drawResult(); else if (S.view === 'modules' || S.view === 'pencil' || S.view === 'paint' || S.view === 'final') { drawPencils(); if (OPMN && S.view !== 'final') drawNumbers(); }   // OPM-N's Result: no number else if (FORM && S.view === 'forms') { g.fillStyle = groundNow(); g.fillRect(sx([-hw]), sy([0, -hh]), S.boardW * k, S.boardH * k); } else if (OPMP) { drawPencils(); drawSausages(); drawNodes(); } else { drawPaths(); drawDips(); drawSausages(); drawOrder(); drawNodes(); }   // OPM-P's Drag: the brush's strokes, a colour each
   if (DACHE) drawFrame();
   if (REF && S.refOpacity > 0 && !FORM) {                                            // FORM's own, turned as its forms were made (form.js)
     const img = REF.img, s = Math.min(S.boardW / img.naturalWidth, S.boardH / img.naturalHeight), w = img.naturalWidth * s, h = img.naturalHeight * s;
@@ -733,14 +733,16 @@ function dacheBitmap() {
   const c = c2.getContext('2d'), seen = b => b[2] >= x0 && b[0] <= x1 && b[3] >= y0 && b[1] <= y1;
   c.setTransform(px, 0, 0, -px, -x0 * px, y1 * px);
   c.fillStyle = groundNow(); c.fillRect(x0, y0, x1 - x0, y1 - y0);
-  if (OPM && S.view === 'paint') {                                                   // OPM, Paint: every cell in its pencil's colour, the contours over them, thin
+  if (OPM && (S.view === 'paint' || S.view === 'final')) {                           // OPM, Paint: every cell in its pencil's colour, the contours over them, thin; OPM-N's Result none
     for (const C of D.cells) {
       const pc = C.pencil && pencilOf(C.pencil); if (!pc || (S.only && C.pencil !== S.only)) continue;
       c.fillStyle = c.strokeStyle = pc.hex; c.lineWidth = 0.3; c.beginPath(); C.poly.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); c.fill(); c.stroke();   // its own edge too: no hairline between two
     }
     c.lineWidth = 0.35; c.lineJoin = 'round'; c.strokeStyle = 'rgba(36,34,31,.35)';
-    if (OPMP) for (const M of D.modules) { trace(c, M.pieces); c.stroke(); }          // OPM-P: its lines, every one once
-    else for (const P of D.passes) { if (S.only && P.pencil !== S.only) continue; for (const st of P.strokes) { trace(c, st); c.stroke(); } }
+    if (S.view !== 'final') {                                                         // OPM-N's Result: no contour
+      if (OPMP) for (const M of D.modules) { trace(c, M.pieces); c.stroke(); }        // OPM-P: its lines, every one once
+      else for (const P of D.passes) { if (S.only && P.pencil !== S.only) continue; for (const st of P.strokes) { trace(c, st); c.stroke(); } }
+    }
   } else if (OPMP && S.view === 'drag') {                                            // OPM-P, Drag: every DRAG stroke as wide as the brush, in its colour, its middle over it
     c.lineCap = 'round'; c.lineJoin = 'round';
     for (const P of D.passes) {
@@ -1541,7 +1543,7 @@ if (DACHE) {
       if (i < 0 || j < 0 || j >= ids.length || !!pencilOf(ids[j]).light !== !!pencilOf(id).light) return;
       undoPush(); [ids[i], ids[j]] = [ids[j], ids[i]]; S.order = ids; settle(); return;
     }
-    if (S.pencil === id) { S.only = S.only === id ? '' : id; if (S.view !== 'modules' && S.view !== 'pencil' && S.view !== 'paint') S.view = PRISMA ? 'pencil' : 'modules'; }   // a second click: its pass alone
+    if (S.pencil === id) { S.only = S.only === id ? '' : id; if (S.view !== 'modules' && S.view !== 'pencil' && S.view !== 'paint' && S.view !== 'final') S.view = PRISMA ? 'pencil' : 'modules'; }   // a second click: its pass alone
     else S.pencil = id;
     save(); showPanel(); kick();
   };
@@ -1630,7 +1632,6 @@ function showPencils() {
     $('#dragRead').innerHTML = drag.join(' · ');
     document.querySelectorAll('#turnKeys [data-cw]').forEach(b => b.classList.toggle('on', (b.dataset.cw === '1') === S.cw));
     document.querySelectorAll('#bindKeys [data-bind]').forEach(b => b.classList.toggle('on', (b.dataset.bind === '1') === S.bind));
-    document.querySelectorAll('#trackKeys [data-snake]').forEach(b => b.classList.toggle('on', (b.dataset.snake === '1') === S.snake));
   } else if (D && R && OPM) {
     const n = D.modules.length, drawn = D.cells.filter(q => q.pencil).length, white = D.cells.length - drawn;
     lines.push(R.passes.length ? `DRAW: <b>${R.passes.length}</b> pencil${R.passes.length === 1 ? '' : 's'}, <b>${n}</b> contour${n === 1 ? '' : 's'} — ${S.merge ? `the cells of one pencil side by side merged, ${drawn} cells in them` : `a cell each, of ${drawn} cells`}${white ? `; ${white} off the Preview, none` : ''}; every contour rubbed round ${S.rubsDark}× the darkest pencil … ${S.rubsLight}× the lightest, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)} from it — as Calibration's ELBOW shows it), ${fmt(R.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, lifted to ${sgn(S.touch + S.glide)} from one to the next ${R.lifts} times, ≈ <b>${hm(R.seconds)}</b> (est.) without the ${R.passes.length} changes of pencil, the first too` : 'DRAW: nothing to draw — the Preview is white here, or no pencil near its colours.');
@@ -1924,7 +1925,7 @@ $('#btnPaintsClear').onclick = () => { const Fs = chosenFigs(); if (!Fs.some(F =
 // the view a deal of paints goes to: Preview; on OPM-S Paint, the cells in
 // their pencils' colours (the owner, 2026-10-28: "when I choose a colour, as
 // the palette changes, let the result show as the fourth key, Paint")
-const DEALT = OPMS ? 'paint' : 'result';
+const DEALT = OPMN ? 'final' : OPMS ? 'paint' : 'result';   // OPM-N: Result, the cells painted, no number
 $('#btnNewColours').onclick = () => { const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew(); dealOn(Fs, newPalette(seed, palOf(Fs[0])?.name), seed, 'colours'); S.view = DEALT; settle(); };
 $('#btnNewSpokes').onclick = () => {
   const Fs = chosenFigs(); if (!Fs.length) return; undoPush(); const seed = seedNew();
@@ -2336,10 +2337,12 @@ if (DACHE) {
       { page: TAB, pass: 'draw', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(R.seconds) });
   };
   if (OPMS) { $('#btnBw').onclick = () => oneDraw('bw'); $('#btnOuter').onclick = () => oneDraw('frame'); }
-  if (OPMP) $('#btnDrag').onclick = paintDrag;                                       // OPM-P: DRAG in DRAW CLR's place, a colour at a time
+  if (OPMP) $('#btnDrag').onclick = () => paintDrag();                               // OPM-P: DRAG in DRAW CLR's place, a colour at a time
+  if (OPMN) { $('#btnDrag').onclick = () => paintDrag(true); $('#btnDragAir').onclick = () => paintDrag(false); }   // OPM-N: DRAG SNAKE · DRAG AIR (the owner, 2026-11-02)
 }
 // OPM-P's DRAG: its question — the first colour to squeeze, the order, the pauses, the time — and its run
-async function paintDrag() {
+async function paintDrag(snake) {
+  if (OPMN && typeof snake === 'boolean' && S.snake !== snake) S.snake = snake;      // OPM-N: the key's way, the views and Play Drag by it from now on
   settle(); clearTimeout(dacheT);
   const R = paintRun(), warn = t => { $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
   if (lastSt && ['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) return warn('A run is on: STOP it first.');
@@ -2463,7 +2466,6 @@ if (OPMP) {
   document.querySelectorAll('#elbowBrush [data-btrim]').forEach(b => b.onclick = () => setBrushElbow(S.brushPress + +b.dataset.btrim));
   document.querySelectorAll('#turnKeys [data-cw]').forEach(b => b.onclick = () => { const v = b.dataset.cw === '1'; if (S.cw === v) return; undoPush(); S.cw = v; settle(); });
   document.querySelectorAll('#bindKeys [data-bind]').forEach(b => b.onclick = () => { const v = b.dataset.bind === '1'; if (S.bind === v) return; undoPush(); S.bind = v; settle(); });   // the rows bound over the corners, or every block its own
-  document.querySelectorAll('#trackKeys [data-snake]').forEach(b => b.onclick = () => { const v = b.dataset.snake === '1'; if (S.snake === v) return; undoPush(); S.snake = v; settle(); });   // OPM-N: a cell's tracks back and forth, or one way through the air
   // the keys fitted to the brush (the owner, 2026-10-29: "we may change the size of Key 1, Key 2 and the core for the rule 12 = 6 + 6"): every figure, ⌘Z back
   $('#btnFit').onclick = () => {
     if (!S.rects.length) return;
@@ -2546,7 +2548,7 @@ function lcd(st) {
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
   $('#btnHome').disabled = !!live;
-  document.querySelectorAll('.deck [data-pass], #btnTest').forEach(el => el.classList.toggle('on', !!live && (el.dataset.pass || 'test') === RUN_KEY));
+  document.querySelectorAll('.deck [data-pass], #btnTest').forEach(el => el.classList.toggle('on', !!live && (el.dataset.pass || 'test') === RUN_KEY && (!el.dataset.snake || (el.dataset.snake === '1') === S.snake)));   // OPM-N: DRAG SNAKE or DRAG AIR, the one running
   const now = Q ? `Play ${Q.kind === 'drag' ? 'Drag' : 'Pencil'} · ${fmt(Q.want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m · the run's time (est.)`
     : waiting ? `❚❚ ${st.message}`
     : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off')
