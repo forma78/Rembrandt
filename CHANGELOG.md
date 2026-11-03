@@ -3,8 +3,16 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## v.1.1.9 — 2026-11-03 · INK-Y
+## v.1.2.0 — 2026-11-03 · The cup at hand
 
+- **v.1.2.0 on every tab and in the saved SVGs** (the owner, 2026-11-03:
+  "yes, you may push the code and the README. It is a full update, v.1.2.0
+  — write a couple of lines on GitHub and leave it open; chat-Claude and
+  Kuzya read it"). The last 60 × 60 of the Library (2026-11-02 21:11, the
+  night's SNAKE and Dip overlap 5), OPM-N's own estimate: ≈ 8 h 33 min with
+  the Ink tab's cup, 7 h 28 on the beam (02:15), **6 h 31 at hand** (est.;
+  1880 dips, 129 m of brush) — the model within ~3 % of the 02:15 run's
+  measured pace. As saved (AIR): 9 h 36 → 7 h 35.
 - **INK-Y: the cup at hand, in the beam's place** (the owner, 2026-11-03,
   `OPM-N/IMG_2108…2121`: "not two jars at the sides of Y, but a jar right
   by the arm. No need to drive anywhere … the jar is always at hand"; his
@@ -31,6 +39,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   `rembrandt.py` gets an alert, no run — he restarts it. Tests 451, the
   runner's 108; a D1 plan through the runner: 16 turns of the shoulder, the
   elbow at +32 … +33° at every one.
+## v.1.1.9 — 2026-11-03 · INK-Y
+
 - **INK-Y: the shoulder turns on the flights** (the owner, 2026-11-03,
   `OPM-N/IMG_2073.MOV`, 20 s a stroke: "the machine drives to the cup and
   at the same time the shoulder turns −24° … back to the cell, and on the

@@ -317,7 +317,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   2026-11-01 (the owner: "OPM-N is now v.1.1.8"), on every tab since
   2026-11-02 ("and we are 1.1.8! :)"); **v.1.1.9**, INK-Y, the cup on the
   beam, on 2026-11-03 (the owner: "and this is 1.1.9 — an 8th commit can be
-  made, and then push it all at once"), the cup at hand the same day.
+  made, and then push it all at once"); **v.1.2.0**, the cup at hand, the
+  same day (the owner: "it is a full update, v.1.2.0 — write a couple of
+  lines on GitHub and leave it open").
 - **A dip goes into the cup at hand, by the owner's canon** (2026-11-03,
   `OPM-N/IMG_2108…2121`: "not two jars at the sides of Y, but a jar right by
   the arm … always at hand"; "the rules must be written in the README, and

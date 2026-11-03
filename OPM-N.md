@@ -250,11 +250,18 @@ tunnel blend, a ruler in the later ones); the owner answered.
   their coordinates on power-on, unlike the steppers, right?": right — the
   arm's servos read their own angles (the runner never sends an absolute
   one), X and Y home by the switches; nothing to take with Here. INK-Y
-  rewritten for it (glossary, **INK-Y**): a dip at hand ≈ 6.6 s (est.: four
-  elbow moves at 1 s with the one down to hover, the shoulder's two at
-  40°/s, the second in the paint), against 13.5 s on the beam at 02:15 — on
-  1879 dips ≈ 3.6 h less (est.). Open: the shoulder back stood ~1° short of 0 on the beam (−0.6 …
-  −1.3°), ~1.7 mm at the brush (est.), the tracks after a dip shifted so.
+  rewritten for it (glossary, **INK-Y**; v.1.2.0): a dip at hand ≈ 6.6 s
+  (est.: four elbow moves at 1 s with the one down to hover, the shoulder's
+  two at 40°/s, the second in the paint), against 13.5 s a 75 mm stretch on
+  the beam at 02:15. The last 60 × 60 of the Library with the night's SNAKE
+  and Dip overlap 5, OPM-N's own estimate: 8 h 33 min with the Ink tab's
+  cup (23:53), 7 h 28 on the beam (02:15), **6 h 31 at hand** (est.) — the
+  02:15 run's first colour, 3480 mm in 663 s, makes ≈ 7 h 16 for its
+  137 m, the model's 7 h 28 within ~3 %. Of the 6 h 31, the 1880 dips ≈
+  3 h 27, the paint itself (129 m at 25 mm/s) 1 h 26. His tolerance for the
+  shoulder back at 0: "1° is acceptable — the main thing, not 5°" (the
+  runner lets it off 1.5°: the beam's misses went to −1.3°, ~1.7 mm at
+  the brush a degree, est.).
 
 ## 1 · Numbers
 
