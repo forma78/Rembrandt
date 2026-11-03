@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.9 — 2026-11-03 · INK-Y
 
+- **INK-Y: the shoulder's dip turns let off 1.5°** (the owner, 2026-11-03,
+  the first run with INK-Y, `OPM-N/Screenshot 2026-11-03 at 1.35.26 AM`:
+  after the second dip "shoulder to 0°: the shoulder does not get to 0.0°",
+  INK-Y read −0.6° — "maybe just ignore such deviations?"). The firmware
+  turns whole degrees; the servo stood 0.6° short and a 1° nudge did not
+  move it, six times. `Arm.move_to(…, within)`, a joint block's `within`
+  (0.6 … 2°, checked before a run), plotRun's shoulder blocks 1.5
+  (`SHOULDER_WITHIN`, est.), the runner's own turns `DIP_WITHIN`; a turn
+  that stops 0.6° or more off goes on and is written to the journal,
+  `near`. `/run` says `beam: 2`; an older `rembrandt.py` gets an alert, no
+  run. Tests 452 and the runner's 106.
 - **INK-Y: the cup on the beam; v.1.1.9 on every tab and in the saved
   SVGs** (the owner, 2026-11-03, `OPM-N/IMG_2060…2062`: "the jar somewhere
   near … it is enough to drive along Y. SHOULDER turns −25.1°, then ELBOW

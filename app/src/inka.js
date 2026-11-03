@@ -2242,7 +2242,7 @@ async function start(key, blocks, info, log) {
   // or Go to, and at the start of the run after one stopped over the cup
   if (blocks.some(b => b.kind === 'joint' && b.dip)) {
     let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
-    if (st && !st.beam) { $('#runState').innerHTML = '<span class="warn">The cup on the beam (INK-Y): restart rembrandt.py first — the one running does not know it yet.</span>'; return; }
+    if (st && !(st.beam >= 2)) { alert('The cup on the beam (INK-Y): restart rembrandt.py first — the one running does not know it yet, or not its shoulder\'s tolerance. Nothing was sent.'); return; }   // an alert: the run line is the runner's again a moment later
   }
   try {
     RUN = blocks; RUN_INFO = info; RUN_KEY = key;

@@ -250,6 +250,9 @@ const rad = d => d * Math.PI / 180;
 // a W 2 rides on every TAIL_STEP mm of a tail, the board turning it as the
 // carriage reaches the piece — whatever the speed, a brake, a pause. The
 // wrist stands at 0° all the while ("the broom again" otherwise).
+// How near the shoulder's turns for a dip on the beam count as there, degrees (INK-Y; the owner, 2026-11-03:
+// back from the cup it stood at −0.6° and the run stopped — "maybe just ignore such deviations?"); rembrandt.py's DIP_WITHIN, est.
+export const SHOULDER_WITHIN = 1.5;
 export const ELBOW_LIFT = 10, ELBOW_UP = 25, ELBOW_HOVER = 12;   // HOVER: just over the canvas, before a stroke (NOLAN), est.   // the lift-off measured +9.8° from the zero raised after midnight ("round it to +10"); ELBOW_UP est.
 const TAIL_STEP = 16;           // mm along a tail a W
 export const WRIST_MAX = 211;   // °/s, the firmware's fastest for W (2400 ticks/s; the servo makes about 250, est.)
@@ -543,7 +546,7 @@ export function plotRun(o, passes) {
   let pastWall = 0, gone = 0;
   // the brush up (the elbow), then the wrist to the active pose, in the air
   const blocks = [{ kind: 'arm', cmd: `J 2 ${up}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
-  if (cup && beam) blocks.push({ kind: 'joint', joint: 'shoulder', deg: 0, speed: cup.swing, row: 0 });   // the arm straight: a run stopped over the cup on the beam left it turned
+  if (cup && beam) blocks.push({ kind: 'joint', joint: 'shoulder', deg: 0, speed: cup.swing, within: SHOULDER_WITHIN, row: 0 });   // the arm straight: a run stopped over the cup on the beam left it turned
   const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
   let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0, fault = '';
   const min = o.minPiece ?? MIN_PIECE, real = ps => ps.filter(q => !sliver(q.g, min));
@@ -576,7 +579,7 @@ export function plotRun(o, passes) {
         // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again;
         // on the beam the shoulder turns the brush over the cup first and back after (rim: how high the brush
         // goes before rembrandt.py turns it back by itself — a jump, a run after a stop there)
-        const to = cupBy(at0), turn = deg => beam ? [{ kind: 'joint', joint: 'shoulder', deg, speed: cup.swing, rim: cup.rim, row, dip: true }] : [];
+        const to = cupBy(at0), turn = deg => beam ? [{ kind: 'joint', joint: 'shoulder', deg, speed: cup.swing, within: SHOULDER_WITHIN, rim: cup.rim, row, dip: true }] : [];
         blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(to)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true }, ...turn(cup.shoulder),
           { kind: 'arm', cmd: `J 2 ${cup.dip}`, row, dip: true }, { kind: 'wait', s: cup.dwell, row, dip: true },
           { kind: 'arm', cmd: `J 2 ${cup.rim}`, row, dip: true }, ...turn(0));

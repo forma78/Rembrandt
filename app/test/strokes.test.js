@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP, MIN_PIECE, homeBlocks } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP, MIN_PIECE, homeBlocks, SHOULDER_WITHIN } from '../src/strokes.js';
 import { homeCorner } from '../src/machine.js';
 
 const PLOTTER = { lift: false };   // the plotter's own path, the brush not lifted at the turns
@@ -326,7 +326,7 @@ const BEAMCUP = { beam: true, x: null, y: 30, shoulder: -25.1, swing: 40, rim: 2
 test('INK-Y, D1: to the cup along Y alone from where the row ended, the shoulder over it, in, up, the shoulder back — the arm straight first', () => {
   const p = xyPlan({ ...D1, here: HERE, ink: true, cup: BEAMCUP }), table = xyPlan({ ...D1, here: HERE, ink: true, cup: { ...CUPAT, x: 860 } });   // at the table's far end, as his
   assert.equal(p.dips, 14);
-  assert.deepEqual(p.blocks[2], { kind: 'joint', joint: 'shoulder', deg: 0, speed: 40, row: 0 }, 'the shoulder at 0 before anything: a run stopped over the cup left it turned');
+  assert.deepEqual(p.blocks[2], { kind: 'joint', joint: 'shoulder', deg: 0, speed: 40, within: SHOULDER_WITHIN, row: 0 }, 'the shoulder at 0 before anything: a run stopped over the cup left it turned');
   const say = b => b.kind === 'move' ? (b.home ? 'home' : b.paintMM ? 'row' : b.dip ? 'to the cup' : 'to the row') : b.kind === 'wait' ? `wait ${b.s}` : b.kind === 'joint' ? `shoulder ${b.deg}` : b.cmd;
   const row = ['to the cup', 'shoulder -25.1', 'J 2 -5', 'wait 1', 'J 2 24', 'shoulder 0', 'to the row', 'J 2 25', 'row', 'J 2 24'];
   assert.deepEqual(p.blocks.slice(3).map(say), [...Array(14).fill(row).flat(), 'home']);
@@ -337,7 +337,7 @@ test('INK-Y, D1: to the cup along Y alone from where the row ended, the shoulder
     if (b.dip) assert.deepEqual([to.x, to.y], [Math.round(at.x * 100) / 100, 30], `row ${b.row}: along Y alone, X where the brush left off`);
     at = to;
   }
-  assert.ok(p.blocks.filter(b => b.kind === 'joint' && b.dip).every(b => b.rim === 24 && b.speed === 40), 'its rim and speed with it, for rembrandt.py');
+  assert.ok(p.blocks.filter(b => b.kind === 'joint' && b.dip).every(b => b.rim === 24 && b.speed === 40 && b.within === SHOULDER_WITHIN), 'its rim, speed and how near is there with it, for rembrandt.py');
   assert.deepEqual(p.preview, table.preview, 'the paint as with the Ink tab\'s cup');
   assert.ok(p.seconds < table.seconds, `${p.seconds} s against ${table.seconds}: no trip to X 860 and back fourteen times`);
 });

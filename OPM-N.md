@@ -201,6 +201,13 @@ tunnel blend, a ruler in the later ones); the owner answered.
   one that knows the cup on the beam turns the shoulder back by itself
   before ⏮ Back, ⏭ Skip and ▶️ Go to, and at the next run after one stopped
   over the cup — he restarts it himself.
+- **The first run with INK-Y** (01:34, the shoulder −27.8°, the carriage at
+  Y 0.1): the first dip whole, after the second "shoulder to 0°: the
+  shoulder does not get to 0.0°" — it stood at −0.6° ("maybe just ignore
+  such deviations?"). The dip's shoulder turns let off 1.5° (est.), every
+  miss of 0.6° or more in the journal (`near`), to see how it comes back.
+  At ~100 mm from the shoulder to the brush (est., from −27.8° to the cup)
+  1° is ≈ 1.7 mm at the brush.
 - **The red pen's run was DRAG SNAKE** (23:53, `snake: true`, Dip overlap
   5; the pencil's at 22:18 AIR) — he asked, he had not written it down.
 - **Cells 4, 2, 3 against cell 10** (IMG_2069, IMG_2068: "the size between

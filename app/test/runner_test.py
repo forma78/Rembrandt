@@ -658,12 +658,13 @@ class BeamDipTest(unittest.TestCase):
         r._arm, r._joint, r._move = a, j, m
         return r, arm, seen
 
-    def plan(self):
+    def plan(self, within=1.5):
         # as plotRun lays a dip on the beam before a row
         dip = lambda **k: {**k, "dip": True, "row": 1}
-        return [{"kind": "arm", "cmd": "J 2 24", "row": 0}, {"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "row": 0},
-                dip(kind="move", cmds=["T 180", "M 99.00 30.00", "G"], paintMM=0), dip(kind="joint", joint="shoulder", deg=-25.1, speed=40, rim=24),
-                dip(kind="arm", cmd="J 2 -5"), dip(kind="wait", s=1), dip(kind="arm", cmd="J 2 24"), dip(kind="joint", joint="shoulder", deg=0, speed=40, rim=24),
+        w = {"within": within} if within else {}
+        return [{"kind": "arm", "cmd": "J 2 24", "row": 0}, {"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "row": 0, **w},
+                dip(kind="move", cmds=["T 180", "M 99.00 30.00", "G"], paintMM=0), dip(kind="joint", joint="shoulder", deg=-25.1, speed=40, rim=24, **w),
+                dip(kind="arm", cmd="J 2 -5"), dip(kind="wait", s=1), dip(kind="arm", cmd="J 2 24"), dip(kind="joint", joint="shoulder", deg=0, speed=40, rim=24, **w),
                 {"kind": "move", "cmds": ["T 180", "M 99.00 50.00", "G"], "paintMM": 0, "row": 1}, {"kind": "arm", "cmd": ON, "row": 1},
                 {**paint(6), "row": 1}, {"kind": "arm", "cmd": "J 2 24", "row": 1}]
 
@@ -685,6 +686,33 @@ class BeamDipTest(unittest.TestCase):
         self.assertEqual(seen[i:i + 7], ["M 99.00 30.00", "shoulder -25.1", "J 2 -5", "J 2 24", "shoulder 0", "M 99.00 50.00", ON])
         self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
         self.assertIsNone(r._swung)
+
+    def test_a_shoulder_that_stops_short_and_will_not_be_nudged_goes_on_within_its_tolerance(self):
+        # the owner, 2026-11-03, the first run with INK-Y: back from the cup it stood at −0.6°, a 1° nudge
+        # did not move it, "the shoulder does not get to 0.0°" — "maybe just ignore such deviations?"
+        class Sticky(FakeBoard):
+            def turn(self, jid, d):
+                before = self.raw[1]
+                FakeBoard.turn(self, jid, d)
+                if jid == 1:                                   # a big turn 7 ticks (0.6°) short, a nudge none
+                    moved = self.raw[1] - before
+                    self.raw[1] = before if abs(moved) <= 12 else self.raw[1] - (7 if moved > 0 else -7)
+        got = []
+        b = Sticky(rate=1)
+        r, arm, seen = self.runner(b, log=got.append)
+        r.start(self.plan(within=None), {"page": "opmn", "cup": self.CUP})
+        r.thread.join(10)
+        self.assertEqual((r.state, r.message), ("error", "shoulder to -25.1°: the shoulder does not get to -25.1°"), "as on the machine, without it")
+        got.clear()
+        b = Sticky(rate=1)
+        r, arm, seen = self.runner(b, log=got.append)
+        r.start(self.plan(), {"page": "opmn", "cup": self.CUP})
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        near = [e for e in got if e.get("event") == "near"]
+        self.assertTrue(near and all(e["joint"] == "shoulder" and 0.6 <= abs(e["at"] - e["deg"]) < 1.5 for e in near), near)
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 1.5)
+        self.assertFalse(Runner(FakeBoard().send, arm=arm).start([{"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "within": 5}])[0], "never that loose")
 
     def test_a_run_stopped_over_the_cup_turns_the_shoulder_back_at_the_next_start(self):
         b = FakeBoard(rate=1)

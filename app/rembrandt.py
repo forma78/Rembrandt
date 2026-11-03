@@ -441,9 +441,11 @@ class Arm:
             out[k] = None if jid not in raw else round(TURN[k] * sign * (raw[jid] - z[k]) / TICKS_PER_DEG, 1)
         return out, raw
 
-    def move_to(self, joint, deg, speed=None):
+    def move_to(self, joint, deg, speed=None, within=0.6):
         """speed: degrees a second, for a slow stroke of the brush; None — the
-        firmware's own, about 53°/s."""
+        firmware's own, about 53°/s. within: how near counts as there — the
+        firmware turns whole degrees; a dip's shoulder on the beam is let off
+        more (DIP_WITHIN). → the angle it stands at."""
         jid, sign, lim = JOINTS[joint]
         lo, hi = REACH[joint]
         if not lo <= deg <= hi:
@@ -463,7 +465,7 @@ class Arm:
                 step = round(d)
                 step = min(step, math.floor(hi - a + 1e-9)) if step > 0 else max(step, math.ceil(lo - a - 1e-9))
                 step = max(-lim, min(lim, step))
-                if abs(d) < 0.6 or step == 0:
+                if abs(d) < within or step == 0:
                     return a
                 r = self.send("/zero")
                 if not r.startswith("ok Z"):
@@ -712,6 +714,11 @@ def piece_at(start, path, here, first=0):
 TRAVEL_DIP = 180
 # DIP's turn of the shoulder to the cup on the beam when the note has none, °/s (the pages' BEAM.swing, est.)
 SWING_DIP = 40
+# How near the shoulder's dip turns count as there, degrees (the pages' SHOULDER_WITHIN, est.). The owner,
+# 2026-11-03, the first run with INK-Y: back from the cup it stood at −0.6°, a 1° nudge did not move it, and
+# the run stopped ("does not get to 0.0°") — "maybe just ignore such deviations?". Whole degrees' steps
+# leave up to 0.5° and the servo ~0.6° more; every one off 0.6° or more goes to the journal ("near").
+DIP_WITHIN = 1.5
 
 
 def cup_of(c):
@@ -880,7 +887,7 @@ class Runner:
                     "started": self.started, "trim": self.trim, "row": self.row,
                     "in_row": round(self.painted - self.row_base.get(self.row, self.painted), 1),
                     "dips": self.dips, "cup": bool(self.cup),
-                    "beam": True}   # this runner knows the cup on the beam (INK-Y): the pages ask before such a run
+                    "beam": 2}   # this runner knows the cup on the beam (INK-Y), its shoulder let off by `within` (2): the pages ask before such a run
 
     def where(self):
         # the colour and the cell now, by the page's rows: the row run last,
@@ -929,6 +936,9 @@ class Runner:
                     return False, f"a joint block out of reach: {j} {d}° (the shoulder and the elbow go {REACH['shoulder'][0]}…+{REACH['shoulder'][1]}°)"
                 if not isinstance(v, (int, float)) or not 0.5 <= v <= 100:
                     return False, f"a joint block's speed must be 0.5…100°/s, not {v}"
+                w = b.get("within", 0.6)
+                if isinstance(w, bool) or not isinstance(w, (int, float)) or not 0.6 <= w <= 2:
+                    return False, f"a joint block's within must be 0.6…2°, not {w}"
                 if not self.arm:
                     return False, "no arm"
         with self.lock:
@@ -1291,12 +1301,16 @@ class Runner:
     def _joint(self, b):
         # An arm stroke (2026-10-02): the shoulder or the elbow turns at its
         # speed; the axes stand. STOP stops it where it is (Arm.stop, H).
+        # `within`: as near as counts (a dip's shoulder, INK-Y), the miss in the journal
+        deg = float(b["deg"])
         try:
-            self.arm.move_to(b["joint"], float(b["deg"]), float(b["speed"]))
+            got = self.arm.move_to(b["joint"], deg, float(b["speed"]), float(b.get("within", 0.6)))
         except ArmError as e:
             if self._stop:
                 return
             raise Abort(f"{b['joint']} to {b['deg']}°: {e}")
+        if isinstance(got, (int, float)) and abs(got - deg) >= 0.6:
+            self.log({"event": "near", "joint": b["joint"], "deg": deg, "at": got, "block": self.block})
         self._ping()
 
     def _raw(self, cmd):
@@ -1516,7 +1530,7 @@ class Runner:
             self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {to[0]:.2f} {to[1]:.2f}", "G"], "paintMM": 0})
             if beam and not self._stop:
                 self._swung = (c["rim"], c["swing"])
-                self._joint({"joint": "shoulder", "deg": c["shoulder"], "speed": c["swing"]})
+                self._joint({"joint": "shoulder", "deg": c["shoulder"], "speed": c["swing"], "within": DIP_WITHIN})
         if not self._stop:
             self._arm(f"J 2 {c['dip']:g}")
             self._wait(c["dwell"])
@@ -1538,7 +1552,7 @@ class Runner:
             return
         rim, speed = self._swung
         self._arm(f"J 2 {rim:g}")
-        self._joint({"joint": "shoulder", "deg": 0, "speed": speed})
+        self._joint({"joint": "shoulder", "deg": 0, "speed": speed, "within": DIP_WITHIN})
         if not self._stop:
             self._swung = None
 
