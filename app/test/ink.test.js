@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CUP, BEAM, cupOf, tableOf, beamOf, cupProblem, canvasFrom, dipAt } from '../src/ink.js';
+import { CUP, HAND, cupOf, tableOf, handOf, cupProblem, canvasFrom, dipAt } from '../src/ink.js';
 
 test('a cup not set yet: the owner\'s ⌀50 × 20, the elbow est., no centre — and it says so', () => {
   const c = cupOf({});
@@ -44,25 +44,29 @@ test('a cup a hair past the left wall: the brush dips just inside it; far past: 
   assert.match(cupProblem(cupOf({ cup: { x: 400, y: -15 } })), /past the machine's walls/);
 });
 
-// ---------- INK-Y (the owner, 2026-11-03): the cup on the beam ----------
-test('INK-Y: once its Y and the shoulder are set, every dip goes to the cup on the beam — the elbow\'s numbers the Ink tab\'s till typed', () => {
+// ---------- INK-Y (the owner, 2026-11-03): the cup at hand, README's How to dip ----------
+test('INK-Y: once on, every dip goes to the cup at hand — his forks till typed, no place to take', () => {
   const table = { x: 653.13, y: 0.11, rim: 24, dip: -5, diameter: 50 };
-  assert.equal(cupOf({ cup: table }).beam, undefined, 'none on the beam: the Ink tab\'s, as before');
-  assert.equal(cupOf({ cup: table, beam: { y: 30 } }).beam, undefined, 'its Y alone is not enough');
-  const c = cupOf({ cup: table, beam: { y: 30, shoulder: -25.1 } });
-  assert.deepEqual([c.beam, c.x, c.y, c.shoulder, c.rim, c.dip, c.dwell, c.diameter, c.swing], [true, null, 30, -25.1, 24, -5, 1, BEAM.diameter, BEAM.swing]);
-  assert.deepEqual(c.est, { swing: true }, 'the elbow measured on the Ink tab; the shoulder\'s speed a guess');
+  assert.equal(cupOf({ cup: table }).hand, undefined, 'none at hand: the Ink tab\'s, as before');
+  assert.equal(cupOf({ cup: table, hand: { dip: 15 } }).hand, undefined, 'not on: the Ink tab\'s still');
+  const c = cupOf({ cup: table, hand: { on: true } });
+  assert.deepEqual([c.hand, c.x, c.y, c.up, c.to, c.dip, c.paint, c.dwell, c.swing, c.diameter], [true, null, null, [30, 35], [30, 35], 15, [14, 16], 1, HAND.swing, 57]);
+  assert.deepEqual(c.est, { swing: true }, 'the shoulder\'s speed a guess; his angles measured');
   assert.equal(cupProblem(c), '');
-  assert.deepEqual(tableOf({ cup: table, beam: { y: 30, shoulder: -25.1 } }), tableOf({ cup: table }), 'the Ink tab keeps its own');
-  const own = cupOf({ cup: table, beam: { y: 30, shoulder: -25.1, rim: 30, dip: -3, swing: 20 } });
-  assert.deepEqual([own.rim, own.dip, own.swing, own.est], [30, -3, 20, {}]);
+  assert.equal(dipAt(c), null, 'the carriage dips where it stands');
+  assert.deepEqual(tableOf({ cup: table, hand: { on: true } }), tableOf({ cup: table }), 'the Ink tab keeps its own');
+  const own = handOf({ hand: { on: true, up: [31, 34], to: [32, null], dip: 14, swing: 30 } });
+  assert.deepEqual([own.up, own.to, own.dip, own.paint, own.swing, own.est], [[31, 34], [32, 35], 14, [14, 15], 30, {}], 'in the paint within 1° of it, never below +14');
 });
 
-test('INK-Y: its Y inside the walls, its X the beam\'s; the shoulder and its speed checked', () => {
-  const c = cupOf({ beam: { y: 30, shoulder: -25.1 } });
-  assert.deepEqual(dipAt(c), { x: null, y: 30, off: 0 });
-  assert.match(cupProblem(cupOf({ beam: { y: 30, shoulder: -60 } })), /shoulder/);
-  assert.match(cupProblem(cupOf({ beam: { y: 30, shoulder: -25, swing: 500 } })), /°\/s/);
-  assert.match(cupProblem(cupOf({ beam: { y: -40, shoulder: -25 } })), /past the machine's walls/);
-  assert.match(cupProblem(beamOf({})), /INK-Y/);
+test('INK-Y: the forks checked — the elbow up over the paint, the shoulder clear of 0, in the paint +14…+16', () => {
+  const p = h => cupProblem(handOf({ hand: { on: true, ...h } }));
+  assert.match(p({ up: [30, 30.5] }), /ELBOW up/, 'a whole step must land in it');
+  assert.match(p({ up: [18, 35] }), /ELBOW up/);
+  assert.match(p({ to: [-1, 3] }), /SHOULDER/);
+  assert.match(p({ to: [30, 50] }), /SHOULDER/);
+  assert.match(p({ dip: 13 }), /in the paint/);
+  assert.match(p({ dip: 17 }), /in the paint/);
+  assert.match(p({ swing: 500 }), /°\/s/);
+  assert.equal(p({ to: [-35, -30] }), '', 'the other side would do too');
 });

@@ -628,22 +628,33 @@ class DipTest(unittest.TestCase):
         self.assertEqual((w["cell"], w["next"]["name"]), (3, "Cream"))
 
 
-class BeamDipTest(unittest.TestCase):
-    """INK-Y (the owner, 2026-11-03): the cup on the beam — the carriage to it
-    along Y alone, the shoulder turns the brush over it, the elbow dips, the
-    shoulder back; turned back by itself before a jump and at the next run's
-    start, a run stopped over the cup or not."""
+class HandDipTest(unittest.TestCase):
+    """INK-Y (the owner, 2026-11-03; README, How to dip): the cup at hand, on
+    the carriage by the arm — the elbow up into its fork, only then the
+    shoulder over the jar, the elbow in, up first, the shoulder back to 0; the
+    carriage standing. Turned back the same way by itself before a jump and at
+    the next run's start. "If the shoulder turns instead of the elbow lifting,
+    we can break the brush or knock the jar over." """
 
-    CUP = {"beam": True, "y": 30.0, "shoulder": -25.1, "swing": 40, "rim": 24, "dip": -5, "dwell": 1}
+    CUP = {"hand": True, "up": [30, 35], "to": [30, 35], "dip": 15, "dwell": 1, "swing": 40}
+    GUARD = {"up": (30.0, 35.0), "floor": 14}
 
-    def runner(self, b, log=None):
-        # the runner with an arm, its elbow and shoulder turns and its flights written down as they end
-        arm = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
+    def runner(self, b, log=None, guard=True):
+        # the runner with an arm, its turns and flights written down as they end, and the elbow's angle at every turn of the shoulder sent
+        arm = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep, guard=(lambda: self.GUARD) if guard else (lambda: None))
         r = Runner(b.send, sleep=b.sleep, swing_s=0, arm=arm, log=log)
         seen, arm_, joint_, move_ = [], r._arm, r._joint, r._move
+        self.elbow_at_turns, send = [], b.send
 
-        def a(cmd):
-            out = arm_(cmd)
+        def told(path):
+            if path.startswith("/servo?j=shoulder"):
+                self.elbow_at_turns.append(arm.angles()[0]["elbow"])
+            return send(path)
+        b.send = told
+        arm.send = r.send = told
+
+        def a(cmd, fork=None):
+            out = arm_(cmd, fork)
             seen.append(cmd)
             return out
 
@@ -660,104 +671,128 @@ class BeamDipTest(unittest.TestCase):
         r._arm, r._joint, r._move = a, j, m
         return r, arm, seen
 
-    def plan(self, within=1.5, moving=True):
-        # as plotRun lays a dip on the beam before a row: the shoulder's turns sent with the flights after them
+    def plan(self):
+        # as plotRun lays a dip at hand (strokes.js, handDip): the arm straight first, the flight to the row, the dip there
+        up = lambda **k: {"kind": "arm", "cmd": "J 2 32.5", "fork": [30, 35], **k}
         dip = lambda **k: {**k, "dip": True, "row": 1}
-        w = {"within": within} if within else {}
-        m = {"moving": True} if moving else {}
-        return [{"kind": "arm", "cmd": "J 2 24", "row": 0}, {"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "row": 0, **w},
-                dip(kind="joint", joint="shoulder", deg=-25.1, speed=40, rim=24, **w, **m), dip(kind="move", cmds=["T 180", "M 99.00 30.00", "G"], paintMM=0),
-                dip(kind="arm", cmd="J 2 -5"), dip(kind="wait", s=1), dip(kind="arm", cmd="J 2 24"), dip(kind="joint", joint="shoulder", deg=0, speed=40, rim=24, **w, **m),
-                {"kind": "move", "cmds": ["T 180", "M 99.00 50.00", "G"], "paintMM": 0, "row": 1}, {"kind": "arm", "cmd": ON, "row": 1},
-                {**paint(6), "row": 1}, {"kind": "arm", "cmd": "J 2 24", "row": 1}]
+        return [up(row=0), {"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "within": 1.5, "row": 0}, {"kind": "arm", "cmd": "J 3 0", "row": 0},
+                {"kind": "move", "cmds": ["T 180", "M 99.00 50.00", "G"], "paintMM": 0, "row": 1},
+                dip(**up()), dip(kind="joint", joint="shoulder", deg=32.5, speed=40, fork=[30, 35], rim=32.5, up=[30, 35]),
+                dip(kind="arm", cmd="J 2 15", fork=[14, 16]), dip(kind="wait", s=1), dip(**up()),
+                dip(kind="joint", joint="shoulder", deg=0, speed=40, within=1.5), {"kind": "arm", "cmd": ON, "row": 1},
+                {**paint(6), "row": 1}, {"kind": "arm", "cmd": OFF, "row": 1}]
 
-    def test_the_cup_on_the_beam_from_a_note(self):
-        self.assertEqual(rubens.cup_of(self.CUP), {**self.CUP, "y": 30.0, "shoulder": -25.1, "swing": 40.0, "rim": 24.0, "dip": -5.0, "dwell": 1.0})
-        self.assertEqual(rubens.cup_of({k: v for k, v in self.CUP.items() if k != "swing"})["swing"], rubens.SWING_DIP)
-        for bad in ({**self.CUP, "shoulder": -60}, {**self.CUP, "swing": 500}, {k: v for k, v in self.CUP.items() if k != "shoulder"}, {**self.CUP, "y": None}):
+    def test_the_cup_at_hand_from_a_note(self):
+        c = rubens.cup_of(self.CUP)
+        self.assertEqual(c, {"hand": True, "up": (30.0, 35.0), "to": (30.0, 35.0), "dip": 15.0, "paint": (14.0, 16.0), "dwell": 1.0, "swing": 40.0, "rim": 32.5})
+        self.assertEqual(rubens.cup_of({**self.CUP, "dip": 14})["paint"], (14.0, 15.0), "never below +14")
+        for bad in ({**self.CUP, "up": [30, 30.5]}, {**self.CUP, "up": [10, 15]}, {**self.CUP, "to": [-1, 3]}, {**self.CUP, "to": [30, 60]},
+                    {**self.CUP, "dip": 13}, {**self.CUP, "dip": 17}, {**self.CUP, "swing": 500}, {k: v for k, v in self.CUP.items() if k != "to"}):
             self.assertIsNone(rubens.cup_of(bad), bad)
-        self.assertIsNone(rubens.cup_of({**self.CUP, "beam": False}), "no X: no cup on the table either")
-        self.assertTrue(Runner(FakeBoard().send).status()["beam"], "the pages ask before a run on the beam")
+        self.assertGreaterEqual(Runner(FakeBoard().send).status()["hand"], 1, "the pages ask before a run at hand")
 
-    def test_the_plans_dip_turns_the_shoulder_over_the_cup_and_back(self):
+    def test_the_plans_dip_lifts_the_elbow_before_every_turn_of_the_shoulder(self):
         b = FakeBoard(rate=1)
-        send = b.send
-
-        def told(path):                                  # the servos' reads in the board's log too
-            if path.startswith("/look"):
-                b.log.append("LOOK")
-            return send(path)
-        b.send = told
         r, arm, seen = self.runner(b)
         self.assertTrue(r.start(self.plan(), {"page": "opmn", "cup": self.CUP})[0])
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
-        # the owner, 2026-11-03: "drives to the cup and at the same time the shoulder turns … back, and on the way the shoulder to 0°"
-        L, j1 = b.log, [k for k, c in enumerate(b.log) if c.startswith("J 1")]
-        to_cup, to_row = L.index("M 99.00 30.00"), L.index("M 99.00 50.00")
-        out = max(k for k in j1 if k < to_cup)
-        self.assertNotIn("LOOK", L[out:to_cup], "the turn sent, the flight at once: not waited for")
-        back = [k for k in j1 if to_cup < k < to_row]
-        self.assertTrue(back and "LOOK" not in L[back[-1]:to_row], "back the same way")
-        self.assertEqual([c for c in seen if not c.startswith("M")][:7], ["J 2 24", "shoulder 0", "shoulder -25.1", "J 2 -5", "J 2 24", "shoulder 0", "J 2 0"],
-                         "each turn seen there before the elbow moves")
-        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+        self.assertEqual([c for c in seen if not c.startswith("M")][:8], ["J 2 32.5", "shoulder 0", "J 3 0", "J 2 32.5", "shoulder 32.5", "J 2 15", "J 2 32.5", "shoulder 0"])
+        self.assertTrue(self.elbow_at_turns and all(30 <= e <= 35 for e in self.elbow_at_turns), f"the elbow up at every turn: {self.elbow_at_turns}")
+        flights = [c for c in seen if c.startswith("M")]
+        self.assertEqual(flights, ["M 99.00 50.00"], "the carriage stands while the arm dips")
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 1.5)
         self.assertIsNone(r._swung)
 
-    def test_a_shoulder_that_stops_short_and_will_not_be_nudged_goes_on_within_its_tolerance(self):
-        # the owner, 2026-11-03, the first run with INK-Y: back from the cup it stood at −0.6°, a 1° nudge
-        # did not move it, "the shoulder does not get to 0.0°" — "maybe just ignore such deviations?"
+    def test_a_shoulder_that_stops_short_and_will_not_be_nudged_still_lands_in_its_fork(self):
+        # the shoulder ~1° short on every big turn and no nudge at all, as on the machine (2026-11-03, the beam's runs)
         class Sticky(FakeBoard):
             def turn(self, jid, d):
                 before = self.raw[1]
                 FakeBoard.turn(self, jid, d)
-                if jid == 1:                                   # a big turn 7 ticks (0.6°) short, a nudge none
+                if jid == 1:
                     moved = self.raw[1] - before
-                    self.raw[1] = before if abs(moved) <= 12 else self.raw[1] - (7 if moved > 0 else -7)
-        got = []
+                    self.raw[1] = before if abs(moved) <= 12 else self.raw[1] - (11 if moved > 0 else -11)
         b = Sticky(rate=1)
-        r, arm, seen = self.runner(b, log=got.append)
-        r.start(self.plan(within=None), {"page": "opmn", "cup": self.CUP})
-        r.thread.join(10)
-        self.assertEqual((r.state, r.message), ("error", "shoulder to -25.1°: the shoulder does not get to -25.1°"), "as on the machine, without it")
-        got.clear()
-        b = Sticky(rate=1)
-        r, arm, seen = self.runner(b, log=got.append)
+        r, arm, seen = self.runner(b)
         r.start(self.plan(), {"page": "opmn", "cup": self.CUP})
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
-        near = [e for e in got if e.get("event") == "near"]
-        self.assertTrue(near and all(e["joint"] == "shoulder" and 0.6 <= abs(e["at"] - e["deg"]) < 1.5 for e in near), near)
         self.assertLess(abs(arm.angles()[0]["shoulder"]), 1.5)
-        self.assertFalse(Runner(FakeBoard().send, arm=arm).start([{"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "within": 5}])[0], "never that loose")
 
-    def test_a_run_stopped_over_the_cup_turns_the_shoulder_back_at_the_next_start(self):
+    def test_the_guard_refuses_the_shoulder_with_the_elbow_down_and_the_elbow_into_the_jar_past_its_floor(self):
+        b = FakeBoard(rate=1)
+        arm = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep, guard=lambda: self.GUARD)
+        arm.move_to("elbow", 2.5)
+        with self.assertRaisesRegex(ArmError, "only with the elbow up"):
+            arm.move_to("shoulder", 32.5)
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6, "nothing turned")
+        with self.assertRaisesRegex(ArmError, "only with the elbow up"):
+            arm.move_to("shoulder", -10)
+        arm.move_to("elbow", 45)
+        with self.assertRaisesRegex(ArmError, "only with the elbow up"):
+            arm.move_to("shoulder", 32.5)
+        arm.move_to("elbow", 32.5, fork=(30, 35))
+        arm.move_to("shoulder", 32.5, fork=(30, 35))
+        with self.assertRaisesRegex(ArmError, "no lower than"):
+            arm.move_to("elbow", 5)
+        with self.assertRaisesRegex(ArmError, "the wrist turns only"):
+            arm.move_to("wrist", 10)
+        got = arm.move_to("elbow", 15, fork=(14, 16))
+        self.assertTrue(14 <= got <= 16 or 14 <= arm.angles()[0]["elbow"] <= 16)
+        arm.move_to("elbow", 32.5, fork=(30, 35))
+        arm.move_to("shoulder", 0, within=1.5)
+        arm.move_to("elbow", 0)
+        free = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
+        free.move_to("shoulder", 5)
+        self.assertGreater(free.angles()[0]["shoulder"], 4, "the cup at hand off: as before")
+        free.move_to("shoulder", 0)
+
+    def test_the_guard_reads_inkjson_while_the_cup_at_hand_is_on(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "ink.json")
+            with open(p, "w") as f:
+                json.dump({"cup": {"x": 1, "y": 1}}, f)
+            self.assertIsNone(rubens.hand_guard(p))
+            for k, (h, want) in enumerate([({"on": True}, (30.0, 35.0)), ({"on": True, "up": [31, 34]}, (31.0, 34.0)),
+                                           ({"on": True, "up": [31, 31.2]}, (30.0, 35.0)), ({"on": False, "up": [31, 34]}, None)]):
+                with open(p, "w") as f:
+                    json.dump({"hand": h}, f)
+                os.utime(p, ns=(1, (k + 1) * 10 ** 18))        # read again when the file changes
+                got = rubens.hand_guard(p)
+                self.assertEqual(got and got["up"], want, h)
+            self.assertIsNone(rubens.hand_guard(os.path.join(d, "none.json")))
+
+    def test_a_run_stopped_over_the_jar_lifts_the_elbow_then_turns_the_shoulder_back_at_the_next_start(self):
         b = FakeBoard(rate=1)
         r, arm, seen = self.runner(b)
-        b.on_sleep = lambda: r._swung and r.state == "running" and r.stop()
+        b.on_sleep = lambda: r._swung and r.state == "running" and r.block == 7 and r.stop()   # in the paint
         r.start(self.plan(), {"page": "opmn", "cup": self.CUP})
         r.thread.join(10)
-        self.assertIn(r.state, ("stopped", "error"), "STOP during an arm's turn is an error in the journal, as with the Ink tab's cup")
-        self.assertIsNotNone(r._swung, "stopped with the brush over the cup")
-        self.assertGreater(abs(arm.angles()[0]["shoulder"]), 20)
+        self.assertIn(r.state, ("stopped", "error"))
+        self.assertIsNotNone(r._swung, "stopped with the brush over the jar")
+        self.assertGreater(arm.angles()[0]["shoulder"], 20)
         b.on_sleep, n = None, len(seen)
         r.start([{"kind": "arm", "cmd": OFF}, {**travel(5, 5), "home": True}], {"page": "opmn", "label": "OPM-N · HOME"})
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
-        self.assertEqual(seen[n:n + 2], ["J 2 24", "shoulder 0"], "over the rim, then the shoulder back, before anything else")
-        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+        self.assertEqual(seen[n:n + 2], ["J 2 32.5", "shoulder 0"], "the elbow up into its fork, then the shoulder back, before anything else")
+        self.assertTrue(all(30 <= e <= 35 for e in self.elbow_at_turns), self.elbow_at_turns)
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 1.5)
 
-    def test_a_jump_from_over_the_cup_turns_the_shoulder_back_first(self):
+    def test_a_jump_from_the_jar_lifts_the_elbow_then_turns_the_shoulder_back(self):
         b = FakeBoard(rate=1)
         r, arm, seen = self.runner(b)
-        arm.move_to("shoulder", -25.1, 40)
-        r.blocks, r.state, r._swung, r._jump = self.plan(), "running", (24.0, 40.0), (8, None, "back")
-        self.assertEqual(r._do_jump(), 8)
-        self.assertEqual(seen[:2], ["J 2 24", "shoulder 0"])
-        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+        arm.move_to("elbow", 32.5, fork=(30, 35))
+        arm.move_to("shoulder", 32.5, 40, fork=(30, 35))
+        arm.move_to("elbow", 15, fork=(14, 16))               # the brush in the paint
+        r.blocks, r.state, r._swung, r._jump = self.plan(), "running", (32.5, 40.0, (30.0, 35.0)), (11, None, "back")
+        self.assertEqual(r._do_jump(), 11)
+        self.assertEqual(seen[:2], ["J 2 32.5", "shoulder 0"])
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 1.5)
         self.assertIsNone(r._swung)
 
-    def test_the_iphones_dip_goes_along_y_alone_and_comes_back_to_the_same_point(self):
+    def test_the_iphones_dip_at_hand_the_carriage_standing(self):
         b = FakeBoard(rate=1)
         r, arm, seen = self.runner(b)
         ticks = {}
@@ -770,12 +805,11 @@ class BeamDipTest(unittest.TestCase):
         r.thread.join(10)
         self.assertTrue(ticks["asked"])
         self.assertEqual(r.state, "done", r.message)
-        i = next(k for k, c in enumerate(seen) if c.endswith(" 30.00"))
-        to, back = seen[i].split(), seen[i + 6].split()
-        self.assertEqual(seen[i + 1:i + 6], ["shoulder -25.1", "J 2 -5", "J 2 24", "J 2 24", "shoulder 0"])
-        self.assertEqual(to[1], back[1], "along Y alone: X where the brush stood")
-        self.assertEqual(seen[i - 1], "J 2 24", "over the rim first")
-        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+        i = seen.index("shoulder 32.5")
+        self.assertEqual(seen[i - 1:i + 5], ["J 2 32.5", "shoulder 32.5", "J 2 15", "J 2 32.5", "J 2 32.5", "shoulder 0"])
+        self.assertFalse([c for c in seen if c.startswith("M")], "no flight: the jar is at hand")
+        self.assertTrue(all(30 <= e <= 35 for e in self.elbow_at_turns), self.elbow_at_turns)
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 1.5)
         self.assertEqual(r.status()["dips"], 1)
 
 

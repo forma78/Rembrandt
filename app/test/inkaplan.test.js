@@ -133,13 +133,13 @@ test('DRAG: a figure one row, one block with the brush down; before the next the
   assert.equal(B.length, run.blocks.length + 1);
 });
 
-test('OPM-N\'s wipe with the cup on the beam (INK-Y, 2026-11-03): the brush waits over the cup, the shoulder turned with the flight; after Continue in, up, back', () => {
-  const cup = { beam: true, x: null, y: 30, shoulder: -25.1, swing: 40, rim: 24, dip: -5, dwell: 1 };
+test('OPM-N\'s wipe with the cup at hand (INK-Y, 2026-11-03): the brush up over the next colour\'s start, the shoulder at 0; after Continue the dip there, then down', () => {
+  const cup = { hand: true, x: null, y: null, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 };
   const seg = (y0, row) => [{ t: 'L', a: { x: 0, y: y0 }, b: { x: 20, y: y0 }, row }];
   const run = plotRun({ ...RUN, ink: true, cup, rows: 2, noDipUnder: 0 }, [{ key: 'DRAG', ps: [seg(0, 1)], why: null }, { key: 'DRAG', ps: [seg(10, 2)], why: 'wipe the brush, put Cream in the cup, then Continue' }]);
-  const B = wipeBlocks(run.blocks, 30), k = B.findIndex(b => b.kind === 'pause');
-  const say = b => b.kind === 'move' ? (b.dip ? 'to the cup' : b.paintMM ? 'row' : 'to the row') : b.kind === 'joint' ? `shoulder ${b.deg}` : b.kind === 'wait' ? 'wait' : b.kind === 'pause' ? 'pause' : b.cmd;
-  assert.deepEqual(B.slice(k - 3, k + 7).map(say), ['shoulder -25.1', 'to the cup', 'J 2 30', 'pause', 'J 2 -5', 'wait', 'J 2 24', 'shoulder 0', 'to the row', `J 2 ${ELBOW_HOVER}`]);
+  const B = wipeBlocks(run.blocks, 45), k = B.findIndex(b => b.kind === 'pause');
+  const say = b => b.kind === 'move' ? (b.paintMM ? 'row' : 'to the row') : b.kind === 'joint' ? `shoulder ${b.deg}` : b.kind === 'wait' ? 'wait' : b.kind === 'pause' ? 'pause' : b.cmd;
+  assert.deepEqual(B.slice(k - 2, k + 9).map(say), ['to the row', 'J 2 45', 'pause', 'J 2 32.5', 'shoulder 32.5', 'J 2 15', 'wait', 'J 2 32.5', 'shoulder 0', `J 2 ${ELBOW_HOVER}`, 'row']);
   assert.equal(B.length, run.blocks.length + 1);
 });
 

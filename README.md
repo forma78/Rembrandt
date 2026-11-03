@@ -67,7 +67,7 @@ Rembrandt/
     job.html         Job (from RUBENS, plus pointer mode; off the top row since 2026-10-06)
     test.html        Test, the test bench (new; off the top row since 2026-10-19)
     ink.html         Ink: the cup the brush dips into (new)
-    inky.html        INK-Y, the cup on the beam: the carriage to it along Y alone, the shoulder over it, the elbow in (new, 2026-11-03; once set, every dip goes there; src/inkypage.js)
+    inky.html        INK-Y, the cup at hand: the jar on the carriage by the arm, a dip by How to dip below — the elbow up, the shoulder over the jar, the elbow in, up, the shoulder back (new, 2026-11-03, the cup on the beam the night before; once on, every dip goes there; src/inkypage.js)
     adjustments.html Adjustments (new)
     calibration.html Calibration (from RUBENS); the wave test, the pencil's lines left and right (wavetest.js, 2026-10-29)
     library.html     Library (from RUBENS)

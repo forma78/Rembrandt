@@ -1,27 +1,28 @@
-// Rembrandt · INK-Y — the cup on the beam (the owner, 2026-11-03, OPM-N/
-// IMG_2060…2062: "the jar somewhere near … the machine need not go across
-// the whole table, it is enough to drive along Y. SHOULDER turns −25.1°, then
-// ELBOW dips −5°, then up and back. All as now, only the jar not at a fixed
-// point as on INK, but riding on the beam Y"). His jars, ⌀57, flat-bottomed,
-// on a bracket of the beam in the 90 mm left of the 600 × 600 canvas. Its
-// numbers: the carriage's Y and the shoulder's angle that put the brush over
-// its centre — Here takes the two at once — and the elbow's, as on the Ink
-// tab. Kept in app/ink.json's `beam` (rembrandt.py, /ink); once set, every
-// dip of every page goes there (ink.js, cupOf), the Ink tab's cup left as it
-// is. The jog of the Ink tab, the shoulder's handle with it.
+// Rembrandt · INK-Y — the cup at hand (the owner, 2026-11-03, OPM-N/
+// IMG_2108…2121: "not two jars at the sides of Y, but a jar right by the arm.
+// No need to drive anywhere, neither right nor left. The jar is always at
+// hand"). His jar, ⌀57, on a bracket bolted to the carriage by the arm, above
+// the canvas; it rides the whole of Y with it. No place to take: the servos
+// know their angles from power-on, the jar never moves against the arm. Its
+// numbers are the five steps of README's How to dip, every one a fork the
+// joint counts as there in, aimed at its middle. Kept in app/ink.json's
+// `hand` (rembrandt.py, /ink); on, every dip of every page goes there (ink.js,
+// cupOf), and rembrandt.py refuses a turn of the shoulder with the elbow
+// down (hand_guard). The jog of the Ink tab, the shoulder's handle with it.
 
 import { fmt } from './util.js';
-import { parsePing, toMm, reach, homeCorner } from './machine.js';
 import { mountJog } from './jog.js';
-import { ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, SHOULDER_MIN, SHOULDER_MAX, SWING_MIN, SWING_MAX, beamOf, cupProblem, drawCup } from './ink.js';
+import { HAND, PAINT_LO, PAINT_HI, DWELL_MAX, SHOULDER_MIN, SHOULDER_MAX, SWING_MIN, SWING_MAX, ELBOW_MIN, ELBOW_MAX, handOf, cupProblem, mid } from './ink.js';
+import { handDip, SHOULDER_WITHIN } from './strokes.js';
 import { CANVAS_FIELDS, canvasNow, setCanvas, hereOf, onCanvas } from './canvas.js';
 import { isNight, themeColor } from './lamp.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s);
-const INK_ = '#24221F', MUTE = '#7D776D', ORANGE = '#EB7A25', PAPER = '#FCFBF8';
-const S = { ink: {}, pos: { x: null, y: null } };
-const cup = () => beamOf(S.ink);
+const INK_ = '#24221F', MUTE = '#7D776D', ORANGE = '#EB7A25', GREEN = '#3E8E5A', BLUE = '#3B6FB6', RED = '#C8321E', PAPER = '#FCFBF8';
+const LIVE = ['running', 'stopping', 'pausing', 'paused'];
+const S = { ink: {}, elbow: null, shoulder: null };
+const cup = () => handOf(S.ink);
 const sgn = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}`;
 
 // ---------- ink.json ----------
@@ -35,29 +36,108 @@ async function save(what) {
     $('#saved').textContent = r.ok ? `saved · ${what}` : 'not saved';
   } catch { $('#saved').textContent = 'not saved · start rembrandt.py'; }
 }
+const setHand = (h, what) => { S.ink = { ...S.ink, hand: h }; show(); draw(); save(what); };
 
-// ---------- the numbers ----------
-// [key, label, unit, step, min, max]; empty: the default — the elbow's two as on the Ink tab
-const DIP = [['shoulder', 'To the cup', '°', 0.1, SHOULDER_MIN, SHOULDER_MAX], ['swing', 'Shoulder speed', '°/s', 5, SWING_MIN, SWING_MAX],
-  ['rim', 'Over the rim', '°', 1, RIM_MIN, ELBOW_MAX], ['dip', 'In the cup', '°', 1, ELBOW_MIN, ELBOW_MAX - 5], ['dwell', 'In the paint', 's', 0.1, 0, DWELL_MAX]];
-const SIZE = [['y', 'Carriage Y', 'mm', 0.1, -100, 2000], ['diameter', 'Diameter', 'mm', 1, 10, 200], ['height', 'Height', 'mm', 1, 1, 100]];
-const EST_OF = ['rim', 'dip', 'swing'];
-function fields(el, list) {
-  el.innerHTML = list.map(([k, label, unit, step, min, max]) =>
-    `<label><span>${label}${EST_OF.includes(k) ? ` <span class="est" data-est="${k}">est.</span>` : ''}</span><input data-k="${k}" type="number" step="${step}" min="${min}" max="${max}"><em>${unit}</em></label>`).join('');
+// ---------- on · off ----------
+$('#onOff').innerHTML = '<button class="tog" data-on="1">ON · every dip here</button><button class="tog" data-on="0">OFF · the Ink tab\'s cup</button>';
+$('#onOff').querySelectorAll('button').forEach(b => b.onclick = () => {
+  const on = b.dataset.on === '1';
+  if (on === cup().on) return;
+  setHand({ ...S.ink.hand, on }, on ? 'the cup at hand ON: every dip goes here' : 'the cup at hand OFF: dips go to the Ink tab\'s cup');
+});
+
+// ---------- the five steps, README's How to dip ----------
+// [key, i (a fork's end) or null, label, unit, step, min, max]; empty: his number (ink.js, HAND)
+const F = {
+  up: [['up', 0, 'from', '°', 0.5, PAINT_HI + 5, ELBOW_MAX], ['up', 1, 'to', '°', 0.5, PAINT_HI + 5, ELBOW_MAX]],
+  to: [['to', 0, 'from', '°', 0.5, SHOULDER_MIN, SHOULDER_MAX], ['to', 1, 'to', '°', 0.5, SHOULDER_MIN, SHOULDER_MAX], ['swing', null, 'at', '°/s', 5, SWING_MIN, SWING_MAX]],
+  dip: [['dip', null, 'down to', '°', 0.5, PAINT_LO, PAINT_HI], ['dwell', null, 'there', 's', 0.1, 0, DWELL_MAX]],
+};
+for (const [id, list] of Object.entries(F)) {
+  const el = $(`#f-${id}`);
+  el.innerHTML = list.map(([k, i, label, unit, step, min, max]) =>
+    `<label><span>${label}${k === 'swing' ? ' <span class="est" data-est="swing">est.</span>' : ''}</span><input data-k="${k}" data-i="${i ?? ''}" type="number" step="${step}" min="${min}" max="${max}"><em>${unit}</em></label>`).join('');
   el.querySelectorAll('input').forEach(inp => inp.onchange = () => {
-    const k = inp.dataset.k, [, label, unit, , min, max] = list.find(f => f[0] === k);
-    const b = { ...S.ink.beam };
-    if (inp.value === '') delete b[k];                     // back to the default
-    else b[k] = Math.max(min, Math.min(max, +inp.value));
-    S.ink = { ...S.ink, beam: b };
-    show(); draw();
-    save(`${label} ${b[k] ?? cup()[k] ?? '—'} ${unit}`);
+    const k = inp.dataset.k, i = inp.dataset.i === '' ? null : +inp.dataset.i, [, , label, unit, , min, max] = list.find(f => f[0] === k && (f[1] ?? null) === i);
+    const h = { ...S.ink.hand }, v = inp.value === '' ? null : Math.max(min, Math.min(max, +inp.value));
+    if (i === null) { if (v === null) delete h[k]; else h[k] = v; }
+    else { const f = [...cup()[k]]; f[i] = v ?? HAND[k][i]; if (f[0] === HAND[k][0] && f[1] === HAND[k][1]) delete h[k]; else h[k] = f; }   // whole: rembrandt.py's guard reads the same fork
+    setHand(h, `${{ up: 'ELBOW up', to: 'SHOULDER to the jar', swing: 'the shoulder', dip: 'ELBOW in the paint', dwell: 'in the paint' }[k]} ${label} ${v ?? '(his)'} ${unit}`);
   });
 }
-fields($('#dip'), DIP);
-fields($('#size'), SIZE);
-// The canvas from home, as on the Ink tab — typed here or there, the same on every tab (canvas.js)
+// The elbow in the paint taken where it stands: the paint in the jar goes down, the brush with it
+$('#btnPaint').onclick = async () => {
+  const d = await JOG.look();
+  if (d === null) { $('#stepsRead').innerHTML = '<span class="warn">The elbow does not answer: rembrandt.py, the board, the 12 V?</span>'; return; }
+  const v = Math.round(d * 2) / 2;
+  if (v < PAINT_LO || v > PAINT_HI) { $('#stepsRead').innerHTML = `<span class="warn">The elbow at ${sgn(v)}°: in the paint it goes +${PAINT_LO}…+${PAINT_HI}° only — the jar stands over the canvas.</span>`; return; }
+  setHand({ ...S.ink.hand, dip: v }, `ELBOW in the paint ${sgn(v)}°`);
+};
+
+// ---------- Try one dip: the five steps on the machine, nothing else ----------
+$('#btnTry').onclick = async () => {
+  const c = cup(), why = cupProblem(c), warn = t => { $('#tryRead').innerHTML = `<span class="warn">${t}</span>`; };
+  if (!c.on) return warn('Switch the cup at hand ON first: only then does rembrandt.py guard the shoulder.');
+  if (why) return warn(why);
+  let st = null;
+  try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+  if (!st) return warn('No server: start rembrandt.py.');
+  if (!(st.hand >= 1)) return warn('Restart rembrandt.py first: the one running does not know the cup at hand. Nothing was sent.');
+  if (LIVE.includes(st.state)) return warn(`A run is on (${st.state}): not now.`);
+  if (!confirm(`ONE DIP into the jar at hand, the carriage where it stands:\n\n1. ELBOW up to ${sgn(mid(c.up))}° (${c.up[0]}…${c.up[1]})\n2. SHOULDER to ${sgn(mid(c.to))}° (${c.to[0]}…${c.to[1]}) at ${c.swing}°/s\n`
+    + `3. ELBOW down to ${sgn(c.dip)}° in the paint, ${c.dwell} s\n4. ELBOW up to ${sgn(mid(c.up))}° first\n5. SHOULDER back to 0°\n\nIs the brush in, the jar on its bracket?`)) return;
+  const blocks = handDip(c, 0);
+  try {
+    const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks, log: { page: 'inky', pass: 'dip', label: 'INK-Y · one dip at hand', cup: c } }) });
+    $('#tryRead').textContent = await r.text();
+    if (r.ok) setTimeout(watch, 600);
+  } catch { warn('start rembrandt.py'); }
+};
+$('#btnTryStop').onclick = async () => {
+  try { $('#tryRead').textContent = await (await fetch('/run/stop', { method: 'POST' })).text(); } catch { $('#tryRead').textContent = 'start rembrandt.py'; }
+};
+async function watch() {
+  let st = null;
+  try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+  if (!st) return;
+  $('#tryRead').innerHTML = LIVE.includes(st.state) ? `${st.state} · block ${st.block + 1} of ${st.blocks}${st.message ? ` · ${st.message}` : ''}`
+    : st.state === 'error' ? `<span class="warn">${st.message}</span>` : `${st.state}${st.message ? ` · ${st.message}` : ''}`;
+  if (LIVE.includes(st.state)) setTimeout(watch, 500);
+}
+
+function show() {
+  const c = cup(), typed = S.ink.hand || {};
+  $('#onOff').querySelectorAll('button').forEach(b => b.classList.toggle('on', (b.dataset.on === '1') === c.on));
+  $('#onRead').innerHTML = c.on
+    ? 'ON: every dip of every page goes into the jar at hand — the carriage over the line\'s start, the arm dips there. rembrandt.py turns the shoulder only with the elbow up in its fork, and keeps the elbow over the paint\'s floor while the shoulder is off 0 — a jog too.'
+    : '<span class="warn">OFF: dips go to the Ink tab\'s cup, and nothing guards the shoulder.</span> Switch it ON with the jar on its bracket.';
+  for (const inp of document.querySelectorAll('.steps input')) {
+    const k = inp.dataset.k, i = inp.dataset.i === '' ? null : +inp.dataset.i, v = i === null ? typed[k] : Array.isArray(typed[k]) ? typed[k][i] : null;
+    if (document.activeElement !== inp) inp.value = v ?? '';
+    inp.placeholder = String(i === null ? HAND[k] : HAND[k][i]);   // his number
+  }
+  document.querySelectorAll('[data-est]').forEach(el => { el.hidden = !c.est[el.dataset.est]; });
+  $('#aim-up').textContent = `aims at ${sgn(mid(c.up))}°`;
+  $('#aim-to').textContent = `aims at ${sgn(mid(c.to))}° · ${fmt(Math.abs(mid(c.to)) / c.swing, 1)} s`;
+  $('#aim-dip').textContent = `there ${sgn(c.paint[0])}…${sgn(c.paint[1])}°`;
+  $('#aim-back').textContent = `the elbow to ${sgn(mid(c.up))}° first, then the shoulder within ${SHOULDER_WITHIN}° of 0`;
+  const why = cupProblem(c);
+  $('#stepsRead').innerHTML = why ? `<span class="warn">${why}</span>` : '';
+  const C = canvasNow(), h = hereOf(C);
+  for (const inp of $('#canvas').querySelectorAll('input')) if (document.activeElement !== inp) inp.value = C[inp.dataset.canvas];
+  $('#canvasRead').innerHTML = `The canvas from home, the same on every tab — typed here or there, it changes on all of them: <b>${C.boardW} × ${C.boardH} mm</b>, `
+    + `its bottom left corner at carriage <b>X ${fmt(h.x - C.boardH / 2, 1)} · Y ${fmt(h.y - C.boardW / 2, 1)} mm</b>, its centre X ${fmt(h.x, 1)} · Y ${fmt(h.y, 1)}.`;
+  now();
+}
+// what the arm may do now, by its angles: the guard rembrandt.py keeps, read out
+function now() {
+  const c = cup(), e = S.elbow, s = S.shoulder, up = e !== null && e >= c.up[0] - 0.2 && e <= c.up[1] + 0.2, off = s === null || Math.abs(s) > SHOULDER_WITHIN;
+  $('#nowRead').innerHTML = e === null || s === null ? 'The arm does not answer yet: rembrandt.py, the board, the 12 V?'
+    : `ELBOW <b>${sgn(e)}°</b> · SHOULDER <b>${sgn(s)}°</b> — `
+      + (up ? '<span class="ok">the shoulder may turn: the elbow is up</span>' : `<span class="warn">the shoulder must not turn: the elbow up to +${c.up[0]}…+${c.up[1]}° first</span>`)
+      + (off ? ` · <span class="warn">the shoulder off 0: the elbow no lower than +${PAINT_LO}°, the wrist still</span>` : '');
+}
 $('#canvas').innerHTML = CANVAS_FIELDS.map(([k, label, unit, step, title, any]) =>
   `<label title="${title}"><span>${label}</span><input data-canvas="${k}" type="number" step="${step}"${any ? '' : ` min="${step}"`}><em>${unit}</em></label>`).join('');
 $('#canvas').querySelectorAll('input').forEach(inp => inp.onchange = () => {
@@ -65,139 +145,60 @@ $('#canvas').querySelectorAll('input').forEach(inp => inp.onchange = () => {
   if (inp.value !== '' && Number.isFinite(v) && (any || v > 0)) { setCanvas({ [k]: v }); $('#saved').textContent = `the canvas: ${label} ${v} ${unit} · on every tab`; }
   show(); draw();
 });
-
-function show() {
-  const c = cup(), set = c.y !== null && c.shoulder !== null;
-  $('#cupHelp').innerHTML = set
-    ? `The carriage dips at <b>Y ${fmt(c.y, 1)} mm</b>, wherever the beam is in X; the shoulder turns <b>${sgn(c.shoulder)}°</b> to put the brush over the cup, ⌀${c.diameter}, ${c.height} mm high. Jog there and press Here again to change it.`
-    : 'The cup on the beam is not set yet.';
-  $('#cupRead').innerHTML = !set
-    ? `Not set — every dip goes to the Ink tab's cup till it is. The elbow up over the rim first (+${c.rim}°); jog the carriage along Y and turn the shoulder until the brush is over the cup's centre; lower it into the paint to check; then press Here: the carriage's Y and the shoulder's angle, the two at once.`
-    : 'Every dip goes here: the carriage along Y alone, the shoulder over the cup, the elbow in, up, the shoulder back to 0.';
-  for (const inp of document.querySelectorAll('#dip input, #size input')) {
-    const k = inp.dataset.k, typed = S.ink.beam || {};
-    if (document.activeElement !== inp) inp.value = typed[k] ?? '';
-    inp.placeholder = k === 'y' || k === 'shoulder' ? '—' : String(c[k]);   // the default: as on the Ink tab, or the jar's
-  }
-  const C = canvasNow(), h = hereOf(C);
-  for (const inp of $('#canvas').querySelectorAll('input')) if (document.activeElement !== inp) inp.value = C[inp.dataset.canvas];
-  $('#canvasRead').innerHTML = `The canvas from home, the same on every tab — typed here or there, it changes on all of them: <b>${C.boardW} × ${C.boardH} mm</b>, `
-    + `its bottom left corner at carriage <b>X ${fmt(h.x - C.boardH / 2, 1)} · Y ${fmt(h.y - C.boardW / 2, 1)} mm</b>, its centre X ${fmt(h.x, 1)} · Y ${fmt(h.y, 1)}.`;
-  document.querySelectorAll('[data-est]').forEach(el => { el.hidden = !c.est[el.dataset.est]; });
-  const why = cupProblem({ ...c, y: c.y ?? 0, shoulder: c.shoulder ?? 0 });   // the numbers only: the place has its own line above
-  $('#dipHelp').innerHTML = `To the cup: the carriage along Y with the brush over the rim, the elbow at <b>+${c.rim}°</b>${c.est.rim ? ' (est.)' : ''}; `
-    + `the shoulder turns the brush over the cup, to <b>${c.shoulder === null ? '—' : sgn(c.shoulder)}°</b> at ${c.swing}°/s${c.est.swing ? ' (est.)' : ''}. `
-    + `In the cup: down into the paint at <b>${c.dip > 0 ? '+' : ''}${c.dip}°</b>${c.est.dip ? ' (est.)' : ''}, <b>${c.dwell} s</b> there, up over the rim, the shoulder back to 0, the carriage back. `
-    + `The elbow's numbers empty: the Ink tab's — the jar on the same level. The shoulder: 0° the working pose, minus to the left; ${SHOULDER_MIN}…+${SHOULDER_MAX}°.`;
-  $('#dipRead').innerHTML = why ? `<span class="warn">${why}</span>` : '';
-}
-$('#dipInfo').onclick = () => { $('#dipHelp').hidden = !$('#dipHelp').hidden; $('#dipInfo').classList.toggle('on', !$('#dipHelp').hidden); };
-$('#cupInfo').onclick = () => { $('#cupHelp').hidden = !$('#cupHelp').hidden; $('#cupInfo').classList.toggle('on', !$('#cupHelp').hidden); };
 $('#canvasInfo').onclick = () => { $('#canvasRead').hidden = !$('#canvasRead').hidden; $('#canvasInfo').classList.toggle('on', !$('#canvasRead').hidden); };
 
-// ---------- Here: the brush over the cup's centre ----------
-// the carriage's Y from the board, the shoulder's angle from the arm
-$('#btnCup').onclick = async () => {
-  let t = null;
-  try { const r = await fetch('/machine/ping', { cache: 'no-store' }); t = r.ok ? await r.text() : null; } catch { }
-  const p = parsePing(t);
-  if (!p) { $('#cupRead').innerHTML = '<span class="warn">No board: start rembrandt.py, the board on USB.</span>'; return; }
-  if (p.y === null) { $('#cupRead').innerHTML = '<span class="warn">No zero on the axes: home and Set home on Calibration first.</span>'; return; }
-  await JOG.look();
-  const sh = JOG.state.shoulder;
-  if (sh === null) { $('#cupRead').innerHTML = '<span class="warn">The shoulder does not answer: rembrandt.py, the board, the 12 V?</span>'; return; }
-  const y = Math.round(toMm('y', p.y) * 100) / 100, s = Math.round(sh * 10) / 10;
-  S.ink = { ...S.ink, beam: { ...S.ink.beam, y, shoulder: s, at: new Date().toISOString() } };
-  show(); draw();
-  save(`the cup on the beam: Y ${fmt(y, 1)}, the shoulder ${sgn(s)}°`);
-};
-
-// ---------- the elbow's angle, taken where it stands ----------
-async function takeElbow(k, label) {
-  const d = await JOG.look();
-  if (d === null) { $('#dipRead').innerHTML = '<span class="warn">The elbow does not answer: rembrandt.py, the board, the 12 V?</span>'; return; }
-  const [, , , , min, max] = DIP.find(f => f[0] === k), v = Math.round(d);
-  if (v < min || v > max) { $('#dipRead').innerHTML = `<span class="warn">${label} ${v}°: it goes ${min}…+${max}° there.</span>`; return; }
-  S.ink = { ...S.ink, beam: { ...S.ink.beam, [k]: v } };
-  show(); draw();
-  save(`${label} ${v > 0 ? '+' : ''}${v}°`);
-}
-$('#btnRim').onclick = () => takeElbow('rim', 'Over the rim');
-$('#btnDip').onclick = () => takeElbow('dip', 'In the cup');
-
 // ---------- the jog, the shoulder's handle with it ----------
-const JOG = mountJog($('#jog'), { link: $('#linkState'), onPing: st => { S.pos = st.pos; draw(); }, shoulder: true });
+const JOG = mountJog($('#jog'), {
+  link: $('#linkState'), shoulder: true,
+  onPing: st => { if (st.elbow !== S.elbow || st.shoulder !== S.shoulder) { S.elbow = st.elbow; S.shoulder = st.shoulder; now(); draw(); } },
+});
 
-// ---------- the view from above ----------
-// As on the Ink tab: X up, Y to the right, machine mm — the carriage's. The
-// beam a line across at the carriage's X; the cup on it where the carriage
-// stands to dip, Y the cup's — it rides up and down with the beam.
+// ---------- the view: the elbow from the side, the shoulder from above ----------
+// Their forks as wedges — the elbow's up green, in the paint blue, on the
+// canvas grey; the shoulder's to the jar green, 0 its line — and where the
+// joint stands now, orange. No lengths: the angles alone, as the servos tell.
 const cv = $('#top'), ctx = cv.getContext('2d');
 function draw() {
   const st = $('#stage'), dpr = devicePixelRatio || 1, W = st.clientWidth, H = st.clientHeight;
   if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
-  const night = isNight(), ink = themeColor('--ink', INK_), mute = themeColor('--mute', MUTE);
-  const R = reach(), c = cup(), C = canvasNow(), h = hereOf(C), home = homeCorner();
-  const B = { x: h.x, y: h.y, w: C.boardW, h: C.boardH };
-  const pts = [{ x: R.x.min, y: R.y.min }, { x: R.x.max, y: R.y.max }, { x: B.x - B.h / 2, y: B.y - B.w / 2 }, { x: B.x + B.h / 2, y: B.y + B.w / 2 }];
-  const x0 = Math.min(...pts.map(p => p.x)) - 25, x1 = Math.max(...pts.map(p => p.x)) + 25;
-  const y0 = Math.min(...pts.map(p => p.y)) - 60, y1 = Math.max(...pts.map(p => p.y)) + 25;
-  const pad = 44, k = Math.min((W - 2 * pad) / (y1 - y0), (H - 2 * pad) / (x1 - x0));
-  const ox = (W - (y1 - y0) * k) / 2, oy = (H - (x1 - x0) * k) / 2;
-  const sx = y => ox + (y - y0) * k, sy = x => oy + (x1 - x) * k;
-  ctx.font = '10px "SF Mono", ui-monospace, Menlo, monospace';
+  const night = isNight(), ink = themeColor('--ink', INK_), mute = themeColor('--mute', MUTE), c = cup();
+  const wide = W > H * 1.3, R = Math.max(60, Math.min(wide ? W / 4.6 : W / 2.6, wide ? H / 1.9 : H / 4.4));
+  ctx.font = '11px "SF Mono", ui-monospace, Menlo, monospace';
+  const rad = d => d * Math.PI / 180;
+  const wedge = (X, Y, a0, a1, col, r = R) => { ctx.fillStyle = col; ctx.globalAlpha = 0.22; ctx.beginPath(); ctx.moveTo(X, Y); ctx.arc(X, Y, r, Math.min(a0, a1), Math.max(a0, a1)); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; };
+  const ray = (X, Y, a, col, w = 1, r = R, dash) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; if (dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(X + r * Math.cos(a), Y + r * Math.sin(a)); ctx.stroke(); ctx.restore(); };
+  const say = (t, x, y, col = mute, al = 'left') => { ctx.fillStyle = col; ctx.textAlign = al; ctx.fillText(t, x, y); };
 
-  // grid every 100 mm
-  ctx.strokeStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(36,34,31,.07)'; ctx.lineWidth = 1; ctx.fillStyle = mute;
-  for (let x = Math.ceil(x0 / 100) * 100; x <= x1; x += 100) {
-    ctx.beginPath(); ctx.moveTo(sx(y0), sy(x)); ctx.lineTo(sx(y1), sy(x)); ctx.stroke();
-    ctx.textAlign = 'right'; ctx.fillText(`X ${x}`, sx(y0) - 4, sy(x) + 3);
+  // the elbow from the side: 0° along the canvas to the right, plus up (screen angle −deg)
+  const EX = wide ? W * 0.12 : W * 0.18, EY = wide ? H * 0.62 : H * 0.36, E = d => rad(-d);
+  say('ELBOW — from the side', EX, EY - R - 18, ink);
+  ctx.strokeStyle = night ? 'rgba(255,255,255,.35)' : 'rgba(36,34,31,.5)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(EX - 20, EY + 0.5); ctx.lineTo(EX + R + 10, EY + 0.5); ctx.stroke();
+  say('the canvas', EX + R + 10, EY + 16, mute, 'right');
+  wedge(EX, EY, E(ELBOW_MIN), E(10), mute);
+  wedge(EX, EY, E(c.paint[0]), E(c.paint[1]), BLUE);
+  wedge(EX, EY, E(c.up[0]), E(c.up[1]), GREEN);
+  for (const [d, t, col] of [[mid(c.up), `up ${sgn(c.up[0])}…${sgn(c.up[1])}°`, GREEN], [c.dip, `in the paint ${sgn(c.dip)}°`, BLUE], [10, 'off the canvas +10°', mute]]) {
+    ray(EX, EY, E(d), col, 1, R, [4, 3]);
+    say(t, EX + (R + 8) * Math.cos(E(d)), EY + (R + 8) * Math.sin(E(d)) + 4, col);
   }
-  for (let y = Math.ceil(y0 / 100) * 100; y <= y1; y += 100) {
-    ctx.beginPath(); ctx.moveTo(sx(y), sy(x0)); ctx.lineTo(sx(y), sy(x1)); ctx.stroke();
-    ctx.textAlign = 'center'; ctx.fillText(`Y ${y}`, sx(y), sy(x0) + 14);
-  }
-  // the reach, between the walls; dashed orange as on Calibration
-  ctx.fillStyle = night ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.35)';
-  ctx.fillRect(sx(R.y.min), sy(R.x.max), (R.y.max - R.y.min) * k, (R.x.max - R.x.min) * k);
-  ctx.save(); ctx.strokeStyle = ORANGE; ctx.lineWidth = 1.2; ctx.setLineDash([6, 4]);
-  ctx.strokeRect(sx(R.y.min), sy(R.x.max), (R.y.max - R.y.min) * k, (R.x.max - R.x.min) * k); ctx.restore();
+  if (S.elbow !== null) { ray(EX, EY, E(S.elbow), ORANGE, 3, R * 0.92); say(`now ${sgn(S.elbow)}°`, EX, EY + 32, ORANGE); }
+  ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(EX, EY, 4, 0, Math.PI * 2); ctx.fill();
 
-  // the canvas, from home
-  ctx.fillStyle = PAPER; ctx.fillRect(sx(B.y - B.w / 2), sy(B.x + B.h / 2), B.w * k, B.h * k);
-  ctx.strokeStyle = 'rgba(36,34,31,.8)'; ctx.lineWidth = 1; ctx.strokeRect(sx(B.y - B.w / 2), sy(B.x + B.h / 2), B.w * k, B.h * k);
-  ctx.fillStyle = '#B3470C'; ctx.textAlign = 'left';
-  ctx.fillText(`canvas ${B.w} × ${B.h} mm · from home`, sx(B.y - B.w / 2), sy(B.x + B.h / 2) - 6);
-  // home, where every run ends
-  ctx.strokeStyle = ink; ctx.lineWidth = 1.2;
-  ctx.strokeRect(sx(home.y) - 4, sy(home.x) - 4, 8, 8);
-  ctx.fillStyle = ink; ctx.textAlign = 'left'; ctx.fillText('home', sx(home.y) + 9, sy(home.x) - 6);
-
-  // the beam, at the carriage's X (Here's till the board answers), wall to wall
-  const bx = S.pos.x ?? B.x;
-  ctx.strokeStyle = mute; ctx.lineWidth = 3; ctx.globalAlpha = 0.5;
-  ctx.beginPath(); ctx.moveTo(sx(R.y.min - 50), sy(bx)); ctx.lineTo(sx(R.y.max), sy(bx)); ctx.stroke(); ctx.globalAlpha = 1;
-  ctx.fillStyle = mute; ctx.textAlign = 'right'; ctx.fillText('the beam', sx(R.y.max) - 4, sy(bx) - 6);
-  // the cup on it, where the carriage stands to dip: a scope; dashed at the left wall till it is taken
-  {
-    const set = c.y !== null && c.shoulder !== null, cy = set ? c.y : R.y.min, X = sx(cy), Y = sy(bx), r = c.diameter / 2 * k;
-    drawCup(ctx, X, Y, r, !set);
-    ctx.fillStyle = ink; ctx.textAlign = 'left';
-    ctx.fillText(set ? `cup ⌀${c.diameter} · the carriage at Y ${fmt(c.y)}, the shoulder ${sgn(c.shoulder)}°` : 'the cup on the beam? jog there, then Here', X + r * 1.7 + 6, Y - 8);
-  }
-  // the carriage
-  if (S.pos.x !== null) {
-    const X = sx(S.pos.y), Y = sy(S.pos.x);
-    ctx.fillStyle = ORANGE; ctx.beginPath(); ctx.arc(X, Y, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = ORANGE; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(X, Y, 9, 0, Math.PI * 2); ctx.stroke();
-    ctx.fillStyle = ink; ctx.textAlign = 'left';
-    ctx.fillText(`X ${fmt(S.pos.x)} · Y ${fmt(S.pos.y)}${c.y !== null ? ` · ${fmt(Math.abs(S.pos.y - c.y), 0)} mm along Y to the cup` : ''}`, X + 13, Y + 18);
-  }
-  ctx.fillStyle = mute; ctx.textAlign = 'left';
-  ctx.fillText('↑ top of the picture · X+', 10, 16);
-  ctx.textAlign = 'right'; ctx.fillText('Y+ →', W - 10, 16);
+  // the shoulder from above: 0° the working pose, up the screen; plus to the right
+  const SX = wide ? W * 0.68 : W * 0.5, SY = wide ? H * 0.72 : H * 0.88, A = d => rad(-90 + d);
+  say('SHOULDER — from above', SX - R, SY - R - 18, ink);
+  wedge(SX, SY, A(c.to[0]), A(c.to[1]), GREEN);
+  ray(SX, SY, A(0), ink, 1.2, R, [4, 3]); say('0° · painting', SX, SY - R - 4, ink, 'center');
+  const jm = A(mid(c.to)), jx = SX + R * 0.86 * Math.cos(jm), jy = SY + R * 0.86 * Math.sin(jm), jr = Math.max(9, R * 0.16);
+  ctx.save(); ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(jx, jy, jr, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  say(`the jar ${sgn(c.to[0])}…${sgn(c.to[1])}°`, jx + jr + 6, jy + 4, RED);
+  if (S.shoulder !== null) { ray(SX, SY, A(S.shoulder), ORANGE, 3, R * 0.92); say(`now ${sgn(S.shoulder)}°`, SX + 10, SY + 18, ORANGE); }
+  ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(SX, SY, 4, 0, Math.PI * 2); ctx.fill();
+  const ok = S.elbow !== null && S.elbow >= c.up[0] - 0.2 && S.elbow <= c.up[1] + 0.2;
+  if (S.elbow !== null) say(ok ? 'may turn: the elbow is up' : 'must not turn: the elbow is down', SX, SY + 34, ok ? GREEN : RED, 'center');
 }
 addEventListener('resize', draw);
 addEventListener('rembrandt-night', draw);

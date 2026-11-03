@@ -846,19 +846,18 @@ export function traceRows(P, o, dipRun = TRACE_DIP) {
 // up to `up`° — the elbow's highest — so the owner wipes it there (the owner,
 // 2026-10-17: "here the brush can be lifted up, so that I wipe it"); after
 // Continue it comes down and lands as ever. plotRun's blocks, changed: the
-// flight to the next start before the pause, an elbow block up. A flight to
-// the cup on the beam (INK-Y) takes the shoulder's turn sent with it: the
-// brush waits over the cup, as over the Ink tab's.
+// flight to the next start before the pause, an elbow block up. With the cup
+// at hand (INK-Y) that is the flight to the next colour's first row: the
+// brush waits over it, the shoulder at 0, and dips there after Continue.
 export function wipeBlocks(blocks, up = WIPE_NEW) {
   const out = blocks.slice();
   for (let i = 0; i < out.length; i++) {
     if (out[i].kind !== 'pause') continue;
-    let j = out.findIndex((b, m) => m > i && b.kind === 'move' && /^T /.test(b.cmds?.[0] ?? ''));
+    const j = out.findIndex((b, m) => m > i && b.kind === 'move' && /^T /.test(b.cmds?.[0] ?? ''));
     if (j < 0) continue;
-    const turn = out[j].dip && j - 1 > i && out[j - 1].kind === 'joint' && out[j - 1].dip ? out.splice(--j, 1) : [];
     const fly = out.splice(j, 1)[0];
-    out.splice(i, 0, ...turn, fly, { kind: 'arm', cmd: `J 2 ${up}`, row: fly.row, wipe: true });
-    i += 2 + turn.length;
+    out.splice(i, 0, fly, { kind: 'arm', cmd: `J 2 ${up}`, row: fly.row, wipe: true });
+    i += 2;
   }
   return out;
 }

@@ -41,9 +41,10 @@
 // down into the paint, a second, up — and goes to the row; after the row it
 // goes back to the cup, not on to the next row; home at the end. C's and
 // D's rows run one way each, as the snake's first row runs: top to bottom
-// on D1. INK OFF is everything as it was. The cup on the beam (INK-Y,
-// 2026-11-03): the carriage goes to it along Y alone, the shoulder turns the
-// brush over it and back (plotRun).
+// on D1. INK OFF is everything as it was. The cup at hand (INK-Y,
+// 2026-11-03): the carriage stands over the row's start, the arm dips —
+// the elbow up, the shoulder over the jar, the elbow in, up, the shoulder
+// back (handDip).
 //
 // Machine mm: X up the picture, Y to the right. "Here" is where the carriage
 // stands with the brush over the board's centre. No DOM.
@@ -250,7 +251,7 @@ const rad = d => d * Math.PI / 180;
 // a W 2 rides on every TAIL_STEP mm of a tail, the board turning it as the
 // carriage reaches the piece — whatever the speed, a brake, a pause. The
 // wrist stands at 0° all the while ("the broom again" otherwise).
-// How near the shoulder's turns for a dip on the beam count as there, degrees (INK-Y; the owner, 2026-11-03:
+// How near the shoulder back from a dip counts as at 0°, degrees (INK-Y; the owner, 2026-11-03:
 // back from the cup it stood at −0.6° and the run stopped — "maybe just ignore such deviations?"); rembrandt.py's DIP_WITHIN, est.
 export const SHOULDER_WITHIN = 1.5;
 export const ELBOW_LIFT = 10, ELBOW_UP = 25, ELBOW_HOVER = 12;   // HOVER: just over the canvas, before a stroke (NOLAN), est.   // the lift-off measured +9.8° from the zero raised after midnight ("round it to +10"); ELBOW_UP est.
@@ -530,23 +531,37 @@ export function landingCheck(blocks, press, glide, least = 0.2) {
   }
   return { ok: !bad.length && lines > 0, lines, downs, ups, drawn, pressed, bad };
 }
+// A dip into the cup at hand (README, How to dip; the owner, 2026-11-03), the
+// carriage standing: every step there before the next, a fork where the joint
+// counts as there, aimed at its middle (ink.js, HAND). The shoulder's turn to
+// the jar carries `rim` and `up`: rembrandt.py lifts the elbow there before it
+// turns the shoulder back by itself — a jump, a run after a stop over the jar.
+export function handDip(c, row) {
+  const mid = f => (f[0] + f[1]) / 2, d = { row, dip: true }, up = { kind: 'arm', cmd: `J 2 ${mid(c.up)}`, fork: c.up, ...d };
+  return [up, { kind: 'joint', joint: 'shoulder', deg: mid(c.to), speed: c.swing, fork: c.to, rim: mid(c.up), up: c.up, ...d },
+    { kind: 'arm', cmd: `J 2 ${c.dip}`, fork: c.paint, ...d }, { kind: 'wait', s: c.dwell, ...d },
+    { ...up }, { kind: 'joint', joint: 'shoulder', deg: 0, speed: c.swing, within: SHOULDER_WITHIN, ...d }];
+}
+// its seconds: the elbow's three as any J, the shoulder's two at its speed, the paint's
+export const handDipS = c => 3 * ARM_S + 2 * Math.abs((c.to[0] + c.to[1]) / 2) / c.swing + c.dwell;
 export function plotRun(o, passes) {
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
   // INK ON: the cup of the Ink tab (carriage mm, its elbow angles), from Here; the brush up over its rim between rows.
-  // INK-Y's on the beam (ink.js, BEAM): its Y and the shoulder's angle — the carriage there along Y from where the brush left off
-  const beam = !!(o.cup?.beam && Number.isFinite(o.cup.shoulder) && Number.isFinite(o.cup.swing));
-  const cup = o.ink && o.here && Number.isFinite(o.cup?.y) && (beam || Number.isFinite(o.cup?.x)) ? o.cup : null;
-  const cupAt = cup && !beam ? pt(cup.x - X0, cup.y - Y0) : null;
-  const cupBy = a => beam ? pt(a.x, cup.y - Y0) : cupAt, cups = [];
-  const up = o.ink && Number.isFinite(o.cup?.rim) ? o.cup.rim : ELBOW_UP;
+  // INK-Y's at hand (ink.js, HAND): on the carriage, no place — the arm dips where the carriage stands, the brush up as without a cup between rows
+  const hand = !!o.cup?.hand;
+  const cup = o.ink && o.here && (hand || (Number.isFinite(o.cup?.y) && Number.isFinite(o.cup?.x))) ? o.cup : null;
+  const cupAt = cup && !hand ? pt(cup.x - X0, cup.y - Y0) : null, cups = [];
+  const up = o.ink && !hand && Number.isFinite(o.cup?.rim) ? o.cup.rim : ELBOW_UP;
   const home = homeCorner(), homeAt = pt(home.x - X0, home.y - Y0);
   // the walls, from Here: the path is pressed into them (pressed, above); without Here nothing is
   const R = reach(), B = o.here ? { x0: R.x.min + EDGE_IN - X0, x1: R.x.max - EDGE_IN - X0, y0: R.y.min + EDGE_IN - Y0, y1: R.y.max - EDGE_IN - Y0 } : null;
   let pastWall = 0, gone = 0;
-  // the brush up (the elbow), then the wrist to the active pose, in the air
-  const blocks = [{ kind: 'arm', cmd: `J 2 ${up}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
-  if (cup && beam) blocks.push({ kind: 'joint', joint: 'shoulder', deg: 0, speed: cup.swing, within: SHOULDER_WITHIN, row: 0 });   // the arm straight: a run stopped over the cup on the beam left it turned
+  // the brush up (the elbow), then the wrist to the active pose, in the air; at hand the elbow up into its
+  // fork and the shoulder to 0 before the wrist — the arm straight, a run stopped over the jar left it turned
+  const handUp = cup && hand ? handDip(cup, 0) : null;
+  const blocks = handUp ? [{ ...handUp[0], dip: false }, { ...handUp[5], dip: false }, { kind: 'arm', cmd: 'J 3 0', row: 0 }]
+    : [{ kind: 'arm', cmd: `J 2 ${up}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
   const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
   let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0, fault = '';
   const min = o.minPiece ?? MIN_PIECE, real = ps => ps.filter(q => !sliver(q.g, min));
@@ -574,31 +589,26 @@ export function plotRun(o, passes) {
       // o.noDipUnder (NOLAN): a shorter piece goes on what the brush holds, the first of a pass excepted;
       // nodip on a row (New Yuri's rings, several to a dip run): it goes on what the brush holds too
       const dipped = !!cup && (dry || (!p[0].nodip && !(drawn < o.noDipUnder)));
-      if (dipped) {
-        dry = false;
-        // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again;
-        // on the beam the shoulder turns the brush over the cup on the way there and back on the way back
-        // (the owner, 2026-11-03, IMG_2073: "the machine drives to the cup and at the same time the shoulder
-        // turns −24° … back to the cell, and on the way the shoulder to 0°"): `moving`, rembrandt.py sends it
-        // with the flight after it and sees it there before the elbow. rim: how high the brush goes before
-        // rembrandt.py turns it back by itself — a jump, a run after a stop there
-        const to = cupBy(at0), turn = deg => beam ? [{ kind: 'joint', joint: 'shoulder', deg, speed: cup.swing, within: SHOULDER_WITHIN, rim: cup.rim, row, dip: true, moving: true }] : [];
-        blocks.push(...turn(cup.shoulder), { kind: 'move', cmds: [`T ${o.travel}`, `M ${M(to)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true },
+      if (dipped) dry = false;
+      if (dipped && !hand) {
+        // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again
+        const to = cupAt;
+        blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(to)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true },
           { kind: 'arm', cmd: `J 2 ${cup.dip}`, row, dip: true }, { kind: 'wait', s: cup.dwell, row, dip: true },
-          { kind: 'arm', cmd: `J 2 ${cup.rim}`, row, dip: true }, ...turn(0));
+          { kind: 'arm', cmd: `J 2 ${cup.rim}`, row, dip: true });
         air.push([at0, to]); cups.push(to);
-        // the turns on the flights: a flight shorter than its turn waits for it
-        const swing = beam ? Math.abs(cup.shoulder) / cup.swing : 0, flyTo = travelTime(away(at0, to), o.travel);
-        seconds += Math.max(flyTo, swing) + 2 * ARM_S + cup.dwell + (beam ? Math.max(0, swing - travelTime(away(to, first), o.travel)) : 0);
+        seconds += travelTime(away(at0, to), o.travel) + 2 * ARM_S + cup.dwell;
         at0 = to; dips++;
       }
       if (o.ink) air.push([at0, first]);
       blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(first)}`, 'G'], lengthMM: null, paintMM: 0, row });
+      // at hand: the carriage over the row's start, the arm dips there — a drop falls where the brush paints next
+      if (dipped && hand) { blocks.push(...handDip(cup, row)); seconds += handDipS(cup); dips++; }
       // from over the rim down to where the brush always lands from, in the air over the row's start: it lands as it did without the cup;
       // o.hover (NOLAN): just over the canvas, the carriage waiting — from +25° the elbow was still on its way down
       // when the carriage set off, and the line began 5–10 mm late (2026-10-04, machine/2026-10-04 Nolan-v3-both.png)
       const over = o.hover ?? ELBOW_UP;
-      if (up !== over) { blocks.push({ kind: 'arm', cmd: `J 2 ${over}`, row }); seconds += ARM_S; }
+      if (up !== over || (dipped && hand)) { blocks.push({ kind: 'arm', cmd: `J 2 ${over}`, row }); seconds += ARM_S; }
       // one move, the brush landing at its start, lifting at its end and at every turn, on the way —
       // cut where p[0].stopsAt says, mm along the row, the next block going on from there with the
       // brush down (ALU's snake at its lanes' ends, 2026-10-10: a pause falls there); o.pauseAtEnds

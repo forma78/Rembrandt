@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP, MIN_PIECE, homeBlocks, SHOULDER_WITHIN } from '../src/strokes.js';
+import { xyPlan, plotPaths, PATTERNS, PASSES, waved, WRIST_MAX, ELBOW_LIFT, ELBOW_UP, MIN_PIECE, homeBlocks, SHOULDER_WITHIN, handDip } from '../src/strokes.js';
 import { homeCorner } from '../src/machine.js';
 
 const PLOTTER = { lift: false };   // the plotter's own path, the brush not lifted at the turns
@@ -321,32 +321,29 @@ test('D2 after D1 with INK ON: the pause asks for the paint in the cup', () => {
   assert.equal(p.dips, 6);
 });
 
-// ---------- INK-Y (the owner, 2026-11-03): the cup on the beam, along Y alone, the shoulder over it ----------
-const BEAMCUP = { beam: true, x: null, y: 30, shoulder: -25.1, swing: 40, rim: 24, dip: -5, dwell: 1 };
-test('INK-Y, D1: to the cup along Y alone from where the row ended, the shoulder turning on the way, in, up, back with the shoulder turning on the way — the arm straight first', () => {
-  const p = xyPlan({ ...D1, here: HERE, ink: true, cup: BEAMCUP }), table = xyPlan({ ...D1, here: HERE, ink: true, cup: { ...CUPAT, x: 860 } });   // at the table's far end, as his
+// ---------- INK-Y (the owner, 2026-11-03): the cup at hand, README's How to dip ----------
+const HANDCUP = { hand: true, x: null, y: null, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 };
+test('INK-Y, D1: the carriage over the row\'s start, then the dip there — the elbow up, the shoulder over the jar, in, up, the shoulder back — each in its fork; the arm straight first', () => {
+  const p = xyPlan({ ...D1, here: HERE, ink: true, cup: HANDCUP }), table = xyPlan({ ...D1, here: HERE, ink: true, cup: { ...CUPAT, x: 860 } });
   assert.equal(p.dips, 14);
-  assert.deepEqual(p.blocks[2], { kind: 'joint', joint: 'shoulder', deg: 0, speed: 40, within: SHOULDER_WITHIN, row: 0 }, 'the shoulder at 0 before anything: a run stopped over the cup left it turned');
-  const say = b => b.kind === 'move' ? (b.home ? 'home' : b.paintMM ? 'row' : b.dip ? 'to the cup' : 'to the row') : b.kind === 'wait' ? `wait ${b.s}` : b.kind === 'joint' ? `shoulder ${b.deg}` : b.cmd;
-  const row = ['shoulder -25.1', 'to the cup', 'J 2 -5', 'wait 1', 'J 2 24', 'shoulder 0', 'to the row', 'J 2 25', 'row', 'J 2 24'];
+  const say = b => b.kind === 'move' ? (b.home ? 'home' : b.paintMM ? 'row' : 'to the row') : b.kind === 'wait' ? `wait ${b.s}` : b.kind === 'joint' ? `shoulder ${b.deg}` : b.cmd;
+  assert.deepEqual(p.blocks.slice(0, 3).map(say), ['J 2 32.5', 'shoulder 0', 'J 3 0'], 'the elbow up, the shoulder at 0, then the wrist: a run stopped over the jar left it turned');
+  assert.deepEqual(p.blocks[0].fork, [30, 35]);
+  const row = ['to the row', 'J 2 32.5', 'shoulder 32.5', 'J 2 15', 'wait 1', 'J 2 32.5', 'shoulder 0', 'J 2 25', 'row', 'J 2 25'];
   assert.deepEqual(p.blocks.slice(3).map(say), [...Array(14).fill(row).flat(), 'home']);
-  let at = homeCorner();
-  for (const b of p.blocks) {
-    if (b.kind !== 'move') continue;
-    const to = endOf(b.cmds.filter(c => /^[LMA]/.test(c)).at(-1));
-    if (b.dip) assert.deepEqual([to.x, to.y], [Math.round(at.x * 100) / 100, 30], `row ${b.row}: along Y alone, X where the brush left off`);
-    at = to;
+  const dip = handDip(HANDCUP, 1);
+  assert.deepEqual(dip.map(b => b.fork ?? b.within ?? null), [[30, 35], [30, 35], [14, 16], null, [30, 35], SHOULDER_WITHIN], 'where each counts as there');
+  assert.deepEqual([dip[1].rim, dip[1].up, dip[1].speed], [32.5, [30, 35], 40], 'the turn to the jar says how high the elbow goes before rembrandt.py turns it back by itself');
+  for (let i = 0; i < p.blocks.length; i++) {
+    const b = p.blocks[i];
+    if (b.kind !== 'joint') continue;
+    const e = p.blocks.slice(0, i).reverse().find(q => q.kind === 'arm' && /^J 2 /.test(q.cmd));
+    assert.equal(e.cmd, 'J 2 32.5', `block ${i}: the shoulder turns only with the elbow up (README, How to dip)`);
   }
-  assert.ok(p.blocks.filter(b => b.kind === 'joint' && b.dip).every(b => b.rim === 24 && b.speed === 40 && b.within === SHOULDER_WITHIN && b.moving), 'its rim, speed and how near is there with it, sent with the flight after it, for rembrandt.py');
-  assert.ok(p.blocks.every((b, i) => !(b.kind === 'joint' && b.moving) || p.blocks[i + 1].kind === 'move' && !p.blocks[i + 1].paintMM), 'a turn on the move always right before a flight');
+  assert.ok(p.blocks.every((b, i) => !(b.kind === 'move' && i && p.blocks[i - 1].kind === 'joint' && p.blocks[i - 1].deg !== 0)), 'the carriage never moves with the shoulder over the jar');
   assert.deepEqual(p.preview, table.preview, 'the paint as with the Ink tab\'s cup');
   assert.ok(p.seconds < table.seconds, `${p.seconds} s against ${table.seconds}: no trip to X 860 and back fourteen times`);
-});
-
-test('INK-Y not set: no dips, as the Ink tab\'s cup not taken', () => {
-  const p = xyPlan({ ...D1, here: HERE, ink: true, cup: { ...BEAMCUP, y: null, shoulder: null } });
-  assert.equal(p.dips, 0);
-  assert.ok(!p.blocks.some(b => b.kind === 'joint'));
+  assert.ok(Math.abs(p.carriage.y1 - table.carriage.y1) < 1e-9 || p.carriage.x1 < table.carriage.x1, 'no cup in the carriage\'s box');
 });
 
 // ---------- the walls press the path (the owner, 2026-10-03: "remove this restriction") ----------

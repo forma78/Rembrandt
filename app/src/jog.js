@@ -7,8 +7,8 @@
 // put, 10 mm/s a level. The elbow moves when its handle is let go, 1° a
 // step, in RUBENS's degrees from the working pose (rembrandt.py, class Arm):
 // 0° pressed, off the canvas at +10°, −5…+45°. The shoulder the same way,
-// with `shoulder` (INK-Y, 2026-11-03: it turns the brush over the cup on the
-// beam), −45…+45°. STOP and HARD STOP stop the
+// with `shoulder` (INK-Y, 2026-11-03: it turns the brush over the cup at
+// hand, only with the elbow up — rembrandt.py refuses it otherwise), −45…+45°. STOP and HARD STOP stop the
 // axes and the arm; Esc is STOP; a page hidden or left stops the axes. The
 // ping, five times a second, feeds the board's watchdog and brings the
 // carriage's place.
@@ -55,7 +55,7 @@ export function mountJog(el, { link, onPing = () => { }, shoulder = false } = {}
     </div>${shoulder ? `
     <div class="axis servo" data-ax="shoulder">
       <div class="axis-head"><span class="k">SHOULDER</span><span class="pos" data-pos="shoulder">—</span><span class="speed" data-v="shoulder"></span></div>
-      <div class="dir">0°: the working pose, the brush over the canvas · minus: to the left, over the cup on the beam</div>
+      <div class="dir">0°: the working pose, the brush over the canvas · plus: over the cup at hand — the elbow up first</div>
       <input class="jog-slider" data-arm="shoulder" type="range" min="${SHOULDER.lo}" max="${SHOULDER.hi}" step="1" value="0" aria-label="Shoulder, degrees">
       ${ticks(SHOULDER.lo, SHOULDER.hi, 5, 15)}
     </div>` : ''}

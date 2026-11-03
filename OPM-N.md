@@ -233,6 +233,29 @@ tunnel blend, a ruler in the later ones); the owner answered.
   small snake along X, along Y and at 45°, the pairs' offset each; then AIR
   for the diagonal cells or the tracks shifted by half of it. Open.
 
+- **The cup at hand — the beam's jar replaced** (the owner, the same day,
+  `OPM-N/IMG_2108…2121`: "this morning I thought of a solution still
+  better. Not two jars at the sides of Y, but a jar right by the arm. No
+  need to drive anywhere, neither right nor left. The jar is always at
+  hand"). The second jar at the beam's right end, offered the night before,
+  not needed. The jar on a bracket bolted to the carriage that carries the
+  arm, above the canvas, clear of the rails along the whole of Y. His rules
+  of dipping, "the canon", in README, **How to dip**: the elbow up from
+  +2.5° to +30° (+35° allowed); only then the shoulder from 0° to +35° (the
+  fork +30 … +35); the elbow down into the jar, +15° at the lowest (+14 …
+  +16 by the paint in it); the elbow up first; the shoulder back to 0 — "if
+  the shoulder turns instead of the elbow lifting, we can break the brush or
+  knock the jar over, and then the paint spills onto the canvas. We spoil
+  the picture." His question, "calibration is hardly needed, the servos give
+  their coordinates on power-on, unlike the steppers, right?": right — the
+  arm's servos read their own angles (the runner never sends an absolute
+  one), X and Y home by the switches; nothing to take with Here. INK-Y
+  rewritten for it (glossary, **INK-Y**): a dip at hand ≈ 6.6 s (est.: four
+  elbow moves at 1 s with the one down to hover, the shoulder's two at
+  40°/s, the second in the paint), against 13.5 s on the beam at 02:15 — on
+  1879 dips ≈ 3.6 h less (est.). Open: the shoulder back stood ~1° short of 0 on the beam (−0.6 …
+  −1.3°), ~1.7 mm at the brush (est.), the tracks after a dip shifted so.
+
 ## 1 · Numbers
 
 Every cell of OPM-P's plan (`opmpPlan` in `opmplan.js`: `blocksIn`,

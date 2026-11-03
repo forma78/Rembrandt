@@ -6,12 +6,28 @@
 <title>Rembrandt · INK-Y</title>
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* INK-Y's five steps (README, How to dip): a number, its words, its fields */
+  .steps{list-style:none;margin:0;padding:0;counter-reset:step}
+  .steps li{counter-increment:step;margin:0 0 10px;padding-left:24px;position:relative}
+  .steps li::before{content:counter(step);position:absolute;left:0;top:0;width:17px;height:17px;border-radius:50%;background:var(--key);box-shadow:var(--raise);font:600 10px/17px var(--mono);text-align:center;color:var(--ink)}
+  .steps .say{font-size:12px;color:var(--ink);margin-bottom:5px}
+  .steps .say b{letter-spacing:.04em}
+  .steps .aim{font:10px var(--mono);color:var(--mute);margin-top:3px}
+  .steps .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .steps .grid3 label,.steps .grid4 label{display:flex;flex-direction:column;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);gap:3px;position:relative}
+  .steps .grid3 input{border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 22px 5px 6px;font:12px var(--mono);width:100%}
+  .steps .grid3 em{position:absolute;right:6px;bottom:6px;font:10px var(--mono);font-style:normal;color:var(--mute);text-transform:none}
+  .read .ok{color:#3E8E5A}
+  .toggles.onoff{margin-bottom:8px}
+</style>
 </head>
 <body>
-<!-- Rembrandt · INK-Y — the cup on the beam (the owner, 2026-11-03): it
-     rides with the beam in X by the canvas's left edge; the carriage goes to
-     it along Y alone, the shoulder turns the brush over it, the elbow dips
-     as on the Ink tab. Once set, every dip goes here (src/inkypage.js). -->
+<!-- Rembrandt · INK-Y — the cup at hand (the owner, 2026-11-03): his jar on
+     a bracket bolted to the carriage by the arm, above the canvas. A dip is
+     README's How to dip: the elbow up, then the shoulder over the jar, the
+     elbow in, up first, the shoulder back to 0 — the carriage standing. On,
+     every dip goes here (src/inkypage.js). -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -40,14 +56,35 @@
 
   <aside class="panel">
     <section class="sec">
-      <h3>The dip <span class="hint">the shoulder, the elbow <button class="info" id="dipInfo" title="What the numbers mean">i</button></span></h3>
-      <div class="grid4" id="dip"></div>
+      <h3>The cup at hand <span class="hint">on the carriage, by the arm · ⌀57</span></h3>
+      <div class="toggles onoff" id="onOff"></div>
+      <p class="read" id="onRead"></p>
+    </section>
+
+    <section class="sec">
+      <h3>How to dip <span class="hint">every step there before the next · the carriage stands</span></h3>
+      <ol class="steps">
+        <li><div class="say"><b>ELBOW up</b> from where it paints</div>
+          <div class="grid4" id="f-up"></div><div class="aim" id="aim-up"></div></li>
+        <li><div class="say">Only then <b>SHOULDER</b> over the jar</div>
+          <div class="grid3" id="f-to"></div><div class="aim" id="aim-to"></div></li>
+        <li><div class="say"><b>ELBOW down into the jar</b> — +14…+16° by the paint in it</div>
+          <div class="grid4" id="f-dip"></div><div class="aim" id="aim-dip"></div>
+          <div class="grid4 keys"><button class="btn" id="btnPaint" title="ELBOW in the paint becomes the elbow's angle now: jog it down until the bristles are in the paint">🙇‍♂️ In the paint ← elbow</button></div></li>
+        <li><div class="say">The paint taken: <b>ELBOW up first</b>, as in 1</div></li>
+        <li><div class="say"><b>SHOULDER back to 0°</b>. Painting goes on</div><div class="aim" id="aim-back"></div></li>
+      </ol>
+      <p class="read" id="stepsRead"></p>
       <div class="grid4 keys">
-        <button class="btn" id="btnRim" title="Over the rim becomes the elbow's angle now: up until the brush clears the rim, with room">🙋‍♂️ Over the rim ← elbow</button>
-        <button class="btn" id="btnDip" title="In the cup becomes the elbow's angle now: down until the bristles are in the paint">🙇‍♂️ In the cup ← elbow</button>
+        <button class="btn primary" id="btnTry" title="The five steps on the machine now, the carriage where it stands: to see them in the air or with the brush">Try one dip</button>
+        <button class="btn" id="btnTryStop" title="STOP: the arm stays where it is; the next run lifts the elbow, then turns the shoulder back">STOP</button>
       </div>
-      <p class="read" id="dipHelp" hidden></p>
-      <p class="read" id="dipRead"></p>
+      <p class="read" id="tryRead"></p>
+    </section>
+
+    <section class="sec">
+      <h3>Now <span class="hint">the arm's angles, as the servos tell</span></h3>
+      <p class="read" id="nowRead"></p>
     </section>
 
     <section class="sec">
@@ -56,11 +93,6 @@
     </section>
 
     <section class="sec">
-      <h3>Cup <span class="hint">on the beam, by the canvas's left edge <button class="info" id="cupInfo" title="Where the cup is">i</button></span></h3>
-      <p class="read" id="cupHelp" hidden></p>
-      <p class="read" id="cupRead"></p>
-      <button class="btn wide" id="btnCup" title="Jog the carriage along Y and turn the shoulder until the brush, down in the cup, is over its centre; then press: the carriage's Y and the shoulder's angle">Here: the brush is over the cup's centre</button>
-      <div class="grid4" id="size"></div>
       <h3 class="sub">Canvas <span class="hint">from home, as on every tab <button class="info" id="canvasInfo" title="Where the canvas lies">i</button></span></h3>
       <div class="grid4" id="canvas"></div>
       <p class="read" id="canvasRead" hidden></p>
@@ -69,7 +101,7 @@
 </main>
 
 <footer class="status">
-  <span id="hint">INK-Y — the cup on the beam: the carriage along Y alone, the shoulder over the cup, the elbow in, up, back. Once set, every dip goes here.</span>
+  <span id="hint">INK-Y — the cup at hand: the elbow up, the shoulder over the jar, the elbow in, up, the shoulder back. On, every dip goes here.</span>
   <span id="saved"></span>
 </footer>
 <script type="module" src="src/inkypage.js"></script>

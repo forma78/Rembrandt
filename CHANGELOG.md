@@ -5,6 +5,32 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.9 — 2026-11-03 · INK-Y
 
+- **INK-Y: the cup at hand, in the beam's place** (the owner, 2026-11-03,
+  `OPM-N/IMG_2108…2121`: "not two jars at the sides of Y, but a jar right
+  by the arm. No need to drive anywhere … the jar is always at hand"; his
+  rules in README, **How to dip**, "and this is the canon"). The jar on a
+  bracket bolted to the carriage by the arm, above the canvas. plotRun
+  (`handDip`): the carriage to the line's start, then the five steps there —
+  `J 2 32.5` in the elbow's fork +30 … +35°, the shoulder to +32.5° in its
+  fork +30 … +35°, `J 2 15` in the paint (+14 … +16), the dwell, the elbow
+  up, the shoulder back within 1.5° of 0 — the carriage standing; a run
+  starts with the elbow up and the shoulder at 0 before the wrist. A block's
+  `fork` (checked before a run): there anywhere in it, every whole step
+  landing in it (`Arm.move_to(…, fork)`), aimed at its middle — the servo
+  stops up to ~1° short. **The guard** (`hand_guard`, `hand_refuses`):
+  while `ink.json`'s `hand` is on, every turn of the arm — a run's, a jog's,
+  /brush — is refused when the shoulder would turn with the elbow out of its
+  fork up, the elbow go below +14° or the wrist turn with the shoulder off
+  0; a fork it cannot read is his. `_unswing` lifts the elbow into its fork
+  before the shoulder goes back (a jump, the next run after a stop over the
+  jar); the iPhone's DIP the same five steps, no flight. The beam's flights
+  and the turns on them gone (`moving`, `_start_turn`, `_turned`);
+  `wipeBlocks` without the beam's turn. The tab: ON · OFF, the steps'
+  forks, Try one dip, Now (may the shoulder turn?), the elbow from the side
+  and the shoulder from above. `/run` says `hand: 1`; an older
+  `rembrandt.py` gets an alert, no run — he restarts it. Tests 451, the
+  runner's 108; a D1 plan through the runner: 16 turns of the shoulder, the
+  elbow at +32 … +33° at every one.
 - **INK-Y: the shoulder turns on the flights** (the owner, 2026-11-03,
   `OPM-N/IMG_2073.MOV`, 20 s a stroke: "the machine drives to the cup and
   at the same time the shoulder turns −24° … back to the cell, and on the

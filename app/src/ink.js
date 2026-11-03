@@ -2,8 +2,8 @@
 // one more tab, INK"). One cup for now, by the left edge of the canvas;
 // later the dip station's cups at the edges of the frame (Rembrandt.md §1).
 // Kept in app/ink.json through rembrandt.py (/ink); the Ink tab sets it,
-// INK ON on the Test tab dips into it. Since 2026-11-03 the cup on the beam
-// too, INK-Y's (BEAM, below). No DOM; drawCup draws on a canvas it is given.
+// INK ON on the Test tab dips into it. Since 2026-11-03 the cup at hand
+// too, INK-Y's (HAND, below). No DOM; drawCup draws on a canvas it is given.
 //
 // The cup's centre is where the carriage stands with the brush over it, as
 // Here on the Test tab: machine mm, X up, Y to the right.
@@ -24,16 +24,22 @@ export const DWELL_MAX = 10;
 // left corner, at the left wall (the owner, 2026-10-03, a red scope drawn
 // there on the Ink tab: "I will aim there"). est.
 export const CUP_AIM = { x: 400, y: 0 };
-// INK-Y (the owner, 2026-11-03, OPM-N/IMG_2060…2062: "the jar somewhere near
-// … the machine need not go across the whole table, it is enough to drive
-// along Y"): the cup on a bracket of the beam, in the 90 mm left of the
-// canvas, riding with the beam in X. The carriage goes along Y only, to where
-// the shoulder, turned (−25.1° on his machine), puts the brush over the cup's
-// centre; the elbow dips as on the Ink tab; up over the rim, the shoulder back
-// to 0, back. Kept in ink.json's `beam`; once set, every dip goes there. His
-// twelve flat-bottomed jars, ⌀57; the shoulder's speed est.
-export const BEAM = { diameter: 57, swing: 40 };
+// INK-Y, the cup at hand (the owner, 2026-11-03, OPM-N/IMG_2108…2121: "not
+// two jars at the sides of Y, but a jar right by the arm … the jar is always
+// at hand"): his jar, ⌀57, on a bracket bolted to the carriage by the arm,
+// above the canvas. No place to take: the servos know their angles from
+// power-on, and the jar never moves against the arm. A dip (README, How to
+// dip), every step there before the next, the carriage standing: the elbow
+// up into `up`, the shoulder into `to`, the elbow down to `dip`, in the paint
+// `dwell` s, the elbow up, the shoulder back to 0. A fork [lo, hi]: where the
+// joint counts as there, aimed at its middle — the firmware turns whole
+// degrees and the servo stops up to ~1° short. `dip` +14 … +16 by the paint
+// in the jar, there within 1° of it, never below +14. Kept in ink.json's
+// `hand`; `on`, every dip goes there. The shoulder's speed est.
+export const HAND = { up: [30, 35], to: [30, 35], dip: 15, dwell: 1, swing: 40, diameter: 57 };
+export const PAINT_LO = 14, PAINT_HI = 16;
 export const SHOULDER_MIN = -45, SHOULDER_MAX = 45, SWING_MIN = 5, SWING_MAX = 100;
+export const mid = f => (f[0] + f[1]) / 2;
 const SCOPE = '#E2321B';   // the owner's red scope
 
 // The cup as a scope, its centre at X, Y px, its rim r px: a red ring and a
@@ -51,11 +57,10 @@ export function drawCup(ctx, X, Y, r, aimed = false) {
 
 const num = v => (v === null || v === undefined || v === '' || !Number.isFinite(+v) ? null : +v);
 
-// The cup every dip goes to: INK-Y's on the beam once it is set, else the
-// Ink tab's on the table.
+// The cup every dip goes to: INK-Y's at hand once it is on, else the Ink
+// tab's on the table.
 export function cupOf(ink) {
-  const b = beamOf(ink);
-  return b.y !== null && b.shoulder !== null ? b : tableOf(ink);
+  return ink?.hand?.on === true ? handOf(ink) : tableOf(ink);
 }
 
 // The Ink tab's cup as the plan takes it: its numbers, the defaults where
@@ -71,20 +76,15 @@ export function tableOf(ink) {
   return out;
 }
 
-// INK-Y's cup: the carriage's Y and the shoulder's angle that put the brush
-// over its centre, its X the beam's wherever it is (x null). The elbow over
-// the rim, in the cup and the dwell as typed on INK-Y, else as on the Ink
-// tab — "the jar on the same level as now on INK" (the owner).
-export function beamOf(ink) {
-  const b = ink?.beam || {}, t = ink?.cup || {}, set = num(b.y) !== null && num(b.shoulder) !== null;
-  const out = { beam: true, x: null, y: set ? +b.y : null, shoulder: set ? +b.shoulder : null, at: b.at || null, est: {} };
-  for (const k of Object.keys(CUP)) {
-    const v = num(b[k]) ?? (k === 'rim' || k === 'dip' || k === 'dwell' ? num(t[k]) : null);
-    out[k] = v ?? BEAM[k] ?? CUP[k];
-    if (v === null && EST.includes(k)) out.est[k] = true;
-  }
-  out.swing = num(b.swing) ?? BEAM.swing;
-  if (num(b.swing) === null) out.est.swing = true;
+// INK-Y's cup at hand: the forks and the rest as typed on INK-Y, else his
+// numbers (HAND). paint: where the elbow in the jar counts as there.
+export function handOf(ink) {
+  const h = ink?.hand || {}, fork = k => [0, 1].map(i => num(Array.isArray(h[k]) ? h[k][i] : null) ?? HAND[k][i]);
+  const out = { hand: true, on: h.on === true, x: null, y: null, est: {},
+    up: fork('up'), to: fork('to'), dip: num(h.dip) ?? HAND.dip,
+    dwell: num(h.dwell) ?? HAND.dwell, swing: num(h.swing) ?? HAND.swing, diameter: HAND.diameter };
+  out.paint = [Math.max(PAINT_LO, out.dip - 1), Math.min(PAINT_HI, out.dip + 1)];
+  if (num(h.swing) === null) out.est.swing = true;
   return out;
 }
 
@@ -105,29 +105,38 @@ export function canvasFrom(ink, w, h) {
 // Where the brush dips: the cup's centre, or, when that lies past a wall —
 // the owner's first cup, 0.37 mm past the left one (2026-10-03) — the
 // nearest point inside the walls: the board takes no path past them. off:
-// how far that is from the centre, mm. null until the cup is set. The cup
-// on the beam: its Y alone, x null — the carriage dips where the beam is.
+// how far that is from the centre, mm. null until the cup is set, and for
+// the cup at hand: the carriage dips where it stands.
 const EDGE_IN = 0.1;   // inside the walls, as home (machine.js)
 export function dipAt(c) {
-  if (!c || c.y === null || (c.beam ? c.shoulder === null : c.x === null)) return null;
+  if (!c || c.hand || c.y === null || c.x === null) return null;
   const R = reach(), into = (v, lo, hi) => Math.min(hi - EDGE_IN, Math.max(lo + EDGE_IN, v));
-  const x = c.beam || (c.x >= R.x.min && c.x <= R.x.max) ? c.x : into(c.x, R.x.min, R.x.max);
+  const x = c.x >= R.x.min && c.x <= R.x.max ? c.x : into(c.x, R.x.min, R.x.max);
   const y = c.y >= R.y.min && c.y <= R.y.max ? c.y : into(c.y, R.y.min, R.y.max);
   const r = v => Math.round(v * 100) / 100;
-  return { x: c.beam ? null : r(x), y: r(y), off: c.beam ? Math.abs(y - c.y) : Math.hypot(x - c.x, y - c.y) };
+  return { x: r(x), y: r(y), off: Math.hypot(x - c.x, y - c.y) };
 }
 
 // Why the brush cannot dip into this cup, or ''.
 export function cupProblem(c) {
-  if (c?.beam) {
-    if (c.y === null || c.shoulder === null) return 'The cup on the beam is not set: on the INK-Y tab, the brush over its centre, press Here.';
-    if (c.shoulder < SHOULDER_MIN || c.shoulder > SHOULDER_MAX) return `To the cup ${c.shoulder}°: the shoulder goes ${SHOULDER_MIN}…+${SHOULDER_MAX}°.`;
-    if (!(c.swing >= SWING_MIN && c.swing <= SWING_MAX)) return `The shoulder at ${c.swing}°/s: ${SWING_MIN}…${SWING_MAX}°/s.`;
-  } else if (!c || c.x === null || c.y === null) return 'The cup is not set: on the Ink tab, the brush over its centre, press Here.';
+  if (c?.hand) return handProblem(c);
+  if (!c || c.x === null || c.y === null) return 'The cup is not set: on the Ink tab, the brush over its centre, press Here.';
   const off = dipAt(c).off;
   if (off > c.diameter / 4) return `The cup's centre lies ${off.toFixed(1)} mm past the machine's walls: the brush would dip too near its rim. Move the cup in and take it again.`;
   if (c.rim < RIM_MIN || c.rim > ELBOW_MAX) return `Over the rim ${c.rim}°: the elbow goes +${RIM_MIN}…+${ELBOW_MAX}° there.`;
   if (c.dip < ELBOW_MIN || c.dip > c.rim - 5) return `In the cup ${c.dip}°: the elbow goes ${ELBOW_MIN}…+${c.rim - 5}° there, below Over the rim.`;
   if (c.dwell < 0 || c.dwell > DWELL_MAX) return `In the paint ${c.dwell} s: 0…${DWELL_MAX} s.`;
+  return '';
+}
+
+// The cup at hand's numbers: a fork at least 1° wide (the firmware's whole
+// degrees always land in it), the elbow up over the paint, the shoulder off 0.
+function handProblem(c) {
+  const bad = f => !(Number.isFinite(f?.[0]) && Number.isFinite(f?.[1]) && f[1] - f[0] >= 1);
+  if (bad(c.up) || c.up[0] < PAINT_HI + 5 || c.up[1] > ELBOW_MAX) return `ELBOW up +${c.up?.[0]}…+${c.up?.[1]}°: at least 1° wide, within +${PAINT_HI + 5}…+${ELBOW_MAX}°.`;
+  if (bad(c.to) || c.to[0] < SHOULDER_MIN || c.to[1] > SHOULDER_MAX || (c.to[0] <= 2 && c.to[1] >= -2)) return `SHOULDER to the cup ${c.to?.[0]}…${c.to?.[1]}°: at least 1° wide, within ${SHOULDER_MIN}…+${SHOULDER_MAX}°, clear of 0°.`;
+  if (!(c.dip >= PAINT_LO && c.dip <= PAINT_HI)) return `ELBOW in the paint +${c.dip}°: +${PAINT_LO}…+${PAINT_HI}° (the jar stands over the canvas).`;
+  if (!(c.dwell >= 0 && c.dwell <= DWELL_MAX)) return `In the paint ${c.dwell} s: 0…${DWELL_MAX} s.`;
+  if (!(c.swing >= SWING_MIN && c.swing <= SWING_MAX)) return `The shoulder at ${c.swing}°/s: ${SWING_MIN}…${SWING_MAX}°/s.`;
   return '';
 }

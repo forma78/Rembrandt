@@ -255,7 +255,7 @@ async function loadInk() {
 }
 const hereNow = () => { const R = reach(); return { x: R.x.min + S.edgeBottom + S.boardH / 2, y: R.y.min + S.edgeLeft + S.boardW / 2 }; };
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
-const cupName = () => cup().beam ? 'the cup on the beam (INK-Y)' : 'the cup of the Ink tab';
+const cupName = () => cup().hand ? 'the cup at hand (INK-Y)' : 'the cup of the Ink tab';
 
 // ---------- the run: DRAG, every figure one line ----------
 // One key (the owner, 2026-10-17: "AIR is not needed, only DRAG"): a figure
@@ -391,7 +391,7 @@ function paintRun() {
   if (PAINT_RUN?.key === key) return PAINT_RUN;
   if (!D.passes.length) return (PAINT_RUN = { key, ...EMPTY, passes: [] });
   const R = dragRowsOf(D.passes, S.pencils, po(), OPMN ? S.dipEvery : 0, OPMN ? S.dipLap : 0), name = id => pencilOf(id)?.name ?? id;
-  // OPM-N (OPM-N.md step 4): the paint from the cup — INK-Y's on the beam since 2026-11-03, else the Ink tab's — a dip at every colour's start, then every Dip every mm (for now); between two colours the brush up over the cup, the next colour put in it
+  // OPM-N (OPM-N.md step 4): the paint from the cup — INK-Y's at hand since 2026-11-03, else the Ink tab's — a dip at every colour's start, then every Dip every mm (for now); between two colours the brush up (over the Ink tab's cup), the next colour put in it
   const r = plotRun({ ...runOpts(R.ps.length), speed: S.pspeed, lift: true, press: S.brushPress, ...(OPMN ? { ink: true, noDipUnder: 0 } : {}) }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? OPMN ? `wipe the brush, put ${name(D.passes[k].pencil)} in the cup, then Continue` : `wipe the brush, squeeze ${name(D.passes[k].pencil)} on its cells, then Continue` : null })));
   return (PAINT_RUN = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: D.passes.reduce((a, q) => a + q.mm, 0), passes: D.passes });
 }
@@ -1502,7 +1502,7 @@ if (OPMN) Object.assign(PENCIL_TITLE, {                                         
   dragRubs: 'Every track so many times over: Snake there and back, Air one way each, the brush up and back between (the owner, 2026-11-01: "as we did with the pencil, rubbed like sandpaper")',
   pspeed: 'The thin brush along its tracks, mm/s (the owner, 2026-11-01: "let the brush go 25 mm/s, not 60, and dip more often"); up through the air from cell to cell (est.)',
   dipLap: 'After a dip in the middle of a track the brush starts so many mm back over it, its landing on what it has painted: it lands and lifts on the move, and on paper (OPM-N/IMG_2056, a pencil) every such dip left a 5 … 6 mm gap — the owner, 2026-11-02: "with a compensating −5 mm". Half of Dip every at most; a dip between two tracks needs none. 0: back to the same point (est.)',
-  dipEvery: 'A dip in the cup — INK-Y\'s on the beam, else the Ink tab\'s — every so many mm of track, for now, till DIP comes from the iPhone (the owner, 2026-11-02): 75 … 80 mm with pouring medium, ≈ 30 in pure acrylic (RoArte/IMG_1971, IMG_1954); between two strokes when the brush has painted half of it, else in one, back to the same point. 0: a colour\'s first dip alone (est.)',
+  dipEvery: 'A dip in the cup — INK-Y\'s at hand, else the Ink tab\'s — every so many mm of track, for now, till DIP comes from the iPhone (the owner, 2026-11-02): 75 … 80 mm with pouring medium, ≈ 30 in pure acrylic (RoArte/IMG_1971, IMG_1954); between two strokes when the brush has painted half of it, else in one, back to the same point. 0: a colour\'s first dip alone (est.)',
 });
 const sgn = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
 const pencilVal = key => PRISMA ? ({ pitch: `${fmt(S.pitch, 1)} mm (est.)`, track: `${fmt(S.track, 1)} mm (est.)`, dipEvery: S.dipEvery ? `${S.dipEvery} mm of track (est.)` : 'a colour\'s first alone', dipLap: S.dipLap ? `${fmt(S.dipLap, 1)} mm back (est.)` : 'none, the same point', dragRubs: `${S.dragRubs} × (est.)`, pspeed: `${S.pspeed} mm/s (est.)`, rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', facets: `${S.facets} · ${fmt(90 / S.facets, 0)}° a turn`, rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(glideAt())}${glideAt() > S.touch + S.glide + 1e-9 ? `, ${PEN_AIR}° over pressing` : ''} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
@@ -2238,11 +2238,11 @@ $('#btnLoad').onclick = showLoads;
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 let RUN_KEY = null;
 async function start(key, blocks, info, log) {
-  // the cup on the beam (INK-Y): only a rembrandt.py that knows it turns the shoulder back by itself — before a Back, Skip
-  // or Go to, and at the start of the run after one stopped over the cup
-  if (blocks.some(b => b.kind === 'joint' && b.dip)) {
+  // the cup at hand (INK-Y): only a rembrandt.py that knows it takes the forks, lifts the elbow before the shoulder turns
+  // back by itself — before a Back, Skip or Go to, and at the start of the run after one stopped over the jar
+  if (blocks.some(b => b.fork)) {
     let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
-    if (st && !(st.beam >= 2)) { alert('The cup on the beam (INK-Y): restart rembrandt.py first — the one running does not know it yet, or not its shoulder\'s tolerance. Nothing was sent.'); return; }   // an alert: the run line is the runner's again a moment later
+    if (st && !(st.hand >= 1)) { alert('The cup at hand (INK-Y): restart rembrandt.py first — the one running does not know it yet. Nothing was sent.'); return; }   // an alert: the run line is the runner's again a moment later
   }
   try {
     RUN = blocks; RUN_INFO = info; RUN_KEY = key;
