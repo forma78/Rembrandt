@@ -637,34 +637,37 @@ class BeamDipTest(unittest.TestCase):
     CUP = {"beam": True, "y": 30.0, "shoulder": -25.1, "swing": 40, "rim": 24, "dip": -5, "dwell": 1}
 
     def runner(self, b, log=None):
-        # the runner with an arm, its elbow and shoulder turns and its flights written down in order
+        # the runner with an arm, its elbow and shoulder turns and its flights written down as they end
         arm = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
         r = Runner(b.send, sleep=b.sleep, swing_s=0, arm=arm, log=log)
         seen, arm_, joint_, move_ = [], r._arm, r._joint, r._move
 
         def a(cmd):
+            out = arm_(cmd)
             seen.append(cmd)
-            return arm_(cmd)
+            return out
 
         def j(blk):
+            out = joint_(blk)
             seen.append(f"{blk['joint']} {float(blk['deg']):g}")
-            return joint_(blk)
+            return out
 
         def m(blk):
-            end = block_end(blk["cmds"])
+            out, end = move_(blk), block_end(blk["cmds"])
             if end and not blk.get("paintMM"):
                 seen.append(f"M {end[0]:.2f} {end[1]:.2f}")
-            return move_(blk)
+            return out
         r._arm, r._joint, r._move = a, j, m
         return r, arm, seen
 
-    def plan(self, within=1.5):
-        # as plotRun lays a dip on the beam before a row
+    def plan(self, within=1.5, moving=True):
+        # as plotRun lays a dip on the beam before a row: the shoulder's turns sent with the flights after them
         dip = lambda **k: {**k, "dip": True, "row": 1}
         w = {"within": within} if within else {}
+        m = {"moving": True} if moving else {}
         return [{"kind": "arm", "cmd": "J 2 24", "row": 0}, {"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "row": 0, **w},
-                dip(kind="move", cmds=["T 180", "M 99.00 30.00", "G"], paintMM=0), dip(kind="joint", joint="shoulder", deg=-25.1, speed=40, rim=24, **w),
-                dip(kind="arm", cmd="J 2 -5"), dip(kind="wait", s=1), dip(kind="arm", cmd="J 2 24"), dip(kind="joint", joint="shoulder", deg=0, speed=40, rim=24, **w),
+                dip(kind="joint", joint="shoulder", deg=-25.1, speed=40, rim=24, **w, **m), dip(kind="move", cmds=["T 180", "M 99.00 30.00", "G"], paintMM=0),
+                dip(kind="arm", cmd="J 2 -5"), dip(kind="wait", s=1), dip(kind="arm", cmd="J 2 24"), dip(kind="joint", joint="shoulder", deg=0, speed=40, rim=24, **w, **m),
                 {"kind": "move", "cmds": ["T 180", "M 99.00 50.00", "G"], "paintMM": 0, "row": 1}, {"kind": "arm", "cmd": ON, "row": 1},
                 {**paint(6), "row": 1}, {"kind": "arm", "cmd": "J 2 24", "row": 1}]
 
@@ -678,12 +681,26 @@ class BeamDipTest(unittest.TestCase):
 
     def test_the_plans_dip_turns_the_shoulder_over_the_cup_and_back(self):
         b = FakeBoard(rate=1)
+        send = b.send
+
+        def told(path):                                  # the servos' reads in the board's log too
+            if path.startswith("/look"):
+                b.log.append("LOOK")
+            return send(path)
+        b.send = told
         r, arm, seen = self.runner(b)
         self.assertTrue(r.start(self.plan(), {"page": "opmn", "cup": self.CUP})[0])
         r.thread.join(10)
         self.assertEqual(r.state, "done", r.message)
-        i = seen.index("M 99.00 30.00")
-        self.assertEqual(seen[i:i + 7], ["M 99.00 30.00", "shoulder -25.1", "J 2 -5", "J 2 24", "shoulder 0", "M 99.00 50.00", ON])
+        # the owner, 2026-11-03: "drives to the cup and at the same time the shoulder turns … back, and on the way the shoulder to 0°"
+        L, j1 = b.log, [k for k, c in enumerate(b.log) if c.startswith("J 1")]
+        to_cup, to_row = L.index("M 99.00 30.00"), L.index("M 99.00 50.00")
+        out = max(k for k in j1 if k < to_cup)
+        self.assertNotIn("LOOK", L[out:to_cup], "the turn sent, the flight at once: not waited for")
+        back = [k for k in j1 if to_cup < k < to_row]
+        self.assertTrue(back and "LOOK" not in L[back[-1]:to_row], "back the same way")
+        self.assertEqual([c for c in seen if not c.startswith("M")][:7], ["J 2 24", "shoulder 0", "shoulder -25.1", "J 2 -5", "J 2 24", "shoulder 0", "J 2 0"],
+                         "each turn seen there before the elbow moves")
         self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
         self.assertIsNone(r._swung)
 

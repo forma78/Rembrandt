@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## v.1.1.9 — 2026-11-03 · INK-Y
 
+- **INK-Y: the shoulder turns on the flights** (the owner, 2026-11-03,
+  `OPM-N/IMG_2073.MOV`, 20 s a stroke: "the machine drives to the cup and
+  at the same time the shoulder turns −24° … back to the cell, and on the
+  way the shoulder to 0°"). The board takes no J once a path runs, but runs
+  a path while a joint turns: a joint block marked `moving` is sent and not
+  waited for (`Arm.move_to(…, wait=False)`), the flight after it at once;
+  the runner sees it there — or finishes it — before the arm's next command,
+  a wait or a paint move (`_turned`), never during the flight (a Z then
+  would brake it). plotRun: the turn out before the flight to the cup, the
+  turn back before the flight to the row; `wipeBlocks` moves the pair. No
+  firmware change. On the 23:53 run ≈ 7 h 53 → 7 h 14 min (est.). Tests
+  452, the runner's 106.
 - **INK-Y: the shoulder's dip turns let off 1.5°** (the owner, 2026-11-03,
   the first run with INK-Y, `OPM-N/Screenshot 2026-11-03 at 1.35.26 AM`:
   after the second dip "shoulder to 0°: the shoulder does not get to 0.0°",

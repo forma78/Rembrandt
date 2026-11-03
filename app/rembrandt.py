@@ -441,11 +441,15 @@ class Arm:
             out[k] = None if jid not in raw else round(TURN[k] * sign * (raw[jid] - z[k]) / TICKS_PER_DEG, 1)
         return out, raw
 
-    def move_to(self, joint, deg, speed=None, within=0.6):
+    def move_to(self, joint, deg, speed=None, within=0.6, wait=True):
         """speed: degrees a second, for a slow stroke of the brush; None — the
         firmware's own, about 53°/s. within: how near counts as there — the
         firmware turns whole degrees; a dip's shoulder on the beam is let off
-        more (DIP_WITHIN). → the angle it stands at."""
+        more (DIP_WITHIN). wait False: the first step sent and not waited for,
+        the servo turning by itself — INK-Y's shoulder while the carriage
+        flies (the board takes no J on a path, but runs a path while a joint
+        turns); a move_to after it sees it there, or finishes it. → the angle
+        it stands at (before the step, unwaited)."""
         jid, sign, lim = JOINTS[joint]
         lo, hi = REACH[joint]
         if not lo <= deg <= hi:
@@ -474,6 +478,8 @@ class Arm:
                 r = self.send(f"/servo?j={joint}&d={fw}" + (f"&v={speed:g}" if speed else ""))
                 if not r.startswith("ok J"):
                     raise ArmError(f"{joint}: {in_english(r)}")
+                if not wait:
+                    return a
                 self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / speed + 2 if speed else 4.0)
             raise ArmError(f"the {joint} does not get to {deg}°")
 
@@ -850,6 +856,7 @@ class Runner:
         # INK-Y: (rim, °/s) while a dip on the beam holds the shoulder turned over the cup — turned
         # back by itself before a jump and at the next run's start, a run stopped there or not
         self._swung = None
+        self._turning = None             # INK-Y: a shoulder's turn sent with the flight after it, not yet seen there
 
     def set_trim(self, deg):
         # ELBOW LIVE: from the next W 2 sent on, the board's queue of pieces
@@ -955,6 +962,7 @@ class Runner:
             self.rows = note.get("remote") if isinstance(note, dict) and isinstance(note.get("remote"), dict) else None
             self._dip = self._auto = False
             self._jump = None
+            self._turning = None         # a turn left from a stopped run: the servo got there or stopped; _swung says which way
             self.dips, self.row, self.row_base = 0, 0, {}
         self.log({"event": "start", "blocks": len(self.blocks), "paint_mm": round(self.paint_total, 1),
                   **({k: v for k, v in note.items() if k != "remote"} if isinstance(note, dict) else {})})
@@ -1210,13 +1218,13 @@ class Runner:
                     self.log({"event": "dip", "by": "plan", **self._dip_note()})   # the plan's own, for the journal
                 if b["kind"] == "arm":
                     self._arm(b["cmd"])
+                elif b["kind"] == "joint" and b.get("moving") and self.arm:
+                    self._start_turn(b)
                 elif b["kind"] == "joint":
                     self._joint(b)
-                    if b["joint"] == "shoulder" and b.get("dip"):   # INK-Y: over the cup on the beam, or back from it
-                        turned = abs(float(b["deg"])) >= 0.6
-                        if turned or not self._stop:
-                            self._swung = (float(b.get("rim", BRUSH_UP_DEG)), float(b["speed"])) if turned else None
+                    self._mark_swing(b)
                 elif b["kind"] == "wait":
+                    self._turned()
                     self._wait(float(b["s"]))     # the axes still, the arm where it is; pinging, so STOP still gets through
                 elif b["kind"] in ("pause", "p-pause"):
                     with self.lock:
@@ -1268,6 +1276,7 @@ class Runner:
         why = arm_check(cmd)
         if why:
             raise Abort(why)
+        self._turned()
         p = cmd.split()
         name, deg = ARM_JOINT[int(p[1])], float(p[2])
         if self.arm:
@@ -1302,6 +1311,7 @@ class Runner:
         # An arm stroke (2026-10-02): the shoulder or the elbow turns at its
         # speed; the axes stand. STOP stops it where it is (Arm.stop, H).
         # `within`: as near as counts (a dip's shoulder, INK-Y), the miss in the journal
+        self._turned()
         deg = float(b["deg"])
         try:
             got = self.arm.move_to(b["joint"], deg, float(b["speed"]), float(b.get("within", 0.6)))
@@ -1332,6 +1342,8 @@ class Runner:
         # A joint on the path (W, 2026-10-02): the elbow lands and lifts the
         # brush as the carriage runs, the board turning it where the plan says.
         wrists = [c for c in pieces if c[0] == "W"]
+        if share or wrists:
+            self._turned()               # INK-Y: a shoulder's turn sent with a flight, there before the brush paints
         # A pass (brush on, or landing on the way) can be paused on its line; a travel ends first.
         # So does a pass marked pauseAtEnd (ALU's DRAG, the owner, 2026-10-10: "the pause works
         # only at the ends of a line"): it runs to its end, the pause held before the next block.
@@ -1523,6 +1535,7 @@ class Runner:
             self._dip, why = False, self.message
             self.message = "DIP: the brush to the cup and back"
         note = self._dip_note()
+        self._turned()                   # a turn sent with a flight seen there first: over the cup, or back from it
         beam, over = c.get("beam"), self._swung is not None
         self._arm(f"J 2 {c['rim']:g}")
         if not over:
@@ -1545,9 +1558,44 @@ class Runner:
                 self.message = why
         self.log({"event": "dip", "by": "hand", "x": round(here[0], 2), "y": round(here[1], 2), **note})
 
+    def _mark_swing(self, b):
+        # INK-Y: the shoulder over the cup on the beam, or back from it
+        if b.get("joint") == "shoulder" and b.get("dip"):
+            turned = abs(float(b["deg"])) >= 0.6
+            if turned or not self._stop:
+                self._swung = (float(b.get("rim", BRUSH_UP_DEG)), float(b["speed"])) if turned else None
+
+    def _start_turn(self, b):
+        # INK-Y (the owner, 2026-11-03: "the machine drives to the cup and at
+        # the same time the shoulder turns −24° … back to the cell, and on the
+        # way the shoulder to 0°"): a joint block marked `moving` is sent and
+        # not waited for, the flight after it runs while the servo turns; the
+        # board takes no J on a path, so the turn goes first. Seen there — or
+        # finished — before the arm does anything else or the brush paints
+        # (_turned): a Z or a J then would stop it where it is.
+        self._turned()
+        try:
+            self.arm.move_to(b["joint"], float(b["deg"]), float(b["speed"]), float(b.get("within", 0.6)), wait=False)
+        except ArmError as e:
+            if self._stop:
+                return
+            raise Abort(f"{b['joint']} to {b['deg']}°: {e}")
+        self._turning = b
+        if abs(float(b["deg"])) >= 0.6:
+            self._mark_swing(b)          # over the cup from now on, as far as a stop is concerned
+
+    def _turned(self):
+        # a turn sent with a flight (_start_turn): there by now, or finished here
+        b, self._turning = self._turning, None
+        if b is None or not self.arm:
+            return
+        self._joint({**b, "moving": False})
+        self._mark_swing(b)
+
     def _unswing(self):
         # INK-Y: the shoulder back to 0 from over the cup on the beam, the
         # brush up over its rim first, before it goes anywhere else
+        self._turned()
         if self._swung is None or not self.arm:
             return
         rim, speed = self._swung

@@ -577,14 +577,19 @@ export function plotRun(o, passes) {
       if (dipped) {
         dry = false;
         // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again;
-        // on the beam the shoulder turns the brush over the cup first and back after (rim: how high the brush
-        // goes before rembrandt.py turns it back by itself — a jump, a run after a stop there)
-        const to = cupBy(at0), turn = deg => beam ? [{ kind: 'joint', joint: 'shoulder', deg, speed: cup.swing, within: SHOULDER_WITHIN, rim: cup.rim, row, dip: true }] : [];
-        blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(to)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true }, ...turn(cup.shoulder),
+        // on the beam the shoulder turns the brush over the cup on the way there and back on the way back
+        // (the owner, 2026-11-03, IMG_2073: "the machine drives to the cup and at the same time the shoulder
+        // turns −24° … back to the cell, and on the way the shoulder to 0°"): `moving`, rembrandt.py sends it
+        // with the flight after it and sees it there before the elbow. rim: how high the brush goes before
+        // rembrandt.py turns it back by itself — a jump, a run after a stop there
+        const to = cupBy(at0), turn = deg => beam ? [{ kind: 'joint', joint: 'shoulder', deg, speed: cup.swing, within: SHOULDER_WITHIN, rim: cup.rim, row, dip: true, moving: true }] : [];
+        blocks.push(...turn(cup.shoulder), { kind: 'move', cmds: [`T ${o.travel}`, `M ${M(to)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true },
           { kind: 'arm', cmd: `J 2 ${cup.dip}`, row, dip: true }, { kind: 'wait', s: cup.dwell, row, dip: true },
           { kind: 'arm', cmd: `J 2 ${cup.rim}`, row, dip: true }, ...turn(0));
         air.push([at0, to]); cups.push(to);
-        seconds += travelTime(away(at0, to), o.travel) + 2 * ARM_S + cup.dwell + (beam ? 2 * Math.abs(cup.shoulder) / cup.swing : 0);
+        // the turns on the flights: a flight shorter than its turn waits for it
+        const swing = beam ? Math.abs(cup.shoulder) / cup.swing : 0, flyTo = travelTime(away(at0, to), o.travel);
+        seconds += Math.max(flyTo, swing) + 2 * ARM_S + cup.dwell + (beam ? Math.max(0, swing - travelTime(away(to, first), o.travel)) : 0);
         at0 = to; dips++;
       }
       if (o.ink) air.push([at0, first]);

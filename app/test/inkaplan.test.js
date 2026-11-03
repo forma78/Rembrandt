@@ -139,7 +139,7 @@ test('OPM-N\'s wipe with the cup on the beam (INK-Y, 2026-11-03): the brush wait
   const run = plotRun({ ...RUN, ink: true, cup, rows: 2, noDipUnder: 0 }, [{ key: 'DRAG', ps: [seg(0, 1)], why: null }, { key: 'DRAG', ps: [seg(10, 2)], why: 'wipe the brush, put Cream in the cup, then Continue' }]);
   const B = wipeBlocks(run.blocks, 30), k = B.findIndex(b => b.kind === 'pause');
   const say = b => b.kind === 'move' ? (b.dip ? 'to the cup' : b.paintMM ? 'row' : 'to the row') : b.kind === 'joint' ? `shoulder ${b.deg}` : b.kind === 'wait' ? 'wait' : b.kind === 'pause' ? 'pause' : b.cmd;
-  assert.deepEqual(B.slice(k - 3, k + 7).map(say), ['to the cup', 'shoulder -25.1', 'J 2 30', 'pause', 'J 2 -5', 'wait', 'J 2 24', 'shoulder 0', 'to the row', `J 2 ${ELBOW_HOVER}`]);
+  assert.deepEqual(B.slice(k - 3, k + 7).map(say), ['shoulder -25.1', 'to the cup', 'J 2 30', 'pause', 'J 2 -5', 'wait', 'J 2 24', 'shoulder 0', 'to the row', `J 2 ${ELBOW_HOVER}`]);
   assert.equal(B.length, run.blocks.length + 1);
 });
 

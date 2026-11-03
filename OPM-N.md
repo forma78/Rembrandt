@@ -208,6 +208,18 @@ tunnel blend, a ruler in the later ones); the owner answered.
   miss of 0.6° or more in the journal (`near`), to see how it comes back.
   At ~100 mm from the shoulder to the brush (est., from −27.8° to the cup)
   1° is ≈ 1.7 mm at the brush.
+- **The shoulder on the flights** (`OPM-N/IMG_2073.MOV`, "20 seconds a
+  stroke": to the cup 00:01–00:05, the shoulder and the dip 00:06–00:09,
+  back 00:11–00:15; his: "drives to the cup and at the same time the
+  shoulder turns −24° … back to the cell, and on the way the shoulder to
+  0°"). The shoulder's turn is sent just before the flight and not waited
+  for; seen there before the elbow. The firmware's "the arm and the rail
+  never move together" (RUBENS's, eased 2026-10-02 for the wrist and the
+  elbow's W) stays: it refuses a J once a path runs, not a path while a
+  joint turns, so no flash was needed. His rule for rules the same night:
+  "we write rules to avoid chaos, because chaos slows the work … if rules
+  slow the work, speed is above the rules; they may be rewritten when it is
+  conscious and raises productivity and speed".
 - **The red pen's run was DRAG SNAKE** (23:53, `snake: true`, Dip overlap
   5; the pencil's at 22:18 AIR) — he asked, he had not written it down.
 - **Cells 4, 2, 3 against cell 10** (IMG_2069, IMG_2068: "the size between
