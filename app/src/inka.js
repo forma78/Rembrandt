@@ -255,6 +255,7 @@ async function loadInk() {
 }
 const hereNow = () => { const R = reach(); return { x: R.x.min + S.edgeBottom + S.boardH / 2, y: R.y.min + S.edgeLeft + S.boardW / 2 }; };
 const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x, y: d.y } : c; };
+const cupName = () => cup().beam ? 'the cup on the beam (INK-Y)' : 'the cup of the Ink tab';
 
 // ---------- the run: DRAG, every figure one line ----------
 // One key (the owner, 2026-10-17: "AIR is not needed, only DRAG"): a figure
@@ -390,7 +391,7 @@ function paintRun() {
   if (PAINT_RUN?.key === key) return PAINT_RUN;
   if (!D.passes.length) return (PAINT_RUN = { key, ...EMPTY, passes: [] });
   const R = dragRowsOf(D.passes, S.pencils, po(), OPMN ? S.dipEvery : 0, OPMN ? S.dipLap : 0), name = id => pencilOf(id)?.name ?? id;
-  // OPM-N (OPM-N.md step 4): the paint from the cup of the Ink tab — a dip at every colour's start, then every Dip every mm (for now); between two colours the brush up over the cup, the next colour put in it
+  // OPM-N (OPM-N.md step 4): the paint from the cup — INK-Y's on the beam since 2026-11-03, else the Ink tab's — a dip at every colour's start, then every Dip every mm (for now); between two colours the brush up over the cup, the next colour put in it
   const r = plotRun({ ...runOpts(R.ps.length), speed: S.pspeed, lift: true, press: S.brushPress, ...(OPMN ? { ink: true, noDipUnder: 0 } : {}) }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? OPMN ? `wipe the brush, put ${name(D.passes[k].pencil)} in the cup, then Continue` : `wipe the brush, squeeze ${name(D.passes[k].pencil)} on its cells, then Continue` : null })));
   return (PAINT_RUN = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: D.passes.reduce((a, q) => a + q.mm, 0), passes: D.passes });
 }
@@ -1501,7 +1502,7 @@ if (OPMN) Object.assign(PENCIL_TITLE, {                                         
   dragRubs: 'Every track so many times over: Snake there and back, Air one way each, the brush up and back between (the owner, 2026-11-01: "as we did with the pencil, rubbed like sandpaper")',
   pspeed: 'The thin brush along its tracks, mm/s (the owner, 2026-11-01: "let the brush go 25 mm/s, not 60, and dip more often"); up through the air from cell to cell (est.)',
   dipLap: 'After a dip in the middle of a track the brush starts so many mm back over it, its landing on what it has painted: it lands and lifts on the move, and on paper (OPM-N/IMG_2056, a pencil) every such dip left a 5 … 6 mm gap — the owner, 2026-11-02: "with a compensating −5 mm". Half of Dip every at most; a dip between two tracks needs none. 0: back to the same point (est.)',
-  dipEvery: 'A dip in the cup of the Ink tab every so many mm of track, for now, till DIP comes from the iPhone (the owner, 2026-11-02): 75 … 80 mm with pouring medium, ≈ 30 in pure acrylic (RoArte/IMG_1971, IMG_1954); between two strokes when the brush has painted half of it, else in one, back to the same point. 0: a colour\'s first dip alone (est.)',
+  dipEvery: 'A dip in the cup — INK-Y\'s on the beam, else the Ink tab\'s — every so many mm of track, for now, till DIP comes from the iPhone (the owner, 2026-11-02): 75 … 80 mm with pouring medium, ≈ 30 in pure acrylic (RoArte/IMG_1971, IMG_1954); between two strokes when the brush has painted half of it, else in one, back to the same point. 0: a colour\'s first dip alone (est.)',
 });
 const sgn = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
 const pencilVal = key => PRISMA ? ({ pitch: `${fmt(S.pitch, 1)} mm (est.)`, track: `${fmt(S.track, 1)} mm (est.)`, dipEvery: S.dipEvery ? `${S.dipEvery} mm of track (est.)` : 'a colour\'s first alone', dipLap: S.dipLap ? `${fmt(S.dipLap, 1)} mm back (est.)` : 'none, the same point', dragRubs: `${S.dragRubs} × (est.)`, pspeed: `${S.pspeed} mm/s (est.)`, rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', facets: `${S.facets} · ${fmt(90 / S.facets, 0)}° a turn`, rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(glideAt())}${glideAt() > S.touch + S.glide + 1e-9 ? `, ${PEN_AIR}° over pressing` : ''} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
@@ -1630,7 +1631,7 @@ function showPencils() {
     const B = oneRun('bw'), rows = D.lines.filter(L => L.kind === 'row').length, cells = D.cells.filter(q => q.pencil).length;
     lines.push(`DRAW BW: <b>${D.lines.length}</b> line${D.lines.length === 1 ? '' : 's'}, every one once — ${rows} along the rows, block after block round ${S.cw ? '↻' : '↺'} from 12 o'clock, every block's from its outer edge in, then ${D.lines.length - rows} rays — ${S.merge ? 'none between two cells of one colour' : 'one between every two cells'}, ${cells} cells; rubbed ${S.rubsDark}×, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)}), ${OPMP ? `up at ${sgn(glideAt())} between, ${sgn(glideAt() - Math.max(ELBOW_MIN, S.touch + S.press))} over pressing (${PEN_AIR}° at least)` : S.glide <= 0 ? 'gliding on the canvas' : 'just off it'} between; ${fmt(B.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, ≈ <b>${hm(B.seconds)}</b> (est.)${B.pencil ? `, in ${esc(B.pencil.name)}` : ''}`);
     const side = R_ => { const n = R_.sides, f = R_.blocks.filter(B => !B.side).map(B => B.n); return `${R_.bands ? `${R_.bands} bands, ` : ''}${n[4] ?? 0} top · ${n[2] ?? 0} right · ${n[0] ?? 0} bottom · ${n[6] ?? 0} left${f.length ? `, the bevels ${Math.min(...f)} … ${Math.max(...f)}` : ''}`; };
-    const drag = [R.passes.length && OPMN ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells, a colour's by their numbers — every cell on its own, ${R.passes.reduce((a, q) => a + q.tracks, 0)} tracks in all, ${fmt(S.track, 1)} mm apart at most (Track width), ${S.snake ? 'Snake: back and forth, the brush down' : 'Air: every track one way, the brush up and back'}, every one ${S.dragRubs}× (Rubs); up through the air from cell to cell; ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.dips} dip${R.dips === 1 ? '' : 's'} in the cup of the Ink tab, ${S.dipEvery ? `one at every colour's start, then every ${S.dipEvery} mm of track${S.dipLap ? `, the brush ${fmt(S.dipLap, 1)} mm back over the track after one in the middle of it (Dip overlap)` : ''}` : 'one at every colour\'s start'}; ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° over the cup to wipe it and put the next colour in` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : R.passes.length ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells — ${R.passes.reduce((a, q) => a + q.rows, 0)} strokes along the rows, block after block, then ${R.passes.reduce((a, q) => a + q.rays, 0)} along the rays — every one ${S.dragRubs}× (Rubs); ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up on the move ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° to wipe it and squeeze the next` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : 'DRAG: nothing to paint — the Preview bare here, or no colour near it',
+    const drag = [R.passes.length && OPMN ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells, a colour's by their numbers — every cell on its own, ${R.passes.reduce((a, q) => a + q.tracks, 0)} tracks in all, ${fmt(S.track, 1)} mm apart at most (Track width), ${S.snake ? 'Snake: back and forth, the brush down' : 'Air: every track one way, the brush up and back'}, every one ${S.dragRubs}× (Rubs); up through the air from cell to cell; ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.dips} dip${R.dips === 1 ? '' : 's'} in ${cupName()}, ${S.dipEvery ? `one at every colour's start, then every ${S.dipEvery} mm of track${S.dipLap ? `, the brush ${fmt(S.dipLap, 1)} mm back over the track after one in the middle of it (Dip overlap)` : ''}` : 'one at every colour\'s start'}; ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° over the cup to wipe it and put the next colour in` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : R.passes.length ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells — ${R.passes.reduce((a, q) => a + q.rows, 0)} strokes along the rows, block after block, then ${R.passes.reduce((a, q) => a + q.rays, 0)} along the rays — every one ${S.dragRubs}× (Rubs); ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up on the move ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° to wipe it and squeeze the next` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : 'DRAG: nothing to paint — the Preview bare here, or no colour near it',
       FORM ? `Every form its own rings, ${fmt(S.pitch, 1)} mm apart at most, its depth over a whole number of them: ${D.regions.length} form${D.regions.length === 1 ? '' : 's'}, ${D.regions.reduce((a, R_) => a + R_.bands, 0)} rings in all${D.regions.some(R_ => !R_.ok) ? `, ${D.regions.filter(R_ => !R_.ok).length} left empty` : ''}`   // FORM's forms: no sides, no bevels
         : `${S.bind ? 'The blend\'s bands over the corners, every block\'s band in a whole number of rows' : 'Every block its own rows'}, ${fmt(S.pitch, 1)} mm apart at most, evenly: ${D.regions.map(R_ => `${R_.kind === 'blend' ? `Key ${R_.key + 1} → ${R_.key + 2}` : R_.kind === 'core' ? 'the core' : 'a tile'} ${side(R_)}`).join('; ')}`];
     if (D.few.length && OPMN) drag.push(`Left out, ${D.few.length} colour${D.few.length === 1 ? '' : 's'} — in fewer than ${FEW_CELLS} cells: ${D.few.map(id => pencilOf(id)?.name ?? id).join(', ')} — their cells to the nearest of the rest${D.accent ? `; ${esc(pencilOf(D.accent)?.name ?? D.accent)} the accent, the one colour in a single cell` : ''} (the owner, 2026-11-02: "one colour in one cell; then at once five cells at least")`);
@@ -2144,7 +2145,7 @@ async function loadRef() {
 const label = () => `${TAB_NAME} · ${what()} · ${S.boardW} × ${S.boardH} mm · brush ${fmt(S.brush, 1)} mm, ${fmt(trail(), 1)} with paint`;
 function svgOf() {
   const W = S.boardW, H = S.boardH, f = v => (Math.round(v * 100) / 100).toFixed(2), P = planNow();
-  const meta = JSON.stringify({ rembrandt: '1.1.8', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
+  const meta = JSON.stringify({ rembrandt: '1.1.9', [TAB]: true, label: label(), settings: S }).replace(/&/g, '\\u0026').replace(/</g, '\\u003c').replace(/--/g, '- -');
   const rects = S.rects.map((r, i) => isBlend(r)
     ? keysOf(r).map((q, j) => `  <rect x="${f(q.x)}" y="${f(H - q.y - q.h)}" width="${f(q.w)}" height="${f(q.h)}" rx="${f(Math.min(q.c, q.w / 2, q.h / 2))}" data-tile="${i + 1}" data-kind="blend" data-key="${j + 1}"${j ? '' : ` data-steps="${r.steps}" data-step="${f(r.step)}"`}/>`).join('\n')
     : `  <rect x="${f(r.x)}" y="${f(H - r.y - r.h)}" width="${f(r.w)}" height="${f(r.h)}" data-tile="${i + 1}" data-step="${f(r.step)}"${isJohn(r) ? ' data-kind="john"' : ''}/>`).join('\n');
@@ -2152,7 +2153,7 @@ function svgOf() {
   const sausages = sausagesOf(S.rects).map(q => `  <line x1="${f(q.a[0])}" y1="${f(H - q.a[1])}" x2="${f(q.b[0])}" y2="${f(H - q.b[1])}" stroke="${PAINT[q.paint].hex}" data-paint="${q.paint}"${q.thin ? ' data-thin="1"' : ''}/>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${W}mm" height="${H}mm" viewBox="0 0 ${W} ${H}">
-<!-- Rembrandt v.1.1.8 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's figures in running order -->
+<!-- Rembrandt v.1.1.9 · ${esc(label())}; 1 unit = 1 mm, y down; DRAG's figures in running order -->
 <metadata id="rembrandt-test">${meta}</metadata>
 <rect width="${W}" height="${H}" fill="${GROUND}" stroke="#24221F" stroke-width="0.5"/>
 <g id="paths" fill="none" stroke="#24221F" stroke-opacity="0.12" stroke-width="${f(trail())}" stroke-linejoin="round" stroke-linecap="round">
@@ -2237,6 +2238,12 @@ $('#btnLoad').onclick = showLoads;
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 let RUN_KEY = null;
 async function start(key, blocks, info, log) {
+  // the cup on the beam (INK-Y): only a rembrandt.py that knows it turns the shoulder back by itself — before a Back, Skip
+  // or Go to, and at the start of the run after one stopped over the cup
+  if (blocks.some(b => b.kind === 'joint' && b.dip)) {
+    let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+    if (st && !st.beam) { $('#runState').innerHTML = '<span class="warn">The cup on the beam (INK-Y): restart rembrandt.py first — the one running does not know it yet.</span>'; return; }
+  }
   try {
     RUN = blocks; RUN_INFO = info; RUN_KEY = key;
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, log }) });
@@ -2353,16 +2360,17 @@ if (DACHE) {
 // OPM-P's DRAG: its question — the first colour to squeeze, the order, the pauses, the time — and its run
 async function paintDrag(snake) {
   if (OPMN && typeof snake === 'boolean' && S.snake !== snake) S.snake = snake;      // OPM-N: the key's way, the views and Play Drag by it from now on
+  if (OPMN) await loadInk();                                                          // the cup as set now, on INK-Y or the Ink tab
   settle(); clearTimeout(dacheT);
   const R = paintRun(), warn = t => { $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
   if (lastSt && ['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) return warn('A run is on: STOP it first.');
   if (!R.rows.length) return warn('Nothing to paint: no blend or tile on the canvas, or the Preview bare.');
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);
   if (walls(R)) return warn(walls(R));
-  if (OPMN && cupProblem(cup())) return warn(`DRAG dips in the cup of the Ink tab: ${cupProblem(cup())}`);
+  if (OPMN && cupProblem(cup())) return warn(`DRAG dips in ${cupName()}: ${cupProblem(cup())}`);
   const n = R.passes.length, first = pencilOf(R.passes[0].pencil), F = S.frame;
   const text = OPMN ? `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Every colour's cells by their numbers, 1, 2, 3 …, every one on its own: its tracks ${fmt(S.track, 1)} mm apart at most, ${S.snake ? 'Snake, back and forth with the brush down' : 'Air, every track one way, the brush up and back'}, every one ${S.dragRubs}× (Rubs); from cell to cell up through the air. `
-    + `The paint from the cup of the Ink tab: put ${first?.name ?? 'the first'} in it now — a dip at every colour's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of track (for now, till DIP from the iPhone)` : 'no other'}, ${R.dips} dips. `
+    + `The paint from ${cupName()}: put ${first?.name ?? 'the first'} in it now — a dip at every colour's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of track (for now, till DIP from the iPhone)` : 'no other'}, ${R.dips} dips. `
     + (n > 1 ? `Between two colours it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the cup — wipe it, put the next colour in the cup, Continue. ` : '')
     + `${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, ≈ ${hm(R.seconds)} (est.).` + (F ? ` Only the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm.` : '')
     : `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Squeeze ${first?.name ?? 'the first'} on its cells now — Drag shows where. `

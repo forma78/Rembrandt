@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · INK-Y</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+</head>
+<body>
+<!-- Rembrandt · INK-Y — the cup on the beam (the owner, 2026-11-03): it
+     rides with the beam in X by the canvas's left edge; the carriage goes to
+     it along Y alone, the shoulder turns the brush over it, the elbow dips
+     as on the Ink tab. Once set, every dip goes here (src/inkypage.js). -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.1.9</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="index.html">INKA</a>
+      <a href="opmn.html">OPM-N</a>
+      <a href="ink.html">Ink</a>
+      <a href="inky.html" class="on">INK-Y</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+  <div class="top-right">
+    <span class="link-state" id="linkState">…</span>
+  </div>
+</header>
+
+<main class="cal">
+  <section class="stage" id="stage">
+    <canvas id="top"></canvas>
+  </section>
+
+  <aside class="panel">
+    <section class="sec">
+      <h3>The dip <span class="hint">the shoulder, the elbow <button class="info" id="dipInfo" title="What the numbers mean">i</button></span></h3>
+      <div class="grid4" id="dip"></div>
+      <div class="grid4 keys">
+        <button class="btn" id="btnRim" title="Over the rim becomes the elbow's angle now: up until the brush clears the rim, with room">🙋‍♂️ Over the rim ← elbow</button>
+        <button class="btn" id="btnDip" title="In the cup becomes the elbow's angle now: down until the bristles are in the paint">🙇‍♂️ In the cup ← elbow</button>
+      </div>
+      <p class="read" id="dipHelp" hidden></p>
+      <p class="read" id="dipRead"></p>
+    </section>
+
+    <section class="sec">
+      <h3>Jog <span class="hint">as on the Ink tab, the shoulder too · Esc = STOP</span></h3>
+      <div id="jog"></div>
+    </section>
+
+    <section class="sec">
+      <h3>Cup <span class="hint">on the beam, by the canvas's left edge <button class="info" id="cupInfo" title="Where the cup is">i</button></span></h3>
+      <p class="read" id="cupHelp" hidden></p>
+      <p class="read" id="cupRead"></p>
+      <button class="btn wide" id="btnCup" title="Jog the carriage along Y and turn the shoulder until the brush, down in the cup, is over its centre; then press: the carriage's Y and the shoulder's angle">Here: the brush is over the cup's centre</button>
+      <div class="grid4" id="size"></div>
+      <h3 class="sub">Canvas <span class="hint">from home, as on every tab <button class="info" id="canvasInfo" title="Where the canvas lies">i</button></span></h3>
+      <div class="grid4" id="canvas"></div>
+      <p class="read" id="canvasRead" hidden></p>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint">INK-Y — the cup on the beam: the carriage along Y alone, the shoulder over the cup, the elbow in, up, back. Once set, every dip goes here.</span>
+  <span id="saved"></span>
+</footer>
+<script type="module" src="src/inkypage.js"></script>
+</body>
+</html>

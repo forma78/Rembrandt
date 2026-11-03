@@ -321,6 +321,33 @@ test('D2 after D1 with INK ON: the pause asks for the paint in the cup', () => {
   assert.equal(p.dips, 6);
 });
 
+// ---------- INK-Y (the owner, 2026-11-03): the cup on the beam, along Y alone, the shoulder over it ----------
+const BEAMCUP = { beam: true, x: null, y: 30, shoulder: -25.1, swing: 40, rim: 24, dip: -5, dwell: 1 };
+test('INK-Y, D1: to the cup along Y alone from where the row ended, the shoulder over it, in, up, the shoulder back — the arm straight first', () => {
+  const p = xyPlan({ ...D1, here: HERE, ink: true, cup: BEAMCUP }), table = xyPlan({ ...D1, here: HERE, ink: true, cup: { ...CUPAT, x: 860 } });   // at the table's far end, as his
+  assert.equal(p.dips, 14);
+  assert.deepEqual(p.blocks[2], { kind: 'joint', joint: 'shoulder', deg: 0, speed: 40, row: 0 }, 'the shoulder at 0 before anything: a run stopped over the cup left it turned');
+  const say = b => b.kind === 'move' ? (b.home ? 'home' : b.paintMM ? 'row' : b.dip ? 'to the cup' : 'to the row') : b.kind === 'wait' ? `wait ${b.s}` : b.kind === 'joint' ? `shoulder ${b.deg}` : b.cmd;
+  const row = ['to the cup', 'shoulder -25.1', 'J 2 -5', 'wait 1', 'J 2 24', 'shoulder 0', 'to the row', 'J 2 25', 'row', 'J 2 24'];
+  assert.deepEqual(p.blocks.slice(3).map(say), [...Array(14).fill(row).flat(), 'home']);
+  let at = homeCorner();
+  for (const b of p.blocks) {
+    if (b.kind !== 'move') continue;
+    const to = endOf(b.cmds.filter(c => /^[LMA]/.test(c)).at(-1));
+    if (b.dip) assert.deepEqual([to.x, to.y], [Math.round(at.x * 100) / 100, 30], `row ${b.row}: along Y alone, X where the brush left off`);
+    at = to;
+  }
+  assert.ok(p.blocks.filter(b => b.kind === 'joint' && b.dip).every(b => b.rim === 24 && b.speed === 40), 'its rim and speed with it, for rembrandt.py');
+  assert.deepEqual(p.preview, table.preview, 'the paint as with the Ink tab\'s cup');
+  assert.ok(p.seconds < table.seconds, `${p.seconds} s against ${table.seconds}: no trip to X 860 and back fourteen times`);
+});
+
+test('INK-Y not set: no dips, as the Ink tab\'s cup not taken', () => {
+  const p = xyPlan({ ...D1, here: HERE, ink: true, cup: { ...BEAMCUP, y: null, shoulder: null } });
+  assert.equal(p.dips, 0);
+  assert.ok(!p.blocks.some(b => b.kind === 'joint'));
+});
+
 // ---------- the walls press the path (the owner, 2026-10-03: "remove this restriction") ----------
 const allPoints = p => p.blocks.filter(b => b.kind === 'move').flatMap(b => b.cmds.filter(c => /^[LMA]/.test(c)).map(endOf));
 test('D1 2 mm past the bottom wall: pressed along it, every elbow command kept, nothing past the walls', () => {

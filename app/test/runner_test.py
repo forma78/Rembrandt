@@ -628,6 +628,112 @@ class DipTest(unittest.TestCase):
         self.assertEqual((w["cell"], w["next"]["name"]), (3, "Cream"))
 
 
+class BeamDipTest(unittest.TestCase):
+    """INK-Y (the owner, 2026-11-03): the cup on the beam — the carriage to it
+    along Y alone, the shoulder turns the brush over it, the elbow dips, the
+    shoulder back; turned back by itself before a jump and at the next run's
+    start, a run stopped over the cup or not."""
+
+    CUP = {"beam": True, "y": 30.0, "shoulder": -25.1, "swing": 40, "rim": 24, "dip": -5, "dwell": 1}
+
+    def runner(self, b, log=None):
+        # the runner with an arm, its elbow and shoulder turns and its flights written down in order
+        arm = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
+        r = Runner(b.send, sleep=b.sleep, swing_s=0, arm=arm, log=log)
+        seen, arm_, joint_, move_ = [], r._arm, r._joint, r._move
+
+        def a(cmd):
+            seen.append(cmd)
+            return arm_(cmd)
+
+        def j(blk):
+            seen.append(f"{blk['joint']} {float(blk['deg']):g}")
+            return joint_(blk)
+
+        def m(blk):
+            end = block_end(blk["cmds"])
+            if end and not blk.get("paintMM"):
+                seen.append(f"M {end[0]:.2f} {end[1]:.2f}")
+            return move_(blk)
+        r._arm, r._joint, r._move = a, j, m
+        return r, arm, seen
+
+    def plan(self):
+        # as plotRun lays a dip on the beam before a row
+        dip = lambda **k: {**k, "dip": True, "row": 1}
+        return [{"kind": "arm", "cmd": "J 2 24", "row": 0}, {"kind": "joint", "joint": "shoulder", "deg": 0, "speed": 40, "row": 0},
+                dip(kind="move", cmds=["T 180", "M 99.00 30.00", "G"], paintMM=0), dip(kind="joint", joint="shoulder", deg=-25.1, speed=40, rim=24),
+                dip(kind="arm", cmd="J 2 -5"), dip(kind="wait", s=1), dip(kind="arm", cmd="J 2 24"), dip(kind="joint", joint="shoulder", deg=0, speed=40, rim=24),
+                {"kind": "move", "cmds": ["T 180", "M 99.00 50.00", "G"], "paintMM": 0, "row": 1}, {"kind": "arm", "cmd": ON, "row": 1},
+                {**paint(6), "row": 1}, {"kind": "arm", "cmd": "J 2 24", "row": 1}]
+
+    def test_the_cup_on_the_beam_from_a_note(self):
+        self.assertEqual(rubens.cup_of(self.CUP), {**self.CUP, "y": 30.0, "shoulder": -25.1, "swing": 40.0, "rim": 24.0, "dip": -5.0, "dwell": 1.0})
+        self.assertEqual(rubens.cup_of({k: v for k, v in self.CUP.items() if k != "swing"})["swing"], rubens.SWING_DIP)
+        for bad in ({**self.CUP, "shoulder": -60}, {**self.CUP, "swing": 500}, {k: v for k, v in self.CUP.items() if k != "shoulder"}, {**self.CUP, "y": None}):
+            self.assertIsNone(rubens.cup_of(bad), bad)
+        self.assertIsNone(rubens.cup_of({**self.CUP, "beam": False}), "no X: no cup on the table either")
+        self.assertTrue(Runner(FakeBoard().send).status()["beam"], "the pages ask before a run on the beam")
+
+    def test_the_plans_dip_turns_the_shoulder_over_the_cup_and_back(self):
+        b = FakeBoard(rate=1)
+        r, arm, seen = self.runner(b)
+        self.assertTrue(r.start(self.plan(), {"page": "opmn", "cup": self.CUP})[0])
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        i = seen.index("M 99.00 30.00")
+        self.assertEqual(seen[i:i + 7], ["M 99.00 30.00", "shoulder -25.1", "J 2 -5", "J 2 24", "shoulder 0", "M 99.00 50.00", ON])
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+        self.assertIsNone(r._swung)
+
+    def test_a_run_stopped_over_the_cup_turns_the_shoulder_back_at_the_next_start(self):
+        b = FakeBoard(rate=1)
+        r, arm, seen = self.runner(b)
+        b.on_sleep = lambda: r._swung and r.state == "running" and r.stop()
+        r.start(self.plan(), {"page": "opmn", "cup": self.CUP})
+        r.thread.join(10)
+        self.assertIn(r.state, ("stopped", "error"), "STOP during an arm's turn is an error in the journal, as with the Ink tab's cup")
+        self.assertIsNotNone(r._swung, "stopped with the brush over the cup")
+        self.assertGreater(abs(arm.angles()[0]["shoulder"]), 20)
+        b.on_sleep, n = None, len(seen)
+        r.start([{"kind": "arm", "cmd": OFF}, {**travel(5, 5), "home": True}], {"page": "opmn", "label": "OPM-N · HOME"})
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(seen[n:n + 2], ["J 2 24", "shoulder 0"], "over the rim, then the shoulder back, before anything else")
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+
+    def test_a_jump_from_over_the_cup_turns_the_shoulder_back_first(self):
+        b = FakeBoard(rate=1)
+        r, arm, seen = self.runner(b)
+        arm.move_to("shoulder", -25.1, 40)
+        r.blocks, r.state, r._swung, r._jump = self.plan(), "running", (24.0, 40.0), (8, None, "back")
+        self.assertEqual(r._do_jump(), 8)
+        self.assertEqual(seen[:2], ["J 2 24", "shoulder 0"])
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+        self.assertIsNone(r._swung)
+
+    def test_the_iphones_dip_goes_along_y_alone_and_comes_back_to_the_same_point(self):
+        b = FakeBoard(rate=1)
+        r, arm, seen = self.runner(b)
+        ticks = {}
+
+        def later():
+            if "asked" not in ticks and r.state == "running" and r.block == 1 and b.running and len(b.queue) < 9:
+                ticks["asked"] = r.dip()
+        b.on_sleep = later
+        r.start([{"kind": "arm", "cmd": ON}, paint(12)], {"page": "opmn", "cup": self.CUP, "travel": 150})
+        r.thread.join(10)
+        self.assertTrue(ticks["asked"])
+        self.assertEqual(r.state, "done", r.message)
+        i = next(k for k, c in enumerate(seen) if c.endswith(" 30.00"))
+        to, back = seen[i].split(), seen[i + 6].split()
+        self.assertEqual(seen[i + 1:i + 6], ["shoulder -25.1", "J 2 -5", "J 2 24", "J 2 24", "shoulder 0"])
+        self.assertEqual(to[1], back[1], "along Y alone: X where the brush stood")
+        self.assertEqual(seen[i - 1], "J 2 24", "over the rim first")
+        self.assertLess(abs(arm.angles()[0]["shoulder"]), 0.6)
+        self.assertEqual(r.status()["dips"], 1)
+
+
 class GotoTest(unittest.TestCase):
     """⏮ Back, ⏭ Skip and Go to № (OPM-N.md: "of course there is no ⌘Z in the
     physical world: repeat DRAG in the current cell"): the brush up at once,

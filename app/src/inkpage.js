@@ -10,7 +10,7 @@
 import { fmt } from './util.js';
 import { parsePing, toMm, reach, homeCorner } from './machine.js';
 import { mountJog } from './jog.js';
-import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, cupOf, cupProblem, drawCup, dipAt } from './ink.js';
+import { CUP, CUP_AIM, EST, ELBOW_MIN, ELBOW_MAX, RIM_MIN, DWELL_MAX, tableOf, beamOf, cupProblem, drawCup, dipAt } from './ink.js';
 import { CANVAS_FIELDS, canvasNow, setCanvas, hereOf, onCanvas } from './canvas.js';
 import { isNight, themeColor } from './lamp.js';
 import './ui.js';
@@ -18,7 +18,7 @@ import './ui.js';
 const $ = s => document.querySelector(s);
 const INK_ = '#24221F', MUTE = '#7D776D', ORANGE = '#EB7A25', PAPER = '#FCFBF8';
 const S = { ink: {}, pos: { x: null, y: null } };
-const cup = () => cupOf(S.ink);
+const cup = () => tableOf(S.ink);   // this tab's own cup, on the table; INK-Y's on the beam, once set, takes every dip (ink.js, cupOf)
 
 // ---------- ink.json ----------
 async function load() {
@@ -71,9 +71,10 @@ function show() {
     ? `The cup's centre: carriage <b>X ${fmt(c.x, 1)} · Y ${fmt(c.y, 1)} mm</b> · ⌀${c.diameter}, ${c.height} mm high. Jog there and press again to change it.`
       + (off > 0 && !rim ? ` It lies ${fmt(off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them, well within the cup.` : '')
     : 'The cup is not set yet.';
-  $('#cupRead').innerHTML = c.x === null
+  const onBeam = beamOf(S.ink).shoulder !== null && beamOf(S.ink).y !== null;
+  $('#cupRead').innerHTML = (onBeam ? '<span class="warn">INK-Y\'s cup on the beam is set: every dip goes there now, not to this one.</span> ' : '') + (c.x === null
     ? 'Not set. The elbow up over the rim first (+35° or more), or the brush knocks the cup over; jog the brush over the red scope, the cup\'s centre; lower it into the paint to check; then press here.'
-    : rim ? `<span class="warn">It lies ${fmt(off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them — too near the rim: move the cup in.</span>` : '';
+    : rim ? `<span class="warn">It lies ${fmt(off, 1)} mm past the machine's walls, where the board takes no path: the brush dips at X ${fmt(dipAt(c).x, 1)} · Y ${fmt(dipAt(c).y, 1)}, inside them — too near the rim: move the cup in.</span>` : '');
   for (const inp of document.querySelectorAll('.grid4 input[data-part]')) {
     const k = inp.dataset.k, typed = S.ink[inp.dataset.part] || {};
     if (document.activeElement !== inp) inp.value = typed[k] ?? '';

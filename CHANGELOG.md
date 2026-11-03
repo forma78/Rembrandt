@@ -3,6 +3,32 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## v.1.1.9 — 2026-11-03 · INK-Y
+
+- **INK-Y: the cup on the beam; v.1.1.9 on every tab and in the saved
+  SVGs** (the owner, 2026-11-03, `OPM-N/IMG_2060…2062`: "the jar somewhere
+  near … it is enough to drive along Y. SHOULDER turns −25.1°, then ELBOW
+  dips −5°. Then up and back. All as now, only the jar not at a fixed point
+  as on INK, but riding on the beam Y"; "let us write a tab INK-Y for it,
+  the old one with the fixed jar I will hide … and this is 1.1.9"). A new
+  tab after Ink: the cup's Y and the shoulder's angle, taken at once by
+  Here, its elbow's numbers the Ink tab's till typed, Shoulder speed 40°/s
+  (est.), the jog with a SHOULDER handle, the beam and the cup drawn from
+  above; kept in `ink.json`'s `beam`. Once set, every dip goes there
+  (`ink.js`: `cupOf` the beam's, `tableOf` the Ink tab's, `beamOf`):
+  `plotRun` flies along Y alone from where the brush left off, a
+  shoulder `joint` block over the cup and one back round the elbow's dip,
+  the arm straight at the run's start; `wipeBlocks` keeps the brush over
+  the cup at a colour's pause. `rembrandt.py`: `cup_of` takes the cup on
+  the beam, the iPhone's DIP goes there (or only in and up when the brush
+  is over it already), the shoulder turned back by itself before ⏮ Back,
+  ⏭ Skip, ▶️ Go to and at the next run after a stop over the cup; `/run`
+  says `beam`, and the pages refuse such a run on an older `rembrandt.py`
+  — he restarts it. On the 23:53 run: the flights to the cup 919 → 498 m,
+  ≈ 8 h 33 → 7 h 53 min (est.). His red pen run of 23:53 was DRAG SNAKE;
+  its diagonal cells' tracks in pairs on paper, the plan's even (OPM-N.md,
+  2026-11-03). Tests 452 and the runner's 105.
+
 ## v.1.1.8 — 2026-10-30 · 11-02 · OPM-N
 
 - **OPM-N: 🖌️ Dip overlap, its slider green** (the owner, 2026-11-02:

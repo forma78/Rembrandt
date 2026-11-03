@@ -177,6 +177,43 @@ tunnel blend, a ruler in the later ones); the owner answered.
     the jump goes to the same commands. Not understood yet;
   - cell 6 the best of them (IMG_2053).
 
+## Decisions of 2026-11-03
+
+- **The cup on the beam — INK-Y, v.1.1.9** (the owner, `OPM-N/IMG_2060`,
+  `IMG_2061`, `IMG_2062`: "the jar somewhere near … they fit at the left
+  side, 90 mm between the 60 × 60 canvas and the frame … the machine need
+  not go across the whole table, it is enough to drive along Y. SHOULDER
+  turns −25.1°, then ELBOW dips −5°. Then up and back. All as now, only the
+  jar not at a fixed point as on INK, but riding on the beam Y"; "let us
+  write a tab INK-Y for it, the old one with the fixed jar I will hide";
+  twelve flat-bottomed jars, ⌀57, ordered). The jar on a bracket of the
+  beam's left end plate, riding with it in X. A dip: the brush over the
+  rim, the carriage along Y alone to the cup's Y, the shoulder to −25.1°
+  (40°/s, est.), the elbow in, a second, up, the shoulder back to 0, the
+  carriage back; the pause between colours with the brush over the cup, as
+  before. **Here** on INK-Y takes the carriage's Y and the shoulder's angle
+  at once; the elbow's numbers the Ink tab's till typed. Once set, every dip
+  goes there. On the 23:53 run (1879 dips): the flights to the cup 919 → 498
+  m one way, ≈ 8 h 33 → 7 h 53 min (est.) — the shoulder's two turns, 1.3 s a
+  dip at 40°/s, take back half of what the shorter flights give; the dip
+  itself (in, 1 s, up, the turns) ≈ 4 s, 2 h of the run: **Dip every** is
+  the bigger lever. The page asks `rembrandt.py` before such a run: only
+  one that knows the cup on the beam turns the shoulder back by itself
+  before ⏮ Back, ⏭ Skip and ▶️ Go to, and at the next run after one stopped
+  over the cup — he restarts it himself.
+- **The red pen's run was DRAG SNAKE** (23:53, `snake: true`, Dip overlap
+  5; the pencil's at 22:18 AIR) — he asked, he had not written it down.
+- **Cells 4, 2, 3 against cell 10** (IMG_2069, IMG_2068: "the size between
+  the traces differs"). The plan, rebuilt from the journal (15081 blocks, as
+  run), lays them alike: 2.3 … 2.4 mm apart in both. On paper the diagonal
+  cells' snake goes in pairs — ≈ 5 mm, then ≈ 0.5 … 1 mm — where cell 10's,
+  along X, is even: a diagonal track turns back in X and Y both, cell 10's
+  turns step Y one way only. The pen lags behind the carriage against its
+  way (play in the belts or the shoulder, or the arm giving to the pen's
+  drag) — the same as the hooks at a track's start. To measure on scrap: a
+  small snake along X, along Y and at 45°, the pairs' offset each; then AIR
+  for the diagonal cells or the tracks shifted by half of it. Open.
+
 ## 1 · Numbers
 
 Every cell of OPM-P's plan (`opmpPlan` in `opmplan.js`: `blocksIn`,
@@ -323,5 +360,5 @@ canvas. The journal's L per colour is what it will need.
    Go to a cell of the colour now, by a number pad; no dip by itself.
 6. The journal and L per colour.
 
-`cd app && node --test` stays green (441 on 2026-11-01, 444 on 2026-11-02), and
-`python3 app/test/runner_test.py` (88).
+`cd app && node --test` stays green (441 on 2026-11-01, 444 on 2026-11-02, 452
+on 2026-11-03), and `python3 app/test/runner_test.py` (88; 105 on 2026-11-03).

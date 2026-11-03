@@ -15,7 +15,7 @@
     ['tape.html', 'TAPE', false], ['basf.html', 'BASF', false], ['loom.html', 'LOOM', false], ['nolan.html', 'NOLAN', false], ['newyuri.html', 'New Yuri', false],
     ['type.html', 'TYPE', false], ['love.html', 'LOVE', false], ['pencils.html', 'Pencils', false], ['test.html', 'Test', false], ['job.html', 'Job', false],
     ['create.html', 'Create', false], ['adjustments.html', 'Adjustments', false],
-    ['ink.html', 'Ink', true], ['calibration.html', 'Calibration', true, true], ['library.html', 'Library', true, true],
+    ['ink.html', 'Ink', true], ['inky.html', 'INK-Y', true], ['calibration.html', 'Calibration', true, true], ['library.html', 'Library', true, true],
   ].map(([href, name, on, always]) => ({ href, name, on, always: !!always }));
   const KEY = 'rembrandt.prefs.v01';
   const ticks = () => { try { const t = JSON.parse(localStorage.getItem(KEY) || 'null')?.tabs; return t && typeof t === 'object' ? t : {}; } catch { return {}; } };

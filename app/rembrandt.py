@@ -30,7 +30,8 @@ bridge.py of the old machine repo held it on port 8765.
   POST /run/trim?deg=<d>: the elbow's live trim, added to every W 2 of the
   run as it goes to the board (PRISMA and OPM's ELBOW LIVE, 2026-10-28).
   POST /run/dip: the brush to the cup the run was started with and back to
-  the same point (OPM-N's DIP, 2026-11-02).
+  the same point (OPM-N's DIP, 2026-11-02); to the cup on the beam along Y
+  alone, the shoulder turning the brush over it and back (INK-Y, 2026-11-03).
 - /remote: the iPhone's remote (OPM-N, 2026-11-02): GET /remote the page,
   GET /remote/state?k=<key> where the run is — its colour, its cell —
   POST /remote/dip|pause|continue|stop|back|skip?k=<key>, /remote/goto?n=<cell>&k=<key>
@@ -709,21 +710,32 @@ def piece_at(start, path, here, first=0):
 
 # DIP's travel to the cup and back when the run's note has none, mm/s (the pages' 180)
 TRAVEL_DIP = 180
+# DIP's turn of the shoulder to the cup on the beam when the note has none, °/s (the pages' BEAM.swing, est.)
+SWING_DIP = 40
 
 
 def cup_of(c):
-    # the cup a run note carries (the Ink tab's, where the brush dips): its
-    # carriage mm and the elbow over its rim and in it, its dwell; None if
-    # anything is missing or out of reach
+    # the cup a run note carries, where the brush dips: the Ink tab's — its
+    # carriage mm — or INK-Y's on the beam (the owner, 2026-11-03) — the
+    # carriage's Y and the shoulder's angle that put the brush over it, its X
+    # the beam's wherever it is, the shoulder's speed — and the elbow over its
+    # rim and in it, its dwell; None if anything is missing or out of reach
     try:
-        x, y, rim, dip = (float(c[k]) for k in ("x", "y", "rim", "dip"))
+        beam = c.get("beam") is True
+        y, rim, dip = (float(c[k]) for k in ("y", "rim", "dip"))
+        x = None if beam else float(c["x"])
+        sh, swing = (float(c["shoulder"]), float(c.get("swing", SWING_DIP))) if beam else (0.0, SWING_DIP)
         dwell = float(c.get("dwell", 1))
     except (TypeError, KeyError, ValueError, AttributeError):
         return None
-    if not all(math.isfinite(v) for v in (x, y, rim, dip, dwell)) or not 0 <= dwell <= WAIT_MAX_S:
+    if not all(math.isfinite(v) for v in (y, rim, dip, dwell, sh, swing) + (() if beam else (x,))) or not 0 <= dwell <= WAIT_MAX_S:
         return None
     if arm_check(f"J 2 {rim:g}") or arm_check(f"J 2 {dip:g}") or dip >= rim:
         return None
+    if beam:
+        if not REACH["shoulder"][0] <= sh <= REACH["shoulder"][1] or not 0.5 <= swing <= 100:
+            return None
+        return {"beam": True, "y": y, "shoulder": sh, "swing": swing, "rim": rim, "dip": dip, "dwell": dwell}
     return {"x": x, "y": y, "rim": rim, "dip": dip, "dwell": dwell}
 
 
@@ -828,6 +840,9 @@ class Runner:
         self.rows = None                 # the page's rows, for the iPhone: {"colours": [...], "rows": [{"c", "cells"}]}
         self._jump = None                # Back, Skip, Go to: (block, piece or None, what) to go on from
         self.row, self.row_base = 0, {}  # the row run last, and the paint done before every row
+        # INK-Y: (rim, °/s) while a dip on the beam holds the shoulder turned over the cup — turned
+        # back by itself before a jump and at the next run's start, a run stopped there or not
+        self._swung = None
 
     def set_trim(self, deg):
         # ELBOW LIVE: from the next W 2 sent on, the board's queue of pieces
@@ -864,7 +879,8 @@ class Runner:
                     "x_mm": mm("x", 0), "y_mm": mm("y", 1), "brush_on": self.brush_on,
                     "started": self.started, "trim": self.trim, "row": self.row,
                     "in_row": round(self.painted - self.row_base.get(self.row, self.painted), 1),
-                    "dips": self.dips, "cup": bool(self.cup)}
+                    "dips": self.dips, "cup": bool(self.cup),
+                    "beam": True}   # this runner knows the cup on the beam (INK-Y): the pages ask before such a run
 
     def where(self):
         # the colour and the cell now, by the page's rows: the row run last,
@@ -989,7 +1005,7 @@ class Runner:
         # run was started with, and on by itself. Paused, it dips and stays
         # paused. False: nothing running, or no cup in the run.
         with self.lock:
-            if self.state not in ("running", "pausing", "paused") or not self.cup or self._stop:
+            if self.state not in ("running", "pausing", "paused") or not self.cup or self._stop or (self.cup.get("beam") and not self.arm):
                 return False
             self._dip = True
             if self.state == "running":
@@ -1119,6 +1135,7 @@ class Runner:
                   **({"colour": w["colour"].get("name")} if isinstance(w["colour"], dict) else {})})
         if self.brush_on:
             self._arm(f"J 2 {BRUSH_UP_DEG}")
+        self._unswing()
         r = self.blocks[i].get("row")
         with self.lock:
             self.painted = self._paint_before(i, j)
@@ -1161,6 +1178,7 @@ class Runner:
                     self.arm.hold()     # nothing moves; the whole arm holds from here on
                 except ArmError as e:
                     raise Abort(str(e))
+            self._unswing()             # a run stopped over the cup on the beam: the shoulder back first
             i = 0
             while i < len(self.blocks):
                 if self._stop:
@@ -1184,6 +1202,10 @@ class Runner:
                     self._arm(b["cmd"])
                 elif b["kind"] == "joint":
                     self._joint(b)
+                    if b["joint"] == "shoulder" and b.get("dip"):   # INK-Y: over the cup on the beam, or back from it
+                        turned = abs(float(b["deg"])) >= 0.6
+                        if turned or not self._stop:
+                            self._swung = (float(b.get("rim", BRUSH_UP_DEG)), float(b["speed"])) if turned else None
                 elif b["kind"] == "wait":
                     self._wait(float(b["s"]))     # the axes still, the arm where it is; pinging, so STOP still gets through
                 elif b["kind"] in ("pause", "p-pause"):
@@ -1478,24 +1500,47 @@ class Runner:
 
     def _dip_now(self):
         # the brush over the cup's rim, to the cup, into its paint for its
-        # dwell, over the rim again, back to where it stood
+        # dwell, over the rim again, back to where it stood. The cup on the
+        # beam (INK-Y): along Y alone, the shoulder turning the brush over it
+        # and back; already over it — a pause in the plan's own dip there —
+        # into the paint and up, and nothing else
         c, here = self.cup, self._here()
         with self.lock:
             self._dip, why = False, self.message
             self.message = "DIP: the brush to the cup and back"
         note = self._dip_note()
+        beam, over = c.get("beam"), self._swung is not None
         self._arm(f"J 2 {c['rim']:g}")
-        self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {c['x']:.2f} {c['y']:.2f}", "G"], "paintMM": 0})
+        if not over:
+            to = (here[0], c["y"]) if beam else (c["x"], c["y"])
+            self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {to[0]:.2f} {to[1]:.2f}", "G"], "paintMM": 0})
+            if beam and not self._stop:
+                self._swung = (c["rim"], c["swing"])
+                self._joint({"joint": "shoulder", "deg": c["shoulder"], "speed": c["swing"]})
         if not self._stop:
             self._arm(f"J 2 {c['dip']:g}")
             self._wait(c["dwell"])
             self._arm(f"J 2 {c['rim']:g}")
-            self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {here[0]:.2f} {here[1]:.2f}", "G"], "paintMM": 0})
+            if not over:
+                if beam:
+                    self._unswing()
+                self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {here[0]:.2f} {here[1]:.2f}", "G"], "paintMM": 0})
         with self.lock:
             self.dips += 1
             if self.message.startswith("DIP:"):
                 self.message = why
         self.log({"event": "dip", "by": "hand", "x": round(here[0], 2), "y": round(here[1], 2), **note})
+
+    def _unswing(self):
+        # INK-Y: the shoulder back to 0 from over the cup on the beam, the
+        # brush up over its rim first, before it goes anywhere else
+        if self._swung is None or not self.arm:
+            return
+        rim, speed = self._swung
+        self._arm(f"J 2 {rim:g}")
+        self._joint({"joint": "shoulder", "deg": 0, "speed": speed})
+        if not self._stop:
+            self._swung = None
 
     def _arrived(self, b):
         # Before the next block — above all before the brush goes down — the

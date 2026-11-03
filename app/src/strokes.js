@@ -41,7 +41,9 @@
 // down into the paint, a second, up — and goes to the row; after the row it
 // goes back to the cup, not on to the next row; home at the end. C's and
 // D's rows run one way each, as the snake's first row runs: top to bottom
-// on D1. INK OFF is everything as it was.
+// on D1. INK OFF is everything as it was. The cup on the beam (INK-Y,
+// 2026-11-03): the carriage goes to it along Y alone, the shoulder turns the
+// brush over it and back (plotRun).
 //
 // Machine mm: X up the picture, Y to the right. "Here" is where the carriage
 // stands with the brush over the board's centre. No DOM.
@@ -528,9 +530,12 @@ export function landingCheck(blocks, press, glide, least = 0.2) {
 export function plotRun(o, passes) {
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
-  // INK ON: the cup of the Ink tab (carriage mm, its elbow angles), from Here; the brush up over its rim between rows
-  const cup = o.ink && o.here && Number.isFinite(o.cup?.x) && Number.isFinite(o.cup?.y) ? o.cup : null;
-  const cupAt = cup ? pt(cup.x - X0, cup.y - Y0) : null;
+  // INK ON: the cup of the Ink tab (carriage mm, its elbow angles), from Here; the brush up over its rim between rows.
+  // INK-Y's on the beam (ink.js, BEAM): its Y and the shoulder's angle — the carriage there along Y from where the brush left off
+  const beam = !!(o.cup?.beam && Number.isFinite(o.cup.shoulder) && Number.isFinite(o.cup.swing));
+  const cup = o.ink && o.here && Number.isFinite(o.cup?.y) && (beam || Number.isFinite(o.cup?.x)) ? o.cup : null;
+  const cupAt = cup && !beam ? pt(cup.x - X0, cup.y - Y0) : null;
+  const cupBy = a => beam ? pt(a.x, cup.y - Y0) : cupAt, cups = [];
   const up = o.ink && Number.isFinite(o.cup?.rim) ? o.cup.rim : ELBOW_UP;
   const home = homeCorner(), homeAt = pt(home.x - X0, home.y - Y0);
   // the walls, from Here: the path is pressed into them (pressed, above); without Here nothing is
@@ -538,6 +543,7 @@ export function plotRun(o, passes) {
   let pastWall = 0, gone = 0;
   // the brush up (the elbow), then the wrist to the active pose, in the air
   const blocks = [{ kind: 'arm', cmd: `J 2 ${up}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
+  if (cup && beam) blocks.push({ kind: 'joint', joint: 'shoulder', deg: 0, speed: cup.swing, row: 0 });   // the arm straight: a run stopped over the cup on the beam left it turned
   const preview = [], car = [], air = [];            // air: the brush's way off the board, with INK ON, for the page to draw
   let length = 0, turns = 0, lifts = 0, need = 0, seconds = 1, at0 = o.ink ? homeAt : pt(0, 0), dips = 0, fault = '';
   const min = o.minPiece ?? MIN_PIECE, real = ps => ps.filter(q => !sliver(q.g, min));
@@ -549,7 +555,7 @@ export function plotRun(o, passes) {
     // With o.noDipUnder a pass starts on its first piece long enough for a
     // dip, the others after it in their order: a full brush never lands on a
     // dot (NOLAN, 2026-10-04: a puddle at every dot under 1 cm).
-    const j = cupAt && o.noDipUnder ? ps0.findIndex(p => drawnOf(p) >= o.noDipUnder) : -1;
+    const j = cup && o.noDipUnder ? ps0.findIndex(p => drawnOf(p) >= o.noDipUnder) : -1;
     const ps = j > 0 ? [ps0[j], ...ps0.slice(0, j), ...ps0.slice(j + 1)] : ps0;
     ps.forEach((p, i) => {
       const m = onTheMove(p, o), row = p[0].row;
@@ -564,16 +570,19 @@ export function plotRun(o, passes) {
       if (p[0].wait > 0) { blocks.push({ kind: 'wait', s: p[0].wait, row }); seconds += p[0].wait; }
       // o.noDipUnder (NOLAN): a shorter piece goes on what the brush holds, the first of a pass excepted;
       // nodip on a row (New Yuri's rings, several to a dip run): it goes on what the brush holds too
-      const dipped = !!cupAt && (dry || (!p[0].nodip && !(drawn < o.noDipUnder)));
+      const dipped = !!cup && (dry || (!p[0].nodip && !(drawn < o.noDipUnder)));
       if (dipped) {
         dry = false;
-        // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again
-        blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(cupAt)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true },
+        // the dip: to the cup over its rim, down into the paint, a second there, up over the rim again;
+        // on the beam the shoulder turns the brush over the cup first and back after (rim: how high the brush
+        // goes before rembrandt.py turns it back by itself — a jump, a run after a stop there)
+        const to = cupBy(at0), turn = deg => beam ? [{ kind: 'joint', joint: 'shoulder', deg, speed: cup.swing, rim: cup.rim, row, dip: true }] : [];
+        blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(to)}`, 'G'], lengthMM: null, paintMM: 0, row, dip: true }, ...turn(cup.shoulder),
           { kind: 'arm', cmd: `J 2 ${cup.dip}`, row, dip: true }, { kind: 'wait', s: cup.dwell, row, dip: true },
-          { kind: 'arm', cmd: `J 2 ${cup.rim}`, row, dip: true });
-        air.push([at0, cupAt]);
-        seconds += travelTime(away(at0, cupAt), o.travel) + 2 * ARM_S + cup.dwell;
-        at0 = cupAt; dips++;
+          { kind: 'arm', cmd: `J 2 ${cup.rim}`, row, dip: true }, ...turn(0));
+        air.push([at0, to]); cups.push(to);
+        seconds += travelTime(away(at0, to), o.travel) + 2 * ARM_S + cup.dwell + (beam ? 2 * Math.abs(cup.shoulder) / cup.swing : 0);
+        at0 = to; dips++;
       }
       if (o.ink) air.push([at0, first]);
       blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${M(first)}`, 'G'], lengthMM: null, paintMM: 0, row });
@@ -636,7 +645,7 @@ export function plotRun(o, passes) {
   blocks.push({ kind: 'move', cmds: [`T ${o.travel}`, `M ${f(home.x)} ${f(home.y)}`, 'G'], lengthMM: null, paintMM: 0, row: o.rows, home: true });
   seconds += travelTime(Math.hypot(X0 + at0.x - home.x, Y0 + at0.y - home.y), o.travel);
   // where the carriage goes, from Here: the paint's box aside by the tails (the walls check)
-  const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; }).concat(cupAt ? [cupAt] : []);
+  const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; }).concat(cupAt ? [cupAt] : cups);
   const carriage = boxOf(cp);
   return { blocks, preview, carriage, length, seconds, turns, lifts, need, cupAt, air, homeAt, dips, pastWall, gone, fault };
 }

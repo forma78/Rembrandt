@@ -6,7 +6,9 @@
 // X and Y like a throttle, the pendant's rule: the slider stays where it is
 // put, 10 mm/s a level. The elbow moves when its handle is let go, 1° a
 // step, in RUBENS's degrees from the working pose (rembrandt.py, class Arm):
-// 0° pressed, off the canvas at +10°, −5…+45°. STOP and HARD STOP stop the
+// 0° pressed, off the canvas at +10°, −5…+45°. The shoulder the same way,
+// with `shoulder` (INK-Y, 2026-11-03: it turns the brush over the cup on the
+// beam), −45…+45°. STOP and HARD STOP stop the
 // axes and the arm; Esc is STOP; a page hidden or left stops the axes. The
 // ping, five times a second, feeds the board's watchdog and brings the
 // carriage's place.
@@ -26,11 +28,12 @@ function ticks(lo, hi, step, every) {
   }
   return `<div class="ticks">${h}</div>`;
 }
-const ELBOW = { lo: -5, hi: 45 };
+const ELBOW = { lo: -5, hi: 45 }, SHOULDER = { lo: -45, hi: 45 };
 
-// Into el: the X and Y handles, the elbow's, STOP and HARD STOP. link: the
-// header's machine light. onPing(state) after every ping.
-export function mountJog(el, { link, onPing = () => { } } = {}) {
+// Into el: the X and Y handles, the elbow's, the shoulder's with `shoulder`,
+// STOP and HARD STOP. link: the header's machine light. onPing(state) after
+// every ping.
+export function mountJog(el, { link, onPing = () => { }, shoulder = false } = {}) {
   el.innerHTML = `
     <div class="axis" data-ax="x">
       <div class="axis-head"><span class="k">X</span><span class="pos" data-pos="x">—</span><span class="speed" data-v="x">IDLE</span></div>
@@ -49,14 +52,20 @@ export function mountJog(el, { link, onPing = () => { } } = {}) {
       <div class="dir">0°: the brush pressed to the canvas · plus: up, off the canvas at +10° · −5…0°: the reserve</div>
       <input class="jog-slider" data-arm="elbow" type="range" min="${ELBOW.lo}" max="${ELBOW.hi}" step="1" value="0" aria-label="Elbow, degrees">
       ${ticks(ELBOW.lo, ELBOW.hi, 5, 15)}
-    </div>
+    </div>${shoulder ? `
+    <div class="axis servo" data-ax="shoulder">
+      <div class="axis-head"><span class="k">SHOULDER</span><span class="pos" data-pos="shoulder">—</span><span class="speed" data-v="shoulder"></span></div>
+      <div class="dir">0°: the working pose, the brush over the canvas · minus: to the left, over the cup on the beam</div>
+      <input class="jog-slider" data-arm="shoulder" type="range" min="${SHOULDER.lo}" max="${SHOULDER.hi}" step="1" value="0" aria-label="Shoulder, degrees">
+      ${ticks(SHOULDER.lo, SHOULDER.hi, 5, 15)}
+    </div>` : ''}
     <p class="read" data-note></p>
     <div class="stops">
       <button class="btn" data-stop title="Stop both axes, braking, and the arm (Esc)">STOP</button>
       <button class="btn danger" data-kill title="Stop both axes at once, no braking, and the arm">HARD STOP</button>
     </div>`;
   const q = s => el.querySelector(s);
-  const S = { link: 'wait', pos: { x: null, y: null }, edge: { x: false, y: false }, elbow: null };
+  const S = { link: 'wait', pos: { x: null, y: null }, edge: { x: false, y: false }, elbow: null, shoulder: null };
 
   async function machine(cmd) {
     try {
@@ -121,34 +130,39 @@ export function mountJog(el, { link, onPing = () => { } } = {}) {
     onPing(S);
   }
 
-  // ---------- the elbow ----------
-  const arm = q('[data-arm="elbow"]');
+  // ---------- the elbow, the shoulder ----------
+  const JOINT = { elbow: ELBOW, ...(shoulder ? { shoulder: SHOULDER } : {}) };
   let busy = false;
   async function look() {
     if (busy) return S.elbow;
     let a = null;
     try { const r = await fetch('/arm', { cache: 'no-store' }); if (r.ok) a = (await r.json()).angles; } catch { }
-    S.elbow = a?.elbow ?? null;
-    const e = q('[data-pos="elbow"]');
-    e.textContent = S.elbow === null ? '—' : signed(S.elbow);
-    e.className = 'pos' + (S.elbow === null ? ' none' : '');
-    // the handle shows where the joint is, unless it is being held
-    if (S.elbow !== null && document.activeElement !== arm) arm.value = Math.max(ELBOW.lo, Math.min(ELBOW.hi, Math.round(S.elbow)));
+    for (const [j, R] of Object.entries(JOINT)) {
+      S[j] = a?.[j] ?? null;
+      const e = q(`[data-pos="${j}"]`), h = q(`[data-arm="${j}"]`);
+      e.textContent = S[j] === null ? '—' : signed(S[j]);
+      e.className = 'pos' + (S[j] === null ? ' none' : '');
+      // the handle shows where the joint is, unless it is being held
+      if (S[j] !== null && document.activeElement !== h) h.value = Math.max(R.lo, Math.min(R.hi, Math.round(S[j])));
+    }
     return S.elbow;
   }
-  arm.addEventListener('change', async () => {
-    const d = +arm.value, ax = q('[data-ax="elbow"]'), out = q('[data-v="elbow"]');
-    busy = true; ax.classList.add('busy'); out.textContent = `→ ${signed(d)}`;
-    let msg = '';
-    try {
-      const r = await fetch(`/arm?j=elbow&d=${d}`, { method: 'POST' }), t = await r.text();
-      let o; try { o = JSON.parse(t); } catch { o = { ok: false, message: t }; }
-      if (!r.ok || !o.ok) msg = o.message || t;
-    } catch { msg = 'start rembrandt.py'; }
-    busy = false; ax.classList.remove('busy'); arm.blur();
-    out.innerHTML = msg ? `<span class="warn">${msg}</span>` : '';
-    look();
-  });
+  for (const j of Object.keys(JOINT)) {
+    const h = q(`[data-arm="${j}"]`);
+    h.addEventListener('change', async () => {
+      const d = +h.value, ax = q(`[data-ax="${j}"]`), out = q(`[data-v="${j}"]`);
+      busy = true; ax.classList.add('busy'); out.textContent = `→ ${signed(d)}`;
+      let msg = '';
+      try {
+        const r = await fetch(`/arm?j=${j}&d=${d}`, { method: 'POST' }), t = await r.text();
+        let o; try { o = JSON.parse(t); } catch { o = { ok: false, message: t }; }
+        if (!r.ok || !o.ok) msg = o.message || t;
+      } catch { msg = 'start rembrandt.py'; }
+      busy = false; ax.classList.remove('busy'); h.blur();
+      out.innerHTML = msg ? `<span class="warn">${msg}</span>` : '';
+      look();
+    });
+  }
 
   ping(); look();
   setInterval(ping, 200);
