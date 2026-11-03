@@ -149,6 +149,50 @@ segment, a stop — the part after the cut starts back over the part before
 it, by a lap on a slider marked est. Look for this before a new tab's
 first run, not after it.
 
+## How to dip — the cup at hand (canon)
+
+The owner, 2026-11-03: "Not two jars at the sides of Y, but a jar right
+by the arm. No need to drive anywhere, neither right nor left. The jar is
+always at hand." The jar sits on a bracket bolted to the carriage that
+carries the arm (the 3DOF), so its place against the arm never changes;
+it rides the whole length of Y with the carriage, clear of the rails, and
+the brush does not get in the way of the travel. It stands **over the
+canvas, above the level the brush paints at**. Photos in `OPM-N/`:
+`IMG_2109`, `IMG_2110` — the bracket being fitted; `IMG_2114` — a dip (a
+pen in the brush's place while testing); `IMG_2116` — the brush painting;
+`IMG_2120` — the brush taking paint.
+
+A dip, in this order, every step finished before the next begins:
+
+1. **ELBOW up** from where it paints (+2.5°) to **+30°** (+35° allowed).
+2. Only then **SHOULDER** from 0° to **+35°** (the fork +30° … +35°).
+3. **ELBOW down into the jar**, to **+15°** at the lowest: the jar stands
+   above the canvas (the fork +14° … +16°, set by how much paint is in
+   the jar).
+4. The paint taken: **ELBOW up first**, to +30°.
+5. **SHOULDER back to 0°.** Painting goes on.
+
+**The shoulder never turns unless the elbow is up (+30° … +35°).** The
+owner: "if the shoulder turns instead of the elbow lifting, we can break
+the brush or knock the jar over, and then the paint spills onto the
+canvas. We spoil the picture." So for every turn of the shoulder, not
+only a dip's: a stop, ⏮ Back, ⏭ Skip, ▶️ Go to, a jog, the next run's
+start.
+
+No calibration: the arm's servos read their own angles from power-on (the
+steppers of X and Y do not — they home by the switches), and the jar never
+moves against the arm. Only the depth in the paint changes as the jar
+empties (+14° … +16°).
+
+How Rembrandt keeps it (INK-Y, `src/inkypage.js`; `strokes.js`,
+`handDip`; `rembrandt.py`, `hand_guard`): the five steps are the plan's
+own blocks, the carriage standing over the line's start; every step a fork
+the joint counts as there in, aimed at its middle (the firmware turns
+whole degrees, the servo stops up to ~1° short); and while the cup at hand
+is on, `rembrandt.py` refuses a turn of the shoulder with the elbow out of
+its fork up, the elbow below +14° with the shoulder off 0, and the wrist
+with the shoulder off 0 — a run's or a jog's.
+
 ## Working rules
 
 - **English everywhere**: UI, docs, code comments, commit messages.
