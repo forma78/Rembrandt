@@ -155,6 +155,8 @@
         <button class="btn pass" id="btnPencils" hidden data-pass="pencils" title="DRAW CLR: a pass a pencil, the lightest first, one path — round the rings clockwise and along the rays, the pencil up and down on the move where its colour ends and begins; at every pencil's end it stops on the paper for the next one, its tip on the paper"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z"/><path d="M14.6 6.7l2.6 2.6" class="thin"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw CLR</span></button>
         <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS: a dash along every sausage — with INK ON in watercolour from the cup, a dip every fourth; then squeeze the sausages on them"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="0.5" class="thin"/><path d="M12 4v7M20 12h-7M4 12h7"/></svg><span>Marks</span></button>
       </div>
+      <!-- the iPhone's Back here too (the owner, 2026-11-05: "before STOP and HOME") -->
+      <button class="btn backone" id="btnBack" disabled title="BACK ONE CELL, as a player's ⏮. The brush already painting a cell: this cell again, from its first track. Not yet — in the air, in the cup, at a colour's pause: the cell before it, the last of the colour before if this is its colour's first. The brush up at once, through the air there, its dip as the plan has it, and on from there.">⏮ BACK ONE CELL</button>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="STOP: the carriage brakes on its line, the pencil on the paper — then the choice, go on drawing from there or home (Esc: the run stopped at once)">STOP</button>
         <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
@@ -319,6 +321,8 @@
   <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
     <h3 id="drawAskTitle">DRAW</h3>
     <div class="firstpen" id="drawAskFirst"></div>
+    <!-- OPM-N (the owner, 2026-11-05): a colour come out badly, the run stopped: that one again, then the rest -->
+    <label class="askfrom" id="drawAskFrom" hidden title="The run from this colour on, the ones before it not painted again; this question only"><span>Start from</span><select id="drawFrom"></select></label>
     <ol class="runlist one" id="drawAskList"></ol>
     <p id="drawAskText"></p>
     <div class="grid4 keys"><button class="btn pass" id="drawGo">✎ DRAW</button><button class="btn" id="drawNo">Cancel</button></div>

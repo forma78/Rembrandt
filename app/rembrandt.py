@@ -37,6 +37,7 @@ bridge.py of the old machine repo held it on port 8765.
   GET /remote/plan?k=<key> the run's lines for the mini-screen (2026-11-04; reads only) —
   POST /remote/dip|pause|continue|stop|back|skip?k=<key>, /remote/goto?n=<cell>&k=<key>
   (a cell of the colour now); GET /remote/link (this Mac)
+  POST /run/back[?sure=1] BACK ONE CELL, OPM-N's key (this Mac)
   the address with the key, for OPM-N's QR code. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
@@ -74,6 +75,7 @@ PORT = 5164   # the owner's lucky number (2026-10-01); RUBENS is on 8766
 FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json"),
          "/tubes": os.path.join(HERE, "tubes.json"), "/ink": os.path.join(HERE, "ink.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
+BACK_BEGUN_MM = 0.5                 # BACK ONE CELL: more paint than this in a cell, the brush has begun it
 LOG_FILE = os.path.join(HERE, "logs", "runs.jsonl")   # run_log: the run journal, on this Mac, not in git
 LISTEN = os.environ.get("REMBRANDT_LISTEN", "0.0.0.0")   # the home Wi-Fi too, for the iPhone (2026-11-02); 127.0.0.1 this Mac alone
 KEY_FILE = os.path.join(HERE, "remote.key")              # the iPhone's key, made at the first start; not in git
@@ -1248,6 +1250,57 @@ class Runner:
             return False, "no cell now"
         return self.goto(w["colour_n"] - 1, w["cell"], "back")
 
+    def back_one(self, sure=False):
+        # BACK ONE CELL, OPM-N's key (the owner, 2026-11-05: "the third paint
+        # came out badly … a key before STOP and HOME?"), as a player's ⏮: the
+        # brush already painting this cell, this cell again from its first track;
+        # not yet — in the air, in the cup, at a colour's pause, where the row is
+        # the next colour's already — the cell before it, the last of the colour
+        # before if this is its colour's first. Into another colour: where that
+        # cell's own way there has a pause, it says what to put in the cup; else
+        # the paint in the cup is not the machine's to know, so not without sure.
+        # → ok, why, and what to ask (the colour and the cell), or None
+        w = self.where()
+        if not w["cell"] or not w["colour_n"]:
+            return False, "no cell now", None
+        c, n = w["colour_n"] - 1, w["cell"]
+        t = self._target(c, n)
+        if t is None:
+            return False, f"no cell {n} in colour {c + 1}", None
+        if self._paint_before(*t) >= w["painted_mm"] - BACK_BEGUN_MM:
+            c2, n2 = self._cell_before(c, n) or (c, n)
+            if c2 != c and not sure and not self._pause_on_way(self._target(c2, n2)):
+                name = ((self.rows or {}).get("colours") or [])[c2].get("name")
+                return False, f"cell {n2} of {name}: is it in the cup?", {"colour": name, "cell": n2}
+            c, n = c2, n2
+        ok, why = self.goto(c, n, "back")
+        name = ((self.rows or {}).get("colours") or [{}] * (c + 1))[c].get("name")
+        return ok, f"cell {n} of {name}" if ok else why, None          # the key says where it goes
+
+    def _cell_before(self, c, n):
+        # the cell before cell `n` of colour `c` that has a place in the plan; None: none
+        cols = (self.rows or {}).get("colours") or []
+        while c >= 0:
+            n -= 1
+            if n < 1:
+                c -= 1
+                n = (cols[c].get("cells") or 0) + 1 if c >= 0 else 0
+                continue
+            if self._target(c, n) is not None:
+                return c, n
+        return None
+
+    def _pause_on_way(self, t):
+        # from a jump's target to the first paint: a pause in the plan on the way? (a colour's first cell: its flight comes before it)
+        if t[1] is not None:
+            return False
+        for b in self.blocks[t[0]:]:
+            if b.get("kind") in ("pause", "p-pause"):
+                return True
+            if b.get("kind") == "move" and (b.get("paintMM") or 0) > 0:
+                return False
+        return False
+
     def skip(self):
         # the next cell of this colour; after its last, on to the next colour's pause
         w = self.where()
@@ -2195,6 +2248,9 @@ class Handler(SimpleHTTPRequestHandler):
             except (KeyError, IndexError, ValueError):
                 return self.reply(400, "trim: /run/trim?deg=<degrees>")
             return self.reply(200, json.dumps({"ok": True, "trim": t}), "application/json")
+        if path == "/run/back":
+            ok, why, ask = RUNNER.back_one(sure="sure" in parse_qs(urlparse(self.path).query))
+            return self.reply(200 if ok else 409, json.dumps({"ok": ok, "message": why, "state": RUNNER.state, **({"ask": ask} if ask else {})}), "application/json")
         if path == "/run/dip":
             ok = RUNNER.dip()
             return self.reply(200 if ok else 409, "ok" if ok else f"not now: the runner is {RUNNER.state}, or no cup in the run")

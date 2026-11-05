@@ -891,6 +891,79 @@ class GotoTest(unittest.TestCase):
         self.assertEqual(r.state, "done", r.message)
         self.assertNotIn("S", b.log)
 
+    # BACK ONE CELL: as OPM-N's plan lays a colour's change — the next colour's flight, the brush up, the pause, then its paint
+    ROWS3 = {"colours": [{"name": "Deep Blue", "hex": "#24408F", "cells": 2}, {"name": "Brown", "hex": "#6B3F2A", "cells": 1}, {"name": "Cream", "hex": "#F5E6C8", "cells": 1}],
+             "rows": [{"c": 0, "cells": [[1, 0]]}, {"c": 0, "cells": [[2, 0]]}, {"c": 1, "cells": [[1, 0]]}, {"c": 2, "cells": [[1, 0]]}]}
+
+    def blocks3(self):
+        def row(r, x, why=None):
+            paint = {"kind": "move", "row": r, "paintMM": 3.0, "painted": [1, 1, 1], "cmds": ["F 25", "W 2 0 200", f"L {x + 1}.00 50.00", f"L {x + 2}.00 50.00", f"L {x + 3}.00 50.00", "G"]}
+            return [{"kind": "move", "row": r, "cmds": ["T 180", f"M {x}.00 50.00", "G"], "paintMM": 0}, {"kind": "arm", "cmd": "J 2 33" if why else "J 2 12", "row": r},
+                    *([{"kind": "pause", "why": why, "row": 0}, {"kind": "arm", "cmd": "J 2 12", "row": r}] if why else []), paint, {"kind": "arm", "cmd": OFF, "row": r}]
+        return [*row(1, 10), *row(2, 20), *row(3, 30, "wipe the brush, put Brown in the cup, then Continue"), *row(4, 40, "wipe the brush, put Cream in the cup, then Continue")]
+
+    def backed(self, when, press):
+        # press(r) once, when(r, b) true; every plan pause Continued but the one pressed at
+        b, got, seen = FakeBoard(rate=1), [], {"said": []}
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2, log=got.append)
+
+        def later():
+            if "asked" not in seen and when(r, b):
+                seen["where"] = r.where()
+                seen["asked"] = press(r)
+                return
+            if r.state == "paused" and (r.message or "").startswith("wipe") and r._jump is None:
+                seen["said"].append(r.message)
+                seen.setdefault("pct", []).append(r.status()["percent"])
+                r.resume()
+        b.on_sleep = later
+        r.start(self.blocks3(), {"page": "opmn", "remote": self.ROWS3, "cup": DipTest.CUP})
+        r.thread.join(10)
+        return r, b, got, seen
+
+    def test_back_one_while_the_brush_paints_this_cell_again(self):
+        r, b, got, seen = self.backed(lambda r, b: r.state == "running" and r.block == 6 and b.x >= 22.5 * STEPS_PER_MM[0], lambda r: r.back_one())
+        self.assertEqual(seen["asked"], (True, "cell 2 of Deep Blue", None))
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(b.log.count("L 21.00 50.00"), 2, "cell 2 again from its first track")
+        self.assertEqual(b.log.count("L 11.00 50.00"), 1, "cell 1 not")
+
+    def test_back_one_in_the_air_the_cell_before(self):
+        r, b, got, seen = self.backed(lambda r, b: r.state == "running" and r.block == 5, lambda r: r.back_one())
+        self.assertEqual(seen["where"]["cell"], 2)
+        self.assertEqual(seen["asked"], (True, "cell 1 of Deep Blue", None))
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(b.log.count("L 11.00 50.00"), 2, "cell 1 again")
+        self.assertEqual(b.log.count("L 21.00 50.00"), 1, "cell 2 once, after it")
+
+    def test_back_one_at_a_colours_pause_goes_to_the_last_colour_by_its_own_pause(self):
+        # the owner's case of 2026-11-05: Brown done, the pause for Cream, the row Cream's already
+        at = lambda r, b: r.state == "paused" and "Cream" in (r.message or "")
+        r, b, got, seen = self.backed(at, lambda r: r.back_one())
+        self.assertEqual(seen["where"]["colour"]["name"], "Cream", "at this pause the row is the next colour's")
+        self.assertEqual(seen["asked"], (True, "cell 1 of Brown", None), "Brown's own pause on the way: no question")
+        self.assertEqual(seen["where"]["percent"], 75.0)
+        self.assertEqual(seen["pct"], [50.0, 50.0, 75.0], "the % goes back with the jump, to Brown's start, then on")
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(seen["said"], ["wipe the brush, put Brown in the cup, then Continue", "wipe the brush, put Brown in the cup, then Continue", "wipe the brush, put Cream in the cup, then Continue"], "Brown named again, then Cream")
+        self.assertEqual(b.log.count("L 31.00 50.00"), 2, "Brown painted again")
+        self.assertEqual(b.log.count("L 41.00 50.00"), 1, "Cream after it, once")
+        self.assertEqual(b.log.count("L 21.00 50.00"), 1, "the blue not again")
+        self.assertEqual(r.status()["percent"], 100.0)
+
+    def test_back_one_into_a_colour_past_its_first_cell_asks_for_the_paint(self):
+        at = lambda r, b: r.state == "paused" and "Brown" in (r.message or "")
+        r, b, got, seen = self.backed(at, lambda r: (r.back_one(), r.back_one(sure=True)))
+        self.assertEqual(seen["asked"][0], (False, "cell 2 of Deep Blue: is it in the cup?", {"colour": "Deep Blue", "cell": 2}))
+        self.assertEqual(seen["asked"][1], (True, "cell 2 of Deep Blue", None))
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(b.log.count("L 21.00 50.00"), 2, "the blue's last cell again")
+        self.assertEqual(b.log.count("L 11.00 50.00"), 1, "its first not")
+        self.assertEqual(b.log.count("L 31.00 50.00"), 1)
+
+    def test_back_one_nothing_running_refused(self):
+        self.assertEqual(Runner(FakeBoard().send).back_one(), (False, "no cell now", None))
+
     def test_from_piece_keeps_the_landing_of_its_piece(self):
         c = ["F 25", "W 2 0 200", "L 1 0", "W 2 25 211", "L 2 0", "W 2 10 211", "L 3 0", "W 2 0 200", "L 4 0", "G"]
         self.assertEqual(rubens.from_piece(c, 3), ["F 25", "W 2 0 200", "L 4 0", "G"])

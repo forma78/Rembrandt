@@ -395,14 +395,16 @@ const brushWide = () => S.snake ? S.tip : S.track;                              
 // OPM-N's way with a cell, for the panel and the question before a run
 const dragWay = tracks => S.snake ? `${tracks} tracks in all, only up and down, about ${fmt(S.legStep, 2)} mm apart (Track step), the snake back and forth with the brush down; then at once an idle run over the cell, no dip, about ${fmt(S.idleStep, 2)} mm apart (Idle step), +${fmt(S.idleOver, 1)} mm past the ends and none at its very end, on a slanted side +${fmt(S.idleSlant, 1)} (+ idle 6.0)`
   : `${tracks} tracks in all, ${fmt(S.track, 1)} mm apart at most (Track width), Air: every track one way, the brush up and back, every one ${S.dragRubs}× (Rubs)`;
-function paintRun() {
-  const D = dachePlan(), here = hereNow(), key = JSON.stringify([D.key, S.pspeed, S.travel, S.tail, S.wipe, S.brushPress, here, OPMN && [S.dipEvery, S.dipLap, dipCup()]]);
+// from: OPM-N's DRAG question, the run from that colour on (the owner, 2026-11-05: a colour come out badly, the run stopped: that one again, then the rest)
+function paintRun(from = 0) {
+  const D = dachePlan(), here = hereNow(), key = JSON.stringify([D.key, S.pspeed, S.travel, S.tail, S.wipe, S.brushPress, here, OPMN && [S.dipEvery, S.dipLap, dipCup()], from]);
   if (PAINT_RUN?.key === key) return PAINT_RUN;
-  if (!D.passes.length) return (PAINT_RUN = { key, ...EMPTY, passes: [] });
-  const R = (OPMN && S.snake ? idleRowsOf : dragRowsOf)(D.passes, S.pencils, po(), OPMN ? S.dipEvery : 0, OPMN ? S.dipLap : 0), name = id => pencilOf(id)?.name ?? id;
+  const passes = D.passes.slice(from);
+  if (!passes.length) return (PAINT_RUN = { key, ...EMPTY, passes: [] });
+  const R = (OPMN && S.snake ? idleRowsOf : dragRowsOf)(passes, S.pencils, po(), OPMN ? S.dipEvery : 0, OPMN ? S.dipLap : 0), name = id => pencilOf(id)?.name ?? id;
   // OPM-N (OPM-N.md step 4): the paint from the cup — INK-Y's at hand since 2026-11-03, else the Ink tab's — a dip at every colour's start, then every Dip every mm (for now); between two colours the brush up (over the Ink tab's cup), the next colour put in it
-  const r = plotRun({ ...runOpts(R.ps.length), speed: S.pspeed, lift: true, press: S.brushPress, ...(OPMN ? { ink: true, noDipUnder: 0 } : {}) }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? OPMN ? `wipe the brush, put ${name(D.passes[k].pencil)} in the cup, then Continue` : `wipe the brush, squeeze ${name(D.passes[k].pencil)} on its cells, then Continue` : null })));
-  return (PAINT_RUN = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: D.passes.reduce((a, q) => a + q.mm, 0), passes: D.passes });
+  const r = plotRun({ ...runOpts(R.ps.length), speed: S.pspeed, lift: true, press: S.brushPress, ...(OPMN ? { ink: true, noDipUnder: 0 } : {}) }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? OPMN ? `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` : `wipe the brush, squeeze ${name(passes[k].pencil)} on its cells, then Continue` : null })));
+  return (PAINT_RUN = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: passes.reduce((a, q) => a + q.mm, 0), passes });
 }
 
 // ---------- the board (CCD's) ----------
@@ -2427,31 +2429,53 @@ if (DACHE) {
   if (OPMS) { $('#btnBw').onclick = () => oneDraw('bw'); $('#btnOuter').onclick = () => oneDraw('frame'); }
   if (OPMP) $('#btnDrag').onclick = () => paintDrag();                               // OPM-P: DRAG in DRAW CLR's place, a colour at a time
   if (OPMN) { $('#btnDrag').onclick = () => paintDrag(true); $('#btnDragAir').onclick = () => paintDrag(false); }   // OPM-N: DRAG SNAKE · DRAG AIR (the owner, 2026-11-02)
+  // BACK ONE CELL (the owner, 2026-11-05: the iPhone's Back here too, before STOP and HOME), rembrandt.py's back_one: as a player's ⏮.
+  // Its answers in an alert: the run line is the runner's again a moment later, at a pause at once (22:46: the key pressed on the old rembrandt.py, nothing seen)
+  let backSaid = 0;
+  if (OPMN) $('#btnBack').onclick = async () => {
+    const press = async sure => { const r = await fetch('/run/back' + (sure ? '?sure=1' : ''), { method: 'POST' }); return r.status === 404 ? { old: true } : r.json(); };
+    try {
+      let a = await press(false);
+      if (a.old) return alert('BACK ONE CELL did nothing: the rembrandt.py running is from before it. Start it again when no run is on — Ctrl+C in its window, then python3 rembrandt.py. The run in hand ends with it.');
+      if (a.ask) {                                                                   // another colour's, no pause of its own on the way: the paint in the cup is the owner's to know
+        if (!confirm(`Back to ${a.ask.colour}, cell ${a.ask.cell}. It flies there, dips and paints at once: is ${a.ask.colour} in the cup?`)) return;
+        a = await press(true);
+      }
+      if (!a.ok) return alert(`BACK ONE CELL did nothing: ${a.message ?? a.state ?? 'not now'}.`);
+      // pressed, and where to (the owner, 2026-11-05: "the % should rewind … I do not understand whether I pressed it or not"): the key says it, the LCD's % goes back with the jump
+      const b = $('#btnBack'); b.textContent = `⏮ ${a.message}`; b.classList.add('call');
+      clearTimeout(backSaid); backSaid = setTimeout(() => { b.textContent = '⏮ BACK ONE CELL'; b.classList.remove('call'); }, 4000);
+    } catch { alert('BACK ONE CELL did nothing: no answer from rembrandt.py.'); }
+  };
 }
 // OPM-P's DRAG: its question — the first colour to squeeze, the order, the pauses, the time — and its run
 async function paintDrag(snake) {
   if (OPMN && typeof snake === 'boolean' && S.snake !== snake) S.snake = snake;      // OPM-N: the key's way, the views and Play Drag by it from now on
   if (OPMN) await loadInk();                                                          // the cup as set now, on INK-Y or the Ink tab
   settle(); clearTimeout(dacheT);
-  const R = paintRun(), warn = t => { $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
+  let R = paintRun(), from = 0;
+  const warn = t => { $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
   if (lastSt && ['running', 'stopping', 'pausing', 'paused'].includes(lastSt.state)) return warn('A run is on: STOP it first.');
   if (!R.rows.length) return warn('Nothing to paint: no blend or tile on the canvas, or the Preview bare.');
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);
   if (walls(R)) return warn(walls(R));
   if (OPMN && cupProblem(cup())) return warn(`DRAG dips in ${cupName()}: ${cupProblem(cup())}`);
-  const n = R.passes.length, first = pencilOf(R.passes[0].pencil), F = S.frame;
-  const text = OPMN ? `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Every colour's cells by their numbers, 1, 2, 3 …, every one on its own: ${dragWay(R.passes.reduce((a, q) => a + q.tracks, 0))}; from cell to cell up through the air. `
+  const F = S.frame, whole = R.passes;
+  const say = () => { const n = R.passes.length, first = pencilOf(R.passes[0].pencil); return OPMN ? `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Every colour's cells by their numbers, 1, 2, 3 …, every one on its own: ${dragWay(R.passes.reduce((a, q) => a + q.tracks, 0))}; from cell to cell up through the air. `
     + `The paint from ${cupName()}: put ${first?.name ?? 'the first'} in it now — a dip at every colour's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of track (for now, till DIP from the iPhone)` : 'no other'}, ${R.dips} dips. `
     + (n > 1 ? `Between two colours it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the cup — wipe it, put the next colour in the cup, Continue. ` : '')
     + `${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, ≈ ${hm(R.seconds)} (est.).` + (F ? ` Only the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm.` : '')
     : `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Squeeze ${first?.name ?? 'the first'} on its cells now — Drag shows where. `
     + `The brush along the middles of its rows, block after block round the figure, then along its rays, never through a cell of another colour, every stroke ${S.dragRubs}× (Rubs), up on the move between strokes, pressed at ${sgn(S.brushPress)}. `
     + (n > 1 ? `Between two colours it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the next colour's start — wipe it, squeeze that colour on its cells, Continue. ` : '')
-    + `${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, ≈ ${hm(R.seconds)} (est.).` + (F ? ` Only the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm.` : '');
-  if (!await askDraw(R.passes, text, { title: `DRAG ${TAB_NAME}`, go: '▶ DRAG', first: OPMN ? 'In the cup first' : 'Squeeze first', what: 'colour' })) return dacheSoon();   // cancelled: the reading back
+    + `${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, ≈ ${hm(R.seconds)} (est.).` + (F ? ` Only the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm.` : ''); };
+  if (!await askDraw(R.passes, say(), { title: `DRAG ${TAB_NAME}`, go: '▶ DRAG', first: OPMN ? 'In the cup first' : 'Squeeze first', what: 'colour',
+    ...(OPMN && whole.length > 1 ? { from: { passes: whole, pick: i => { from = i; R = paintRun(i); return { passes: R.passes, text: say() }; } } } : {}) })) return dacheSoon();   // cancelled: the reading back
+  if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);               // the run from a later colour: its own plan
+  if (walls(R)) return warn(walls(R));
   S.view = 'drag'; settle(); RUN_BPRESS = S.brushPress;                                // ELBOW LIVE from here: the change since
   await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
-    { page: TAB, pass: 'drag', label: label(), settings: S, here: hereNow(), ...(OPMN ? { cup: dipCup(), travel: S.travel, remote: remoteRows(R) } : {}), estimate_s: Math.round(R.seconds) });
+    { page: TAB, pass: 'drag', label: label(), settings: S, here: hereNow(), ...(OPMN ? { cup: dipCup(), travel: S.travel, remote: remoteRows(R), ...(from ? { from_colour: pencilOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}) } : {}), estimate_s: Math.round(R.seconds) });
 }
 // OPM-N: the run's colours and rows for rembrandt.py — the iPhone's colour and cell, the dips' in the journal
 function remoteRows(R) {
@@ -2611,12 +2635,26 @@ function markRun() {
 // window DRAW opens, as a swatch"): the first pencil big, the run's order a
 // swatch each, the time and the paper; DRAW or Cancel, Esc Cancel
 function askDraw(passes, text, o = {}) {
-  const first = pencilOf(passes[0].pencil), box = $('#drawAsk');
-  $('#drawAskTitle').textContent = `${o.title ?? `DRAW ${TAB_NAME}`} · ${passes.length} ${o.what ?? 'pencil'}${passes.length === 1 ? '' : 's'}`;   // OPM-P's DRAG: colours
+  const box = $('#drawAsk');
   $('#drawGo').textContent = o.go ?? '✎ DRAW';                                       // OPM-S: DRAW CLR, DRAW BW, FRAME
-  $('#drawAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">${o.first ?? 'Put in first'}</span><b>${esc(first.name)}</b><span>${[first.code, first.brand].filter(Boolean).map(esc).join(', ')}</span></span>`;
-  $('#drawAskList').innerHTML = runRows(passes, true);
-  $('#drawAskText').textContent = text;
+  const show = (passes, text) => {
+    const first = pencilOf(passes[0].pencil);
+    $('#drawAskTitle').textContent = `${o.title ?? `DRAW ${TAB_NAME}`} · ${passes.length} ${o.what ?? 'pencil'}${passes.length === 1 ? '' : 's'}`;   // OPM-P's DRAG: colours
+    $('#drawAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">${o.first ?? 'Put in first'}</span><b>${esc(first.name)}</b><span>${[first.code, first.brand].filter(Boolean).map(esc).join(', ')}</span></span>`;
+    $('#drawAskList').innerHTML = runRows(passes, true);
+    $('#drawAskText').textContent = text;
+  };
+  show(passes, text);
+  const row = $('#drawAskFrom');                                                     // OPM-N's DRAG: start from a later colour, this question only; the first by default
+  if (row) {
+    row.hidden = !o.from;
+    if (o.from) {
+      const sel = $('#drawFrom');
+      sel.innerHTML = o.from.passes.map((q, i) => `<option value="${i}">${i + 1} · ${esc(pencilOf(q.pencil)?.name ?? q.pencil)}</option>`).join('');
+      sel.value = '0';
+      sel.onchange = () => { const v = o.from.pick(+sel.value); show(v.passes, v.text); };
+    }
+  }
   box.hidden = false; $('#drawAskList').scrollTop = 0; $('#drawGo').focus();
   return new Promise(ok => {
     const key = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); end(false); } };
@@ -2653,6 +2691,7 @@ function lcd(st) {
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
   $('#btnHome').disabled = !!live;
+  if (OPMN) $('#btnBack').disabled = !live;
   document.querySelectorAll('.deck [data-pass], #btnTest').forEach(el => el.classList.toggle('on', !!live && (el.dataset.pass || 'test') === RUN_KEY && (!el.dataset.snake || (el.dataset.snake === '1') === S.snake)));   // OPM-N: DRAG SNAKE or DRAG AIR, the one running
   const now = Q ? `Play ${playName(Q.kind)} · ${fmt(Q.want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m · the run's time (est.)`
     : waiting ? `❚❚ ${st.message}`

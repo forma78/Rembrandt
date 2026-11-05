@@ -672,6 +672,10 @@ body.type .status{grid-column:1/4;grid-row:4}
 /* the deck's STOP, no dots, and the snake's switch at its right, under DRAG (the owner, 2026-10-10): the repeat icon, Off and On as INK's; no HARD STOP */
 .alu .stops.deckstops{flex-wrap:nowrap;gap:12px;margin-top:10px}
 .alu .deckstops #btnStop,.alu .deckstops #btnHome{flex:1}
+.alu .backone{width:100%;margin-top:10px;padding:10px;font:600 11px var(--mono);letter-spacing:.08em}
+.alu .backone.call{color:#fff;background:var(--orange)}
+.askfrom{display:flex;align-items:center;gap:10px;margin:10px 0 2px;font-size:12px;color:var(--mute)}
+.askfrom select{flex:1;min-width:0;font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:5px 8px}
 .alu .deckstops #btnStop::before{display:none}
 .alu .loopsw{margin:0 2px 0 0;gap:8px}
 .alu .loopsw svg{width:22px;height:22px;fill:none;stroke:var(--mute);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;cursor:pointer}
