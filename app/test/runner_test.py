@@ -897,6 +897,96 @@ class GotoTest(unittest.TestCase):
         self.assertEqual(rest_of(c, 3), ["F 25", "L 4 0", "G"], "Continue's own: the W turned already")
 
 
+class LateReplyTest(unittest.TestCase):
+    """The evening of 2026-11-04, a six-hour run stopped twice on one reply: "the shoulder does
+    not answer" at 1.7 %, "shoulder: ok Z 3" at 48 %. The arm was fine both times."""
+
+    class Port:
+        def __init__(self, answers):
+            self.answers, self.lines = answers, []
+        def setRTS(self, v): pass
+        def setDTR(self, v): pass
+        def close(self): pass
+        def write(self, b):
+            self.lines += [x.encode() + b"\n" for x in self.answers.pop(0)]
+        def readline(self):
+            if self.lines:
+                return self.lines.pop(0)
+            time.sleep(0.002)
+            return b""
+
+    def board(self, *answers):
+        b = Board(open_port=lambda p: self.Port(list(answers)), ports=lambda: ["x"], log=lambda s: None)
+        b.start()
+        return b
+
+    def test_a_late_line_is_not_taken_for_this_command_s_reply(self):
+        b = self.board(["ok J 1 -32", "ok V | 1: поза 2500"])
+        self.assertEqual(b.send("V", 1.0), "ok V | 1: поза 2500")
+
+    def test_a_late_line_alone_is_no_answer(self):
+        b = self.board(["ok Z 3"])
+        self.assertEqual(b.send("J 1 -32 40", 0.05), rubens.NO_REPLY)
+
+    def test_the_board_s_refusal_is_its_answer(self):
+        b = self.board(["? идёт путь, сначала S"], ["нет серво 2"])
+        self.assertEqual(b.send("J 1 5", 1.0), "? идёт путь, сначала S")
+        self.assertEqual(b.send("J 2 5", 1.0), "нет серво 2")
+
+    def test_the_path_s_lines_as_before(self):
+        b = self.board(["ok L 7"], [])
+        self.assertEqual(b.send("L 1 2", 1.0), "ok L 7")
+        self.assertEqual(b.send("L 1 3", 0.02), "ok L 7", "no new line: the last one, as ever")
+
+    def arm(self, b, script=None, notes=None, **kw):
+        # script: path prefix → the replies to give before the fake board's own
+        script = script or {}
+        def send(path):
+            for k, v in script.items():
+                if path.startswith(k) and v:
+                    return v.pop(0)
+            return b.send(path)
+        return Arm(send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep, note=(notes.append if notes is not None else lambda w: None), **kw)
+
+    def test_one_silent_read_is_read_again_and_noted(self):
+        notes = []
+        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит | 2: поза 1759, 11,3 В, 30 °C"]}, notes)
+        a.move_to("shoulder", 0)
+        self.assertTrue(any("silent" in n for n in notes), notes)
+
+    def test_a_stale_line_for_a_look_is_read_again(self):
+        self.arm(FakeBoard(), {"/look": [rubens.NO_REPLY, "ok Z 3"]}).move_to("shoulder", 0)
+
+    def test_silent_for_a_second_it_does_not_answer(self):
+        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит"] * rubens.BUS_TRIES})
+        with self.assertRaisesRegex(ArmError, "shoulder does not answer"):
+            a.move_to("shoulder", 0)
+
+    def test_a_late_reply_to_J_does_not_stop_it(self):
+        b, notes = FakeBoard(), []
+        a = self.arm(b, {"/servo": [rubens.NO_REPLY]}, notes)
+        a.move_to("elbow", 10, within=1.5)
+        self.assertTrue(any("no answer to J" in n for n in notes), notes)
+        self.assertTrue(any(c.startswith("J 2") for c in b.log), "the step sent again, the joint not there")
+
+    def test_the_board_s_refusal_of_J_still_stops_it(self):
+        with self.assertRaisesRegex(ArmError, "elbow:"):
+            self.arm(FakeBoard(), {"/servo": ["нет серво 2"]}).move_to("elbow", 10)
+
+    def test_no_step_from_a_zero_not_taken_of_all_three(self):
+        b = FakeBoard()
+        a = self.arm(b, {"/zero": ["ok Z 2"]})
+        a.rezero()
+        self.assertEqual(b.log.count("Z"), 1, "asked again: the fake's own, all three")
+        with self.assertRaisesRegex(ArmError, "arm zero"):
+            self.arm(FakeBoard(), {"/zero": ["ok Z 2"] * rubens.BUS_TRIES}).rezero()
+
+    def test_a_ping_lost_is_asked_again(self):
+        b, n = FakeBoard(), [rubens.NO_REPLY]
+        r = Runner(lambda p: n.pop() if p == "/ping" and n else b.send(p))
+        self.assertIsNotNone(r._ping())
+
+
 class RemoteGateTest(unittest.TestCase):
     """The iPhone on the Wi-Fi (OPM-N, the owner, 2026-11-02: "yes, with the
     key"): from another address only /remote and its calls, those with the key."""
@@ -1581,8 +1671,8 @@ class BoardTest(unittest.TestCase):
 
     def test_the_addresses_become_the_board_lines_of_the_bridge(self):
         self.assertEqual(board_line("/ping"), ("P", 0.25))
-        self.assertEqual(board_line("/servo?j=shoulder&d=12.34&v=5"), ("J 1 12.3 5", 0.25))   # 2026-10-02
-        self.assertEqual(board_line("/servo?j=wrist&d=-54"), ("J 3 -54", 0.25))
+        self.assertEqual(board_line("/servo?j=shoulder&d=12.34&v=5"), ("J 1 12.3 5", 1.0))   # 2026-10-02
+        self.assertEqual(board_line("/servo?j=wrist&d=-54"), ("J 3 -54", 1.0))
         self.assertEqual(board_line("/hold"), ("H", 0.5))
         with self.assertRaises(ValueError):
             board_line("/servo?j=shoulder&d=10&v=500")

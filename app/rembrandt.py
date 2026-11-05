@@ -167,7 +167,7 @@ def board_line(path):
             return f"{a} {level}", 0.25
         raise ValueError("?")
     if p == "/zero":                 # the arm's zero where it stands: nothing moves
-        return "Z", 0.25
+        return "Z", 1.0
     if p == "/hold":                 # the arm stays where it stands: a slow stroke stopped half way (2026-10-02)
         return "H", 0.5
     if p == "/scan":                 # who answers on the servo bus, 0…253: nothing moves (new ST3235s, 2026-10-02)
@@ -212,8 +212,17 @@ def board_line(path):
             if not 0.5 <= v <= 100:
                 raise ValueError("? v: 0.5 to 100 degrees a second")
             speed = f" {v:g}"
-        return f"J {jid} {deg:g}{speed}", 0.25
+        return f"J {jid} {deg:g}{speed}", 1.0     # 0.25 until 2026-11-04: the run of 21:50 stopped on a reply later than that
     raise ValueError(f"? {p}")
+
+
+# What the arm's and the carriage's questions answer (firmware main.cpp). The board has one line of
+# reply and no numbers on it: a reply come late used to be taken for the next command's, and one such
+# stopped a run twice on the evening of 2026-11-04 ("the shoulder does not answer", "shoulder: ok Z 3").
+# Waiting for its own line, or the board's refusal, the late one passes by; none in time: NO_REPLY.
+REPLY = {"V": "ok V", "P": "ok P", "Z": "ok Z", "H": "ok H", "J": "ok J"}
+REFUSAL = ("?", "нет серво")
+NO_REPLY = "no answer"
 
 
 def pyserial(port):
@@ -288,6 +297,7 @@ class Board:
         # canvas (2026-09-27).
         if self.ser is None:
             return "no board"
+        own = REPLY.get(text[:1])
         with self.lock:
             try:
                 was = self.seen
@@ -296,9 +306,13 @@ class Board:
                 self.drop(e)
                 return "no board"
             t0 = time.time()
-            while self.seen == was and time.time() - t0 < wait:
+            while time.time() - t0 < wait:
+                if self.seen != was:
+                    line, was = self.last, self.seen
+                    if own is None or line.startswith(own) or line.startswith(REFUSAL):
+                        return line
                 time.sleep(0.005)
-            return self.last
+            return self.last if own is None else NO_REPLY
 
 
 BOARD = None   # the Board once the server runs (__main__); nothing opens a port on import
@@ -412,6 +426,9 @@ class ArmError(Exception):
     pass
 
 
+BUS_TRIES, BUS_GAP = 5, 0.2   # a read or a reply lost: asked again, about a second in all, before it counts
+
+
 class Arm:
     """The arm in RUBENS's own degrees: 0° is the working pose (ARM_ZERO).
 
@@ -425,9 +442,10 @@ class Arm:
     STOP; a move takes up to about 2 s (MOVE_SPEED, ~53°/s).
     """
 
-    def __init__(self, send, zero=lambda: ARM_ZERO, sleep=time.sleep, guard=lambda: None):
+    def __init__(self, send, zero=lambda: ARM_ZERO, sleep=time.sleep, guard=lambda: None, note=lambda what: None):
         # guard() → the cup at hand's forks while it is on (hand_guard), else None: hand_refuses
-        self.send, self.zero, self.sleep, self.guard = send, zero, sleep, guard
+        # note(what): a read or a reply the bus lost and got over, for the journal
+        self.send, self.zero, self.sleep, self.guard, self.note = send, zero, sleep, guard, note
         self.lock = threading.Lock()
         self.stopped = threading.Event()   # set by stop(): a move under way gives up
 
@@ -437,12 +455,33 @@ class Arm:
         self.stopped.set()
         return self.send("/hold")
 
-    def angles(self):
-        raw, z = parse_look(self.send("/look")), self.zero()
-        out = {}
-        for k, (jid, sign, _) in JOINTS.items():
-            out[k] = None if jid not in raw else round(TURN[k] * sign * (raw[jid] - z[k]) / TICKS_PER_DEG, 1)
+    def angles(self, need=()):
+        # need: joints worth asking again for (the owner, 2026-11-04: one silent read stopped a
+        # six-hour run). Silent for about a second, the 12 V may well be off: the caller's to say.
+        for n in range(BUS_TRIES):
+            raw, z = parse_look(self.send("/look")), self.zero()
+            out = {}
+            for k, (jid, sign, _) in JOINTS.items():
+                out[k] = None if jid not in raw else round(TURN[k] * sign * (raw[jid] - z[k]) / TICKS_PER_DEG, 1)
+            silent = [k for k in need if out[k] is None]
+            if not silent or self.stopped.is_set() or n == BUS_TRIES - 1:
+                break
+            self.note(f"look: {', '.join(silent)} silent, asked again")
+            self.sleep(BUS_GAP)
         return out, raw
+
+    def rezero(self):
+        # Z: the zero of all three where they stand, nothing moves. A joint the board could not read
+        # keeps its old zero and answers "ok Z 2": the step after it would count from there.
+        for n in range(BUS_TRIES):
+            r = self.send("/zero")
+            if r.strip() == f"ok Z {len(JOINTS)}":
+                return
+            if not (r == NO_REPLY or r.startswith("ok Z")) or self.stopped.is_set():
+                break
+            self.note(f"zero: {in_english(r)}, asked again")
+            self.sleep(BUS_GAP)
+        raise ArmError(f"arm zero: {in_english(r)}")
 
     def move_to(self, joint, deg, speed=None, within=0.6, fork=None):
         """speed: degrees a second, for a slow stroke of the brush; None — the
@@ -461,7 +500,8 @@ class Arm:
             for _ in range(6):
                 if self.stopped.is_set():
                     raise ArmError(f"the {joint} stopped: STOP")
-                ang, raw = self.angles()
+                g = self.guard()
+                ang, raw = self.angles(need=tuple(JOINTS) if g else (joint,))
                 if ang[joint] is None:
                     raise ArmError(f"the {joint} does not answer: is the 12 V on?")
                 a = ang[joint]
@@ -476,16 +516,15 @@ class Arm:
                     if fork and not fork[0] <= a <= fork[1]:
                         raise ArmError(f"the {joint} stands at {a:+.1f}°, not in {fork[0]:+g}…{fork[1]:+g}°")
                     return a
-                g = self.guard()
                 why = g and hand_refuses(joint, a, a + step, ang, g)
                 if why:
                     raise ArmError(why)
-                r = self.send("/zero")
-                if not r.startswith("ok Z"):
-                    raise ArmError(f"arm zero: {in_english(r)}")
+                self.rezero()
                 fw = TURN[joint] * step                    # the firmware's degrees
                 r = self.send(f"/servo?j={joint}&d={fw}" + (f"&v={speed:g}" if speed else ""))
-                if not r.startswith("ok J"):
+                if r == NO_REPLY:                          # on its way or not, the next look tells; this loop sends it again if not
+                    self.note(f"{joint}: no answer to J, looking where it stands")
+                elif not r.startswith("ok J"):
                     raise ArmError(f"{joint}: {in_english(r)}")
                 self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / speed + 2 if speed else 4.0)
             raise ArmError(f"the {joint} does not get to {deg}°")
@@ -495,12 +534,15 @@ class Arm:
         # (2026-09-28: the shoulder was dragged 67°). Z moves nothing, and a
         # zero step of the wrist then makes the board send all three poses.
         with self.lock:
-            r = self.send("/zero")
-            if not r.startswith("ok Z"):
-                raise ArmError(f"arm zero: {in_english(r)}")
-            r = self.send("/servo?j=wrist&d=0")
-            if not r.startswith("ok J"):
-                raise ArmError(f"wrist: {in_english(r)}")
+            self.rezero()
+            for n in range(BUS_TRIES):                     # a zero step: asked again it does no harm
+                r = self.send("/servo?j=wrist&d=0")
+                if r.startswith("ok J"):
+                    return
+                if r != NO_REPLY:
+                    break
+                self.sleep(BUS_GAP)
+            raise ArmError(f"wrist: {in_english(r)}")
 
     def _settle(self, jid, target, longest=4.0):
         # until the servo is there, or stands still (held back by something),
@@ -510,8 +552,8 @@ class Arm:
             self.sleep(0.15)
             t += 0.15
             p = parse_look(self.send("/look")).get(jid)
-            if p is None:
-                return
+            if p is None:                                  # a read lost: the servo is no less on its way
+                continue
             if abs(p - target) <= 6 or (last is not None and abs(p - last) <= 1 and t > 0.6):
                 return
             last = p
@@ -1400,7 +1442,11 @@ class Runner:
         self.log(end)
 
     def _ping(self):
-        p = parse_ping(self.send("/ping"))
+        for n in range(3):                     # a reply lost is no board lost
+            r = self.send("/ping")
+            if r != NO_REPLY:
+                break
+        p = parse_ping(r)
         with self.lock:
             self.pos = p
         if p and p["x"] is not None and p["y"] is not None:
@@ -1431,13 +1477,13 @@ class Runner:
         name, deg = ARM_JOINT[int(p[1])], float(p[2])
         if self.arm:
             # in RUBENS's degrees, from where the joint really is (class Arm)
-            was = self.arm.angles()[0].get(name) if name == "elbow" and self.page in PENCIL_PAGES and not fork else None
+            was = self.arm.angles(need=(name,))[0].get(name) if name == "elbow" and self.page in PENCIL_PAGES and not fork else None
             try:
                 self.arm.move_to(name, deg, fork=fork)
             except ArmError as e:
                 if self._stop and fork:
                     return
-                got = self.arm.angles()[0].get(name) if was is not None and "does not get to" in str(e) else None
+                got = self.arm.angles(need=(name,))[0].get(name) if was is not None and "does not get to" in str(e) else None
                 if got is None or not (was > deg and deg < got <= deg + REST_MAX and got < was):
                     raise Abort(f"{cmd}: {e}")
                 self.log({"event": "rests", "joint": name, "deg": deg, "at": got, "block": self.block})   # on the paper above it: on
@@ -1558,15 +1604,16 @@ class Runner:
         names = {ARM_JOINT[int(c.split()[1])] for c in pieces if c[0] == "W"}
         a = {k: 0.0 for k in names}
         if self.arm:
-            ang, _ = self.arm.angles()
+            ang, _ = self.arm.angles(need=tuple(names))
             for k in names:
                 if ang.get(k) is None:
                     raise Abort(f"W: the {k} does not answer: is the 12 V on?")
                 a[k] = ang[k]
             self._wbase = dict(a)
-            r = self.send("/zero")
-            if not r.startswith("ok Z"):
-                raise Abort(f"arm zero: {in_english(r)}")
+            try:
+                self.arm.rezero()
+            except ArmError as e:
+                raise Abort(str(e))
         out = []
         for c in pieces:
             if c[0] == "W":
@@ -1974,7 +2021,7 @@ def arm_zero():
         return dict(ARM_ZERO)
 
 
-ARM = Arm(board_get, arm_zero, guard=hand_guard)
+ARM = Arm(board_get, arm_zero, guard=hand_guard, note=lambda what: run_log({"event": "bus", "what": what}))
 RUNNER = Runner(board_get, arm=ARM, log=run_log)
 PARK = Park(PARK_FILE, board_get)
 
