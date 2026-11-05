@@ -3,8 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## Not released yet
+## v.1.2.1 — 2026-11-05 · LAB and the rubber brush
 
+- **v.1.2.1 on every tab and in the saved SVGs** (the owner, 2026-11-05: "it can be committed, by
+  the way; we have not pushed to GitHub for a long time. Let this version be v.1.2.1, and please
+  write something about LAB and what is new"). The code and the notes; the photos stay on this
+  Mac until the owner's word.
 - **OPM-N: BACK ONE CELL and Start from** (the owner, 2026-11-05, `OPM-N/IMG_2367`, the third
   paint come out badly at 86 %: a key before STOP and HOME; "I meant to say back one cell"). The key, as a
   player's ⏮: the brush already painting a cell, this cell again; not yet (in the air, in the cup,
