@@ -360,6 +360,28 @@ function onTheMove(p, o) {
   return { pieces: out, trace, turns, lifts: turns, need };
 }
 
+// LAB's way down and up (labplan.js, rowPaint; the owner's canon, README, "How to lay a module", 2026-11-05): the arm lies along
+// X, so the elbow sweeps the tip along X as it turns, SWEEP_MM mm/° (est.); the carriage goes against it, so the tip stays on its
+// line from the air to the paper and off it again. A row with p[0].sweep (mm/°): it lands over the first SWEEP_TAIL mm of its first
+// leg, no farther than a turn, pressed to its end if p[0].beyond, its lift past it along the last leg, else lifting over its own last.
+// The carriage's way is not the tip's: plotRun takes the row's length from the tip's. Same pieces as onTheMove.
+export const SWEEP_MM = 1.25, SWEEP_TAIL = 8;
+function sweptMove(p, o) {
+  const mm = p[0].sweep, press = o.press ?? 0, v = o.speed, row = p[0].row, D = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+  let pts = [p[0].a, ...p.map(g => g.b)];
+  if (p[0].beyond) { const a = pts.at(-2), b = pts.at(-1), d = D(a, b) || 1; pts = [...pts.slice(0, -1), pt(b.x + (b.x - a.x) / d * SWEEP_TAIL, b.y + (b.y - a.y) / d * SWEEP_TAIL)]; }
+  const len = pts.slice(1).reduce((t, q, i) => t + D(pts[i], q), 0), W = Math.min(SWEEP_TAIL, len / 2), tail = d => d >= 3 ? Math.min(W, d) : W, Wi = tail(D(pts[0], pts[1])), Wo = tail(D(pts.at(-2), pts.at(-1)));
+  const atS = s => { let left = s; for (let i = 1; i < pts.length; i++) { const d = D(pts[i - 1], pts[i]); if (left <= d) { const f = d ? left / d : 0; return pt(pts[i - 1].x + (pts[i].x - pts[i - 1].x) * f, pts[i - 1].y + (pts[i].y - pts[i - 1].y) * f); } left -= d; } return pts.at(-1); };
+  const mid = [atS(Wi)], s1 = len - Wo;
+  for (let i = 1, t = 0; i < pts.length; i++) { t += D(pts[i - 1], pts[i]); if (t > Wi + 1e-6 && t < s1 - 1e-6) mid.push(pts[i]); }
+  mid.push(atS(s1));
+  const start = pt(pts[0].x - mm * (ELBOW_HOVER - press), pts[0].y), end = pt(pts.at(-1).x - mm * (ELBOW_LIFT - press), pts.at(-1).y);
+  const secs = s => { const d = v * v / (2 * ACCEL); return s >= d ? (s - d) / v + v / ACCEL : Math.sqrt(2 * s / ACCEL); };
+  const rate = (deg, s) => Math.max(1, Math.min(WRIST_MAX, Math.ceil(Math.abs(deg) / secs(s))));
+  const L = (a, b, w) => ({ g: { t: 'L', a, b }, on: 1, row, v, ...w }), ws = rate(ELBOW_HOVER - press, D(start, mid[0])), wo = rate(ELBOW_LIFT - press, D(mid.at(-1), end));
+  return { pieces: [L(start, mid[0], { w: press, ws }), ...mid.slice(1).map((b, i) => L(mid[i], b, {})), L(mid.at(-1), end, { w: ELBOW_LIFT, ws: wo })], trace: [pts.map(q => ({ x: q.x, y: q.y, k: 1 }))], turns: 0, lifts: 0, need: Math.max(ws, wo) };
+}
+
 // ---------- the time: the board's planner (firmware path.h), run here ----------
 const ACCEL = 250, TICK = 0.02, KINK = Math.cos(rad(10));
 // seconds along pieces { g, v }, the queue of 16 looked ahead as the board does
@@ -576,10 +598,10 @@ export function plotRun(o, passes) {
     const j = cup && o.noDipUnder ? ps0.findIndex(p => drawnOf(p) >= o.noDipUnder) : -1;
     const ps = j > 0 ? [ps0[j], ...ps0.slice(0, j), ...ps0.slice(j + 1)] : ps0;
     ps.forEach((p, i) => {
-      const m = onTheMove(p, o), row = p[0].row;
+      const swept = !!p[0].sweep, m = swept ? sweptMove(p, o) : onTheMove(p, o), row = p[0].row;
       // The tails cut the row, they never add to it: the same length, or no run.
       const drawn = drawnOf(p), cut = real(m.pieces).reduce((s, q) => s + pieceLen(q.g), 0);
-      if (!fault && Math.abs(cut - drawn) > FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(cut)} mm after its tails`;
+      if (!fault && !swept && Math.abs(cut - drawn) > FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(cut)} mm after its tails`;
       if (B) { const pr = pressed(m.pieces, B); m.pieces = pr.pieces; pastWall += pr.past; }
       if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint
       const first = m.pieces[0].g.a;
@@ -646,7 +668,7 @@ export function plotRun(o, passes) {
       cmds.push('G');
       total += len;
       // pressed into the walls a row only gets shorter: longer is a path the drawing never had
-      if (!fault && total > drawn + FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(total)} mm to the board`;
+      if (!fault && !swept && total > drawn + FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(total)} mm to the board`;
       length += paint;
       blocks.push({ kind: 'move', cmds, lengthMM: len, paintMM: paint, painted: mark, row: p[0].row, ...flag });   // one mark a piece sent, as rembrandt.py counts them
       blocks.push({ kind: 'arm', cmd: `J 2 ${up}`, row: p.at(-1).row });   // at the lift-off already: the brush up, over the cup's rim with INK ON

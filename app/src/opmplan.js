@@ -844,7 +844,7 @@ export const PITCH_MAX_N = 45;                                    // mm, OPM-N's
 export const DIP_EVERY_NEW = 75, DIP_EVERY_MAX = 200;
 export const DIP_LAP_NEW = 5, DIP_LAP_MAX = 15;                  // mm back over the track after a dip in one, the landing on paint (the owner, 2026-11-02: "with a compensating −5 mm"; IMG_2056, a 5 … 6 mm gap at every one) (est.)          // mm of track a dip, for now (the owner, 2026-11-02): 75 … 80 with pouring medium, RoArte/IMG_1971; 0 a colour's first alone (est.)
 // the longest piece of the line through p along u inside P
-function chordAlong(P, p, u) {
+export function chordAlong(P, p, u) {
   const n = left(u), ts = [];
   P.forEach((a, i) => { const b = P[(i + 1) % P.length], sa = dot(sub(a, p), n), sb = dot(sub(b, p), n); if ((sa > 0) !== (sb > 0)) ts.push(dot(sub(add(a, mul(sub(b, a), sa / (sa - sb))), p), u)); });
   ts.sort((x, y) => x - y);

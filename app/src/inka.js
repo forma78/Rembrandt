@@ -48,6 +48,7 @@
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
 import { plotRun, homeBlocks, DEFAULTS, ELBOW_HOVER, SPEED_MAX, sweepOf, TAIL_MIN, landingCheck } from './strokes.js';
+import { IDLE, IDLE_STEP_MIN, IDLE_STEP_MAX, IDLE_TIP_MIN, IDLE_TIP_MAX, IDLE_OVER_MAX, idleDragsOf, idleRowsOf, idleRunsOf } from './idleplan.js';
 import { cornerDots, testMargin, testSay, NO_DIP, DIP_LAP } from './band.js';
 import { dragPasses, DENSITY_NEW, MARKS_DIP, MARK_SPEED, SAUSAGE_W, reachOf } from './ccdplan.js';
 import { cleanRect, withIds, cleanNodes, snakeNodes, linksOf, planOf, dragRows, wipeBlocks, dragSvg, marksRows, markOf, simOf, sausagesOf, spokeAt, keepIn, dealFigure, dealFigures, paletteOfPixels, INKA_META, figName, lenOf, atPiece, JOHN as JOHN_KIND, isJohn, traceRows, TRACE_DIP, johnWidthNew, JOHN_W_MIN, JOHN_W_MAX,
@@ -125,11 +126,11 @@ const S = {
   ...(OPMS ? { inset: OPMS_INSET, round: OPMS_ROUND, bg: BG.white } : {}),             // OPM-S: the contours on the cells' edges, sharp; the white canvas
   ...(OPMW ? { facets: FACETS_NEW } : {}),                                           // OPM-W: a corner three straight pieces (opmplan.js)
   ...(OPMP ? { pitch: PITCH_NEW, dragRubs: DRAG_RUBS_NEW, pspeed: PSPEED_NEW, brushPress: 0, cw: true, bind: true, rayW: PITCH_NEW, opmpV: 1 } : {}),
-  ...(OPMN ? { track: TRACK_NEW, snake: true, pspeed: NSPEED_NEW, dipEvery: DIP_EVERY_NEW, dipLap: DIP_LAP_NEW, opmnV: 2 } : {}),   // OPM-N: a cell's tracks the brush's track apart, Snake or Air (opmplan.js, tracksOf)
+  ...(OPMN ? { track: TRACK_NEW, snake: true, pspeed: NSPEED_NEW, dipEvery: IDLE.every, dipLap: IDLE.lap, legStep: IDLE.step, idleStep: IDLE.pass, tip: IDLE.tip, idleOver: IDLE.over, idleSlant: IDLE.slant, opmnV: 3 } : {}),   // OPM-N: a cell's tracks the brush's track apart, Snake or Air (opmplan.js, tracksOf)
   ...(FORM ? structuredClone(FORM_STATE) : {}),                                      // FORM: the forms and the chosen ones, Bricks, the background, the cells' colours, the view turned   // OPM-P: the rings the brush apart, DRAG's rubs, speed and pressure, round ↻
 };
 if (DACHE) S.ink = false;                                                            // no cup: TEST's dots in pencil
-const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : []), ...(PRISMA ? ['rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress'] : []), ...(OPMN ? ['track', 'dipEvery', 'dipLap'] : []), ...(FORM ? FORM_NUM : [])];
+const NUM = ['sel', 'key', 'brush', 'swell', 'edgeOut', 'overlap', 'drag', 'corner', 'change', 'join', 'wipe', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity', 'ref', 'density', ...(DACHE ? ['coats', 'shortest', 'pencilSpeed'] : []), ...(PRISMA ? ['rubsDark', 'rubsLight', 'press', 'glide', 'touch'] : []), ...(OPM ? ['rowMin', 'rayW'] : []), ...(OPMS ? ['inset', 'round'] : []), ...(OPMW ? ['facets'] : []), ...(OPMP ? ['pitch', 'dragRubs', 'pspeed', 'brushPress'] : []), ...(OPMN ? ['track', 'dipEvery', 'dipLap', 'legStep', 'idleStep', 'tip', 'idleOver', 'idleSlant'] : []), ...(FORM ? FORM_NUM : [])];
 const TOOLS = ['edit', 'rect', ...(JOHN ? ['john'] : []), ...(BLEND ? ['blend'] : []), ...(DACHE ? ['frame'] : []), 'node', 'knife', 'paint', ...(FORM ? ['mirror'] : [])], VIEWS = ['drag', 'result', ...(FORM ? ['forms'] : []), ...(OPM ? ['pencil', 'paint', ...(OPMN ? ['final'] : [])] : PRISMA ? ['pencil'] : DACHE ? ['modules', 'pencil'] : [])];
 const BLEND_KEEP = 'rembrandt.blend.v01', BLEND_REFS = 'rembrandt.blend.refs';   // BLEND's keep and references, DACHE's first visit's
 const DACHE_KEEP = 'rembrandt.dache.v01', DACHE_REFS = 'rembrandt.dache.refs';   // DACHE's, PRISMA's first visit's
@@ -189,7 +190,10 @@ function load() {
       if (OPMN) {                                                                     // OPM-P's keep, or OPM-N's before its tracks: the thin brush's own
         if (!o.opmnV) { S.track = TRACK_NEW; S.pspeed = NSPEED_NEW; }
         if ((o.opmnV ?? 0) < 2) S.dipLap = DIP_LAP_NEW;                            // before the overlap (2026-11-02): the landing after a dip on paint
-        S.opmnV = 2; S.dipLap = Math.max(0, Math.min(DIP_LAP_MAX, Math.round(S.dipLap * 2) / 2)); S.snake = o.snake !== false; S.track = Math.max(TRACK_MIN, Math.min(TRACK_MAX, Math.round(S.track * 2) / 2)); S.dipEvery = Math.max(0, Math.min(DIP_EVERY_MAX, Math.round(S.dipEvery / 5) * 5));
+        if ((o.opmnV ?? 0) < 3) { S.dipEvery = IDLE.every; S.dipLap = IDLE.lap; S.pspeed = NSPEED_NEW; S.brushPress = 0; S.snake = true; o.snake = true; }   // before + idle 6.0 (2026-11-05): LAB's canon, as the sheet that made it
+        const cent = (v, a, b) => Math.max(a, Math.min(b, Math.round(v * 100) / 100));
+        S.legStep = cent(S.legStep, IDLE_STEP_MIN, IDLE_STEP_MAX); S.idleStep = cent(S.idleStep, IDLE_STEP_MIN, IDLE_STEP_MAX); S.tip = cent(S.tip, IDLE_TIP_MIN, IDLE_TIP_MAX); S.idleOver = cent(S.idleOver, 0, IDLE_OVER_MAX); S.idleSlant = cent(S.idleSlant, 0, IDLE_OVER_MAX);
+        S.opmnV = 3; S.dipLap = Math.max(0, Math.min(DIP_LAP_MAX, Math.round(S.dipLap * 2) / 2)); S.snake = o.snake !== false; S.track = Math.max(TRACK_MIN, Math.min(TRACK_MAX, Math.round(S.track * 2) / 2)); S.dipEvery = Math.max(0, Math.min(DIP_EVERY_MAX, Math.round(S.dipEvery / 5) * 5));
       }
       if (PRISMA) { S.rubsDark = to(S.rubsDark, RUBS_MIN, RUBS_MAX); S.rubsLight = to(S.rubsLight, RUBS_MIN, RUBS_MAX); const deg = (v, a, b) => Math.max(a, Math.min(b, Math.round(v * 10) / 10)); S.press = deg(S.press, PRESS_MIN, PRESS_MAX); S.glide = deg(S.glide, GLIDE_MIN, GLIDE_MAX); S.touch = deg(S.touch, TOUCH_MIN, TOUCH_MAX); }   // rubbed, pressed, gliding
       if (PRISMA) S.shortest = Math.max(RUN_SHORTEST_MIN, Math.min(RUN_SHORTEST_MAX, S.shortest));
@@ -312,13 +316,14 @@ function dachePlan() {
     showForm(D);
     return (DPLAN = { key, ...D, order: runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order), passes: D.drags });
   }
-  const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.coats, S.shortest, S.frame, S.hatch, S.corner, S.mix, S.rubsDark, S.rubsLight, S.merge, S.rowMin, S.rayW, S.inset, S.round, S.facets, S.pitch, S.cw, S.dragRubs, S.bind, OPMN && [S.track, S.snake]]);
+  const B = resultBitmap(), key = JSON.stringify([B.key, S.pencils, S.order, S.coats, S.shortest, S.frame, S.hatch, S.corner, S.mix, S.rubsDark, S.rubsLight, S.merge, S.rowMin, S.rayW, S.inset, S.round, S.facets, S.pitch, S.cw, S.dragRubs, S.bind, OPMN && [S.track, S.snake, S.legStep, S.idleStep, S.tip, S.idleOver, S.idleSlant]]);
   if (DPLAN?.key === key) return DPLAN;
   if (OPMP) {                                                                        // opmplan.js: the brush's rings, the lines once, DRAG a colour at a time in the run's order
     const D = opmpPlan(S.rects, { nx: B.sim.nx, ny: B.sim.ny, h: B.sim.h, data: B.img.data }, { pencils: S.pencils, order: runOrder(S.pencils, S.order).map(p => p.id), frame: S.frame, corner: S.corner, merge: S.merge, pitch: S.pitch, stripW: S.rayW, facets: S.facets, cw: S.cw, rubs: S.dragRubs, bound: S.bind, ...(OPMN ? { fewCells: FEW_CELLS } : {}) });   // OPM-N: no colour in fewer than five cells but one, the accent, in one
     if (OPMN) {                                                                      // OPM-N: every colour's cells 1 … n, from the middle out, from 12 o'clock clockwise; DRAG by them, every cell its tracks
       D.cells = numbersOf(D.cells, D.regions);
-      D.drags = cellDragsOf(D.cells, D.regions, D.drags.map(q => q.pencil), { track: S.track, snake: S.snake, rubs: S.dragRubs, cw: S.cw });
+      const order = D.drags.map(q => q.pencil);                                      // Snake: LAB's + idle 6.0 (idleplan.js); Air: every track one way, as it was
+      D.drags = S.snake ? idleDragsOf(D.cells, order, { step: S.legStep, pass: S.idleStep, tip: S.tip, over: S.idleOver, slant: S.idleSlant }) : cellDragsOf(D.cells, D.regions, order, { track: S.track, snake: false, rubs: S.dragRubs, cw: S.cw });
     }
     return (DPLAN = { key, ...D, order: runOrder(S.pencils.filter(p => !D.few.includes(p.id)), S.order), passes: D.drags });
   }
@@ -386,11 +391,15 @@ function oneRun(kind) {
 // start to Wipe, the run's pause — wipe it, squeeze that colour on its cells,
 // Continue (inkaplan.js's wipeBlocks)
 let PAINT_RUN = null;
+const brushWide = () => S.snake ? S.tip : S.track;                                  // OPM-N: on the screen as wide as the paint: Snake's rubber tip, Air's track
+// OPM-N's way with a cell, for the panel and the question before a run
+const dragWay = tracks => S.snake ? `${tracks} tracks in all, only up and down, about ${fmt(S.legStep, 2)} mm apart (Track step), the snake back and forth with the brush down; then at once an idle run over the cell, no dip, about ${fmt(S.idleStep, 2)} mm apart (Idle step), +${fmt(S.idleOver, 1)} mm past the ends and none at its very end, on a slanted side +${fmt(S.idleSlant, 1)} (+ idle 6.0)`
+  : `${tracks} tracks in all, ${fmt(S.track, 1)} mm apart at most (Track width), Air: every track one way, the brush up and back, every one ${S.dragRubs}× (Rubs)`;
 function paintRun() {
   const D = dachePlan(), here = hereNow(), key = JSON.stringify([D.key, S.pspeed, S.travel, S.tail, S.wipe, S.brushPress, here, OPMN && [S.dipEvery, S.dipLap, dipCup()]]);
   if (PAINT_RUN?.key === key) return PAINT_RUN;
   if (!D.passes.length) return (PAINT_RUN = { key, ...EMPTY, passes: [] });
-  const R = dragRowsOf(D.passes, S.pencils, po(), OPMN ? S.dipEvery : 0, OPMN ? S.dipLap : 0), name = id => pencilOf(id)?.name ?? id;
+  const R = (OPMN && S.snake ? idleRowsOf : dragRowsOf)(D.passes, S.pencils, po(), OPMN ? S.dipEvery : 0, OPMN ? S.dipLap : 0), name = id => pencilOf(id)?.name ?? id;
   // OPM-N (OPM-N.md step 4): the paint from the cup — INK-Y's at hand since 2026-11-03, else the Ink tab's — a dip at every colour's start, then every Dip every mm (for now); between two colours the brush up (over the Ink tab's cup), the next colour put in it
   const r = plotRun({ ...runOpts(R.ps.length), speed: S.pspeed, lift: true, press: S.brushPress, ...(OPMN ? { ink: true, noDipUnder: 0 } : {}) }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? OPMN ? `wipe the brush, put ${name(D.passes[k].pencil)} in the cup, then Continue` : `wipe the brush, squeeze ${name(D.passes[k].pencil)} on its cells, then Continue` : null })));
   return (PAINT_RUN = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: D.passes.reduce((a, q) => a + q.mm, 0), passes: D.passes });
@@ -753,7 +762,7 @@ function dacheBitmap() {
     c.lineCap = 'round'; c.lineJoin = 'round';
     for (const P of D.passes) {
       const pc = pencilOf(P.pencil); if (!pc || (S.only && P.pencil !== S.only)) continue;
-      c.lineWidth = OPMN ? S.track : S.pitch; c.strokeStyle = pc.hex; c.globalAlpha = 0.8;   // OPM-N: as wide as its track
+      c.lineWidth = OPMN ? brushWide() : S.pitch; c.strokeStyle = pc.hex; c.globalAlpha = 0.8;   // OPM-N: as wide as its track
       for (const st of P.strokes) { const b = boxOfPieces(st); if (!seen(b)) continue; trace(c, st); c.stroke(); }
       c.globalAlpha = 0.55; c.lineWidth = Math.max(0.15, 0.6 / px); c.strokeStyle = '#24221F';
       for (const st of P.strokes) { const b = boxOfPieces(st); if (!seen(b)) continue; trace(c, st); c.stroke(); }
@@ -825,7 +834,8 @@ function drawFrame() {
 }
 function showPlay() {
   const b = $('#btnPlay'), on = OPMP ? PPLAY?.kind === 'drag' : !!PLAY; b.classList.toggle('on', on); b.textContent = on ? '■ Stop playing' : OPMP ? '▶ Play Drag' : DACHE ? '▶ Play Preview' : '▶ Play the run';
-  if (DACHE) { const q = $('#btnPlayPencil'), pon = !!PPLAY && PPLAY.kind !== 'drag'; q.classList.toggle('on', pon); q.textContent = pon ? '■ Stop playing' : '▶ Play Pencil'; }
+  if (DACHE) { const q = $('#btnPlayPencil'), pon = PPLAY?.kind === 'pencil'; q.classList.toggle('on', pon); q.textContent = pon ? '■ Stop playing' : '▶ Play Pencil'; }
+  if (OPMN) { const q = $('#btnPlaySnake'), son = PPLAY?.kind === 'snake'; q.classList.toggle('on', son); q.textContent = son ? '■ Stop playing' : '▶ Play Drag Snake'; }
 }
 $('#btnPlay').onclick = () => { if (OPMP) return playPencil('drag'); stopPencilPlay(); play(); };   // OPM-P: DRAG as it will run
 // ▶ Play Pencil (DACHE; the owner, 2026-10-27: "two buttons in one row, Play
@@ -862,7 +872,7 @@ function playPencil(kind) {
   c2.width = Math.ceil(S.boardW * px); c2.height = Math.ceil(S.boardH * px);
   const c = c2.getContext('2d');
   c.setTransform(px, 0, 0, -px, 0, S.boardH * px); c.fillStyle = groundNow(); c.fillRect(0, 0, S.boardW, S.boardH);
-  c.lineWidth = OPMP && kind === 'drag' ? OPMN ? S.track : S.pitch : PITCH; c.lineCap = OPMP && kind === 'drag' ? 'round' : 'butt'; c.lineJoin = 'round';
+  c.lineWidth = OPMP && kind === 'drag' ? OPMN ? brushWide() : S.pitch : PITCH; c.lineCap = OPMP && kind === 'drag' ? 'round' : 'butt'; c.lineJoin = 'round';
   PPLAY = { kind, list, mm, i: 0, c2, c, t0: performance.now(), ms: Math.min(40000, 6000 + mm * 0.15), passes: passes.length, ids: passes.map(q => q.pencil), seconds: B ? B.seconds : pencilRun().seconds, want: 0, n: list[0].n, say: '' };
   const v = OPMP && kind === 'drag' ? 'drag' : 'pencil';
   if (S.view !== v) { S.view = v; save(); showPanel(); }
@@ -889,6 +899,58 @@ function playPencil(kind) {
   requestAnimationFrame(tick);
 }
 function stopPencilPlay() { if (!PPLAY) return; PPLAY = null; showPlay(); showPanel(); lcd(lastLcd); }
+// ▶ Play Drag Snake (the owner, 2026-11-05: "the third key, so that it is clear how it paints"): DRAG SNAKE run by run, as idleplan.js lays it. The first run in its
+// colour as wide as the brush, its line in black, a black dot where the brush lands fresh from the jar; the idle run a thin orange line, as on LAB's page, the tip's ring
+// orange on it. Slowly at first, the first cells to be read, faster as it goes (the clock squared), three minutes at most. A view: it moves nothing on the machine.
+const playName = kind => kind === 'drag' ? 'Drag' : kind === 'snake' ? 'Drag Snake' : 'Pencil';
+const SNAKE_IDLE = '#E8751A';
+function playSnake() {
+  if (PPLAY) { const was = PPLAY.kind; stopPencilPlay(); kick(); if (was === 'snake') return; }
+  stopPlay();
+  if (!S.snake) { S.snake = true; settle(); }
+  const D = dachePlan(), list = [];
+  let mm = 0;
+  for (const r of idleRunsOf(D.passes, S.dipEvery, S.dipLap)) {
+    const pc = pencilOf(D.passes[r.pass].pencil); if (!pc) continue;
+    const base = { pc, n: r.pass, num: r.num, say: r.say, idle: r.idle };
+    if (r.dip) list.push({ ...base, dot: r.pts[0], g: { t: 'L', a: r.pts[0], b: r.pts[0] }, at: mm });
+    r.pts.slice(1).forEach((b, i) => {
+      const g0 = { t: 'L', a: r.pts[i], b }, L = lenOf(g0), k2 = Math.max(1, Math.ceil(L / PLAY_MM));
+      for (let j = 0; j < k2; j++) list.push({ ...base, g: { t: 'L', a: j ? atPiece(g0, L * j / k2).p : g0.a, b: j === k2 - 1 ? g0.b : atPiece(g0, L * (j + 1) / k2).p }, at: (mm += L / k2) });
+    });
+  }
+  if (!list.length) return;
+  const px = Math.min(k * dpr, PX_MAX / Math.max(S.boardW, S.boardH)), c2 = document.createElement('canvas');
+  c2.width = Math.ceil(S.boardW * px); c2.height = Math.ceil(S.boardH * px);
+  const c = c2.getContext('2d'), thin = Math.max(0.25, 1 / px);
+  c.setTransform(px, 0, 0, -px, 0, S.boardH * px); c.fillStyle = groundNow(); c.fillRect(0, 0, S.boardW, S.boardH);
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  PPLAY = { kind: 'snake', list, mm, i: 0, c2, c, t0: performance.now(), ms: Math.min(180000, Math.max(12000, mm / 0.25)), passes: D.passes.length, ids: D.passes.map(q => q.pencil), seconds: paintRun().seconds, want: 0, n: 0, say: '' };
+  if (S.view !== 'drag') { S.view = 'drag'; save(); showPanel(); }
+  showPlay(); nowPencil(); lcd(lastLcd);
+  const tick = () => {
+    if (PPLAY?.kind !== 'snake') return;
+    const Q = PPLAY, u = Math.min(1, (performance.now() - Q.t0) / Q.ms), want = Q.mm * u * u;
+    for (; Q.i < Q.list.length && Q.list[Q.i].at <= want + 1e-9; Q.i++) {
+      const q = Q.list[Q.i];
+      c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;
+      if (q.dot) { c.fillStyle = '#24221F'; c.beginPath(); c.arc(q.dot[0], q.dot[1], 1.2, 0, 7); c.fill(); continue; }
+      if (q.idle) { c.lineWidth = thin; c.strokeStyle = SNAKE_IDLE; trace(c, [q.g]); c.stroke(); continue; }
+      c.globalAlpha = 0.9; c.lineWidth = S.tip; c.strokeStyle = q.pc.hex; trace(c, [q.g]); c.stroke();   // its colour over any ground, a black one too: to be seen, not a preview of the paint
+      c.globalAlpha = 0.7; c.lineWidth = thin; c.strokeStyle = '#24221F'; trace(c, [q.g]); c.stroke();
+    }
+    const q = Q.list[Math.max(0, Q.i - 1)];
+    $('#hint').textContent = `Play Drag Snake · ${q.n + 1}/${Q.passes} ${q.pc.name}${q.pc.code ? ` ${q.pc.code}` : ''} · cell ${q.num} · ${q.dot ? 'a dip, then ' : ''}${q.say} · ${Math.round(want / Q.mm * 100)} % · ${fmt(want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m`;
+    Q.want = want;
+    if (q.n !== Q.n) { Q.n = q.n; nowPencil(); }
+    const say = `${Q.n}|${Math.floor(want / Q.mm * 100)}|${Math.round(Q.seconds * (1 - want / Q.mm))}`;
+    if (say !== Q.say) { Q.say = say; lcd(lastLcd); }
+    draw();
+    if (Q.i >= Q.list.length) { stopPencilPlay(); kick(); return; }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 // the pencil drawing now, by the Tools (PRISMA's strip) and in the box: ringed
 // (the owner, 2026-10-27, Screenshot 7.32.59 PM: "the progress does not change
 // on the screen, the drawing's build does not take the change of the swatches")
@@ -901,12 +963,13 @@ function drawPencilPlay() {
   const q = Q.list[Math.max(0, Q.i - 1)];
   if (q && Q.i) {                                                                    // the pencil's tip: a ring in its colour
     const p = scr(q.g.b);
-    g.fillStyle = q.pc.hex; g.strokeStyle = '#24221F'; g.lineWidth = 1.5;
+    g.fillStyle = q.pc.hex; g.strokeStyle = q.idle ? SNAKE_IDLE : '#24221F'; g.lineWidth = q.idle ? 2.5 : 1.5;   // on ▶ Play Drag Snake's idle run, orange
     g.beginPath(); g.arc(p[0], p[1], 5, 0, 7); g.fill(); g.stroke();
   }
   g.restore();
 }
 if (DACHE) $('#btnPlayPencil').onclick = () => playPencil('pencil');
+if (OPMN) $('#btnPlaySnake').onclick = () => playSnake();
 
 // The guides: every tile's outline, the chosen one orange with its eight
 // handles; its number and step; its size while it is drawn or stretched. A
@@ -1469,7 +1532,7 @@ const LOG_SL = new Set(PRISMA ? ['rubsDark', 'rubsLight'] : []);
 // OPM-P (2026-10-29): Construction its rays and facets — the rows by the brush; Drawing machine DRAW BW's one pencil, one Rubs;
 // Painting machine DRAG's brush: its width the rings' step, its Rubs, its speed (the owner: "RUBS, one, as there are no light or dark pencils any more")
 const PENCIL_SL = OPMP ? [['rayW', 'Rays wide', 0.5, PITCH_MIN, RAYW_MAX], ['facets', 'Corner facets', 1, FACETS_MIN, FACETS_MAX], ['rubsDark', 'Rubs', 1, 0, 6], ['touch', 'Pencil in at', 0.5, TOUCH_MIN, TOUCH_MAX], ['press', 'Pressure', 0.1, PRESS_MIN, PRESS_MAX], ['glide', 'Between strokes', 0.1, GLIDE_MIN, GLIDE_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX],
-    ['pitch', OPMN ? 'The rows\' step' : 'Brush width · the rows\' step', 0.5, PITCH_MIN, PITCH_TOP], ...(OPMN ? [['track', 'Track width', 0.5, TRACK_MIN, TRACK_MAX], ['dipEvery', 'Dip every', 5, 0, DIP_EVERY_MAX], ['dipLap', '🖌️ Dip overlap', 0.5, 0, DIP_LAP_MAX]] : []), ['dragRubs', 'Rubs', 1, DRAG_RUBS_MIN, DRAG_RUBS_MAX], ['pspeed', 'Brush speed', 5, PSPEED_MIN, PSPEED_MAX]]
+    ['pitch', OPMN ? 'The rows\' step' : 'Brush width · the rows\' step', 0.5, PITCH_MIN, PITCH_TOP], ...(OPMN ? [['legStep', 'Track step', 0.01, IDLE_STEP_MIN, IDLE_STEP_MAX], ['idleStep', 'Idle step', 0.01, IDLE_STEP_MIN, IDLE_STEP_MAX], ['tip', 'Brush tip', 0.5, IDLE_TIP_MIN, IDLE_TIP_MAX], ['idleOver', 'Idle past the ends', 0.5, 0, IDLE_OVER_MAX], ['idleSlant', 'Idle past, on a slant', 0.5, 0, IDLE_OVER_MAX], ['dipEvery', 'Dip every', 5, 0, DIP_EVERY_MAX], ['dipLap', '🖌️ Dip overlap', 0.5, 0, DIP_LAP_MAX], ['track', 'Track width · Air', 0.5, TRACK_MIN, TRACK_MAX]] : []), ['dragRubs', OPMN ? 'Rubs · Air' : 'Rubs', 1, DRAG_RUBS_MIN, DRAG_RUBS_MAX], ['pspeed', 'Brush speed', 5, PSPEED_MIN, PSPEED_MAX]]
   : PRISMA ? [...(OPM ? [['rowMin', OPMB ? 'Rows at least' : 'Key 1 · A: rows at least', 0.5, ROWMIN_MIN, ROWMIN_MAX], ['rayW', OPMB ? 'Rays wide' : 'Key 1 · A: rays wide', 0.5, RAYW_MIN, RAYW_MAX]] : []), ...(OPMS ? [['inset', 'Contour in from the edge', 0.1, 0, INSET_MAX], OPMW ? ['facets', 'Corner facets', 1, FACETS_MIN, FACETS_MAX] : ['round', 'Corners rounded', 0.5, 0, ROUND_MAX]] : []), ['rubsDark', 'Rubs, the darkest pencil', 1, 0, 6], ['rubsLight', 'Rubs, the lightest pencil', 1, 0, 6], ['touch', 'Pencil in at', 0.5, TOUCH_MIN, TOUCH_MAX], ['press', 'Pressure', 0.1, PRESS_MIN, PRESS_MAX], ['glide', 'Between strokes', 0.1, GLIDE_MIN, GLIDE_MAX],
     ...(OPMS ? [] : [['shortest', 'Shortest stroke', 0.5, RUN_SHORTEST_MIN, RUN_SHORTEST_MAX]]), ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]]   // OPM-S: no Shortest, PRISMA's rings' and nothing of OPM's
   : [['coats', 'Coats', 1, COATS_MIN, COATS_MAX], ['shortest', 'Shortest module', 0.5, SHORTEST_MIN, SHORTEST_MAX], ['pencilSpeed', 'Pencil speed', 5, PENCIL_SPEED_MIN, PENCIL_SPEED_MAX]];
@@ -1502,17 +1565,22 @@ if (OPMP) Object.assign(PENCIL_TITLE, {
 if (OPMN) Object.assign(PENCIL_TITLE, {                                             // OPM-N: the cells' rows on the screen, the thin brush's tracks on the canvas
   pitch: 'The cells\' rows so far apart at most, mm: every block — a side, a facet of a bevel — its own rows, parallel to its edge, its gap shared out evenly, ending on the rays (OPM-P\'s Brush width); the thin brush paints every cell in its tracks, Track width (est.)',
   track: 'The 0 Textura 860\'s track on the canvas, mm — not the brush\'s size (the owner, 2026-11-01: 2.5 … 3 mm by the ruler, RoArte/IMG_1949): a cell\'s tracks so many that none is further from the next than this, the outer ones half of it in from the contour; a cell within 5 % of it one track (est.)',
-  dragRubs: 'Every track so many times over: Snake there and back, Air one way each, the brush up and back between (the owner, 2026-11-01: "as we did with the pencil, rubbed like sandpaper")',
+  legStep: 'DRAG SNAKE: the first run\'s legs, only up and down, so many mm apart, shared out evenly over a cell\'s width: LAB\'s + idle 6.0, 4 tracks in its 17.5 mm module (est.)',
+  idleStep: 'DRAG SNAKE: the idle run\'s legs, no dip, so many mm apart, closer than the first run\'s: 5 passes in LAB\'s 17.5 mm module (est.)',
+  tip: 'The rubber tip\'s track on the paper, OPM-N/IMG_2356 (est.): the first run half of it in from a cell\'s contour on every side, so the paint keeps to the cell',
+  idleOver: 'The idle run past a leg\'s ends, at its start and its turns, to catch the bulbs from behind; at its very end none, no tail (the owner, 2026-11-05, IMG_2363, LAB\'s 1 and 4: "+2 … at the end not needed, just 0 mm")',
+  idleSlant: 'In a cell with a slanted side, its legs cut short by it, the idle run past the ends, its very end too (the owner, 2026-11-05, IMG_2363, LAB\'s 7 and 8, +3: "we leave them as they are")',
+  dragRubs: 'DRAG AIR only. Every track so many times over: Snake there and back, Air one way each, the brush up and back between (the owner, 2026-11-01: "as we did with the pencil, rubbed like sandpaper")',
   pspeed: 'The thin brush along its tracks, mm/s (the owner, 2026-11-01: "let the brush go 25 mm/s, not 60, and dip more often"); up through the air from cell to cell (est.)',
   dipLap: 'After a dip in the middle of a track the brush starts so many mm back over it, its landing on what it has painted: it lands and lifts on the move, and on paper (OPM-N/IMG_2056, a pencil) every such dip left a 5 … 6 mm gap — the owner, 2026-11-02: "with a compensating −5 mm". Half of Dip every at most; a dip between two tracks needs none. 0: back to the same point (est.)',
   dipEvery: 'A dip in the cup — INK-Y\'s at hand, else the Ink tab\'s — every so many mm of track, for now, till DIP comes from the iPhone (the owner, 2026-11-02): 75 … 80 mm with pouring medium, ≈ 30 in pure acrylic (RoArte/IMG_1971, IMG_1954); between two strokes when the brush has painted half of it, else in one, back to the same point. 0: a colour\'s first dip alone (est.)',
 });
 const sgn = v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)}°`;
-const pencilVal = key => PRISMA ? ({ pitch: `${fmt(S.pitch, 1)} mm (est.)`, track: `${fmt(S.track, 1)} mm (est.)`, dipEvery: S.dipEvery ? `${S.dipEvery} mm of track (est.)` : 'a colour\'s first alone', dipLap: S.dipLap ? `${fmt(S.dipLap, 1)} mm back (est.)` : 'none, the same point', dragRubs: `${S.dragRubs} × (est.)`, pspeed: `${S.pspeed} mm/s (est.)`, rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', facets: `${S.facets} · ${fmt(90 / S.facets, 0)}° a turn`, rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(glideAt())}${glideAt() > S.touch + S.glide + 1e-9 ? `, ${PEN_AIR}° over pressing` : ''} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
+const pencilVal = key => PRISMA ? ({ legStep: `${fmt(S.legStep, 2)} mm (est.)`, idleStep: `${fmt(S.idleStep, 2)} mm (est.)`, tip: `${fmt(S.tip, 1)} mm (est.)`, idleOver: `+${fmt(S.idleOver, 1)} mm, 0 at its end (est.)`, idleSlant: `+${fmt(S.idleSlant, 1)} mm (est.)`, pitch: `${fmt(S.pitch, 1)} mm (est.)`, track: `${fmt(S.track, 1)} mm (est.)`, dipEvery: S.dipEvery ? `${S.dipEvery} mm of track (est.)` : 'a colour\'s first alone', dipLap: S.dipLap ? `${fmt(S.dipLap, 1)} mm back (est.)` : 'none, the same point', dragRubs: `${S.dragRubs} × (est.)`, pspeed: `${S.pspeed} mm/s (est.)`, rowMin: `${fmt(S.rowMin, 1)} mm (est.)`, inset: S.inset > 0 ? `${fmt(S.inset, 1)} mm (est.)` : 'on the edge (est.)', round: S.round > 0 ? `${fmt(S.round, 1)} mm (est.)` : 'sharp (est.)', facets: `${S.facets} · ${fmt(90 / S.facets, 0)}° a turn`, rayW: `${fmt(S.rayW, 1)} mm (est.)`, rubsDark: `${S.rubsDark} × (est.)`, rubsLight: `${S.rubsLight} × (est.)`, touch: `${sgn(S.touch)} (est.)`, press: `${sgn(S.press)} · the elbow ${sgn(S.touch + S.press)} (est.)`, glide: `${sgn(S.glide)} · ${S.glide <= 0 ? 'on the paper' : 'just off'} · the elbow ${sgn(glideAt())}${glideAt() > S.touch + S.glide + 1e-9 ? `, ${PEN_AIR}° over pressing` : ''} (est.)`, shortest: `${fmt(S.shortest, 1)} mm (est.)` }[key] ?? `${S.pencilSpeed} mm/s (est.)`) : key === 'coats' ? `${S.coats} ×${S.hatch === 'cross' ? ', Cross twice' : ''} · ${Math.round((1 - (1 - COVER) ** layers()) * 100)} % of the paper (est.)` : key === 'shortest' ? `${fmt(S.shortest, 1)} mm (est.)` : `${S.pencilSpeed} mm/s (est.)`;
 // OPM-S's two blocks (the owner, 2026-10-28, Screenshot 5.01.58 PM: "let us separate the construction and
 // adjustment from the drawing machine's functions — two blocks, so that it is clear what is on the screen and
 // what on the canvas"): the cells' sliders in Construction, #slShape; the pencil's in Drawing machine, #slPencil
-const SHAPE_SL = new Set(['rowMin', 'rayW', 'inset', 'round', 'facets', ...(OPMN ? ['pitch'] : [])]), DRAG_SL = new Set([OPMN ? 'track' : 'pitch', 'dipEvery', 'dipLap', 'dragRubs', 'pspeed']);   // OPM-P: DRAG's brush in Painting machine, #slDrag; OPM-N: the rows' step the cells', in Construction
+const SHAPE_SL = new Set(['rowMin', 'rayW', 'inset', 'round', 'facets', ...(OPMN ? ['pitch'] : [])]), DRAG_SL = new Set([OPMN ? 'track' : 'pitch', 'legStep', 'idleStep', 'tip', 'idleOver', 'idleSlant', 'dipEvery', 'dipLap', 'dragRubs', 'pspeed']);   // OPM-P: DRAG's brush in Painting machine, #slDrag; OPM-N: the rows' step the cells', in Construction
 // the elbow's degrees under ELBOW LIVE, #slElbow (the owner, 2026-10-29, after the redraw's gaps — Pressure 2.5° under the tip's
 // touch: "gather all the settings for the drawing's tilt next to ELBOW LIVE · PENCIL, the slider green only for the elbow's degree")
 const ELBOW_SL = new Set(['touch', 'press', 'glide']);
@@ -1634,7 +1702,7 @@ function showPencils() {
     const B = oneRun('bw'), rows = D.lines.filter(L => L.kind === 'row').length, cells = D.cells.filter(q => q.pencil).length;
     lines.push(`DRAW BW: <b>${D.lines.length}</b> line${D.lines.length === 1 ? '' : 's'}, every one once — ${rows} along the rows, block after block round ${S.cw ? '↻' : '↺'} from 12 o'clock, every block's from its outer edge in, then ${D.lines.length - rows} rays — ${S.merge ? 'none between two cells of one colour' : 'one between every two cells'}, ${cells} cells; rubbed ${S.rubsDark}×, the elbow at ${sgn(S.touch + S.press)} (Pencil in at ${sgn(S.touch)}, Pressure ${sgn(S.press)}), ${OPMP ? `up at ${sgn(glideAt())} between, ${sgn(glideAt() - Math.max(ELBOW_MIN, S.touch + S.press))} over pressing (${PEN_AIR}° at least)` : S.glide <= 0 ? 'gliding on the canvas' : 'just off it'} between; ${fmt(B.mm / 1000, 1)} m at ${S.pencilSpeed} mm/s, ≈ <b>${hm(B.seconds)}</b> (est.)${B.pencil ? `, in ${esc(B.pencil.name)}` : ''}`);
     const side = R_ => { const n = R_.sides, f = R_.blocks.filter(B => !B.side).map(B => B.n); return `${R_.bands ? `${R_.bands} bands, ` : ''}${n[4] ?? 0} top · ${n[2] ?? 0} right · ${n[0] ?? 0} bottom · ${n[6] ?? 0} left${f.length ? `, the bevels ${Math.min(...f)} … ${Math.max(...f)}` : ''}`; };
-    const drag = [R.passes.length && OPMN ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells, a colour's by their numbers — every cell on its own, ${R.passes.reduce((a, q) => a + q.tracks, 0)} tracks in all, ${fmt(S.track, 1)} mm apart at most (Track width), ${S.snake ? 'Snake: back and forth, the brush down' : 'Air: every track one way, the brush up and back'}, every one ${S.dragRubs}× (Rubs); up through the air from cell to cell; ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.dips} dip${R.dips === 1 ? '' : 's'} in ${cupName()}, ${S.dipEvery ? `one at every colour's start, then every ${S.dipEvery} mm of track${S.dipLap ? `, the brush ${fmt(S.dipLap, 1)} mm back over the track after one in the middle of it (Dip overlap)` : ''}` : 'one at every colour\'s start'}; ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° over the cup to wipe it and put the next colour in` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : R.passes.length ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells — ${R.passes.reduce((a, q) => a + q.rows, 0)} strokes along the rows, block after block, then ${R.passes.reduce((a, q) => a + q.rays, 0)} along the rays — every one ${S.dragRubs}× (Rubs); ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up on the move ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° to wipe it and squeeze the next` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : 'DRAG: nothing to paint — the Preview bare here, or no colour near it',
+    const drag = [R.passes.length && OPMN ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells, a colour's by their numbers — every cell on its own, ${dragWay(R.passes.reduce((a, q) => a + q.tracks, 0))}; up through the air from cell to cell; ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.dips} dip${R.dips === 1 ? '' : 's'} in ${cupName()}, ${S.dipEvery ? `one at every colour's start, then every ${S.dipEvery} mm of track${S.dipLap ? `, the brush ${fmt(S.dipLap, 1)} mm back over the track after one in the middle of it (Dip overlap)` : ''}` : 'one at every colour\'s start'}; ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° over the cup to wipe it and put the next colour in` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : R.passes.length ? `DRAG: <b>${R.passes.length}</b> colour${R.passes.length === 1 ? '' : 's'}, one brush, ${cells} cells — ${R.passes.reduce((a, q) => a + q.rows, 0)} strokes along the rows, block after block, then ${R.passes.reduce((a, q) => a + q.rays, 0)} along the rays — every one ${S.dragRubs}× (Rubs); ${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, up on the move ${R.lifts} time${R.lifts === 1 ? '' : 's'}, ≈ <b>${hm(R.seconds)}</b> (est.); ${R.passes.length > 1 ? `${R.passes.length - 1} pause${R.passes.length > 2 ? 's' : ''} between colours, the brush up +${S.wipe}° to wipe it and squeeze the next` : 'no pause'}; pressed at ${sgn(S.brushPress)} (est.)` : 'DRAG: nothing to paint — the Preview bare here, or no colour near it',
       FORM ? `Every form its own rings, ${fmt(S.pitch, 1)} mm apart at most, its depth over a whole number of them: ${D.regions.length} form${D.regions.length === 1 ? '' : 's'}, ${D.regions.reduce((a, R_) => a + R_.bands, 0)} rings in all${D.regions.some(R_ => !R_.ok) ? `, ${D.regions.filter(R_ => !R_.ok).length} left empty` : ''}`   // FORM's forms: no sides, no bevels
         : `${S.bind ? 'The blend\'s bands over the corners, every block\'s band in a whole number of rows' : 'Every block its own rows'}, ${fmt(S.pitch, 1)} mm apart at most, evenly: ${D.regions.map(R_ => `${R_.kind === 'blend' ? `Key ${R_.key + 1} → ${R_.key + 2}` : R_.kind === 'core' ? 'the core' : 'a tile'} ${side(R_)}`).join('; ')}`];
     if (D.few.length && OPMN) drag.push(`Left out, ${D.few.length} colour${D.few.length === 1 ? '' : 's'} — in fewer than ${FEW_CELLS} cells: ${D.few.map(id => pencilOf(id)?.name ?? id).join(', ')} — their cells to the nearest of the rest${D.accent ? `; ${esc(pencilOf(D.accent)?.name ?? D.accent)} the accent, the one colour in a single cell` : ''} (the owner, 2026-11-02: "one colour in one cell; then at once five cells at least")`);
@@ -2372,7 +2440,7 @@ async function paintDrag(snake) {
   if (walls(R)) return warn(walls(R));
   if (OPMN && cupProblem(cup())) return warn(`DRAG dips in ${cupName()}: ${cupProblem(cup())}`);
   const n = R.passes.length, first = pencilOf(R.passes[0].pencil), F = S.frame;
-  const text = OPMN ? `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Every colour's cells by their numbers, 1, 2, 3 …, every one on its own: its tracks ${fmt(S.track, 1)} mm apart at most, ${S.snake ? 'Snake, back and forth with the brush down' : 'Air, every track one way, the brush up and back'}, every one ${S.dragRubs}× (Rubs); from cell to cell up through the air. `
+  const text = OPMN ? `One brush, ${n} colour${n === 1 ? '' : 's'}, in this order. Every colour's cells by their numbers, 1, 2, 3 …, every one on its own: ${dragWay(R.passes.reduce((a, q) => a + q.tracks, 0))}; from cell to cell up through the air. `
     + `The paint from ${cupName()}: put ${first?.name ?? 'the first'} in it now — a dip at every colour's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of track (for now, till DIP from the iPhone)` : 'no other'}, ${R.dips} dips. `
     + (n > 1 ? `Between two colours it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the cup — wipe it, put the next colour in the cup, Continue. ` : '')
     + `${fmt(R.mm / 1000, 1)} m of brush at ${S.pspeed} mm/s, ≈ ${hm(R.seconds)} (est.).` + (F ? ` Only the frame: ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm.` : '')
@@ -2586,7 +2654,7 @@ function lcd(st) {
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
   $('#btnHome').disabled = !!live;
   document.querySelectorAll('.deck [data-pass], #btnTest').forEach(el => el.classList.toggle('on', !!live && (el.dataset.pass || 'test') === RUN_KEY && (!el.dataset.snake || (el.dataset.snake === '1') === S.snake)));   // OPM-N: DRAG SNAKE or DRAG AIR, the one running
-  const now = Q ? `Play ${Q.kind === 'drag' ? 'Drag' : 'Pencil'} · ${fmt(Q.want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m · the run's time (est.)`
+  const now = Q ? `Play ${playName(Q.kind)} · ${fmt(Q.want / 1000, 1)} of ${fmt(Q.mm / 1000, 1)} m · the run's time (est.)`
     : waiting ? `❚❚ ${st.message}`
     : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off')
     : live && b?.wipe ? `${now0} · the brush up to be wiped`
@@ -2594,7 +2662,7 @@ function lcd(st) {
     : live && now0 ? now0 + (st.brush_on ? ' · brush on' : ' · brush off')
     : `${what()} · ${fmt(P_.mm / 1000, 2)} m`;
   $('#lcd').innerHTML = `
-    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${Q ? ` · ${Q.kind === 'drag' ? 'Drag' : 'Pencil'}` : live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(Q.want / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
+    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${Q ? ` · ${playName(Q.kind)}` : live && RUN_KEY ? ` · ${KEY_NAME[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(Q.want / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
       <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>
