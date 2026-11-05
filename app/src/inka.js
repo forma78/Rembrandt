@@ -988,7 +988,10 @@ function pathOf(B, i) {
 function drawTrail() {
   const st = lastSt;
   if (!st || !trailOf || st.started !== trailOf) return;
-  const B = RUN || dragRun().blocks, h = hereNow(), at = st.x_mm !== null && st.y_mm !== null ? { x: st.x_mm, y: st.y_mm } : null;
+  // the run this page started, or after a reload of the page (it keeps none) the plan with as many blocks as the run
+  // has — never another plan's lines under the run's numbers (the owner, 2026-11-04: INKA's spiral on OPM-N's DRAG)
+  const B = RUN || [OPMP ? paintRun() : null, dragRun()].find(r => r?.blocks?.length === st.blocks)?.blocks, h = hereNow(), at = st.x_mm !== null && st.y_mm !== null ? { x: st.x_mm, y: st.y_mm } : null;
+  if (!B) return;
   const live = ['running', 'stopping', 'pausing', 'paused'].includes(st.state);
   const X = q => (q.y - h.y - V.y0) * k, Y = q => (V.x1 - q.x + h.x) * k;
   g.save(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.lineWidth = 1.2; g.lineJoin = 'round';
