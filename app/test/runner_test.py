@@ -940,6 +940,36 @@ class RemoteGateTest(unittest.TestCase):
             self.assertEqual(self.ask("do_POST", path, phone)["code"], 403, path)
             self.assertEqual(self.ask("do_POST", path + ("&" if "?" in path else "?") + "k=k3y-of-the-test", phone)["code"], 409, f"{path}: nothing running")
 
+    def test_the_mini_screen_behind_the_key_and_from_the_blocks_it_runs(self):
+        phone, key = "192.168.0.31", "k=k3y-of-the-test"
+        self.assertEqual(self.ask("do_GET", "/remote/plan", phone)["code"], 403)
+        self.assertEqual(json.loads(self.ask("do_GET", f"/remote/plan?{key}", phone)["body"])["ok"], False, "no run")
+        rows = {"colours": [{"name": "Cream", "hex": "#F5E6C8", "cells": 1}, {"name": "Blue", "hex": "#24408F", "cells": 1}],
+                "rows": [{"c": 0, "cells": [[1, 0]]}, {"c": 1, "cells": [[1, 0]]}]}
+        blocks = [{"kind": "arm", "cmd": "J 2 25", "row": 0},
+                  {"kind": "move", "cmds": ["T 180", "M 10 10", "G"], "paintMM": 0, "row": 1},
+                  # a row: two pieces of one stretch, a turn through the air, a second stretch
+                  {"kind": "move", "cmds": ["F 25", "L 10 20", "L 10 40", "M 20 40", "L 20 10", "G"], "paintMM": 60, "painted": [1, 1, 0, 1], "row": 1},
+                  {"kind": "move", "cmds": ["T 180", "M 50 50", "G"], "paintMM": 0, "row": 2},
+                  {"kind": "move", "cmds": ["F 25", "A 50 60 60 60 1", "G"], "paintMM": 15.7, "row": 2}]
+        rubens.RUNNER.start = None   # never run: the blocks alone
+        r = rubens.RUNNER
+        r.blocks, r.rows, r.started = blocks, rows, 123.0
+        r.note = {"label": "OPM-N · 1 blend · 600 × 400 mm · brush 6 mm", "here": {"x": 300, "y": 200}, "estimate_s": 77}
+        pic = json.loads(self.ask("do_GET", f"/remote/plan?{key}", phone)["body"])
+        self.assertEqual((pic["ok"], pic["started"], pic["blocks"], pic["paint_mm"], pic["estimate_s"], pic["canvas"]), (True, 123.0, 5, 75.7, 77, [600.0, 400.0]))
+        self.assertEqual(pic["rows"][0], {"c": 0, "mm": 60.0, "p": [[20, 20, 20, 80], [40, 80, 40, 20]]}, "half millimetres, the turn left out")
+        arc = pic["rows"][1]["p"][0]
+        self.assertEqual((arc[:2], arc[-2:]), ([100, 100], [120, 120]), "an arc from its start to its end")
+        self.assertGreater(len(arc), 4, "with points between")
+        self.assertEqual(json.loads(self.ask("do_GET", f"/remote/state?{key}", phone)["body"])["estimate_s"], 77)
+        self.assertIs(r.picture(), r.picture(), "worked out once")
+
+    def test_a_snake_turning_back_along_itself_keeps_its_turn(self):
+        pic = rubens.plan_picture([{"kind": "move", "cmds": ["T 180", "M 0 0", "G"], "row": 1}, {"kind": "move", "cmds": ["F 25", "L 0 50", "L 0 10", "G"], "paintMM": 90, "row": 1}], {"rows": [{"c": 0}]}, None)
+        self.assertEqual(pic["rows"][0]["p"], [[0, 0, 0, 100, 0, 20]], "out and back: all three points")
+        self.assertIsNone(pic["canvas"])
+
     def test_this_mac_as_before_and_its_link_with_the_key(self):
         for me in ("127.0.0.1", "::1", "192.168.0.227"):
             self.assertEqual(self.ask("do_GET", "/run", me)["code"], 200, me)

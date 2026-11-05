@@ -34,6 +34,7 @@ bridge.py of the old machine repo held it on port 8765.
   carriage stands, the elbow up before the shoulder turns (INK-Y, 2026-11-03).
 - /remote: the iPhone's remote (OPM-N, 2026-11-02): GET /remote the page,
   GET /remote/state?k=<key> where the run is — its colour, its cell —
+  GET /remote/plan?k=<key> the run's lines for the mini-screen (2026-11-04; reads only) —
   POST /remote/dip|pause|continue|stop|back|skip?k=<key>, /remote/goto?n=<cell>&k=<key>
   (a cell of the colour now); GET /remote/link (this Mac)
   the address with the key, for OPM-N's QR code. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
@@ -634,6 +635,63 @@ def path_pieces(start, path):
     return out
 
 
+def plan_picture(blocks, info, note=None):
+    """The iPhone's mini-screen (the owner, 2026-11-04: "a tab with the yellow
+    PROGRESS and a mini-screen with the picture; in six and a half hours I may
+    be anywhere"): the run as the brush paints it, read off its blocks. Every
+    row of the page's rows: its colour `c`, its paint `mm`, and `p`, its painted
+    lines, each a flat [x, y, x, y …] of the carriage in half millimetres, a
+    straight stretch two points. Reads only; nothing here moves."""
+    rows = (info or {}).get("rows") or []
+    out = [{"c": r.get("c") if isinstance(r, dict) else None, "mm": 0.0, "p": []} for r in rows]
+
+    def thin(line):
+        # the tails' pieces one stretch; a snake's turn back along itself stays
+        kept = line[:2]
+        for q in line[2:]:
+            a, b = kept[-2], kept[-1]
+            u, v = (b[0] - a[0], b[1] - a[1]), (q[0] - b[0], q[1] - b[1])
+            if abs(u[0] * v[1] - u[1] * v[0]) <= math.hypot(*u) + math.hypot(*v) and u[0] * v[0] + u[1] * v[1] >= 0:
+                kept[-1] = q
+            else:
+                kept.append(q)
+        return [n for q in kept for n in q]
+
+    at = None
+    for b in blocks:
+        path = [c for c in b.get("cmds") or [] if c[0] in "LAM"] if b.get("kind") == "move" else []
+        if not path:
+            continue
+        r, mm = b.get("row"), b.get("paintMM") or 0
+        if isinstance(r, int) and not isinstance(r, bool) and 0 < r <= len(out) and mm > 0:
+            row, marks, line = out[r - 1], b.get("painted") or [], []
+            row["mm"] += mm
+            for j, g in enumerate(path_pieces(at or block_end(path[:1]), path)):
+                if not (marks[j] if j < len(marks) else True):
+                    if len(line) > 1:
+                        row["p"].append(thin(line))
+                    line = []
+                    continue
+                pts = [g["b"]]
+                if "c" in g:      # an arc, a point every ~5 mm
+                    n = max(1, math.ceil(g["len"] / 5))
+                    pts = [(g["c"][0] + g["r"] * math.cos(g["a0"] + g["sweep"] * k / n),
+                            g["c"][1] + g["r"] * math.sin(g["a0"] + g["sweep"] * k / n)) for k in range(1, n)] + pts
+                if not line:
+                    pts = [g["a"]] + pts
+                line += [(round(p[0] * 2), round(p[1] * 2)) for p in pts]
+            if len(line) > 1:
+                row["p"].append(thin(line))
+        at = block_end(path) or at
+    for row in out:
+        row["mm"] = round(row["mm"], 1)
+    note = note or {}
+    m = re.search(r"(\d+(?:\.\d+)?) × (\d+(?:\.\d+)?) mm", str(note.get("label") or ""))
+    return {"ok": True, "blocks": len(blocks), "paint_mm": round(sum(b.get("paintMM") or 0 for b in blocks if b.get("kind") == "move"), 1),
+            "estimate_s": note.get("estimate_s"), "here": note.get("here"), "canvas": [float(m[1]), float(m[2])] if m else None,
+            "colours": (info or {}).get("colours") or [], "rows": out}
+
+
 def along_piece(pc, q):
     """How far along a piece (path_pieces) the point q is, mm, held to the piece."""
     if "c" not in pc:
@@ -922,6 +980,7 @@ class Runner:
         self._auto = False               # that pause the dip's own: Continue by itself after it
         self.dips = 0                    # the dips asked for in this run
         self.rows = None                 # the page's rows, for the iPhone: {"colours": [...], "rows": [{"c", "cells"}]}
+        self.note, self._picture = None, None   # the run's label, Here and estimate, and its picture once asked (plan_picture)
         self._jump = None                # Back, Skip, Go to: (block, piece or None, what) to go on from
         self.row, self.row_base = 0, {}  # the row run last, and the paint done before every row
         # INK-Y: (rim, °/s, the elbow's fork up) while a dip holds the shoulder turned over the cup at
@@ -987,7 +1046,22 @@ class Runner:
                     c2 = rows[r - 1].get("c")
                     nxt = cols[c2] if isinstance(c2, int) and 0 <= c2 < len(cols) else None
                     break
-        return {**st, "colour": col, "colour_n": None if k is None else k + 1, "colours": len(cols), "cell": cell, "next": nxt}
+        return {**st, "colour": col, "colour_n": None if k is None else k + 1, "colours": len(cols), "cell": cell, "next": nxt,
+                "estimate_s": (self.note or {}).get("estimate_s")}
+
+    def picture(self):
+        # the iPhone's mini-screen, worked out once a run, when it is asked for
+        with self.lock:
+            blocks, info, note, pic, started = self.blocks, self.rows, self.note, self._picture, self.started
+        if pic is not None:
+            return pic
+        if not blocks or not info:
+            return {"ok": False, "message": "no run with rows"}
+        pic = {**plan_picture(blocks, info, note), "started": started}
+        with self.lock:
+            if self.started == started:
+                self._picture = pic
+        return pic
 
     def start(self, blocks, note=None):
         # Every J and W within reach, before anything is sent. A job that puts
@@ -1037,6 +1111,7 @@ class Runner:
             t = note.get("travel") if isinstance(note, dict) else None
             self.travel = t if isinstance(t, (int, float)) and not isinstance(t, bool) and 10 <= t <= 250 else TRAVEL_DIP
             self.rows = note.get("remote") if isinstance(note, dict) and isinstance(note.get("remote"), dict) else None
+            self.note, self._picture = ({k: note.get(k) for k in ("label", "here", "estimate_s")} if isinstance(note, dict) else None), None
             self._dip = self._auto = False
             self._jump = None
             self.dips, self.row, self.row_base = 0, 0, {}
@@ -1952,6 +2027,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(403, json.dumps({"ok": False, "message": "no key: scan the QR code on OPM-N"}), "application/json")
         if u.path == "/remote/state" and not post:
             return self.reply(200, json.dumps(RUNNER.where()), "application/json")
+        if u.path == "/remote/plan" and not post:
+            return self.reply(200, json.dumps(RUNNER.picture(), separators=(",", ":")), "application/json")
         if post and u.path in ("/remote/back", "/remote/skip", "/remote/goto"):
             if u.path == "/remote/goto":                 # a number in the colour now
                 w = RUNNER.where()

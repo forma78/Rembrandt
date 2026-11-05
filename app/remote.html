@@ -52,9 +52,63 @@
   .foot { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
   .foot b { color: var(--ink); font-weight: 600; }
   .nokey { margin: auto 0; text-align: center; font-size: 18px; color: var(--dim); }
+  /* the two tabs: Remote, the keys as they were; Progress, the yellow screen and the mini-screen (2026-11-04) */
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 13px; background: var(--card); flex: none; }
+  .tabs button { height: 36px; border-radius: 10px; background: transparent; color: var(--dim); font-size: 15px; font-weight: 600; }
+  .tabs button.on { background: #3F3B36; color: var(--ink); }
+  .pane { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; }
+  .pane[hidden] { display: none; }
+  #paneProgress { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  /* the page's night LCD (style.css), a phone's size */
+  .lcd { --lcd-ink: #2B2309; --lcd-ghost: rgba(70,50,0,.09); flex: none; background: radial-gradient(130% 160% at 50% 35%, #F6E08A 0%, #EBC95E 55%, #D9B04A 100%);
+    border-radius: 14px; padding: 10px 13px; color: var(--lcd-ink); box-shadow: inset 0 2px 5px rgba(90,60,0,.30), inset 0 0 0 1px rgba(90,60,0,.22);
+    font: 700 11px/1.2 "SF Mono", ui-monospace, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .lcd .segs { display: block; overflow: visible; }
+  .lcd .segs polygon, .lcd .segs rect { fill: var(--lcd-ghost); }
+  .lcd .segs .seg-on { fill: var(--lcd-ink); }
+  .lcd-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 7px; white-space: nowrap; }
+  .lcd-mid { display: flex; justify-content: space-between; align-items: flex-end; gap: 8px; }
+  .lcd-big { display: flex; align-items: flex-start; gap: 4px; }
+  .lcd-big .u { font-size: 16px; margin-top: 3px; }
+  .lcd-times { display: grid; grid-template-columns: auto auto; justify-items: end; align-items: center; gap: 5px 8px; }
+  .lcd-times .k { opacity: .7; font-size: 10px; }
+  .lcd-times .hm { display: flex; align-items: flex-end; gap: 3px; }
+  .lcd-times .tu { font-size: 9px; margin-right: 3px; }
+  .lcd .bars { display: flex; gap: 2px; height: 12px; margin: 8px 0 7px; }
+  .lcd .bars i { flex: 1; background: var(--lcd-ghost); border-radius: .5px; }
+  .lcd .bars i.on { background: var(--lcd-ink); }
+  .lcd-pen { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; margin: 0 0 7px; }
+  .lcd-pen .sw { width: 36px; height: 36px; border-radius: 7px; box-shadow: inset 0 0 0 1.5px var(--lcd-ink), 0 1px 0 rgba(255,255,255,.5); }
+  .lcd-pen .pt, .lcd-pen .nx { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .lcd-pen .pn, .lcd-pen .pk { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lcd-pen .pk { opacity: .75; }
+  .lcd-pen .nx { align-items: flex-end; text-align: right; max-width: 112px; }
+  .lcd-pen .nn { display: flex; align-items: center; gap: 5px; max-width: 100%; }
+  .lcd-pen .nn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lcd-pen .nx i { flex: none; width: 11px; height: 11px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--lcd-ink); }
+  .lcd-now { font-weight: 600; letter-spacing: .06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* the hint: when the phone is wanted next */
+  .hint { flex: none; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1px 11px; padding: 8px 13px; border: 0; border-radius: 14px; background: var(--card); text-align: left; color: var(--ink); font-size: 15px; }
+  .hint[hidden] { display: none; }
+  .hint i { grid-row: 1 / span 2; width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .hint b { font-weight: 650; }
+  .hint small { font-size: 13px; color: var(--dim); }
+  .hint.nosw { grid-template-columns: minmax(0, 1fr); }
+  .hint.call { background: var(--amber); color: #1E1A14; animation: call 1.4s steps(2) infinite; }
+  .hint.call small { color: #3B2C12; }
+  .hint.bad { background: #3A1F1C; color: #FFB8B0; }
+  .hint.bad small { color: #E0A29B; }
+  @keyframes call { 50% { background: #FFC56B; } }
+  .mini { position: relative; flex: none; border-radius: 14px; overflow: hidden; background: #0F0E0D; box-shadow: inset 0 0 0 1px var(--line); }
+  .mini[hidden] { display: none; }
+  .mini canvas { position: absolute; left: 0; top: 0; display: block; }
+  .mini p[hidden] { display: none; }
+  .mini p { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; padding: 18px; text-align: center; font-size: 14px; color: var(--dim); }
 </style>
 </head>
 <body>
+  <nav class="tabs" id="tabs"><button data-tab="Remote">Remote</button><button data-tab="Progress">Progress</button></nav>
+  <div class="pane" id="paneRemote">
   <div class="now" id="now">
     <i class="sw" id="sw"></i>
     <div class="name" id="name">—</div>
@@ -81,6 +135,13 @@
     <button class="cancel" id="padNo">Cancel</button>
   </div>
   <div class="foot"><span id="dips">&nbsp;</span><span id="link">&nbsp;</span></div>
+  </div>
+  <!-- Progress (the owner, 2026-11-04: "a tab with the yellow PROGRESS and a mini-screen with the picture"): looks only, every key stays on Remote -->
+  <div class="pane" id="paneProgress" hidden>
+    <div class="lcd" id="lcd"></div>
+    <button class="hint" id="hint" hidden></button>
+    <div class="mini" id="mini" hidden><canvas id="miniBase"></canvas><canvas id="miniDot"></canvas><p id="miniSay" hidden></p></div>
+  </div>
 <script>
 // the key: the address's ?k= (the QR code's), kept here too
 const q = new URLSearchParams(location.search);
@@ -111,6 +172,7 @@ function show() {
   const stop = $('#stop'); stop.disabled = !live; if (!live) { armed = 0; stop.classList.remove('arm'); stop.textContent = '🟥 STOP'; }
   $('#dips').innerHTML = s ? `dips <b>${s.dips || 0}</b>${s.cup ? '' : ' · no cup in this run'}` : '&nbsp;';
   $('#link').textContent = fails ? 'no connection' : '';
+  try { feedPace(s); if (!$('#paneProgress').hidden) showProgress(); } catch (e) { console.error(e); }   // never in the way of the keys
 }
 async function poll() {
   try { st = await call('/remote/state'); fails = 0; }
@@ -123,7 +185,181 @@ async function act(what) {
   try { const r = await call('/remote/' + what, true); if (r && r.ok === false) { note = r.message || `not now: ${r.state}`; noteAt = Date.now(); } st = await call('/remote/state'); } catch { }
   busy = false; show();
 }
+// ---------- Progress ----------
+// The seven segments and the sticks: src/lcd.js's (the iPhone reaches /remote alone).
+const LIT = { 0: 'abcdef', 1: 'bc', 2: 'abged', 3: 'abgcd', 4: 'fgbc', 5: 'afgcd', 6: 'afgedc', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg', '-': 'g', ' ': '' };
+function digit(ch, x, H) {
+  const w = 0.56 * H, t = 0.13 * H, g = 0.035 * H, h = t / 2;
+  const hs = (x0, x1, y) => `${x0},${y} ${x0 + h},${y - h} ${x1 - h},${y - h} ${x1},${y} ${x1 - h},${y + h} ${x0 + h},${y + h}`;
+  const vs = (xc, y0, y1) => `${xc},${y0} ${xc + h},${y0 + h} ${xc + h},${y1 - h} ${xc},${y1} ${xc - h},${y1 - h} ${xc - h},${y0 + h}`;
+  const L = h + g, R = w - h - g;
+  const seg = { a: hs(x + L, x + R, h), g: hs(x + L, x + R, H / 2), d: hs(x + L, x + R, H - h), f: vs(x + h, h + g, H / 2 - g), b: vs(x + w - h, h + g, H / 2 - g), e: vs(x + h, H / 2 + g, H - h - g), c: vs(x + w - h, H / 2 + g, H - h - g) };
+  const on = LIT[ch] ?? '';
+  return Object.entries(seg).map(([k, pts]) => `<polygon points="${pts}"${on.includes(k) ? ' class="seg-on"' : ''}/>`).join('');
+}
+function segments(text, H) {
+  const w = 0.56 * H, gap = 0.2 * H, t = 0.13 * H;
+  let x = 0, out = '';
+  for (const ch of String(text)) {
+    if (ch === ':') { out += `<rect class="seg-on" x="${x}" y="${0.28 * H}" width="${t}" height="${t}"/><rect class="seg-on" x="${x}" y="${0.62 * H}" width="${t}" height="${t}"/>`; x += t + gap; }
+    else { out += digit(ch, x, H); x += w + gap; }
+  }
+  const W = Math.max(0, x - gap) + 0.1 * H;
+  return `<svg class="segs" width="${W.toFixed(1)}" height="${H}" viewBox="0 0 ${W.toFixed(1)} ${H}"><g transform="skewX(-6) translate(${(0.1 * H).toFixed(1)} 0)">${out}</g></svg>`;
+}
+const sticks = (f, n = 48) => { const lit = Math.round(Math.max(0, Math.min(1, f)) * n); return `<div class="bars">${Array.from({ length: n }, (_, i) => `<i${i < lit ? ' class="on"' : ''}></i>`).join('')}</div>`; };
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const lcdTime = t => { t = Math.max(0, Math.round(t || 0)); const p2 = v => String(v).padStart(2, '0'); return t < 3600 ? segments(`${p2(Math.floor(t / 60))}:${p2(t % 60)}`, 18) : `<span class="hm">${segments(String(Math.floor(t / 3600)), 18)}<span class="tu">h</span>${segments(p2(Math.floor(t % 3600 / 60)), 18)}<span class="tu">min</span></span>`; };
+const clockAt = sec => { const d = new Date(Date.now() + sec * 1000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const inWords = t => { const m = Math.max(1, Math.round(t / 60)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
+
+// The pace: the paint the machine really lays while it runs, as this phone sees it. A jump (Go to, Back,
+// Skip) is no paint, a pause no time: so the time left is the machine's, its stops for the paint on top.
+const PACE_KEY = 'rembrandt.remote.pace';
+let pace = { started: 0, dt: 0, dp: 0, t: 0, p: 0, saved: 0 };
+try { const k = JSON.parse(localStorage.getItem(PACE_KEY) || 'null'); if (k?.started) pace = { ...pace, started: k.started, dt: k.dt || 0, dp: k.dp || 0 }; } catch { }
+function feedPace(s) {
+  if (!s?.started) return;
+  if (pace.started !== s.started) pace = { started: s.started, dt: 0, dp: 0, t: 0, p: 0, saved: 0 };
+  const now = Date.now() / 1000, run = s.state === 'running';
+  if (run && pace.t) {
+    const dt = now - pace.t, dp = s.painted_mm - pace.p;
+    if (dt > 0 && dp >= 0 && dp / dt <= 60) { pace.dt += dt; pace.dp += dp; }
+  }
+  pace.t = run ? now : 0; pace.p = s.painted_mm;
+  if (now - pace.saved > 10) { pace.saved = now; try { localStorage.setItem(PACE_KEY, JSON.stringify({ started: pace.started, dt: pace.dt, dp: pace.dp })); } catch { } }
+}
+function mmPerS(s) {
+  if (pace.started === s.started && pace.dt >= 120 && pace.dp > 0) return pace.dp / pace.dt;
+  const est = s.estimate_s || PLAN?.estimate_s;
+  if (est && s.paint_mm) return s.paint_mm / est;
+  const el = Date.now() / 1000 - s.started;
+  return s.started && s.painted_mm > 0 && el > 0 ? s.painted_mm / el : 0;
+}
+
+// The picture: the run's lines, off the server (rembrandt.py, /remote/plan), a server not restarted yet
+// has none: then the one laid in this page for tonight's run, if it is this very run (#tonight).
+let PLAN = null, planOf = null, planAt = 0;
+function setPlan(p, s) {
+  PLAN = p; planOf = s.started; drawn = null;
+  if (!p) return;
+  const rows = p.rows, n = p.colours.length;
+  p.first = Array(n).fill(0); p.count = Array(n).fill(0); p.endMM = Array(n).fill(0);
+  p.nth = Array(rows.length).fill(0);
+  let mm = 0;
+  rows.forEach((r, i) => { mm += r.mm; if (r.c >= 0 && r.c < n) { if (!p.count[r.c]) p.first[r.c] = i; p.nth[i] = ++p.count[r.c]; p.endMM[r.c] = mm; } });
+}
+async function loadPlan(s) {
+  if (!s?.started || !['running', 'stopping', 'pausing', 'paused', 'done', 'stopped', 'error'].includes(s.state) || planOf === s.started || Date.now() - planAt < 15000) return;
+  planAt = Date.now();
+  let p = null;
+  try { const r = await call('/remote/plan'); if (r?.ok && r.started === s.started) p = r; } catch { }
+  if (!p) try { const t = JSON.parse($('#tonight')?.textContent || 'null'); if (t && t.blocks === s.blocks && Math.abs(t.paint_mm - s.paint_mm) < 1) p = t; } catch { }
+  if (p) { setPlan(p, s); showProgress(); }
+}
+
+// The canvas as the page shows it: X up its left side, Y along its bottom; the rows painted solid, this colour's bright, the rest faint.
+let drawn = null, geo = null;
+const roomFor = box => { const pane = $('#paneProgress'); return Math.round(pane.getBoundingClientRect().bottom - box.getBoundingClientRect().top - pane.scrollTop); };
+function fit() {
+  const box = $('#mini'), W = box.clientWidth, dpr = window.devicePixelRatio || 1, room = roomFor(box);
+  let cw = PLAN.canvas?.[0], ch = PLAN.canvas?.[1], y0, x1;
+  let a = Infinity, b = -Infinity, c = Infinity, d = -Infinity;
+  for (const r of PLAN.rows) for (const q of r.p) for (let i = 0; i < q.length; i += 2) { a = Math.min(a, q[i]); b = Math.max(b, q[i]); c = Math.min(c, q[i + 1]); d = Math.max(d, q[i + 1]); }
+  a /= 2; b /= 2; c /= 2; d /= 2;
+  if (cw && ch && PLAN.here) { y0 = PLAN.here.y - cw / 2; x1 = PLAN.here.x + ch / 2; }
+  if (!(cw && ch && PLAN.here) || c < y0 - 5 || d > y0 + cw + 5 || b > x1 + 5 || a < x1 - ch - 5) { cw = d - c + 20; ch = b - a + 20; y0 = c - 10; x1 = b + 10; }   // no canvas to go by, or the lines past it: round the lines
+  const H = Math.min(W * ch / cw, Math.max(room, 180)), k = H / ch, Wd = cw * k;     // the whole canvas in what the screen has left, scrolling only on a very small phone
+  box.style.height = `${H}px`;
+  for (const cv of [$('#miniBase'), $('#miniDot')]) { cv.width = Math.round(Wd * dpr); cv.height = Math.round(H * dpr); cv.style.width = `${Wd}px`; cv.style.height = `${H}px`; cv.style.left = `${(W - Wd) / 2}px`; }
+  geo = { W: Wd, H, k, y0, x1, dpr, width: Math.max(1.2, 3.2 * k), key: `${W}|${room}` };
+}
+// a tone of the colour over the well, opaque: where the brush goes back over itself it looks the same
+const tone = (hex, f) => { const n = parseInt(String(hex).slice(1), 16) || 0x7F7F7F, m = (c, b) => Math.round(b + (c - b) * f); return `rgb(${m(n >> 16 & 255, 15)},${m(n >> 8 & 255, 14)},${m(n & 255, 13)})`; };
+function strokeRow(g, r, f) {
+  g.strokeStyle = tone(PLAN.colours[r.c]?.hex || '#7F7F7F', f); g.beginPath();
+  for (const q of r.p) for (let i = 0; i < q.length; i += 2) {
+    const x = (q[i + 1] / 2 - geo.y0) * geo.k, y = (geo.x1 - q[i] / 2) * geo.k;
+    if (i) g.lineTo(x, y); else g.moveTo(x, y);
+  }
+  g.stroke();
+}
+function showPicture(s) {
+  const box = $('#mini'), say = $('#miniSay');
+  box.hidden = false;
+  if (!PLAN) {
+    $('#miniBase').style.display = $('#miniDot').style.display = 'none'; box.style.height = '120px'; say.hidden = false;
+    say.textContent = s?.started ? 'The picture comes from the next start of rembrandt.py on.' : 'The picture appears when a DRAG runs.';
+    return;
+  }
+  $('#miniBase').style.display = $('#miniDot').style.display = ''; say.hidden = true;
+  if (!geo || geo.key !== `${box.clientWidth}|${roomFor(box)}` || !drawn) { fit(); drawn = null; }
+  const g = $('#miniBase').getContext('2d'), done = s.state === 'done' ? PLAN.rows.length + 1 : s.row || 0, col = s.colour_n ? s.colour_n - 1 : -1;
+  g.setTransform(geo.dpr, 0, 0, geo.dpr, 0, 0); g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = geo.width;
+  if (!drawn || drawn.col !== col || done < drawn.done) {          // all of it: first, at a new colour, after a jump back
+    g.clearRect(0, 0, geo.W, geo.H);
+    PLAN.rows.forEach((r, i) => { if (i + 1 >= done && r.c !== col) strokeRow(g, r, .24); });
+    PLAN.rows.forEach((r, i) => { if (i + 1 >= done && r.c === col) strokeRow(g, r, .6); });
+    PLAN.rows.forEach((r, i) => { if (i + 1 < done) strokeRow(g, r, 1); });
+  } else for (let i = drawn.done; i < done; i++) if (PLAN.rows[i - 1]) strokeRow(g, PLAN.rows[i - 1], 1);
+  drawn = { col, done };
+  const d = $('#miniDot').getContext('2d');
+  d.setTransform(geo.dpr, 0, 0, geo.dpr, 0, 0); d.clearRect(0, 0, geo.W, geo.H);
+  if (Number.isFinite(s.x_mm) && Number.isFinite(s.y_mm)) {
+    const x = (s.y_mm - geo.y0) * geo.k, y = (geo.x1 - s.x_mm) * geo.k;
+    d.beginPath(); d.arc(x, y, 5, 0, 7); d.fillStyle = s.state === 'error' ? '#D8453B' : s.state === 'paused' ? '#F2A33A' : '#fff'; d.fill(); d.lineWidth = 2; d.strokeStyle = '#000'; d.stroke();
+  }
+}
+function showProgress() {
+  const s = st, live = s && LIVE.includes(s.state), c = s?.colour, off = fails > 2;
+  if (PLAN && (s?.state === 'idle' || planOf !== s?.started)) setPlan(null, { started: null });   // the run it was of is gone
+  if (s) loadPlan(s);
+  const pct = !s ? 0 : s.state === 'done' ? 100 : s.percent || 0, rate = s?.started ? mmPerS(s) : 0, left = rate && s ? Math.max(0, s.paint_mm - s.painted_mm) / rate : 0;
+  const stateName = !s ? 'connecting' : live ? (s.state === 'paused' ? 'paused' : 'live') : s.state === 'idle' ? 'nothing running' : s.state;
+  const est = s?.estimate_s || (PLAN?.blocks === s?.blocks ? PLAN?.estimate_s : 0) || 0;
+  const k = s?.colour_n ? s.colour_n - 1 : -1, nextC = s?.next || (PLAN && k >= 0 ? PLAN.colours[k + 1] : null), code = c?.code ? ` ${c.code}` : '';
+  const nth = PLAN && s?.row ? PLAN.nth[s.row - 1] : 0, of = PLAN && k >= 0 ? PLAN.count[k] : 0;
+  const nowLine = !s ? '' : s.state === 'error' ? 'error' : s.cell && c ? `cell ${s.cell}/${c.cells}${nth ? ` · dip ${nth}/${of}` : ''}${s.brush_on ? ' · brush on' : ' · brush off'}` : live ? 'on its way' : s.state === 'done' ? 'done' : '';
+  $('#lcd').innerHTML = `
+    <div class="lcd-top"><span>${live ? (s.state === 'paused' ? '❚❚ ' : '▶ ') : ''}${stateName}${live && c ? ' · drag' : ''}</span><span>${off ? 'no connection' : live && s.blocks ? `step ${s.block + 1}/${s.blocks}` : ''}</span></div>
+    <div class="lcd-mid">
+      <div class="lcd-big">${segments(s?.started || s?.state === 'done' ? String(Math.min(100, Math.floor(pct))).padStart(2, ' ') : '--', 64)}<span class="u">%</span></div>
+      <div class="lcd-times"><span class="k">left</span>${live ? lcdTime(left) : segments('--:--', 18)}${est ? `<span class="k">total</span>${lcdTime(est)}` : ''}<span class="k">ends</span>${live && rate ? segments(clockAt(left), 18) : segments('--:--', 18)}</div>
+    </div>
+    ${sticks(pct / 100)}
+    ${c ? `<div class="lcd-pen"><i class="sw" style="background:${esc(c.hex)}"></i><span class="pt"><span class="pn">${esc(c.name)}${esc(code)}</span><span class="pk">${s.state === 'paused' && s.message && s.next ? 'finished' : 'painting'} · ${s.colour_n}/${s.colours}</span></span>${nextC ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${esc(nextC.hex)}"></i><span>${esc(nextC.name)}</span></span></span>` : s.colour_n === s.colours ? '<span class="nx"><span class="pk">the last</span></span>' : ''}</div>` : ''}
+    <div class="lcd-now">${esc(nowLine) || '&nbsp;'}</div>`;
+  // the hint: when you are wanted next
+  const h = $('#hint');
+  let cls = '', sw = '', big = '', small = '';
+  if (off) { cls = 'bad'; big = 'No connection'; small = 'The phone and the Mac on the home Wi-Fi? The machine goes on by itself.'; }
+  else if (s?.state === 'error') { cls = 'bad'; big = 'The run stopped'; small = s.message || 'See the Mac.'; }
+  else if (s?.state === 'paused' && s.message) { cls = 'call'; sw = s.next?.hex || ''; big = s.next ? `Change the paint: ${s.next.name}` : s.message; small = s.next ? 'Wipe the brush, put it in the cup, then ▶ Continue on Remote' : 'Continue on Remote'; }
+  else if (s?.state === 'paused') { cls = 'call'; big = 'Paused'; small = 'Continue on Remote'; }
+  else if (s?.state === 'stopped') { cls = 'bad'; big = 'Stopped'; small = s.message || ''; }
+  else if (s?.state === 'done') { big = 'Done'; small = 'The whole picture is painted.'; }
+  else if (live && PLAN && k >= 0 && rate) {
+    const inC = Math.max(0, PLAN.endMM[k] - s.painted_mm) / rate, more = PLAN.colours.length - 1 - k;
+    if (nextC) { sw = nextC.hex; big = `${nextC.name} in ≈ ${inWords(inC)}, at ${clockAt(inC)}`; small = `Next paint change · ${more} to go, on top of LEFT`; }
+    else { big = 'The last colour'; small = 'No more paint changes.'; }
+  }
+  h.hidden = !big; h.className = `hint ${cls}${sw ? '' : ' nosw'}`;
+  h.innerHTML = big ? `${sw ? `<i style="background:${esc(sw)}"></i>` : ''}<b>${esc(big)}</b><small>${esc(small)}</small>` : '';
+  showPicture(s);
+}
+function setTab(name) {
+  $('#paneRemote').hidden = name !== 'Remote'; $('#paneProgress').hidden = name !== 'Progress';
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  try { localStorage.setItem('rembrandt.remote.tab', name); } catch { }
+  if (name === 'Progress') { drawn = null; geo = null; try { showProgress(); } catch (e) { console.error(e); } }
+}
+
 if (KEY) {
+  document.querySelectorAll('#tabs button').forEach(b => { b.onclick = () => setTab(b.dataset.tab); });
+  $('#hint').onclick = () => { if ($('#hint').classList.contains('call')) setTab('Remote'); };   // the paint changed: Continue is there
+  let tab = 'Remote'; try { tab = localStorage.getItem('rembrandt.remote.tab') === 'Progress' ? 'Progress' : 'Remote'; } catch { }
+  setTab(tab);
+  addEventListener('resize', () => { geo = null; drawn = null; });
   $('#dip').onclick = () => act('dip');
   $('#back').onclick = () => act('back');                                  // this cell again, from its first track
   $('#skip').onclick = () => act('skip');                                  // the next cell of this colour
