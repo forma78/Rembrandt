@@ -1,0 +1,390 @@
+// LAB: a sheet of trial strokes on a scrap, every way of landing and lifting the brush side by side, a
+// dip before each, a number on each (the owner, 2026-11-04, on OPM-N's first run with paint: "The elbow
+// is not needed here, the wrist should do it, but do not take the elbow out altogether"; "the brush has
+// one style of movement for the whole canvas"; of the three suspects, "let me name one: the elbow").
+//
+// The arm lies along X, so the elbow sweeps the tip along X as it lifts: along a stroke up X, across a
+// stroke along Y, the hook. The wrist rolls round the arm: it sweeps the tip along Y, and lifts it hardly
+// at all at small angles. All the numbers est.; the sheet is there to measure them.
+import { handDip, homeBlocks } from './strokes.js';
+
+export const LAB = {
+  speed: 25, travel: 120,      // mm/s, OPM-N's brush and a flight
+  length: 50, step: 66, rowGap: 24, along: 50,   // mm: a stroke, column to column, row to row, the block of strokes up X
+  tail: 3, wide: 8,            // mm: today's tail; a longer one where the carriage or the wrist goes with the elbow
+  hover: 12, lift: 10, up: 25, // the elbow as OPM-N's run has it: over the canvas, off it, flying
+  press: 0, light: 4,          // the elbow pressed, as tonight's run; pressed lightly, for the wrist's strokes (est.)
+  accel: 250, turnMax: 211,    // the board's: mm/s², °/s for W
+};
+const COLS = 4, ROWS = 6;
+export const labSize = (sheet = 1) => sheet >= 8 ? { h: S4.h - LAB.rowGap, w: S8.w } : sheet === 5 ? { h: S5.h - LAB.rowGap, w: S5.w } : sheet === 4 || sheet === 6 || sheet === 7 ? { h: S4.h - LAB.rowGap, w: S4.w } : ({ h: sheet === 3 ? S3.h : sheet === 2 ? S2.top : ROWS * LAB.rowGap + LAB.along, w: (COLS - 1) * LAB.step + (sheet === 3 ? S2.cellLong + 8 : LAB.length) });
+// LAB 2.0 (the owner, the same night, of the first sheet: "yes, one correction for every way; a second
+// sheet round 10, 11 and 12"; "21 goes with the fur, 20 against it"): the carriage against the elbow,
+// sign + as the first sheet proved, the tip going +X as the elbow rises. Every line by its own points:
+// the elbow's sweep is along X whatever way the stroke goes. Cells as OPM-N's: tracks, dips, a lap.
+const S2 = { top: 258, cellLong: 36, tracks: 8, pitch: 2.5, every: 75, lap: 5 };
+// LAB 3.0 (the owner, 2026-11-05, of the pink sheet's 23, one way, with the fur: "my favourite"; "yes, do LAB
+// 3.0"): does its comb hold where the stroke does not go with the fur? Eight cells, every track one way, the
+// carriage against the elbow 1.25 mm/° (the first sheets' 4 and 8). A shorter sheet: the bottom ran out on the last.
+// Four tracks at first (the owner, the same night, a ruler on the blue sheet, IMG_2237: "the stroke is almost
+// 1 cm; 8 strokes lie one on the other; let us make 4"): the cell's width as it was, the tracks shared out over it.
+const S3 = { top: 80, bottom: 20, h: 96, mm: 1.25, tracks: 4 };
+// LAB 3.0 · long (the owner, the same night: "excellent strokes; but what about the length? we have long ones … 60 mm
+// 4 strokes, 80 mm 4 strokes and 100 mm, and 40 of course"; then, a new sheet of paper: "the vertical ones, but add
+// the horizontal too, the same system of sizes"). Every track on one dip, so the sheet shows how far a dip carries;
+// and a 100 of each with a second dip, on from a lap back, to see the seam a long track would need.
+const S4 = { long: [40, 60, 80, 100], splitAt: 60, lap: 5, low: 20, high: 60, base: 100, col: 50, gap: 25, w: 235, h: 205 };
+// LAB 3.0 · seam (the owner, 2026-11-05, of the long sheet's 5: "the gap between the line's second part has to go";
+// its 4, on one dip, "a reject"; 1 and 6, 40 mm, good): 5 mm back was too little, the lift's own 8 mm being thin. Tracks of
+// 80 mm, a second dip at 45, on from 10, 15 and 20 mm back, along X and along Y. All est.
+const S5 = { len: 80, dipAt: 45, laps: [10, 15, 20], base: 100, col: 50, w: 190, h: 195 };
+// LAB 3.0 · long snake (the owner, the same night: "all your tests were in the style of Drag Air, and I never use it; my
+// guess is that with Drag Snake 4, 8 and 9 get right; instead of Seam make long-snake, Seam afterwards; we compare where the
+// stroke is neater"): the long sheet's cells, its places and numbers, a snake with the brush down at its turns, cut as OPM-N's
+// DRAG SNAKE cuts it (dragRowsOf). As much paint as on the long sheet: a dip per track's length and the lap, four a cell, its
+// cuts right after the turns; 5 and 10, as there, 60 mm a dip, their cuts in the tracks.
+const S6 = { lap: 15, every5: 60 };
+
+// the sheet's list: its order the run's, its number the name you tell it by
+const LIST = [
+  { kind: 'markElbow', r: 0, c: 0, say: 'The elbow alone, the carriage still: the mark\'s length is its sweep along X' },
+  { kind: 'markWrist', r: 0, c: 1, say: 'The wrist alone, ±10°, the carriage still: the mark\'s length is its sweep along Y' },
+  { kind: 'today', r: 1, c: 0, say: 'Across →, as tonight' },
+  { kind: 'today', r: 1, c: 1, back: true, say: 'Across ←, as tonight' },
+  { kind: 'shallow', r: 1, c: 2, say: 'Across →, as tonight, a shallow dip +16°: less paint' },
+  { kind: 'snake', r: 1, c: 3, say: 'Across, a snake\'s turn with the brush down, as tonight: the ear at a turn' },
+  { kind: 'today', r: 2, c: 0, press: 2, say: 'Across →, pressed lighter, +2°' },
+  { kind: 'today', r: 2, c: 1, press: 4, say: 'Across →, pressed lighter, +4°' },
+  { kind: 'today', r: 2, c: 2, press: 6, say: 'Across →, pressed lighter, +6°' },
+  { kind: 'comp', r: 3, c: 0, mm: 0.5, sign: 1, say: 'Across →, the carriage against the elbow, 0.5 mm/°, +X' },
+  { kind: 'comp', r: 3, c: 1, mm: 1, sign: 1, say: 'Across →, the carriage against the elbow, 1 mm/°, +X' },
+  { kind: 'comp', r: 3, c: 2, mm: 1.5, sign: 1, say: 'Across →, the carriage against the elbow, 1.5 mm/°, +X' },
+  { kind: 'comp', r: 4, c: 0, mm: 0.5, sign: -1, say: 'Across →, the carriage against the elbow, 0.5 mm/°, −X' },
+  { kind: 'comp', r: 4, c: 1, mm: 1, sign: -1, say: 'Across →, the carriage against the elbow, 1 mm/°, −X' },
+  { kind: 'comp', r: 4, c: 2, mm: 1.5, sign: -1, say: 'Across →, the carriage against the elbow, 1.5 mm/°, −X' },
+  { kind: 'wrist', r: 5, c: 0, deg: 10, say: 'Across →, the wrist lands and lifts, J3 −10° … +10°, the elbow still at +4°' },
+  { kind: 'wrist', r: 5, c: 1, deg: 20, say: 'Across →, the wrist lands and lifts, J3 −20° … +20°, the elbow still at +4°' },
+  { kind: 'wrist', r: 5, c: 2, deg: -10, say: 'Across →, the wrist lands and lifts, J3 +10° … −10°, the elbow still at +4°' },
+  { kind: 'wrist', r: 5, c: 3, deg: -20, say: 'Across →, the wrist lands and lifts, J3 +20° … −20°, the elbow still at +4°' },
+  { kind: 'along', c: 0, say: 'Along ↑, as tonight: what good looks like' },
+  { kind: 'along', c: 1, back: true, say: 'Along ↓, as tonight: what good looks like' },
+];
+
+const f = v => (Math.round(v * 100) / 100).toFixed(2);
+const L = p => `L ${f(p.x)} ${f(p.y)}`;
+const arm = (j, deg, row) => ({ kind: 'arm', cmd: `J ${j} ${deg}`, row });
+const fly = (p, row) => ({ kind: 'move', cmds: [`T ${LAB.travel}`, `M ${f(p.x)} ${f(p.y)}`, 'G'], lengthMM: null, paintMM: 0, row });
+const paint = (cmds, mm, row) => {
+  const n = cmds.filter(c => 'LAM'.includes(c[0])).length;
+  return { kind: 'move', cmds: [`F ${LAB.speed}`, ...cmds, 'G'], lengthMM: mm, paintMM: mm, painted: Array(n).fill(1), row };
+};
+const along = (a, u, s) => ({ x: a.x + u.x * s, y: a.y + u.y * s });
+// seconds over s mm from rest to the speed, or from it to rest: the board's planner
+export function endSecs(s) {
+  const v = LAB.speed, d = v * v / (2 * LAB.accel);
+  return s >= d ? (s - d) / v + v / LAB.accel : Math.sqrt(2 * s / LAB.accel);
+}
+const rate = (deg, s) => Math.max(1, Math.min(LAB.turnMax, Math.ceil(Math.abs(deg) / endSecs(s))));
+
+// the blocks of one stroke, from its flight to the elbow up: where it starts and ends besides
+function strokeBlocks(q, row, cup, press) {
+  const { x, y } = q.at, len = q.kind === 'along' ? LAB.along : LAB.length;
+  const u = q.kind === 'along' ? { x: q.back ? -1 : 1, y: 0 } : { x: 0, y: q.back ? -1 : 1 };
+  const a = q.kind === 'along' ? { x: q.back ? x + len : x, y } : { x, y: q.back ? y + len : y }, b = along(a, u, len);
+  const dip = c => handDip(c, row);
+  const T = LAB.tail, W = LAB.wide, p = q.press ?? press;
+  const today = (start, end) => [arm(2, LAB.hover, row),
+    paint([`W 2 ${p} ${LAB.turnMax}`, L(along(start, u, T)), L(along(end, u, -T)), `W 2 ${LAB.lift} ${rate(LAB.lift - p, T)}`, L(end)], len, row), arm(2, LAB.up, row)];
+  switch (q.kind) {
+    case 'markElbow': return { from: a, to: a, blocks: [fly(a, row), ...dip(cup), arm(2, LAB.hover, row), arm(2, press, row), { kind: 'wait', s: 0.3, row }, arm(2, LAB.hover, row), arm(2, LAB.up, row)] };
+    case 'markWrist': { const m = { x: a.x, y: a.y + len / 2 }; return { from: m, to: m, blocks: [fly(m, row), ...dip(cup), arm(2, LAB.hover, row), arm(2, LAB.light, row), arm(3, 10, row), arm(3, 0, row), arm(3, -10, row), arm(3, 0, row), arm(2, LAB.up, row)] }; }
+    case 'shallow': return { from: a, to: b, blocks: [fly(a, row), ...dip({ ...cup, dip: 16, paint: [15, 16] }), ...today(a, b)] };
+    case 'snake': {
+      const c = { x: b.x + 2.5, y: b.y }, d = { x: a.x + 2.5, y: a.y };
+      return { from: a, to: d, via: [b, c], blocks: [fly(a, row), ...dip(cup), arm(2, LAB.hover, row),
+        paint([`W 2 ${p} ${LAB.turnMax}`, L(along(a, u, T)), L(b), L(c), L(along(d, u, T)), `W 2 ${LAB.lift} ${rate(LAB.lift - p, T)}`, L(d)], 2 * len + 2.5, row), arm(2, LAB.up, row)] };
+    }
+    case 'comp': {
+      // the tip along X = the carriage + sign · mm/° · the elbow: the carriage against it, so the tip stays on the line
+      const off = deg => q.sign * q.mm * deg, s = { x: a.x - off(LAB.hover - p), y: a.y }, e = { x: b.x - off(LAB.lift - p), y: b.y };
+      const inMM = Math.hypot(W, off(LAB.hover - p)), outMM = Math.hypot(W, off(LAB.lift - p));
+      return { from: s, to: e, blocks: [fly(s, row), ...dip(cup), arm(2, LAB.hover, row),
+        paint([`W 2 ${p} ${rate(LAB.hover - p, inMM)}`, L(along(a, u, W)), L(along(b, u, -W)), `W 2 ${LAB.lift} ${rate(LAB.lift - p, outMM)}`, L(e)], len, row), arm(2, LAB.up, row)] };
+    }
+    case 'wrist': return { from: a, to: b, blocks: [fly(a, row), ...dip(cup), arm(3, -q.deg, row), arm(2, LAB.light, row),
+      paint([`W 3 0 ${rate(q.deg, W)}`, L(along(a, u, W)), L(along(b, u, -W)), `W 3 ${q.deg} ${rate(q.deg, W)}`, L(b)], len, row), arm(2, LAB.up, row), arm(3, 0, row)] };
+    default: return { from: a, to: b, blocks: [fly(a, row), ...dip(cup), ...today(a, b)] };
+  }
+}
+
+// ---------- LAB 2.0: any polyline, landed and lifted with the carriage against the elbow ----------
+const dist = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + dist(pts[i], q), 0);
+function pointAt(pts, s) {
+  let left = s;
+  for (let i = 1; i < pts.length; i++) {
+    const d = dist(pts[i - 1], pts[i]);
+    if (left <= d) return { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * (d ? left / d : 0), y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * (d ? left / d : 0) };
+    left -= d;
+  }
+  return pts.at(-1);
+}
+export function sliceLine(pts, s0, s1) {
+  const out = [pointAt(pts, s0)];
+  let t = 0;
+  for (let i = 1; i < pts.length; i++) { t += dist(pts[i - 1], pts[i]); if (t > s0 + 1e-6 && t < s1 - 1e-6) out.push(pts[i]); }
+  out.push(pointAt(pts, s1));
+  return out;
+}
+// the elbow's run on the line: mm/°, the carriage off it along X so the tip stays on it; 0, as tonight's run
+function rowPaint(pts, row, mm, press) {
+  const len = lengthOf(pts), W = Math.min(mm ? LAB.wide : LAB.tail, len / 2);
+  const tail = d => d >= 3 ? Math.min(W, d) : W, Wi = tail(dist(pts[0], pts[1])), Wo = tail(dist(pts.at(-2), pts.at(-1)));   // a tail no farther than a turn: the carriage goes straight along it
+  const mid = sliceLine(pts, Wi, len - Wo);
+  const start = { x: pts[0].x - mm * (LAB.hover - press), y: pts[0].y }, end = { x: pts.at(-1).x - mm * (LAB.lift - press), y: pts.at(-1).y };
+  return { start, blocks: [arm(2, LAB.hover, row),
+    paint([`W 2 ${press} ${mm ? rate(LAB.hover - press, dist(start, mid[0])) : LAB.turnMax}`, L(mid[0]), ...mid.slice(1).map(L), `W 2 ${LAB.lift} ${rate(LAB.lift - press, mm ? dist(mid.at(-1), end) : Wo)}`, L(end)], len, row), arm(2, LAB.up, row)] };
+}
+const unitOf = deg => ({ x: Math.sin(deg * Math.PI / 180), y: Math.cos(deg * Math.PI / 180) });   // 0° →, 90° ↑ (+X)
+const line = (at, deg, len) => [at, along(at, unitOf(deg), len)];
+function snakeOf(at, u, v, long, n, pitch) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = along(at, v, i * pitch), b = along(a, u, long);
+    pts.push(...(i % 2 ? [b, a] : [a, b]));
+  }
+  return pts;
+}
+const C2 = (x, c) => ({ x, y: c * LAB.step });
+function sheet2() {
+  const T = S2.top, one = [], add = o => one.push(o);
+  const st = (r, c, mm, deg, say, o = {}) => add({ kind: 'line', hue: '#2B6CB0', mm, press: o.press, dip: o.dip, say, pts: line(deg === 180 ? { x: T - r * LAB.rowGap, y: c * LAB.step + LAB.length } : { x: T - r * LAB.rowGap, y: c * LAB.step }, deg, LAB.length) });
+  [0.5, 0.75, 1, 1.25].forEach((mm, c) => st(0, c, mm, 0, `Across →, the carriage ${mm} mm/°`));
+  st(1, 0, 1.5, 0, 'Across →, the carriage 1.5 mm/°');
+  [0.75, 1, 1.25].forEach((mm, c) => st(1, c + 1, mm, 180, `Across ←, the carriage ${mm} mm/°`));
+  [1, 2, 3].forEach((press, c) => st(2, c, 1, 0, `Across →, the carriage 1 mm/°, pressed +${press}°`, { press }));
+  st(2, 3, 1, 0, 'Across →, the carriage 1 mm/°, a shallow dip +16°', { dip: 16 });
+  const d = 50 * Math.SQRT1_2, lo = 165, hi = lo + d;
+  add({ kind: 'line', hue: '#7B3FA0', mm: 1, say: 'Diagonal ↗, the carriage 1 mm/°', pts: [C2(lo, 0), { x: hi, y: d }] });
+  add({ kind: 'line', hue: '#7B3FA0', mm: 1, say: 'Diagonal ↘, the carriage 1 mm/°', pts: [C2(hi, 1), { x: lo, y: LAB.step + d }] });
+  add({ kind: 'line', hue: '#7B3FA0', mm: 1, say: 'Diagonal ↖, the carriage 1 mm/°', pts: [{ x: lo, y: 2 * LAB.step + d }, C2(hi, 2)] });
+  add({ kind: 'line', hue: '#7B3FA0', mm: 1, say: 'Diagonal ↙, the carriage 1 mm/°', pts: [{ x: hi, y: 3 * LAB.step + d }, C2(lo, 3)] });
+  add({ kind: 'line', hue: '#3E8E5A', mm: 1, say: 'Along ↑, against the fur, the carriage 1 mm/° (first sheet\'s 20, without it)', pts: [C2(105, 0), C2(155, 0)] });
+  add({ kind: 'line', hue: '#3E8E5A', mm: 1, say: 'Along ↓, with the fur, the carriage 1 mm/° (first sheet\'s 21, without it)', pts: [C2(155, 1), C2(105, 1)] });
+  add({ kind: 'line', hue: '#D8453B', mm: 0, say: 'Diagonal ↗, as tonight: what it was', pts: [C2(115, 2), { x: 115 + d, y: 2 * LAB.step + d }] });
+  const L0 = S2.cellLong, W0 = (S2.tracks - 1) * S2.pitch, across = { x: 0, y: 1 }, up = { x: 1, y: 0 }, down = { x: -1, y: 0 }, right = { x: 0, y: 1 };
+  add({ kind: 'cell', hue: '#D8453B', mm: 0, say: 'A cell across, a snake, as tonight', pts: snakeOf(C2(72, 0), across, up, L0, S2.tracks, S2.pitch) });
+  add({ kind: 'cell', hue: '#2B6CB0', mm: 1, say: 'A cell across, a snake, the carriage 1 mm/°', pts: snakeOf(C2(72, 1), across, up, L0, S2.tracks, S2.pitch) });
+  add({ kind: 'cell', hue: '#3E8E5A', mm: 1, say: 'A cell along, a snake, the carriage 1 mm/°: every other track against the fur', pts: snakeOf(C2(56, 2), up, right, L0, S2.tracks, S2.pitch) });
+  add({ kind: 'oneway', hue: '#3E8E5A', mm: 1, say: 'A cell along, every track ↓ with the fur, up and back through the air, the carriage 1 mm/°', tracks: Array.from({ length: S2.tracks }, (_, i) => line({ x: 56 + L0, y: 3 * LAB.step + i * S2.pitch }, -90, L0)) });
+  const k = Math.SQRT1_2;
+  add({ kind: 'cell', hue: '#7B3FA0', mm: 1, say: 'A cell on the diagonal, a snake, the carriage 1 mm/°', pts: snakeOf({ x: 20 + W0 * k, y: 0 }, { x: k, y: k }, { x: -k, y: k }, L0, S2.tracks, S2.pitch) });
+  return one;
+}
+// a cell's path in rows as OPM-N's run: a dip every so many mm of track, the next from a lap back
+export function rowsOfCell(pts) {
+  const all = lengthOf(pts), out = [];
+  for (let s = 0; s < all - 0.01;) {
+    let e = Math.min(s + S2.every, all);
+    if (all - e < 10) e = all;
+    out.push(sliceLine(pts, s ? s - S2.lap : 0, e));
+    s = e;
+  }
+  return out;
+}
+function sheet3(n = S3.tracks) {
+  const L0 = S2.cellLong, W0 = (S2.tracks - 1) * S2.pitch, k = Math.SQRT1_2, T = S3.top, B = S3.bottom, col = c => c * LAB.step, pitch = n > 1 ? W0 / (n - 1) : 0;
+  const one = (hue, say, at, u, v, every = 2) => ({ kind: 'oneway', hue, mm: S3.mm, every, say,
+    tracks: Array.from({ length: n }, (_, i) => { const a = along(at, v, i * pitch); return [a, along(a, u, L0)]; }) });
+  const up = { x: 1, y: 0 }, down = { x: -1, y: 0 }, right = { x: 0, y: 1 }, left = { x: 0, y: -1 };
+  return [
+    one('#2B6CB0', 'A cell across →, across the fur', { x: T, y: col(0) }, right, up),
+    one('#2B6CB0', 'A cell across ←, across the fur', { x: T, y: col(1) + L0 }, left, up),
+    one('#3E8E5A', 'A cell along ↓, with the fur: the pink sheet\'s 23 again', { x: T + L0, y: col(2) }, down, right),
+    one('#3E8E5A', 'A cell along ↓, with the fur, a dip before every track: 36 mm on a dip, not 72', { x: T + L0, y: col(3) }, down, right, 1),
+    one('#7B3FA0', 'A cell on the diagonal ↗, against the fur', { x: B + W0 * k, y: col(0) }, { x: k, y: k }, { x: -k, y: k }),
+    one('#7B3FA0', 'A cell on the diagonal ↘, with the fur', { x: B + L0 * k, y: col(1) }, { x: -k, y: k }, { x: k, y: k }),
+    one('#7B3FA0', 'A cell on the diagonal ↖, against the fur', { x: B, y: col(2) + L0 * k }, { x: k, y: -k }, { x: k, y: k }),
+    one('#7B3FA0', 'A cell on the diagonal ↙, with the fur', { x: B + (W0 + L0) * k, y: col(3) + L0 * k }, { x: -k, y: -k }, { x: -k, y: k }),
+  ];
+}
+function sheet4(n = S3.tracks) {
+  const W0 = (S2.tracks - 1) * S2.pitch, pitch = n > 1 ? W0 / (n - 1) : 0, down = { x: -1, y: 0 }, up = { x: 1, y: 0 }, right = { x: 0, y: 1 };
+  const whole = len => [[0, len]], seam = [[0, S4.splitAt], [S4.splitAt - S4.lap, 100]], how = ', every track on one dip', sewn = `, a second dip at ${S4.splitAt} mm, on from ${S4.lap} mm back: the seam`;
+  const cell = (hue, at, u, v, pieces, say) => ({ kind: 'oneway', hue, mm: S3.mm, every: 1, say,
+    tracks: Array.from({ length: n }, (_, i) => pieces.map(([s0, s1]) => { const a = along(at, v, i * pitch); return [along(a, u, s0), along(a, u, s1)]; })).flat() });
+  const vert = (len, c, pieces, tail) => cell('#3E8E5A', { x: S4.base + len, y: c * S4.col }, down, right, pieces, `Vertical ↓, ${len} mm${tail}`);
+  const horz = (len, x, y, pieces, tail) => cell('#2B6CB0', { x, y }, right, up, pieces, `Horizontal →, ${len} mm${tail}`);
+  const y60 = 40 + S4.gap, y80 = y60 + 60 + S4.gap, y100 = 100 + S4.gap;
+  return [...S4.long.map((len, c) => vert(len, c, whole(len), how)), vert(100, 4, seam, sewn),
+    horz(40, S4.high, 0, whole(40), how), horz(60, S4.high, y60, whole(60), how), horz(80, S4.high, y80, whole(80), how),
+    horz(100, S4.low, 0, whole(100), how), horz(100, S4.low, y100, seam, sewn)];
+}
+function sheet5(n = S3.tracks) {
+  const W0 = (S2.tracks - 1) * S2.pitch, pitch = n > 1 ? W0 / (n - 1) : 0, down = { x: -1, y: 0 }, up = { x: 1, y: 0 }, right = { x: 0, y: 1 };
+  const cell = (hue, at, u, v, lap, say) => ({ kind: 'oneway', hue, mm: S3.mm, every: 1, say: `${say}, ${S5.len} mm, a second dip at ${S5.dipAt} mm, on from ${lap} mm back`,
+    tracks: Array.from({ length: n }, (_, i) => [[0, S5.dipAt], [S5.dipAt - lap, S5.len]].map(([s0, s1]) => { const a = along(at, v, i * pitch); return [along(a, u, s0), along(a, u, s1)]; })).flat() });
+  const [a, b, c] = S5.laps;
+  return [...S5.laps.map((lap, k) => cell('#3E8E5A', { x: S5.base + S5.len, y: k * S5.col }, down, right, lap, 'Vertical ↓')),
+    cell('#2B6CB0', { x: 60, y: 0 }, right, up, a, 'Horizontal →'), cell('#2B6CB0', { x: 60, y: S5.len + 25 }, right, up, b, 'Horizontal →'), cell('#2B6CB0', { x: 20, y: 0 }, right, up, c, 'Horizontal →')];
+}
+// A snake cut for its dips as dragRowsOf cuts OPM-N's: `every` mm a run, the lap back among them, the last run taking what
+// would be left under a quarter of it.
+export function snakeRuns(pts, every, lap) {
+  const all = lengthOf(pts), back = Math.min(lap, every / 2), out = [];
+  for (let from = 0, done = 0; ;) {
+    const room = every - (done - from);
+    if (all - done - Math.max(0, room) <= every / 4) { out.push(sliceLine(pts, from, all)); return out; }
+    done += room; out.push(sliceLine(pts, from, done)); from = done - back;
+  }
+}
+function sheet6(n = S3.tracks) {
+  const W0 = (S2.tracks - 1) * S2.pitch, pitch = n > 1 ? W0 / (n - 1) : 0, down = { x: -1, y: 0 }, up = { x: 1, y: 0 }, right = { x: 0, y: 1 };
+  const cell = (hue, at, u, v, len, every, say) => ({ kind: 'cell', hue, mm: S3.mm, every, lap: S6.lap, say, pts: snakeOf(at, u, v, len, n, pitch) });
+  const asLong = len => `, ${len} mm, a snake, four dips as the long sheet's`, sewn = `, 100 mm, a snake, a dip every ${S6.every5} mm`;
+  const vert = (len, c, every, tail) => cell('#3E8E5A', { x: S4.base + len, y: c * S4.col }, down, right, len, every, `Vertical ↓↑${tail}`);
+  const horz = (len, x, y, every, tail) => cell('#2B6CB0', { x, y }, right, up, len, every, `Horizontal →←${tail}`);
+  const y60 = 40 + S4.gap, y80 = y60 + 60 + S4.gap, y100 = 100 + S4.gap;
+  return [...S4.long.map((len, c) => vert(len, c, len + S6.lap, asLong(len))), vert(100, 4, S6.every5, sewn),
+    horz(40, S4.high, 0, 40 + S6.lap, asLong(40)), horz(60, S4.high, y60, 60 + S6.lap, asLong(60)), horz(80, S4.high, y80, 80 + S6.lap, asLong(80)),
+    horz(100, S4.low, 0, 100 + S6.lap, asLong(100)), horz(100, S4.low, y100, S6.every5, sewn)];
+}
+// LAB 3.0 · snake + idle (the owner, 2026-11-05, OPM-N/IMG_2270 … 2276, the long snake on the flat Da Vinci no. 2: giant
+// bulbs at the ends, then bald patches, the small brush out of paint; "a second run without a dip, that spreads the paint
+// gathered at the edges"; Screenshot 12.50.03 PM: "first the run with the dips, then the idle one"): the long snake's cells
+// in their places and numbers, each painted, then at once its whole line again from its start, one run, no dip.
+const sheet7 = n => sheet6(n).map(q => ({ ...q, idle: true, say: `${q.say}; then at once again from its start, no dip` }));
+// LAB 3.0 · + idle 2.0 (the owner, the same day, Idle+.png, OPM-N/IMG_2294, a ruler on the bulbs IMG_2299: "starts earlier, to
+// catch the bulb of paint from behind, not to poke the brush into its centre"; "poked in the centre the paint stays a drop and
+// does not drag the trace to the middle"; "+1 mm at the start and +1 mm further at the end … here one can take all 5 mm"): the
+// idle run off the first's line, every track longer by `over` at both ends, its turns out beyond the cell. Five of the long
+// snake's 80 mm verticals, five of its horizontals, over 1 … 5 mm. Five horizontals with their bulbs, about 100 mm each, do not
+// fit A3's 420 mm in a row: three and two.
+const S8 = { len: 80, overs: [1, 2, 3, 4, 5], left: 20, col: 50, step: 105, w: 330 };
+// past its end for real (the owner, 14:18, IMG_2303: "no past its end +5, all as on no. 1"): rowPaint presses to the line's end
+// less its lift, LAB.wide, so a line ending at +5 was pressed only to 3 mm short of the cell's end, the rest rising, and the last
+// tracks looked alike. The line goes LAB.wide farther: pressed to +over, the lift beyond it.
+const liftBeyond = pts => { const a = pts.at(-2), b = pts.at(-1), d = dist(a, b); return [...pts.slice(0, -1), along(b, { x: (b.x - a.x) / d, y: (b.y - a.y) / d }, LAB.wide)]; };
+function overshot(pts, over) {
+  if (!over) return pts;
+  const out = [];
+  for (let i = 0; i + 1 < pts.length; i += 2) {
+    const a = pts[i], b = pts[i + 1], d = dist(a, b), u = { x: (b.x - a.x) / d, y: (b.y - a.y) / d };
+    out.push(along(a, u, -over), along(b, u, over));
+  }
+  return out;
+}
+// LAB 3.0 · + idle 3.0 (the owner, the same day, OPM-N/IMG_2305, the owner's line in blue over a cell: "an idle run in five passes; it
+// will knock down the first four furrows with the dips more aggressively"): as + idle 2.0, its idle run a track more, half a step
+// aside: on the ridges the first run pushed out, between its tracks and outside the outer two.
+// LAB 3.0 · + idle 4.0 (the owner, the same day, IMG_2308, blue arrows on the dry trail outside 3, 4, 5: "five idle passes that do
+// NOT go past the module's SIDES; the snake of five fits in the cell's width"): as 3.0, the five shared out between the first
+// run's outer tracks, over 1 … 5 at their ends as ever.
+// LAB 3.0 · + idle 5.0 (the same, Screenshots 3.21.19, 3.21.38 PM, nos. 4 and 5: "the last of the four strokes with a dip reaches
+// only the middle of the module, then rises before the brush gets to the end"; "make + idle 5.0 with the five pressed in"): 4.0,
+// and the first run's last track pressed to the cell's end, its lift beyond, not 8 mm short of it with the carriage going back.
+function sheet8(n = S3.tracks, five = null, reachEnd = false) {
+  const W0 = (S2.tracks - 1) * S2.pitch, pitch = n > 1 ? W0 / (n - 1) : 0, down = { x: -1, y: 0 }, up = { x: 1, y: 0 }, right = { x: 0, y: 1 }, L = S8.len;
+  const cell = (hue, at, u, v, over, way) => ({ kind: 'cell', hue, mm: S3.mm, every: L + S6.lap, lap: S6.lap, idle: true, over, pts: snakeOf(at, u, v, L, n, pitch),
+    ...(five === 'ridges' ? { idleLine: snakeOf(along(at, v, -pitch / 2), u, v, L, n + 1, pitch) } : five === 'inside' ? { idleLine: snakeOf(at, u, v, L, n + 1, W0 / n) } : {}), reachEnd,
+    say: `${way}, ${L} mm, a snake, four dips${reachEnd ? ', the last track pressed to its end' : ''}; then idle${five === 'ridges' ? `, ${n + 1} passes on the ridges` : five === 'inside' ? `, ${n + 1} passes within its width` : ''}, +${over} mm before its start and +${over} mm past its end` });
+  return [...S8.overs.map((over, c) => cell('#3E8E5A', { x: S4.base + L, y: S8.left + c * S8.col }, down, right, over, 'Vertical ↓↑')),
+    ...S8.overs.map((over, c) => cell('#2B6CB0', { x: c < 3 ? S4.high : S4.low, y: S8.left + (c < 3 ? c : c - 3) * S8.step }, right, up, over, 'Horizontal →←'))];
+}
+// LAB 3.0 · + idle 6.0 (the owner, 2026-11-05 evening, + idle 5.0 with a rubber brush, a Colour Shaper soft no. 2, OPM-N/IMG_2356:
+// "the best quality, what I want from robotic painting: inhuman precision of the line"; IMG_2357, along Y dashes: "it cannot paint
+// horizontally at all"; IDLE_6.0.jpg: "no horizontal lines at all, we build them from many flattened verticals; the brush never
+// paints left-right, its lines only up and down"; IMG_2359, Screenshot 7.16.23 PM: "I chose 2, 3 and 4, this is canon"; "no. 5's
+// tail is too long already"): + idle 5.0's verticals at over 2, 3, 4, in their places, and modules of the same 80 × 17.5 mm lying
+// down: a snake of short legs along X, as far apart as a vertical's tracks and, idle, as its passes, fitted to the 80. Four legs a
+// dip, as much line as a vertical's run: a run starts on a leg, never in a step, and is pressed to its last leg's end, its lift beyond.
+// The diagonals (the same evening, Screenshot 7.36.26 PM, 7 and 8 in red in the sheet's free corner: "let us just add the diagonal
+// ones"): parallelograms, about as the owner drew them, a flat top and bottom, sides at 45°, the same up-and-down legs, the sides cutting
+// them short. A step between two legs cut by a side goes along that side; over +3, the canon's middle.
+const S12 = { overs: [2, 3, 4], x: 50, diag: { base: 60, high: 30, y: 205, tops: [185, 135], over: 3 } };
+function byLine(pts, most) {                     // a snake's legs into runs of at most so many mm, whole legs
+  const out = [[]];
+  let len = 0;
+  for (let i = 0; i + 1 < pts.length; i += 2) {
+    const run = out.at(-1), step = run.length ? dist(run.at(-1), pts[i]) : 0, leg = dist(pts[i], pts[i + 1]);
+    if (run.length && len + step + leg > most) { out.push([pts[i], pts[i + 1]]); len = leg; } else { run.push(pts[i], pts[i + 1]); len += step + leg; }
+  }
+  return out;
+}
+// a snake of legs along X over a parallelogram: its top edge at x top, `y` where it starts; lean ↘ or ↗. A leg under 3 mm is left out: too short to land on.
+function slantSnake(top, y, base, high, lean, step) {
+  const span = base + high, gaps = Math.max(2, Math.round(span / step)), pts = [];
+  for (let i = 1, odd = false; i < gaps; i++) {
+    const s = i * span / gaps, t = lean > 0 ? s : span - s, a = { x: top - Math.max(0, t - base), y: y + s }, b = { x: top - Math.min(high, t), y: y + s };
+    if (a.x - b.x < 3) continue;
+    pts.push(...(odd ? [b, a] : [a, b])); odd = !odd;
+  }
+  return pts;
+}
+function sheet12(n = S3.tracks) {
+  const W0 = (S2.tracks - 1) * S2.pitch, L = S8.len, most = L + S6.lap, down = { x: -1, y: 0 }, right = { x: 0, y: 1 }, step = n > 1 ? W0 / (n - 1) : W0, stepIdle = W0 / n;
+  const legsAt = s => Math.round(L / s) + 1, legs = legsAt(step), idle = legsAt(stepIdle), tail = (count, over) => `a snake, a dip every ${most} mm of line at most, each run pressed to its last leg's end; then idle, ${count} verticals, +${over} mm before and past each`;
+  const flat = (over, c) => {
+    const at = { x: S12.x + W0, y: S8.left + c * S8.step }, pts = snakeOf(at, down, right, W0, legs, L / (legs - 1));
+    return { kind: 'cell', hue: '#2B6CB0', mm: S3.mm, idle: true, over, pts, runs: byLine(pts, most).map(liftBeyond), idleLine: snakeOf(at, down, right, W0, idle, L / (idle - 1)),
+      say: `Lying down, ${L} mm, ${legs} short verticals ↓↑ of ${W0} mm, ${tail(idle, over)}, within its length` };
+  };
+  const D = S12.diag, slant = (lean, c) => {
+    const pts = slantSnake(D.tops[c], D.y, D.base, D.high, lean, step), line = slantSnake(D.tops[c], D.y, D.base, D.high, lean, stepIdle);
+    return { kind: 'cell', hue: '#7B3FA0', mm: S3.mm, idle: true, over: D.over, pts, runs: byLine(pts, most).map(liftBeyond), idleLine: line,
+      say: `Diagonal ${lean > 0 ? '↘' : '↗'}, ${D.base} mm wide, ${D.high} mm high, its sides at 45°: ${pts.length / 2} short verticals ↓↑ cut by its sides, ${tail(line.length / 2, D.over)}` };
+  };
+  return [...sheet8(n, 'inside', true).filter((q, i) => i < S8.overs.length && S12.overs.includes(q.over)), ...S12.overs.map(flat), slant(1, 0), slant(-1, 1)];
+}
+function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
+  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
+  const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
+  let dips = 0, mm = 0;
+  (sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
+    const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup;
+    const runs = q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
+    runs.forEach((pts0, j) => {
+      const pts = (q.reachEnd && j === runs.length - 1 ? liftBeyond(pts0) : pts0).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = q.kind !== 'oneway' || j % (q.every ?? 2) === 0;
+      rows.push({ c: 0, cells: [[n, 0]] });
+      blocks.push(fly(R.start, row), ...(dip ? handDip(c, row) : []), ...R.blocks);
+      dips += dip ? 1 : 0; mm += lengthOf(pts);
+    });
+    if (q.idle) {                                   // the elbow is up from the last run: the flight back, no shoulder, no jar
+      const pts = (q.over ? liftBeyond(overshot(q.idleLine ?? q.pts, q.over)) : q.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p);
+      rows.push({ c: 0, cells: [[n, 0]] });
+      blocks.push(fly(R.start, row), ...R.blocks);
+      mm += lengthOf(pts);
+    }
+    const tip = (q.kind === 'oneway' ? q.tracks.flat() : q.pts).map(shift);
+    strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, tip, from: tip[0], to: tip.at(-1), via: [], ...(q.tracks ? { lines: q.tracks.map(l => l.map(shift)) } : {}), ...(q.over ? { over: q.over, idleTip: overshot(q.idleLine ?? q.pts, q.over).map(shift) } : {}) });
+  });
+  const pts = blocks.flatMap(b => (b.cmds || []).filter(c => c[0] === 'L' || c[0] === 'M').map(c => c.split(' ').slice(1).map(Number)));
+  return { blocks, strokes, seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed),
+    bounds: { x0: Math.min(...pts.map(p => p[0])), x1: Math.max(...pts.map(p => p[0])), y0: Math.min(...pts.map(p => p[1])), y1: Math.max(...pts.map(p => p[1])) },
+    remote: { colours: [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
+}
+
+// the sheet at its bottom left corner (x0, y0), carriage mm: X up, Y right, as on every tab; at its end the
+// brush up and the carriage home, as OPM-N's run (the owner, 2026-11-05: "it stops there, I go to OPM-N and lead
+// it home from there"). bounds: the sheet's own, home is no part of them.
+export function labPlan({ x0, y0, cup, press = LAB.press, sheet = 1, tracks }) {
+  const P = sheet >= 2 ? labPlan2({ x0, y0, cup, press, sheet, tracks }) : labPlan1({ x0, y0, cup, press });
+  return { ...P, blocks: [...P.blocks, ...homeBlocks(LAB.travel).map(b => ({ ...b, row: P.remote.rows.length }))] };
+}
+function labPlan1({ x0, y0, cup, press }) {
+  const { h } = labSize(), first = handDip(cup, 0), strokes = [], rows = [];
+  const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
+  LIST.forEach((q0, i) => {
+    const n = i + 1, at = q0.kind === 'along' ? { x: x0, y: y0 + q0.c * LAB.step } : { x: x0 + h - q0.r * LAB.rowGap, y: y0 + q0.c * LAB.step };
+    const q = { ...q0, n, at }, s = strokeBlocks(q, n, cup, press);
+    blocks.push(...s.blocks);
+    const len = q.kind === 'along' ? LAB.along : LAB.length;                       // on the screen the tip's line, the carriage off it in the air
+    const tip = q.kind === 'along' ? [{ x: q.back ? at.x + len : at.x, y: at.y }, { x: q.back ? at.x : at.x + len, y: at.y }] : [{ x: at.x, y: q.back ? at.y + len : at.y }, { x: at.x, y: q.back ? at.y : at.y + len }];
+    strokes.push({ n, kind: q.kind, say: q.say, from: s.from, to: s.to, via: s.via || [], tip: q.kind === 'snake' ? [s.from, ...s.via, s.to] : q.kind.startsWith('mark') ? [s.from] : tip });
+    rows.push({ c: 0, cells: [[n, 0]] });
+  });
+  const pts = blocks.flatMap(b => (b.cmds || []).filter(c => c[0] === 'L' || c[0] === 'M').map(c => c.split(' ').slice(1).map(Number)));
+  return { blocks, strokes, seconds: strokes.length * 16,
+    bounds: { x0: Math.min(...pts.map(p => p[0])), x1: Math.max(...pts.map(p => p[0])), y0: Math.min(...pts.map(p => p[1])), y1: Math.max(...pts.map(p => p[1])) },
+    remote: { colours: [{ name: 'LAB', hex: '#D8453B', code: '', cells: strokes.length }], rows } };
+}

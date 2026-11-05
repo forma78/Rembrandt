@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · LAB</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* LAB: the sheet on the left, its numbered list on the right */
+  .lablist{margin:6px 0 0;padding-left:22px;font-size:12px;line-height:1.35;color:var(--ink)}
+  .lablist li{margin:0 0 4px}
+  .labgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .labgrid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .labgrid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 6px;font:12px var(--mono)}
+</style>
+</head>
+<body>
+<!-- Rembrandt · LAB, a sheet of trial strokes on a scrap (the owner, 2026-11-04): every way of landing and lifting the brush side by side, numbered. src/labplan.js, src/lab.js. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.2.0</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="inka.html">INKA</a>
+      <a href="opmn.html">OPM-N</a>
+      <a href="ink.html">Ink</a>
+      <a href="inky.html">INK-Y</a>
+      <a href="lab.html" class="on">LAB</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+  <div class="top-right">
+    <span class="link-state" id="linkState">…</span>
+  </div>
+</header>
+
+<main class="cal">
+  <section class="stage" id="stage"></section>
+  <aside class="panel">
+    <section class="sec">
+      <h3>The sheet <span class="hint">a scrap, its bottom left corner · all est.</span></h3>
+      <div id="sheets" style="margin-bottom:8px"><div class="seg" style="grid-template-columns:repeat(7,1fr)"><button data-sheet="1">LAB</button><button data-sheet="2">2.0</button><button data-sheet="3">3.0</button><button data-sheet="4">long</button><button data-sheet="6">snake</button><button data-sheet="7" title="The long snake's cells, each painted with its dips, then at once again from its start, no dip">+ idle</button><button data-sheet="5">seam</button></div><div class="seg" style="margin-top:3px;grid-template-columns:repeat(4,1fr)"><button data-sheet="8" title="Five 80 mm verticals and five horizontals, each with its dips, then an idle run +1 … +5 mm past both ends of every track, catching the bulb from behind">+ idle 2.0</button><button data-sheet="9" title="As + idle 2.0, its idle run in five passes on the ridges the first run left, half a step aside from its four tracks">+ idle 3.0</button><button data-sheet="10" title="As + idle 3.0, the five passes within the cell's width, between the first run's outer tracks">+ idle 4.0</button><button data-sheet="11" title="As + idle 4.0, and the first run's last track pressed to the cell's end, its lift beyond">+ idle 5.0</button></div><div class="seg" style="margin-top:3px;grid-template-columns:repeat(4,1fr)"><button data-sheet="12" title="The canon's verticals, over 2, 3, 4, and modules lying down made of short verticals: the brush paints only up and down">+ idle 6.0</button></div></div>
+      <div class="labgrid">
+        <label>X, corner, mm<input id="fX" type="number" step="1"></label>
+        <label>Y, corner, mm<input id="fY" type="number" step="1"></label>
+        <label>Pressed, °<input id="fPress" type="number" step="0.5"></label>
+        <label title="LAB 3.0: tracks in a cell, shared out over its width">Tracks<input id="fTracks" type="number" min="1" max="8" step="1"></label>
+      </div>
+      <div class="grid4 keys"><button class="btn" id="btnHere" title="X and Y become where the carriage stands: jog it over the scrap's bottom left corner on INK-Y">Take the carriage's place</button></div>
+      <p class="read" id="planRead"></p>
+    </section>
+    <section class="sec">
+      <h3>Run <span class="hint">the paint in the jar, the brush in the holder</span></h3>
+      <div class="grid4 keys">
+        <button class="btn primary" id="btnRun">RUN THE SHEET</button>
+        <button class="btn" id="btnStop">STOP</button>
+        <button class="btn" id="btnLabHome" title="The brush up, the carriage home">HOME</button>
+      </div>
+      <p class="read" id="runRead"></p>
+      <p class="read" id="stateRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The strokes <span class="hint">tell me the numbers that look best</span></h3>
+      <ol class="lablist" id="list"></ol>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint">LAB — trial strokes: how the brush lands and lifts, across the arm and along it.</span>
+  <span id="saved"></span>
+</footer>
+<script type="module" src="src/lab.js"></script>
+</body>
+</html>
