@@ -1,8 +1,8 @@
 # OPM-N — the owner's photos and screenshots
 
-OPM-N's first runs on paper and the dip's three designs, 2026-11-02 … 03.
+OPM-N's first runs on paper, the dip's three designs and LAB, 2026-11-02 … 05.
 The task and every decision: `../OPM-N.md`; the dip's canon: `../README.md`,
-"How to dip". The HEICs made JPEGs on his word, at full size.
+"How to dip". The HEICs made JPEGs on the owner's word, at full size.
 
 ## 2026-11-02, the first DRAG on paper (a pencil in the brush's place)
 
@@ -137,7 +137,7 @@ its way back from the jar: "shoulder: ok Z 3", the answer to J later than the
 | `IMG_2274.jpg` | 12:38:48, close: the brush ending no. 7's last track; the feet of 2 and 1, no. 6 at the right. |
 | `IMG_2275.jpg` | 12:38:52, the same place, the brush gone: no. 7 in the middle, no. 6 at the right, the feet of 3, 2, 1 on the left. Fat lobes, pinholes in them; the same paint orange where thick, lemon where drawn thin. |
 | `IMG_2276.jpg` | 12:39:27, no. 8, **three of its four tracks** at the end of its third run, the brush on the dry tail, fat where each run began, dry where it ended. |
-| `Screenshot 2026-11-05 at 12.50.03 PM.png` | The owner's idea on no. 1 of LAB's page: 1, the run with the dips; 2, the idle run, back to the cell's start, no dip. |
+| `Screenshot 2026-11-05 at 12.50.03 PM.png` (removed by the owner, its words in Russian) | The owner's idea on no. 1 of LAB's page: 1, the run with the dips; 2, the idle run, back to the cell's start, no dip. |
 | `IMG_2281.jpg`, `IMG_2282.jpg` | 2026-11-05, 13:22, **LAB 3.0 · snake + idle**, the sheet marked +IDLE, same flat Da Vinci no. 2 7105, same orange; the run 13:14:16 … 13:27:26, 13 min 10, whole, no error. The machine from the front, the brush up and in the jar, numbers 1 … 6 done. |
 | `IMG_2283.jpg` | 13:24:40, no. 9, 100 mm, three tracks: fat where a run began, dry and torn beyond about half its way. |
 | `IMG_2284.jpg` | 13:24:49, the brush in the air, fresh from the jar, about to land: the whole head one drop of paint. A landing unloads that. |
@@ -148,7 +148,7 @@ its way back from the jar: "shoulder: ok Z 3", the answer to J later than the
 | `IMG_2295.jpg` | 13:28, **the two sheets in one shot, the owner's labels Old and New**, the photo to compare them on. Read off it (est.): thick paint of 1 … 10, Old → New, 73→76, 76→76, 58→76, 48→50, 77→81, 76→75, 73→76, 53→67, 58→66, 76→78 %; bare paper 24→19, 17→17, 17→13, 24→20, 16→13, 20→21, 18→20, 21→24, 22→19, 16→18 %. The lumps of 5 and 10 gone, 3 and 8 much fuller, 4 and 9 still bald in the middle, the slits between tracks not closed. |
 | `IMG_2296.jpg` | 13:28, Old alone, labelled, about 50 min after it was painted: **the thickest bulbs have dried wrinkled**, on 1, 3, 4, 5, 8, 9, 10. |
 | `IMG_2298.jpg` | 13:28, New alone, the owner's numbers 1 … 10, wet. Each track a lemon middle between two orange rails; arches at the turns, left by the idle run; the last track of every cell short of the corner by about 8 … 15 mm (est.). |
-| `Idle+.png` | The owner's sketch on no. 1 of LAB's page, 13:35: 1, the run with the dips, on its line; 2, the idle run, "starts earlier and goes with an offset", every track past the cell's ends, "+1 mm", its turns out beyond them; tracks 1, 3 and 4 drawn beside the plan's line too. |
+| `Idle+.png` (removed by the owner, its words in Russian) | The owner's sketch on no. 1 of LAB's page, 13:35: 1, the run with the dips, on its line; 2, the idle run, "starts earlier and goes with an offset", every track past the cell's ends, "+1 mm", its turns out beyond them; tracks 1, 3 and 4 drawn beside the plan's line too. |
 | `IMG_2299.jpg` | 13:40, a ruler under New's 1, 6, 7, 9: the bulbs against it, "here one can take all 5 mm". |
 | `IMG_2302.jpg` | 14:16, **LAB 3.0 · + idle 2.0**, the run of 14:12, the owner's numbers, in progress: 1 … 3 done, 4 on its third run. "Noticeably better at the start, the drop caught by the idle run even on the third; but they all end alike." Hardly any slits now: wide pale bands between thin orange rails. |
 | `IMG_2303.jpg` | 14:18, 1 … 5 from above, over +1 … +5 mm. "There is no past its end +5, all as on no. 1": the last track's short dry end at the top right alike on all five. Cause found in the plan: pressed only to 8 mm short of that end, the rest rising. The starts of 4 and 5 the cleanest. |
@@ -169,6 +169,7 @@ its way back from the jar: "shoulder: ok Z 3", the answer to J later than the
 | `IDLE_6.0.jpg` | LAB's page on + idle 5.0, the owner's red over no. 9: a snake of verticals across the cell, an arrow down at its left: "no horizontal lines at all, we build them from many flattened verticals; the brush never paints left-right". LAB's + idle 6.0. |
 | `Screenshot 2026-11-05 at 7.36.26 PM.png` | LAB's page on + idle 6.0 at X 0, Y 0, the owner's red in the free corner, 7 and 8: two parallelograms with flat tops and bottoms and slanted sides, about 60 mm wide, 30 high (read off the page, est.), up-and-down zigzags inside, short at the sharp corners: "let us just add the diagonal ones". |
 | `IMG_2367.jpg` | 2026-11-05, 22:25, OPM-N's first **DRAG SNAKE on paper**, 200 × 200 mm, 86.8 %, stopped at the pause before Indigo Blue. The owner: the third paint "came out badly". On the sheet the first paint is thick ridges, the second thin ridges over a pale wash, the third the pale wash, the thinnest. Brown here: 1 cell, 2 dips, 322 mm, 35 s, the same dip rule as the others (journal). |
+| `IMG_2368.jpg` | The same minute, close up: Brown's one cell in the middle, its verticals so thin it reads salmon on the paper; the second paint's thin ridges around it, the first's thick glossy ones at the lower left; a pencil line of the plan across. |
 | `Screenshot 2026-11-05 at 10.26.35 PM.png` | OPM-N's page at that pause: step 826 of 974, Drag view, colours Cloud Blue, Peacock Blue, Brown, Indigo Blue, Brown one cell, the accent. |
 | `41DS-fkOD6L._AC_SL1000_.jpg`, `31hfoxOJsOL._AC_SL1000_.jpg`, `51nd6E6Ot3L._AC_SL1000_.jpg` | A shop's pictures of Colour Shaper Soft, Taper Point, sizes 0 … 16 against a ruler. **Not ours: never to GitHub.** |
 | `movie-frames/5-lab-after-each-stroke.jpg` | That film, one frame after each of strokes 6 … 21. The film's frame turned against the sheet: the "U" is a carriage's foot, read rightly on `IMG_2216`. |
@@ -176,3 +177,11 @@ its way back from the jar: "shoulder: ok Z 3", the answer to J later than the
 | `Screenshot 2026-11-04 at 10.49.43 PM.png` | LAB's page after the run: the sheet at X 0, Y 0, done at stroke 21. |
 | `61ueHo2mQFL._AC_SL1280_.jpg`, `61BL3M2M-eL._AC_SL1500_.jpg` | A shop's pictures of Bastelzone Pouring Medium, 3 l. **Not ours: never to GitHub.** |
 | `Secrots.png` | The owner's four sectors over the plan: Top, Bottom, Left, Right. "The brush has one style of movement for the whole canvas; let us rethink it": strokes across the arm in Top and Bottom, along it in Left and Right. |
+| `Screenshot 2026-11-05 at 12.20.25 AM.png` | Two sheets of the first LAB side by side: pale green with the owner's numbers 1 … 21, red-orange without. |
+| `Screenshot 2026-11-05 at 12.04.11 AM.png` | The whole window during LAB 2.0: the holder's camera, the terminal, LAB's page. **On this Mac only: Russian in its sidebar.** |
+| `movie-frames/Screenshot 2026-11-05 at 12.04.11 AM 2.png` | That screenshot cut to LAB's page: LAB 2.0, 24 numbers, 43 runs, running at number 11. |
+| `754fc09f-….jpg`, `b8441547-….jpg`, `c663632f-….jpg`, `d2d2eb53-….jpg`, `d6a26b50-….jpg` | My frame sheets of `Movie on 11-4-26 at 8.07 PM.mov`, made 20:20 … 20:21, each frame with its time. |
+| `27dd8c7a-….jpg` | My sheet of LAB 3.0's cells in Cloud Blue, made 01:27, the last with a ruler. |
+| `movie-frames/1a0ede43-….jpg`, `1ae54850-….jpg`, `5d53373a-….jpg`, `6c25a9f1-….jpg`, `d6060d22-….jpg` | My frame sheets of LAB 2.0's films of 00:02 … 00:10, made 00:21 … 00:25, each frame with its time. |
+| `movie-frames/a6cf3f52-….jpg` | My strip of eight of LAB 2.0's strokes across, made 00:21. |
+| `movie-frames/33c5c42a-….jpg`, `5b062b21-….jpg`, `b3281325-….jpg`, `c0a03a60-….jpg` | My frame sheets of `Movie on 11-5-26 at 2.59 PM.mov`, nos. 4 and 5, made 15:04, each frame with its time. |
