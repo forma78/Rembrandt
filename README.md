@@ -36,7 +36,8 @@ Rembrandt/
   firmware/
     CNCDM-001/       the board's firmware (from RUBENS, Rembrandt's since 2026-10-02)
   app/
-    index.html       INKA, Inca patterns: tiles a spiral each, the brush on through a figure without a lift, a wipe between figures (new, 2026-10-17; the first tab since 2026-10-19; INKA/)
+    index.html       Rembrandt's home: goes on to OPM-N, opmn.html (2026-11-04)
+    inka.html        INKA, Inca patterns: tiles a spiral each, the brush on through a figure without a lift, a wipe between figures (new, 2026-10-17; the first tab, index.html, from 2026-10-19 to 11-04, then off the top row; INKA/)
     stjohn.html      ST-JOHN, INKA with ⌘, St. John's Arms: four lobes, every loop round all of them from the top left lobe's window out, their inner sides across the middle (new, 2026-10-19; INKA's inka.js and inkaplan.js; St_John/)
     blend.html       BLEND, INKA with Illustrator's blend: keys and Steps shapes between every two, every shape a loop of the brush, the outermost first and every next over it, the core filled (new, 2026-10-26; INKA's inka.js and inkaplan.js, its blendplan.js; BLEND/)
     dache.html       DACHE, BLEND in coloured pencils on paper: BLEND's page, all of it; the Result the colour the pencils draw (new, 2026-10-27; INKA's inka.js and inkaplan.js, blendplan.js; DACHE/)
@@ -68,13 +69,14 @@ Rembrandt/
     test.html        Test, the test bench (new; off the top row since 2026-10-19)
     ink.html         Ink: the cup the brush dips into (new)
     inky.html        INK-Y, the cup at hand: the jar on the carriage by the arm, a dip by How to dip below — the elbow up, the shoulder over the jar, the elbow in, up, the shoulder back (new, 2026-11-03, the cup on the beam the night before; once on, every dip goes there; src/inkypage.js)
+    lab.html         LAB, a sheet of trial strokes on a scrap, numbered: how the brush lands and lifts across the arm and along it, the elbow, the carriage against it, the wrist (new, 2026-11-04; src/labplan.js, src/lab.js)
     adjustments.html Adjustments (new)
     calibration.html Calibration (from RUBENS); the wave test, the pencil's lines left and right (wavetest.js, 2026-10-29)
     library.html     Library (from RUBENS)
     prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js; and the top row, every tab ticked in or out, 2026-10-27, src/tabs.js)
     style.css        RUBENS tokens
     rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git)
-    remote.html      the iPhone's remote, /remote: DIP, ⏮ Back · ⏭ Skip · ▶️ Go to, Pause · Continue, 🟥 STOP, the colour and the cell now (OPM-N, 2026-11-02; its key by the QR code on OPM-N)
+    remote.html      the iPhone's remote, /remote: DIP, ⏮ Back · ⏭ Skip · ▶️ Go to, Pause · Continue, 🟥 STOP, the colour and the cell now (OPM-N, 2026-11-02; its key by the QR code on OPM-N); its Progress tab, the yellow LCD, when the next paint change falls and a mini-screen of the picture (2026-11-04)
     src/             ES modules, no build step
     test/            node --test
 ```
@@ -192,6 +194,32 @@ whole degrees, the servo stops up to ~1° short); and while the cup at hand
 is on, `rembrandt.py` refuses a turn of the shoulder with the elbow out of
 its fork up, the elbow below +14° with the shoulder off 0, and the wrist
 with the shoulder off 0 — a run's or a jog's.
+
+## How to lay a module — the rubber brush (canon)
+
+The owner, 2026-11-05, of a Colour Shaper soft no. 2, a rubber tip, on
+LAB's `+ idle 5.0`: "the best quality, what I want from robotic painting:
+inhuman precision of the line" (`OPM-N/IMG_2356`). On `+ idle 6.0`,
+`OPM-N/IMG_2363`: "LAB may count as work successfully finished"; "+ IDLE 6.0
+is to go into OPM-N's painting algorithm". It is OPM-N's DRAG SNAKE since
+that day (`src/idleplan.js`). A module, 80 × 17.5 mm:
+
+1. **A snake of legs along X**, 5.83 mm apart, the brush down at its turns,
+   **a dip every 95 mm of line**, the carriage against the elbow 1.25 mm/°;
+   pressed to its end, its lift beyond.
+2. **At once an idle run, no dip**, without the jar or the shoulder: legs
+   **4.38 mm apart within the module's width**, **+2 mm** past the ends at
+   its start and its turns, catching the bulbs from behind; **at its very
+   end 0**, no tail ("at the end +2 mm is not needed, just 0 mm", LAB's nos. 1
+   and 4).
+
+**The brush paints only up and down, along X, whatever the module's way.**
+Along Y it breaks into dashes (`IMG_2357`): "it cannot paint horizontally at
+all"; "no horizontal lines at all, we build them from many flattened
+verticals". A module lying down is such a snake of short legs; **one with
+slanted sides, the same legs cut short by them, its idle run +3 mm to the very
+end** ("we leave them as they are", LAB's nos. 7 and 8). The steps between
+legs stay on the paper, short.
 
 ## Working rules
 

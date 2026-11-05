@@ -263,6 +263,32 @@ tunnel blend, a ruler in the later ones); the owner answered.
   runner lets it off 1.5°: the beam's misses went to −1.3°, ~1.7 mm at
   the brush a degree, est.).
 
+## Decisions of 2026-11-05
+
+- **BACK ONE CELL, before STOP and HOME** (`OPM-N/IMG_2367`: "the third paint came
+  out badly"; "I meant to say back one cell"). Why the key is not the iPhone's Back: at a colour's pause the row is
+  the next colour's already, so Back and Go to reach only that colour, and the one
+  just finished is out of their reach. My choice, to be judged in use: a player's ⏮,
+  a cell the brush has begun comes first, a second press goes one further. DRAG's
+  question has Start from for a run already stopped.
+- **+ IDLE 6.0 goes into OPM-N** ("+ IDLE 6.0 is to go into OPM-N's painting
+  algorithm"; "LAB may count as work successfully finished"; `OPM-N/IMG_2363`):
+  README's "How to lay a module". DRAG SNAKE, every cell of any shape: legs
+  along the machine's X only, cut by the contour; a dip every 95 mm of line; at
+  once an idle run, no dip. Below, §2's "its tracks along its row" holds for
+  DRAG AIR alone.
+- **The ends** ("at the end +2 mm is not needed, just 0 mm"; of the diagonals,
+  +3, "we leave them as they are"). Read: the idle run's very end, the tail
+  of the owner's "no. 5's tail is too long already"; +2 stays at its start and
+  turns.
+- **▶ Play Drag Snake**, the third key ("so that it is clear how it paints").
+- My own on the way, to be judged on paper (est.): the first run half the tip,
+  2 mm, in from a cell's contour on every side, so the paint keeps to the cell;
+  a side counts as slanted within 22.5° of LAB's 45°; a cell's first run goes
+  on what the brush holds while Dip every lasts, so a small cell takes no load
+  of its own; a leg over 47.5 mm (half of Dip every) is cut as LAB's vertical,
+  the lap back; a shorter one by whole legs.
+
 ## 1 · Numbers
 
 Every cell of OPM-P's plan (`opmpPlan` in `opmplan.js`: `blocksIn`,

@@ -3,6 +3,157 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Not released yet
+
+- **OPM-N: BACK ONE CELL and Start from** (the owner, 2026-11-05, `OPM-N/IMG_2367`, the third
+  paint come out badly at 86 %: a key before STOP and HOME; "I meant to say back one cell"). The key, as a
+  player's ⏮: the brush already painting a cell, this cell again; not yet (in the air, in the cup,
+  at a colour's pause), the cell before it, across a colour too. A colour's first cell goes by its
+  own pause; any other cell of another colour asks whether its paint is in the cup. `rembrandt.py`:
+  `back_one`, `POST /run/back`; a restart when no run is on. Pressed, the key says for 4 s where it
+  goes and the LCD's % goes back with the jump ("the % should rewind"); a refusal is an alert. The
+  iPhone's Back is unchanged. DRAG's
+  question has **Start from**, the run from a later colour on, this question only, the first by
+  default: for a run already stopped, whose jumps are gone.
+- **OPM-N's DRAG SNAKE is LAB's + idle 6.0** (the owner, 2026-11-05, `OPM-N/IMG_2363`: "LAB may
+  count as work successfully finished"; "+ IDLE 6.0 is to go into OPM-N's painting algorithm";
+  of nos. 1 and 4, "at the end +2 mm is not needed, just 0 mm"; of 7 and 8, "we leave them as
+  they are"). Every cell, whatever its shape: legs only up and down, cut by its contour, half
+  the brush tip in from it, a dip every 95 mm of line; then at once an idle run, no dip, closer
+  together, +2 mm past the ends, 0 at its very end; with a slanted side +3 to the end. Landing and
+  lift by the carriage against the elbow (`strokes.js`, `sweptMove`, on a row's `sweep`). A small
+  cell goes on what the brush holds while Dip every lasts. `src/idleplan.js`; a test holds it to
+  LAB's commands, nos. 1, 4, 7, 8. New sliders: Track step, Idle step, Brush tip, Idle past the
+  ends, Idle past on a slant; a save from before takes the canon once (Dip every 95, overlap 15,
+  25 mm/s, pressed 0°). DRAG AIR as it was, with Track width and Rubs. LAB unchanged, finished.
+  Tests, headless and a fake board only, not run.
+- **▶ Play Drag Snake**, OPM-N's third Play key (the owner, the same evening: "so that it is clear
+  how it paints"): run by run, the first in its colour, a black dot at every landing from the
+  jar, the idle run a thin orange line, slowly at first, three minutes at most.
+- **LAB 3.0 · + idle 6.0**, a third row on THE SHEET (the owner, 2026-11-05 evening, a rubber
+  brush, a Colour Shaper soft no. 2: `OPM-N/IMG_2356`, "the best quality, what I want from
+  robotic painting: inhuman precision of the line"; `IMG_2357`, along Y dashes, "it cannot
+  paint horizontally at all"; `IDLE_6.0.jpg`, "no horizontal lines at all, we build them from
+  many flattened verticals; the brush never paints left-right"): + idle 5.0's verticals at +2,
+  +3, +4, to the letter, and three modules of the same 80 × 17.5 mm lying down: 15 legs of
+  17.5 mm along X, 5.71 mm apart, a snake, four legs a dip, each run landing on a leg and
+  pressed to its last leg's end; idle, 19 legs, 4.44 mm apart, within the 80, +2 … +4 mm past
+  both ends. The steps at the turns remain, 5.71 and 4.44 mm sideways, the brush down. Then the
+  diagonals (Screenshot 7.36.26 PM, "let us just add the diagonal ones"), 7 and 8 in the free
+  corner, as the owner drew them: parallelograms, a flat top and bottom, 60 mm wide, 30 high, sides at
+  45°, leaning ↘ and ↗, the same legs along X cut short by the sides, 6 mm apart, five dips,
+  a step between two cut legs going along the side; idle, 20 legs, +3 mm. 8 numbers, 42 runs;
+  the page opens on it. Tests, headless and a fake board only, not run.
+- **The canon: a module with the rubber brush** (README, the owner, `IMG_2359`, Screenshot
+  7.16.23 PM: "I chose 2, 3 and 4, this is canon"; of no. 5, "its tail is too long already"):
+  + idle 5.0, 19:00:31 … 19:13:06, 755 s, no error, its verticals at +2 … +4.
+- **LAB 3.0 · + idle 4.0 and + idle 5.0** (the owner, 2026-11-05, `OPM-N/IMG_2308`, Screenshots
+  3.21.19 and 3.21.38 PM): 4.0, "five idle passes that do NOT go past the module's SIDES; the
+  snake of five fits in the cell's width": the five shared out between the first run's outer
+  tracks, over 1 … 5 at their ends. 5.0, "the last of the four strokes with a dip reaches only
+  the middle of the module, then rises before the brush gets to the end; make + idle 5.0 with
+  the five pressed in": 4.0, and that last track pressed to the cell's end, its lift beyond
+  (it stopped pressing 8 mm short, the carriage going back). The second row a well of its
+  own, four keys; the page opens on 5.0. Tests, headless and a fake board only, not run.
+- **LAB 3.0 · + idle 3.0** (the owner, 2026-11-05, `OPM-N/IMG_2305`, a blue line over a cell: "an
+  idle run in five passes; it will knock down the first four furrows with the dips more
+  aggressively"; "exactly the same button"): + idle 2.0's cells, first runs and overs, its
+  idle run a track more, half a step aside, on the ridges: between the first run's tracks and
+  outside the outer two. Tests, headless and a fake board only, not run. The fixed + idle 2.0
+  ran at 14:29: the last track reaches the corner, dry, about 3 … 4 mm short (est.), was 10 … 13.
+- **LAB 3.0 · + idle 2.0**, a second row on THE SHEET (the owner, 2026-11-05, `OPM-N/Idle+.png`,
+  after `+ idle` ran at 13:14: "it starts a little earlier, to catch the bulb of paint from
+  behind, not to poke the brush into its centre"; "poked in the centre the paint stays a
+  drop and does not drag the trace to the middle", `IMG_2294`; "+1 mm at the start and +1 mm
+  further at the end"; a ruler, `IMG_2299`: "here one can take all 5 mm"): the idle run off
+  the first's line, every track longer by 1 … 5 mm at both ends, its turns out beyond the
+  cell, the first run as the long snake's. Five 80 mm verticals, five horizontals, 50 runs,
+  40 dips; three and two horizontals, five with their bulbs not fitting A3's 420 mm in a
+  row. The idle run in orange on the page. It ran at 14:12 on A3 (`IMG_2302`, `IMG_2303`): the
+  starts better, "but there is no past its end +5, all as on no. 1": the plan pressed the
+  last track only to 8 mm short of the end it named, the lift taking the rest (no. 5: to
+  177, a cell's end at 180). Fixed the same hour: the line 8 mm longer, pressed to the end +
+  over, the lift beyond it; the sheet 10 mm to the right to stay in reach. Not yet run again.
+- **LAB 3.0 · snake + idle** (the owner, 2026-11-05, of the long snake on the flat Da Vinci
+  no. 2, `OPM-N/IMG_2270` … `2276`: giant bulbs at the ends, the paint gathered there, then
+  a bald patch, the small brush out of paint; "a second run without a dip, that spreads
+  the paint gathered at the edges"; `Screenshot 12.50.03 PM`: "first the run with the
+  dips, then the idle one"): the long snake's ten cells in their places, each painted with
+  its dips, then at once its whole line again from its start, one run, no jar, no shoulder.
+  60 runs, 50 dips, about 13 min real (est.). A seventh switch, `+ idle`; the page opens on
+  it. Tests, headless and a fake board only, not run on the machine yet.
+- **LAB 3.0, cells one way** (the owner, 2026-11-05, of the pink sheet's 23, a cell
+  one way, with the fur: "my favourite"; "yes, do LAB 3.0"): eight cells, every track
+  one way with its own landing and lift, the carriage 1.25 mm/°: across → and ←, along
+  ↓ as a control and with a dip before every track, the four diagonals. A short sheet,
+  242 × 120 mm, the last ran out of paper. Four tracks a cell at first, a field to 8, the
+  cell's width kept (a ruler at 01:23, `OPM-N/IMG_2237`: "the stroke is almost 1 cm; 8
+  strokes lie one on the other; let us make 4"). **Every LAB sheet ends at home now**
+  ("it stops there, I go to OPM-N and lead it home from there"), the brush up first, as
+  OPM-N's run, and a HOME key on the page. The 8-track sheet ran on its first two cells
+  and was stopped by the owner; the 4-track one ran whole at 01:30, 4 min 40, no error: "a
+  much better result, excellent strokes". **LAB 3.0 · long** the same night ("but what
+  about the length? we have long ones … 60 mm 4 strokes, 80 and 100, and 40 of course"):
+  on a new sheet ("the vertical ones, but add the horizontal too, the same system of
+  sizes"), tracks 40, 60, 80, 100 mm, vertical and horizontal, every track on one dip
+  to show how far a dip carries, and a 100 of each with a second dip at 60, its seam
+  5 mm over. OPM-N's Track width still stops at 4 mm (TRACK_MAX): to be raised for 5.8.
+  It ran at 01:52, 9 min 50, no error (`OPM-N/IMG_2242` … `2247`): a dip carries a cell
+  of 40 mm whole, 60 nearly, 100 "a reject"; the 5 mm lap left the parts end to end.
+  **LAB 3.0 · seam**: 80 mm, a second dip at 45, on from 10, 15, 20 mm back, both ways.
+  **LAB 3.0 · long snake**, to run first (the owner, the same night: "all your tests were
+  in the style of Drag Air, and I never use it; my guess is that with Drag Snake 4, 8 and
+  9 get right; make long-snake, Seam afterwards; we compare where the stroke is neater"):
+  the long sheet's cells, places and numbers, a snake, the brush down at its turns, cut
+  as OPM-N's `dragRowsOf` cuts it (`snakeRuns`, a test against it), as much paint as the
+  long sheet: four dips a cell, 5 and 10 a dip every 60 mm, the lap 15 mm.
+- **LAB 2.0, the second sheet** (the owner, 2026-11-04, of the first: "yes, I agree
+  with you; a second sheet round 10, 11 and 12 too"; "21 goes with the fur, 20
+  against it"): 24 numbers, 43 runs of the brush, about 11 min. The carriage against
+  the elbow at 0.5 … 1.5 mm/°, → and ←, the four diagonals, along, pressed +1 … +3°, a
+  shallow dip; five real cells, tracks 2.5 mm apart, a dip every 75 mm, a 5 mm lap: a
+  snake across as tonight and against the elbow, along, on the diagonal, and along
+  one way, every track with the fur. A switch on LAB's page, the first sheet kept.
+- **LAB, a sheet of trial strokes** (the owner, 2026-11-04, "yes, you may stop and
+  start again"): 21 numbered strokes on a scrap, about 6 min, what can be told in
+  minutes what a run tells in hours. `lab.html`, `src/labplan.js`; W 3 on the path
+  needs no flash, one W on a piece, the wrist straight again before every dip.
+  On the fake board with the guard on, the whole sheet to its end. Not run on the
+  machine yet: the wrist's strokes the hand on STOP.
+- **A late or lost reply no longer stops a run** (the owner, 2026-11-04: "you may
+  stop and start again; I am ready to restart rembrandt.py", after two stops of a
+  six-hour run, at 1.7 % and 48 %, the arm fine both times). The board's replies
+  carry no number, so a reply past its wait was taken for the next command's:
+  "shoulder: ok Z 3", and very likely "the shoulder does not answer" too.
+  `Board.send` now waits for its own line, V, P, Z, H and J, or the board's refusal,
+  a late one passing by; none in time, `NO_REPLY`. J and Z wait up to 1 s. A silent
+  read is read again, about 1 s in all before "does not answer"; Z is asked again
+  until all three are read (`ok Z 3`, before any step); no answer to J is looked at,
+  not a stop, the step sent again if the joint is not there; a ping lost is asked
+  again. Every such event a line `bus` in the journal. The path's own lines as they were.
+- **OPM-N the home page** (the owner, 2026-11-04: "I would make OPM-N the index;
+  INKA is in the archive anyway"): `/` goes on to OPM-N, the first of the top row;
+  its page stays `opmn.html`, so its saves, its tick and a tab open during a run
+  keep their address. INKA's page is `inka.html`, off the row, its Preferences
+  tick and its saves as before.
+- **The red trail after a reload** (the owner, 2026-11-04: "the red trace goes in
+  a spiral, with rounded edges"): a page reloaded during a run keeps no copy of
+  the run's blocks, and `drawTrail` fell back on `dragRun()`, INKA's spiral, under
+  the run's block numbers. Now the plan with as many blocks as the run, OPM-P's
+  `paintRun` on its tabs, or none at all. The machine was never on that spiral.
+- **The iPhone's Progress tab** (the owner, 2026-11-04, the first run with
+  paint: "add to the iPhone's screen a tab with the yellow PROGRESS and a
+  mini-screen with the picture; in six and a half hours I may be anywhere").
+  `remote.html`: Remote, the keys as they were, and Progress, looks only: the
+  page's LCD (step, per cent, LEFT, TOTAL, ENDS by the clock, the colour and
+  the next, cell and dip); the next paint change, its colour and its time; the
+  canvas as the page shows it, X up, Y along, painted solid, the colour now
+  bright, the rest faint, the brush a dot. LEFT goes by the paint this phone
+  sees laid while the machine runs: a Go to or a pause counts for nothing, the
+  stops for the paint on top. `rembrandt.py`: `plan_picture`, `GET /remote/plan`
+  behind the key, reading the blocks of the run, 44 ms and 127 KB for tonight's
+  18842 blocks; nothing moves. 2 tests more.
+
 ## v.1.2.0 — 2026-11-03 · The cup at hand
 
 - **v.1.2.0 on every tab and in the saved SVGs** (the owner, 2026-11-03:
