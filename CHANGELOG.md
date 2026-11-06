@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **OPM-N's DRAG SNAKE: a small pointed cell's legs no longer stand in its corners** (the owner, 2026-11-06: "you can
+  fix the legs"). Laid evenly from edge to edge, a cell's outer legs fell into its sharp corners, with no length; it was
+  painted by the pressed step between them, or by one short leg alone (p14 of the first canvas: 3.1 mm in a 149 mm² cell). When the corners
+  take legs and fewer than three stay, as many legs stand each in the middle of its own equal strip of the width, the idle
+  run's too. Cells keeping three or more, LAB's modules among them, are laid as before, to the letter. On the first canvas's plan 22 of
+  58 cells change: the tip's track over 92 then 93 % of all, over 80 then 90 % of the cells under 3 cm², 11.35 then 11.97 m,
+  62 then 66 dips (est.). Seven small cells lose their one diagonal stroke to a short zigzag. Not run on the machine.
 - **The artist decides what, the brush how: a working rule in `README.md`** (Kuzya, 2026-11-06; the owner, asked
   if it goes into the README: "yes"): an algorithm may adapt a painting to the machine, but it must never silently
   change the artist's intent.

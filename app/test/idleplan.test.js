@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { IDLE, idleCellOf, idleDragsOf, idleRowsOf, idleRunsOf, slantedOf } from '../src/idleplan.js';
 import { labPlan, LAB } from '../src/labplan.js';
 import { plotRun, DEFAULTS } from '../src/strokes.js';
-import { opmpPlan, numbersOf, PITCH_NEW } from '../src/opmplan.js';
+import { opmpPlan, numbersOf, PITCH_NEW, insetOf } from '../src/opmplan.js';
 import { PRISMA_PENCILS } from '../src/prismaplan.js';
 import { cleanPencils } from '../src/dacheplan.js';
 import { cleanRect } from '../src/inkaplan.js';
@@ -130,4 +130,43 @@ test('on a real plan: a colour after another, its cells by their numbers, no fau
   assert.equal(r.blocks.filter(b => b.kind === 'pause').length, passes.length - 1);
   assert.equal(R.ps.length, r.blocks.filter(b => b.paintMM > 0).length, 'a block of paint a run');
   for (const b of r.blocks) (b.cmds ?? []).forEach((c, i) => { if (c[0] === 'W') assert.equal(b.cmds[i + 1][0], 'L', 'W on a piece'); });
+});
+
+// small pointed cells, as on the first canvas (2026-11-06): the corners took their legs, the step between them painted the cell
+const I1 = [[129.79, 67.38], [136.72, 74.3], [120.33, 83.77]], P14 = [[125.72, 45.84], [146.08, 66.2], [141.4, 70.25], [127.76, 56.61]], C4 = [[136.72, 74.3], [139.25, 83.77], [120.33, 83.77]];
+const legLens = t => t.legs.map(([a, b]) => Math.hypot(b[0] - a[0], b[1] - a[1]));
+const insetBox = P => { const Q = insetOf(P, 2) ?? insetOf(P.slice().reverse(), 2), xs = Q.map(q => q[0]); return { xa: Math.min(...xs), D: Math.max(...xs) - Math.min(...xs) }; };
+
+test('a small pointed cell: no leg in a corner, as many as there would have been, each in the middle of its own equal strip of the width', () => {
+  for (const [poly, n] of [[I1, 2], [C4, 3], [P14, 3]]) {
+    const t = idleCellOf({ poly }), { xa, D } = insetBox(poly);
+    assert.equal(t.legs.length, n, `${n} legs`);
+    t.legs.forEach(([a, b], j) => {
+      assert.ok(Math.abs(a[0] - (xa + (j + .5) * D / n)) < 1e-9, `leg ${j + 1} in the middle of its strip`);
+      assert.ok(Math.abs(a[0] - b[0]) < 1e-9, 'along X');
+    });
+    assert.ok(Math.min(...legLens(t)) > 0.5, `no leg without length: ${legLens(t)}`);
+    assert.equal(runOf(poly).fault, '');
+  }
+});
+
+test('a small pointed cell: its idle run laid the same way, and the line no longer a stroke from corner to corner', () => {
+  const t = idleCellOf({ poly: I1 }), { D } = insetBox(I1), [[, b], [c]] = t.legs;
+  assert.ok(Math.abs(c[0] - b[0]) <= D / 2 + 1e-9, 'a step of half the width');
+  for (let i = 0; i + 1 < t.line.length; i += 2) assert.ok(Math.abs(t.line[i][0] - t.line[i + 1][0]) < 1e-9, 'an idle leg along X');
+  assert.ok(t.line.length >= 2);
+});
+
+test('a cell where the corners left one leg: all of them back, across its width', () => {
+  assert.deepEqual(legLens(idleCellOf({ poly: P14 })).map(l => l >= 3), [true, true, true]);
+  assert.ok(idleCellOf({ poly: P14 }).first > 3 * 3);
+});
+
+test('a cell that keeps three legs or more is laid as before, evenly from edge to edge, only its corners left out', () => {
+  const lean = [[0, 0], [90, 0], [120, 40], [30, 40]], t = idleCellOf({ poly: lean }), { xa, D } = insetBox(lean), gaps = Math.round(D / IDLE.step);
+  t.legs.forEach(([a]) => { const k = (a[0] - xa) * gaps / D; assert.ok(Math.abs(k - Math.round(k)) < 1e-9, `on the even grid: ${a[0]}`); });
+  assert.ok(legLens(t).every(l => l >= 3));
+  const flat = idleCellOf({ poly: box(0, 17.5, 0, 80) });
+  assert.equal(flat.legs.length, 4);                                                 // LAB's vertical: its outer legs on the inset edges, nothing moved
+  assert.deepEqual(flat.legs.map(l => +l[0][0].toFixed(2)), [0, 5.83, 11.67, 17.5]);
 });

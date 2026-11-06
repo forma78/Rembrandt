@@ -17,7 +17,7 @@ export const IDLE = {
   every: 95, lap: 15,          // mm of line a dip, mm back after a dip in the middle of a leg: LAB's (est.)
 };
 export const IDLE_STEP_MIN = 2, IDLE_STEP_MAX = 12, IDLE_TIP_MIN = 1, IDLE_TIP_MAX = 12, IDLE_OVER_MAX = 8;
-const MIN_LEG = 3;             // mm: a shorter leg is left out, too short to land on (unless all of a cell's are)
+const MIN_LEG = 3;             // mm: a shorter leg is left out, too short to land on (unless the corners took so many that the cell's legs are laid again, legsAcross)
 const NEAR = 1e-6;
 
 const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -42,15 +42,16 @@ function sliceLine(pts, s0, s1) {
 }
 // the legs over a polygon, along plan y (the machine's X): as many as fit `step` apart, evenly from its left edge to its right, top first, then every other one
 // bottom first; a leg under MIN_LEG, at a sharp corner, left out; a polygon under half a step wide one, in its middle; plan x, y, the machine's Y, X (band.js, toMachine).
-// margin: so far in from its left and right edges, where the polygon itself could not be inset (a thin row)
+// margin: so far in from its left and right edges, where the polygon itself could not be inset (a thin row).
+// A small pointed cell (the owner, 2026-11-06, "you can fix the legs"): evenly from edge to edge its outer legs stand in its corners, with no length, and it was painted by
+// the step between them, or by one short leg alone. So when the corners take legs and fewer than three stay, as many legs stand each in the middle of its own equal
+// strip of the cell's width, short ones too: inside a run they are no landing. Cells that keep three or more, LAB's modules among them, are laid as they were.
 function legsAcross(Q, step, margin = 0) {
   const xs = Q.map(q => q[0]), ys = Q.map(q => q[1]), xa = Math.min(...xs), xb = Math.max(...xs), room = xb - xa - 2 * margin, x0 = room >= 0 ? xa + margin : (xa + xb) / 2, x1 = room >= 0 ? xb - margin : x0, D = x1 - x0, gaps = Math.round(D / step), mid = (Math.min(...ys) + Math.max(...ys)) / 2;
-  const all = [];
-  for (let j = 0; j <= gaps; j++) {
-    const x = gaps ? x0 + j * D / gaps : x0 + D / 2, c = chordAlong(Q, [Math.max(xa + NEAR, Math.min(xb - NEAR, x)), mid], [0, -1]);
-    if (c) all.push([[x, c[0][1]], [x, c[1][1]]]);
-  }
-  const long = all.filter(l => dist(l[0], l[1]) >= MIN_LEG), legs = long.length ? long : all;
+  const legAt = x => { const c = chordAlong(Q, [Math.max(xa + NEAR, Math.min(xb - NEAR, x)), mid], [0, -1]); return c ? [[x, c[0][1]], [x, c[1][1]]] : null; };
+  const all = Array.from({ length: gaps + 1 }, (_, j) => legAt(gaps ? x0 + j * D / gaps : x0 + D / 2)).filter(Boolean);
+  const long = all.filter(l => dist(l[0], l[1]) >= MIN_LEG);
+  const legs = all.length > long.length && long.length < 3 ? Array.from({ length: gaps + 1 }, (_, j) => legAt(x0 + (j + .5) * D / (gaps + 1))).filter(Boolean) : long.length ? long : all;
   return legs.map((l, i) => i % 2 ? [l[1], l[0]] : l);
 }
 // a side that cuts the legs at a slant, nearer to LAB's 45° than to flat or along them
