@@ -17,7 +17,7 @@ export const LAB = {
   accel: 250, turnMax: 211,    // the board's: mm/s², °/s for W
 };
 const COLS = 4, ROWS = 6;
-export const labSize = (sheet = 1) => sheet >= 8 ? { h: S4.h - LAB.rowGap, w: S8.w } : sheet === 5 ? { h: S5.h - LAB.rowGap, w: S5.w } : sheet === 4 || sheet === 6 || sheet === 7 ? { h: S4.h - LAB.rowGap, w: S4.w } : ({ h: sheet === 3 ? S3.h : sheet === 2 ? S2.top : ROWS * LAB.rowGap + LAB.along, w: (COLS - 1) * LAB.step + (sheet === 3 ? S2.cellLong + 8 : LAB.length) });
+export const labSize = (sheet = 1) => sheet === 13 ? { h: S13.size - LAB.rowGap, w: S13.size } : sheet >= 8 ? { h: S4.h - LAB.rowGap, w: S8.w } : sheet === 5 ? { h: S5.h - LAB.rowGap, w: S5.w } : sheet === 4 || sheet === 6 || sheet === 7 ? { h: S4.h - LAB.rowGap, w: S4.w } : ({ h: sheet === 3 ? S3.h : sheet === 2 ? S2.top : ROWS * LAB.rowGap + LAB.along, w: (COLS - 1) * LAB.step + (sheet === 3 ? S2.cellLong + 8 : LAB.length) });
 // LAB 2.0 (the owner, the same night, of the first sheet: "yes, one correction for every way; a second
 // sheet round 10, 11 and 12"; "21 goes with the fur, 20 against it"): the carriage against the elbow,
 // sign + as the first sheet proved, the tip going +X as the elbow rises. Every line by its own points:
@@ -137,10 +137,10 @@ export function sliceLine(pts, s0, s1) {
   return out;
 }
 // the elbow's run on the line: mm/°, the carriage off it along X so the tip stays on it; 0, as tonight's run
-function rowPaint(pts, row, mm, press) {
-  const len = lengthOf(pts), W = Math.min(mm ? LAB.wide : LAB.tail, len / 2);
+function rowPaint(pts, row, mm, press, ramp) {
+  const len = lengthOf(pts), W = Math.min(ramp ?? (mm ? LAB.wide : LAB.tail), len / 2);
   const tail = d => d >= 3 ? Math.min(W, d) : W, Wi = tail(dist(pts[0], pts[1])), Wo = tail(dist(pts.at(-2), pts.at(-1)));   // a tail no farther than a turn: the carriage goes straight along it
-  const mid = sliceLine(pts, Wi, len - Wo);
+  const mid = sliceLine(pts, Wi, len - Wo).filter((q, i, all) => !i || dist(all[i - 1], q) > 1e-6);   // a leg so short its landing meets its lift: no piece of no length
   const start = { x: pts[0].x - mm * (LAB.hover - press), y: pts[0].y }, end = { x: pts.at(-1).x - mm * (LAB.lift - press), y: pts.at(-1).y };
   return { start, blocks: [arm(2, LAB.hover, row),
     paint([`W 2 ${press} ${mm ? rate(LAB.hover - press, dist(start, mid[0])) : LAB.turnMax}`, L(mid[0]), ...mid.slice(1).map(L), `W 2 ${LAB.lift} ${rate(LAB.lift - press, mm ? dist(mid.at(-1), end) : Wo)}`, L(end)], len, row), arm(2, LAB.up, row)] };
@@ -264,7 +264,7 @@ const S8 = { len: 80, overs: [1, 2, 3, 4, 5], left: 20, col: 50, step: 105, w: 3
 // past its end for real (the owner, 14:18, IMG_2303: "no past its end +5, all as on no. 1"): rowPaint presses to the line's end
 // less its lift, LAB.wide, so a line ending at +5 was pressed only to 3 mm short of the cell's end, the rest rising, and the last
 // tracks looked alike. The line goes LAB.wide farther: pressed to +over, the lift beyond it.
-const liftBeyond = pts => { const a = pts.at(-2), b = pts.at(-1), d = dist(a, b); return [...pts.slice(0, -1), along(b, { x: (b.x - a.x) / d, y: (b.y - a.y) / d }, LAB.wide)]; };
+const liftBeyond = (pts, by = LAB.wide) => { const a = pts.at(-2), b = pts.at(-1), d = dist(a, b); return [...pts.slice(0, -1), along(b, { x: (b.x - a.x) / d, y: (b.y - a.y) / d }, by)]; };
 function overshot(pts, over) {
   if (!over) return pts;
   const out = [];
@@ -326,37 +326,84 @@ function sheet12(n = S3.tracks) {
   const legsAt = s => Math.round(L / s) + 1, legs = legsAt(step), idle = legsAt(stepIdle), tail = (count, over) => `a snake, a dip every ${most} mm of line at most, each run pressed to its last leg's end; then idle, ${count} verticals, +${over} mm before and past each`;
   const flat = (over, c) => {
     const at = { x: S12.x + W0, y: S8.left + c * S8.step }, pts = snakeOf(at, down, right, W0, legs, L / (legs - 1));
-    return { kind: 'cell', hue: '#2B6CB0', mm: S3.mm, idle: true, over, pts, runs: byLine(pts, most).map(liftBeyond), idleLine: snakeOf(at, down, right, W0, idle, L / (idle - 1)),
+    return { kind: 'cell', hue: '#2B6CB0', mm: S3.mm, idle: true, over, pts, runs: byLine(pts, most).map(r => liftBeyond(r)), idleLine: snakeOf(at, down, right, W0, idle, L / (idle - 1)),
       say: `Lying down, ${L} mm, ${legs} short verticals ↓↑ of ${W0} mm, ${tail(idle, over)}, within its length` };
   };
   const D = S12.diag, slant = (lean, c) => {
     const pts = slantSnake(D.tops[c], D.y, D.base, D.high, lean, step), line = slantSnake(D.tops[c], D.y, D.base, D.high, lean, stepIdle);
-    return { kind: 'cell', hue: '#7B3FA0', mm: S3.mm, idle: true, over: D.over, pts, runs: byLine(pts, most).map(liftBeyond), idleLine: line,
+    return { kind: 'cell', hue: '#7B3FA0', mm: S3.mm, idle: true, over: D.over, pts, runs: byLine(pts, most).map(r => liftBeyond(r)), idleLine: line,
       say: `Diagonal ${lean > 0 ? '↘' : '↗'}, ${D.base} mm wide, ${D.high} mm high, its sides at 45°: ${pts.length / 2} short verticals ↓↑ cut by its sides, ${tail(line.length / 2, D.over)}` };
   };
   return [...sheet8(n, 'inside', true).filter((q, i) => i < S8.overs.length && S12.overs.includes(q.over)), ...S12.overs.map(flat), slant(1, 0), slant(-1, 1)];
 }
+// LAB 3.0 · ladder (the owner, 2026-11-06, of OPM-G: "the ladder sheet before the tab, once you have read Kuzya's answer"; Kuzya the same
+// day: "Your updated test A (5, 8, 12, 16, 24, 32 mm; alone and in a snake; a fresh DIP and the remainder) suits me", "two independent
+// metrics: coverage and shape fidelity"): what a short leg really leaves, on the first canvas 12 of the 16 short legs OPM-G's second try
+// keeps being Indigo's. No span of a composition is given to another paint (the owner, the same day), so a short one has to be laid short.
+// One 20 × 20 canvas, every length left to right, all ↓ first, by the canon's module and its commands (idleplan.js): a table of the paint's
+// state on the brush. The same length alone or in a snake; straight after a dip or so many mm of line later; first run alone or with its idle
+// run; three short shapes, legs of different lengths side by side as OPM-G's columns would have them. The landing and the lift of 8 mm
+// never fit a leg of 8 mm or less (a lone leg of 8 is never fully pressed), so 5, 8 and 12 also over 4 mm, this sheet's alone. All est.
+const S13 = { size: 200, lengths: [5, 8, 12, 16, 24, 32], legs: [6, 5, 4, 4, 3, 3], ramp: 4, step: 5.83, pass: 4.38, every: 95, flat: 2, slant: 3,
+  tops: [190, 143, 99, 54], low: 22, across: 14, left: 15, right: 105, snakeLeft: 12, snakeGap: 13,
+  shapes: { pair: { y: 105, legs: 2, len: 12 }, wedge: { y: 122, W: 23.32, ends: [5, 21] }, diamond: { y: 156, W: 23.32, ends: [5, 21] } } };
+// legs along X over a shape, top(t) and low(t) at t mm across it, as many as fit `step` apart, every other one ↑: as legsAcross in idleplan.js
+function legsOver(y, W, top, low, step) {
+  const gaps = Math.round(W / step), legs = [];
+  for (let j = 0; j <= gaps; j++) {
+    const t = j * W / gaps, a = { x: top(t), y: y + t }, b = { x: low(t), y: y + t };
+    legs.push(j % 2 ? [b, a] : [a, b]);
+  }
+  return legs;
+}
+// the idle run's line as OPM-N's, idleLine in idleplan.js: every leg longer by over at both ends, the last only by end at its own
+const idleOver = (legs, over, end) => legs.flatMap(([a, b], i) => { const d = dist(a, b), u = { x: (b.x - a.x) / d, y: (b.y - a.y) / d }; return [along(a, u, -over), along(b, u, i === legs.length - 1 ? end : over)]; });
+function sheet13() {
+  const { lengths, tops: [A, B, C, D] } = S13, one = [];
+  const blue = '#2B6CB0', green = '#3E8E5A', purple = '#7B3FA0', red = '#D8453B';
+  const mark = (hue, T, y, L, say, o = {}) => { const pts = [{ x: T, y }, { x: T - L, y }]; one.push({ kind: 'cell', hue, mm: S3.mm, pts, runs: [liftBeyond(pts, o.ramp ?? LAB.wide)], noDip: o.noDip, ramp: o.ramp, say }); };
+  lengths.forEach((L, c) => mark(blue, A, S13.left + c * S13.across, L, `Alone ↓ ${L} mm, its own dip`));
+  lengths.slice(0, 3).forEach((L, c) => mark(red, A - S13.low, S13.left + c * S13.across, L, `Alone ↓ ${L} mm, its own dip, landing and lifting over ${S13.ramp} mm, not 8`, { ramp: S13.ramp }));
+  const ladder = (seq, T, left, name) => { let since = 0; seq.forEach(L => { const c = lengths.indexOf(L); mark(green, T, left + c * S13.across, L, since ? `Alone ↓ ${L} mm, ${name}, no dip: ${since} mm of line since it` : `Alone ↓ ${L} mm, ${name}: straight after it`, { noDip: since > 0 }); since += L; }); };
+  ladder(lengths, A, S13.right, 'one dip, shortest first');
+  ladder([...lengths].reverse(), B, S13.left, 'one dip, longest first');
+  const module = (hue, T, y, W, top, low, slanted, idle, say) => {
+    const legs = legsOver(y, W, top, low, S13.step), pts = legs.flat(), over = slanted ? S13.slant : S13.flat, line = idleOver(legsOver(y, W, top, low, S13.pass), over, slanted ? over : 0);
+    const mm = lengthOf(pts), runs = byLine(pts, S13.every);
+    one.push({ kind: 'cell', hue, mm: S3.mm, pts, runs: runs.map(r => liftBeyond(r)), ...(idle ? { idle: true, over, idleRun: line } : {}),
+      say: `${say}, ${legs.length} legs, ${Math.round(mm)} mm of line, ${runs.length > 1 ? `${runs.length} dips` : 'one dip'}${idle ? `; then idle, ${line.length / 2} legs, +${over} mm${slanted ? '' : ', 0 at its very end'}` : ', no idle'}` });
+  };
+  const snakes = (T, hue, idle) => { let y = S13.snakeLeft; lengths.forEach((L, c) => { const W = (S13.legs[c] - 1) * S13.step; module(hue, T, y, W, () => T, () => T - L, false, idle, `A snake ↓↑ of ${L} mm`); y += W + S13.snakeGap; }); };
+  snakes(C, blue, false);
+  snakes(D, blue, true);
+  const { pair, wedge, diamond } = S13.shapes, [e0, e1] = wedge.ends, mid = diamond.W / 2;
+  module(purple, B, pair.y, (pair.legs - 1) * S13.step, () => B, () => B - pair.len, false, true, `A small detail, its plan ${((pair.legs - 1) * S13.step + 4).toFixed(1)} × ${pair.len} mm`);
+  module(purple, B, wedge.y, wedge.W, () => B, t => B - e0 - (e1 - e0) * t / wedge.W, true, true, `A wedge, flat at the top, legs of ${e0} to ${e1} mm`);
+  const half = t => (e0 + (e1 - e0) * (1 - Math.abs(t - mid) / mid)) / 2, c0 = B - e1 / 2;
+  module(purple, B, diamond.y, diamond.W, t => c0 + half(t), t => c0 - half(t), true, true, `A diamond, legs of ${e0} to ${e1} mm`);
+  return one;
+}
 function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
-  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
+  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
   const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
   let dips = 0, mm = 0;
-  (sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
+  (sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
     const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup;
     const runs = q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
     runs.forEach((pts0, j) => {
-      const pts = (q.reachEnd && j === runs.length - 1 ? liftBeyond(pts0) : pts0).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = q.kind !== 'oneway' || j % (q.every ?? 2) === 0;
+      const pts = (q.reachEnd && j === runs.length - 1 ? liftBeyond(pts0) : pts0).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p, q.ramp), dip = !q.noDip && (q.kind !== 'oneway' || j % (q.every ?? 2) === 0);
       rows.push({ c: 0, cells: [[n, 0]] });
       blocks.push(fly(R.start, row), ...(dip ? handDip(c, row) : []), ...R.blocks);
       dips += dip ? 1 : 0; mm += lengthOf(pts);
     });
     if (q.idle) {                                   // the elbow is up from the last run: the flight back, no shoulder, no jar
-      const pts = (q.over ? liftBeyond(overshot(q.idleLine ?? q.pts, q.over)) : q.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p);
+      const pts = (q.idleRun ? liftBeyond(q.idleRun) : q.over ? liftBeyond(overshot(q.idleLine ?? q.pts, q.over)) : q.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p);
       rows.push({ c: 0, cells: [[n, 0]] });
       blocks.push(fly(R.start, row), ...R.blocks);
       mm += lengthOf(pts);
     }
     const tip = (q.kind === 'oneway' ? q.tracks.flat() : q.pts).map(shift);
-    strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, tip, from: tip[0], to: tip.at(-1), via: [], ...(q.tracks ? { lines: q.tracks.map(l => l.map(shift)) } : {}), ...(q.over ? { over: q.over, idleTip: overshot(q.idleLine ?? q.pts, q.over).map(shift) } : {}) });
+    strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, tip, from: tip[0], to: tip.at(-1), via: [], ...(q.tracks ? { lines: q.tracks.map(l => l.map(shift)) } : {}), ...(q.over ? { over: q.over, idleTip: (q.idleRun ?? overshot(q.idleLine ?? q.pts, q.over)).map(shift) } : {}) });
   });
   const pts = blocks.flatMap(b => (b.cmds || []).filter(c => c[0] === 'L' || c[0] === 'M').map(c => c.split(' ').slice(1).map(Number)));
   return { blocks, strokes, seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed),

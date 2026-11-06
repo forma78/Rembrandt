@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **LAB 3.0 · ladder**, the next sheet on THE SHEET, before OPM-G's tab (the owner, 2026-11-06: same-colour
+  cells "may be joined", and the ladder sheet "only after you read Kuzya's answer"; Kuzya: test A "suits me", coverage
+  and shape fidelity as two metrics). One 20 × 20 canvas, 36 numbers, 47 runs, ≈ 9 min (est.): 5, 8, 12, 16,
+  24, 32 mm alone by their own dips, one dip shortest first and longest first (the line since it in each number's
+  words), 5, 8, 12 over a 4 mm landing and lift, snakes with no idle and with it, three short shapes. Its snakes are
+  what OPM-N's DRAG SNAKE lays for that rectangle (`test/labplan.test.js`). Not run on the machine.
 - **Kuzya's research note on the first canvas and OPM-G**, `OPM-G/docs-6-11-2026/Rembrandt_OPM-G_Analysis_EN_2026-11-06.pdf`
   (the owner, 2026-11-06: "there is a PDF, Kuzya made it. It can go on GitHub just as it is").
   Six pages, written before OPM-G's second try. No code changed; OPM-G itself is not built.

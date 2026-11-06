@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { LAB, labPlan, labSize, endSecs, rowsOfCell, sliceLine, snakeRuns } from '../src/labplan.js';
 import { dragRowsOf } from '../src/opmplan.js';
 import { reach } from '../src/machine.js';
+import { idleCellOf } from '../src/idleplan.js';
 
 const cup = { hand: true, on: true, up: [30, 35], to: [30, 35], dip: 14, paint: [14, 15], dwell: 1, swing: 40 };
 const P = labPlan({ x0: 200, y0: 150, cup });
@@ -735,4 +736,104 @@ test('+ idle 6.0: the lying modules cut as before the diagonals came: four legs 
     rs.forEach((r, j) => assert.ok(Math.abs(L(r) - (legs[j] * one + (legs[j] - 1) * step + LAB.wide)) < 1e-6, `${n}, run ${j + 1}`));
     assert.equal(q.tip.length, 30);
   }
+});
+
+// ---------- LAB 3.0 · ladder: what a short leg really leaves, on one 20 × 20 canvas ----------
+const P13 = labPlan({ x0: 0, y0: 0, cup, sheet: 13 });
+const legsIn = q => { const out = []; for (let i = 0; i + 1 < q.tip.length; i += 2) out.push([q.tip[i], q.tip[i + 1]]); return out; };
+const legLen = ([a, b]) => Math.hypot(b.x - a.x, b.y - a.y);
+const dipped13 = r => inRow(P13, r).some(b => b.dip);
+const LENGTHS = [5, 8, 12, 16, 24, 32], since = seq => { let t = 0; return seq.map(L => { const s = t; t += L; return s; }); };
+
+test('ladder: 36 numbers, in their order: alone by its own dip, on 4 mm, shortest first, longest first, snakes, snakes + idle, shapes', () => {
+  assert.equal(P13.remote.colours[0].name, 'LAB 3.0 · ladder');
+  assert.equal(P13.strokes.length, 36);
+  assert.deepEqual(P13.strokes.slice(0, 6).map(q => legLen(legsIn(q)[0])), LENGTHS);
+  assert.deepEqual(P13.strokes.slice(6, 9).map(q => legLen(legsIn(q)[0])), [5, 8, 12]);
+  assert.deepEqual(P13.strokes.slice(9, 15).map(q => legLen(legsIn(q)[0])), LENGTHS);
+  assert.deepEqual(P13.strokes.slice(15, 21).map(q => legLen(legsIn(q)[0])), [...LENGTHS].reverse());
+  P13.strokes.slice(21, 33).forEach((q, i) => legsIn(q).forEach(l => assert.ok(Math.abs(legLen(l) - LENGTHS[i % 6]) < 1e-9, `${q.n}`)));
+});
+
+test('ladder: the doses as it says: its own dip each, or one dip and the line since it', () => {
+  for (let n = 1; n <= 9; n++) assert.deepEqual(rowsIn(P13, n).map(dipped13), [true], `${n}`);
+  const up = since(LENGTHS), down = since([...LENGTHS].reverse());
+  P13.strokes.slice(9, 15).forEach((q, i) => { assert.equal(dipped13(rowsIn(P13, q.n)[0]), i === 0, `${q.n}`); if (i) assert.match(q.say, new RegExp(`${up[i]} mm of line since it`)); });
+  P13.strokes.slice(15, 21).forEach((q, i) => { assert.equal(dipped13(rowsIn(P13, q.n)[0]), i === 0, `${q.n}`); if (i) assert.match(q.say, new RegExp(`${down[i]} mm of line since it`)); });
+  for (const n of [11, 12, 17, 21]) assert.ok(!inRow(P13, rowsIn(P13, n)[0]).some(b => b.kind === 'joint' || /^J 1\b/.test(b.cmd ?? '')), `${n}: no jar, no shoulder`);
+});
+
+test('ladder: a leg alone goes ↓ along X, pressed to its end if it has room, its lift beyond it, on 8 mm or on 4', () => {
+  P13.strokes.slice(0, 21).forEach(q => {
+    const r = rowsIn(P13, q.n)[0], { fly, cmds } = lineOf(P13, r), [a, b] = legsIn(q)[0], ramp = q.n >= 7 && q.n <= 9 ? 4 : 8, L = legLen([a, b]), W = Math.min(ramp, (L + ramp) / 2);
+    assert.ok(a.x > b.x && Math.abs(a.y - b.y) < 1e-9, `${q.n}: ↓ along X`);
+    const [mx, my] = numsOf(fly.cmds[1]), ls = cmds.filter(c => c[0] === 'L').map(numsOf);
+    assert.ok(Math.abs(mx - (a.x - 1.25 * LAB.hover)) < 0.02 && Math.abs(my - a.y) < 0.02, `${q.n}: flies to its start`);
+    assert.ok(Math.abs(ls[0][0] - (a.x - W)) < 0.02, `${q.n}: lands over ${W} mm, at ${ls[0][0]}`);
+    assert.ok(Math.abs(ls.at(-1)[0] - (b.x - ramp - 1.25 * LAB.lift)) < 0.02, `${q.n}: lifts over its ${ramp} mm beyond the end`);
+    assert.ok(cmds.filter(c => c[0] === 'L').every((c, i, all) => numsOf(c)[1] === numsOf(all[0])[1]), `${q.n}: never off its column`);
+  });
+});
+
+test('ladder: its snakes are what OPM-N\'s DRAG SNAKE lays for that rectangle, first run and idle run, the dips too', () => {
+  const up = bs => bs.filter(b => !b.home).map(b => b.cmds ?? b.cmd ?? b.deg);
+  P13.strokes.slice(27, 33).forEach(q => {
+    const B = box(q.tip), off = 2, poly = [[B.y0 - off, B.x0 - off], [B.y1 + off, B.x0 - off], [B.y1 + off, B.x1 + off], [B.y0 - off, B.x1 + off]];
+    const c = idleCellOf({ poly });
+    assert.equal(c.legs.length, q.tip.length / 2, `${q.n}: its legs`);
+    c.legs.forEach(([a, b], i) => assert.ok(Math.abs(a[0] - q.tip[2 * i].y) < 1e-6 && Math.abs(a[1] - q.tip[2 * i].x) < 1e-6 && Math.abs(b[1] - q.tip[2 * i + 1].x) < 1e-6, `${q.n}, leg ${i + 1}`));
+    assert.equal(c.line.length, q.idleTip.length, `${q.n}: its idle legs`);
+    c.line.forEach((p, i) => assert.ok(Math.abs(p[0] - q.idleTip[i].y) < 1e-6 && Math.abs(p[1] - q.idleTip[i].x) < 1e-6, `${q.n}, idle point ${i}`));
+    assert.equal(c.over, q.over); assert.equal(c.end, 0);
+  });
+});
+
+test('ladder: the shapes\' legs cut by their sides, idle +3 to the very end, as OPM-N has a slanted side', () => {
+  P13.strokes.slice(33).forEach(q => assert.equal(q.over, q.n === 34 ? 2 : 3, `${q.n}`));
+  const lens = q => legsIn(q).map(l => +legLen(l).toFixed(6));
+  assert.deepEqual(lens(P13.strokes[33]), [12, 12]);
+  assert.deepEqual(lens(P13.strokes[34]), [5, 9, 13, 17, 21]);
+  assert.deepEqual(lens(P13.strokes[35]), [5, 13, 21, 13, 5]);
+  for (const q of P13.strokes.slice(34)) {
+    const ends = legsIn({ tip: q.idleTip }).map(l => +legLen(l).toFixed(6));
+    assert.ok(Math.min(...ends) >= 10.9, `${q.n}: every idle leg +3 at both ends, ${ends}`);
+    assert.equal(rowsIn(P13, q.n).length, 2, `${q.n}: one dip, one idle run`);
+  }
+});
+
+test('ladder: at most 95 mm of line a dip, whole legs; pressed to the last leg\'s end; the idle with no jar', () => {
+  P13.strokes.slice(21).forEach(q => {
+    const rs = rowsIn(P13, q.n), idle = q.idleTip ? rs.at(-1) : null;
+    rs.filter(r => r !== idle).forEach(r => {
+      assert.ok(dipped13(r), `${q.n}, row ${r}: a dip`);
+      assert.ok(lineOf(P13, r).mm - LAB.wide <= 95 + 1e-6, `${q.n}, row ${r}: ${lineOf(P13, r).mm} mm`);
+    });
+    if (idle) assert.ok(!inRow(P13, idle).some(b => b.dip || b.kind === 'joint' || /^J 1\b/.test(b.cmd ?? '')), `${q.n}: no jar, no shoulder on the idle run`);
+  });
+  assert.equal(rowsIn(P13, 27).filter(dipped13).length, 2, '3 legs of 32 mm go over 95: 2 + 1');
+  assert.equal(rowsIn(P13, 26).filter(dipped13).length, 1);
+});
+
+test('ladder: no piece of no length, where a short leg\'s landing meets its lift: the board gets a move or nothing', () => {
+  for (const b of P13.blocks) {
+    if (!b.paintMM) continue;
+    const ls = b.cmds.filter(c => c[0] === 'L');
+    ls.forEach((c, i) => assert.ok(!i || c !== ls[i - 1], `row ${b.row}: ${c} twice`));
+  }
+});
+
+test('ladder: on one 20 × 20, 10 mm clear of its edges even in its lifts, every number clear of the others, the same at any Tracks', () => {
+  const { w, h } = labSize(13);
+  assert.deepEqual([w, h + LAB.rowGap], [200, 200]);
+  const boxes = P13.strokes.map(q => { const b = box([...q.tip, ...(q.idleTip ?? [])]), ramp = q.n >= 7 && q.n <= 9 ? 4 : 8; return { ...b, n: q.n, tailed: b.x0 - ramp, y0: b.y0 - 2, y1: b.y1 + 2, x1: b.x1 }; });
+  for (const b of boxes) assert.ok(b.y0 >= 10 && b.y1 <= 190 && b.x1 <= 190 && b.tailed >= 10, `${b.n}: ${JSON.stringify(b)}`);
+  boxes.forEach((a, i) => boxes.slice(i + 1).forEach(b => {
+    const clear = Math.max(a.tailed - b.x1, b.tailed - a.x1, a.y0 - b.y1, b.y0 - a.y1);
+    assert.ok(clear >= 2, `${a.n} and ${b.n}: ${clear} mm`);          // a lift's tail is in the air by then
+  }));
+  assert.equal(P13.blocks.at(-1).home, true);
+  for (const b of P13.blocks) (b.cmds || []).forEach((c, i) => { if (c[0] === 'W') assert.equal(b.cmds[i + 1][0], 'L', 'W on a piece'); });
+  assert.ok(P13.blocks.flatMap(b => b.cmds ?? []).every(c => !/NaN|Infinity/.test(c)), 'every number a number');
+  assert.deepEqual(labPlan({ x0: 0, y0: 0, cup, sheet: 13, tracks: 1 }).strokes, P13.strokes);
+  assert.ok(P13.seconds > 300 && P13.seconds < 900, `${P13.seconds} s`);
 });
