@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG, FORMG_LIB, partsOf, passesOf, rowsOf, brushRuns, cellOf, idleLegsOf, airRuns, placeRange } from '../src/formgplan.js';
+import { FORMG_LIB, seqOf, passesOf, rowsOf, brushRuns, cellOf, idleLegsOf, airRuns, placeRange } from '../src/formgplan.js';
 import { IDLE, idleRowsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
 import { reach } from '../src/machine.js';
@@ -10,11 +10,13 @@ import { reach } from '../src/machine.js';
 const load = id => JSON.parse(fs.readFileSync(new URL(`../formg/${id}.json`, import.meta.url)));
 const cup = { hand: true, on: true, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 };
 const PIC = { id: 't', w: 100, h: 200, pitch: 5, jars: [] };
-function runOf(pic, part, place) {
-  const P = passesOf(pic, part), R = rowsOf(pic, P), W = reach(), here = { x: W.x.min + place.bottom + pic.h / 2, y: W.y.min + place.left + pic.w / 2 };
-  const r = plotRun({ ...DEFAULTS, speed: 25, travel: 180, tail: 3, lift: true, ink: true, snake: true, pause: false, rows: R.ps.length, here, cup, noDipUnder: 0, hover: ELBOW_HOVER, press: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'next' : null })));
-  return { P, R, r, here, W };
+const OPTS = { ...DEFAULTS, speed: 25, travel: 180, tail: 3, lift: true, ink: true, snake: true, pause: false, cup, noDipUnder: 0, hover: ELBOW_HOVER, press: 0 };
+const grouped = (R, why = k => (k ? 'next' : null)) => R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: why(k) }));
+function runOf(pic, place) {
+  const P = passesOf(pic), R = rowsOf(pic, P), W = reach(), here = { x: W.x.min + place.bottom + pic.h / 2, y: W.y.min + place.left + pic.w / 2 };
+  return { P, R, r: plotRun({ ...OPTS, rows: R.ps.length, here }, grouped(R)), here, W };
 }
+const rangeOf = pic => { const R = rowsOf(pic, passesOf(pic)); return placeRange(pic, plotRun({ ...OPTS, rows: R.ps.length }, grouped(R)).carriage, reach()); };
 
 test('the library: every picture has its plan and its image, one grid, the brush 5 mm', () => {
   assert.deepEqual(FORMG_LIB, ['porsche', 'watch']);
@@ -30,27 +32,37 @@ test('the library: every picture has its plan and its image, one grid, the brush
 });
 
 test('only up and down, along the machine\'s X: every leg of every run keeps its Y (README, "How to lay a module")', () => {
+  for (const id of FORMG_LIB) for (const P of passesOf(load(id))) for (const q of P.byCell) for (const [a, b] of q.legs) assert.equal(a[0], b[0], `${id}: a leg on the slant`);
+});
+
+test('two layers, one list: every jar once, light to dark, then the jars that need it in the same order, the second layer last (the owner, 2026-11-06)', () => {
+  const car = load('porsche'), S = seqOf(car), n = car.jars.length, two = car.jars.filter(j => j.coats === 2);
+  assert.ok(two.length > 10, 'the Porsche has a second layer');
+  assert.deepEqual(S.slice(0, n).map(j => j.id), car.jars.map(j => j.id));
+  assert.deepEqual(S.slice(n).map(j => j.jar), two.map(j => j.id), 'the same order');
+  assert.ok(S.slice(0, n).every(j => j.layer === 1) && S.slice(n).every(j => j.layer === 2));
+  assert.equal(new Set(S.map(j => j.id)).size, S.length, 'every line of the list its own id: Start from, the LCD');
+  assert.ok(S.slice(n).every(j => j.name.endsWith('layer 2') && j.hex === car.jars.find(q => q.id === j.jar).hex), 'the same paint, said');
+  const watch = load('watch');
+  assert.equal(seqOf(watch).length, watch.jars.length, 'the watch: as its picture, one layer');
+});
+
+test('the second layer: the same legs, every cell the other way round, so that its dips and bulbs do not fall on the first\'s', () => {
+  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', coats: 2, cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20]] }] }] };
+  const [one, two] = passesOf(pic);
+  assert.deepEqual(one.byCell[0].legs, [[[10, 22], [10, 98]], [[15, 98], [15, 22]]]);
+  assert.deepEqual(two.byCell[0].legs, [[[15, 22], [15, 98]], [[10, 98], [10, 22]]]);
+  assert.equal(one.layer, 1); assert.equal(two.layer, 2); assert.equal(one.mm, two.mm);
+  const R = rowsOf(pic, [one, two]);
+  assert.equal(R.groups.length, 2, 'a pause between them, like two jars');
+  assert.match(R.info.at(-1).label, /layer 2/);
+});
+
+test('every cell in the list as often as its jar has layers', () => {
   for (const id of FORMG_LIB) {
-    const pic = load(id);
-    for (const part of partsOf(pic)) for (const P of passesOf(pic, part)) for (const q of P.byCell) for (const [a, b] of q.legs) assert.equal(a[0], b[0], `${id}: a leg on the slant`);
+    const pic = load(id), P = passesOf(pic), want = pic.jars.reduce((a, j) => a + j.cells.length * (j.coats === 2 ? 2 : 1), 0);
+    assert.equal(P.reduce((a, q) => a + q.cells, 0), want, id);
   }
-});
-
-test('the Porsche is past the reach, two parts, no cell in both; the watch fits; every cell painted once', () => {
-  const car = load('porsche'), watch = load('watch');
-  assert.deepEqual(partsOf(car), [1, 2]); assert.deepEqual(partsOf(watch), [1]);
-  for (const pic of [car, watch]) {
-    const cells = pic.jars.reduce((a, j) => a + j.cells.length, 0), legs = pic.jars.reduce((a, j) => a + j.cells.reduce((n, c) => n + c.legs.length, 0), 0);
-    const P = partsOf(pic).flatMap(p => passesOf(pic, p));
-    assert.equal(P.reduce((a, q) => a + q.cells, 0), cells); assert.equal(P.reduce((a, q) => a + q.tracks, 0), legs);
-  }
-});
-
-test('part 2 is the canvas turned 180°: p to (w − x, h − y), the same place, in reach', () => {
-  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', cells: [{ n: 1, legs: [[20, 150, 50]], part: 2 }] }] };
-  const [P] = passesOf(pic, 2);
-  assert.deepEqual(P.byCell[0].legs[0], [[80, 52], [80, 148]], 'half the tip in from both ends, in the turned frame');
-  assert.equal(passesOf(pic, 1).length, 0);
 });
 
 test('a cell as OPM-N\'s: legs half a tip in, then at once the idle run, no dip, +over at its start and turns, 0 at its very end', () => {
@@ -72,7 +84,7 @@ test('a cell as OPM-N\'s: legs half a tip in, then at once the idle run, no dip,
 test('a one-leg cell: its idle run back over itself, nothing into the neighbours\' lanes', () => {
   const legs = [[[10, 22], [10, 98]]];
   assert.deepEqual(idleLegsOf(legs, 3.75), legs);
-  const c = cellOf({ n: 1, legs: [[10, 20, 100]] }, PIC, 1, 1);
+  const c = cellOf({ n: 1, legs: [[10, 20, 100]] }, PIC, 1);
   assert.ok(c.line.every(q => q[0] === 10), 'its one lane');
 });
 
@@ -83,14 +95,14 @@ test('a staircase cell: every idle leg as long as the column it lies nearest', (
   assert.deepEqual(L[3], [[10, 70], [10, 20]]);
 });
 
-test('a dial\'s leg: a dip at every cut, on from the lap back, the last with its lift beyond; the cuts where the file says, the turned too', () => {
+test('a dial\'s leg: a dip at every cut, on from the lap back, the last with its lift beyond', () => {
   const R = airRuns([[10, 300], [10, 40]], [240, 160, 80], 15);
   assert.deepEqual(R.map(q => q.pts.map(p => p[1])), [[300, 240], [255, 160], [175, 80], [95, 40]]);
   assert.deepEqual(R.map(q => q.dip), [true, true, true, true]);
   assert.deepEqual(R.map(q => q.beyond), [false, false, false, true]);
   assert.equal(airRuns([[10, 300], [10, 280]], [], 15)[0].dip, false, 'a short leg goes on what the brush holds');
-  const c = cellOf({ n: 1, air: true, cuts: [150], legs: [[10, 180, 120]] }, { ...PIC, w: 100, h: 200 }, 2, 1);
-  assert.deepEqual(c.runs.map(q => q.pts.map(p => p[1])), [[22, 50], [35, 78]], 'turned, going up');
+  const c = cellOf({ n: 1, air: true, cuts: [150], legs: [[10, 180, 120]] }, PIC, 1);
+  assert.deepEqual(c.runs.map(q => q.pts.map(p => p[1])), [[178, 150], [165, 122]], 'its cell the same way');
 });
 
 test('idleplan.js as it was without a cell\'s own runs: the same rows for OPM-N', () => {
@@ -100,22 +112,28 @@ test('idleplan.js as it was without a cell\'s own runs: the same rows for OPM-N'
 });
 
 test('a canvas out of the range: plotRun says how far past the walls, FORM-G does not run it', () => {
-  const pic = load('porsche'), { r } = runOf(pic, 1, { left: 60, bottom: 0 });
+  const pic = load('porsche'), { r } = runOf(pic, { left: 60, bottom: 0 });
   assert.ok(r.pastWall > 1, 'what plotRun would have pressed into the wall');
 });
 
-test('every picture through plotRun: no fault, within the walls, the dips of the cup at hand, a pause between jars', () => {
+test('the Porsche 85 cm long, in the middle of its canvas, more white round it, within the reach in one go', () => {
+  const pic = load('porsche'), [x0, y0, x1, y1] = pic.box;
+  assert.ok(Math.abs(y1 - y0 - 850) < 10 && Math.abs((y0 + y1) / 2 - pic.h / 2) < 8, `y ${y0} … ${y1}`);
+  assert.ok(Math.abs((x0 + x1) / 2 - pic.w / 2) < 3);
+  const R = rangeOf(pic);
+  assert.ok(R.bottom[1] - R.bottom[0] >= 1.5, `a bottom edge keeps within the walls, some room for the elbow's degrees: ${R.bottom}`);
+  assert.ok(R.left[0] <= 0 && 0 <= R.left[1], 'its left edge at home will do');
+});
+
+test('every picture through plotRun, the canvas in the middle of its range: no fault, nothing pressed into a wall, the dips of the cup at hand, a pause between lines', () => {
   for (const id of FORMG_LIB) {
-    const pic = load(id), W = reach();
-    const R = partsOf(pic).map(p => placeRange(pic, p, W)), left = Math.max(...R.map(r => r.left[0])), leftHi = Math.min(...R.map(r => r.left[1])), bottom = Math.max(...R.map(r => r.bottom[0])), bottomHi = Math.min(...R.map(r => r.bottom[1]));
-    assert.ok(left <= leftHi && bottom <= bottomHi, `${id}: no place for the canvas that keeps within the walls`);
-    const place = { left: (left + leftHi) / 2, bottom: (bottom + bottomHi) / 2 };
-    for (const part of partsOf(pic)) {
-      const { P, r, here } = runOf(pic, part, place);
-      assert.equal(r.fault, '', `${id} part ${part}`);
-      assert.equal(r.pastWall, 0, `${id} part ${part}: nothing pressed into a wall`); assert.equal(r.gone, 0, `${id} part ${part}: no leg gone`);
-      assert.ok(r.dips >= P.length, `${id} part ${part}: a dip at every jar's start at least`);
-      assert.ok(r.blocks.some(q => q.fork), 'the cup at hand: its forks');
-    }
+    const pic = load(id), G = rangeOf(pic), place = { left: (G.left[0] + G.left[1]) / 2, bottom: (G.bottom[0] + G.bottom[1]) / 2 };
+    assert.ok(G.left[0] <= G.left[1] && G.bottom[0] <= G.bottom[1], `${id}: no place for the canvas`);
+    const { P, r } = runOf(pic, place);
+    assert.equal(r.fault, '', id);
+    assert.equal(r.pastWall, 0, `${id}: nothing pressed into a wall`); assert.equal(r.gone, 0, `${id}: no leg gone`);
+    assert.ok(r.dips >= P.length, `${id}: a dip at every line's start at least`);
+    assert.ok(r.blocks.some(q => q.fork), 'the cup at hand: its forks');
+    assert.equal(r.blocks.filter(q => q.kind === 'pause').length, P.length - 1, `${id}: a pause between lines`);
   }
 });

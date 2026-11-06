@@ -10,7 +10,6 @@
   /* FORM-G: the picture on the left, the library and the machine on the right */
   body.type{grid-template-columns:0 minmax(0,1fr) 340px}
   body.type .stage{grid-row:2/4}
-  #partKeys[hidden]{display:none}
   .runkeys.passes.one{grid-template-columns:1fr}
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   #cv.drag{cursor:grabbing}
@@ -38,7 +37,8 @@
   .remotebox svg{display:block;width:180px;height:180px;margin:0 auto 6px}
   .remotebox p{margin:0 0 4px}
   .remotebox code{display:block;word-break:break-all;font-size:10px;color:#6B665E}
-  .fg-note{position:absolute;left:12px;top:10px;font:10.5px var(--mono);color:var(--mute);pointer-events:none}
+  #runList li.sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:default}
+  #runList li.sep:hover{background:none}
 </style>
 </head>
 <body class="adjust arm3 nolan type love alu ccd" data-tab="formg">
@@ -66,7 +66,7 @@
 </header>
 
 <main>
-  <section class="stage" id="stage"><canvas id="cv"></canvas><div class="fg-note" id="note"></div></section>
+  <section class="stage" id="stage"><canvas id="cv"></canvas></section>
   <aside class="panel">
     <section class="sec">
       <h3>The library <span class="hint">finished paintings · the brush 5 mm</span></h3>
@@ -77,9 +77,8 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <div class="toggles looks" id="partKeys" hidden></div>
       <div class="runkeys deck">
-        <button class="btn" id="btnTest" title="TEST, before the run: one dip in the cup, a dot at each corner of the picture's box on this part, four dots to lay the canvas by, and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <button class="btn" id="btnTest" title="TEST, before the run: one dip in the cup, a dot at each corner of the picture's box, four dots to lay the canvas by, and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
         <button class="btn" id="btnPause" title="PAUSE: the carriage brakes on its line; CONT. goes on from there"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
       <div class="runkeys deck passes one">
@@ -92,7 +91,7 @@
       </div>
       <div class="toggles looks" id="views">
         <button class="tog" data-view="picture" title="The painting as the brush will leave it: the simulation, est.">Picture</button>
-        <button class="tog" data-view="drag" title="The legs of this part in their jars' colours, as wide as the brush; the other part's faint">Drag</button>
+        <button class="tog" data-view="drag" title="The legs in their jars' colours, as wide as the brush">Drag</button>
         <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell">▶ Play</button>
       </div>
       <div class="grid4 keys"><button class="btn" id="btnRemote" title="The iPhone's remote: DIP, Pause · Continue and STOP from the iPhone, the colour and the cell on it — its address with the key as a QR code; the iPhone on the same Wi-Fi">iPhone remote</button></div>
@@ -130,7 +129,7 @@
   <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
     <h3 id="drawAskTitle">DRAG</h3>
     <div class="firstpen" id="drawAskFirst"></div>
-    <label class="askfrom" id="drawAskFrom" hidden title="The run from this jar on, the ones before it not painted again; this question only"><span>Start from</span><select id="drawFrom"></select></label>
+    <label class="askfrom" id="drawAskFrom" hidden title="The run from this line of the list on, the ones before it not painted again; this question only"><span>Start from</span><select id="drawFrom"></select></label>
     <ol class="runlist one" id="drawAskList"></ol>
     <p id="drawAskText"></p>
     <div class="grid4 keys"><button class="btn pass" id="drawGo">▶ DRAG</button><button class="btn" id="drawNo">Cancel</button></div>

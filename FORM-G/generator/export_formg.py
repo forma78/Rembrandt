@@ -9,7 +9,6 @@ import json, os, pickle, sys
 import numpy as np
 which, pkl = sys.argv[1], sys.argv[2]
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'app', 'formg')
-LIMIT = 835.0     # mm above the canvas's bottom edge: a cell past it goes to part 2, the canvas turned 180° (the top wall at 865, the carriage's own run past a leg's end about 19 mm, est.; room for the same place on both parts)
 d = pickle.load(open(pkl, 'rb'))
 
 
@@ -17,6 +16,9 @@ class Plan:
     pass
 
 
+# what the machine cannot reach is said here, not left to be pressed into a wall: the Porsche's exhaust, its tip past everything else, 9 mm shorter than the photo's, so that the
+# carriage keeps within the 865 mm (the elbow's sweep takes it about 20 mm past a leg's end at the bottom; the owner's rule: "must never silently change")
+LOWEST = {'porsche': 84.0}
 pl = Plan()
 pl.grid, pl.form = d['grid'], d['form']
 pl.R, pl.N = pl.grid.shape
@@ -42,7 +44,7 @@ else:
         P[f'j{i}'].name = name
         pl.pids.append(f'j{i}')
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
-    title, sub = 'Porsche', 'hyperrealism, 70 × 100, green'
+    title, sub = 'Porsche', 'hyperrealism, 70 × 100, green, 85 cm long'
     KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'wood': 'Wood', 'tail': 'Tail light', 'steel': 'Steel', 'creaseL': 'Crease, light', 'creaseD': 'Crease, dark', 'seam': 'Seam', 'louvre': 'Louvre'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 pl.xs = (pl.W - pl.N * PITCH) / 2 + PITCH * (np.arange(pl.N) + 0.5)
@@ -63,6 +65,8 @@ for pi in order:
         legs = []
         for sp, dr in run:
             top, bot = pl.H - sp['ya'], pl.H - sp['yb']        # y up
+            low = LOWEST.get(which, -1e9)
+            top, bot = max(top, low), max(bot, low)
             legs.append([round(float(sp['x']), 2), round(float(top if dr > 0 else bot), 1), round(float(bot if dr > 0 else top), 1)])
             total_legs += 1
         f = pl.forms[run[0][0]['f']] if run[0][0]['f'] >= 0 else {}
@@ -73,11 +77,8 @@ for pi in order:
             ya, yb = run[0][0]['ya'], run[0][0]['yb']
             cell['air'] = True
             cell['cuts'] = [round(float(pl.H - y), 1) for y in np.arange(np.ceil((ya + jit) / rib) * rib - jit, yb - 20, rib) if y > ya + 20]
-        ys = [v for l in legs for v in l[1:]]
-        if max(ys) > LIMIT:
-            cell['part'] = 2
         cells.append(cell)
-    jars.append(dict(id=pid, name=name, code=code, hex=P[pid].hex, cells=cells))
+    jars.append(dict(id=pid, name=name, code=code, hex=P[pid].hex, coats=int(getattr(P[pid], 'coats', 1)), cells=cells))
 assert total_legs == d['st']['legs'], (total_legs, d['st']['legs'])
 ys = [v for j in jars for c in j['cells'] for l in c['legs'] for v in l[1:]]
 xs = [l[0] for j in jars for c in j['cells'] for l in c['legs']]
@@ -85,5 +86,4 @@ out = dict(id=which, title=title, sub=sub, w=pl.W, h=pl.H, pitch=PITCH, image=f'
 path = os.path.join(OUT, f'{which}.json')
 with open(path, 'w') as f:
     json.dump(out, f, separators=(',', ':'))
-parts = sum(1 for j in jars for c in j['cells'] if c.get('part') == 2)
-print(which, 'jars', len(jars), 'cells', sum(len(j['cells']) for j in jars), 'of them part 2', parts, 'legs', total_legs, 'box', out['box'], 'file', os.path.getsize(path) // 1024, 'KB')
+print(which, 'jars', len(jars), 'of them two layers', sum(1 for j in jars if j['coats'] == 2), 'cells', sum(len(j['cells']) for j in jars), 'legs', total_legs, 'box', out['box'], 'file', os.path.getsize(path) // 1024, 'KB')

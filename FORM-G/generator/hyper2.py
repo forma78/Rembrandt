@@ -194,7 +194,7 @@ def guided(I, r, eps):
 
 class Car:
     W, H = 700, 1000
-    LENGTH_MM = 950.0
+    LENGTH_MM = 850.0   # the machine reaches 865 mm along X (the owner, 2026-11-06: "more white background, the Porsche 850 mm"; it was 950, past the reach)
     LAM, BETA, GAIN = 2200.0, 6.0, 0.72
     JIT = (3.5, 5.0)
     KCLUSTERS = 30

@@ -11,7 +11,7 @@ A plan is one grid of columns 5 mm apart, the brush's. Every column is solved on
 | `watchgeo.py`, `clean_photo.py`, `hyper.py` | the watch: the geometry of its dial, the printed words off, the 54 shades + 5 |
 | `cargeo.py`, `hyper2.py` | the green 911: its outline, the badges off, 60 jars made to measure |
 | `distance_core.py`, `far.py`, `farcar.py` | the view from 3 and 6 m: S-CIELAB's widths of blur, a model, not a measurement |
-| `export_formg.py` | a finished plan into `app/formg/<id>.json`, the cells, the parts past the machine's reach |
+| `export_formg.py` | a finished plan into `app/formg/<id>.json`, the cells, a jar's layers |
 
 The photos are others' and stay out of git (`.gitignore`): `OPM-G/Blue-Patek…`, `OPM-G/porsche-911-1.jpg`.
 
@@ -26,4 +26,6 @@ python export_formg.py porsche porsche.jpg.pkl
 
 A new picture: its own `*geo.py` and planner, a name in `FORMG_LIB` (`app/src/formgplan.js`), its json and a 3 px/mm jpg in `app/formg/`.
 
-The render lays a dark jar's film twice, as a second coat; the tab's run lays every cell's snake and at once its idle run, no dip (the owner, 2026-11-06). The same plan, the difference untested on canvas.
+A picture must fit the machine's reach, 865 × 568 mm, with the carriage's own run past a leg's end: the elbow's sweep takes it about 20 mm at the bottom. `placeRange` says where the canvas may lie; FORM-G refuses what would be pressed into a wall. So the Porsche is 85 cm long, its exhaust 9 mm short (`LOWEST`).
+
+A jar with `coats: 2` comes again last in the list, over the dry first layer (the owner, 2026-11-06). The render lays its film twice; the tab's run lays every cell's snake and at once its idle run, both times. The same plan, the idle runs not rendered, the difference untested on canvas.

@@ -9,15 +9,23 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   adding photos for an algorithm to redraw them somehow; only two pictures for now, I will simply ask you to add something else"; "the
   colour we already developed, we can take it from OPM-N"; "the only thing not in FORM-G is a different brush width, it is fixed at 5 mm";
   "no circles and squares to draw in the Tools, the palette is given"). `formg.html`, after OPM-N in the top row; `src/formgplan.js`,
-  `src/formg.js`; its pictures in `app/formg/`, the Porsche 70 × 100 and the watch 60 × 80, made by `FORM-G/generator/`. OPM-N's DRAG
+  `src/formg.js`; its pictures in `app/formg/`, the Porsche on 70 × 100 and the watch on 60 × 80, made by `FORM-G/generator/`. OPM-N's DRAG
   SNAKE to the command: `idleplan.js`'s rows, `plotRun`, the question with Start from, the LCD, BACK ONE CELL, the iPhone's remote, ELBOW
-  LIVE; OPM-N as it was but for one hook in `idleRunsOf`, a cell's own runs. A jar a colour, a cell a run of legs; every cell its snake and at once its idle
-  run, no dip ("the two passes come anyway; I would not divide it into a first pass, then a second"). **rembrandt.py as it was**: the run's
-  note says `page: opmn`, the same brush, `tab: formg` for the journal. The Porsche, 95 cm long, is past the reach, 86.5 cm: two parts, the
-  canvas turned 180° into the same place between them, as LOOM's halves; a cell goes whole to one part, so no seam crosses a leg. A canvas
-  placed so that the brush would go past a wall is refused, not pressed into it. Part 1 125.6 m, ≈ 5 h 44; part 2 35.1 m, ≈ 1 h 27; the
-  watch 109.2 m, ≈ 6 h 34, all est. The real Runner took a posted run to its end on the fake board, the cup at hand's guard on; not run on the machine.
+  LIVE; OPM-N as it was but for one hook in `idleRunsOf`, a cell's own runs. **rembrandt.py as it was**: the run's note says `page: opmn`,
+  the same brush, `tab: formg` for the journal.
+  **The Porsche 85 cm long** (the owner: "more white background, the Porsche 850 mm"): 95 cm was past the machine's reach, 86.5 cm along X.
+  Its plan solved again, 55 jars. The exhaust's tip 9 mm shorter than the photo's: with it the carriage, past a leg's end by the elbow's
+  sweep, would go 6 mm past the wall. It lies with its bottom edge about 64 mm below home, as `calibration.json`'s 70 × 100 at 83.
+  **Two layers, one list** (the owner: "we make the order of the paints such that somewhere on the second day of work the first layer dries
+  and one can go a second time over it"; "those paints that go as the second layer, let them go second in the list"; "90 changes of jars by
+  hand is natural work, several hours over 2-3 days, maybe 4-5"): every jar once, light to dark, then the 27 that need it in the same order,
+  each a line of the list, reached by Start from on another day; the pause between the layers says to let it dry. The second time a cell runs the
+  other way round, so that its dips do not fall on the first's (est.). A cell's own module as OPM-N's in both: its snake, at once its idle run.
+  A canvas placed so that the brush would go past a wall is refused, not pressed into it; the range comes from `plotRun`'s own carriage.
+  The Porsche 216.6 m, 82 lines, ≈ 6 h 00 + 3 h 47; the watch 109.2 m, 37 lines, one layer as its picture, ≈ 6 h 34; all est., the jars' changes apart.
+  The real Runner took a posted run to its end on the fake board, the cup at hand's guard on; not run on the machine.
   Red and black Porsches: later, a new entry in the library, the jars solved again.
+
 - **OPM-N's DRAG SNAKE: a small pointed cell's legs no longer stand in its corners** (the owner, 2026-11-06: "you can
   fix the legs"). Laid evenly from edge to edge, a cell's outer legs fell into its sharp corners, with no length; it was
   painted by the pressed step between them, or by one short leg alone (p14 of the first canvas: 3.1 mm in a 149 mm² cell). When the corners
