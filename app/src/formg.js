@@ -29,17 +29,19 @@ let PIC = null, SEQ = [];
 const jarOf = id => SEQ.find(j => j.id === id);
 const opts0 = () => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: true, ink: true, snake: true, pause: false, cup: dipCup(), hover: ELBOW_HOVER, press: S.press, noDipUnder: 0 });
 // where the canvas may lie: from plotRun's carriage, the path not yet pressed into a wall
-let RANGE = null;
+const RANGE = new Map();
 function rangeOf() {
-  const key = JSON.stringify([S.pic, S.speed, S.tail, S.dipEvery, S.dipLap, S.over, S.press]);
-  if (RANGE?.key === key) return RANGE;
+  const key = JSON.stringify([S.speed, S.tail, S.dipEvery, S.dipLap, S.over, S.press]), had = RANGE.get(PIC.id);
+  if (had?.key === key) return had;
   const P = plan(), R = rowsOf(PIC, P, S.dipEvery, S.dipLap), r = plotRun({ ...opts0(), rows: R.ps.length }, R.groups.map(g => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: null })));
-  return (RANGE = { key, ...placeRange(PIC, r.carriage, reach()) });
+  const out = { key, ...placeRange(PIC, r.carriage, reach()) };
+  RANGE.set(PIC.id, out);
+  return out;
 }
 const nearZero = ([lo, hi]) => lo > hi ? Math.round((lo + hi) / 2) : Math.round(Math.min(hi - Math.min(1, (hi - lo) / 2), Math.max(lo + Math.min(1, (hi - lo) / 2), 0)));
 function placeNow() {
-  if (!S.place[S.pic]) { const r = rangeOf(); S.place[S.pic] = { edgeLeft: nearZero(r.left), edgeBottom: nearZero(r.bottom) }; save(); }
-  return S.place[S.pic];
+  if (!S.place[PIC.id]) { const r = rangeOf(); S.place[PIC.id] = { edgeLeft: nearZero(r.left), edgeBottom: nearZero(r.bottom) }; save(); }
+  return S.place[PIC.id];
 }
 const hereNow = () => { const R = reach(), c = placeNow(); return { x: R.x.min + c.edgeBottom + PIC.h / 2, y: R.y.min + c.edgeLeft + PIC.w / 2 }; };
 
@@ -51,16 +53,16 @@ const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x,
 const cupName = () => cup().hand ? 'the cup at hand (INK-Y)' : 'the cup of the Ink tab';
 const runOpts = rows => ({ ...opts0(), rows, here: hereNow(), noDipUnder: NO_DIP });
 const EMPTY = { blocks: [], rows: [], seconds: 0, mm: 0, dips: 0, passes: [], fault: '' };
-let PLAN = null, RUNS = new Map();
+const PLAN = new Map(), RUNS = new Map();
 function plan() {                                                                     // the list's colours
-  const key = JSON.stringify([S.pic, S.over, S.dipLap]);
-  if (PLAN?.key !== key) PLAN = { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap }) };
-  return PLAN.passes;
+  const key = JSON.stringify([S.over, S.dipLap]);
+  if (PLAN.get(PIC.id)?.key !== key) PLAN.set(PIC.id, { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap }) });
+  return PLAN.get(PIC.id).passes;
 }
 // the run from a line of the list on; the pause before the second layer's first says what it is
 function paintRun(from = 0) {
   if (!PIC) return EMPTY;
-  const key = JSON.stringify([S.pic, S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from]);
+  const key = JSON.stringify([PIC.id, S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from]);
   if (RUNS.has(key)) return RUNS.get(key);
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
@@ -79,6 +81,7 @@ function walls(P_) {
 const warn = t => { $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
 let RUN = null, RUN_INFO = null, RUN_KEY = null, lastSt = null;
 async function start(key, blocks, info, log) {
+  playStop();
   if (blocks.some(b => b.fork)) {                                                     // only a rembrandt.py that knows the cup at hand takes its forks (inka.js's start)
     let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
     if (st && !(st.hand >= 1)) { alert('The cup at hand (INK-Y): restart rembrandt.py first — the one running does not know it yet. Nothing was sent.'); return; }
@@ -217,6 +220,7 @@ document.querySelectorAll('#elbowBrush [data-btrim]').forEach(b => { b.onclick =
 // ---------- the screen: the canvas as it lies on the machine, the reach over it ----------
 const cv = $('#cv'), stage = $('#stage'), ctx = cv.getContext('2d');
 let K = 1, OX = 0, OY = 0, fitted = '', only = null, PLAY = null, NOW = null;
+const PLAY_MS = 180000;
 function fit() {
   const r = stage.getBoundingClientRect(), m = 26, k = Math.min((r.width - 2 * m) / PIC.w, (r.height - 2 * m) / PIC.h);
   K = k; OX = (r.width - PIC.w * k) / 2; OY = (r.height - PIC.h * k) / 2;
@@ -225,7 +229,8 @@ const sx = x => OX + x * K, sy = y => OY + (PIC.h - y) * K;
 function layout() {
   const r = stage.getBoundingClientRect(), d = devicePixelRatio || 1;
   cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
-  if (PIC && fitted !== S.pic) { fit(); fitted = S.pic; }
+  const was = `${S.pic}|${Math.round(r.width)}|${Math.round(r.height)}`;              // a window or a phone turned: the picture fitted again
+  if (PIC && fitted !== was) { fit(); fitted = was; }
   kick();
 }
 let drawT = 0;
@@ -260,6 +265,8 @@ function draw() {
   g.save(); g.setLineDash([6, 4]); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2; g.strokeRect(sx(x0), sy(y1), (x1 - x0) * K, (y1 - y0) * K); g.restore();
   // the cell the brush is on
   if (NOW?.cell) { g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(2, 1.6 * K); g.strokeStyle = '#EB7A25'; legsPath(g, NOW.cell); g.stroke(); }
+  // ▶ Play's brush, a ring in its jar's colour, orange on the idle run
+  if (PLAY?.tip) { g.fillStyle = PLAY.q.hex; g.strokeStyle = PLAY.q.idle ? '#EB7A25' : '#24221F'; g.lineWidth = PLAY.q.idle ? 2.5 : 1.5; g.beginPath(); g.arc(sx(PLAY.tip[0]), sy(PLAY.tip[1]), 5, 0, 7); g.fill(); g.stroke(); }
 }
 const toPt = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
 cv.addEventListener('wheel', e => {
@@ -279,28 +286,46 @@ cv.addEventListener('pointerup', () => { dragFrom = null; cv.classList.remove('d
 cv.addEventListener('dblclick', () => { if (PIC) { fit(); kick(); } });
 new ResizeObserver(layout).observe(stage);
 
-// ▶ Play: the run as it will go, in about a minute, off the screen and laid over it
-function playStop() { if (PLAY) { cancelAnimationFrame(PLAY.raf); PLAY = null; $('#btnPlay').textContent = '▶ Play'; $('#btnPlay').classList.remove('on'); kick(); } }
+// ▶ Play: the run as it will go, OPM-N's clock, slow at first, the first cells to be read, faster as it goes (the clock squared), three minutes; the idle runs walked but not drawn, so that the % and the time are the run's.
+// The LCD follows it (the owner, 2026-11-06: "Play: an interaction with PROGRESS, so that the colours and the % show on the screen"), a run on the machine before it. A view: it moves nothing.
+function playStop() {
+  if (!PLAY) return;
+  cancelAnimationFrame(PLAY.raf); clearTimeout(PLAY.end); PLAY = null;
+  $('#btnPlay').textContent = '▶ Play'; $('#btnPlay').classList.remove('on');
+  markRun(-1); lcd(lastSt); kick();
+}
 $('#btnPlay').onclick = () => {
   if (PLAY) return playStop();
   if (!PIC) return;
-  const runs = brushRuns(plan(), S.dipEvery, S.dipLap).filter(q => !q.idle), s = 2, off = document.createElement('canvas'), c = off.getContext('2d');
+  const passes = plan(), list = [], s = 2, off = document.createElement('canvas'), c = off.getContext('2d');
+  let mm = 0;
+  for (const r of brushRuns(passes, S.dipEvery, S.dipLap)) {
+    const hex = jarOf(passes[r.pass].pencil).hex;
+    r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle }); });
+  }
+  if (!list.length) return;
   off.width = PIC.w * s; off.height = PIC.h * s; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = PIC.pitch * s * 0.92;
-  const passes = plan(), all = runs.reduce((a, q) => a + q.pts.length, 0), per = Math.max(1, Math.ceil(runs.length / 3600));
-  let i = 0;
-  PLAY = { cv: off };
+  const Q = PLAY = { cv: off, mm, want: 0, n: 0, q: list[0], tip: null, at: null, i: 0, t0: performance.now(), said: 0, ids: passes.map(q => q.pencil), seconds: paintRun().seconds, metres: passes.reduce((a, q) => a + q.mm, 0) };
   $('#btnPlay').textContent = '■ Stop'; $('#btnPlay').classList.add('on');
   const step = () => {
-    for (let n = 0; n < per && i < runs.length; n++, i++) {
-      const q = runs[i], j = jarOf(passes[q.pass].pencil);
-      c.strokeStyle = j.hex; c.beginPath(); q.pts.forEach((p, m) => { const X = p[0] * s, Y = (PIC.h - p[1]) * s; if (m) c.lineTo(X, Y); else c.moveTo(X, Y); }); c.stroke();
-      NOW = { pass: q.pass };
+    if (PLAY !== Q) return;
+    const t = performance.now(), u = Math.min(1, (t - Q.t0) / PLAY_MS);
+    Q.want = u < 1 ? mm * u * u : mm;
+    while (Q.i < list.length && list[Q.i].from <= Q.want) {
+      const q = list[Q.i], f = Math.min(1, (Q.want - q.from) / (q.to - q.from)), p = [q.a[0] + (q.b[0] - q.a[0]) * f, q.a[1] + (q.b[1] - q.a[1]) * f], o = Q.at ?? q.a;
+      if (!q.idle) { c.strokeStyle = q.hex; c.beginPath(); c.moveTo(o[0] * s, (PIC.h - o[1]) * s); c.lineTo(p[0] * s, (PIC.h - p[1]) * s); c.stroke(); }
+      Q.q = q; Q.tip = p;
+      if (f < 1) { Q.at = p; break; }
+      Q.at = null; Q.i++;
     }
-    markRun(runs[Math.min(i, runs.length - 1)]?.pass ?? -1);
+    const jar = Q.q.n !== Q.n;
+    Q.n = Q.q.n;
+    if (jar || t - Q.said > 120 || u === 1) { Q.said = t; lcd(lastSt); }
     kick();
-    if (i < runs.length) PLAY.raf = requestAnimationFrame(step); else { NOW = null; setTimeout(() => { playStop(); markRun(-1); }, 800); }
+    if (Q.i < list.length) Q.raf = requestAnimationFrame(step); else { Q.tip = null; Q.end = setTimeout(playStop, 1200); }
   };
-  step();
+  lcd(lastSt);
+  Q.raf = requestAnimationFrame(step);
 };
 
 // ---------- the panel ----------
@@ -310,11 +335,7 @@ function showKeys() {
 }
 function showPanel() {
   if (!PIC) return;
-  const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), c = placeNow(), rg = rangeOf(), bad = walls(R);
-  const legs = all.reduce((a, q) => a + q.legs.length, 0), n1 = P.filter(q => q.layer === 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
-  $('#picRead').innerHTML = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${legs} legs.`
-    + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${two} of the jars again, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
-    + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
+  const P = plan(), R = paintRun(), c = placeNow(), rg = rangeOf(), bad = walls(R), two = P.filter(q => q.layer === 2).length;
   const L = $('#fLeft'), B = $('#fBottom');
   if (document.activeElement !== L) L.value = c.edgeLeft;
   if (document.activeElement !== B) B.value = c.edgeBottom;
@@ -324,11 +345,43 @@ function showPanel() {
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm`;
 }
+// a card's (i), on hover (the owner, 2026-11-06: under the preview's text "we do in an (i), on hover"): that picture's numbers, by its own plan and its own place on the canvas, once for the numbers as they are
+const READS = new Map();
+function readOf(id) {
+  if (READS.has(id)) return READS.get(id);
+  const was = [PIC, SEQ];
+  PIC = LIB[id]; SEQ = seqOf(PIC);
+  try {
+    const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n1 = P.filter(q => q.layer === 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
+    const out = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${all.reduce((a, q) => a + q.legs.length, 0)} legs.`
+      + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${two} of the jars again, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
+      + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
+    READS.set(id, out);
+    return out;
+  } finally { [PIC, SEQ] = was; }
+}
+function popShow(el) {
+  const pop = $('#libPop'), r = el.getBoundingClientRect();
+  pop.innerHTML = readOf(el.dataset.read); pop.hidden = false;
+  const w = pop.offsetWidth, h = pop.offsetHeight, x = $('.fg-shelf').getBoundingClientRect().left - w - 8, side = x >= 8;   // to the left of the library, over the picture's free room; on a phone under the (i)
+  pop.style.left = `${side ? x : Math.max(8, Math.min(innerWidth - w - 8, r.right - w))}px`;
+  pop.style.top = `${Math.max(8, Math.min(innerHeight - h - 8, side ? r.top - h + 24 : r.bottom + 6))}px`;
+}
+const popHide = () => { $('#libPop').hidden = true; };
+{
+  const lib = $('#lib'), inf = e => e.target.closest('.info');
+  lib.addEventListener('mouseover', e => { if (inf(e)) popShow(inf(e)); });
+  lib.addEventListener('mouseout', e => { if (inf(e)) popHide(); });
+  lib.addEventListener('focusin', e => { if (inf(e)) popShow(inf(e)); });
+  lib.addEventListener('click', e => { if (inf(e)) popShow(inf(e)); });
+  lib.addEventListener('focusout', popHide);
+  addEventListener('pointerdown', e => { if (!inf(e)) popHide(); });                  // a finger has no hover: a tap on the (i) shows it, a tap elsewhere takes it away
+}
 function markRun(at) { [...$('#runList').children].forEach(q => { const i = q.dataset.i === undefined ? -2 : +q.dataset.i; q.classList.toggle('now', i === at); q.classList.toggle('done', at >= 0 && i >= 0 && i < at); }); }
-function settle() { RUNS.clear(); PLAN = null; RANGE = null; save(); showKeys(); showPanel(); kick(); }
+function settle() { RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); save(); showKeys(); showPanel(); kick(); }
 $('#lib').onclick = async e => {
   const b = e.target.closest('.fg-card'); if (!b) return;
-  playStop(); only = null; S.pic = b.dataset.id; PIC = LIB[S.pic]; SEQ = seqOf(PIC); fitted = ''; layout(); settle();
+  playStop(); popHide(); only = null; S.pic = b.dataset.id; PIC = LIB[S.pic]; SEQ = seqOf(PIC); fitted = ''; layout(); showKeys(); showPanel(); save();
 };
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; playStop(); S.view = b.dataset.view; save(); showKeys(); kick(); };
 $('#runList').onclick = e => { const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#runList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
@@ -345,12 +398,13 @@ const lcdTime = t => (t || 0) < 3600 ? segments(mmss(t), 17) : `<span class="hm"
 let started = null;
 function lcd(st) {
   const P_ = paintRun(), live = st && LIVE.includes(st.state);
-  const pct = st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
+  const Q = PLAY && !live ? PLAY : null;                                              // ▶ Play, nothing running: the run as it would go — how far, the time left (est.), its jar now
+  const pct = Q ? Q.want / Q.mm * 100 : st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
   if (live && !started) started = st.started || Date.now() / 1000;
   if (!live) started = null;
   const R_ = live && RUN_INFO ? RUN_INFO : P_;
-  const total = R_.seconds, left = live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
-  const state = !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
+  const total = Q ? Q.seconds : R_.seconds, left = !Q && live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
+  const state = Q ? 'play' : !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b = st && RUN?.[st.block], row = live && st.row ? R_.rows?.[st.row - 1] : null;
   const waiting = st?.state === 'paused' && st.message;
   paused = ['paused', 'pausing'].includes(st?.state);
@@ -359,19 +413,20 @@ function lcd(st) {
   $('#btnHome').disabled = !!live; $('#btnBack').disabled = !live;
   $('#btnDrag').classList.toggle('on', !!live && RUN_KEY === 'drag'); $('#btnTest').classList.toggle('on', !!live && RUN_KEY === 'test');
   showElbow();
-  const ids = live ? RUN_INFO?.passes ?? [] : P_.passes.map(q => q.pencil), pid = row?.pencil ?? (!live ? ids[0] : null), j = pid && jarOf(pid), nx = j && jarOf(ids[ids.indexOf(pid) + 1]);
+  const ids = Q ? Q.ids : (live && RUN_INFO?.passes) || P_.passes.map(q => q.pencil), pid = Q ? Q.ids[Q.n] : row?.pencil ?? (!live ? ids[0] : null), j = pid && jarOf(pid), nx = j && jarOf(ids[ids.indexOf(pid) + 1]);
   const cellNow = row?.cells?.[0]?.[0];
   const list = plan(), at = pid ? list.findIndex(q => q.pencil === pid) : -1;
-  if (live) { markRun(at); NOW = { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; markRun(-1); kick(); }
-  const now = waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
+  if (live || Q) markRun(at);
+  if (live) { NOW = { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
+  const now = Q ? `Cell ${Q.q.num}${Q.q.idle ? ', idle' : ''} · ${fmt(pct / 100 * Q.metres / 1000, 1)} of ${fmt(Q.metres / 1000, 1)} m · est.` : waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
   $('#lcd').innerHTML = `
-    <div class="lcd-top"><span>${state === 'live' ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', home: 'HOME', drag: 'DRAG' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
+    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', home: 'HOME', drag: 'DRAG' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(pct / 100 * Q.metres / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
       <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>
     </div>
     ${sticks(pct / 100)}
-    ${j ? `<div class="lcd-pencil"><i class="sw" style="background:${j.hex}"></i><span class="pt"><span class="pn">${esc(j.name)}</span><span class="pk">${live ? 'painting' : 'first'} · ${Math.max(0, ids.indexOf(pid)) + 1}/${ids.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
+    ${j ? `<div class="lcd-pencil"><i class="sw" style="background:${j.hex}"></i><span class="pt"><span class="pn">${esc(j.name)}</span><span class="pk">${live || Q ? 'painting' : 'first'} · ${Math.max(0, ids.indexOf(pid)) + 1}/${ids.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
     <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
 }
 async function watch() {
@@ -390,7 +445,7 @@ lampSwitch($('#lamp'));
     LIB[id] = pic;
     const im = new Image(); im.onload = kick; im.src = pic.image; IMG[id] = im;
   }
-  $('#lib').innerHTML = FORMG_LIB.map(id => `<button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b><span>${esc(LIB[id].sub)}</span></button>`).join('');
+  $('#lib').innerHTML = FORMG_LIB.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
   if (!LIB[S.pic]) S.pic = FORMG_LIB[0];
   PIC = LIB[S.pic]; SEQ = seqOf(PIC);
   await loadInk();

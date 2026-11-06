@@ -7,18 +7,26 @@
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
 <style>
-  /* FORM-G: the picture on the left, the library and the machine on the right */
-  body.type{grid-template-columns:0 minmax(0,1fr) 340px}
+  /* FORM-G: the picture, the library by it on the right, then the machine (the owner, 2026-11-06: "I would not put THE LIBRARY before PROGRESS; better on the right, there is plenty of room there; one picture to a row, not two, and a little smaller") */
+  body.type{grid-template-columns:0 minmax(0,1fr) 132px 340px}
+  body.type .top{grid-column:1/4}
   body.type .stage{grid-row:2/4}
+  body.type .panel{grid-column:4}
+  body.type .status{grid-column:1/5}
+  .fg-shelf{grid-column:3;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-left:1px solid var(--line);background:#ECEAE6}
+  html.night .fg-shelf{background:#26282B}
+  .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
   .runkeys.passes.one{grid-template-columns:1fr}
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   #cv.drag{cursor:grabbing}
-  .fg-lib{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-  .fg-card{display:flex;flex-direction:column;gap:4px;padding:5px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
+  .fg-lib{display:flex;flex-direction:column;gap:10px}
+  .fg-item{position:relative;flex:none}
+  .fg-card{display:flex;flex-direction:column;gap:5px;width:100%;box-sizing:border-box;padding:5px 5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
   .fg-card.on{outline:2px solid var(--orange);outline-offset:1px}
-  .fg-card img{display:block;width:100%;height:112px;object-fit:contain;background:#F3F0E6;border-radius:5px}
-  .fg-card b{font:600 11px var(--mono);letter-spacing:.06em}
-  .fg-card span{font-size:10.5px;color:var(--mute);line-height:1.25}
+  .fg-card img{display:block;width:100%;height:92px;object-fit:contain;background:#F3F0E6;border-radius:5px}
+  .fg-card b{font:600 11px/16px var(--mono);letter-spacing:.06em;padding-right:20px}
+  .fg-item .info{position:absolute;right:6px;bottom:6px;margin:0}
+  .fg-pop{position:fixed;z-index:60;width:290px;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:var(--card,#F7F5F1);color:var(--ink);font-size:11.5px;line-height:1.42;box-shadow:0 8px 28px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.08);pointer-events:none}
   .fg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 8px;margin-top:6px}
   .fg-grid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
   .fg-grid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:5px 6px;font:12px var(--mono)}
@@ -39,6 +47,11 @@
   .remotebox code{display:block;word-break:break-all;font-size:10px;color:#6B665E}
   #runList li.fg-sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:default}
   #runList li.fg-sep:hover{background:none}
+  @media (max-width: 760px), (max-height: 500px) {                                  /* a phone: the library a row under the picture */
+    .fg-shelf{order:3;flex:none;overflow:visible;border-left:0;border-bottom:1px solid var(--line);padding:10px 12px}
+    .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
+    .fg-item{width:104px}
+  }
 </style>
 </head>
 <body class="adjust arm3 nolan type love alu ccd" data-tab="formg">
@@ -67,12 +80,11 @@
 
 <main>
   <section class="stage" id="stage"><canvas id="cv"></canvas></section>
+  <aside class="fg-shelf" aria-label="The library">
+    <h3>The library</h3>
+    <div class="fg-lib" id="lib"></div>
+  </aside>
   <aside class="panel">
-    <section class="sec">
-      <h3>The library <span class="hint">finished paintings · the brush 5 mm</span></h3>
-      <div class="fg-lib" id="lib"></div>
-      <p class="read" id="picRead"></p>
-    </section>
     <section class="sec">
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
@@ -92,7 +104,7 @@
       <div class="toggles looks" id="views">
         <button class="tog" data-view="picture" title="The painting as the brush will leave it: the simulation, est.">Picture</button>
         <button class="tog" data-view="drag" title="The legs in their jars' colours, as wide as the brush">Drag</button>
-        <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell">▶ Play</button>
+        <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell, the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
       </div>
       <div class="grid4 keys"><button class="btn" id="btnRemote" title="The iPhone's remote: DIP, Pause · Continue and STOP from the iPhone, the colour and the cell on it — its address with the key as a QR code; the iPhone on the same Wi-Fi">iPhone remote</button></div>
       <div class="remotebox" id="remoteBox" hidden></div>
@@ -125,6 +137,8 @@
   </aside>
 </main>
 
+<div class="fg-pop" id="libPop" role="tooltip" hidden></div>
+
 <div class="ask" id="drawAsk" hidden>
   <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
     <h3 id="drawAskTitle">DRAG</h3>
@@ -137,7 +151,7 @@
 </div>
 
 <footer class="status">
-  <span id="hint">FORM-G — finished paintings. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its legs.</span>
+  <span id="hint">FORM-G — finished paintings, the brush 5 mm. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its legs.</span>
   <span id="stats"></span>
 </footer>
 <script type="module" src="src/formg.js"></script>

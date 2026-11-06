@@ -25,6 +25,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   The Porsche 216.6 m, 82 lines, ≈ 6 h 00 + 3 h 47; the watch 109.2 m, 37 lines, one layer as its picture, ≈ 6 h 34; all est., the jars' changes apart.
   The real Runner took a posted run to its end on the fake board, the cup at hand's guard on; not run on the machine.
   Red and black Porsches: later, a new entry in the library, the jars solved again.
+  **The library by the picture, on the right** (the owner: "I would not put THE LIBRARY before PROGRESS; better on the right, there is plenty
+  of room there; one picture to a row, not two, and a little smaller"), PROGRESS first in the panel; a picture's numbers in its card's (i), on
+  hover ("we do in an (i), on hover"), by a tap on a phone. **▶ Play with PROGRESS** ("an interaction with PROGRESS, so that the colours and the
+  % show on the screen"): the %, the time left (est.), the jar now and the next, the list's marks, as OPM-N's Play; OPM-N's clock too, three
+  minutes, for 82 lines in some 20 s could not be read; the idle runs walked but not drawn, so that the % is the run's; a run on the machine
+  goes before it on the LCD, and starting one stops it.
 
 - **OPM-N's DRAG SNAKE: a small pointed cell's legs no longer stand in its corners** (the owner, 2026-11-06: "you can
   fix the legs"). Laid evenly from edge to edge, a cell's outer legs fell into its sharp corners, with no length; it was
