@@ -223,6 +223,13 @@ legs stay on the paper, short.
 
 ## Working rules
 
+- **The artist decides what to paint. The brush determines how it can be
+  painted. The algorithm must reconcile the two without sacrificing either.**
+  An algorithm may adapt a painting to the machine, but it must never silently
+  change the artist's intent: what the machine cannot paint, the program reports
+  to the artist and does not quietly redraw. (Kuzya, 2026-11-06, after a first
+  try at OPM-G gave short spans of a composition to another paint; the owner,
+  asked if it goes into this README: "yes".)
 - **English everywhere**: UI, docs, code comments, commit messages.
 - **Do not re-propose** anything in `Rembrandt.md` §1.
 - **Mark every unmeasured number `est.`**, in the UI and in the code. Paint

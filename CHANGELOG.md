@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **The artist decides what, the brush how: a working rule in `README.md`** (Kuzya, 2026-11-06; the owner, asked
+  if it goes into the README: "yes"): an algorithm may adapt a painting to the machine, but it must never silently
+  change the artist's intent.
 - **LAB 3.0 · ladder**, the next sheet on THE SHEET, before OPM-G's tab (the owner, 2026-11-06: same-colour
   cells "may be joined", and the ladder sheet "only after you read Kuzya's answer"; Kuzya: test A "suits me", coverage
   and shape fidelity as two metrics). One 20 × 20 canvas, 36 numbers, 47 runs, ≈ 9 min (est.): 5, 8, 12, 16,
