@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **FORM-G, a library of finished paintings** (the owner, 2026-11-06: "FORM-G is such a library of ready paintings"; "there will be no
+  adding photos for an algorithm to redraw them somehow; only two pictures for now, I will simply ask you to add something else"; "the
+  colour we already developed, we can take it from OPM-N"; "the only thing not in FORM-G is a different brush width, it is fixed at 5 mm";
+  "no circles and squares to draw in the Tools, the palette is given"). `formg.html`, after OPM-N in the top row; `src/formgplan.js`,
+  `src/formg.js`; its pictures in `app/formg/`, the Porsche 70 × 100 and the watch 60 × 80, made by `FORM-G/generator/`. OPM-N's DRAG
+  SNAKE to the command: `idleplan.js`'s rows, `plotRun`, the question with Start from, the LCD, BACK ONE CELL, the iPhone's remote, ELBOW
+  LIVE; OPM-N as it was but for one hook in `idleRunsOf`, a cell's own runs. A jar a colour, a cell a run of legs; every cell its snake and at once its idle
+  run, no dip ("the two passes come anyway; I would not divide it into a first pass, then a second"). **rembrandt.py as it was**: the run's
+  note says `page: opmn`, the same brush, `tab: formg` for the journal. The Porsche, 95 cm long, is past the reach, 86.5 cm: two parts, the
+  canvas turned 180° into the same place between them, as LOOM's halves; a cell goes whole to one part, so no seam crosses a leg. A canvas
+  placed so that the brush would go past a wall is refused, not pressed into it. Part 1 125.6 m, ≈ 5 h 44; part 2 35.1 m, ≈ 1 h 27; the
+  watch 109.2 m, ≈ 6 h 34, all est. The real Runner took a posted run to its end on the fake board, the cup at hand's guard on; not run on the machine.
+  Red and black Porsches: later, a new entry in the library, the jars solved again.
 - **OPM-N's DRAG SNAKE: a small pointed cell's legs no longer stand in its corners** (the owner, 2026-11-06: "you can
   fix the legs"). Laid evenly from edge to edge, a cell's outer legs fell into its sharp corners, with no length; it was
   painted by the pressed step between them, or by one short leg alone (p14 of the first canvas: 3.1 mm in a 149 mm² cell). When the corners
