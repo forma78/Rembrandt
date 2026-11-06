@@ -3,6 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.2.1 — 2026-11-06
+
+- **Kuzya's research note on the first canvas and OPM-G**, `OPM-G/docs-6-11-2026/Rembrandt_OPM-G_Analysis_EN_2026-11-06.pdf`
+  (the owner, 2026-11-06: "there is a PDF, Kuzya made it. It can go on GitHub just as it is").
+  Six pages, written before OPM-G's second try. No code changed; OPM-G itself is not built.
+
 ## v.1.2.1 — 2026-11-05 · LAB and the rubber brush
 
 - **v.1.2.1 on every tab and in the saved SVGs** (the owner, 2026-11-05: "it can be committed, by
