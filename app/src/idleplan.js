@@ -60,7 +60,7 @@ export const slantedOf = P => P.some((a, i) => {
   return Math.hypot(dx, dy) >= MIN_LEG && deg > 22.5 && deg < 67.5;
 });
 // the idle run's line: every leg longer by over at both ends, the last only by end at its own
-function idleLine(legs, over, end) {
+export function idleLine(legs, over, end) {
   return legs.flatMap(([a, b], i) => [toward(a, b, -over), toward(b, a, -(i === legs.length - 1 ? end : over))]);
 }
 // a cell: { k, W (across), C (a leg's mean length), legs: [[start, end]], line (the idle run's points), over, end, strokes: [first run's pieces, idle run's], mm }
@@ -120,9 +120,9 @@ export function idleRunsOf(passes, every = 0, lap = 0) {
   passes.forEach((P, k) => {
     let held = 0, fresh = true;
     for (const c of P.byCell) {
-      const runs = runsOfCell(c.legs, every, lap);
+      const runs = c.runs ?? runsOfCell(c.legs, every, lap);                         // FORM-G's dial brings its own: its dips in rows, formgplan.js
       runs.forEach((r, j) => {
-        const L = lengthOf(r.pts), dip = fresh || (every > 0 && held + L > every + 0.5);
+        const L = lengthOf(r.pts), dip = fresh || !!r.dip || (every > 0 && held + L > every + 0.5);
         held = dip ? L : held + L; fresh = false;
         out.push({ pass: k, num: c.num, pts: r.pts, say: runs.length > 1 ? `run ${j + 1}/${runs.length}` : 'its run', dip, idle: false, beyond: r.beyond });
       });

@@ -57,3 +57,11 @@ FORM/*
 
 # the iPhone remote's key (OPM-N, 2026-11-02): this Mac only
 app/remote.key
+
+# others' references of FORM-G's pictures, on this Mac only (README: "a new reference by another artist goes there too")
+OPM-G/Blue-Patek*
+OPM-G/porsche-911*
+OPM-G/pop-art.png
+# the generator's caches
+FORM-G/generator/__pycache__/
+FORM-G/generator/*.pkl
