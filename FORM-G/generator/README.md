@@ -11,9 +11,10 @@ A plan is one grid of columns 5 mm apart, the brush's. Every column is solved on
 | `watchgeo.py`, `clean_photo.py`, `hyper.py` | the watch: the geometry of its dial, the printed words off, the 54 shades + 5 |
 | `cargeo.py`, `hyper2.py` | the green 911: its outline, the badges off, 60 jars made to measure |
 | `distance_core.py`, `far.py`, `farcar.py` | the view from 3 and 6 m: S-CIELAB's widths of blur, a model, not a measurement |
-| `export_formg.py` | a finished plan into `app/formg/<id>.json`, the cells, a jar's layers |
+| `gwagongeo.py`, `gwagon.py`, `farwagon.py` | OPM-G's G-wagon on 60 × 60: its outline off a white ground, the badges off; the grille's slats on the grid, the bull bar's chrome, the headlights, the seats' red by geometry; 36 jars at most, every jar 1 m of line at least; no span under 12 mm; the view from 3 and 6 m |
+| `export_formg.py` | a finished plan into `app/formg/<id>.json` (OPM-G's into `app/opmg/`), the cells, a jar's layers |
 
-The photos are others' and stay out of git (`.gitignore`): `OPM-G/Blue-Patek…`, `OPM-G/porsche-911-1.jpg`.
+The photos are others' and stay out of git (`.gitignore`): `OPM-G/Blue-Patek…`, `OPM-G/porsche-911-1.jpg`, `OPM-G/g-wagon.JPG`.
 
 To run: a venv with numpy, pillow and scipy, the working directory this one.
 
@@ -22,7 +23,14 @@ python hyper.py 6 2 watch.jpg        # px/mm, correction passes, the render; its
 python hyper2.py 6 2 porsche.jpg
 python export_formg.py watch watch.jpg.pkl
 python export_formg.py porsche porsche.jpg.pkl
+python gwagon.py 6 2 gwagon.jpg      # OPM-G's: its plan into app/opmg/
+python export_formg.py gwagon gwagon.jpg.pkl
+python farwagon.py gwagon.jpg gwagon_distance.jpg
 ```
+
+**OPM-G's jars** (the owner, 2026-11-07: "cut the colours from 60 to 36 … every colour some minimum of strokes, for example 1 metre at least"): `gwagon.py` plans with every candidate jar, then takes out those under 1 m as FORM-G's list counts it (the legs half the tip in, the steps, the idle run) and plans again, so their legs go to the jars that can paint them, never recoloured one by one; at most 36 stay. The G-wagon kept 15: a black car needs few, and the others never came to a metre. The seats' red is locked by geometry, its own jar, so the picture's one accent does not drop out under the line.
+
+**From LAB's real strokes 2** (`OPM-G/IMG_2435` … `IMG_2486`, the night of 2026-11-06/07): long legs clean; short legs alone of the second paint fat pills with a dark rim. So OPM-G plans no span under 12 mm (the Porsche's 8) and a cut costs more (`LAM` 3400, the Porsche's 2200); the G-wagon's legs: median 24 mm, 10 % under 12 (the Porsche 43 … 48 %).
 
 A new picture: its own `*geo.py` and planner, a name in `FORMG_LIB` (`app/src/formgplan.js`), its json and a 3 px/mm jpg in `app/formg/`.
 

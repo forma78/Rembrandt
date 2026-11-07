@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **OPM-G, the G-wagon on 60 × 60** (the owner, 2026-11-07: "start with g-wagon.JPG, on a 60 × 60 canvas, with the new data of LAB / real 2"; "my one request: cut the colours
+  from 60 to 36 … in the Porsche Jar 9 #E5E0CF is only 833 mm, I do not even see where it is on the canvas … merge them with others, so that every colour has some minimum of
+  strokes, for example 1 metre at least"). FORM-G's page with its own library, `opmg.html` after FORM-G; FORM-G as it was. The picture by `FORM-G/generator/gwagon.py`, the Porsche's
+  technique: a jar under 1 m of line as the list counts it is taken out and the picture planned again, at most 36 stay; the G-wagon kept **15**, the smallest 1.2 m, 7 of them a second
+  layer: 22 lines, 141.6 m, 931 dips, ≈ 5 h 48 min (est.). From LAB's real strokes 2: no span under 12 mm (the Porsche's 8), a cut dearer; legs median 24 mm, 10 % under 12.
+  By geometry, told to the owner, not hidden: the badges off (the star on the bonnet, the star and the plate on the grille), so the grille is its slats on the grid, every third
+  column from the middle one, 15 of them; the bull bar's tubes 14 mm at least across a column (the photo's about 13); the headlights' bezels 9 mm at the top and bottom; the seats'
+  red a little richer than through the glass, its own jar; the deepest black lifted to L* 13; the floor's shadow left out. Simulated only; `OPM-G/gwagon_60x60_hyper.jpg`,
+  `gwagon_60x60_hyper_distance.jpg`. The photo is another's: `.gitignore`.
+- **OPM-G's run by the canon of a long leg, no. 9** (README): `src/canon.js`, LAB's own code moved there (`startOnLong`, `ridersOnLong`, LAB's sheets as they were) and the
+  landing inside a leg for FORM-G's plans; `idleRowsOf` takes runs laid already. Run through plotRun on the stand-in board, not on the machine.
+
 - **LAB 4.0 · real strokes 2**, LAB opens on it, and **no. 9 is the canon** (the owner, 2026-11-06, of the first canvas, `OPM-N/IMG_2432`: "the third came out best, shall we multiply it?"; "the first is
   not needed at all"; of no. 9, "I would start from this and take it as the canon"; "shall we fix at once what is already known from the first run?"). README, "How a long leg is laid". No. 9's way four times, the long leg to the letter;
   a leg goes on what the brush holds only to 79 mm of plan, as the landing inside costs 16 more (`ridersOnLong`); a rope of short legs its own dip, landing inside its own line. 96 dips, ≈ 41 min (est.). Not run.

@@ -62,6 +62,7 @@ app/remote.key
 OPM-G/Blue-Patek*
 OPM-G/porsche-911*
 OPM-G/pop-art.png
+OPM-G/g-wagon*
 # the generator's caches
 FORM-G/generator/__pycache__/
 FORM-G/generator/*.pkl

@@ -1,6 +1,6 @@
 // FORM-G's page: the library, the picture, OPM-N's DRAG SNAKE (formgplan.js). inka.js's run as it is on OPM-N, its question with Start from, its LCD, BACK ONE CELL, the remote and ELBOW LIVE,
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
-import { FORMG, FORMG_LIB, seqOf, passesOf, rowsOf, brushRuns, placeRange } from './formgplan.js';
+import { FORMG, FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, placeRange } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW } from './inkaplan.js';
@@ -11,11 +11,13 @@ import { lampSwitch } from './lamp.js';
 import { qrSvg } from './qr.js';
 import './ui.js';
 
-const $ = s => document.querySelector(s), KEEP = 'rembrandt.formg.v02', OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
+// OPM-G (2026-11-07): this page with its own library, app/opmg/, and its run by the canon of a long leg (canon.js); FORM-G's as it was
+const TAB = document.body.dataset.tab === 'opmg' ? 'opmg' : 'formg', CANON_RUN = TAB === 'opmg', NAME = CANON_RUN ? 'OPM-G' : 'FORM-G', LIBRARY = CANON_RUN ? OPMG_LIB : FORMG_LIB;
+const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01' : 'rembrandt.formg.v02', OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
 const PRESS_MIN = -4, PRESS_MAX = 8;   // as OPM-N's brush
 const fmt = (v, d = 1) => Number(v).toFixed(d), sgn = v => `${v >= 0 ? '+' : '−'}${fmt(Math.abs(v), 1)}°`, esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
-const S = { pic: FORMG_LIB[0], view: 'picture', speed: 25, dipEvery: FORMG.every, dipLap: FORMG.lap, over: FORMG.over, wipe: WIPE_NEW, press: 0, travel: 180, tail: 3, place: {} };
+const S = { pic: LIBRARY[0], view: 'picture', speed: 25, dipEvery: FORMG.every, dipLap: FORMG.lap, over: FORMG.over, wipe: WIPE_NEW, press: 0, travel: 180, tail: 3, place: {} };
 const nums = o => ({ ...(Number.isFinite(o.pspeed) ? { speed: o.pspeed } : {}), ...(Number.isFinite(o.dipEvery) ? { dipEvery: o.dipEvery } : {}), ...(Number.isFinite(o.dipLap) ? { dipLap: o.dipLap } : {}), ...(Number.isFinite(o.idleOver) ? { over: o.idleOver } : {}), ...(Number.isFinite(o.wipe) ? { wipe: o.wipe } : {}), ...(Number.isFinite(o.brushPress) ? { press: o.brushPress } : {}), ...(Number.isFinite(o.travel) ? { travel: o.travel } : {}), ...(Number.isFinite(o.tail) ? { tail: o.tail } : {}) });
 try {                                                                                 // a first visit: the brush as it is tuned on OPM-N
   const mine = JSON.parse(localStorage.getItem(KEEP) || 'null'), opmn = mine ? null : JSON.parse(localStorage.getItem(OPMN_KEEP) || 'null');
@@ -33,7 +35,7 @@ const RANGE = new Map();
 function rangeOf() {
   const key = JSON.stringify([S.speed, S.tail, S.dipEvery, S.dipLap, S.over, S.press]), had = RANGE.get(PIC.id);
   if (had?.key === key) return had;
-  const P = plan(), R = rowsOf(PIC, P, S.dipEvery, S.dipLap), r = plotRun({ ...opts0(), rows: R.ps.length }, R.groups.map(g => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: null })));
+  const P = plan(), R = rowsOf(PIC, P, S.dipEvery, S.dipLap, CANON_RUN), r = plotRun({ ...opts0(), rows: R.ps.length }, R.groups.map(g => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: null })));
   const out = { key, ...placeRange(PIC, r.carriage, reach()) };
   RANGE.set(PIC.id, out);
   return out;
@@ -55,8 +57,8 @@ const runOpts = rows => ({ ...opts0(), rows, here: hereNow(), noDipUnder: NO_DIP
 const EMPTY = { blocks: [], rows: [], seconds: 0, mm: 0, dips: 0, passes: [], fault: '' };
 const PLAN = new Map(), RUNS = new Map();
 function plan() {                                                                     // the list's colours
-  const key = JSON.stringify([S.over, S.dipLap]);
-  if (PLAN.get(PIC.id)?.key !== key) PLAN.set(PIC.id, { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap }) });
+  const key = JSON.stringify([S.over, S.dipLap, CANON_RUN ? S.dipEvery : 0]);
+  if (PLAN.get(PIC.id)?.key !== key) PLAN.set(PIC.id, { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : {}) }) });
   return PLAN.get(PIC.id).passes;
 }
 // the run from a line of the list on; the pause before the second layer's first says what it is
@@ -66,7 +68,7 @@ function paintRun(from = 0) {
   if (RUNS.has(key)) return RUNS.get(key);
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
-  const R = rowsOf(PIC, passes, S.dipEvery, S.dipLap), name = id => jarOf(id)?.name ?? id;
+  const R = rowsOf(PIC, passes, S.dipEvery, S.dipLap, CANON_RUN), name = id => jarOf(id)?.name ?? id;
   const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : passes[k].layer === 2 && passes[k - 1].layer === 1 ? `the first layer is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` })));
   const out = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: passes.reduce((a, q) => a + q.mm, 0), passes };
   if (RUNS.size > 6) RUNS.clear();
@@ -93,9 +95,10 @@ async function start(key, blocks, info, log) {
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 }
 // rembrandt.py knows OPM-N's brush by its page (PENCIL_PAGES: the elbow may rest on the canvas just above its aim): FORM-G's the same brush, so the same page, its own `tab` in the journal; rembrandt.py as it was
-const logOf = (o = {}) => ({ page: 'opmn', tab: 'formg', label: `FORM-G · ${PIC.title}`, here: hereNow(), ...o });
+const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}`, here: hereNow(), ...o });
 const remoteRows = R => ({ colours: R.passes.map(q => { const j = jarOf(q.pencil); return { name: j?.name ?? q.pencil, hex: j?.hex ?? '#7F7F7F', code: j?.code || j?.hex || '', cells: q.cells }; }), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) });
-const dragWay = tracks => `${tracks} legs in all, only up and down, ${fmt(PIC.pitch, 0)} mm apart, the snake back and forth with the brush down; then at once an idle run over the cell, no dip, +${fmt(S.over, 1)} mm past the ends and none at its very end`;
+const dragWay = tracks => `${tracks} legs in all, only up and down, ${fmt(PIC.pitch, 0)} mm apart, the snake back and forth with the brush down; then at once an idle run over the cell, no dip, +${fmt(S.over, 1)} mm past the ends and none at its very end`
+  + (CANON_RUN ? `. A long leg by the canon, no. 9: after every dip the brush lands inside the leg, 16 mm along it, back to its start, then along it; legs under 30 mm go on what a longer one leaves, to 79 mm of line` : '');
 $('#btnDrag').onclick = async () => {
   await loadInk();
   if (!PIC) return;
@@ -123,7 +126,7 @@ function askDraw(passes, text, o = {}) {
   const box = $('#drawAsk');
   const show = (passes, text) => {
     const first = jarOf(passes[0].pencil);
-    $('#drawAskTitle').textContent = `DRAG FORM-G · ${PIC.title} · ${passes.length} line${passes.length === 1 ? '' : 's'} of the list`;
+    $('#drawAskTitle').textContent = `DRAG ${NAME} · ${PIC.title} · ${passes.length} line${passes.length === 1 ? '' : 's'} of the list`;
     $('#drawAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">In the cup first</span><b>${esc(first.name)}</b><span>${esc(first.code || first.hex)}</span></span>`;
     $('#drawAskList').innerHTML = runRows(passes);
     $('#drawAskText').textContent = text;
@@ -166,7 +169,7 @@ $('#btnTest').onclick = async () => {
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
 };
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
-$('#btnHome').onclick = () => start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, logOf({ label: 'FORM-G · HOME' }));
+$('#btnHome').onclick = () => start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, logOf({ label: `${NAME} · HOME` }));
 let paused = false;
 $('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
 $('#btnStop').onclick = () => post('/run/stop');
@@ -299,7 +302,7 @@ $('#btnPlay').onclick = () => {
   if (!PIC) return;
   const passes = plan(), list = [], s = 2, off = document.createElement('canvas'), c = off.getContext('2d');
   let mm = 0;
-  for (const r of brushRuns(passes, S.dipEvery, S.dipLap)) {
+  for (const r of brushRuns(passes, S.dipEvery, S.dipLap, CANON_RUN)) {
     const hex = jarOf(passes[r.pass].pencil).hex;
     r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle }); });
   }
@@ -440,13 +443,13 @@ async function watch() {
 // ---------- start ----------
 lampSwitch($('#lamp'));
 (async () => {
-  for (const id of FORMG_LIB) {
-    const pic = await (await fetch(`formg/${id}.json`, { cache: 'no-store' })).json();
+  for (const id of LIBRARY) {
+    const pic = await (await fetch(`${TAB}/${id}.json`, { cache: 'no-store' })).json();
     LIB[id] = pic;
     const im = new Image(); im.onload = kick; im.src = pic.image; IMG[id] = im;
   }
-  $('#lib').innerHTML = FORMG_LIB.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
-  if (!LIB[S.pic]) S.pic = FORMG_LIB[0];
+  $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
+  if (!LIB[S.pic]) S.pic = LIBRARY[0];
   PIC = LIB[S.pic]; SEQ = seqOf(PIC);
   await loadInk();
   layout(); settle(); watch();

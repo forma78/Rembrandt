@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · OPM-G</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* FORM-G: the picture, the library by it on the right, then the machine (the owner, 2026-11-06: "I would not put THE LIBRARY before PROGRESS; better on the right, there is plenty of room there; one picture to a row, not two, and a little smaller") */
+  body.type{grid-template-columns:0 minmax(0,1fr) 132px 340px}
+  body.type .top{grid-column:1/4}
+  body.type .stage{grid-row:2/4}
+  body.type .panel{grid-column:4}
+  body.type .status{grid-column:1/5}
+  .fg-shelf{grid-column:3;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-left:1px solid var(--line);background:#ECEAE6}
+  html.night .fg-shelf{background:#26282B}
+  .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .runkeys.passes.one{grid-template-columns:1fr}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #cv.drag{cursor:grabbing}
+  .fg-lib{display:flex;flex-direction:column;gap:10px}
+  .fg-item{position:relative;flex:none}
+  .fg-card{display:flex;flex-direction:column;gap:5px;width:100%;box-sizing:border-box;padding:5px 5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
+  .fg-card.on{outline:2px solid var(--orange);outline-offset:1px}
+  .fg-card img{display:block;width:100%;height:92px;object-fit:contain;background:#F3F0E6;border-radius:5px}
+  .fg-card b{font:600 11px/16px var(--mono);letter-spacing:.06em;padding-right:20px}
+  .fg-item .info{position:absolute;right:6px;bottom:6px;margin:0}
+  .fg-pop{position:fixed;z-index:60;width:290px;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:var(--card,#F7F5F1);color:var(--ink);font-size:11.5px;line-height:1.42;box-shadow:0 8px 28px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.08);pointer-events:none}
+  .fg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 8px;margin-top:6px}
+  .fg-grid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .fg-grid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:5px 6px;font:12px var(--mono)}
+  #runList{max-height:none;margin:6px 0 0;padding:0;list-style:none}
+  #runList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px;cursor:pointer}
+  #runList li:hover{background:rgba(127,127,127,.14)}
+  #runList li.only{outline:1.5px solid var(--orange)}
+  #runList li.now{background:rgba(235,122,37,.2)}
+  #runList li.done{opacity:.45}
+  #runList .no{font:10px var(--mono);color:var(--mute);text-align:right}
+  #runList .sw{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  #runList .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #runList .nm em{font:normal 9.5px var(--mono);color:var(--mute)}
+  #runList .tg{font:10px var(--mono);color:var(--mute)}
+  .remotebox{margin-top:8px;padding:10px;border-radius:8px;background:#fff;color:#24221F;font-size:11px;line-height:1.4}
+  .remotebox svg{display:block;width:180px;height:180px;margin:0 auto 6px}
+  .remotebox p{margin:0 0 4px}
+  .remotebox code{display:block;word-break:break-all;font-size:10px;color:#6B665E}
+  #runList li.fg-sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:default}
+  #runList li.fg-sep:hover{background:none}
+  @media (max-width: 760px), (max-height: 500px) {                                  /* a phone: the library a row under the picture */
+    .fg-shelf{order:3;flex:none;overflow:visible;border-left:0;border-bottom:1px solid var(--line);padding:10px 12px}
+    .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
+    .fg-item{width:104px}
+  }
+</style>
+</head>
+<body class="adjust arm3 nolan type love alu ccd" data-tab="opmg">
+<!-- Rembrandt · OPM-G (the owner, 2026-11-07: "start with g-wagon.JPG, on a 60 x 60 canvas, with the new data of LAB / real 2"; "cut the colours from 60 to 36 … every colour
+     some minimum of strokes, for example 1 metre at least"). FORM-G's page, all of it, src/formg.js with data-tab="opmg": its own library, opmg/, made by FORM-G/generator (gwagon.py),
+     and its run by the canon of a long leg (src/canon.js, README "How a long leg is laid"): after a dip the brush lands inside the leg and goes back to its start. FORM-G as it was. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.2.1</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="formg.html">FORM-G</a>
+      <a href="opmg.html" class="on">OPM-G</a>
+      <a href="opmn.html">OPM-N</a>
+      <a href="ink.html">Ink</a>
+      <a href="inky.html">INK-Y</a>
+      <a href="lab.html">LAB</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <section class="stage" id="stage"><canvas id="cv"></canvas></section>
+  <aside class="fg-shelf" aria-label="The library">
+    <h3>The library</h3>
+    <div class="fg-lib" id="lib"></div>
+  </aside>
+  <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <div class="runkeys deck">
+        <button class="btn" id="btnTest" title="TEST, before the run: one dip in the cup, a dot at each corner of the picture's box, four dots to lay the canvas by, and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <button class="btn" id="btnPause" title="PAUSE: the carriage brakes on its line; CONT. goes on from there"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
+      </div>
+      <div class="runkeys deck passes one">
+        <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG SNAKE, LAB's + idle 6.0: a jar after another, one brush, its cells by their numbers, every one on its own — its legs only up and down, the brush down, across to the next inside the cell, a dip every so many mm; then at once an idle run over it, no dip; up through the air from cell to cell; between two jars a pause to wipe the brush and load the next. Its question: Start from"><svg viewBox="0 0 24 24"><path d="M5 6.5h12.5a2.75 2.75 0 0 1 0 5.5H6.5a2.75 2.75 0 0 0 0 5.5H19"/></svg><span>Drag Snake</span></button>
+      </div>
+      <button class="btn backone" id="btnBack" disabled title="BACK ONE CELL, as a player's ⏮. The brush already painting a cell: this cell again, from its first leg. Not yet — in the air, in the cup, at a jar's pause: the cell before it, the last of the jar before if this is its jar's first. The brush up at once, through the air there, its dip as the plan has it, and on from there.">⏮ BACK ONE CELL</button>
+      <div class="stops deckstops">
+        <button class="btn" id="btnStop" title="STOP: the carriage brakes on its line">STOP</button>
+        <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
+      </div>
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="picture" title="The painting as the brush will leave it: the simulation, est.">Picture</button>
+        <button class="tog" data-view="drag" title="The legs in their jars' colours, as wide as the brush">Drag</button>
+        <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell, the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
+      </div>
+      <div class="grid4 keys"><button class="btn" id="btnRemote" title="The iPhone's remote: DIP, Pause · Continue and STOP from the iPhone, the colour and the cell on it — its address with the key as a QR code; the iPhone on the same Wi-Fi">iPhone remote</button></div>
+      <div class="remotebox" id="remoteBox" hidden></div>
+      <div class="elbowlive" id="elbowBrush">
+        <div class="elh"><span class="elk">Elbow live · brush</span><span class="elv" id="brushNow">0.0°</span></div>
+        <div class="elrow"><button class="btn" data-btrim="-0.1" title="The brush 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="brushSl" step="0.1"><button class="btn" data-btrim="0.1" title="The brush 0.1° higher: less pressure">▲</button></div>
+      </div>
+    </section>
+    <section class="sec">
+      <h3>The canvas <span class="hint">from home, mm · a picture its own</span></h3>
+      <div class="fg-grid">
+        <label title="The canvas's left edge, mm to the right of home; minus: left of it">Left edge →<input id="fLeft" type="number" step="1"></label>
+        <label title="The canvas's bottom edge, mm above home; minus: below it">Bottom edge ↑<input id="fBottom" type="number" step="1"></label>
+      </div>
+      <p class="read" id="placeRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The brush <span class="hint">OPM-N's, est.</span></h3>
+      <div class="fg-grid">
+        <label title="The brush along a leg, mm/s">Speed, mm/s<input id="fSpeed" type="number" step="1" min="5" max="120"></label>
+        <label title="A dip every so many mm of line">Dip every, mm<input id="fEvery" type="number" step="1" min="0" max="200"></label>
+        <label title="After a dip in the middle of a leg, on from so many mm back">Dip overlap, mm<input id="fLap" type="number" step="0.5" min="0" max="30"></label>
+        <label title="The idle run, past a leg's ends at its start and its turns; none at its very end">Idle past, mm<input id="fOver" type="number" step="0.5" min="0" max="8"></label>
+      </div>
+    </section>
+    <section class="sec">
+      <h3>The jars <span class="hint" id="jarsHint"></span></h3>
+      <ol id="runList"></ol>
+    </section>
+  </aside>
+</main>
+
+<div class="fg-pop" id="libPop" role="tooltip" hidden></div>
+
+<div class="ask" id="drawAsk" hidden>
+  <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
+    <h3 id="drawAskTitle">DRAG</h3>
+    <div class="firstpen" id="drawAskFirst"></div>
+    <label class="askfrom" id="drawAskFrom" hidden title="The run from this line of the list on, the ones before it not painted again; this question only"><span>Start from</span><select id="drawFrom"></select></label>
+    <ol class="runlist one" id="drawAskList"></ol>
+    <p id="drawAskText"></p>
+    <div class="grid4 keys"><button class="btn pass" id="drawGo">▶ DRAG</button><button class="btn" id="drawNo">Cancel</button></div>
+  </div>
+</div>
+
+<footer class="status">
+  <span id="hint">OPM-G — finished paintings, the brush 5 mm, a long leg by the canon (no. 9). A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its legs.</span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/formg.js"></script>
+</body>
+</html>

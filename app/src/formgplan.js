@@ -11,9 +11,15 @@
 // Two layers (the owner, 2026-11-06: "we make the order of the paints such that somewhere on the second day of work the first layer dries and one can go a second time over it"; "those paints
 // that go as the second layer, let them go second in the list"): one list, the run's: every jar once, light to dark, then those that need it, `coats: 2`, in the same order, over the dry first
 // layer. A jar there is a line of the list like any other, Start from reaches it on another day. The second time its cell the other way round, so that its dips and its bulbs do not fall on the first's (est.).
+//
+// OPM-G (the owner, 2026-11-07: "start with g-wagon.JPG, on a 60 x 60 canvas, with the new data of LAB / real 2"): FORM-G's page with its own library, app/opmg/, and its run by
+// the canon of a long leg (canon.js, README "How a long leg is laid"): a dip's run lands inside its first leg and goes back to its start; short end legs off a cell on their own;
+// legs under 30 mm on what a longer one leaves, to 79 mm of plan. FORM-G's own run as it was.
 import { IDLE, idleLine, idleRowsOf, idleRunsOf } from './idleplan.js';
+import { CANON, startOnLong, ridersOnLong, landInside } from './canon.js';
 
 export const FORMG_LIB = ['porsche', 'watch'];       // the library: a name here, its json and jpg in app/formg/
+export const OPMG_LIB = ['gwagon'];                  // OPM-G's: its json and jpg in app/opmg/
 export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30 };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.)
 export const passOf = pitch => pitch * IDLE.pass / IDLE.step;   // the idle run's legs apart: LAB's 4.38 to its 5.83, on this grid (est.)
 
@@ -53,15 +59,26 @@ export function cellOf(c, pic, n, o = {}, layer = 1) {
   const first = lengthOf(legs.flat());
   return { num: n, k: legs.length, W: Math.max(...xs) - Math.min(...xs), C: first / legs.length, legs, line, over, end: 0, mm: first + lengthOf(line), ...(c.air ? { runs: airRuns(legs[0], c.cuts, lap) } : {}) };
 }
-// the run's colours, the list's lines in their order
+// a jar's cells by the canon (OPM-G): the second layer's every cell the other way round first, then a short end leg it cannot start on off on its own; every cell cut for its
+// dips by `every`, on from `lap` back; the short ones after the long ones with room for them. Numbered in the run's order, as BACK ONE CELL and the LCD count them.
+export function canonCellsOf(pic, jar, o = {}, layer = 1) {
+  const every = o.every ?? FORMG.every, lap = o.lap ?? FORMG.lap, ride = o.ride ?? CANON.ride;
+  const raw = layer === 2 ? jar.cells.map(c => c.air ? c : { ...c, legs: c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) }) : jar.cells;
+  const cells = raw.flatMap(c => c.air ? [c] : startOnLong(c)).map((c, i) => cellOf(c, pic, i + 1, o));
+  const cut = cells.map(c => c.runs ? c : { ...c, runs: idleRunsOf([{ byCell: [c] }], every, lap).filter(r => !r.idle).map((r, j) => ({ pts: r.pts, dip: j > 0, beyond: r.beyond })) });
+  return ridersOnLong(cut, ride).map((c, i) => ({ ...c, num: i + 1 }));
+}
+// the run's colours, the list's lines in their order; o.canon: OPM-G's
 export function passesOf(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = j.cells.map((c, i) => cellOf(c, pic, i + 1, o, j.layer));
+    const byCell = o.canon ? canonCellsOf(pic, j, o, j.layer) : j.cells.map((c, i) => cellOf(c, pic, i + 1, o, j.layer));
     return { pencil: j.id, layer: j.layer, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
-export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap) => idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap);
-export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap) => idleRunsOf(passes, every, lap);
+// OPM-G's runs: what the brush holds counted to the canon's 79 mm (the cells' own dips already in their runs), every run after a dip landing inside
+export const canonRuns = (passes, lap = FORMG.lap, ride = CANON.ride) => idleRunsOf(passes, ride, lap).map(r => r.idle || !r.dip ? r : { ...r, pts: landInside(r.pts, true) });
+export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false) => idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, canon ? canonRuns(passes, lap) : null);
+export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false) => canon ? canonRuns(passes, lap) : idleRunsOf(passes, every, lap);
 // where the canvas may lie, its left and bottom edges from home, mm, so that the carriage keeps within the walls: from plotRun's own carriage, run with no Here (the elbow's sweep takes
 // the carriage past a leg's end, about 20 mm at the bottom, less than none at the top; the walls press a path silently, so this is what counts)
 export function placeRange(pic, carriage, walls) {

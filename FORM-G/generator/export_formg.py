@@ -3,12 +3,13 @@
 
   python3 export_formg.py watch <plan.pkl>    (hyper.py's .pkl)
   python3 export_formg.py porsche <plan.pkl>  (hyper2.py's .pkl)
+  python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
 
 Run each in its own process: hyper.py and hyper2.py fill the same paint table on import. Coordinates in the JSON: mm from the canvas's bottom left corner, x right, y up."""
 import json, os, pickle, sys
 import numpy as np
 which, pkl = sys.argv[1], sys.argv[2]
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'app', 'formg')
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'app', 'opmg' if which == 'gwagon' else 'formg')
 d = pickle.load(open(pkl, 'rb'))
 
 
@@ -32,6 +33,21 @@ if which == 'watch':
     title, sub = 'Watch', 'hyperrealism, 60 × 80'
     names = {q['id']: (q['name'], q.get('code', '')) for q in json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'palette54.json')))}
     jarname = lambda pid, n: names.get(pid, (P[pid].name, ''))
+elif which == 'gwagon':
+    import hyper2
+    import paintrun
+    from watchplan import P, PITCH, MARGIN
+    pl.W, pl.H = 600, 600
+    P.clear()
+    pl.pids = []
+    for i, (name, hexv, coats) in enumerate(d['jars']):
+        P[f'j{i}'] = hyper2.jar(hexv, coats, name)
+        P[f'j{i}'].name = name
+        pl.pids.append(f'j{i}')
+    pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='locked', idle=True, dose=1.0)]
+    title, sub = 'G-wagon', 'hyperrealism, 60 × 60, black, 50 cm across'
+    KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'grille': 'Grille', 'seat': 'Seats'}
+    jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 else:
     import hyper2
     import paintrun
@@ -82,7 +98,7 @@ for pi in order:
 assert total_legs == d['st']['legs'], (total_legs, d['st']['legs'])
 ys = [v for j in jars for c in j['cells'] for l in c['legs'] for v in l[1:]]
 xs = [l[0] for j in jars for c in j['cells'] for l in c['legs']]
-out = dict(id=which, title=title, sub=sub, w=pl.W, h=pl.H, pitch=PITCH, image=f'formg/{which}.jpg', columns=int(pl.N), box=[min(xs), min(ys), max(xs), max(ys)], jars=jars)
+out = dict(id=which, title=title, sub=sub, w=pl.W, h=pl.H, pitch=PITCH, image=f'{os.path.basename(OUT)}/{which}.jpg', columns=int(pl.N), box=[min(xs), min(ys), max(xs), max(ys)], jars=jars)
 path = os.path.join(OUT, f'{which}.json')
 with open(path, 'w') as f:
     json.dump(out, f, separators=(',', ':'))

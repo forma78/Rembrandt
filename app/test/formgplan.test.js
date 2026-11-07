@@ -2,8 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, seqOf, passesOf, rowsOf, brushRuns, cellOf, idleLegsOf, airRuns, placeRange } from '../src/formgplan.js';
-import { IDLE, idleRowsOf } from '../src/idleplan.js';
+import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, cellOf, idleLegsOf, airRuns, placeRange } from '../src/formgplan.js';
+import { landInside } from '../src/canon.js';
+import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
 import { reach } from '../src/machine.js';
 
@@ -136,4 +137,60 @@ test('every picture through plotRun, the canvas in the middle of its range: no f
     assert.ok(r.blocks.some(q => q.fork), 'the cup at hand: its forks');
     assert.equal(r.blocks.filter(q => q.kind === 'pause').length, P.length - 1, `${id}: a pause between lines`);
   }
+});
+
+// OPM-G (the owner, 2026-11-07): the G-wagon on 60 × 60, at most 36 jars, every jar 1 m at least, its run by the canon of a long leg (canon.js, README)
+const loadG = id => JSON.parse(fs.readFileSync(new URL(`../opmg/${id}.json`, import.meta.url)));
+function runOfG(pic, place) {
+  const P = passesOf(pic, { canon: true }), R = rowsOf(pic, P, 95, 15, true), W = reach(), here = place && { x: W.x.min + place.bottom + pic.h / 2, y: W.y.min + place.left + pic.w / 2 };
+  return { P, R, r: plotRun({ ...OPTS, rows: R.ps.length, ...(here ? { here } : {}) }, grouped(R)) };
+}
+
+test('OPM-G\'s library: the G-wagon on 60 × 60, 36 jars at most, every jar 1 m of line at least as its list shows it ("from 60 to 36 … 1 metre at least")', () => {
+  assert.deepEqual(OPMG_LIB, ['gwagon']);
+  const pic = loadG('gwagon');
+  assert.equal(pic.w, 600); assert.equal(pic.h, 600); assert.equal(pic.pitch, 5);
+  assert.ok(fs.existsSync(new URL(`../${pic.image}`, import.meta.url)), pic.image);
+  assert.ok(pic.jars.length <= 36, `${pic.jars.length} jars`);
+  for (const q of passesOf(pic, { canon: true })) assert.ok(q.mm >= 1000, `${q.pencil}: ${Math.round(q.mm)} mm`);
+  for (const q of passesOf(pic)) assert.ok(q.mm >= 1000, `${q.pencil}: ${Math.round(q.mm)} mm, FORM-G's reckoning too`);
+  const xs = new Set(pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))));
+  for (const x of xs) assert.ok(Math.abs((x - 2.5) / 5 - Math.round((x - 2.5) / 5)) < 1e-6, `a leg off the grid, ${x}`);
+  for (const P of passesOf(pic, { canon: true })) for (const q of P.byCell) for (const [a, b] of q.legs) assert.equal(a[0], b[0], 'a leg on the slant');
+});
+
+test('the canon (no. 9): a dip\'s run lands inside its first leg, 16 mm along it or 0.6 of a shorter one, back to its start, then along it; one without a dip as it is', () => {
+  assert.deepEqual(landInside([[10, 20], [10, 120]], true), [[10, 36], [10, 20], [10, 120]]);
+  assert.deepEqual(landInside([[10, 20], [10, 40]], true), [[10, 32], [10, 20], [10, 40]], '0.6 of 20');
+  assert.deepEqual(landInside([[10, 20], [10, 120]], false), [[10, 20], [10, 120]]);
+  // a rope of short legs: inside its own line, back along it to its start
+  const rope = [[0, 0], [0, 10], [5, 10], [5, 0], [10, 0], [10, 10]], L = landInside(rope, true);
+  assert.deepEqual(L.slice(0, 4), [[5, 9], [5, 10], [0, 10], [0, 0]]);
+  assert.deepEqual(L.slice(4), rope.slice(1));
+  const pic = loadG('gwagon'), P = passesOf(pic, { canon: true });
+  const runs = brushRuns(P, 95, 15, true).filter(r => !r.idle), dips = runs.filter(r => r.dip);
+  assert.ok(dips.length >= P.length);
+  // inside its first leg (the same column, back towards the leg's start), or a rope's inside its own line; only a lone leg under 16 mm lands at its start
+  const inLeg = r => r.pts.length > 2 && r.pts[0][0] === r.pts[1][0] && r.pts[1][0] === r.pts[2][0] && (r.pts[2][1] - r.pts[1][1]) * (r.pts[0][1] - r.pts[1][1]) > 0;
+  assert.ok(dips.filter(inLeg).length > dips.length * 0.6, 'most land inside their first leg');
+  assert.ok(dips.filter(r => r.pts.length === 2).every(r => Math.abs(r.pts[1][1] - r.pts[0][1]) < 16), 'a dip\'s run not landed inside: a lone leg under 16 mm');
+  assert.ok(dips.filter(r => r.pts.length > 2).length > dips.length * 0.95);
+  // the legs under 30 mm go on what a longer one leaves, to 79 mm of plan
+  let held = 0;
+  for (const r of brushRuns(P, 95, 15, true)) { if (r.idle) continue; const L = r.pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - r.pts[i][0], q[1] - r.pts[i][1]), 0); held = r.dip ? 0 : held + L; assert.ok(held <= 79.5 + 1e-6, `${held} mm on what the brush holds`); }
+});
+
+test('OPM-G\'s G-wagon through plotRun, the canvas in the middle of its range: no fault, nothing pressed into a wall, the cup at hand\'s forks, a pause between lines', () => {
+  const pic = loadG('gwagon'), { r: free } = runOfG(pic), G = placeRange(pic, free.carriage, reach());
+  assert.ok(G.left[0] <= G.left[1] && G.bottom[0] <= G.bottom[1], `a place for the canvas: ${G.left} · ${G.bottom}`);
+  const { P, r } = runOfG(pic, { left: (G.left[0] + G.left[1]) / 2, bottom: (G.bottom[0] + G.bottom[1]) / 2 });
+  assert.equal(r.fault, ''); assert.equal(r.pastWall, 0); assert.equal(r.gone, 0);
+  assert.ok(r.blocks.some(q => q.fork), 'the cup at hand: its forks');
+  assert.equal(r.blocks.filter(q => q.kind === 'pause').length, P.length - 1);
+  assert.ok(P.filter(q => q.layer === 2).length > 0 && P.findIndex(q => q.layer === 2) > P.findLastIndex(q => q.layer === 1), 'the second layer last');
+});
+
+test('FORM-G\'s own run as it was: no landing inside, its cells in their order', () => {
+  const pic = load('porsche'), a = brushRuns(passesOf(pic), 95, 15), b = idleRunsOf(passesOf(pic), 95, 15);
+  assert.deepEqual(a, b);
 });
