@@ -12,6 +12,8 @@
   .lablist li{margin:0 0 4px}
   .labgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   .labgrid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .labcall{margin:0 0 8px;padding:9px 11px;border-radius:6px;background:#FFE9A8;border:1px solid #D9A400;color:#24221F;font-size:13px;font-weight:600;line-height:1.35}
+  #btnPause.call,#btnPause.call:hover{background:#E8751A;color:#fff;font-weight:700;box-shadow:0 0 0 2px #E8751A}
   .labgrid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 6px;font:12px var(--mono)}
 </style>
 </head>
@@ -44,7 +46,7 @@
   <aside class="panel">
     <section class="sec">
       <h3>The sheet <span class="hint">a scrap, its bottom left corner · all est.</span></h3>
-      <div id="sheets" style="margin-bottom:8px"><div class="seg" style="grid-template-columns:repeat(7,1fr)"><button data-sheet="1">LAB</button><button data-sheet="2">2.0</button><button data-sheet="3">3.0</button><button data-sheet="4">long</button><button data-sheet="6">snake</button><button data-sheet="7" title="The long snake's cells, each painted with its dips, then at once again from its start, no dip">+ idle</button><button data-sheet="5">seam</button></div><div class="seg" style="margin-top:3px;grid-template-columns:repeat(4,1fr)"><button data-sheet="8" title="Five 80 mm verticals and five horizontals, each with its dips, then an idle run +1 … +5 mm past both ends of every track, catching the bulb from behind">+ idle 2.0</button><button data-sheet="9" title="As + idle 2.0, its idle run in five passes on the ridges the first run left, half a step aside from its four tracks">+ idle 3.0</button><button data-sheet="10" title="As + idle 3.0, the five passes within the cell's width, between the first run's outer tracks">+ idle 4.0</button><button data-sheet="11" title="As + idle 4.0, and the first run's last track pressed to the cell's end, its lift beyond">+ idle 5.0</button></div><div class="seg" style="margin-top:3px;grid-template-columns:repeat(4,1fr)"><button data-sheet="12" title="The canon's verticals, over 2, 3, 4, and modules lying down made of short verticals: the brush paints only up and down">+ idle 6.0</button><button data-sheet="13" title="A 20 × 20 canvas: 5 … 32 mm, alone and in a snake, straight after a dip and on what is left, with and without the idle run, and three short shapes: what a short leg really leaves">ladder</button></div></div>
+      <div id="sheets" style="margin-bottom:8px"><div class="seg" style="grid-template-columns:repeat(7,1fr)"><button data-sheet="1">LAB</button><button data-sheet="2">2.0</button><button data-sheet="3">3.0</button><button data-sheet="4">long</button><button data-sheet="6">snake</button><button data-sheet="7" title="The long snake's cells, each painted with its dips, then at once again from its start, no dip">+ idle</button><button data-sheet="5">seam</button></div><div class="seg" style="margin-top:3px;grid-template-columns:repeat(4,1fr)"><button data-sheet="8" title="Five 80 mm verticals and five horizontals, each with its dips, then an idle run +1 … +5 mm past both ends of every track, catching the bulb from behind">+ idle 2.0</button><button data-sheet="9" title="As + idle 2.0, its idle run in five passes on the ridges the first run left, half a step aside from its four tracks">+ idle 3.0</button><button data-sheet="10" title="As + idle 3.0, the five passes within the cell's width, between the first run's outer tracks">+ idle 4.0</button><button data-sheet="11" title="As + idle 4.0, and the first run's last track pressed to the cell's end, its lift beyond">+ idle 5.0</button></div><div class="seg" style="margin-top:3px;grid-template-columns:repeat(4,1fr)"><button data-sheet="12" title="The canon's verticals, over 2, 3, 4, and modules lying down made of short verticals: the brush paints only up and down">+ idle 6.0</button><button data-sheet="13" title="A 20 × 20 canvas: 5 … 32 mm, alone and in a snake, straight after a dip and on what is left, with and without the idle run, and three short shapes: what a short leg really leaves">ladder</button><button data-sheet="14" title="LAB 4.0: pieces of the Porsche's and the watch's own plans, a long leg, two paints, the same strokes four ways of coming from the jar; no dip on a short leg">real</button><button data-sheet="15" title="No. 9's way, the owner's canon, four times: landing inside the leg, back to its start; the same strokes, two paints">real 2</button></div></div>
       <div class="labgrid">
         <label>X, corner, mm<input id="fX" type="number" step="1"></label>
         <label>Y, corner, mm<input id="fY" type="number" step="1"></label>
@@ -56,8 +58,10 @@
     </section>
     <section class="sec">
       <h3>Run <span class="hint">the paint in the jar, the brush in the holder</span></h3>
+      <p class="labcall" id="labCall" hidden></p>
       <div class="grid4 keys">
         <button class="btn primary" id="btnRun">RUN THE SHEET</button>
+        <button class="btn" id="btnPause" disabled title="PAUSE: the carriage brakes on its line. CONTINUE goes on from there, and after a change of paint">PAUSE</button>
         <button class="btn" id="btnStop">STOP</button>
         <button class="btn" id="btnLabHome" title="The brush up, the carriage home">HOME</button>
       </div>

@@ -6,15 +6,15 @@ import { reach, STEPS_PER_MM } from './machine.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s), KEEP = 'rembrandt.lab.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
-const S = { x0: 200, y0: 150, press: LAB.press, sheet: 13, tracks: 4 };
+const S = { x0: 200, y0: 150, press: LAB.press, sheet: 15, tracks: 4 };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEEP) || '{}')); } catch { }
-S.sheet = 13;                                // the sheet to run next, at every opening
+S.sheet = 15;                                // the sheet to run next, at every opening
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 let ink = null;
 const say = (t, warn) => { $('#runRead').innerHTML = warn ? `<span class="warn">${t}</span>` : t; };
 const fake = () => ({ hand: true, on: true, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 });
 const plan = () => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet: S.sheet, tracks: S.tracks, cup: ink ? cupOf(ink) : fake() });
-const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder' })[S.sheet];
+const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2' })[S.sheet];
 
 function outOfReach(P) {
   const R = reach(), B = P.bounds;
@@ -65,7 +65,7 @@ $('#btnRun').onclick = async () => {
   if (!(st.hand >= 1)) return say('Restart rembrandt.py first.', true);
   if (LIVE.includes(st.state)) return say(`A run is on (${st.state}): not now.`, true);
   const { w, h } = labSize(S.sheet), wr = P.strokes.filter(q => q.kind === 'wrist' || q.kind === 'markWrist').map(q => q.n);
-  if (!confirm(`${sheetName()}: ${P.strokes.length} numbers on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}\n\nIs the scrap there, the jar on its bracket?`)) return;
+  if (!confirm(`${sheetName()}: ${P.strokes.length} numbers on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}${P.blocks.some(b => b.kind === 'pause') ? '\n\nIt stops for the second paint: wipe the brush, change the paint, then press CONTINUE on this page.' : ''}\n\nIs the scrap there, the jar on its bracket?`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks,
       log: { page: 'lab', pass: 'lab', label: `${sheetName()} · ${P.strokes.length} numbers${S.sheet >= 3 && S.sheet < 13 ? `, ${S.tracks} tracks` : ''} at X ${S.x0}, Y ${S.y0} · pressed ${S.press}°`, here: { x: S.x0, y: S.y0 }, cup: c, travel: LAB.travel, remote: P.remote, estimate_s: P.seconds } }) });
@@ -83,9 +83,22 @@ $('#btnLabHome').onclick = async () => {
   } catch { say('start rembrandt.py', true); }
 };
 $('#btnStop').onclick = async () => { try { say(await (await fetch('/run/stop', { method: 'POST' })).text()); } catch { say('start rembrandt.py', true); } };
+// PAUSE and CONTINUE on the page (the owner, 2026-11-06, the run waiting for its second paint: "I did not even realise where to press"): the key goes orange and says so
+let held = false;
+$('#btnPause').onclick = async () => { try { say(await (await fetch(held ? '/run/continue' : '/run/pause', { method: 'POST' })).text()); } catch { say('start rembrandt.py', true); } };
+function showHold(st) {
+  const key = $('#btnPause'), call = $('#labCall'), waits = st?.state === 'paused';
+  held = st?.state === 'paused' || st?.state === 'pausing';
+  key.disabled = !st || !LIVE.includes(st.state) || st.state === 'stopping';
+  key.textContent = held ? '▶ CONTINUE' : 'PAUSE';
+  key.classList.toggle('call', waits);
+  call.hidden = !(waits && st.message);
+  if (!call.hidden) call.textContent = `${st.message.replace(/,? then Continue$/, '')}, then press ▶ CONTINUE below.`;
+}
 let was = '';
 setInterval(async () => {
   let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
+  showHold(st);
   const line = !st ? 'no server: start rembrandt.py' : st.state === 'idle' ? '' : `${st.state}${st.row && plan().remote.rows[st.row - 1] ? ` · number ${plan().remote.rows[st.row - 1].cells[0][0]}` : ''}${st.message ? ` · ${st.message}` : ''}`;
   if (line !== was) { was = line; $('#stateRead').textContent = line; }
 }, 700);

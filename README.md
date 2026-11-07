@@ -223,6 +223,23 @@ slanted sides, the same legs cut short by them, its idle run +3 mm to the very
 end** ("we leave them as they are", LAB's nos. 7 and 8). The steps between
 legs stay on the paper, short.
 
+## How a long leg is laid — no. 9 (canon)
+
+The owner, 2026-11-06, of the first canvas of LAB's `real strokes`
+(`OPM-N/IMG_2432`), its no. 9, a long leg of 174 mm: "I would start from this and
+take it as the canon"; of its four ways, "the third came out best"; of the first,
+as the brush had come from the jar till then (`IMG_2431`): "out at once; the first
+long line breaks in the middle".
+
+1. **It lands inside the leg**, 16 mm along it (0.6 of a shorter leg), **pressed
+   back to the leg's start, then along the leg**: the first of the paint goes into
+   the leg's own line.
+2. **A dip every 95 mm of line.** The next run starts 15 mm back and lands inside
+   the same way, so it paints back over the place where the last gave out.
+3. **At once an idle run, no dip.**
+
+On LAB only so far (`src/labplan.js`, `real 2`): not yet in OPM-N's or FORM-G's run.
+
 ## Working rules
 
 - **The artist decides what to paint. The brush determines how it can be

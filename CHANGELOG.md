@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **LAB 4.0 · real strokes 2**, LAB opens on it, and **no. 9 is the canon** (the owner, 2026-11-06, of the first canvas, `OPM-N/IMG_2432`: "the third came out best, shall we multiply it?"; "the first is
+  not needed at all"; of no. 9, "I would start from this and take it as the canon"; "shall we fix at once what is already known from the first run?"). README, "How a long leg is laid". No. 9's way four times, the long leg to the letter;
+  a leg goes on what the brush holds only to 79 mm of plan, as the landing inside costs 16 more (`ridersOnLong`); a rope of short legs its own dip, landing inside its own line. 96 dips, ≈ 41 min (est.). Not run.
+- **PAUSE / CONTINUE on LAB's page** (the owner, the same night, the run waiting for its second paint and the page with no key for it: "I did not even realise where to press"): the key goes orange, a yellow line says what to do; RUN's question says it will stop.
+- **LAB 4.0 · real strokes** (the owner, 2026-11-06, of the ladder's paper `OPM-N/IMG_2419` with `OPM-G/porsche_70x100_hyper.jpg` and
+  `watch_60x80_hyper.jpg` before him: "we plan to make such works"; he does not accept a pool after a dip; "remove the short drops"; "a test of the real strokes that
+  we will have in the realistic works"). Two pieces of FORM-G's own plans (`src/labreal.js`, cut by `FORM-G/generator/export_labreal.mjs`) and a long leg with its dips in
+  the middle of it, every cell with its idle run, two paints. No dip on a short leg: `startOnLong`, `dipsOnLong`. Four ways of coming from the jar, the same strokes: as today;
+  out of the paint slowly, 3°/s to +22° (est.); landing inside the leg, back to its start (est.); both. 20 numbers, ≈ 39 min (est.). FORM-G's plan itself not changed. Not run.
 - **FORM-G, a library of finished paintings** (the owner, 2026-11-06: "FORM-G is such a library of ready paintings"; "there will be no
   adding photos for an algorithm to redraw them somehow; only two pictures for now, I will simply ask you to add something else"; "the
   colour we already developed, we can take it from OPM-N"; "the only thing not in FORM-G is a different brush width, it is fixed at 5 mm";

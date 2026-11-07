@@ -7,6 +7,9 @@
 // stroke along Y, the hook. The wrist rolls round the arm: it sweeps the tip along Y, and lifts it hardly
 // at all at small angles. All the numbers est.; the sheet is there to measure them.
 import { handDip, homeBlocks } from './strokes.js';
+import { cellOf } from './formgplan.js';
+import { idleRunsOf } from './idleplan.js';
+import { REAL_PIECES, REAL_LONG } from './labreal.js';
 
 export const LAB = {
   speed: 25, travel: 120,      // mm/s, OPM-N's brush and a flight
@@ -17,7 +20,7 @@ export const LAB = {
   accel: 250, turnMax: 211,    // the board's: mm/s², °/s for W
 };
 const COLS = 4, ROWS = 6;
-export const labSize = (sheet = 1) => sheet === 13 ? { h: S13.size - LAB.rowGap, w: S13.size } : sheet >= 8 ? { h: S4.h - LAB.rowGap, w: S8.w } : sheet === 5 ? { h: S5.h - LAB.rowGap, w: S5.w } : sheet === 4 || sheet === 6 || sheet === 7 ? { h: S4.h - LAB.rowGap, w: S4.w } : ({ h: sheet === 3 ? S3.h : sheet === 2 ? S2.top : ROWS * LAB.rowGap + LAB.along, w: (COLS - 1) * LAB.step + (sheet === 3 ? S2.cellLong + 8 : LAB.length) });
+export const labSize = (sheet = 1) => sheet === 14 || sheet === 15 ? { h: S14.size - LAB.rowGap, w: S14.size } : sheet === 13 ? { h: S13.size - LAB.rowGap, w: S13.size } : sheet >= 8 ? { h: S4.h - LAB.rowGap, w: S8.w } : sheet === 5 ? { h: S5.h - LAB.rowGap, w: S5.w } : sheet === 4 || sheet === 6 || sheet === 7 ? { h: S4.h - LAB.rowGap, w: S4.w } : ({ h: sheet === 3 ? S3.h : sheet === 2 ? S2.top : ROWS * LAB.rowGap + LAB.along, w: (COLS - 1) * LAB.step + (sheet === 3 ? S2.cellLong + 8 : LAB.length) });
 // LAB 2.0 (the owner, the same night, of the first sheet: "yes, one correction for every way; a second
 // sheet round 10, 11 and 12"; "21 goes with the fur, 20 against it"): the carriage against the elbow,
 // sign + as the first sheet proved, the tip going +X as the elbow rises. Every line by its own points:
@@ -383,12 +386,116 @@ function sheet13() {
   module(purple, B, diamond.y, diamond.W, t => c0 + half(t), t => c0 - half(t), true, true, `A diamond, legs of ${e0} to ${e1} mm`);
   return one;
 }
+// LAB 4.0 · real strokes (the owner, 2026-11-06, of the ladder's paper, IMG_2419, with `OPM-G/porsche_70x100_hyper.jpg` and `watch_60x80_hyper.jpg` before him: "we plan to make such
+// works"; he does not accept a pool after a dip; "remove the short drops"; "a test of the real strokes that we will have in the realistic works"). Not lengths in a table but the pictures'
+// own legs: two pieces of FORM-G's plans (labreal.js), every cell as there, its snake and at once its idle run, and a long leg with its dips in the middle of it.
+// A dip never lands on a short leg: what the brush still holds paints those (the ladder: a leg of 5 mm 92 mm after a dip came out 4.5 × 6.5). Four ways of coming from the jar, the same legs:
+// as today; out of the paint slowly, a thinner coat and no hanging drop (est.); landing inside the leg, back to its start, then along it, so the first of the paint goes into the leg's own line (est.); both.
+const S14 = { size: 200, every: 95, lap: 15, pitch: 5, left: 13, band: 46, h: 84, tops: [194, 104], long: 20, slowTo: 22, inside: 16, insideShare: .6, insideMin: 16, shortLeg: 16, rideUnder: 30,
+  ways: [{ say: 'the dip as today' }, { say: `out of the paint slowly`, slowAt: 3 }, { say: 'landing inside the leg, back to its start', inside: true }, { say: 'out slowly, landing inside the leg', slowAt: 3, inside: true }] };
+// real strokes 2 (the owner, 2026-11-06, of the first canvas, OPM-N/IMG_2432, the first paint only: "the third came out best, shall we multiply it?"; "the first is not needed at all"; of no. 9: "I would start from this and take it
+// as the canon"; "shall we fix at once what is already known from the first run?"). No. 9's way four times, its dips as they were, 95 mm, a lap of 15: so the long leg to the letter. Known from that canvas, the two fixes:
+// a leg's landing inside costs 16 mm more of the load, and the legs that went on what the brush held came out pale and thin at their ends: they go on it only to 79 mm of plan; the rim's rope broke at its tail on all four: its own dip, landing inside its own line.
+const S15_WAYS = [1, 2, 3, 4].map(k => ({ say: `no. 9's way, copy ${k}`, inside: true, ride: 79 }));
+const lenXY = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
+// a cell of several legs the way round that starts on its longer end leg, as FORM-G's second layer turns one: the dip falls on that one
+export const longEndFirst = c => { if (c.air || c.legs.length < 2) return c; const L = l => Math.abs(l[2] - l[1]); return L(c.legs[0]) >= L(c.legs.at(-1)) ? c : { ...c, legs: c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) }; };
+// short end legs a cell of several cannot start on go on their own, on what the brush holds; the rest starts on its first long leg. → the cells it makes
+export const startOnLong = c => { const t = longEndFirst(c), L = l => Math.abs(l[2] - l[1]), k = t.legs.findIndex(l => L(l) >= S14.shortLeg); return t.air || k <= 0 ? [t] : [...t.legs.slice(0, k).map(l => ({ ...t, legs: [l] })), { ...t, legs: t.legs.slice(k) }]; };
+// a colour's cells so that every dip falls on the longest piece left, and the short ones go on what the brush holds. → the cells in that order
+export function dipsOnLong(cells, every, lap) {
+  const rest = cells.map(c => { const rs = idleRunsOf([{ byCell: [c] }], every, lap).filter(r => !r.idle); return { c, rs, first: Math.hypot(rs[0].pts[1][0] - rs[0].pts[0][0], rs[0].pts[1][1] - rs[0].pts[0][1]) }; });
+  const ride = (held, q) => { let h = held, dips = 0; q.rs.forEach((r, j) => { const L = lenXY(r.pts); if ((j && r.dip) || (q.c.runs && r.dip) || h + L > every + .5) { dips++; h = L; } else h += L; }); return { h, dips }; };
+  const out = [], total = q => q.rs.reduce((t, r) => t + lenXY(r.pts), 0); let held = Infinity;
+  const take = q => { rest.splice(rest.indexOf(q), 1); held = ride(held, q).h; out.push(q.c); };
+  // a rope of short legs (a car's rim, a grille) has no long leg to land on: a dip's leg before it that leaves room for all of it
+  const short = S14.shortLeg - 4;    // its pressed line, half the tip in from both ends
+  for (const b of rest.filter(q => q.first < short && q.rs.length === 1 && total(q) > every / 4).sort((p, q) => total(q) - total(p))) {
+    const fit = rest.filter(q => q !== b && q.first >= short && q.rs.length === 1 && total(q) + total(b) <= every + .5);
+    if (!fit.length) continue;
+    held = Infinity; take(fit.reduce((m, q) => total(q) > total(m) ? q : m)); take(b);
+  }
+  while (rest.length) {
+    let k = held === Infinity ? -1 : rest.findIndex(q => ride(held, q).dips === 0);
+    if (k < 0) k = rest.reduce((b, q, i) => q.first > rest[b].first ? i : b, 0);
+    const [q] = rest.splice(k, 1);
+    held = ride(held, q).h; out.push(q.c);
+  }
+  return out;
+}
+// the legs under 30 mm on what the longer ones leave, each after the one with the most room for it; the longer ones a dip each, so the reckoning holds; what fits nowhere takes a dip of its own
+export function ridersOnLong(cells, ride) {
+  const all = cells.map(c => { const L = c.runs.map(r => lenXY(r.pts)); return { c, first: L[0], tail: L.at(-1), riders: [], rides: L[0] < S14.rideUnder && !(c.legs.length > 1 && L.length > 1) }; });
+  const room = b => ride - b.tail - b.riders.reduce((t, r) => t + r.first, 0), bins = all.filter(q => !q.rides);
+  for (const q of all.filter(q => q.rides).sort((p, r) => (p.c.runs.length - r.c.runs.length) || r.first - p.first)) {
+    const roomiest = () => bins.reduce((m, b) => b.c.runs.length === 1 && (!m || room(b) > room(m)) ? b : m, null);
+    let best = roomiest();
+    if ((!best || room(best) < q.first) && q.first < S14.insideMin) {    // no room for a short one: the longest that rides lands inside a dip of its own instead, and leaves room
+      const up = bins.flatMap(b => b.riders.map(r => [b, r])).filter(([, r]) => r.first >= S14.insideMin).sort((a, b) => b[1].first - a[1].first)[0];
+      if (up) { up[0].riders.splice(up[0].riders.indexOf(up[1]), 1); bins.push(up[1]); best = roomiest(); }
+    }
+    if (best && room(best) >= q.first) best.riders.push(q); else bins.push(q);
+  }
+  return bins.flatMap(b => [{ ...b.c, runs: b.c.runs.map((r, j) => j ? r : { ...r, dip: true }) }, ...b.riders.map(r => r.c)]);
+}
+function sheetReal(ways) {
+  const { pitch } = S14, one = [], everyOf = way => way.every ?? S14.every, lapOf = way => way.lap ?? S14.lap, optsOf = way => ({ every: everyOf(way), lap: lapOf(way) });
+  const runsOf = (cells0, way, at) => {         // a piece's runs on the sheet, the real ones' dips, the way's landing
+    const every = everyOf(way), lap = lapOf(way), ride = way.ride ?? every;
+    // ride: a cell cut for its dips as ever, by `every`; what follows goes on what the brush holds only as far as `ride`
+    const cells = way.ride ? cells0.map(c => c.runs ? c : { ...c, runs: idleRunsOf([{ byCell: [c] }], every, lap).filter(r => !r.idle).map((r, j) => ({ pts: r.pts, dip: j > 0, beyond: r.beyond })) }) : cells0;
+    const seq = idleRunsOf([{ byCell: way.ride ? ridersOnLong(cells, ride) : dipsOnLong(cells, ride, lap) }], ride, lap), P = p => at(p);
+    return seq.map(r => {
+      const first = r.pts.map(P), a = first[0], b = first[1], d = dist(a, b);
+      const long = r.dip && way.inside && d >= S14.insideMin, rope = r.dip && way.ride && !long && first.length > 2 && lengthOf(first) >= S14.inside * 2;
+      // a rope of short legs lands inside its own line too, back along it to its start
+      const pts = long ? [along(a, { x: (b.x - a.x) / d, y: (b.y - a.y) / d }, Math.min(S14.inside, d * S14.insideShare)), ...first] : rope ? [...sliceLine(first, 0, S14.inside).reverse(), ...first.slice(1)] : first;
+      return { pts, dip: r.dip, idle: r.idle, beyond: r.beyond, leg: d };
+    });
+  };
+  const cellsOf = (P, paint, way) => P.cells.filter(c => c.paint === paint).flatMap(startOnLong).map((c, i) => cellOf({ ...c, n: i + 1 }, { pitch }, i + 1, optsOf(way)));
+  const push = (paint, way, say, seq, hold) => {
+    if (!seq.length) return;
+    one.push({ kind: 'real', c: paint, hue: paint ? '#2B6CB0' : '#3E8E5A', mm: S3.mm, way, say, seq, ...hold, pts: seq[0].pts });
+  };
+  [0, 1].forEach(paint => {
+    let held = paint ? { pause: 'Wipe the brush, put the second paint, the darker, in the jar, then Continue' } : {};
+    ways.forEach((way, k) => {
+      const left = S14.left + k * S14.band;
+      REAL_PIECES.forEach((P, r) => {
+        const seq = runsOf(cellsOf(P, paint, way), way, ([x, y]) => ({ x: S14.tops[r] - S14.h + y, y: left + pitch + x }));
+        if (!seq.length) return;
+        push(paint, way, `${P.say}; ${way.say}; the ${paint ? 'second' : 'first'} paint: ${seq.filter(q => !q.idle).length} runs, ${seq.filter(q => q.dip).length} dips`, seq, held); held = {};
+      });
+      if (paint === 0) {
+        const cell = cellOf({ legs: [[0, REAL_LONG.leg[0], REAL_LONG.leg[1]]] }, { pitch }, 1, optsOf(way));
+        const seq = runsOf([cell], way, ([x, y]) => ({ x: S14.long + y, y: left + x }));
+        push(0, way, `${REAL_LONG.say}, ${REAL_LONG.leg[0]} mm; ${way.say}: ${seq.filter(q => q.dip).length} dips`, seq, {});
+      }
+    });
+  });
+  return one;
+}
 function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
-  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
+  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
   const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
-  let dips = 0, mm = 0;
-  (sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
+  let dips = 0, mm = 0, slowS = 0;
+  (sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
     const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup;
+    if (q.kind === 'real') {                         // LAB 4.0: runs in the plan's order, each its own dip or none, the idle ones as they come
+      if (q.pause) blocks.push({ kind: 'pause', why: q.pause, row: 0 });
+      q.seq.forEach(r => {
+        const pts = (r.beyond ? liftBeyond(r.pts) : r.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = r.dip ? handDip(c, row) : [];
+        // out of the paint slowly: the elbow from the paint to well above it, then as ever
+        if (r.dip && q.way.slowAt) { dip.splice(4, 0, { kind: 'joint', joint: 'elbow', deg: S14.slowTo, speed: q.way.slowAt, fork: [S14.slowTo - 1, S14.slowTo + 1], row, dip: true }); slowS += (S14.slowTo - c.dip) / q.way.slowAt; }
+        rows.push({ c: q.c, cells: [[n, 0]] });
+        blocks.push(fly(R.start, row), ...dip, ...R.blocks);
+        dips += r.dip ? 1 : 0; mm += lengthOf(pts);
+      });
+      const tip = q.seq[0].pts.map(shift);
+      strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, tip, from: tip[0], to: tip.at(-1), via: [], lines: q.seq.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((b, j) => [shift(r.pts[j]), shift(b)])) });
+      return;
+    }
     const runs = q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
     runs.forEach((pts0, j) => {
       const pts = (q.reachEnd && j === runs.length - 1 ? liftBeyond(pts0) : pts0).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p, q.ramp), dip = !q.noDip && (q.kind !== 'oneway' || j % (q.every ?? 2) === 0);
@@ -406,9 +513,9 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
     strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, tip, from: tip[0], to: tip.at(-1), via: [], ...(q.tracks ? { lines: q.tracks.map(l => l.map(shift)) } : {}), ...(q.over ? { over: q.over, idleTip: (q.idleRun ?? overshot(q.idleLine ?? q.pts, q.over)).map(shift) } : {}) });
   });
   const pts = blocks.flatMap(b => (b.cmds || []).filter(c => c[0] === 'L' || c[0] === 'M').map(c => c.split(' ').slice(1).map(Number)));
-  return { blocks, strokes, seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed),
+  return { blocks, strokes, seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed + slowS),
     bounds: { x0: Math.min(...pts.map(p => p[0])), x1: Math.max(...pts.map(p => p[0])), y0: Math.min(...pts.map(p => p[1])), y1: Math.max(...pts.map(p => p[1])) },
-    remote: { colours: [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
+    remote: { colours: sheet === 14 || sheet === 15 ? [{ name: `${name} · the first paint`, hex: '#3E8E5A', code: '', cells: strokes.filter(q => q.hue === '#3E8E5A').length }, { name: `${name} · the second paint`, hex: '#2B6CB0', code: '', cells: strokes.filter(q => q.hue === '#2B6CB0').length }] : [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
 }
 
 // the sheet at its bottom left corner (x0, y0), carriage mm: X up, Y right, as on every tab; at its end the

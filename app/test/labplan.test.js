@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LAB, labPlan, labSize, endSecs, rowsOfCell, sliceLine, snakeRuns } from '../src/labplan.js';
+import { LAB, labPlan, labSize, endSecs, rowsOfCell, sliceLine, snakeRuns, dipsOnLong, startOnLong } from '../src/labplan.js';
 import { dragRowsOf } from '../src/opmplan.js';
 import { reach } from '../src/machine.js';
-import { idleCellOf } from '../src/idleplan.js';
+import { idleCellOf, idleRunsOf } from '../src/idleplan.js';
+import { cellOf } from '../src/formgplan.js';
+import { REAL_PIECES, REAL_LONG } from '../src/labreal.js';
 
 const cup = { hand: true, on: true, up: [30, 35], to: [30, 35], dip: 14, paint: [14, 15], dwell: 1, swing: 40 };
 const P = labPlan({ x0: 200, y0: 150, cup });
@@ -837,3 +839,130 @@ test('ladder: on one 20 × 20, 10 mm clear of its edges even in its lifts, every
   assert.deepEqual(labPlan({ x0: 0, y0: 0, cup, sheet: 13, tracks: 1 }).strokes, P13.strokes);
   assert.ok(P13.seconds > 300 && P13.seconds < 900, `${P13.seconds} s`);
 });
+
+// ---------- LAB 4.0 · real strokes: the pictures' own legs, no dip on a short one, four ways of coming from the jar ----------
+const P14 = labPlan({ x0: 0, y0: 0, cup, sheet: 14 });
+const rowsOf14 = n => P14.remote.rows.map((r, i) => r.cells[0][0] === n ? i + 1 : 0).filter(Boolean);
+const blocks14 = n => { const set = new Set(rowsOf14(n)); return P14.blocks.filter(b => set.has(b.row)); };
+const shifted = n => { const s = P14.strokes[n - 1], o = s.lines[0][0]; return s.lines.map(([a, b]) => [a.x - o.x, a.y - o.y, b.x - o.x, b.y - o.y].map(v => +v.toFixed(2))); };
+
+test('real strokes: 20 numbers, the first paint then a pause then the second, the two colours on the iPhone\'s list', () => {
+  assert.equal(P14.strokes.length, 20);
+  assert.deepEqual(P14.remote.colours.map(c => c.cells), [12, 8]);
+  assert.equal(P14.remote.colours[0].name, 'LAB 4.0 · real strokes · the first paint');
+  const pauses = P14.blocks.map((b, i) => [b, i]).filter(([b]) => b.kind === 'pause');
+  assert.equal(pauses.length, 1);
+  assert.ok(P14.remote.rows.every((r, i) => i + 1 >= P14.blocks[pauses[0][1] + 1].row ? r.c === 1 : r.c === 0), 'all of the first paint before it');
+  assert.deepEqual(labSize(14), { h: 176, w: 200 });
+});
+
+test('real strokes: the same strokes in all four ways, each of the pieces\' cells with its idle run', () => {
+  const firstLines = k => shifted(k);
+  for (const group of [[1, 4, 7, 10], [2, 5, 8, 11], [13, 15, 17, 19], [14, 16, 18, 20]]) {
+    const legs = n => { const s = P14.strokes[n - 1]; return s.lines.map(([a, b]) => [Math.min(a.x, b.x), Math.max(a.x, b.x), a.y, b.y].map(v => +(v).toFixed(1))); };
+    const ends = n => legs(n).filter(l => l[2] === l[3]).length;
+    assert.equal(ends(group[0]), ends(group[1]), `${group}: as many legs on a slow way`);
+    assert.ok(firstLines(group[0]).length > 0);
+  }
+  for (const P of REAL_PIECES) for (const paint of [0, 1]) {
+    const cells = P.cells.filter(c => c.paint === paint).flatMap(startOnLong), done = dipsOnLong(cells.map((c, i) => cellOf({ ...c, n: i + 1 }, { pitch: 5 }, i + 1, { every: 95, lap: 15 })), 95, 15);
+    assert.equal(cells.flatMap(c => c.legs).length, P.cells.filter(c => c.paint === paint).flatMap(c => c.legs).length, 'no leg lost');
+    assert.equal(done.length, cells.length, 'no cell lost');
+    const runs = idleRunsOf([{ byCell: done }], 95, 15);
+    assert.equal(runs.filter(r => r.idle).length, cells.length, 'every cell its idle run');
+  }
+  assert.equal(REAL_PIECES.length, 2); assert.ok(REAL_LONG.leg[0] > 95, 'a dip in the middle of the long leg');
+});
+
+test('real strokes: no dip lands on a short leg, what the brush holds paints those', () => {
+  const short = [];
+  for (const P of REAL_PIECES) for (const paint of [0, 1]) {
+    const cells = P.cells.filter(c => c.paint === paint).flatMap(startOnLong).map((c, i) => cellOf({ ...c, n: i + 1 }, { pitch: 5 }, i + 1, { every: 95, lap: 15 }));
+    for (const r of idleRunsOf([{ byCell: dipsOnLong(cells, 95, 15) }], 95, 15)) if (r.dip) { const d = Math.hypot(r.pts[1][0] - r.pts[0][0], r.pts[1][1] - r.pts[0][1]); if (d < 12) short.push([P.id, paint, +d.toFixed(1)]); }
+  }
+  assert.deepEqual(short, []);
+  const legs = REAL_PIECES.flatMap(P => P.cells.flatMap(c => c.legs.map(l => Math.abs(l[2] - l[1]))));
+  assert.ok(legs.filter(v => v < 16).length >= 20, 'and they are there, the real short legs');
+});
+
+test('real strokes: out of the paint slowly on its two ways only, the elbow from the paint to +22° at 3°/s, before the elbow up and the shoulder back', () => {
+  const slow = n => blocks14(n).filter(b => b.kind === 'joint' && b.joint === 'elbow');
+  for (const n of [1, 2, 3, 7, 8, 9, 13, 14, 17, 18]) assert.equal(slow(n).length, 0, `${n}: as today`);
+  for (const n of [4, 5, 6, 10, 11, 12, 15, 16, 19, 20]) {
+    const dips = blocks14(n).filter(b => b.kind === 'joint' && b.rim !== undefined).length;
+    assert.equal(slow(n).length, dips, `${n}: every dip`);
+    for (const b of slow(n)) { assert.deepEqual([b.deg, b.speed, b.fork], [22, 3, [21, 23]]); assert.equal(b.dip, true); }
+    const b = blocks14(n), i = b.findIndex(q => q.kind === 'joint' && q.joint === 'elbow');
+    assert.deepEqual([b[i - 2].fork, b[i - 1].kind, b[i + 1].fork, b[i + 2].joint, b[i + 2].deg], [cup.paint, 'wait', cup.up, 'shoulder', 0], 'in the paint, its wait, out slowly, up, back');
+  }
+});
+
+test('real strokes: landing inside the leg, back to its start, then along it, on its two ways only', () => {
+  // the way's first piece of a run with a dip is that much longer, the same legs after it
+  const line = n => blocks14(n).filter(b => b.paintMM > 0).reduce((t, b) => t + b.paintMM, 0);
+  for (const [today, inside] of [[1, 7], [2, 8], [3, 9], [13, 17], [14, 18], [4, 10], [5, 11], [6, 12], [15, 19], [16, 20]]) {
+    const added = line(inside) - line(today), dips = blocks14(today).filter(b => b.kind === 'joint' && b.rim !== undefined).length;
+    assert.ok(added > 0 && added <= 2 * 16 * dips + 1e-6 + 16 * dips, `${today}/${inside}: ${added} mm more over ${dips} dips`);
+  }
+  assert.equal(line(4), line(1)); assert.equal(line(5), line(2));
+  const first = blocks14(9).find(b => b.paintMM > 0), xs = first.cmds.filter(c => c[0] === 'L').map(c => +c.split(' ')[1]);
+  assert.ok(xs[0] < xs[1] || xs[0] > xs[1], 'it moves');
+  const dir = Math.sign(xs.at(-1) - xs.at(-2)), back = Math.sign(xs[1] - xs[0]);
+  assert.notEqual(dir, back, 'back to its start first, then along');
+});
+
+test('real strokes: on a 20 × 20 canvas at X 0, Y 0, the carriage within the wall, every J within the cup\'s forks, 5 mm between columns', () => {
+  assert.ok(P14.bounds.x0 >= 0, `the carriage's lowest X ${P14.bounds.x0}`);
+  assert.ok(P14.bounds.y0 >= 10 && P14.bounds.y1 <= 190, `Y ${P14.bounds.y0} … ${P14.bounds.y1}`);
+  for (const s of P14.strokes) for (const [a, b] of s.lines) for (const q of [a, b]) { assert.ok(q.x >= 18 && q.x <= 198, `${s.n}: X ${q.x}`); assert.ok(q.y >= 13 && q.y <= 187, `${s.n}: Y ${q.y}`); }
+  for (const b of P14.blocks) if (b.fork) { const v = b.deg ?? +b.cmd.split(' ')[2]; assert.ok(v >= b.fork[0] && v <= b.fork[1]); }
+  const ys = new Set(P14.strokes.flatMap(s => s.lines.filter(([a, b]) => a.y === b.y).map(([a]) => +((a.y - 13) % 46).toFixed(2))));
+  for (const y of ys) assert.ok(Math.abs(y / 5 - Math.round(y / 5)) < 1e-6 && y <= 35, `column at ${y}`);
+});
+
+// ---------- real strokes 2: no. 9's way four times, the owner's canon, its two fixes ----------
+const P15 = labPlan({ x0: 0, y0: 0, cup, sheet: 15 });
+const rows15 = n => P15.remote.rows.map((r, i) => r.cells[0][0] === n ? i + 1 : 0).filter(Boolean);
+const runs15 = n => rows15(n).map(row => { const b = P15.blocks.filter(q => q.row === row), pa = b.find(q => q.paintMM > 0); return { dip: b.some(q => q.kind === 'joint' && q.rim !== undefined), mm: pa.paintMM, cmds: pa.cmds }; });
+
+test('real strokes 2: the same strokes four times over, 46 mm apart, two paints, a pause between, no way out of the paint but today\'s', () => {
+  assert.equal(P15.strokes.length, 20);
+  assert.equal(P15.remote.colours[0].name, 'LAB 4.0 · real strokes 2 · the first paint');
+  assert.equal(P15.blocks.filter(b => b.kind === 'pause').length, 1);
+  assert.equal(P15.blocks.filter(b => b.kind === 'joint' && b.joint === 'elbow').length, 0);
+  assert.deepEqual(labSize(15), { h: 176, w: 200 });
+  const moved = (n, k) => P15.strokes[n - 1].lines.map(([a, b]) => [a.x, a.y - 46 * k, b.x, b.y - 46 * k].map(v => +v.toFixed(2)));
+  for (const [n, step, per] of [[1, 3, 0], [2, 3, 0], [3, 3, 0], [13, 2, 0], [14, 2, 0]]) for (let k = 1; k < 4; k++) assert.deepEqual(moved(n + k * step, k), moved(n, 0), `no. ${n}, copy ${k + 1}`);
+});
+
+test('real strokes 2: its long leg is no. 9 to the letter', () => {
+  const one = (P, row) => P.blocks.filter(b => b.row === row && b.paintMM > 0).map(b => b.cmds);
+  const r9 = P14.remote.rows.map((r, i) => r.cells[0][0] === 9 ? i + 1 : 0).filter(Boolean), shift = c => c.replace(/^L (\S+) (\S+)$/, (m, x, y) => `L ${x} ${(+y - 92).toFixed(2)}`);
+  const r3 = rows15(3);
+  assert.equal(r3.length, r9.length);
+  r3.forEach((row, i) => assert.deepEqual(one(P15, row)[0].map(c => c), one(P14, r9[i])[0].map(shift), `run ${i + 1}`));
+});
+
+test('real strokes 2: a dip lands on no lone short leg; a leg that goes on what the brush holds does so within 79 mm of plan', () => {
+  for (const n of [1, 2, 13, 14]) {
+    let held = 0;
+    const ls = runs15(n).filter((_, i) => true);
+    for (let i = 0; i < ls.length; i++) {
+      const r = ls[i], pressed = r.cmds.filter(c => c[0] === 'L').map(c => +c.split(' ')[1]);
+      if (r.dip) { const first = Math.abs(pressed[1] - pressed[0]); held = 0; assert.ok(r.mm >= 24, `${n}, run ${i + 1}: a dip on ${r.mm.toFixed(0)} mm`); }
+    }
+  }
+});
+
+test('real strokes 2: the rope of short legs takes its own dip and lands inside its own line, back along it to its start', () => {
+  const rope = runs15(1).find(r => r.mm > 90 && r.dip);
+  assert.ok(rope, 'its own dip');
+  const ys = rope.cmds.filter(c => c[0] === 'L').map(c => +c.split(' ')[2]);
+  assert.ok(ys[0] > ys[2] || ys[1] > ys[3], 'it goes back across first');
+  assert.ok(ys.at(-1) > ys[0], 'and on to its far end');
+});
+
+test('real strokes 2: the carriage within the wall, on the 20 × 20', () => {
+  assert.ok(P15.bounds.x0 >= 0 && P15.bounds.y0 >= 10 && P15.bounds.y1 <= 190, JSON.stringify(P15.bounds));
+});
+
