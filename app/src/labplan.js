@@ -10,6 +10,7 @@ import { handDip, homeBlocks } from './strokes.js';
 import { cellOf } from './formgplan.js';
 import { idleRunsOf } from './idleplan.js';
 import { REAL_PIECES, REAL_LONG } from './labreal.js';
+import { longEndFirst, startOnLong, ridersOnLong } from './canon.js';
 
 export const LAB = {
   speed: 25, travel: 120,      // mm/s, OPM-N's brush and a flight
@@ -398,10 +399,8 @@ const S14 = { size: 200, every: 95, lap: 15, pitch: 5, left: 13, band: 46, h: 84
 // a leg's landing inside costs 16 mm more of the load, and the legs that went on what the brush held came out pale and thin at their ends: they go on it only to 79 mm of plan; the rim's rope broke at its tail on all four: its own dip, landing inside its own line.
 const S15_WAYS = [1, 2, 3, 4].map(k => ({ say: `no. 9's way, copy ${k}`, inside: true, ride: 79 }));
 const lenXY = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
-// a cell of several legs the way round that starts on its longer end leg, as FORM-G's second layer turns one: the dip falls on that one
-export const longEndFirst = c => { if (c.air || c.legs.length < 2) return c; const L = l => Math.abs(l[2] - l[1]); return L(c.legs[0]) >= L(c.legs.at(-1)) ? c : { ...c, legs: c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) }; };
-// short end legs a cell of several cannot start on go on their own, on what the brush holds; the rest starts on its first long leg. → the cells it makes
-export const startOnLong = c => { const t = longEndFirst(c), L = l => Math.abs(l[2] - l[1]), k = t.legs.findIndex(l => L(l) >= S14.shortLeg); return t.air || k <= 0 ? [t] : [...t.legs.slice(0, k).map(l => ({ ...t, legs: [l] })), { ...t, legs: t.legs.slice(k) }]; };
+// longEndFirst, startOnLong, ridersOnLong: canon.js since OPM-G runs by them too (2026-11-07), the same code
+export { longEndFirst, startOnLong, ridersOnLong };
 // a colour's cells so that every dip falls on the longest piece left, and the short ones go on what the brush holds. → the cells in that order
 export function dipsOnLong(cells, every, lap) {
   const rest = cells.map(c => { const rs = idleRunsOf([{ byCell: [c] }], every, lap).filter(r => !r.idle); return { c, rs, first: Math.hypot(rs[0].pts[1][0] - rs[0].pts[0][0], rs[0].pts[1][1] - rs[0].pts[0][1]) }; });
@@ -422,21 +421,6 @@ export function dipsOnLong(cells, every, lap) {
     held = ride(held, q).h; out.push(q.c);
   }
   return out;
-}
-// the legs under 30 mm on what the longer ones leave, each after the one with the most room for it; the longer ones a dip each, so the reckoning holds; what fits nowhere takes a dip of its own
-export function ridersOnLong(cells, ride) {
-  const all = cells.map(c => { const L = c.runs.map(r => lenXY(r.pts)); return { c, first: L[0], tail: L.at(-1), riders: [], rides: L[0] < S14.rideUnder && !(c.legs.length > 1 && L.length > 1) }; });
-  const room = b => ride - b.tail - b.riders.reduce((t, r) => t + r.first, 0), bins = all.filter(q => !q.rides);
-  for (const q of all.filter(q => q.rides).sort((p, r) => (p.c.runs.length - r.c.runs.length) || r.first - p.first)) {
-    const roomiest = () => bins.reduce((m, b) => b.c.runs.length === 1 && (!m || room(b) > room(m)) ? b : m, null);
-    let best = roomiest();
-    if ((!best || room(best) < q.first) && q.first < S14.insideMin) {    // no room for a short one: the longest that rides lands inside a dip of its own instead, and leaves room
-      const up = bins.flatMap(b => b.riders.map(r => [b, r])).filter(([, r]) => r.first >= S14.insideMin).sort((a, b) => b[1].first - a[1].first)[0];
-      if (up) { up[0].riders.splice(up[0].riders.indexOf(up[1]), 1); bins.push(up[1]); best = roomiest(); }
-    }
-    if (best && room(best) >= q.first) best.riders.push(q); else bins.push(q);
-  }
-  return bins.flatMap(b => [{ ...b.c, runs: b.c.runs.map((r, j) => j ? r : { ...r, dip: true }) }, ...b.riders.map(r => r.c)]);
 }
 function sheetReal(ways) {
   const { pitch } = S14, one = [], everyOf = way => way.every ?? S14.every, lapOf = way => way.lap ?? S14.lap, optsOf = way => ({ every: everyOf(way), lap: lapOf(way) });

@@ -132,9 +132,10 @@ export function idleRunsOf(passes, every = 0, lap = 0) {
   return out;
 }
 // the rows for strokes.js's plotRun, as dragRowsOf's: a run a row, sweep on its first piece for plotRun's landing and lift, nodip where it goes on what the brush holds
-export function idleRowsOf(passes, pencils, o, every = 0, lap = 0) {
+// runs: the brush's runs already laid (OPM-G's, the canon's landing inside, formgplan.js), else idleRunsOf's
+export function idleRowsOf(passes, pencils, o, every = 0, lap = 0, runs = null) {
   const ps = [], info = [], groups = passes.map(() => []), byId = Object.fromEntries(pencils.map(p => [p.id, p]));
-  for (const r of idleRunsOf(passes, every, lap)) {
+  for (const r of runs ?? idleRunsOf(passes, every, lap)) {
     const row = ps.length + 1, P = passes[r.pass];
     ps.push(piecesOf(r.pts).map((g, i) => ({ ...machinePiece(g, o), tilt: 0, row, ...(i ? {} : { sweep: SWEEP_MM, beyond: r.beyond, nodip: !r.dip }) })));
     info.push({ label: `${r.pass + 1}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil} · cell ${r.num} · ${r.say}`, pencil: P.pencil, pass: r.pass, L: lengthOf(r.pts), cells: [[r.num, 0]] });
