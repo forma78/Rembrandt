@@ -1,6 +1,6 @@
 // FORM-G's page: the library, the picture, OPM-N's DRAG SNAKE (formgplan.js). inka.js's run as it is on OPM-N, its question with Start from, its LCD, BACK ONE CELL, the remote and ELBOW LIVE,
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
-import { FORMG, FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, placeRange } from './formgplan.js';
+import { FORMG, FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW } from './inkaplan.js';
@@ -17,27 +17,31 @@ const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01
 const PRESS_MIN = -4, PRESS_MAX = 8;   // as OPM-N's brush
 const fmt = (v, d = 1) => Number(v).toFixed(d), sgn = v => `${v >= 0 ? '+' : '−'}${fmt(Math.abs(v), 1)}°`, esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
-const S = { pic: LIBRARY[0], view: 'picture', speed: 25, dipEvery: FORMG.every, dipLap: FORMG.lap, over: FORMG.over, wipe: WIPE_NEW, press: 0, travel: 180, tail: 3, place: {} };
+const S = { pic: LIBRARY[0], view: 'picture', speed: 25, dipEvery: FORMG.every, dipLap: FORMG.lap, over: FORMG.over, wipe: WIPE_NEW, press: 0, travel: 180, tail: 3, place: {}, frames: {} };
 const nums = o => ({ ...(Number.isFinite(o.pspeed) ? { speed: o.pspeed } : {}), ...(Number.isFinite(o.dipEvery) ? { dipEvery: o.dipEvery } : {}), ...(Number.isFinite(o.dipLap) ? { dipLap: o.dipLap } : {}), ...(Number.isFinite(o.idleOver) ? { over: o.idleOver } : {}), ...(Number.isFinite(o.wipe) ? { wipe: o.wipe } : {}), ...(Number.isFinite(o.brushPress) ? { press: o.brushPress } : {}), ...(Number.isFinite(o.travel) ? { travel: o.travel } : {}), ...(Number.isFinite(o.tail) ? { tail: o.tail } : {}) });
 try {                                                                                 // a first visit: the brush as it is tuned on OPM-N
   const mine = JSON.parse(localStorage.getItem(KEEP) || 'null'), opmn = mine ? null : JSON.parse(localStorage.getItem(OPMN_KEEP) || 'null');
   Object.assign(S, mine ?? nums(opmn ?? {}));
 } catch { }
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
+S.frames = Object.fromEntries(Object.entries(S.frames ?? {}).map(([k, f]) => [k, cleanFrame(f)]).filter(([, f]) => f));
 
 // ---------- the library ----------
 const LIB = {}, IMG = {};
 let PIC = null, SEQ = [];
+// a picture as it is run: in its frame, F, when one is laid (formgplan.js's framedPic); the plan's and the run's keys by it, so the card's (i) keeps the whole picture's numbers
+const picNow = id => framedPic(LIB[id], S.frames[id]);
+const pk = () => PIC.frame ? `${PIC.id}|${PIC.frame.x0},${PIC.frame.y0},${PIC.frame.x1},${PIC.frame.y1}` : PIC.id;
 const jarOf = id => SEQ.find(j => j.id === id);
 const opts0 = () => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: true, ink: true, snake: true, pause: false, cup: dipCup(), hover: ELBOW_HOVER, press: S.press, noDipUnder: 0 });
 // where the canvas may lie: from plotRun's carriage, the path not yet pressed into a wall
 const RANGE = new Map();
 function rangeOf() {
-  const key = JSON.stringify([S.speed, S.tail, S.dipEvery, S.dipLap, S.over, S.press]), had = RANGE.get(PIC.id);
+  const key = JSON.stringify([S.speed, S.tail, S.dipEvery, S.dipLap, S.over, S.press]), had = RANGE.get(pk());
   if (had?.key === key) return had;
   const P = plan(), R = rowsOf(PIC, P, S.dipEvery, S.dipLap, CANON_RUN), r = plotRun({ ...opts0(), rows: R.ps.length }, R.groups.map(g => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: null })));
   const out = { key, ...placeRange(PIC, r.carriage, reach()) };
-  RANGE.set(PIC.id, out);
+  RANGE.set(pk(), out);
   return out;
 }
 const nearZero = ([lo, hi]) => lo > hi ? Math.round((lo + hi) / 2) : Math.round(Math.min(hi - Math.min(1, (hi - lo) / 2), Math.max(lo + Math.min(1, (hi - lo) / 2), 0)));
@@ -46,6 +50,9 @@ function placeNow() {
   return S.place[PIC.id];
 }
 const hereNow = () => { const R = reach(), c = placeNow(); return { x: R.x.min + c.edgeBottom + PIC.h / 2, y: R.y.min + c.edgeLeft + PIC.w / 2 }; };
+// the frame's own canvas, from home: the picture's place and the frame's corner in it
+const frameSize = () => `${fmt(PIC.frame.x1 - PIC.frame.x0, 0)} × ${fmt(PIC.frame.y1 - PIC.frame.y0, 0)}`;
+const frameHome = () => ({ left: Math.round(placeNow().edgeLeft + PIC.frame.x0), bottom: Math.round(placeNow().edgeBottom + PIC.frame.y0) });
 
 // ---------- the run, as OPM-N's paintRun ----------
 let INK = {};
@@ -58,13 +65,13 @@ const EMPTY = { blocks: [], rows: [], seconds: 0, mm: 0, dips: 0, passes: [], fa
 const PLAN = new Map(), RUNS = new Map();
 function plan() {                                                                     // the list's colours
   const key = JSON.stringify([S.over, S.dipLap, CANON_RUN ? S.dipEvery : 0]);
-  if (PLAN.get(PIC.id)?.key !== key) PLAN.set(PIC.id, { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : {}) }) });
-  return PLAN.get(PIC.id).passes;
+  if (PLAN.get(pk())?.key !== key) PLAN.set(pk(), { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : {}) }) });
+  return PLAN.get(pk()).passes;
 }
 // the run from a line of the list on; the pause before the second layer's first says what it is
 function paintRun(from = 0) {
   if (!PIC) return EMPTY;
-  const key = JSON.stringify([PIC.id, S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from]);
+  const key = JSON.stringify([pk(), S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from]);
   if (RUNS.has(key)) return RUNS.get(key);
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
@@ -95,7 +102,7 @@ async function start(key, blocks, info, log) {
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 }
 // rembrandt.py knows OPM-N's brush by its page (PENCIL_PAGES: the elbow may rest on the canvas just above its aim): FORM-G's the same brush, so the same page, its own `tab` in the journal; rembrandt.py as it was
-const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}`, here: hereNow(), ...o });
+const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...o });
 const remoteRows = R => ({ colours: R.passes.map(q => { const j = jarOf(q.pencil); return { name: j?.name ?? q.pencil, hex: j?.hex ?? '#7F7F7F', code: j?.code || j?.hex || '', cells: q.cells }; }), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) });
 const dragWay = tracks => `${tracks} legs in all, only up and down, ${fmt(PIC.pitch, 0)} mm apart, the snake back and forth with the brush down; then at once an idle run over the cell, no dip, +${fmt(S.over, 1)} mm past the ends and none at its very end`
   + (CANON_RUN ? `. A long leg by the canon, no. 9: after every dip the brush lands inside the leg, 16 mm along it, back to its start, then along it; legs under 30 mm go on what a longer one leaves, to 79 mm of line` : '');
@@ -112,7 +119,7 @@ $('#btnDrag').onclick = async () => {
   const say = () => { const n = R.passes.length, first = jarOf(R.passes[0].pencil); const two = R.passes.filter(q => q.layer === 2).length; return (two ? `Two layers, one list: ${n - two ? `${n - two} jars, then ` : ''}${two} of them again over the dry first layer, the last in the list; Start from reaches them on another day. ` : '') + `One brush, ${n} line${n === 1 ? '' : 's'} of the list, in this order, light to dark. Every jar's cells by their numbers, 1, 2, 3 …, every one on its own: ${dragWay(R.passes.reduce((a, q) => a + q.tracks, 0))}; from cell to cell up through the air. `
     + `The paint from ${cupName()}: put ${first?.name ?? 'the first'} in it now — a dip at every jar's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of line` : 'no other'}, ${R.dips} dips. `
     + (n > 1 ? `Between two lines it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the cup — wipe it, put the next jar in the cup, Continue. ` : '')
-    + `${fmt(R.mm / 1000, 1)} m of brush at ${S.speed} mm/s, ≈ ${hm(R.seconds)} (est.). The canvas's left edge ${placeNow().edgeLeft} mm, its bottom edge ${placeNow().edgeBottom} mm from home.`; };
+    + `${fmt(R.mm / 1000, 1)} m of brush at ${S.speed} mm/s, ≈ ${hm(R.seconds)} (est.). ` + (PIC.frame ? `Only the frame, ${frameSize()} mm, at its place in the picture: its canvas's left edge ${frameHome().left} mm, its bottom edge ${frameHome().bottom} mm from home — is it laid there?` : `The canvas's left edge ${placeNow().edgeLeft} mm, its bottom edge ${placeNow().edgeBottom} mm from home.`); };
   if (!await askDraw(R.passes, say(), { from: whole.length > 1 ? { passes: whole, pick: i => { from = i; R = paintRun(i); return { passes: R.passes, text: say() }; } } : null })) return;
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);               // the run from a later jar: its own plan
   if (walls(R)) return warn(walls(R));
@@ -165,7 +172,7 @@ $('#btnTest').onclick = async () => {
   if (cupProblem(cup())) return warn(`TEST dips in ${cupName()}: ${cupProblem(cup())}`);
   if (T.fault) return warn(`Not run: the test is wrong — ${T.fault}.`);
   if (walls(T)) return warn(walls(T));
-  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of the picture's box — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`)) return;
+  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of ${PIC.frame ? 'what the frame paints' : "the picture's box"} — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`)) return;
   await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
 };
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
@@ -263,6 +270,15 @@ function draw() {
     g.imageSmoothingQuality = 'high'; g.drawImage(IMG[S.pic], sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
     if (only) { g.fillStyle = 'rgba(243,240,230,.82)'; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); drawLegs(g, plan().filter(q => q.pencil === only)); }
   } else drawLegs(g, plan());
+  // F, the frame, as OPM-W's, its size by it, the picture round it veiled; the one being dragged while it is. Solid, not dashed: the walls' line here is dashed
+  const F = fgrab?.f ?? S.frames[S.pic];
+  if (F) {
+    const fx = sx(F.x0), fy = sy(F.y1), fw = (F.x1 - F.x0) * K, fh = (F.y1 - F.y0) * K;
+    g.save(); g.fillStyle = 'rgba(243,240,230,.74)'; g.beginPath(); g.rect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); g.rect(fx, fy, fw, fh); g.fill('evenodd');
+    g.strokeStyle = '#EB7A25'; g.lineWidth = 2; g.strokeRect(fx, fy, fw, fh);
+    g.fillStyle = '#B3470C'; g.font = '600 11px ui-monospace, Menlo, monospace'; g.textAlign = 'left';
+    g.fillText(`frame ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm`, fx, fy - 6); g.restore();
+  }
   // the brush's reach, the walls, with the canvas as it lies
   const W = reach(), c = placeNow(), x0 = W.y.min - c.edgeLeft, x1 = W.y.max - c.edgeLeft, y0 = W.x.min - c.edgeBottom, y1 = W.x.max - c.edgeBottom;
   g.save(); g.setLineDash([6, 4]); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2; g.strokeRect(sx(x0), sy(y1), (x1 - x0) * K, (y1 - y0) * K); g.restore();
@@ -283,9 +299,53 @@ cv.addEventListener('wheel', e => {
   kick();
 }, { passive: false });
 let dragFrom = null;
-cv.addEventListener('pointerdown', e => { dragFrom = [e.clientX, e.clientY, OX, OY]; cv.setPointerCapture(e.pointerId); cv.classList.add('drag'); });
-cv.addEventListener('pointermove', e => { if (dragFrom) { OX = dragFrom[2] + e.clientX - dragFrom[0]; OY = dragFrom[3] + e.clientY - dragFrom[1]; kick(); } });
-cv.addEventListener('pointerup', () => { dragFrom = null; cv.classList.remove('drag'); });
+// F, the frame (OPM-W's, the owner, 2026-11-08): a drag round a piece lays it, on the pitch so no column is cut down its length; a click a 200 × 200 there (a 20 × 20 canvas);
+// with F on, a drag in the frame moves it, a click in it takes it away, the whole picture again. Then the hand again, the view dragged as before.
+let frameOn = false, fgrab = null;
+const HINT0 = $('#hint').textContent;
+const FRAME_CLICK = 200;   // mm, the frame a click lays: the owner's 20 × 20 cm canvas
+const toMm = e => { const [px, py] = toPt(e); return [(px - OX) / K, PIC.h - (py - OY) / K]; };
+const onPitch = v => Math.round(v / PIC.pitch) * PIC.pitch, within = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const inFrame = (F, p) => !!F && p[0] >= F.x0 && p[0] <= F.x1 && p[1] >= F.y0 && p[1] <= F.y1;
+function frameTool(on) {
+  frameOn = on; cv.classList.toggle('frame', on); $('#btnFrame')?.classList.toggle('on', on);
+  $('#hint').textContent = on ? 'F, the frame: a drag round the piece, or a click — a 200 × 200 there; a drag in the frame moves it, a click in it takes it away. Esc: the hand again.' : HINT0;
+}
+function setFrame(F, said) {
+  if (lastSt && LIVE.includes(lastSt.state)) { warn('A run is on: the frame stays as it is till it ends or stops.'); kick(); return; }
+  if (F) S.frames[S.pic] = F; else delete S.frames[S.pic];
+  playStop(); only = null; PIC = picNow(S.pic); SEQ = seqOf(PIC); settle();
+  if (said) $('#hint').textContent = said;
+}
+cv.addEventListener('pointerdown', e => {
+  if (frameOn && PIC) { const p = toMm(e), F = S.frames[S.pic] ?? null; fgrab = { a: p, f0: F, move: inFrame(F, p), moved: false, f: F }; cv.setPointerCapture(e.pointerId); return; }
+  dragFrom = [e.clientX, e.clientY, OX, OY]; cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
+});
+cv.addEventListener('pointermove', e => {
+  if (fgrab) {
+    const p = toMm(e), a = fgrab.a;
+    if (!fgrab.moved && Math.hypot(p[0] - a[0], p[1] - a[1]) * K < 4) return;
+    fgrab.moved = true;
+    if (fgrab.move) { const F = fgrab.f0, w = F.x1 - F.x0, h = F.y1 - F.y0, x0 = within(onPitch(F.x0 + p[0] - a[0]), 0, PIC.w - w), y0 = within(onPitch(F.y0 + p[1] - a[1]), 0, PIC.h - h); fgrab.f = { x0, y0, x1: x0 + w, y1: y0 + h }; }
+    else { const cx = v => within(onPitch(v), 0, PIC.w), cy = v => within(onPitch(v), 0, PIC.h); fgrab.f = { x0: Math.min(cx(a[0]), cx(p[0])), y0: Math.min(cy(a[1]), cy(p[1])), x1: Math.max(cx(a[0]), cx(p[0])), y1: Math.max(cy(a[1]), cy(p[1])) }; }
+    kick(); return;
+  }
+  if (dragFrom) { OX = dragFrom[2] + e.clientX - dragFrom[0]; OY = dragFrom[3] + e.clientY - dragFrom[1]; kick(); }
+});
+cv.addEventListener('pointerup', () => {
+  dragFrom = null; cv.classList.remove('drag');
+  if (!fgrab) return;
+  const q = fgrab; fgrab = null; frameTool(false);
+  if (!q.moved && q.move) return setFrame(null, 'Frame taken away: the whole picture. F lays another.');
+  if (!q.moved) { const w = Math.min(FRAME_CLICK, PIC.w), h = Math.min(FRAME_CLICK, PIC.h), x0 = within(onPitch(q.a[0] - w / 2), 0, PIC.w - w), y0 = within(onPitch(q.a[1] - h / 2), 0, PIC.h - h); return setFrame({ x0, y0, x1: x0 + w, y1: y0 + h }); }
+  const F = cleanFrame(q.f, PIC.pitch);
+  if (F) setFrame(F); else kick();
+});
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('input, select, textarea') || !$('#drawAsk').hidden) return;
+  if (e.key.toLowerCase() === 'f') { e.preventDefault(); frameTool(!frameOn); }
+  else if (e.key === 'Escape' && frameOn) frameTool(false);
+});
 cv.addEventListener('dblclick', () => { if (PIC) { fit(); kick(); } });
 new ResizeObserver(layout).observe(stage);
 
@@ -343,10 +403,14 @@ function showPanel() {
   if (document.activeElement !== L) L.value = c.edgeLeft;
   if (document.activeElement !== B) B.value = c.edgeBottom;
   $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}Within the walls for this picture: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line on the screen).`;
+  const F = PIC.frame, all = LIB[S.pic].jars.length, nb = $('#btnNoFrame');
+  if (nb) nb.disabled = !F;
+  if ($('#frameRead')) $('#frameRead').innerHTML = F ? `<b>Frame ${frameSize()} mm</b>, its bottom left corner ${fmt(F.x0, 0)} → ${fmt(F.y0, 0)} ↑ mm from the picture's: lay its canvas with the left edge <b>${frameHome().left}</b> and the bottom edge <b>${frameHome().bottom}</b> mm from home. ${PIC.jars.length} of the ${all} jars in it, ${P.length} lines of the list, ${fmt(R.mm / 1000, 1)} m of brush, ≈ ${hm(R.seconds)} (est.).`
+    : 'No frame: the whole picture. F, or Frame, lays one round a piece to try first, at its place from home: a click a 200 × 200 there, a drag any size.';
   for (const [id, k] of [['#fSpeed', 'speed'], ['#fEvery', 'dipEvery'], ['#fLap', 'dipLap'], ['#fOver', 'over']]) if (document.activeElement !== $(id)) $(id).value = S[k];
   $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)} ${esc(j.hex)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)} <em>${esc(j.code || j.hex)}</em></span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
-  $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm`;
+  $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
 }
 // a card's (i), on hover (the owner, 2026-11-06: under the preview's text "we do in an (i), on hover"): that picture's numbers, by its own plan and its own place on the canvas, once for the numbers as they are
 const READS = new Map();
@@ -384,13 +448,15 @@ function markRun(at) { [...$('#runList').children].forEach(q => { const i = q.da
 function settle() { RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); save(); showKeys(); showPanel(); kick(); }
 $('#lib').onclick = async e => {
   const b = e.target.closest('.fg-card'); if (!b) return;
-  playStop(); popHide(); only = null; S.pic = b.dataset.id; PIC = LIB[S.pic]; SEQ = seqOf(PIC); fitted = ''; layout(); showKeys(); showPanel(); save();
+  playStop(); popHide(); only = null; S.pic = b.dataset.id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); save();
 };
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; playStop(); S.view = b.dataset.view; save(); showKeys(); kick(); };
 $('#runList').onclick = e => { const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#runList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
 for (const [id, k, lo, hi] of [['#fSpeed', 'speed', 5, 120], ['#fEvery', 'dipEvery', 0, 200], ['#fLap', 'dipLap', 0, 30], ['#fOver', 'over', 0, 8]]) {
   $(id).onchange = e => { const v = +e.target.value; if (Number.isFinite(v)) S[k] = Math.max(lo, Math.min(hi, v)); e.target.value = S[k]; settle(); };
 }
+if ($('#btnFrame')) $('#btnFrame').onclick = () => frameTool(!frameOn);
+if ($('#btnNoFrame')) $('#btnNoFrame').onclick = () => { frameTool(false); if (S.frames[S.pic]) setFrame(null, 'Frame taken away: the whole picture. F lays another.'); };
 for (const [id, k] of [['#fLeft', 'edgeLeft'], ['#fBottom', 'edgeBottom']]) {
   $(id).onchange = e => { const v = +e.target.value; if (Number.isFinite(v)) placeNow()[k] = Math.round(v); e.target.value = placeNow()[k]; settle(); };
 }
@@ -450,7 +516,7 @@ lampSwitch($('#lamp'));
   }
   $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
   if (!LIB[S.pic]) S.pic = LIBRARY[0];
-  PIC = LIB[S.pic]; SEQ = seqOf(PIC);
+  PIC = picNow(S.pic); SEQ = seqOf(PIC);
   await loadInk();
   layout(); settle(); watch();
   setInterval(watch, 500);

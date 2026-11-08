@@ -19,6 +19,7 @@
   .runkeys.passes.one{grid-template-columns:1fr}
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   #cv.drag{cursor:grabbing}
+  #cv.frame{cursor:crosshair}
   .fg-lib{display:flex;flex-direction:column;gap:10px}
   .fg-item{position:relative;flex:none}
   .fg-card{display:flex;flex-direction:column;gap:5px;width:100%;box-sizing:border-box;padding:5px 5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
@@ -120,6 +121,9 @@
         <label title="The canvas's bottom edge, mm above home; minus: below it">Bottom edge ↑<input id="fBottom" type="number" step="1"></label>
       </div>
       <p class="read" id="placeRead"></p>
+      <!-- F, the frame (the owner, 2026-11-08: "a 20 × 20 cm piece first, how many paints mix"; OPM-W's F carried over): only what lies in it is run, at its place from home -->
+      <div class="grid4 keys"><button class="btn" id="btnFrame" title="F, the frame: a drag on the picture round a piece to try first, or a click, a 200 × 200 there — only the legs in it are run, at their place from home, its canvas laid there. With F on, a drag in the frame moves it, a click in it takes it away (F)">▭ Frame · F</button><button class="btn" id="btnNoFrame" title="The frame taken away: the whole picture">Whole picture</button></div>
+      <p class="read" id="frameRead"></p>
     </section>
     <section class="sec">
       <h3>The brush <span class="hint">OPM-N's, est.</span></h3>
@@ -151,7 +155,7 @@
 </div>
 
 <footer class="status">
-  <span id="hint">FORM-G — finished paintings, the brush 5 mm. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its legs.</span>
+  <span id="hint">FORM-G — finished paintings, the brush 5 mm. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its legs; F a frame round a piece.</span>
   <span id="stats"></span>
 </footer>
 <script type="module" src="src/formg.js"></script>

@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **F, the frame, on FORM-G** (the owner, 2026-11-08, after a talk with Kuzya: "go back to the Porsche 911 and stop the work on the G-wagon; it is not going for us, and the
+  Porsche comes out well"; "test a 20 × 20 cm piece, how many paints mix, and then go back to the G-wagon"; "the G-wagon needs the format widened to 120 × 120 cm anyway, that is
+  easier with the first sales"; then: "in OPM-W's Tools I found how to cut a fragment out, frame [ F ]; it can be carried into FORM-G"). OPM-W's F on FORM-G's page (and so on
+  OPM-G's): a drag round a piece, or a click, a 200 × 200 there; with F on, a drag in the frame moves it, a click in it takes it away; **Whole picture** under The canvas. Only the
+  legs in it are run, at their place from home, the page saying where its canvas's left and bottom edges lie; the frame on the pitch, a column in it when its whole track is, a
+  leg cut at its top and bottom (under 3 mm there not painted), a cell broken where a leg falls out, a jar with nothing in it out of the list, the second layer's jars still last
+  (`framedPic`). Kept per picture in this browser; the card's (i) still the whole picture's. The Porsche's richest 20 × 20, at 310 → 630 ↑ (the windscreen's right and the roof's
+  edge): 51 of its 55 jars, 75 lines of the list with the second layer's, 26.1 m, ≈ 1 h 03 min (est.). Driven in headless Chrome; not run on the machine. The G-wagon's work
+  (OPM-G's black G-wagon in modules) stays on this Mac, not committed, till then.
+
 - **OPM-G, the G-wagon on 60 × 60** (the owner, 2026-11-07: "start with g-wagon.JPG, on a 60 × 60 canvas, with the new data of LAB / real 2"; "my one request: cut the colours
   from 60 to 36 … in the Porsche Jar 9 #E5E0CF is only 833 mm, I do not even see where it is on the canvas … merge them with others, so that every colour has some minimum of
   strokes, for example 1 metre at least"). FORM-G's page with its own library, `opmg.html` after FORM-G; FORM-G as it was. The picture by `FORM-G/generator/gwagon.py`, the Porsche's

@@ -75,6 +75,32 @@ export function passesOf(pic, o = {}) {
     return { pencil: j.id, layer: j.layer, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
+// F, the frame (the owner, 2026-11-08: "back to the Porsche: test a 20 × 20 cm piece, how many paints mix"; "in OPM-W's Tools, frame [ F ] cuts a piece out, it can be carried
+// into FORM-G"): a rectangle on the picture, mm from the canvas's bottom left corner as the legs, and only what lies in it is run, at its place from home — the small canvas laid there.
+// A column in it when its whole track is (the edges on the pitch fall between columns); a leg cut at the frame's top and bottom, what is left under minLeg there not painted;
+// a cell broken where a leg falls out, so no step crosses the gap; a jar with nothing in it out of the list. Its coats as they were: the second layer's jars still last.
+export const cleanFrame = (f, pitch = 5) => f && [f.x0, f.y0, f.x1, f.y1].every(Number.isFinite) && f.x1 - f.x0 >= pitch && f.y1 - f.y0 >= pitch ? { x0: f.x0, y0: f.y0, x1: f.x1, y1: f.y1 } : null;
+export function framedPic(pic, F) {
+  F = cleanFrame(F, pic.pitch);
+  if (!F) return pic;
+  const half = pic.pitch / 2, e = 1e-6, inX = x => x - half >= F.x0 - e && x + half <= F.x1 + e;
+  const clip = ([x, a, b]) => {
+    const lo = Math.max(Math.min(a, b), F.y0), hi = Math.min(Math.max(a, b), F.y1), cut = lo > Math.min(a, b) + e || hi < Math.max(a, b) - e;
+    if (!inX(x) || hi <= lo || (cut && hi - lo < FORMG.minLeg)) return null;
+    return b >= a ? [x, lo, hi] : [x, hi, lo];
+  };
+  const jars = pic.jars.map(j => {
+    const cells = [];
+    for (const c of j.cells) {
+      let run = [];
+      const flush = () => { if (run.length) cells.push({ ...c, legs: run, ...(c.cuts ? { cuts: c.cuts.filter(y => y > F.y0 && y < F.y1) } : {}) }); run = []; };
+      for (const l of c.legs) { const k = clip(l); if (k) run.push(k); else flush(); }
+      flush();
+    }
+    return { ...j, cells: cells.map((c, i) => ({ ...c, n: i + 1 })) };
+  }).filter(j => j.cells.length);
+  return { ...pic, jars, frame: F };
+}
 // OPM-G's runs: what the brush holds counted to the canon's 79 mm (the cells' own dips already in their runs), every run after a dip landing inside
 export const canonRuns = (passes, lap = FORMG.lap, ride = CANON.ride) => idleRunsOf(passes, ride, lap).map(r => r.idle || !r.dip ? r : { ...r, pts: landInside(r.pts, true) });
 export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false) => idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, canon ? canonRuns(passes, lap) : null);

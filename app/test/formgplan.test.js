@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, cellOf, idleLegsOf, airRuns, placeRange } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame } from '../src/formgplan.js';
 import { landInside } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -137,6 +137,48 @@ test('every picture through plotRun, the canvas in the middle of its range: no f
     assert.ok(r.blocks.some(q => q.fork), 'the cup at hand: its forks');
     assert.equal(r.blocks.filter(q => q.kind === 'pause').length, P.length - 1, `${id}: a pause between lines`);
   }
+});
+
+// F, the frame (the owner, 2026-11-08: "a 20 × 20 cm piece first, how many paints mix"; OPM-W's F carried into FORM-G)
+const FR = { id: 'f', w: 100, h: 100, pitch: 5, jars: [
+  { id: 'a', name: 'A', hex: '#EEEEEE', coats: 2, cells: [{ n: 1, legs: [[12.5, 10, 90], [17.5, 90, 10], [22.5, 10, 90]] }, { n: 2, legs: [[47.5, 70, 80]] }] },
+  { id: 'b', name: 'B', hex: '#222222', coats: 1, cells: [{ n: 1, legs: [[77.5, 10, 30]] }] },
+  { id: 'c', name: 'C', hex: '#888888', coats: 1, cells: [{ n: 1, legs: [[27.5, 10, 40], [32.5, 60, 50], [37.5, 30, 45]] }] }] };
+
+test('the frame: only the columns whose whole track lies in it, every leg cut at its top and bottom, the way it goes kept', () => {
+  const p = framedPic(FR, { x0: 10, y0: 20, x1: 40, y1: 75 });
+  assert.deepEqual(p.frame, { x0: 10, y0: 20, x1: 40, y1: 75 });
+  assert.deepEqual(p.jars.find(j => j.id === 'a').cells, [{ n: 1, legs: [[12.5, 20, 75], [17.5, 75, 20], [22.5, 20, 75]] }], 'its cell 2, at 47.5, out of the frame');
+  assert.equal(p.jars.find(j => j.id === 'b'), undefined, 'a jar with nothing in the frame is out of the list');
+  assert.deepEqual(framedPic(FR, { x0: 10, y0: 0, x1: 20, y1: 100 }).jars.find(j => j.id === 'a').cells[0].legs.map(l => l[0]), [12.5, 17.5], 'a column half out is not painted');
+  assert.equal(framedPic(FR, null), FR, 'no frame: the picture as it is');
+  assert.equal(cleanFrame({ x0: 0, y0: 0, x1: 3, y1: 50 }), null, 'narrower than the pitch: no frame');
+});
+
+test('the frame: a cell broken where a leg falls out, so no step crosses the gap; a cut end under minLeg not painted', () => {
+  const c = framedPic(FR, { x0: 25, y0: 0, x1: 40, y1: 42 }).jars.find(j => j.id === 'c');
+  assert.deepEqual(c.cells, [{ n: 1, legs: [[27.5, 10, 40]] }, { n: 2, legs: [[37.5, 30, 42]] }], 'the leg 50 … 60 out, the cell in two');
+  const d = framedPic(FR, { x0: 25, y0: 0, x1: 40, y1: 31 }).jars.find(j => j.id === 'c');
+  assert.deepEqual(d.cells, [{ n: 1, legs: [[27.5, 10, 31]] }], 'the leg cut to 1 mm at the frame\'s top: not painted');
+});
+
+test('the frame: its coats as they were, the second layer\'s jars last; the same lines, cells and legs through OPM-N\'s rows', () => {
+  const p = framedPic(FR, { x0: 10, y0: 20, x1: 40, y1: 75 });
+  assert.deepEqual(seqOf(p).map(j => j.id), ['a', 'c', 'a:2']);
+  const P = passesOf(p);
+  assert.deepEqual(P.map(q => q.cells), [1, 1, 1]);
+  for (const q of P) for (const c of q.byCell) for (const l of c.legs) for (const [x, y] of l) assert.ok(x > 10 && x < 40 && y >= 20 && y <= 75, `a leg's point out of the frame: ${x}, ${y}`);
+});
+
+test('the Porsche in a 20 × 20 frame at its place: within the walls, no fault, the cup at hand, a pause between lines; most of its jars in the richest piece', () => {
+  const pic = load('porsche'), G = rangeOf(pic), place = { left: (G.left[0] + G.left[1]) / 2, bottom: (G.bottom[0] + G.bottom[1]) / 2 };
+  const p = framedPic(pic, { x0: 310, y0: 630, x1: 510, y1: 830 });
+  assert.ok(p.jars.length >= 45 && p.jars.length < pic.jars.length, `${p.jars.length} of ${pic.jars.length} jars`);
+  const { P, r } = runOf(p, place);
+  assert.equal(r.fault, ''); assert.equal(r.pastWall, 0); assert.equal(r.gone, 0);
+  assert.equal(r.blocks.filter(q => q.kind === 'pause').length, P.length - 1);
+  const whole = runOf(pic, place);
+  assert.ok(r.seconds < whole.r.seconds / 4, 'a piece, not the picture');
 });
 
 // OPM-G (the owner, 2026-11-07): the G-wagon on 60 × 60, at most 36 jars, every jar 1 m at least, its run by the canon of a long leg (canon.js, README)
