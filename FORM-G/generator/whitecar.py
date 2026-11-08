@@ -38,7 +38,6 @@ def outline(mask):
 class WhiteCar(RedCar):
     FIXED = WHITE_FIXED
     SEAM, SHADOW, WING = 'seam', ('chromeM', 'chromeD'), 'chromeM'
-    WHEEL = (358.0, 727.0, 61.0, 22.0)   # the wheel as both pictures have it, in the canon's px (the owner: "the steering wheel shows")
     KEEP = 'porsche-white.jars.json'
 
     def source(self, g):

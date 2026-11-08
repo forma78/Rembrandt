@@ -34,7 +34,8 @@ class RedCar(H.Car):
     SEAM, SHADOW, WING = 'seam', ('seam', 'ink'), 'chrome'
     EDGE = (10.0, 0.35)         # a seam across the car: so many mm on its darker side, the light taken down by up to so much at it (est.)
     ALONG = (5.0, 0.25)         # a seam along the car: a column on its darker side, its light taken down by so much (est.)
-    WHEEL = None               # the steering wheel's ring, ink, a colour's own choice: the red's is not drawn (its picture's, through the glass, on its red seats)
+    WHEEL = (358.0, 727.0, 61.0, 22.0)   # the steering wheel through the glass, an oval ring of ink, centre x, y and half axes in the canon's px — the red's too since
+                                         # 2026-11-08 (the owner: "yes, I thought so too; the wheel must be added"); None leaves it out
     KEEP = 'porsche-red.jars.json'
     # the canon 4 % wider than the red picture (the owner, 2026-11-08, of the new white he and Kuzya made, at 0.475 width to length against the red's 0.458, every part
     # along the length within 0.5 %: "its proportions are tasty"; asked how wide the canon: "as the new, +4 %"): the whole form, its glass, mirrors and seams, across

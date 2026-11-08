@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **The red 911's steering wheel** (the owner, 2026-11-08, asked whether the red should have the white's: "yes, I thought so too; the wheel must be added"): the oval
+  ring of ink through the glass is the canon's now (`RedCar.WHEEL`), every colour's. The red: 49 jars, 936 cells, 119.9 m. Not run on the machine.
+
 - **FORM-G: the white 911 in the canon's form, and thin lines by colour** (2026-11-08). `whitecar.py`: the red's `RedCar`, all of its geometry, its tones off the
   picture the owner and Kuzya made, `White Vintage Porsche 911, Saddle-Tan Interior.png` (asked which white: "the new, saddle-tan"; of a first try off a Singer-style
   picture, squeezed to 0.53: "the white must be built at 0.46, the red is the canon"; "the steering wheel is good"), laid on the canon along the car by the landmarks
