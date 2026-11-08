@@ -10,6 +10,10 @@
   /* LAB: the sheet on the left, its numbered list on the right */
   .lablist{margin:6px 0 0;padding-left:22px;font-size:12px;line-height:1.35;color:var(--ink)}
   .lablist li{margin:0 0 4px}
+  .lablist li[data-n]{cursor:pointer;border-radius:3px}
+  .lablist li.on{outline:2px solid #E8751A;outline-offset:2px}   /* a number picked: its strokes alone on the sheet */
+  .lablist li.now{background:#FFE9A8}                            /* ▶ Play: the number now */
+  #btnPlay.on{background:#E8751A;color:#fff;border-color:#E8751A}
   .lablist .sw{display:inline-block;width:11px;height:11px;margin:0 5px -1px 0;border-radius:2px;border:1px solid rgba(0,0,0,.25)}   /* real 3: the jar's colour */
   .labgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
   .labgrid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
@@ -54,8 +58,11 @@
         <label>Pressed, °<input id="fPress" type="number" step="0.5"></label>
         <label title="LAB 3.0: tracks in a cell, shared out over its width">Tracks<input id="fTracks" type="number" min="1" max="8" step="1"></label>
       </div>
-      <div class="grid4 keys"><button class="btn" id="btnHere" title="X and Y become where the carriage stands: jog it over the scrap's bottom left corner on INK-Y">Take the carriage's place</button></div>
+      <div class="grid4 keys"><button class="btn" id="btnHere" title="X and Y become where the carriage stands: jog it over the scrap's bottom left corner on INK-Y">Take the carriage's place</button><button class="btn" id="btnPlay" title="The sheet as it will run, number after number, run after run, the brush's tip a dot; the idle runs walked, not drawn. A view: it moves nothing on the machine">▶ Play</button></div>
       <p class="read" id="planRead"></p>
+      <p class="read" id="noteRead"></p>
+      <p class="read" id="playRead"></p>
+      <p class="read" id="selRead"></p>
     </section>
     <section class="sec">
       <h3>Run <span class="hint">the paint in the jar, the brush in the holder</span></h3>

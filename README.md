@@ -243,6 +243,28 @@ long line breaks in the middle".
 `IMG_2486`: the long legs clean and alike in all four copies) and OPM-G's run since 2026-11-07; not
 yet in OPM-N's or FORM-G's.
 
+## How many jars — the canvas's long side (canon)
+
+The owner, 2026-11-08: "Honestly, I do not have so many jars, nor do I see the point of nuances of
+RGB: ours is optical mixing, so I propose a compromise. The rule 'take less than 1 m' is for a
+canvas whose long side is 1 metre; ours is 100 × 70 cm, all fair. But LAB's canvas is 20 × 20 cm:
+I propose a universal rule. Take out the jars with less than the canvas's own long side, if they
+do not change the look; so under 20 cm. It can go into the canon."
+
+1. **A jar's line** — its legs and its idle run, as the list shows it — **shorter than the long
+   side of the canvas it is painted on**: the jar goes out, its cells to the jar nearest to it in
+   colour that stays, so every leg is still painted, by the paint most like it: no paint mixed,
+   no leg moved. The owner, of a brown jar left for want of a neighbour within ΔE 15.9: "can we
+   not simply find a neighbour a little farther, not merging the colour?"
+2. **As a last resort it stays** (the owner: "at worst, yes"): when even its nearest is over
+   CIELAB ΔE 25 (est.), the colour cannot be replaced, as the ink of a lamp by any red (34).
+3. The shortest first, again and again, so two near jars too short each may make one long
+   enough; then every jar that went to the nearest of those that stay, so no colour drifts along
+   a chain. The list says which went where (Kuzya's rule below).
+
+`src/canon.js`, `jarsByCanvas`. On LAB's real 3 (200 mm: 33 jars → 19); FORM-G's pictures (1 m)
+with the canon's switch there, after real 3.
+
 ## Working rules
 
 - **The artist decides what to paint. The brush determines how it can be

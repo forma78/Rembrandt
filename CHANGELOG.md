@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **The canon of the jars: no jar with less line than the canvas's long side** (2026-11-08). The owner: "I do not have so many jars, nor do I see the
+  point of nuances of RGB … take out the jars with less than the canvas's own long side, if they do not change the look; so under 20 cm. It can go into the
+  canon." README, "How many jars"; `canon.js`'s `jarsByCanvas`: a short jar's cells to the nearest by colour that stays, no paint mixed ("simply find a
+  neighbour a little farther, not merging the colour"); as a last resort it stays ("at worst, yes"), its nearest over ΔE 25 (est.). LAB's real 3, 200 mm:
+  33 jars → 19, two stay short (Jar 5 the wing's pink, the lamp's ink), layer 2 14 jars; the page says which went where. FORM-G not yet: with the canon's
+  switch, after real 3.
+- **LAB: a jar picked in the list, and ▶ Play** (2026-11-08). The owner, of FORM-G's list (`FORM-G/for-lab2.png`): "the paints' selection, so that I study
+  and get ready where which paint goes"; "and I need a play button as in OPM-G". A line of the list shows its strokes alone, the rest veiled, a dark rim under them
+  (a light jar on the white); ↑ ↓ the next, Esc all. ▶ Play walks the sheet as it will run, number after number, the tip a dot, the idle runs walked not drawn,
+  the number now lit in the list, how far and the time left (est.); 90 s, slow at first, as FORM-G's. `labPlan` gives its runs' tips for it.
 - **The red 911's steering wheel** (the owner, 2026-11-08, asked whether the red should have the white's: "yes, I thought so too; the wheel must be added"): the oval
   ring of ink through the glass is the canon's now (`RedCar.WHEEL`), every colour's. The red: 49 jars, 936 cells, 119.9 m. Not run on the machine.
 

@@ -11,7 +11,7 @@ import { cellOf, passesOf, canonRuns, seqOf } from './formgplan.js';
 import { idleRunsOf } from './idleplan.js';
 import { REAL_PIECES, REAL_LONG } from './labreal.js';
 import { REAL3 } from './labreal3.js';
-import { longEndFirst, startOnLong, ridersOnLong } from './canon.js';
+import { longEndFirst, startOnLong, ridersOnLong, jarsByCanvas, CANON } from './canon.js';
 
 export const LAB = {
   speed: 25, travel: 120,      // mm/s, OPM-N's brush and a flight
@@ -470,23 +470,34 @@ const S16 = (() => {     // the frame's bottom on the sheet's X 22, as real 2's 
   const xs = REAL3.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))), half = REAL3.pic.pitch / 2;
   return { bottom: 22, left: 100 - (Math.min(...xs) - half + Math.max(...xs) + half) / 2 };
 })();
+// the jars by the canon of the jars (canon.js): those with less line than the canvas's long side, 200 mm here, go into the nearest that stays, unless no jar is near
+const R3 = (() => { const raw = REAL3.pic, lineOf = j => j.cells.reduce((t, c) => t + cellOf(c, raw, 1).mm, 0); return { ...jarsByCanvas(raw, S14.size, lineOf), lineOf }; })();
+export const real3Jars = () => R3;
+// what the canon of the jars did, in words for the page: which went where, which stay short
+export function real3Note() {
+  const name = id => R3.pic.jars.find(j => j.id === id)?.name ?? id, into = {};
+  R3.out.forEach(o => (into[o.into] ??= []).push(o.name));
+  const went = Object.entries(into).map(([id, ns]) => `${ns.join(', ')} → ${name(id)}`).join('; ');
+  return `The canon of the jars: less line than the canvas's long side, ${S14.size} mm, ${R3.out.length ? `${R3.out.length} went into the nearest by colour (${went})` : 'none went'}`
+    + `${R3.kept.length ? `; ${R3.kept.length} stay though short, no jar near them (ΔE over ${CANON.jarDE}): ${R3.kept.map(k => `${k.name} ${(k.line / 1000).toFixed(2)} m`).join(', ')}` : ''}. ${REAL3.pic.jars.length} jars → ${R3.pic.jars.length} (est.).`;
+}
 export function real3Of(layer = 1) {
-  const pic = REAL3.pic, list = seqOf(pic), passes = passesOf(pic, { canon: true }), runs = canonRuns(passes);
+  const pic = R3.pic, list = seqOf(pic), passes = passesOf(pic, { canon: true }), runs = canonRuns(passes);
   const at = ([x, y]) => ({ x: y - REAL3.frame.y0 + S16.bottom, y: x + S16.left });
-  return passes.map((P, k) => ({ jar: list[k], cells: P.cells, runs: runs.filter(r => r.pass === k).map(r => ({ pts: r.pts.map(at), dip: r.dip, idle: r.idle, beyond: r.beyond })) }))
+  return passes.map((P, k) => ({ jar: list[k], cells: P.cells, line: P.mm, took: pic.jars.find(j => j.id === (list[k].jar ?? list[k].id))?.took ?? [], runs: runs.filter(r => r.pass === k).map(r => ({ pts: r.pts.map(at), dip: r.dip, idle: r.idle, beyond: r.beyond })) }))
     .filter(q => q.jar.layer === layer);
 }
 function sheetReal3(layer) {
-  const jars = real3Of(layer), mm = pts => pts.slice(1).reduce((t, q, i) => t + dist(pts[i], q), 0);
+  const jars = real3Of(layer);
   return jars.map((q, k) => {
-    const j = q.jar, line = q.runs.reduce((t, r) => t + mm(r.pts), 0), dips = q.runs.filter(r => r.dip).length;
+    const j = q.jar, line = q.line, dips = q.runs.filter(r => r.dip).length, took = q.took.length ? `; takes ${q.took.map(t => `${t.name}'s`).join(', ')} cells` : '';
     const pause = k ? `Jar ${k + 1} of ${jars.length}, ${j.name} ${j.hex}: wipe the brush, put it in the cup, then Continue` : undefined;
     return { kind: 'real', c: k, hue: j.hex, jar: `${j.name} ${j.hex}`, wide: true, mm: S3.mm, way: {}, seq: q.runs, pts: q.runs[0].pts, ...(pause ? { pause } : {}),
-      say: `${j.name} ${j.hex}${layer === 2 ? '' : j.coats === 2 ? ' (its second coat on layer 2)' : ''}: ${q.cells} cells, ${q.runs.filter(r => !r.idle).length} runs, ${dips} dips, ${(line / 1000).toFixed(2)} m` };
+      say: `${j.name} ${j.hex}${layer === 2 ? '' : j.coats === 2 ? ' (its second coat on layer 2)' : ''}: ${q.cells} cells, ${q.runs.filter(r => !r.idle).length} runs, ${dips} dips, ${(line / 1000).toFixed(2)} m${took}` };
   });
 }
 function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
-  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
+  const first = handDip(cup, 0), strokes = [], rows = [], tips = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
   const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
   let dips = 0, mm = 0, slowS = 0;
   (sheet === 17 ? sheetReal3(2) : sheet === 16 ? sheetReal3(1) : sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
@@ -497,7 +508,7 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
         const pts = (r.beyond ? liftBeyond(r.pts) : r.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = r.dip ? handDip(c, row) : [];
         // out of the paint slowly: the elbow from the paint to well above it, then as ever
         if (r.dip && q.way.slowAt) { dip.splice(4, 0, { kind: 'joint', joint: 'elbow', deg: S14.slowTo, speed: q.way.slowAt, fork: [S14.slowTo - 1, S14.slowTo + 1], row, dip: true }); slowS += (S14.slowTo - c.dip) / q.way.slowAt; }
-        rows.push({ c: q.c, cells: [[n, 0]] });
+        rows.push({ c: q.c, cells: [[n, 0]] }); tips.push({ n, pts: r.pts.map(shift), idle: !!r.idle, dip: !!r.dip });
         blocks.push(fly(R.start, row), ...dip, ...R.blocks);
         dips += r.dip ? 1 : 0; mm += lengthOf(pts);
       });
@@ -508,13 +519,13 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
     const runs = q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
     runs.forEach((pts0, j) => {
       const pts = (q.reachEnd && j === runs.length - 1 ? liftBeyond(pts0) : pts0).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p, q.ramp), dip = !q.noDip && (q.kind !== 'oneway' || j % (q.every ?? 2) === 0);
-      rows.push({ c: 0, cells: [[n, 0]] });
+      rows.push({ c: 0, cells: [[n, 0]] }); tips.push({ n, pts: pts0.map(shift), idle: false, dip });
       blocks.push(fly(R.start, row), ...(dip ? handDip(c, row) : []), ...R.blocks);
       dips += dip ? 1 : 0; mm += lengthOf(pts);
     });
     if (q.idle) {                                   // the elbow is up from the last run: the flight back, no shoulder, no jar
       const pts = (q.idleRun ? liftBeyond(q.idleRun) : q.over ? liftBeyond(overshot(q.idleLine ?? q.pts, q.over)) : q.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p);
-      rows.push({ c: 0, cells: [[n, 0]] });
+      rows.push({ c: 0, cells: [[n, 0]] }); tips.push({ n, pts, idle: true, dip: false });
       blocks.push(fly(R.start, row), ...R.blocks);
       mm += lengthOf(pts);
     }
@@ -522,7 +533,8 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
     strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, tip, from: tip[0], to: tip.at(-1), via: [], ...(q.tracks ? { lines: q.tracks.map(l => l.map(shift)) } : {}), ...(q.over ? { over: q.over, idleTip: (q.idleRun ?? overshot(q.idleLine ?? q.pts, q.over)).map(shift) } : {}) });
   });
   const pts = blocks.flatMap(b => (b.cmds || []).filter(c => c[0] === 'L' || c[0] === 'M').map(c => c.split(' ').slice(1).map(Number)));
-  return { blocks, strokes, seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed + slowS),
+  // runs: every run's tip in the run's order, its number, idle or not: the page's ▶ Play walks them
+  return { blocks, strokes, runs: tips, ...(sheet >= 16 ? { note: real3Note() } : {}), seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed + slowS),
     bounds: { x0: Math.min(...pts.map(p => p[0])), x1: Math.max(...pts.map(p => p[0])), y0: Math.min(...pts.map(p => p[1])), y1: Math.max(...pts.map(p => p[1])) },
     remote: { colours: sheet >= 16 ? strokes.map(q => ({ name: q.jar, hex: q.hue, code: '', cells: 1 })) : sheet === 14 || sheet === 15 ? [{ name: `${name} · the first paint`, hex: '#3E8E5A', code: '', cells: strokes.filter(q => q.hue === '#3E8E5A').length }, { name: `${name} · the second paint`, hex: '#2B6CB0', code: '', cells: strokes.filter(q => q.hue === '#2B6CB0').length }] : [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
 }

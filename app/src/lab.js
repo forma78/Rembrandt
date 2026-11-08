@@ -20,39 +20,119 @@ function outOfReach(P) {
   const R = reach(), B = P.bounds;
   return B.x0 < R.x.min || B.x1 > R.x.max || B.y0 < R.y.min || B.y1 > R.y.max ? `past the walls: X ${B.x0.toFixed(0)} … ${B.x1.toFixed(0)}, Y ${B.y0.toFixed(0)} … ${B.y1.toFixed(0)} mm` : '';
 }
+// the stage's mm → its SVG: X up, Y right, as every tab
+function geom() {
+  const { w, h } = labSize(S.sheet), m = 16;
+  return { w, h, m, W: w + 2 * m, H: h + 2 * m + LAB.rowGap, X: q => (q.y - S.y0 + m).toFixed(1), Y: q => (S.x0 + h + LAB.rowGap - q.x + m).toFixed(1) };
+}
+const HUE = { markElbow: '#8A5A00', markWrist: '#8A5A00', today: '#D8453B', shallow: '#D8453B', snake: '#D8453B', along: '#3E8E5A', comp: '#2B6CB0', wrist: '#7B3FA0' };
+const hueOf = q => q.hue || HUE[q.kind] || '#D8453B';
+// a number picked in the list (the owner, 2026-11-08, of FORM-G's list, for-lab2.png: "the paints' selection, so that I study and get ready where which paint goes"): its strokes alone, the rest veiled
+let SEL = null, PLAY = null;
 function draw() {
-  const P = plan(), { w, h } = labSize(S.sheet), m = 16, W = w + 2 * m, H = h + 2 * m + LAB.rowGap;
-  const X = q => (q.y - S.y0 + m).toFixed(1), Y = q => (S.x0 + h + LAB.rowGap - q.x + m).toFixed(1);
-  const hue = { markElbow: '#8A5A00', markWrist: '#8A5A00', today: '#D8453B', shallow: '#D8453B', snake: '#D8453B', along: '#3E8E5A', comp: '#2B6CB0', wrist: '#7B3FA0' };
-  const lines = P.strokes.map(q => {
-    const c = q.hue || hue[q.kind] || '#D8453B', o = q.tip[0], up = q.kind === 'along', thin = q.kind === 'cell' || q.kind === 'oneway';
-    const shape = q.lines ? q.lines.map(l => `<line x1="${X(l[0])}" y1="${Y(l[0])}" x2="${X(l[1])}" y2="${Y(l[1])}" stroke="${c}" stroke-width="${q.wide ? 4.6 : 1.6}" stroke-linecap="round" opacity="${q.wide ? .92 : .8}"/>`).join('') : q.tip.length < 2 ? `<circle cx="${X(o)}" cy="${Y(o)}" r="3" fill="${c}"/>` : `<polyline points="${q.tip.map(p => `${X(p)},${Y(p)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="${thin ? 1.6 : 5}" stroke-linecap="round" stroke-linejoin="round" opacity="${thin ? .8 : .55}"/>`;
-    const idle = q.idleTip ? `<polyline points="${q.idleTip.map(p => `${X(p)},${Y(p)}`).join(' ')}" fill="none" stroke="#E8751A" stroke-width=".8" stroke-linejoin="round"/>` : '';   // the idle run, off the first's line
-    return `${shape}${idle}<text x="${(+X(o) + (up ? -13 : q.wide ? -1 : -3)).toFixed(1)}" y="${(+Y(o) + (up ? 2 : q.wide ? -3 : -6)).toFixed(1)}" font-size="${q.wide ? 3.6 : 8}" font-weight="700" fill="currentColor"${q.wide ? ' stroke="#fff" stroke-width=".8" paint-order="stroke"' : ''}>${q.n}</text>`;
-  }).join('');
+  const P = plan(), { w, h, m, W, H, X, Y } = geom(), sel = P.strokes.some(q => q.n === SEL) ? SEL : null;
+  const one = q => {
+    const c = hueOf(q), o = q.tip[0], up = q.kind === 'along', thin = q.kind === 'cell' || q.kind === 'oneway', on = q.n === sel, dim = sel && !on ? .07 : 1;
+    const line = (l, col, wd, op) => `<line x1="${X(l[0])}" y1="${Y(l[0])}" x2="${X(l[1])}" y2="${Y(l[1])}" stroke="${col}" stroke-width="${wd}" stroke-linecap="round" opacity="${op}"/>`;
+    const wd = q.wide ? 4.6 : 1.6 * (on ? 1.6 : 1);
+    const shape = q.lines ? (on ? q.lines.map(l => line(l, '#24221F', wd + .9, 1)).join('') : '') + q.lines.map(l => line(l, c, wd, (q.wide ? .92 : .8) * dim)).join('')   // picked: a dark rim under it, a light jar seen on the white
+      : q.tip.length < 2 ? `<circle cx="${X(o)}" cy="${Y(o)}" r="3" fill="${c}" opacity="${dim}"/>` : `<polyline points="${q.tip.map(p => `${X(p)},${Y(p)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="${thin ? 1.6 : 5}" stroke-linecap="round" stroke-linejoin="round" opacity="${(thin ? .8 : .55) * dim}"/>`;
+    const idle = q.idleTip && !(sel && !on) ? `<polyline points="${q.idleTip.map(p => `${X(p)},${Y(p)}`).join(' ')}" fill="none" stroke="#E8751A" stroke-width=".8" stroke-linejoin="round"/>` : '';   // the idle run, off the first's line
+    const num = sel && !on ? '' : `<text x="${(+X(o) + (up ? -13 : q.wide ? -1 : -3)).toFixed(1)}" y="${(+Y(o) + (up ? 2 : q.wide ? -3 : -6)).toFixed(1)}" font-size="${q.wide ? (on ? 5 : 3.6) : 8}" font-weight="700" fill="currentColor"${q.wide ? ' stroke="#fff" stroke-width=".8" paint-order="stroke"' : ''}>${q.n}</text>`;
+    return `${shape}${idle}${num}`;
+  };
+  const order = sel ? [...P.strokes.filter(q => q.n !== sel), ...P.strokes.filter(q => q.n === sel)] : P.strokes;   // the picked one on top
   $('#stage').innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;background:#fff;color:#24221F" role="img" aria-label="The sheet of trial strokes">
     <rect x="${m}" y="${m}" width="${w}" height="${h + LAB.rowGap}" fill="none" stroke="#C9C5BD" stroke-dasharray="3 3"/>
-    <text x="${m}" y="${H - 3}" font-size="7" fill="#8A857C">X ${S.x0}, Y ${S.y0} · ${w} × ${h + LAB.rowGap} mm · X up, Y right</text>${lines}</svg>`;
-  $('#list').innerHTML = P.strokes.map(q => `<li value="${q.n}">${q.wide ? `<span class="sw" style="background:${q.hue}"></span>` : ''}${q.say}</li>`).join('');
+    <text x="${m}" y="${H - 3}" font-size="7" fill="#8A857C">X ${S.x0}, Y ${S.y0} · ${w} × ${h + LAB.rowGap} mm · X up, Y right</text>${PLAY ? '<g id="playG"></g><circle id="playTip" r="2.2" fill="none" stroke-width=".9" visibility="hidden"/>' : order.map(one).join('')}</svg>`;
+  $('#list').innerHTML = P.strokes.map(q => `<li value="${q.n}" data-n="${q.n}"${q.n === sel ? ' class="on"' : ''}>${q.wide ? `<span class="sw" style="background:${q.hue}"></span>` : ''}${q.say}</li>`).join('');
   $('#planRead').textContent = S.sheet >= 2 ? `${P.strokes.length} numbers, ${P.remote.rows.length} runs of the brush, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.` : `${P.strokes.length} strokes, a dip before each, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.`;
+  $('#noteRead').textContent = P.note ?? '';
+  const q = sel && P.strokes.find(x => x.n === sel), len = q?.lines ? q.lines.reduce((t, [a, b]) => t + Math.hypot(b.x - a.x, b.y - a.y), 0) : 0;
+  $('#selRead').textContent = q ? `${q.n}. ${q.jar ?? q.say.split(':')[0]}: where it goes${len ? `, ${(len / 1000).toFixed(2)} m of line` : ''}, the rest veiled. ↑ ↓ the next, the same line or Esc for all.` : P.strokes.length > 1 && !PLAY ? 'A line of the list: its strokes alone on the sheet.' : '';
   document.querySelectorAll('#sheets button').forEach(b => b.classList.toggle('on', +b.dataset.sheet === S.sheet));
   const bad = outOfReach(P); if (bad) say(bad, true);
 }
+// anything that changes the sheet stops ▶ Play first: its drawing is of the plan it started with
+const redraw = () => PLAY ? playStop() : draw();
+$('#list').onclick = e => { const li = e.target.closest('li[data-n]'); if (!li || PLAY) return; SEL = SEL === +li.dataset.n ? null : +li.dataset.n; draw(); };
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input') || PLAY) return;
+  if (e.key === 'Escape' && SEL) { SEL = null; draw(); return; }
+  if (!SEL || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
+  const ns = plan().strokes.map(q => q.n), k = ns.indexOf(SEL) + (e.key === 'ArrowDown' ? 1 : -1);
+  if (k < 0 || k >= ns.length) return;
+  e.preventDefault(); SEL = ns[k]; draw(); $(`#list li[data-n="${SEL}"]`)?.scrollIntoView({ block: 'nearest' });
+});
+
+// ▶ Play, as FORM-G's and OPM-G's (the owner, 2026-11-08: "and I need a play button as in OPM-G"): the sheet as it will run, number after number, run after run, the brush's tip
+// a dot, slow at first, faster as it goes (the clock squared), a minute and a half; the idle runs walked, not drawn, so the % and the time are the run's. A view: it moves nothing.
+const PLAY_MS = 90000, NS = 'http://www.w3.org/2000/svg';
+function playStop() {
+  if (!PLAY) return;
+  cancelAnimationFrame(PLAY.raf); clearTimeout(PLAY.end); PLAY = null;
+  $('#btnPlay').textContent = '▶ Play'; $('#btnPlay').classList.remove('on'); $('#playRead').textContent = '';
+  draw();
+}
+$('#btnPlay').onclick = () => {
+  if (PLAY) return playStop();
+  const P = plan(), runs = P.runs ?? P.strokes.map(q => ({ n: q.n, pts: q.tip, idle: false })), byN = Object.fromEntries(P.strokes.map(q => [q.n, q])), list = [];
+  let mm = 0;
+  for (const r of runs) r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b.x - a.x, b.y - a.y); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), n: r.n, idle: r.idle }); });
+  if (!list.length) return;
+  SEL = null;
+  const Q = PLAY = { list, mm, i: 0, el: null, n: 0, t0: performance.now(), said: 0 };
+  $('#btnPlay').textContent = '■ Stop'; $('#btnPlay').classList.add('on');
+  draw();
+  const G = geom(), g = $('#playG'), tip = $('#playTip'), nums = P.strokes.map(q => q.n);
+  const seg = q => {
+    const s = byN[q.n], el = document.createElementNS(NS, 'line');
+    for (const [k, v] of Object.entries({ x1: G.X(q.a), y1: G.Y(q.a), x2: G.X(q.a), y2: G.Y(q.a), stroke: hueOf(s), 'stroke-width': s.wide ? 4.6 : 1.6, 'stroke-linecap': 'round', opacity: s.wide ? .92 : .8 })) el.setAttribute(k, v);
+    g.appendChild(el); return el;
+  };
+  const read = (q, u) => {
+    const s = byN[q.n], k = nums.indexOf(q.n) + 1, left = Math.max(0, Math.round(P.seconds * (1 - Q.want / Q.mm) / 60));
+    $('#playRead').textContent = `▶ ${k} of ${nums.length} · ${s.jar ?? `no. ${q.n}`}${q.idle ? ' · idle run, no dip' : ''} · ${Math.round(100 * Q.want / Q.mm)} % · ≈ ${left} min left (est.)${u === 1 ? ' · done' : ''}`;
+  };
+  const step = () => {
+    if (PLAY !== Q) return;
+    const t = performance.now(), u = Math.min(1, (t - Q.t0) / PLAY_MS);
+    Q.want = u < 1 ? Q.mm * u * u : Q.mm;
+    let q = Q.list[Math.min(Q.i, Q.list.length - 1)], p = q.a;
+    while (Q.i < Q.list.length && Q.list[Q.i].from <= Q.want) {
+      q = Q.list[Q.i];
+      const f = Math.min(1, (Q.want - q.from) / (q.to - q.from));
+      p = { x: q.a.x + (q.b.x - q.a.x) * f, y: q.a.y + (q.b.y - q.a.y) * f };
+      if (!q.idle) { Q.el ??= seg(q); Q.el.setAttribute('x2', G.X(p)); Q.el.setAttribute('y2', G.Y(p)); }
+      if (f < 1) break;
+      Q.el = null; Q.i++;
+    }
+    tip.setAttribute('cx', G.X(p)); tip.setAttribute('cy', G.Y(p)); tip.setAttribute('stroke', q.idle ? '#E8751A' : '#24221F'); tip.setAttribute('visibility', 'visible');
+    if (q.n !== Q.n) {                               // the number now, in the list
+      Q.n = q.n;
+      document.querySelectorAll('#list li.now').forEach(li => li.classList.remove('now'));
+      const li = $(`#list li[data-n="${q.n}"]`); if (li) { li.classList.add('now'); li.scrollIntoView({ block: 'nearest' }); }
+    }
+    if (t - Q.said > 150 || u === 1) { Q.said = t; read(q, u); }
+    if (Q.i < Q.list.length) Q.raf = requestAnimationFrame(step); else { tip.setAttribute('visibility', 'hidden'); read(q, 1); Q.end = setTimeout(playStop, 2500); }
+  };
+  Q.raf = requestAnimationFrame(step);
+};
 async function loadInk() {
   try { ink = await (await fetch('/ink', { cache: 'no-store' })).json(); } catch { ink = null; }
-  draw();
+  redraw();
 }
 for (const [id, key] of [['#fX', 'x0'], ['#fY', 'y0'], ['#fPress', 'press'], ['#fTracks', 'tracks']]) {
   const el = $(id); el.value = S[key];
-  el.onchange = () => { let v = +el.value; if (Number.isFinite(v)) { if (key === 'tracks') v = Math.max(1, Math.min(8, Math.round(v))); S[key] = v; save(); say(''); draw(); } el.value = S[key]; };
+  el.onchange = () => { let v = +el.value; if (Number.isFinite(v)) { if (key === 'tracks') v = Math.max(1, Math.min(8, Math.round(v))); S[key] = v; save(); say(''); redraw(); } el.value = S[key]; };
 }
-$('#sheets').onclick = e => { const b = e.target.closest('[data-sheet]'); if (!b) return; S.sheet = +b.dataset.sheet; save(); say(''); draw(); };
+$('#sheets').onclick = e => { const b = e.target.closest('[data-sheet]'); if (!b) return; S.sheet = +b.dataset.sheet; save(); say(''); redraw(); };
 $('#btnHere').onclick = async () => {
   let t = ''; try { t = await (await fetch('/machine/ping', { cache: 'no-store' })).text(); } catch { }
   const m = /^ok P X (-?\d+)(?: край)? Y (-?\d+)/.exec(t);
   if (!m) return say('No place from the board: the axes\' zero, rembrandt.py?', true);
   S.x0 = Math.round(+m[1] / STEPS_PER_MM.x); S.y0 = Math.round(+m[2] / STEPS_PER_MM.y);
-  $('#fX').value = S.x0; $('#fY').value = S.y0; save(); say(''); draw();
+  $('#fX').value = S.x0; $('#fY').value = S.y0; save(); say(''); redraw();
 };
 $('#btnRun').onclick = async () => {
   await loadInk();

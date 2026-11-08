@@ -970,13 +970,16 @@ test('real strokes 2: the carriage within the wall, on the 20 × 20', () => {
 // ---------- real 3: the red 911's piece round its left headlight, every jar of it, by the canon as OPM-G runs ----------
 import { REAL3 } from '../src/labreal3.js';
 import { seqOf, passesOf, canonRuns } from '../src/formgplan.js';
+import { real3Jars } from '../src/labplan.js';
+import { jarsByCanvas, deltaE, CANON } from '../src/canon.js';
+const PIC3 = real3Jars().pic;
 const P16 = labPlan({ x0: 0, y0: 0, cup, sheet: 16 }), P17 = labPlan({ x0: 0, y0: 0, cup, sheet: 17 });
 
 test('real 3: a number a jar, in FORM-G\'s list, the first layer on 16, the jars of two coats again on 17; a pause before every jar but the first', () => {
-  const list = seqOf(REAL3.pic);
+  const list = seqOf(PIC3);
   assert.deepEqual(P16.strokes.map(q => q.hue), list.filter(j => j.layer === 1).map(j => j.hex));
   assert.deepEqual(P17.strokes.map(q => q.hue), list.filter(j => j.layer === 2).map(j => j.hex));
-  assert.equal(P17.strokes.length, REAL3.pic.jars.filter(j => j.coats === 2).length);
+  assert.equal(P17.strokes.length, PIC3.jars.filter(j => j.coats === 2).length);
   for (const P of [P16, P17]) {
     assert.equal(P.blocks.filter(b => b.kind === 'pause').length, P.strokes.length - 1);
     assert.equal(P.remote.colours.length, P.strokes.length);
@@ -986,7 +989,7 @@ test('real 3: a number a jar, in FORM-G\'s list, the first layer on 16, the jars
 });
 
 test('real 3: nothing of LAB\'s own: its runs are formgplan.js\'s canon runs of the piece, the same dips, at the picture\'s own size', () => {
-  const passes = passesOf(REAL3.pic, { canon: true }), runs = canonRuns(passes), list = seqOf(REAL3.pic);
+  const passes = passesOf(PIC3, { canon: true }), runs = canonRuns(passes), list = seqOf(PIC3);
   const first = runs.filter(r => list[r.pass].layer === 1);
   assert.equal(P16.remote.rows.length, first.length);
   const dips = P16.blocks.filter(b => b.kind === 'joint' && b.rim !== undefined).length;
@@ -999,4 +1002,30 @@ test('real 3: nothing of LAB\'s own: its runs are formgplan.js\'s canon runs of 
 
 test('real 3: on the 20 × 20 at X 0, Y 0, as real 2: the carriage within the wall', () => {
   for (const P of [P16, P17]) assert.ok(P.bounds.x0 >= 0 && P.bounds.x1 <= 200 && P.bounds.y0 >= 10 && P.bounds.y1 <= 190, JSON.stringify(P.bounds));
+});
+
+// ---------- the canon of the jars: less line than the canvas's long side, into the nearest by colour, unless none is near ----------
+test('the canon of the jars: every leg still painted; no short jar left but one no jar is near; a short jar goes to the nearest that stays', () => {
+  const pic = { pitch: 5, jars: [
+    { id: 'a', name: 'A', hex: '#9E0D0D', coats: 2, cells: [{ n: 1, legs: [[0, 0, 300]] }] },
+    { id: 'b', name: 'B', hex: '#9D0D0D', coats: 2, cells: [{ n: 1, legs: [[5, 0, 40]] }] },       // short, as good as A: into A
+    { id: 'c', name: 'C', hex: '#EE8A22', coats: 1, cells: [{ n: 1, legs: [[10, 0, 30]] }] },      // short, nobody near: stays
+    { id: 'd', name: 'D', hex: '#600D0D', coats: 2, cells: [{ n: 1, legs: [[15, 0, 60]] }] },      // short, D and E alike: one of them takes the other
+    { id: 'e', name: 'E', hex: '#5F0D0D', coats: 2, cells: [{ n: 1, legs: [[20, 0, 70]] }] } ] };
+  const line = j => j.cells.reduce((t, c) => t + c.legs.reduce((u, l) => u + Math.abs(l[2] - l[1]), 0), 0);
+  const R = jarsByCanvas(pic, 100, line);
+  const legs = p => p.jars.flatMap(j => j.cells.flatMap(c => c.legs)).map(l => l.join()).sort();
+  assert.deepEqual(legs(R.pic), legs(pic));
+  assert.deepEqual(R.pic.jars.map(j => j.id), ['a', 'c', 'e']);
+  assert.deepEqual(R.out.map(o => [o.id, o.into]), [['b', 'a'], ['d', 'e']]);
+  assert.deepEqual(R.kept.map(k => k.id), ['c']);
+  for (const j of R.pic.jars) assert.ok(line(j) >= 100 || R.pic.jars.filter(q => q !== j).every(q => deltaE(j.hex, q.hex) > CANON.jarDE), j.id);
+});
+
+test('real 3 by the canon of the jars: 200 mm, the LAB canvas\'s long side; every leg of the piece still there; the list says where a jar went', () => {
+  const R = real3Jars(), legs = p => p.jars.flatMap(j => j.cells.flatMap(c => c.legs)).length;
+  assert.equal(legs(R.pic), legs(REAL3.pic));
+  assert.ok(R.pic.jars.length < REAL3.pic.jars.length);
+  for (const j of R.pic.jars) assert.ok(R.lineOf(j) >= 200 || R.kept.some(k => k.id === j.id), j.name);
+  for (const o of R.out) assert.ok(P16.strokes.some(q => q.say.includes(`${o.name}'s`)), o.name);
 });

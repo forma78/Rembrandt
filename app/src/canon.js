@@ -50,3 +50,43 @@ export function landInside(pts, dip) {
   }
   return pts;
 }
+
+// The canon of the jars (the owner, 2026-11-08: "honestly, I do not have so many jars; nor do I see the point of nuances of RGB: ours is optical mixing, so I propose
+// a compromise. The rule 'take less than 1 m' is for a canvas whose long side is 1 metre; ours is 100 × 70 cm, all fair. But LAB's canvas is 20 × 20 cm: I propose a
+// universal rule. Take out the jars with less than the canvas's own long side, if they do not change the look; so under 20 cm. It can go into the canon."):
+//   * a jar's line, its legs and its idle run as the list shows it (lineOf), shorter than the long side of the canvas it is painted on: the jar goes out, its cells to the
+//     jar nearest to it in colour that stays, so its legs are still painted, by the paint most like it; no paint mixed, no leg moved;
+//   * the shortest first, again and again, so two near jars too short each may make one long enough; then every jar that went to the one of those that stay nearest to
+//     its own colour, so no colour drifts along a chain of jars;
+//   * a colour nobody else's comes near stays (the owner, the same day, of a brown jar left for want of a neighbour within ΔE 15.9: "can we not simply find a neighbour a
+//     little farther, not merging the colour?"): only when its nearest is over jarDE, CIELAB ΔE 25 (est.), as the ink of a lamp is from any red (34). The list says which went where.
+CANON.jarDE = 25;
+const lin = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+const labOf = hex => {
+  const n = parseInt(hex.slice(1), 16), [r, g, b] = [n >> 16, n >> 8 & 255, n & 255].map(lin);
+  const f = t => t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116;
+  const X = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), Y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), Z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+};
+// CIELAB ΔE76 of two hex colours
+export const deltaE = (a, b) => { const p = labOf(a), q = labOf(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+// → { pic: the picture with the jars that stay, each with `took`: the jars that went into it; out: [{ id, name, hex, line, into, de }]; kept: the short ones that stay, with their de }
+export function jarsByCanvas(pic, side, lineOf, de = CANON.jarDE) {
+  const own = new Map(pic.jars.map(j => [j.id, j])), stays = new Map(), gone = [];
+  let jars = pic.jars.map(j => ({ ...j, cells: [...j.cells] }));
+  for (;;) {                                         // who stays: the shortest first, its line counted into its nearest
+    const short = jars.filter(j => !stays.has(j.id) && lineOf(j) < side).sort((a, b) => lineOf(a) - lineOf(b));
+    if (!short.length) break;
+    const j = short[0], near = jars.filter(q => q !== j).map(q => ({ q, d: deltaE(j.hex, q.hex) })).sort((a, b) => a.d - b.d)[0];
+    if (!near || near.d > de) { stays.set(j.id, near?.d ?? Infinity); continue; }
+    near.q.cells.push(...j.cells); gone.push(j.id); jars = jars.filter(q => q !== j);
+  }
+  // every jar that went, its own cells to the one that stays nearest to its own colour
+  const final = jars.map(j => ({ ...own.get(j.id), cells: [...own.get(j.id).cells], took: [] }));
+  const out = gone.map(id => {
+    const j = own.get(id), t = final.map(q => ({ q, d: deltaE(j.hex, q.hex) })).sort((a, b) => a.d - b.d)[0];
+    t.q.cells.push(...j.cells); t.q.took.push({ id, name: j.name, hex: j.hex, de: t.d });
+    return { id, name: j.name, hex: j.hex, line: lineOf(j), into: t.q.id, de: t.d };
+  });
+  return { pic: { ...pic, jars: final.map(j => ({ ...j, cells: j.cells.map((c, i) => ({ ...c, n: i + 1 })) })) }, out, kept: final.filter(j => stays.has(j.id)).map(j => ({ id: j.id, name: j.name, hex: j.hex, line: lineOf(j), de: stays.get(j.id) })) };
+}
