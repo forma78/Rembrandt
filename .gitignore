@@ -63,6 +63,9 @@ OPM-G/Blue-Patek*
 OPM-G/porsche-911*
 OPM-G/pop-art.png
 OPM-G/g-wagon*
+# the pictures FORM-G's new ones are made from, in FORM-G/ itself (2026-11-08: the red classic 911, the white one)
+/FORM-G/*.png
+/FORM-G/*.jpg
 # the generator's caches
 FORM-G/generator/__pycache__/
 FORM-G/generator/*.pkl

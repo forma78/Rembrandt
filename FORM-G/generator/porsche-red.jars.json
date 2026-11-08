@@ -1,0 +1,220 @@
+{
+ "note": "The red 911's jars made to measure, kept (the owner, 2026-11-08, roof-1-2.png: the first version's roof was neater; a later edit had re-made the palette, 52 to 61 jars, and with it every column). The first version's 43; the fixed ones are redcar.py's RED_FIXED. New ones only with RED_NEW_JARS=1.",
+ "jars": [
+  {
+   "name": "J03",
+   "hex": "#F6BEB0",
+   "coats": 1
+  },
+  {
+   "name": "J04",
+   "hex": "#F8BACE",
+   "coats": 1
+  },
+  {
+   "name": "J05",
+   "hex": "#F29B8B",
+   "coats": 1
+  },
+  {
+   "name": "J06",
+   "hex": "#F596AD",
+   "coats": 1
+  },
+  {
+   "name": "J12",
+   "hex": "#C2798F",
+   "coats": 1
+  },
+  {
+   "name": "J13",
+   "hex": "#E66551",
+   "coats": 1
+  },
+  {
+   "name": "J15",
+   "hex": "#8F7773",
+   "coats": 1
+  },
+  {
+   "name": "J16",
+   "hex": "#757C91",
+   "coats": 1
+  },
+  {
+   "name": "J18",
+   "hex": "#ED3F58",
+   "coats": 1
+  },
+  {
+   "name": "J19",
+   "hex": "#AE5C4D",
+   "coats": 1
+  },
+  {
+   "name": "J22",
+   "hex": "#C83D56",
+   "coats": 1
+  },
+  {
+   "name": "J23",
+   "hex": "#C12614",
+   "coats": 1
+  },
+  {
+   "name": "J24",
+   "hex": "#CA1E34",
+   "coats": 1
+  },
+  {
+   "name": "J27",
+   "hex": "#D4462F",
+   "coats": 2
+  },
+  {
+   "name": "J38",
+   "hex": "#242737",
+   "coats": 1
+  },
+  {
+   "name": "J39",
+   "hex": "#D0110D",
+   "coats": 2
+  },
+  {
+   "name": "J41",
+   "hex": "#A13624",
+   "coats": 2
+  },
+  {
+   "name": "J43",
+   "hex": "#CE0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J44",
+   "hex": "#E20D0D",
+   "coats": 2
+  },
+  {
+   "name": "J45",
+   "hex": "#7D3B2D",
+   "coats": 2
+  },
+  {
+   "name": "J49",
+   "hex": "#B40D0D",
+   "coats": 2
+  },
+  {
+   "name": "J50",
+   "hex": "#C70D0D",
+   "coats": 2
+  },
+  {
+   "name": "J55",
+   "hex": "#9D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J56",
+   "hex": "#AE0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J59",
+   "hex": "#8E0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J60",
+   "hex": "#9E0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J61",
+   "hex": "#6C0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J63",
+   "hex": "#760D0D",
+   "coats": 2
+  },
+  {
+   "name": "J64",
+   "hex": "#800D0D",
+   "coats": 2
+  },
+  {
+   "name": "J65",
+   "hex": "#7D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J66",
+   "hex": "#8D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J67",
+   "hex": "#490D0D",
+   "coats": 2
+  },
+  {
+   "name": "J69",
+   "hex": "#211A15",
+   "coats": 2
+  },
+  {
+   "name": "J70",
+   "hex": "#101D29",
+   "coats": 2
+  },
+  {
+   "name": "J71",
+   "hex": "#6F0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J72",
+   "hex": "#7E0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J75",
+   "hex": "#620D0D",
+   "coats": 2
+  },
+  {
+   "name": "J76",
+   "hex": "#510D0D",
+   "coats": 2
+  },
+  {
+   "name": "J77",
+   "hex": "#5A0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J78",
+   "hex": "#550D0D",
+   "coats": 2
+  },
+  {
+   "name": "J79",
+   "hex": "#5F0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J80",
+   "hex": "#280D0D",
+   "coats": 2
+  },
+  {
+   "name": "J82",
+   "hex": "#3F0D0D",
+   "coats": 2
+  }
+ ]
+}

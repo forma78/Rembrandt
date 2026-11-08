@@ -3,6 +3,7 @@
 
   python3 export_formg.py watch <plan.pkl>    (hyper.py's .pkl)
   python3 export_formg.py porsche <plan.pkl>  (hyper2.py's .pkl)
+  python3 export_formg.py porsche-red <plan.pkl>  (redcar.py's .pkl)
   python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
 
 Run each in its own process: hyper.py and hyper2.py fill the same paint table on import. Coordinates in the JSON: mm from the canvas's bottom left corner, x right, y up."""
@@ -47,6 +48,22 @@ elif which == 'gwagon':
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='locked', idle=True, dose=1.0)]
     title, sub = 'G-wagon', 'hyperrealism, 60 × 60, black, 50 cm across'
     KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'grille': 'Grille', 'seat': 'Seats'}
+    jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
+elif which == 'porsche-red':
+    # the red classic 911 (redcar.py's .pkl): the green's technique, redgeo.py's geometry, its own fixed jars
+    import hyper2
+    import paintrun
+    from watchplan import P, PITCH, MARGIN
+    pl.W, pl.H = 700, 1000
+    P.clear()
+    pl.pids = []
+    for i, (name, hexv, coats) in enumerate(d['jars']):
+        P[f'j{i}'] = hyper2.jar(hexv, coats, name)
+        P[f'j{i}'].name = name
+        pl.pids.append(f'j{i}')
+    pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
+    title, sub = 'Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'
+    KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 else:
     import hyper2

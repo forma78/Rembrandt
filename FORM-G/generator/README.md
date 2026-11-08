@@ -10,11 +10,12 @@ A plan is one grid of columns 5 mm apart, the brush's. Every column is solved on
 | `paintrun.py` | a plan's cells into spans and snakes, light under dark |
 | `watchgeo.py`, `clean_photo.py`, `hyper.py` | the watch: the geometry of its dial, the printed words off, the 54 shades + 5 |
 | `cargeo.py`, `hyper2.py` | the green 911: its outline, the badges off, 60 jars made to measure |
+| `redgeo.py`, `redcar.py`, `porsche-red.jars.json` | the red classic 911 (2026-11-08), the canon of the 911's form (the owner: "I would take the red one as the canon"); its jars kept in the json, so that an edit does not re-make the palette (`RED_NEW_JARS=1` makes them again): hyper2's technique on a geometry read off the picture and made symmetric about the axis — the outline, the glass, the louvres, the lights, the cap, the panels' seams fitted to the picture's own; no leg across a part's edge or a seam; the crest and the wiper off |
 | `distance_core.py`, `far.py`, `farcar.py` | the view from 3 and 6 m: S-CIELAB's widths of blur, a model, not a measurement |
 | `gwagongeo.py`, `gwagon.py`, `farwagon.py` | OPM-G's G-wagon on 60 × 60: its outline off a white ground, the badges off; the grille's slats on the grid, the bull bar's chrome, the headlights, the seats' red by geometry; 36 jars at most, every jar 1 m of line at least; no span under 12 mm; the view from 3 and 6 m |
 | `export_formg.py` | a finished plan into `app/formg/<id>.json` (OPM-G's into `app/opmg/`), the cells, a jar's layers |
 
-The photos are others' and stay out of git (`.gitignore`): `OPM-G/Blue-Patek…`, `OPM-G/porsche-911-1.jpg`, `OPM-G/g-wagon.JPG`.
+The photos are others' and stay out of git (`.gitignore`): `OPM-G/Blue-Patek…`, `OPM-G/porsche-911-1.jpg`, `OPM-G/g-wagon.JPG`, and the pictures in `FORM-G/` itself (`Top-Down Classic Red Porsche 911.png`).
 
 To run: a venv with numpy, pillow and scipy, the working directory this one.
 
@@ -23,6 +24,8 @@ python hyper.py 6 2 watch.jpg        # px/mm, correction passes, the render; its
 python hyper2.py 6 2 porsche.jpg
 python export_formg.py watch watch.jpg.pkl
 python export_formg.py porsche porsche.jpg.pkl
+python redcar.py 6 2 porsche-red.jpg     # the red 911; its jpg to 3 px/mm in app/formg/
+python export_formg.py porsche-red porsche-red.jpg.pkl
 python gwagon.py 6 2 gwagon.jpg      # OPM-G's: its plan into app/opmg/
 python export_formg.py gwagon gwagon.jpg.pkl
 python farwagon.py gwagon.jpg gwagon_distance.jpg

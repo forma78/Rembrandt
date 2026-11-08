@@ -5,6 +5,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **FORM-G: the red classic 911, `porsche-red`** (the owner, 2026-11-08: "a new classic Porsche for FORM-G, red; will you draw it on 70 × 100 cm?"; "do not
+  spare the colours, 60 or 70 shades can be; the main thing is to make the geometry perfect"; "and we have the limit of 850 mm in height"). `FORM-G/generator/redgeo.py`,
+  `redcar.py`: the green's technique (`hyper2.py`) on a geometry read off the picture itself and made symmetric about the car's axis — the outline; the glass, the louvres,
+  the lights, the tail's bar, the carbon and the chrome tips found as regions of their own kind of pixel (black is dark and neutral: the body is a dark red, L* 27); the
+  panels' seams fitted to the picture's own thin lines; no leg across a part's edge or a seam, no colour carried over one. Off, under the brush: the crest, the wiper.
+  His comments on the first version (`comments-1.jpg`, `lights.png`, `roof-1-2.png`, on this Mac): 1, the fuel cap off ("take the black tank off the bonnet"); 2, the black
+  shadow right of the bonnet's middle carried up ("a little further"), a column; 3, the bonnet's back edge arched, parallel to the glass ("it is straight now"); 4, the
+  mirrors alike ("they are equal, symmetric"), the left one's light as the right's; 5, the rear window's two arcs of light ("I like the two arcs there"); 6, a thin white
+  light along the rear wings' edge, both sides ("not as fat as on the right … a more pronounced, symmetric form"); the headlights' metal round the lens, a grey rim and
+  crescent ("not just glass but a metal contour too … the volume comes at once"), the lens white with two or three black strokes ("the lenses must be white"); and the
+  palette kept, `porsche-red.jars.json`, the first version's ("the roof was neater there"): an edit re-made the jars, 52 to 61, and with them every column. 843 mm long,
+  not 850: at 850 the carriage ran 4 mm past the bottom wall, so the whole car 0.8 % smaller rather than its tips cut. 51 jars, 31 of them a second layer; 900 cells,
+  1675 legs, 238.5 m, ≈ 4 h 35 min + 3 h 38 min (est.). Simulated and driven in headless Chrome; not run on the machine. The picture is another's: `.gitignore`.
+  **The red is the canon of the 911's form** (the owner, the same night: "I would take the red one as the canon"; "can we fix the way this Porsche is made, to change the
+  colours but not the form? We fussed long over the glass, redid the mirrors"; of the green: "it has some form an AI drew from memory").
+
 - **F, the frame, on FORM-G** (the owner, 2026-11-08, after a talk with Kuzya: "go back to the Porsche 911 and stop the work on the G-wagon; it is not going for us, and the
   Porsche comes out well"; "test a 20 × 20 cm piece, how many paints mix, and then go back to the G-wagon"; "the G-wagon needs the format widened to 120 × 120 cm anyway, that is
   easier with the first sales"; then: "in OPM-W's Tools I found how to cut a fragment out, frame [ F ]; it can be carried into FORM-G"). OPM-W's F on FORM-G's page (and so on
