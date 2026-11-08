@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **COLORS, the library, a tab next to LAB** (2026-11-08). The owner: "README — sorry, I do not quite understand. Build a COLORS tab next to
+  LAB, so that our library is there. Kuzya proposed cards"; "put the recommendations right in the cards!". A card a jar of LAB's real 3, in the tab's
+  order and by its name there ("the names on the physical jars as on LAB / real 3"): Kuzya's card — Target, Mix recipe, Medium, Dry LAB, ΔE, Coats —
+  and the Advice under the recipe; a pair of the same colour one mixing (29 · 30, 31 · 32, 35 · 36: 16 mixings); "Mark as mixed", a tick in this browser.
+  The dark reds two mothers, Kuzya's way: Red from the tube (Jar 23) and Jar 43, Red with Dark Brown, every jar between of those two — the brown keeps
+  the red warm where the owner's violet mixes (⑦ ⑧ ⑩ ⑫) cool it. Kuzya's scale 1 … 12 is real 3's own jars, to the digit. The paints on the shelf
+  measured off the owner's photos (`LAB/`; the palette of 2026-10-12 in daylight, the sheets of 2026-11-08 wet under a lamp), in CIELAB unclipped,
+  the paper beside each taken as L 95; the recipes by single-constant Kubelka–Munk, every paint of the same strength: all est., to be checked dry in
+  daylight. `colors.html`, `src/colorlib.js` (the data), `src/colors.js`; the jars read from `labplan.js`'s `real3Of`, so the two never part.
 - **LAB: Result, real 3's two layers together** (2026-11-08). The owner: "a result key, to see the whole result of the two passes". On real 3 and
   its layer 2: the first layer and the second coats over it, every coat a film of about 72 % of its paint (est.), so a jar of two coats comes out deeper; a jar
   picked in the list lit in both. A view of the plan, not a measurement; ▶ Play turns it off.

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · COLORS</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* COLORS: the library — a card a jar (Kuzya's card), the scale, the paints on the shelf */
+  main.colors{display:block;overflow-y:auto;background:var(--stage);padding:14px 16px 40px}
+  main.colors > .sec{max-width:1240px;margin:12px auto 0}
+  .cnav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 4px}
+  .cnav a{text-decoration:none}
+  .lead{margin:0;font-size:13px;line-height:1.45;color:var(--ink)}
+  .lead b{font-weight:600}
+  .order{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;padding:0;list-style:none;counter-reset:o}
+  .order li{counter-increment:o;display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:7px;background:var(--well);font-size:12px}
+  .order li::before{content:counter(o);font:600 11px var(--mono);color:var(--orange)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:12px}
+  .jcard{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;background:var(--panel);box-shadow:0 0 0 1px var(--line)}
+  .jcard.mixed{box-shadow:0 0 0 2px #4F7A28}
+  .jhead{display:flex;gap:12px;align-items:flex-start}
+  .jsw{flex:none;width:64px;height:64px;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+  .jhead h4{margin:0;font-size:16px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink)}
+  .jhead h4 code{font:500 14px var(--mono);color:var(--mute)}
+  .jsub{margin:2px 0 6px;font-size:12px;color:var(--mute)}
+  .badges{display:flex;gap:5px;flex-wrap:wrap}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--well);font-size:11px;color:var(--ink)}
+  .badge.mother{background:#FFE9A8;color:#24221F}
+  .badge.done{background:#4F7A28;color:#fff}
+  .jrows{display:grid;grid-template-columns:96px 1fr;gap:7px 10px;margin:0;padding-top:10px;border-top:1px solid var(--rule);font-size:12.5px;line-height:1.4}
+  .jrows dt{color:var(--mute)}
+  .jrows dd{margin:0;min-width:0}
+  .jrows dd.mute{color:var(--mute)}
+  .jrows dd.advice{background:#FFF4D6;color:#24221F;border-radius:6px;padding:6px 8px;margin-left:-8px}
+  html.night .jrows dd.advice{background:#3A3420;color:#E9DFC2}
+  .recipe{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px}
+  .part{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .part b{font-weight:600}
+  .colon{color:var(--mute)}
+  .chip{display:inline-block;flex:none;width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);vertical-align:-2px}
+  .jcard .btn{align-self:flex-start;margin-top:auto}
+  .kuzya{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;margin-top:10px}
+  .kuzya div{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--mute);text-align:center}
+  .kuzya i{display:block;width:100%;height:40px;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+  .kuzya b{color:var(--ink);font:600 11px var(--mono)}
+  .pgroup{margin:16px 0 0}
+  .pgroup h4{margin:0 0 2px}
+  .pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:8px}
+  .pcard{display:flex;gap:10px;padding:9px;border-radius:10px;background:var(--panel);box-shadow:0 0 0 1px var(--line);font-size:12px;line-height:1.35}
+  .pcard .jsw{width:40px;height:40px;border-radius:8px}
+  .pcard b{display:block;font-size:13px;font-weight:600}
+  .pcard .lab{font:11px var(--mono);color:var(--mute)}
+  .pcard .use{color:var(--ink)}
+  .pcard .note{color:var(--mute)}
+  .pcard.idle .use{color:var(--mute)}   /* not in real 3: the words greyed, never the colour */
+  @media (max-width:640px){
+    main.colors{padding:10px 12px 30px}
+    .kuzya{grid-template-columns:repeat(6,1fr)}
+    .jrows{grid-template-columns:82px 1fr}
+  }
+</style>
+</head>
+<body>
+<!-- Rembrandt · COLORS (the owner, 2026-11-08: "build a COLORS tab next to LAB, so that our library is there. Kuzya proposed cards";
+     "put the recommendations right in the cards!"): a card a jar of LAB's real 3, Kuzya's card with its advice, his scale, and the paints
+     on the owner's shelf, measured off his photographs. Nothing here moves the machine. src/colorlib.js, src/colors.js. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.2.1</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="opmn.html">OPM-N</a>
+      <a href="lab.html">LAB</a>
+      <a href="colors.html" class="on">COLORS</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+  <div class="top-right"></div>
+</header>
+
+<main class="colors">
+  <section class="sec">
+    <h3>COLORS <span class="hint">the library · every number est.</span></h3>
+    <nav class="cnav"><a class="btn" href="#jars">Jars · real 3</a><a class="btn" href="#kuzya">Kuzya's scale</a><a class="btn" href="#paints">Paints on the shelf</a></nav>
+    <p class="lead" id="lead"></p>
+    <ol class="order" id="order"></ol>
+  </section>
+  <section class="sec" id="jars">
+    <h3>Jars · LAB real 3 <span class="hint" id="jarsHint"></span></h3>
+    <div class="cards" id="cards"></div>
+  </section>
+  <section class="sec" id="kuzya">
+    <h3>Kuzya's scale <span class="hint">LAB/colors-from-Kuzya.png, light to dark: real 3's own jars, to the digit</span></h3>
+    <div class="kuzya" id="kscale"></div>
+  </section>
+  <section class="sec" id="paints">
+    <h3>Paints on the shelf <span class="hint">measured off the photos in LAB/: the paper beside each taken as white</span></h3>
+    <div id="pgroups"></div>
+  </section>
+</main>
+
+<footer class="status">
+  <span id="hint">COLORS: the jars of LAB · real 3 and what fills them. The recipes are a model's, est.: check every jar dry, in daylight.</span>
+  <span id="saved"></span>
+</footer>
+<script type="module" src="src/colors.js"></script>
+</body>
+</html>
