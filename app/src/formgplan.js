@@ -18,7 +18,7 @@
 import { IDLE, idleLine, idleRowsOf, idleRunsOf } from './idleplan.js';
 import { CANON, startOnLong, ridersOnLong, landInside } from './canon.js';
 
-export const FORMG_LIB = ['porsche', 'porsche-red', 'watch'];   // the library: a name here, its json and jpg in app/formg/; the red classic 911 since 2026-11-08
+export const FORMG_LIB = ['porsche', 'porsche-red', 'porsche-white', 'watch'];   // the library: a name here, its json and jpg in app/formg/; the red classic 911 and the white in its form since 2026-11-08
 export const OPMG_LIB = ['gwagon'];                  // OPM-G's: its json and jpg in app/opmg/
 export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30 };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.)
 export const passOf = pitch => pitch * IDLE.pass / IDLE.step;   // the idle run's legs apart: LAB's 4.38 to its 5.83, on this grid (est.)

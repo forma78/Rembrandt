@@ -4,6 +4,7 @@
   python3 export_formg.py watch <plan.pkl>    (hyper.py's .pkl)
   python3 export_formg.py porsche <plan.pkl>  (hyper2.py's .pkl)
   python3 export_formg.py porsche-red <plan.pkl>  (redcar.py's .pkl)
+  python3 export_formg.py porsche-white <plan.pkl>  (whitecar.py's .pkl)
   python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
 
 Run each in its own process: hyper.py and hyper2.py fill the same paint table on import. Coordinates in the JSON: mm from the canvas's bottom left corner, x right, y up."""
@@ -49,8 +50,8 @@ elif which == 'gwagon':
     title, sub = 'G-wagon', 'hyperrealism, 60 × 60, black, 50 cm across'
     KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'grille': 'Grille', 'seat': 'Seats'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
-elif which == 'porsche-red':
-    # the red classic 911 (redcar.py's .pkl): the green's technique, redgeo.py's geometry, its own fixed jars
+elif which in ('porsche-red', 'porsche-white'):
+    # the red classic 911 (redcar.py's .pkl), the canon of the form, and its colours (whitecar.py's …): the green's technique, redgeo.py's geometry, their own fixed jars
     import hyper2
     import paintrun
     from watchplan import P, PITCH, MARGIN
@@ -62,7 +63,8 @@ elif which == 'porsche-red':
         P[f'j{i}'].name = name
         pl.pids.append(f'j{i}')
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
-    title, sub = 'Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'
+    title, sub = {'porsche-red': ('Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'),
+                  'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
     KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 else:

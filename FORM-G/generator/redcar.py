@@ -18,15 +18,27 @@ import paintrun
 import redgeo
 
 # the jars geometry holds; the others made to measure. Chrome by the light, the black of the glass, the carbon under the tail, the tail lights' red, the indicators'
-# amber, the seams' deep red, the louvres' grey
+# amber, the seams' deep red (now the bonnet's shadow's top and the body's deepest), the glass's and the louvres' dark grey
 RED_FIXED = [('chrome', '#E6E5DF', 1), ('chromeM', '#C6C6C1', 1), ('chromeD', '#9B9C9A', 1), ('ink', '#0C0C0C', 2), ('carbon', '#2B2B2C', 1), ('tail', '#E5281E', 1),
-             ('amber', '#EE8A22', 1), ('seam', '#3C0608', 2), ('louvre', '#8F908E', 1), ('glass', '#4B4D4E', 1)]
+             ('amber', '#EE8A22', 1), ('seam', '#3C0608', 2), ('glass', '#4B4D4E', 1)]
 H.FIXED = RED_FIXED
 SLATS = (1392, 1412, 1432)    # the louvres' bright slats, px: the rows' brightest, across x 340 … 590 of the picture
 PARTS = ['wind', 'rear', 'grille', 'sides', 'mirrors', 'heads', 'diffuser', 'posts', 'amber', 'tail']
 
 
 class RedCar(H.Car):
+    """The canon of the 911's form (the owner, 2026-11-08: "I would take the red one as the canon"; "to change the colours but not the form"): a colour of it is a
+    subclass that gives its own picture to take the tones from (source), its body's shadows (tone_map), its fixed jars and the jars of its seams, its shadow and its
+    wings' light — the geometry, every part, seam and lock's place, stays this one's."""
+    FIXED = RED_FIXED
+    SEAM, SHADOW, WING = 'seam', ('seam', 'ink'), 'chrome'
+    EDGE = (10.0, 0.35)         # a seam across the car: so many mm on its darker side, the light taken down by up to so much at it (est.)
+    ALONG = (5.0, 0.25)         # a seam along the car: a column on its darker side, its light taken down by so much (est.)
+    WHEEL = None               # the steering wheel's ring, ink, a colour's own choice: the red's is not drawn (its picture's, through the glass, on its red seats)
+    KEEP = 'porsche-red.jars.json'
+    # the canon 4 % wider than the red picture (the owner, 2026-11-08, of the new white he and Kuzya made, at 0.475 width to length against the red's 0.458, every part
+    # along the length within 0.5 %: "its proportions are tasty"; asked how wide the canon: "as the new, +4 %"): the whole form, its glass, mirrors and seams, across
+    WIDEN = 0.475 / 0.458
     W, H = 700, 1000
     LENGTH_MM = 843.0          # the owner's limit is 850; at 850 the carriage ran 4 mm past the bottom wall (the elbow's sweep past the lowest leg's end, about 20 mm),
                                # so the whole car 0.8 % smaller, the green's painted 843, rather than its chrome tips cut short
@@ -39,18 +51,33 @@ class RedCar(H.Car):
         self.R = int(self.H - 2 * MARGIN)
         self.xs = self.x0 + PITCH * (np.arange(self.N) + 0.5)
         self.ys = MARGIN + np.arange(self.R) + 0.5
+        H.FIXED = self.FIXED
         g = redgeo.load()
         self.g = g
         ys, xs = np.where(g['mask'])
         self.s = self.LENGTH_MM / (ys.max() - ys.min() + 1)
         X, Y = np.meshgrid(self.xs, self.ys)
-        self.px = redgeo.AXIS + (X - self.W / 2) / self.s          # the axis between two columns: the left and the right alike
+        self.px = redgeo.AXIS + (X - self.W / 2) / (self.s * self.WIDEN)   # the axis between two columns: the left and the right alike
         self.py = (ys.min() + ys.max() + 1) / 2 + (Y - self.H / 2) / self.s
         self.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
-        smooth = np.stack([guided(g['im'][..., k], 5, 0.03 ** 2) for k in range(3)], axis=-1)
+        src = self.source(g)
+        self.srcL = ndi.gaussian_filter(to_lab(srgb2lin(np.clip(src, 0, 1) * 255).astype(np.float32))[..., 0], 1.5)
+        smooth = np.stack([guided(src[..., k], 5, 0.03 ** 2) for k in range(3)], axis=-1)
         self.photo = srgb2lin(np.clip(smooth, 0, 1) * 255).astype(np.float32)
         self.target0 = self.make_target()
         self.target = self.target0.copy()
+
+    def source(self, g):
+        """the picture the tones are taken from, in the canon's own pixels"""
+        return g['im']
+
+    def tone_map(self, L, A, B):
+        """the body's shadows a deep red, the car's own, not black; the glass, the louvres, the rubber stay dark and neutral"""
+        Lb = np.interp(L, [0, 8, 16, 24, 32, 45, 60, 80, 100], [16, 18, 21, 25, 31, 45, 60, 80, 100])
+        Lo = np.interp(L, [0, 8, 20, 35, 50, 70, 100], [14, 18, 27, 37, 50, 70, 100])
+        deep = np.clip((30 - L) / 18, 0, 1) * self.body
+        Ln = np.where(self.body, Lb, Lo)
+        return Ln, A * (1 - deep) + 38.0 * deep, B * (1 - deep) + 24.0 * deep
 
     def part(self, m):
         return ndi.map_coordinates(ndi.gaussian_filter(m.astype(np.float32), 0.5), [self.py, self.px], order=1, mode='constant') > 0.5
@@ -85,17 +112,43 @@ class RedCar(H.Car):
             T[..., c] = sharp + 0.30 * (sharp - wide)
         T = np.clip(T, 0, 1)
         lab = to_lab(T)
-        L, A, B = lab[..., 0], lab[..., 1], lab[..., 2]
-        # the body's shadows a deep red, the car's own, not black; the glass, the louvres, the rubber stay dark and neutral
-        Lb = np.interp(L, [0, 8, 16, 24, 32, 45, 60, 80, 100], [16, 18, 21, 25, 31, 45, 60, 80, 100])
-        Lo = np.interp(L, [0, 8, 20, 35, 50, 70, 100], [14, 18, 27, 37, 50, 70, 100])
-        deep = np.clip((30 - L) / 18, 0, 1) * self.body
-        Ln = np.where(self.body, Lb, Lo)
-        An = A * (1 - deep) + 38.0 * deep
-        Bn = B * (1 - deep) + 24.0 * deep
+        Ln, An, Bn = self.tone_map(lab[..., 0], lab[..., 1], lab[..., 2])
         T = lab2lin(np.stack([Ln, An, Bn], -1)).astype(np.float32)
         side = m & ~(np.roll(m, 1, axis=1) & np.roll(m, -1, axis=1))
         T = np.where(side[..., None], T * 0.85, T)
+        # the seams by colour, not by a stroke (the owner, 2026-11-08, lines-.png: "your line is for a drawing in very thin brushes; ours is almost 5 mm, we cannot
+        # make such waves; solve it with several colours and make the optical effect of a line"; Kuzya's points 1 and 2, the owner's "yes"): every column is cut where
+        # a seam crosses it (self.key), and the side the picture has darker is taken down next to it — across the car its legs' last 10 mm, along it a column — so the
+        # line is where two colours meet, not a stroke of its own. Which side is darker, the picture says, seam by seam, the left and the right apart
+        self.edges = {}
+        for name, q in g['seams'].items():
+            if name.startswith('arc'):
+                continue
+            a, b = q['span']
+            if q['along'] == 'y':
+                ys = np.arange(a + 6, b - 6, 2.0)
+                for sgn in (-1, 1):                                                 # the left seam, then its mirror
+                    xs = np.polyval(q['p'], ys) if sgn < 0 else 2 * redgeo.AXIS - np.polyval(q['p'], ys)
+                    l_ = ndi.map_coordinates(self.srcL, [ys, xs - 5], order=1).mean()
+                    r_ = ndi.map_coordinates(self.srcL, [ys, xs + 5], order=1).mean()
+                    dark = -1 if l_ < r_ else 1
+                    self.edges[(name, sgn)] = dark
+                    x = np.polyval(q['p'], self.py) if sgn < 0 else 2 * redgeo.AXIS - np.polyval(q['p'], self.py)
+                    off = (self.px - x) * dark * self.s * self.WIDEN                   # mm into the darker side
+                    band = self.body & (self.py >= a) & (self.py <= b) & (off > 0) & (off < self.ALONG[0])
+                    T = np.where(band[..., None], T * (1 - self.ALONG[1]), T)
+            else:
+                xs = np.arange(a + 4, b - 4, 2.0)
+                yq = np.polyval(q['p'], (xs - redgeo.AXIS) ** 2)
+                up_ = ndi.map_coordinates(self.srcL, [yq - 6, xs], order=1).mean()
+                dn_ = ndi.map_coordinates(self.srcL, [yq + 6, xs], order=1).mean()
+                dark = -1 if up_ < dn_ else 1                                       # -1: above it (towards the front)
+                self.edges[name] = dark
+                y = np.polyval(q['p'], (self.px - redgeo.AXIS) ** 2)
+                off = (self.py - y) * dark * self.s                                  # mm into the darker side
+                band = self.body & (self.px >= a) & (self.px <= b) & (off >= 0) & (off < self.EDGE[0])
+                f = 1 - self.EDGE[1] * (1 - off / self.EDGE[0])
+                T = np.where(band[..., None], T * f[..., None], T)
         # the mirrors alike, as the right one: the left lies in shadow in the picture and looked the smaller (comments-1.jpg, 4); the grid is even about the axis, column c and N-1-c
         mi = self.parts['mirrors']
         left = mi & (self.px < redgeo.AXIS)
@@ -105,23 +158,26 @@ class RedCar(H.Car):
         return T
 
     def locks(self):
-        """What a 5 mm brush holds of the small things, by geometry: the seams along the brush a column, the scuttle's across 6 mm; the cap, the carbon, the posts,
-        the tail lights and the indicators their own jars; the louvres in rows at the picture's own pitch."""
-        F = {q[0]: i for i, q in enumerate(RED_FIXED)}
+        """What a 5 mm brush holds of the small things, by geometry: the carbon, the posts, the tail lights and the indicators their own jars; the grille a dark mass. Since the owner's "no more fat lines" (2026-11-08) no seam is a stroke of its own:
+        make_target gives them by colour."""
+        F = {q[0]: i for i, q in enumerate(self.FIXED)}
         L, g, s = self.lock, self.g, self.s
         P_ = self.parts
-        d = redgeo.seam_dist(g['seams'], self.px, self.py, ['bonnet_side', 'lid_side'])
-        L[(d * s < PITCH / 2) & self.body] = F['seam']
-        d = redgeo.seam_dist(g['seams'], self.px, self.py, ['scuttle'])
-        L[(d * s < 3.0) & self.mask & ~P_['wind']] = F['seam']
         # the black shadow down the right of the bonnet's middle, a column, carried up past the picture's black (comments-1.jpg, 2): ink from y 380, the seam's dark red above
         sh = redgeo.line_dist(redgeo.SHADOW, self.px, self.py) * s < PITCH / 2
-        L[sh & self.body & (self.py < 380)] = F['seam']
-        L[sh & self.body & (self.py >= 380)] = F['ink']
+        L[sh & self.body & (self.py < 380)] = F[self.SHADOW[0]]
+        L[sh & self.body & (self.py >= 380)] = F[self.SHADOW[1]]
         # the rear wings' thin white light, a column each side, the same both sides (comments-1.jpg, 6)
         wing = [(2 * redgeo.AXIS - x, y) for x, y in redgeo.WING]
         wl = np.minimum(redgeo.line_dist(redgeo.WING, self.px, self.py), redgeo.line_dist(wing, self.px, self.py)) * s < PITCH / 2
-        L[wl & self.body] = F['chrome']
+        L[wl & self.body] = F[self.WING]
+        # the steering wheel through the glass, an oval ring of ink 5 mm across, where a colour asks for it: centre x, y and half axes, px
+        if self.WHEEL:
+            cx, cy, ra, rb = self.WHEEL
+            u, v = (self.px - cx) / ra, (self.py - cy) / rb
+            r = np.hypot(u, v)
+            ring = np.abs(r - 1) * np.hypot(ra * u, rb * v) / np.maximum(r, 1e-6) * s < 2.5
+            L[ring & P_['wind']] = F['ink']
         # the rear window's two arcs of light, 5 mm across (comments-1.jpg, 5)
         d = redgeo.seam_dist(g['seams'], self.px, self.py, ['arc_hi', 'arc_lo'])
         L[(d * s < 2.5) & P_['rear']] = F['glass']
@@ -129,18 +185,30 @@ class RedCar(H.Car):
         L[P_['posts']] = F['chromeM']
         L[P_['tail']] = F['tail']
         L[P_['amber'] & ~P_['tail']] = F['amber']
-        # the louvres: the picture's three bright slats, 20 px (11 mm) apart, rows at their own heights, louvre grey on the ink; under them, in the black of the intake,
-        # its two little upright chrome pieces, a leg each — at ±48 and ±60 px in the picture, put even at a column each side, ±27.5 mm
-        self.slats = SLATS
+        # the tail's lettering, PORSCHE (the owner, 2026-11-08, porsche-logo.png: "not a solid line: the letters PORSCHE, they read as sticks - - - -, the gaps white"):
+        # seven red pieces of 4 columns, a column of the body's colour between, the middle one on the axis, 5 mm high along the bar's middle; past them, inside the
+        # engine lid's seams, the body; the side lights on the wings past the seams as they were
+        tl = P_['tail']
+        mid = self.N // 2
+        gaps, last = {3, 8, 13}, 17
+        seam_k = int(181 * s * self.WIDEN / PITCH + 0.5)
+        for k in range(1, self.N // 2 + 1):
+            for c in (mid - k, mid + k - 1):
+                rows = np.flatnonzero(tl[:, c])
+                if not len(rows):
+                    continue
+                if k > seam_k:
+                    continue
+                L[rows, c] = -1
+                if k <= last and k not in gaps:
+                    m = rows.mean()
+                    L[rows[np.abs(rows - m) <= 2.5], c] = F['tail']
+        # the grille a dark mass, its louvres a hint (Kuzya's (b), the owner's "agreed": "the grille first one dark area; the louvres only hinted, a slightly lighter
+        # grey; not every narrow strip"): the louvres' block one leg of the carbon's dark grey down every column, the intake under it ink; the slats and the intake's
+        # two little chrome pieces, a millimetre or two, not strokes of their own
         gr = P_['grille']
-        L[gr] = F['ink']
-        for y in self.slats:
-            L[gr & (np.abs(self.py - y) * s < 2.5)] = F['louvre']
-        mid = self.W / 2
-        for x in (mid - 27.5, mid + 27.5):
-            c = int(np.argmin(np.abs(self.xs - x)))
-            on = (self.py[:, c] >= 1450) & (self.py[:, c] <= 1472) & gr[:, c]
-            L[on, c] = F['louvre']
+        L[gr & (self.py < SLATS[-1] + 12)] = F['carbon']                       # the carbon's grey, a shade off the ink: a hint (the glass's grey read as a slab)
+        L[gr & (self.py >= SLATS[-1] + 12)] = F['ink']
         # the headlights: the lens white, with two or three black strokes where the picture's lens is darkest along a column (the owner, 2026-11-08: "the lenses must be
         # white, do not change them to black; two or three black strokes on a white ground are enough"); round it the metal (lights.png: "not just glass but a metal contour
         # too … the volume comes at once"), the rim above the lens and the crescent under it, each column's piece a grey by the picture's light there, mid or dark, so the
@@ -200,7 +268,7 @@ class RedCar(H.Car):
         rng = np.random.default_rng(4)
         paintrun.STEP_MAX = 7.0
         ban_body = np.zeros(pal.K, np.float32)
-        ban_body[[i for i, q in enumerate(RED_FIXED) if q[0] != 'seam']] = 400.0
+        ban_body[[i for i, q in enumerate(self.FIXED) if q[0] != self.SEAM]] = 400.0
         for c in range(N):
             m = self.mask[:, c]
             if not m.any():
@@ -259,27 +327,27 @@ class RedCar(H.Car):
         return self
 
 
-if __name__ == '__main__':
+def main(cls, default_out):
     ppm = int(sys.argv[1]) if len(sys.argv) > 1 else 3
     loops = int(sys.argv[2]) if len(sys.argv) > 2 else 1
-    out = sys.argv[3] if len(sys.argv) > 3 else 'porsche-red.jpg'
+    out = sys.argv[3] if len(sys.argv) > 3 else default_out
     t0 = time.time()
-    car = RedCar()
-    print('columns', car.N, 'scale mm/px', round(car.s, 4), 'car cells', int(car.mask.sum()), 'car width mm', int(car.mask.any(axis=0).sum() * PITCH), 'slats', car.slats, flush=True)
+    car = cls()
+    print('columns', car.N, 'scale mm/px', round(car.s, 4), 'car cells', int(car.mask.sum()), 'car width mm', int(car.mask.any(axis=0).sum() * PITCH), flush=True)
     # the jars: the kept ones (porsche-red.jars.json), so that an edit in one place does not re-make the palette and with it every column — the roof the owner liked
     # (roof-1-2.png) stays as it was; RED_NEW_JARS=1 makes them again from the picture and keeps those
-    keep = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'porsche-red.jars.json')
+    keep = os.path.join(os.path.dirname(os.path.abspath(__file__)), cls.KEEP)
     if os.path.exists(keep) and not os.environ.get('RED_NEW_JARS'):
         jars = []
-        for name, hexv, coats in RED_FIXED + [(q['name'], q['hex'], q['coats']) for q in json.load(open(keep))['jars']]:
+        for name, hexv, coats in cls.FIXED + [(q['name'], q['hex'], q['coats']) for q in json.load(open(keep))['jars']]:
             p = H.jar(hexv, coats, name)
             p.name = name
             jars.append(p)
         print('jars kept', len(jars), flush=True)
     else:
         jars = car.make_jars()
-        fixed = {q[0] for q in RED_FIXED}
-        json.dump(dict(note='the red 911\'s jars made to measure, kept; the fixed ones are redcar.py\'s RED_FIXED', jars=[dict(name=p.name, hex=p.hex, coats=int(p.coats)) for p in jars if p.name not in fixed]), open(keep, 'w'), indent=1)
+        fixed = {q[0] for q in cls.FIXED}
+        json.dump(dict(note=f'{cls.__name__}: its jars made to measure, kept; the fixed ones its FIXED', jars=[dict(name=p.name, hex=p.hex, coats=int(p.coats)) for p in jars if p.name not in fixed]), open(keep, 'w'), indent=1)
     car.use(jars)
     print('jars ready', round(time.time() - t0), 's', flush=True)
     car.plan()
@@ -300,3 +368,7 @@ if __name__ == '__main__':
     two = sum(1 for p in st['per'].values() if p['coats'] == 2)
     print('legs', st['legs'], 'lifts', st['runs'], 'line m', round(st['line'] / 1000, 1), 'idle m', round(st['idle'] / 1000, 1), 'dips', int(st['dips']), 'short<12', st['shortlegs'], 'jars', len(st['per']), 'two-coat jars', two)
     pickle.dump(dict(grid=car.grid, form=car.form, st=st, jars=[(p.name, p.hex, p.coats) for p in car.pal.jars]), open(out + '.pkl', 'wb'))
+
+
+if __name__ == '__main__':
+    main(RedCar, 'porsche-red.jpg')

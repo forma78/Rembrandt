@@ -20,7 +20,7 @@ function runOf(pic, place) {
 const rangeOf = pic => { const R = rowsOf(pic, passesOf(pic)); return placeRange(pic, plotRun({ ...OPTS, rows: R.ps.length }, grouped(R)).carriage, reach()); };
 
 test('the library: every picture has its plan and its image, one grid, the brush 5 mm', () => {
-  assert.deepEqual(FORMG_LIB, ['porsche', 'porsche-red', 'watch']);
+  assert.deepEqual(FORMG_LIB, ['porsche', 'porsche-red', 'porsche-white', 'watch']);
   for (const id of FORMG_LIB) {
     const pic = load(id);
     assert.equal(pic.id, id); assert.equal(pic.pitch, 5);

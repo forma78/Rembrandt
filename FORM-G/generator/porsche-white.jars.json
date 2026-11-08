@@ -1,0 +1,420 @@
+{
+ "note": "WhiteCar: its jars made to measure, kept; the fixed ones its FIXED",
+ "jars": [
+  {
+   "name": "J01",
+   "hex": "#FDF7F2",
+   "coats": 1
+  },
+  {
+   "name": "J02",
+   "hex": "#ECFCFD",
+   "coats": 1
+  },
+  {
+   "name": "J03",
+   "hex": "#FBEFE9",
+   "coats": 1
+  },
+  {
+   "name": "J04",
+   "hex": "#E3F3FD",
+   "coats": 1
+  },
+  {
+   "name": "J05",
+   "hex": "#F9EDE7",
+   "coats": 1
+  },
+  {
+   "name": "J06",
+   "hex": "#E1F1FD",
+   "coats": 1
+  },
+  {
+   "name": "J07",
+   "hex": "#F3E7E0",
+   "coats": 1
+  },
+  {
+   "name": "J08",
+   "hex": "#DAEAFA",
+   "coats": 1
+  },
+  {
+   "name": "J09",
+   "hex": "#EBE2DC",
+   "coats": 1
+  },
+  {
+   "name": "J10",
+   "hex": "#D3E6F7",
+   "coats": 1
+  },
+  {
+   "name": "J11",
+   "hex": "#EDE0DB",
+   "coats": 1
+  },
+  {
+   "name": "J12",
+   "hex": "#D5E5F5",
+   "coats": 1
+  },
+  {
+   "name": "J13",
+   "hex": "#E9DBD6",
+   "coats": 1
+  },
+  {
+   "name": "J14",
+   "hex": "#D0E0F0",
+   "coats": 1
+  },
+  {
+   "name": "J15",
+   "hex": "#E3D6D1",
+   "coats": 1
+  },
+  {
+   "name": "J16",
+   "hex": "#CBDBEB",
+   "coats": 1
+  },
+  {
+   "name": "J17",
+   "hex": "#DBCFC9",
+   "coats": 1
+  },
+  {
+   "name": "J18",
+   "hex": "#C2D3E5",
+   "coats": 1
+  },
+  {
+   "name": "J19",
+   "hex": "#D1C4C0",
+   "coats": 1
+  },
+  {
+   "name": "J20",
+   "hex": "#B8CADC",
+   "coats": 1
+  },
+  {
+   "name": "J21",
+   "hex": "#C7BAB5",
+   "coats": 1
+  },
+  {
+   "name": "J22",
+   "hex": "#ADBFD2",
+   "coats": 1
+  },
+  {
+   "name": "J23",
+   "hex": "#BFB1AD",
+   "coats": 1
+  },
+  {
+   "name": "J24",
+   "hex": "#A4B6C9",
+   "coats": 1
+  },
+  {
+   "name": "J25",
+   "hex": "#B6A9A4",
+   "coats": 1
+  },
+  {
+   "name": "J26",
+   "hex": "#9BADC1",
+   "coats": 1
+  },
+  {
+   "name": "J27",
+   "hex": "#C79F90",
+   "coats": 1
+  },
+  {
+   "name": "J28",
+   "hex": "#AFA4AD",
+   "coats": 1
+  },
+  {
+   "name": "J29",
+   "hex": "#B2A4A0",
+   "coats": 1
+  },
+  {
+   "name": "J30",
+   "hex": "#97A9BD",
+   "coats": 1
+  },
+  {
+   "name": "J31",
+   "hex": "#AB9D99",
+   "coats": 1
+  },
+  {
+   "name": "J32",
+   "hex": "#90A2B7",
+   "coats": 1
+  },
+  {
+   "name": "J33",
+   "hex": "#A0928F",
+   "coats": 1
+  },
+  {
+   "name": "J34",
+   "hex": "#8598AD",
+   "coats": 1
+  },
+  {
+   "name": "J35",
+   "hex": "#BE8961",
+   "coats": 1
+  },
+  {
+   "name": "J36",
+   "hex": "#D07F79",
+   "coats": 1
+  },
+  {
+   "name": "J37",
+   "hex": "#928480",
+   "coats": 1
+  },
+  {
+   "name": "J38",
+   "hex": "#77899E",
+   "coats": 1
+  },
+  {
+   "name": "J39",
+   "hex": "#7F716E",
+   "coats": 1
+  },
+  {
+   "name": "J40",
+   "hex": "#64768B",
+   "coats": 1
+  },
+  {
+   "name": "J41",
+   "hex": "#846B5B",
+   "coats": 1
+  },
+  {
+   "name": "J42",
+   "hex": "#8E6474",
+   "coats": 1
+  },
+  {
+   "name": "J43",
+   "hex": "#A4501D",
+   "coats": 1
+  },
+  {
+   "name": "J44",
+   "hex": "#BA4433",
+   "coats": 1
+  },
+  {
+   "name": "J45",
+   "hex": "#685A57",
+   "coats": 1
+  },
+  {
+   "name": "J46",
+   "hex": "#4E5F74",
+   "coats": 1
+  },
+  {
+   "name": "J47",
+   "hex": "#5F4F4B",
+   "coats": 1
+  },
+  {
+   "name": "J48",
+   "hex": "#465367",
+   "coats": 1
+  },
+  {
+   "name": "J49",
+   "hex": "#4D403C",
+   "coats": 1
+  },
+  {
+   "name": "J50",
+   "hex": "#354458",
+   "coats": 1
+  },
+  {
+   "name": "J51",
+   "hex": "#5D2F1D",
+   "coats": 1
+  },
+  {
+   "name": "J52",
+   "hex": "#682932",
+   "coats": 1
+  },
+  {
+   "name": "J53",
+   "hex": "#B9440D",
+   "coats": 2
+  },
+  {
+   "name": "J54",
+   "hex": "#D0300D",
+   "coats": 2
+  },
+  {
+   "name": "J55",
+   "hex": "#302623",
+   "coats": 1
+  },
+  {
+   "name": "J56",
+   "hex": "#1D2A3B",
+   "coats": 1
+  },
+  {
+   "name": "J57",
+   "hex": "#241A15",
+   "coats": 1
+  },
+  {
+   "name": "J58",
+   "hex": "#141D2A",
+   "coats": 1
+  },
+  {
+   "name": "J59",
+   "hex": "#1D1512",
+   "coats": 1
+  },
+  {
+   "name": "J60",
+   "hex": "#0D1825",
+   "coats": 1
+  },
+  {
+   "name": "J61",
+   "hex": "#852C0D",
+   "coats": 2
+  },
+  {
+   "name": "J62",
+   "hex": "#9A1B0D",
+   "coats": 2
+  },
+  {
+   "name": "J63",
+   "hex": "#773114",
+   "coats": 2
+  },
+  {
+   "name": "J64",
+   "hex": "#82292C",
+   "coats": 2
+  },
+  {
+   "name": "J65",
+   "hex": "#A00D0D",
+   "coats": 2
+  },
+  {
+   "name": "J66",
+   "hex": "#B20D0D",
+   "coats": 2
+  },
+  {
+   "name": "J67",
+   "hex": "#3F332D",
+   "coats": 2
+  },
+  {
+   "name": "J68",
+   "hex": "#2C3642",
+   "coats": 2
+  },
+  {
+   "name": "J69",
+   "hex": "#322721",
+   "coats": 2
+  },
+  {
+   "name": "J70",
+   "hex": "#212B36",
+   "coats": 2
+  },
+  {
+   "name": "J71",
+   "hex": "#281F1B",
+   "coats": 2
+  },
+  {
+   "name": "J72",
+   "hex": "#16222F",
+   "coats": 2
+  },
+  {
+   "name": "J73",
+   "hex": "#510D0D",
+   "coats": 2
+  },
+  {
+   "name": "J74",
+   "hex": "#610D0D",
+   "coats": 2
+  },
+  {
+   "name": "J75",
+   "hex": "#5C0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J76",
+   "hex": "#690D0D",
+   "coats": 2
+  },
+  {
+   "name": "J77",
+   "hex": "#130D0D",
+   "coats": 2
+  },
+  {
+   "name": "J78",
+   "hex": "#0D0D16",
+   "coats": 2
+  },
+  {
+   "name": "J79",
+   "hex": "#220D0D",
+   "coats": 2
+  },
+  {
+   "name": "J80",
+   "hex": "#2B0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J81",
+   "hex": "#0D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "J82",
+   "hex": "#110D0D",
+   "coats": 2
+  },
+  {
+   "name": "J83",
+   "hex": "#140D0D",
+   "coats": 2
+  }
+ ]
+}

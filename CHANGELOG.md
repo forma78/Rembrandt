@@ -5,6 +5,21 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **FORM-G: the white 911 in the canon's form, and thin lines by colour** (2026-11-08). `whitecar.py`: the red's `RedCar`, all of its geometry, its tones off the
+  picture the owner and Kuzya made, `White Vintage Porsche 911, Saddle-Tan Interior.png` (asked which white: "the new, saddle-tan"; of a first try off a Singer-style
+  picture, squeezed to 0.53: "the white must be built at 0.46, the red is the canon"; "the steering wheel is good"), laid on the canon along the car by the landmarks
+  both pictures have and across every row by the two outlines, the glass and the louvres by their own boxes; its own jars, kept in `porsche-white.jars.json`; the
+  steering wheel an oval ring of ink. 63 jars, 12 a second layer, 1219 cells, 154.7 m, ≈ 5 h 21 min + 54 min (est.).
+  **The canon 4 % wider** (the new white is 0.475 width to length against the red's 0.458, every part along within 0.5 %; the owner: "its proportions are tasty",
+  asked: "as the new, +4 %"): `WIDEN`, the red too. **The tail's lettering**, PORSCHE, seven red pieces of 4 columns, a column of the body between, 5 mm high
+  (`porsche-logo.png`: "not a solid line … they read as sticks - - - -, the gaps white"). **Thin lines by colour** (`lines-.png`, the owner: "your line is for a
+  drawing in very thin brushes; ours is almost 5 mm; solve it with several colours and the optical effect of a line"; "no more fat lines"; Kuzya, the owner agreeing:
+  "the mechanics stay … what is thinner than the brush is given not by a line of its own but by the difference of neighbouring shades and a stroke's end"): no seam is a
+  stroke any more; every column is cut where a seam crosses it, and the side the picture has darker is taken down next to it, across the car over its legs' last 10 mm,
+  along it a column; the grille a dark mass, the louvres' block the carbon's grey, a hint, the slats and the intake's chrome pieces not strokes (Kuzya's (b): "the grille
+  first one dark area; the louvres only hinted"). The mechanics untouched: the 5 mm brush, legs along X, canon.js no. 9, LAB 4.0, snake and idle, the dips. The red
+  again: 49 jars, 940 cells, 119.4 m. Simulated and driven in headless Chrome; not run on the machine.
+
 - **FORM-G: the red classic 911, `porsche-red`** (the owner, 2026-11-08: "a new classic Porsche for FORM-G, red; will you draw it on 70 × 100 cm?"; "do not
   spare the colours, 60 or 70 shades can be; the main thing is to make the geometry perfect"; "and we have the limit of 850 mm in height"). `FORM-G/generator/redgeo.py`,
   `redcar.py`: the green's technique (`hyper2.py`) on a geometry read off the picture itself and made symmetric about the car's axis — the outline; the glass, the louvres,
