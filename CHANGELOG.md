@@ -8,6 +8,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 - **The red 911's steering wheel** (the owner, 2026-11-08, asked whether the red should have the white's: "yes, I thought so too; the wheel must be added"): the oval
   ring of ink through the glass is the canon's now (`RedCar.WHEEL`), every colour's. The red: 49 jars, 936 cells, 119.9 m. Not run on the machine.
 
+- **LAB 4.0 · real 3, the last sheet: a piece of the red 911** (2026-11-08). The owner: "before painting the red Porsche on the 70 × 100 canvas, better make a
+  fragment of it on 20 × 20 cm"; "I prepared for-LAB.png … it will suit real 3 perfectly". `FORM-G/for-LAB.png` found in the red's picture (x 58 … 415, y 25 … 366 px),
+  cut by F's frame (`framedPic`) 180 × 172 mm at its own size, round the left headlight: 34 jars, 25 of them two coats, 141 legs (32 under 10 mm), 216 runs, ≈ 31 min
+  (est.) and 33 changes of paint; its second coats on `real 3 · layer 2`, ≈ 26 min. A number a jar in FORM-G's order, the runs `formgplan.js`'s canon runs as OPM-G's,
+  the strokes drawn 4.6 mm wide in their jars' colours, a swatch by each in the list. `src/labreal3.js` a snapshot (`FORM-G/generator/export_labreal3.mjs`).
+  Before it, real 2's canvas read against its plan: `OPM-G/claude-numbering-real2.jpg`, `OPM-G/claude-grid-real2.jpg` (photos IMG_2438, IMG_2484 … 2486).
 - **FORM-G: the white 911 in the canon's form, and thin lines by colour** (2026-11-08). `whitecar.py`: the red's `RedCar`, all of its geometry, its tones off the
   picture the owner and Kuzya made, `White Vintage Porsche 911, Saddle-Tan Interior.png` (asked which white: "the new, saddle-tan"; of a first try off a Singer-style
   picture, squeezed to 0.53: "the white must be built at 0.46, the red is the canon"; "the steering wheel is good"), laid on the canon along the car by the landmarks

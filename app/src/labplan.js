@@ -7,9 +7,10 @@
 // stroke along Y, the hook. The wrist rolls round the arm: it sweeps the tip along Y, and lifts it hardly
 // at all at small angles. All the numbers est.; the sheet is there to measure them.
 import { handDip, homeBlocks } from './strokes.js';
-import { cellOf } from './formgplan.js';
+import { cellOf, passesOf, canonRuns, seqOf } from './formgplan.js';
 import { idleRunsOf } from './idleplan.js';
 import { REAL_PIECES, REAL_LONG } from './labreal.js';
+import { REAL3 } from './labreal3.js';
 import { longEndFirst, startOnLong, ridersOnLong } from './canon.js';
 
 export const LAB = {
@@ -21,7 +22,7 @@ export const LAB = {
   accel: 250, turnMax: 211,    // the board's: mm/s², °/s for W
 };
 const COLS = 4, ROWS = 6;
-export const labSize = (sheet = 1) => sheet === 14 || sheet === 15 ? { h: S14.size - LAB.rowGap, w: S14.size } : sheet === 13 ? { h: S13.size - LAB.rowGap, w: S13.size } : sheet >= 8 ? { h: S4.h - LAB.rowGap, w: S8.w } : sheet === 5 ? { h: S5.h - LAB.rowGap, w: S5.w } : sheet === 4 || sheet === 6 || sheet === 7 ? { h: S4.h - LAB.rowGap, w: S4.w } : ({ h: sheet === 3 ? S3.h : sheet === 2 ? S2.top : ROWS * LAB.rowGap + LAB.along, w: (COLS - 1) * LAB.step + (sheet === 3 ? S2.cellLong + 8 : LAB.length) });
+export const labSize = (sheet = 1) => sheet >= 14 ?{ h: S14.size - LAB.rowGap, w: S14.size } : sheet === 13 ? { h: S13.size - LAB.rowGap, w: S13.size } : sheet >= 8 ? { h: S4.h - LAB.rowGap, w: S8.w } : sheet === 5 ? { h: S5.h - LAB.rowGap, w: S5.w } : sheet === 4 || sheet === 6 || sheet === 7 ? { h: S4.h - LAB.rowGap, w: S4.w } : ({ h: sheet === 3 ? S3.h : sheet === 2 ? S2.top : ROWS * LAB.rowGap + LAB.along, w: (COLS - 1) * LAB.step + (sheet === 3 ? S2.cellLong + 8 : LAB.length) });
 // LAB 2.0 (the owner, the same night, of the first sheet: "yes, one correction for every way; a second
 // sheet round 10, 11 and 12"; "21 goes with the fur, 20 against it"): the carriage against the elbow,
 // sign + as the first sheet proved, the tip going +X as the elbow rises. Every line by its own points:
@@ -460,11 +461,35 @@ function sheetReal(ways) {
   });
   return one;
 }
+// LAB 4.0 · real 3, the last sheet (the owner, 2026-11-08: "before painting the red Porsche on the 70 × 100 canvas, better make a fragment of it on 20 × 20 cm"; "I prepared
+// for-LAB.png, it lies in FORM-G, it will suit real 3 perfectly"): not pieces of 30 × 84 in two paints any more, but the red 911's own piece round its left headlight,
+// 180 × 172 mm at the picture's own size (labreal3.js), every jar of it in FORM-G's order, light to dark, and run as OPM-G runs: the canon of a long leg (canon.js),
+// formgplan.js's own cells and runs, nothing of LAB's own. A number a jar; a pause before every jar but the first, for its paint. The jars of two coats once more, over the
+// dry first layer, as FORM-G's list has them: on the sheet after it (17), at the same place.
+const S16 = (() => {     // the frame's bottom on the sheet's X 22, as real 2's long leg; what it paints centred across the 200 mm
+  const xs = REAL3.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))), half = REAL3.pic.pitch / 2;
+  return { bottom: 22, left: 100 - (Math.min(...xs) - half + Math.max(...xs) + half) / 2 };
+})();
+export function real3Of(layer = 1) {
+  const pic = REAL3.pic, list = seqOf(pic), passes = passesOf(pic, { canon: true }), runs = canonRuns(passes);
+  const at = ([x, y]) => ({ x: y - REAL3.frame.y0 + S16.bottom, y: x + S16.left });
+  return passes.map((P, k) => ({ jar: list[k], cells: P.cells, runs: runs.filter(r => r.pass === k).map(r => ({ pts: r.pts.map(at), dip: r.dip, idle: r.idle, beyond: r.beyond })) }))
+    .filter(q => q.jar.layer === layer);
+}
+function sheetReal3(layer) {
+  const jars = real3Of(layer), mm = pts => pts.slice(1).reduce((t, q, i) => t + dist(pts[i], q), 0);
+  return jars.map((q, k) => {
+    const j = q.jar, line = q.runs.reduce((t, r) => t + mm(r.pts), 0), dips = q.runs.filter(r => r.dip).length;
+    const pause = k ? `Jar ${k + 1} of ${jars.length}, ${j.name} ${j.hex}: wipe the brush, put it in the cup, then Continue` : undefined;
+    return { kind: 'real', c: k, hue: j.hex, jar: `${j.name} ${j.hex}`, wide: true, mm: S3.mm, way: {}, seq: q.runs, pts: q.runs[0].pts, ...(pause ? { pause } : {}),
+      say: `${j.name} ${j.hex}${layer === 2 ? '' : j.coats === 2 ? ' (its second coat on layer 2)' : ''}: ${q.cells} cells, ${q.runs.filter(r => !r.idle).length} runs, ${dips} dips, ${(line / 1000).toFixed(2)} m` };
+  });
+}
 function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
-  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
+  const first = handDip(cup, 0), strokes = [], rows = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
   const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
   let dips = 0, mm = 0, slowS = 0;
-  (sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
+  (sheet === 17 ? sheetReal3(2) : sheet === 16 ? sheetReal3(1) : sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
     const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup;
     if (q.kind === 'real') {                         // LAB 4.0: runs in the plan's order, each its own dip or none, the idle ones as they come
       if (q.pause) blocks.push({ kind: 'pause', why: q.pause, row: 0 });
@@ -477,7 +502,7 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
         dips += r.dip ? 1 : 0; mm += lengthOf(pts);
       });
       const tip = q.seq[0].pts.map(shift);
-      strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, tip, from: tip[0], to: tip.at(-1), via: [], lines: q.seq.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((b, j) => [shift(r.pts[j]), shift(b)])) });
+      strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, ...(q.wide ? { wide: true, jar: q.jar } : {}), tip, from: tip[0], to: tip.at(-1), via: [], lines: q.seq.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((b, j) => [shift(r.pts[j]), shift(b)])) });
       return;
     }
     const runs = q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
@@ -499,7 +524,7 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
   const pts = blocks.flatMap(b => (b.cmds || []).filter(c => c[0] === 'L' || c[0] === 'M').map(c => c.split(' ').slice(1).map(Number)));
   return { blocks, strokes, seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed + slowS),
     bounds: { x0: Math.min(...pts.map(p => p[0])), x1: Math.max(...pts.map(p => p[0])), y0: Math.min(...pts.map(p => p[1])), y1: Math.max(...pts.map(p => p[1])) },
-    remote: { colours: sheet === 14 || sheet === 15 ? [{ name: `${name} · the first paint`, hex: '#3E8E5A', code: '', cells: strokes.filter(q => q.hue === '#3E8E5A').length }, { name: `${name} · the second paint`, hex: '#2B6CB0', code: '', cells: strokes.filter(q => q.hue === '#2B6CB0').length }] : [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
+    remote: { colours: sheet >= 16 ? strokes.map(q => ({ name: q.jar, hex: q.hue, code: '', cells: 1 })) : sheet === 14 || sheet === 15 ? [{ name: `${name} · the first paint`, hex: '#3E8E5A', code: '', cells: strokes.filter(q => q.hue === '#3E8E5A').length }, { name: `${name} · the second paint`, hex: '#2B6CB0', code: '', cells: strokes.filter(q => q.hue === '#2B6CB0').length }] : [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
 }
 
 // the sheet at its bottom left corner (x0, y0), carriage mm: X up, Y right, as on every tab; at its end the

@@ -966,3 +966,37 @@ test('real strokes 2: the carriage within the wall, on the 20 × 20', () => {
   assert.ok(P15.bounds.x0 >= 0 && P15.bounds.y0 >= 10 && P15.bounds.y1 <= 190, JSON.stringify(P15.bounds));
 });
 
+
+// ---------- real 3: the red 911's piece round its left headlight, every jar of it, by the canon as OPM-G runs ----------
+import { REAL3 } from '../src/labreal3.js';
+import { seqOf, passesOf, canonRuns } from '../src/formgplan.js';
+const P16 = labPlan({ x0: 0, y0: 0, cup, sheet: 16 }), P17 = labPlan({ x0: 0, y0: 0, cup, sheet: 17 });
+
+test('real 3: a number a jar, in FORM-G\'s list, the first layer on 16, the jars of two coats again on 17; a pause before every jar but the first', () => {
+  const list = seqOf(REAL3.pic);
+  assert.deepEqual(P16.strokes.map(q => q.hue), list.filter(j => j.layer === 1).map(j => j.hex));
+  assert.deepEqual(P17.strokes.map(q => q.hue), list.filter(j => j.layer === 2).map(j => j.hex));
+  assert.equal(P17.strokes.length, REAL3.pic.jars.filter(j => j.coats === 2).length);
+  for (const P of [P16, P17]) {
+    assert.equal(P.blocks.filter(b => b.kind === 'pause').length, P.strokes.length - 1);
+    assert.equal(P.remote.colours.length, P.strokes.length);
+    P.remote.rows.forEach(r => assert.equal(P.remote.colours[r.c].hex, P.strokes[r.cells[0][0] - 1].hue));
+  }
+  assert.deepEqual(labSize(16), { h: 176, w: 200 });
+});
+
+test('real 3: nothing of LAB\'s own: its runs are formgplan.js\'s canon runs of the piece, the same dips, at the picture\'s own size', () => {
+  const passes = passesOf(REAL3.pic, { canon: true }), runs = canonRuns(passes), list = seqOf(REAL3.pic);
+  const first = runs.filter(r => list[r.pass].layer === 1);
+  assert.equal(P16.remote.rows.length, first.length);
+  const dips = P16.blocks.filter(b => b.kind === 'joint' && b.rim !== undefined).length;
+  assert.equal(dips, first.filter(r => r.dip).length);
+  // every leg as long as in the picture: the pressed pieces along X keep their lengths
+  const len = rs => rs.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((q, i) => Math.abs(q[1] - r.pts[i][1])).filter(v => v > 1)).sort((a, b) => a - b);
+  const lab = P16.strokes.flatMap(q => q.lines.map(([a, b]) => Math.abs(b.x - a.x)).filter(v => v > 1)).sort((a, b) => a - b);
+  assert.deepEqual(lab.map(v => +v.toFixed(2)), len(first).map(v => +v.toFixed(2)));
+});
+
+test('real 3: on the 20 × 20 at X 0, Y 0, as real 2: the carriage within the wall', () => {
+  for (const P of [P16, P17]) assert.ok(P.bounds.x0 >= 0 && P.bounds.x1 <= 200 && P.bounds.y0 >= 10 && P.bounds.y1 <= 190, JSON.stringify(P.bounds));
+});

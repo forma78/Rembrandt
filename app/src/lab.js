@@ -6,15 +6,15 @@ import { reach, STEPS_PER_MM } from './machine.js';
 import './ui.js';
 
 const $ = s => document.querySelector(s), KEEP = 'rembrandt.lab.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
-const S = { x0: 200, y0: 150, press: LAB.press, sheet: 15, tracks: 4 };
+const S = { x0: 200, y0: 150, press: LAB.press, sheet: 16, tracks: 4 };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEEP) || '{}')); } catch { }
-S.sheet = 15;                                // the sheet to run next, at every opening
+S.sheet = 16;                                // the sheet to run next, at every opening: real 3, the last
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 let ink = null;
 const say = (t, warn) => { $('#runRead').innerHTML = warn ? `<span class="warn">${t}</span>` : t; };
 const fake = () => ({ hand: true, on: true, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 });
 const plan = () => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet: S.sheet, tracks: S.tracks, cup: ink ? cupOf(ink) : fake() });
-const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2' })[S.sheet];
+const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2', 16: 'LAB 4.0 · real 3', 17: 'LAB 4.0 · real 3 · layer 2' })[S.sheet];
 
 function outOfReach(P) {
   const R = reach(), B = P.bounds;
@@ -26,14 +26,14 @@ function draw() {
   const hue = { markElbow: '#8A5A00', markWrist: '#8A5A00', today: '#D8453B', shallow: '#D8453B', snake: '#D8453B', along: '#3E8E5A', comp: '#2B6CB0', wrist: '#7B3FA0' };
   const lines = P.strokes.map(q => {
     const c = q.hue || hue[q.kind] || '#D8453B', o = q.tip[0], up = q.kind === 'along', thin = q.kind === 'cell' || q.kind === 'oneway';
-    const shape = q.lines ? q.lines.map(l => `<line x1="${X(l[0])}" y1="${Y(l[0])}" x2="${X(l[1])}" y2="${Y(l[1])}" stroke="${c}" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>`).join('') : q.tip.length < 2 ? `<circle cx="${X(o)}" cy="${Y(o)}" r="3" fill="${c}"/>` : `<polyline points="${q.tip.map(p => `${X(p)},${Y(p)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="${thin ? 1.6 : 5}" stroke-linecap="round" stroke-linejoin="round" opacity="${thin ? .8 : .55}"/>`;
+    const shape = q.lines ? q.lines.map(l => `<line x1="${X(l[0])}" y1="${Y(l[0])}" x2="${X(l[1])}" y2="${Y(l[1])}" stroke="${c}" stroke-width="${q.wide ? 4.6 : 1.6}" stroke-linecap="round" opacity="${q.wide ? .92 : .8}"/>`).join('') : q.tip.length < 2 ? `<circle cx="${X(o)}" cy="${Y(o)}" r="3" fill="${c}"/>` : `<polyline points="${q.tip.map(p => `${X(p)},${Y(p)}`).join(' ')}" fill="none" stroke="${c}" stroke-width="${thin ? 1.6 : 5}" stroke-linecap="round" stroke-linejoin="round" opacity="${thin ? .8 : .55}"/>`;
     const idle = q.idleTip ? `<polyline points="${q.idleTip.map(p => `${X(p)},${Y(p)}`).join(' ')}" fill="none" stroke="#E8751A" stroke-width=".8" stroke-linejoin="round"/>` : '';   // the idle run, off the first's line
-    return `${shape}${idle}<text x="${(+X(o) + (up ? -13 : -3)).toFixed(1)}" y="${(+Y(o) + (up ? 2 : -6)).toFixed(1)}" font-size="8" font-weight="700" fill="currentColor">${q.n}</text>`;
+    return `${shape}${idle}<text x="${(+X(o) + (up ? -13 : q.wide ? -1 : -3)).toFixed(1)}" y="${(+Y(o) + (up ? 2 : q.wide ? -3 : -6)).toFixed(1)}" font-size="${q.wide ? 3.6 : 8}" font-weight="700" fill="currentColor"${q.wide ? ' stroke="#fff" stroke-width=".8" paint-order="stroke"' : ''}>${q.n}</text>`;
   }).join('');
   $('#stage').innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;background:#fff;color:#24221F" role="img" aria-label="The sheet of trial strokes">
     <rect x="${m}" y="${m}" width="${w}" height="${h + LAB.rowGap}" fill="none" stroke="#C9C5BD" stroke-dasharray="3 3"/>
     <text x="${m}" y="${H - 3}" font-size="7" fill="#8A857C">X ${S.x0}, Y ${S.y0} · ${w} × ${h + LAB.rowGap} mm · X up, Y right</text>${lines}</svg>`;
-  $('#list').innerHTML = P.strokes.map(q => `<li value="${q.n}">${q.say}</li>`).join('');
+  $('#list').innerHTML = P.strokes.map(q => `<li value="${q.n}">${q.wide ? `<span class="sw" style="background:${q.hue}"></span>` : ''}${q.say}</li>`).join('');
   $('#planRead').textContent = S.sheet >= 2 ? `${P.strokes.length} numbers, ${P.remote.rows.length} runs of the brush, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.` : `${P.strokes.length} strokes, a dip before each, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.`;
   document.querySelectorAll('#sheets button').forEach(b => b.classList.toggle('on', +b.dataset.sheet === S.sheet));
   const bad = outOfReach(P); if (bad) say(bad, true);
@@ -65,7 +65,7 @@ $('#btnRun').onclick = async () => {
   if (!(st.hand >= 1)) return say('Restart rembrandt.py first.', true);
   if (LIVE.includes(st.state)) return say(`A run is on (${st.state}): not now.`, true);
   const { w, h } = labSize(S.sheet), wr = P.strokes.filter(q => q.kind === 'wrist' || q.kind === 'markWrist').map(q => q.n);
-  if (!confirm(`${sheetName()}: ${P.strokes.length} numbers on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}${P.blocks.some(b => b.kind === 'pause') ? '\n\nIt stops for the second paint: wipe the brush, change the paint, then press CONTINUE on this page.' : ''}\n\nIs the scrap there, the jar on its bracket?`)) return;
+  if (!confirm(`${sheetName()}: ${P.strokes.length} numbers on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}${S.sheet >= 16 ? `\n\nThe first jar in the cup: ${P.strokes[0].jar}. It stops before each of the other ${P.strokes.length - 1}: wipe the brush, put that jar in the cup, then press CONTINUE on this page.${S.sheet === 17 ? ' Over real 3\'s first layer, dry, at the same place.' : ''}` : P.blocks.some(b => b.kind === 'pause') ? '\n\nIt stops for the second paint: wipe the brush, change the paint, then press CONTINUE on this page.' : ''}\n\nIs the scrap there, the jar on its bracket?`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks,
       log: { page: 'lab', pass: 'lab', label: `${sheetName()} · ${P.strokes.length} numbers${S.sheet >= 3 && S.sheet < 13 ? `, ${S.tracks} tracks` : ''} at X ${S.x0}, Y ${S.y0} · pressed ${S.press}°`, here: { x: S.x0, y: S.y0 }, cup: c, travel: LAB.travel, remote: P.remote, estimate_s: P.seconds } }) });
