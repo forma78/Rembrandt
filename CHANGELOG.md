@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **LAB: Result, real 3's two layers together** (2026-11-08). The owner: "a result key, to see the whole result of the two passes". On real 3 and
+  its layer 2: the first layer and the second coats over it, every coat a film of about 72 % of its paint (est.), so a jar of two coats comes out deeper; a jar
+  picked in the list lit in both. A view of the plan, not a measurement; ▶ Play turns it off.
 - **The canon of the jars: no jar with less line than the canvas's long side** (2026-11-08). The owner: "I do not have so many jars, nor do I see the
   point of nuances of RGB … take out the jars with less than the canvas's own long side, if they do not change the look; so under 20 cm. It can go into the
   canon." README, "How many jars"; `canon.js`'s `jarsByCanvas`: a short jar's cells to the nearest by colour that stays, no paint mixed ("simply find a

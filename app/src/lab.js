@@ -13,7 +13,8 @@ const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catc
 let ink = null;
 const say = (t, warn) => { $('#runRead').innerHTML = warn ? `<span class="warn">${t}</span>` : t; };
 const fake = () => ({ hand: true, on: true, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 });
-const plan = () => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet: S.sheet, tracks: S.tracks, cup: ink ? cupOf(ink) : fake() });
+const planOf = sheet => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet, tracks: S.tracks, cup: ink ? cupOf(ink) : fake() });
+const plan = () => planOf(S.sheet);
 const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2', 16: 'LAB 4.0 · real 3', 17: 'LAB 4.0 · real 3 · layer 2' })[S.sheet];
 
 function outOfReach(P) {
@@ -28,7 +29,10 @@ function geom() {
 const HUE = { markElbow: '#8A5A00', markWrist: '#8A5A00', today: '#D8453B', shallow: '#D8453B', snake: '#D8453B', along: '#3E8E5A', comp: '#2B6CB0', wrist: '#7B3FA0' };
 const hueOf = q => q.hue || HUE[q.kind] || '#D8453B';
 // a number picked in the list (the owner, 2026-11-08, of FORM-G's list, for-lab2.png: "the paints' selection, so that I study and get ready where which paint goes"): its strokes alone, the rest veiled
-let SEL = null, PLAY = null;
+let SEL = null, PLAY = null, RESULT = false;
+// Result (the owner, 2026-11-08: "a result key, to see the whole result of the two passes"): real 3's first layer and its second coats over it, every coat a film about
+// COAT of the paint's own colour (est.), so a jar of two coats comes out deeper; the idle runs not drawn. A view of the plan, not a measurement.
+const COAT = 0.72, hasResult = () => S.sheet >= 16;
 function draw() {
   const P = plan(), { w, h, m, W, H, X, Y } = geom(), sel = P.strokes.some(q => q.n === SEL) ? SEL : null;
   const one = q => {
@@ -42,15 +46,18 @@ function draw() {
     return `${shape}${idle}${num}`;
   };
   const order = sel ? [...P.strokes.filter(q => q.n !== sel), ...P.strokes.filter(q => q.n === sel)] : P.strokes;   // the picked one on top
+  const result = RESULT && hasResult() && !PLAY, hueSel = sel && P.strokes.find(x => x.n === sel)?.hue;
+  const coats = () => [16, 17].flatMap(n => planOf(n).strokes).map(q => q.lines.map(l => `<line x1="${X(l[0])}" y1="${Y(l[0])}" x2="${X(l[1])}" y2="${Y(l[1])}" stroke="${q.hue}" stroke-width="4.6" stroke-linecap="round" opacity="${hueSel && q.hue !== hueSel ? .05 : COAT}"/>`).join('')).join('');
   $('#stage').innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100%;display:block;background:#fff;color:#24221F" role="img" aria-label="The sheet of trial strokes">
     <rect x="${m}" y="${m}" width="${w}" height="${h + LAB.rowGap}" fill="none" stroke="#C9C5BD" stroke-dasharray="3 3"/>
-    <text x="${m}" y="${H - 3}" font-size="7" fill="#8A857C">X ${S.x0}, Y ${S.y0} · ${w} × ${h + LAB.rowGap} mm · X up, Y right</text>${PLAY ? '<g id="playG"></g><circle id="playTip" r="2.2" fill="none" stroke-width=".9" visibility="hidden"/>' : order.map(one).join('')}</svg>`;
+    <text x="${m}" y="${H - 3}" font-size="7" fill="#8A857C">${result ? `Result · the two layers, a coat ≈ ${Math.round(COAT * 100)} % (est.) · X ${S.x0}, Y ${S.y0}` : `X ${S.x0}, Y ${S.y0} · ${w} × ${h + LAB.rowGap} mm · X up, Y right`}</text>${PLAY ? '<g id="playG"></g><circle id="playTip" r="2.2" fill="none" stroke-width=".9" visibility="hidden"/>' : result ? coats() : order.map(one).join('')}</svg>`;
   $('#list').innerHTML = P.strokes.map(q => `<li value="${q.n}" data-n="${q.n}"${q.n === sel ? ' class="on"' : ''}>${q.wide ? `<span class="sw" style="background:${q.hue}"></span>` : ''}${q.say}</li>`).join('');
   $('#planRead').textContent = S.sheet >= 2 ? `${P.strokes.length} numbers, ${P.remote.rows.length} runs of the brush, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.` : `${P.strokes.length} strokes, a dip before each, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.`;
   $('#noteRead').textContent = P.note ?? '';
   const q = sel && P.strokes.find(x => x.n === sel), len = q?.lines ? q.lines.reduce((t, [a, b]) => t + Math.hypot(b.x - a.x, b.y - a.y), 0) : 0;
   $('#selRead').textContent = q ? `${q.n}. ${q.jar ?? q.say.split(':')[0]}: where it goes${len ? `, ${(len / 1000).toFixed(2)} m of line` : ''}, the rest veiled. ↑ ↓ the next, the same line or Esc for all.` : P.strokes.length > 1 && !PLAY ? 'A line of the list: its strokes alone on the sheet.' : '';
   document.querySelectorAll('#sheets button').forEach(b => b.classList.toggle('on', +b.dataset.sheet === S.sheet));
+  const rb = $('#btnResult'); rb.disabled = !hasResult(); rb.classList.toggle('on', result);
   const bad = outOfReach(P); if (bad) say(bad, true);
 }
 // anything that changes the sheet stops ▶ Play first: its drawing is of the plan it started with
@@ -74,8 +81,10 @@ function playStop() {
   $('#btnPlay').textContent = '▶ Play'; $('#btnPlay').classList.remove('on'); $('#playRead').textContent = '';
   draw();
 }
+$('#btnResult').onclick = () => { if (!hasResult() || PLAY) return; RESULT = !RESULT; draw(); };
 $('#btnPlay').onclick = () => {
   if (PLAY) return playStop();
+  RESULT = false;
   const P = plan(), runs = P.runs ?? P.strokes.map(q => ({ n: q.n, pts: q.tip, idle: false })), byN = Object.fromEntries(P.strokes.map(q => [q.n, q])), list = [];
   let mm = 0;
   for (const r of runs) r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b.x - a.x, b.y - a.y); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), n: r.n, idle: r.idle }); });
