@@ -8,6 +8,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 - **LAB: real 3's first layer back on its key, `real 3 · layer 1`** (the owner, 2026-11-09: "we have layer 2 and Result, the two layers together, but
   layer 1 went missing somewhere; can you restore it, please"). It had never gone: sheet 16 was `real 3 · Porsche`, and Result, once on, stayed on at
   a pick of a sheet, so both keys showed the two layers together. Now the key says layer 1, and picking a sheet shows that sheet, Result off.
+  Then the owner: "layer 1 is the same as Result". It was: the plan drew every stroke at 92 %, and two coats of 72 % make 92 % too. Real 3's
+  layers now draw one coat each, a film of 72 % as Result's (est.): layer 1 lighter, Result deeper where a jar has two coats.
 
 ## v.1.2.2 — 2026-11-09 · COLORS
 
