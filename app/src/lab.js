@@ -13,7 +13,7 @@ const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catc
 let ink = null;
 const say = (t, warn) => { $('#runRead').innerHTML = warn ? `<span class="warn">${t}</span>` : t; };
 const fake = () => ({ hand: true, on: true, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 });
-const planOf = sheet => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet, tracks: S.tracks, cup: ink ? cupOf(ink) : fake() });
+const planOf = (sheet, from = 1) => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet, tracks: S.tracks, from, cup: ink ? cupOf(ink) : fake() });
 const plan = () => planOf(S.sheet);
 const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2', 16: 'LAB 4.0 · real 3 · layer 1', 17: 'LAB 4.0 · real 3 · layer 2', 18: 'LAB 4.0 · dry test' })[S.sheet];
 
@@ -54,6 +54,11 @@ function draw() {
     <rect x="${m}" y="${m}" width="${w}" height="${h + LAB.rowGap}" fill="none" stroke="#C9C5BD" stroke-dasharray="3 3"/>
     <text x="${m}" y="${H - 3}" font-size="7" fill="#8A857C">${result ? `Result · the two layers, a coat ≈ ${Math.round(COAT * 100)} % (est.) · X ${S.x0}, Y ${S.y0}` : `X ${S.x0}, Y ${S.y0} · ${w} × ${h + LAB.rowGap} mm · X up, Y right`}</text>${PLAY ? '<g id="playG"></g><circle id="playTip" r="2.2" fill="none" stroke-width=".9" visibility="hidden"/>' : result ? coats() : order.map(one).join('')}</svg>`;
   $('#list').innerHTML = P.strokes.map(q => `<li value="${q.n}" data-n="${q.n}"${q.n === sel ? ' class="on"' : ''}>${q.wide ? `<span class="sw" style="background:${q.hue}"></span>` : ''}${q.say}</li>`).join('');
+  // Start from (as FORM-G's): every number of the sheet, its jar's name where it has one; the numbers before it shown in the list as left out
+  const fromEl = $('#fFrom'); S.from = Math.min(Math.max(1, S.from || 1), P.strokes.length);
+  fromEl.innerHTML = P.strokes.map(x => `<option value="${x.n}"${x.n === S.from ? ' selected' : ''}>${x.n} · ${x.jar ? x.jar.replace(/ #\w+$/, '') : x.say.split(':')[0].slice(0, 48)}</option>`).join('');
+  fromEl.disabled = S.sheet < 2; fromEl.classList.toggle('on', S.from > 1);
+  document.querySelectorAll('#list li').forEach(li => li.classList.toggle('before', +li.dataset.n < S.from));
   $('#planRead').textContent = S.sheet >= 2 ? `${P.strokes.length} numbers, ${P.remote.rows.length} runs of the brush, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.` : `${P.strokes.length} strokes, a dip before each, ≈ ${Math.round(P.seconds / 60)} min (est.), then home.`;
   $('#noteRead').textContent = P.note ?? '';
   const q = sel && P.strokes.find(x => x.n === sel), len = q?.lines ? q.lines.reduce((t, [a, b]) => t + Math.hypot(b.x - a.x, b.y - a.y), 0) : 0;
@@ -137,7 +142,8 @@ for (const [id, key] of [['#fX', 'x0'], ['#fY', 'y0'], ['#fPress', 'press'], ['#
   const el = $(id); el.value = S[key];
   el.onchange = () => { let v = +el.value; if (Number.isFinite(v)) { if (key === 'tracks') v = Math.max(1, Math.min(8, Math.round(v))); S[key] = v; save(); say(''); redraw(); } el.value = S[key]; };
 }
-$('#sheets').onclick = e => { const b = e.target.closest('[data-sheet]'); if (!b) return; S.sheet = +b.dataset.sheet; RESULT = false; save(); say(''); redraw(); };   // a sheet picked shows that sheet: Result off (2026-11-09, layer 1 was hidden under it)
+$('#sheets').onclick = e => { const b = e.target.closest('[data-sheet]'); if (!b) return; S.sheet = +b.dataset.sheet; S.from = 1; RESULT = false; save(); say(''); redraw(); };   // a sheet picked shows that sheet: Result off (2026-11-09, layer 1 was hidden under it)
+$('#fFrom').onchange = e => { S.from = +e.target.value || 1; save(); say(S.from > 1 ? `RUN starts from number ${S.from}: the ones before it left out, its jar in the cup first.` : ''); redraw(); };   // Start from, kept till another sheet is picked
 $('#btnHere').onclick = async () => {
   let t = ''; try { t = await (await fetch('/machine/ping', { cache: 'no-store' })).text(); } catch { }
   const m = /^ok P X (-?\d+)(?: край)? Y (-?\d+)/.exec(t);
@@ -150,17 +156,17 @@ $('#btnRun').onclick = async () => {
   const c = ink ? cupOf(ink) : null;
   if (!c || !c.hand || !c.on) return say('Switch the cup at hand ON on INK-Y first.', true);
   const why = cupProblem(c); if (why) return say(why, true);
-  const P = plan(), bad = outOfReach(P); if (bad) return say(bad, true);
+  const from = S.sheet >= 2 ? S.from || 1 : 1, P = planOf(S.sheet, from), N = P.strokes.length, bad = outOfReach(P); if (bad) return say(bad, true);
   let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
   if (!st) return say('No server: start rembrandt.py.', true);
   if (!(st.hand >= 1)) return say('Restart rembrandt.py first.', true);
   if (LIVE.includes(st.state)) return say(`A run is on (${st.state}): not now.`, true);
   const { w, h } = labSize(S.sheet), wr = P.strokes.filter(q => q.kind === 'wrist' || q.kind === 'markWrist').map(q => q.n);
-  if (!confirm(`${sheetName()}: ${P.strokes.length} numbers on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}${S.sheet === 18 ? `\n\nThe yellow, ${P.strokes[0].jar}, in the cup first. After the five yellow bands it stops: wipe the brush, put the red, ${P.strokes.at(-1).jar}, in the cup AT ONCE, then CONTINUE: the bands' clocks run from their painting. Then it waits by itself, the brush parked in the jar, ≈ ${Math.round(P.seconds / 60)} min in all.` : S.sheet >= 16 ? `\n\nThe first jar in the cup: ${P.strokes[0].jar}. It stops before each of the other ${P.strokes.length - 1}: wipe the brush, put that jar in the cup, then press CONTINUE on this page.${S.sheet === 17 ? ' Over real 3\'s first layer, dry, at the same place.' : ''}` : P.blocks.some(b => b.kind === 'pause') ? '\n\nIt stops for the second paint: wipe the brush, change the paint, then press CONTINUE on this page.' : ''}\n\nIs the scrap there, the jar on its bracket?`)) return;
+  if (!confirm(`${sheetName()}: ${from > 1 ? `FROM NUMBER ${from} ON, ${N - from + 1} of its ${N} numbers (${from - 1} before it left out)` : `${N} numbers`} on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}${S.sheet === 18 ? `\n\nThe yellow, ${P.strokes[0].jar}, in the cup first. After the five yellow bands it stops: wipe the brush, put the red, ${P.strokes.at(-1).jar}, in the cup AT ONCE, then CONTINUE: the bands' clocks run from their painting. Then it waits by itself, the brush parked in the jar, ≈ ${Math.round(P.seconds / 60)} min in all.` : S.sheet >= 16 ? `\n\nThe first jar in the cup: ${P.strokes[from - 1].jar}. It stops before each of the other ${N - from}: wipe the brush, put that jar in the cup, then press CONTINUE on this page.${S.sheet === 17 ? ' Over real 3\'s first layer, dry, at the same place.' : ''}` : P.blocks.some(b => b.kind === 'pause') ? '\n\nIt stops for the second paint: wipe the brush, change the paint, then press CONTINUE on this page.' : ''}\n\nIs the scrap there, the jar on its bracket?`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks,
-      log: { page: 'lab', pass: 'lab', label: `${sheetName()} · ${P.strokes.length} numbers${S.sheet >= 3 && S.sheet < 13 ? `, ${S.tracks} tracks` : ''} at X ${S.x0}, Y ${S.y0} · pressed ${S.press}°`, here: { x: S.x0, y: S.y0 }, cup: c, travel: LAB.travel, remote: P.remote, estimate_s: P.seconds } }) });
-    say(await r.text());
+      log: { page: 'lab', pass: 'lab', label: `${sheetName()} · ${from > 1 ? `from number ${from}, ` : ''}${P.strokes.length} numbers${S.sheet >= 3 && S.sheet < 13 ? `, ${S.tracks} tracks` : ''} at X ${S.x0}, Y ${S.y0} · pressed ${S.press}°`, here: { x: S.x0, y: S.y0 }, cup: c, travel: LAB.travel, remote: P.remote, estimate_s: P.seconds } }) });
+    const t = await r.text(); if (r.ok) { S.ran = { sheet: S.sheet, from }; save(); } say(t);
   } catch { say('start rembrandt.py', true); }
 };
 // HOME (the owner, 2026-11-05: "I go to OPM-N and lead it home from there"): the brush up, the carriage home, as there
@@ -190,7 +196,8 @@ let was = '';
 setInterval(async () => {
   let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
   showHold(st);
-  const line = !st ? 'no server: start rembrandt.py' : st.state === 'idle' ? '' : `${st.state}${st.row && plan().remote.rows[st.row - 1] ? ` · number ${plan().remote.rows[st.row - 1].cells[0][0]}` : ''}${st.message ? ` · ${st.message}` : ''}`;
+  const sent = S.ran ? planOf(S.ran.sheet, S.ran.from) : plan();   // the run's own rows: started from a number, its row 1 is that number's
+  const line = !st ? 'no server: start rembrandt.py' : st.state === 'idle' ? '' : `${st.state}${st.row && sent.remote.rows[st.row - 1] ? ` · number ${sent.remote.rows[st.row - 1].cells[0][0]}` : ''}${st.message ? ` · ${st.message}` : ''}`;
   if (line !== was) { was = line; $('#stateRead').textContent = line; }
 }, 700);
 loadInk();

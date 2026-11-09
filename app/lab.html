@@ -13,6 +13,10 @@
   .lablist li[data-n]{cursor:pointer;border-radius:3px}
   .lablist li.on{outline:2px solid #E8751A;outline-offset:2px}   /* a number picked: its strokes alone on the sheet */
   .lablist li.now{background:#FFE9A8}                            /* ▶ Play: the number now */
+  .lablist li.before{opacity:.45}                                 /* before Start from: left out of RUN */
+  .labfrom{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .labfrom select{flex:1;min-width:0;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:4px;padding:5px 6px;font:13px var(--mono);text-transform:none;letter-spacing:0}
+  .labfrom select.on{border-color:#E8751A;box-shadow:0 0 0 1px #E8751A}
   #btnPlay.on,#btnResult.on{background:#E8751A;color:#fff;border-color:#E8751A}
   .lablist .sw{display:inline-block;width:11px;height:11px;margin:0 5px -1px 0;border-radius:2px;border:1px solid rgba(0,0,0,.25)}   /* real 3: the jar's colour */
   .labgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
@@ -67,6 +71,7 @@
     <section class="sec">
       <h3>Run <span class="hint">the paint in the jar, the brush in the holder</span></h3>
       <p class="labcall" id="labCall" hidden></p>
+      <label class="labfrom" title="RUN starts from this number: the ones before it left out, its jar in the cup first, no pause before it. Back to an earlier one to repeat it">Start from <select id="fFrom"></select></label>
       <div class="grid4 keys">
         <button class="btn primary" id="btnRun">RUN THE SHEET</button>
         <button class="btn" id="btnPause" disabled title="PAUSE: the carriage brakes on its line. CONTINUE goes on from there, and after a change of paint">PAUSE</button>

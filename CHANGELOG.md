@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.2 — 2026-11-09
 
+- **LAB: Start from** (the owner, 2026-11-09, real 3 stopped on its second jar: "even in a test I need a key to go back and repeat; the same choice as in
+  FORM-G"). Over RUN, a choice of the sheet's numbers, `2 · Jar 5`, as FORM-G's: RUN starts on it, its jar in the cup first and no pause before it, the
+  numbers before it left out (grey in the list), every other pause and run as in the whole; back to an earlier number to repeat it. Kept till another sheet
+  is picked; the state line counts the numbers of the run that was sent. Real 3 from 2: 196 of 210 runs, 17 pauses, ≈ 27 min (est.). The page alone:
+  rembrandt.py and the board as they are.
 - **LAB: a jar is one film on the sheet** (the owner, 2026-11-09, of real 3's layer 1: "black strokes on the lamp, and we have no black run"; "layer 2's
   strokes still stay in the first"). Every line of a number was its own film of 72 %, so wherever the same brush goes twice (back to the leg's start, canon
   no. 9; the 15 mm lap after a dip; every corner) it drew darker: 31 % of layer 1's area. Now a number's lines sit whole in one group that holds the

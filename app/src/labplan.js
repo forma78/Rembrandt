@@ -532,15 +532,17 @@ function parkDip(c, row, s) {
   for (let left = s + c.dwell; left > 1e-6; left -= 10) waits.push({ kind: 'wait', s: +Math.min(10, left).toFixed(1), row, dip: true });
   return [...d.slice(0, 3), ...waits, ...d.slice(4)];
 }
-function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
+// from: Start from (the owner, 2026-11-09, real 3 stopped on its second jar: "even in a test I need a key to go back and repeat; a choice as in FORM-G"):
+// the numbers before it not run, the first one run without its pause (its jar is in the cup at RUN); the strokes all kept, numbered as ever
+function labPlan2({ x0, y0, cup, press, sheet, tracks, from = 1 }) {
   const first = handDip(cup, 0), strokes = [], rows = [], tips = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 18 ? 'LAB 4.0 · dry test' : sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3 · layer 1' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
   const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
   let dips = 0, mm = 0, slowS = 0;
   (sheet === 18 ? sheetDry() : sheet === 17 ? sheetReal3(2) : sheet === 16 ? sheetReal3(1) : sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
-    const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup;
+    const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup, skip = n < from;
     if (q.kind === 'real') {                         // LAB 4.0: runs in the plan's order, each its own dip or none, the idle ones as they come
-      if (q.pause) blocks.push({ kind: 'pause', why: q.pause, row: 0 });
-      q.seq.forEach((r, j) => {
+      if (q.pause && n > from) blocks.push({ kind: 'pause', why: q.pause, row: 0 });
+      if (!skip) q.seq.forEach((r, j) => {
         const parked = !j && r.dip && q.parkS > 0;     // the dry test: the brush waits in the jar till its time
         const pts = (r.beyond ? liftBeyond(r.pts) : r.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = !r.dip ? [] : parked ? parkDip(c, row, q.parkS) : handDip(c, row);
         if (parked) slowS += q.parkS;
@@ -554,14 +556,14 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
       strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, ...(q.wide ? { wide: true, jar: q.jar } : {}), tip, from: tip[0], to: tip.at(-1), via: [], lines: q.seq.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((b, j) => [shift(r.pts[j]), shift(b)])) });
       return;
     }
-    const runs = q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
+    const runs = skip ? [] : q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
     runs.forEach((pts0, j) => {
       const pts = (q.reachEnd && j === runs.length - 1 ? liftBeyond(pts0) : pts0).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p, q.ramp), dip = !q.noDip && (q.kind !== 'oneway' || j % (q.every ?? 2) === 0);
       rows.push({ c: 0, cells: [[n, 0]] }); tips.push({ n, pts: pts0.map(shift), idle: false, dip });
       blocks.push(fly(R.start, row), ...(dip ? handDip(c, row) : []), ...R.blocks);
       dips += dip ? 1 : 0; mm += lengthOf(pts);
     });
-    if (q.idle) {                                   // the elbow is up from the last run: the flight back, no shoulder, no jar
+    if (q.idle && !skip) {                          // the elbow is up from the last run: the flight back, no shoulder, no jar
       const pts = (q.idleRun ? liftBeyond(q.idleRun) : q.over ? liftBeyond(overshot(q.idleLine ?? q.pts, q.over)) : q.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p);
       rows.push({ c: 0, cells: [[n, 0]] }); tips.push({ n, pts, idle: true, dip: false });
       blocks.push(fly(R.start, row), ...R.blocks);
@@ -580,8 +582,8 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
 // the sheet at its bottom left corner (x0, y0), carriage mm: X up, Y right, as on every tab; at its end the
 // brush up and the carriage home, as OPM-N's run (the owner, 2026-11-05: "it stops there, I go to OPM-N and lead
 // it home from there"). bounds: the sheet's own, home is no part of them.
-export function labPlan({ x0, y0, cup, press = LAB.press, sheet = 1, tracks }) {
-  const P = sheet >= 2 ? labPlan2({ x0, y0, cup, press, sheet, tracks }) : labPlan1({ x0, y0, cup, press });
+export function labPlan({ x0, y0, cup, press = LAB.press, sheet = 1, tracks, from = 1 }) {
+  const P = sheet >= 2 ? labPlan2({ x0, y0, cup, press, sheet, tracks, from }) : labPlan1({ x0, y0, cup, press });
   return { ...P, blocks: [...P.blocks, ...homeBlocks(LAB.travel).map(b => ({ ...b, row: P.remote.rows.length }))] };
 }
 function labPlan1({ x0, y0, cup, press }) {

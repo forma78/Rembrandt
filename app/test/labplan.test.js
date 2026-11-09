@@ -1056,3 +1056,22 @@ test('dry test: on every band the red across it, from above 3 mm into it with it
     assert.ok(Math.abs(Math.max(...xs([below])) - 96) < .01, `below: its idle run stops at its legs' end, 96: ${Math.max(...xs([below]))}`);
   }
 });
+test('Start from (the owner, real 3 stopped on its second jar: "a key to go back and repeat, as in FORM-G"): the numbers before it left out, the first run with no pause, the rest as in the whole', () => {
+  for (const sheet of [16, 17, 15]) {
+    const all = labPlan({ x0: 0, y0: 0, cup, sheet }), N = all.strokes.length;
+    for (const from of [2, N]) {
+      const P = labPlan({ x0: 0, y0: 0, cup, sheet, from });
+      assert.equal(P.strokes.length, N, 'every number still in the list, as the page draws it');
+      const first = all.remote.rows.findIndex(r => r.cells[0][0] === from);
+      assert.deepEqual(P.remote.rows.map(r => r.cells[0][0]), all.remote.rows.slice(first).map(r => r.cells[0][0]), `sheet ${sheet} from ${from}: the runs of ${from} … ${N}, in order`);
+      // every pause of the whole stands before a number; left out with the numbers before Start from and with Start from's own
+      const before = Q => Q.blocks.map((x, i) => x.kind !== 'pause' ? 0 : Q.remote.rows[Q.blocks.slice(i).find(y => y.row >= 1).row - 1].cells[0][0]).filter(Boolean);
+      assert.deepEqual(before(P), before(all).filter(n => n > from), `sheet ${sheet} from ${from}: the pauses of the numbers after it, as in the whole`);
+      const k = P.blocks.findIndex(b => b.kind === 'pause'), firstFly = P.blocks.findIndex(b => b.row >= 1);
+      assert.ok(k < 0 || k > firstFly, `sheet ${sheet} from ${from}: no pause before its first number`);
+      assert.ok(P.seconds < all.seconds, 'shorter than the whole');
+    }
+  }
+  const P = labPlan({ x0: 0, y0: 0, cup, sheet: 16, from: 2 }), all = labPlan({ x0: 0, y0: 0, cup, sheet: 16 });
+  assert.equal(P.blocks.filter(b => b.kind === 'pause').length, all.blocks.filter(b => b.kind === 'pause').length - 1, 'real 3 from 2: the 17 pauses before 3 … 19, none before 2');
+});
