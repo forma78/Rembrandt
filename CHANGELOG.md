@@ -3,7 +3,7 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.2.1 — 2026-11-06
+## v.1.2.2 — 2026-11-09 · COLORS
 
 - **COLORS: the owner's sheets of 2026-11-08 again, dry, in daylight** (2026-11-09, the owner: "I added to LAB photos of the dried paint in
   daylight"; `LAB/IMG_2557 … 2570`). Every tube and every swatch ① … ⑬ measured again against the paper beside it in the same light. Wet under the
@@ -12,6 +12,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   ⑧ and ⑩ still cool. On the dry readings Jar 13 and Jar 22 (③ with ⑧) come out darker and redder in the model (ΔE 15 and 14, est.): their cards
   say to look at their swatches first. The close-ups in low sun shine (8 … 17 ΔE lighter): not measured; ⑫ and ⑬ too dark for a photo (L under 5).
   The jars already mixed: their own swatches, dry, fill Dry LAB next.
+- **v.1.2.2 on every tab and in the saved SVGs** (the owner, 2026-11-09: "thank you, it came out great. It can be pushed to GitHub;
+  just a couple of words about COLORS, and this is already v.1.2.2"). The code and the notes; the photos of `LAB/` stay on this Mac.
 - **COLORS, the library, a tab next to LAB** (2026-11-08). The owner: "README — sorry, I do not quite understand. Build a COLORS tab next to
   LAB, so that our library is there. Kuzya proposed cards"; "put the recommendations right in the cards!". A card a jar of LAB's real 3, in the tab's
   order and by its name there ("the names on the physical jars as on LAB / real 3"): Kuzya's card — Target, Mix recipe, Medium, Dry LAB, ΔE, Coats —

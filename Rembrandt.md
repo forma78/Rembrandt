@@ -328,7 +328,9 @@ Read this first. Every word below means exactly this, in code, UI and talk.
   same day (the owner: "it is a full update, v.1.2.0 — write a couple of
   lines on GitHub and leave it open"); **v.1.2.1**, LAB and the rubber brush,
   on 2026-11-05 (the owner: "let this version be v.1.2.1, and please write
-  something about LAB and what is new").
+  something about LAB and what is new"); **v.1.2.2**, COLORS, on 2026-11-09
+  (the owner: "it can be pushed to GitHub; just a couple of words about
+  COLORS, and this is already v.1.2.2").
 - **A dip goes into the cup at hand, by the owner's canon** (2026-11-03,
   `OPM-N/IMG_2108…2121`: "not two jars at the sides of Y, but a jar right by
   the arm … always at hand"; "the rules must be written in the README, and
