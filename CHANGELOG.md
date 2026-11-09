@@ -3,6 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.2.2 — 2026-11-09
+
+- **LAB: real 3's first layer back on its key, `real 3 · layer 1`** (the owner, 2026-11-09: "we have layer 2 and Result, the two layers together, but
+  layer 1 went missing somewhere; can you restore it, please"). It had never gone: sheet 16 was `real 3 · Porsche`, and Result, once on, stayed on at
+  a pick of a sheet, so both keys showed the two layers together. Now the key says layer 1, and picking a sheet shows that sheet, Result off.
+
 ## v.1.2.2 — 2026-11-09 · COLORS
 
 - **COLORS: the owner's sheets of 2026-11-08 again, dry, in daylight** (2026-11-09, the owner: "I added to LAB photos of the dried paint in

@@ -15,7 +15,7 @@ const say = (t, warn) => { $('#runRead').innerHTML = warn ? `<span class="warn">
 const fake = () => ({ hand: true, on: true, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 });
 const planOf = sheet => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet, tracks: S.tracks, cup: ink ? cupOf(ink) : fake() });
 const plan = () => planOf(S.sheet);
-const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2', 16: 'LAB 4.0 · real 3', 17: 'LAB 4.0 · real 3 · layer 2' })[S.sheet];
+const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2', 16: 'LAB 4.0 · real 3 · layer 1', 17: 'LAB 4.0 · real 3 · layer 2' })[S.sheet];
 
 function outOfReach(P) {
   const R = reach(), B = P.bounds;
@@ -135,7 +135,7 @@ for (const [id, key] of [['#fX', 'x0'], ['#fY', 'y0'], ['#fPress', 'press'], ['#
   const el = $(id); el.value = S[key];
   el.onchange = () => { let v = +el.value; if (Number.isFinite(v)) { if (key === 'tracks') v = Math.max(1, Math.min(8, Math.round(v))); S[key] = v; save(); say(''); redraw(); } el.value = S[key]; };
 }
-$('#sheets').onclick = e => { const b = e.target.closest('[data-sheet]'); if (!b) return; S.sheet = +b.dataset.sheet; save(); say(''); redraw(); };
+$('#sheets').onclick = e => { const b = e.target.closest('[data-sheet]'); if (!b) return; S.sheet = +b.dataset.sheet; RESULT = false; save(); say(''); redraw(); };   // a sheet picked shows that sheet: Result off (2026-11-09, layer 1 was hidden under it)
 $('#btnHere').onclick = async () => {
   let t = ''; try { t = await (await fetch('/machine/ping', { cache: 'no-store' })).text(); } catch { }
   const m = /^ok P X (-?\d+)(?: край)? Y (-?\d+)/.exec(t);
