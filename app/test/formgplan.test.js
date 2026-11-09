@@ -2,8 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame } from '../src/formgplan.js';
-import { landInside } from '../src/canon.js';
+import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame } from '../src/formgplan.js';
+import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
 import { reach } from '../src/machine.js';
@@ -210,7 +210,7 @@ test('the canon (no. 9): a dip\'s run lands inside its first leg, 16 mm along it
   assert.deepEqual(L.slice(0, 4), [[5, 9], [5, 10], [0, 10], [0, 0]]);
   assert.deepEqual(L.slice(4), rope.slice(1));
   const pic = loadG('gwagon'), P = passesOf(pic, { canon: true });
-  const runs = brushRuns(P, 95, 15, true).filter(r => !r.idle), dips = runs.filter(r => r.dip);
+  const runs = canonRuns(P, 15).filter(r => !r.idle), dips = runs.filter(r => r.dip);      // the canon alone, before the dose
   assert.ok(dips.length >= P.length);
   // inside its first leg (the same column, back towards the leg's start), or a rope's inside its own line; only a lone leg under 16 mm lands at its start
   const inLeg = r => r.pts.length > 2 && r.pts[0][0] === r.pts[1][0] && r.pts[1][0] === r.pts[2][0] && (r.pts[2][1] - r.pts[1][1]) * (r.pts[0][1] - r.pts[1][1]) > 0;
@@ -219,7 +219,7 @@ test('the canon (no. 9): a dip\'s run lands inside its first leg, 16 mm along it
   assert.ok(dips.filter(r => r.pts.length > 2).length > dips.length * 0.95);
   // the legs under 30 mm go on what a longer one leaves, to 79 mm of plan
   let held = 0;
-  for (const r of brushRuns(P, 95, 15, true)) { if (r.idle) continue; const L = r.pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - r.pts[i][0], q[1] - r.pts[i][1]), 0); held = r.dip ? 0 : held + L; assert.ok(held <= 79.5 + 1e-6, `${held} mm on what the brush holds`); }
+  for (const r of canonRuns(P, 15)) { if (r.idle) continue; const L = r.pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - r.pts[i][0], q[1] - r.pts[i][1]), 0); held = r.dip ? 0 : held + L; assert.ok(held <= 79.5 + 1e-6, `${held} mm on what the brush holds`); }
 });
 
 test('OPM-G\'s G-wagon through plotRun, the canvas in the middle of its range: no fault, nothing pressed into a wall, the cup at hand\'s forks, a pause between lines', () => {
@@ -232,7 +232,37 @@ test('OPM-G\'s G-wagon through plotRun, the canvas in the middle of its range: n
   assert.ok(P.filter(q => q.layer === 2).length > 0 && P.findIndex(q => q.layer === 2) > P.findLastIndex(q => q.layer === 1), 'the second layer last');
 });
 
-test('FORM-G\'s own run as it was: no landing inside, its cells in their order', () => {
-  const pic = load('porsche'), a = brushRuns(passesOf(pic), 95, 15), b = idleRunsOf(passesOf(pic), 95, 15);
-  assert.deepEqual(a, b);
+// the dose (canon.js; the owner, 2026-11-09, LAB's real 3: short cells dabs, a tail after 79 mm pale, "FORM-G and OPM-G need fixing too"): every run on a dip of its own,
+// a short leg after DOSE.tail mm of line a dip at its start; the idle runs as they were, so every leg still gone over
+const legLen = (pts, i) => { let j = i + 1, leg = 0; while (j < pts.length && Math.abs(pts[j][0] - pts[j - 1][0]) < 1e-6) { leg += Math.abs(pts[j][1] - pts[j - 1][1]); j++; } return leg; };
+function doseHolds(runs, label) {
+  for (const r of runs.filter(r => !r.idle)) {
+    assert.ok(r.dip, `${label}: a run on what another left`);
+    let s = 0;
+    for (let i = 1; i < r.pts.length; i++) {
+      const a = r.pts[i - 1], b = r.pts[i];
+      if (Math.abs(b[0] - a[0]) > 1e-6) { const leg = legLen(r.pts, i); assert.ok(!(s >= DOSE.tail && leg > 0 && leg < CANON.rideUnder), `${label}: a ${leg} mm leg after ${s.toFixed(0)} mm of line`); }
+      s += Math.hypot(b[0] - a[0], b[1] - a[1]);
+    }
+  }
+}
+test('FORM-G\'s run by the dose: every run on a dip of its own, no landing inside (not on the canon), the same points in the same order, the idle runs as they were', () => {
+  for (const id of FORMG_LIB) {
+    const P = passesOf(load(id)), a = brushRuns(P, 95, 15), b = idleRunsOf(P, 95, 15);
+    doseHolds(a, id);
+    assert.deepEqual(a.filter(r => r.idle), b.filter(r => r.idle), `${id}: the idle runs`);
+    const flat = R => R.filter(r => !r.idle).flatMap(r => r.pts);
+    assert.deepEqual(flat(a), flat(b), `${id}: no point added, none moved`);
+    assert.ok(a.filter(r => r.dip).length > b.filter(r => r.dip).length, `${id}: more dips`);
+  }
+});
+test('OPM-G\'s run by the dose: every run on a dip of its own, landing inside as the canon\'s, the idle runs as the canon has them', () => {
+  for (const id of OPMG_LIB) {
+    const P = passesOf(loadG(id), { canon: true }), a = brushRuns(P, 95, 15, true), b = canonRuns(P, 15);
+    doseHolds(a, id);
+    assert.deepEqual(a.filter(r => r.idle), b.filter(r => r.idle), `${id}: the idle runs`);
+    for (const r of a.filter(r => !r.idle)) assert.ok(r.pts.length > 2 || Math.abs(r.pts[1][1] - r.pts[0][1]) < CANON.insideMin, `${id}: a dip's run of ${Math.abs(r.pts[1][1] - r.pts[0][1])} mm not landed inside`);
+    const rows = rowsOf(loadG(id), P, 95, 15, true);
+    assert.equal(rows.ps.filter(p => !p[0].nodip).length, a.filter(r => r.dip).length, `${id}: a row's dip as its run's`);
+  }
 });

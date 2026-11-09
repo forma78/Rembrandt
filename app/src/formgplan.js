@@ -14,9 +14,9 @@
 //
 // OPM-G (the owner, 2026-11-07: "start with g-wagon.JPG, on a 60 x 60 canvas, with the new data of LAB / real 2"): FORM-G's page with its own library, app/opmg/, and its run by
 // the canon of a long leg (canon.js, README "How a long leg is laid"): a dip's run lands inside its first leg and goes back to its start; short end legs off a cell on their own;
-// legs under 30 mm on what a longer one leaves, to 79 mm of plan. FORM-G's own run as it was.
+// legs under 30 mm after a longer one, to 79 mm of plan. FORM-G's own run as it was. Both by the dose since 2026-11-09 (canon.js, real 3's): every run on a dip of its own.
 import { IDLE, idleLine, idleRowsOf, idleRunsOf } from './idleplan.js';
-import { CANON, startOnLong, ridersOnLong, landInside } from './canon.js';
+import { CANON, startOnLong, ridersOnLong, landInside, dosed } from './canon.js';
 
 export const FORMG_LIB = ['porsche', 'porsche-red', 'porsche-white', 'watch'];   // the library: a name here, its json and jpg in app/formg/; the red classic 911 and the white in its form since 2026-11-08
 export const OPMG_LIB = ['gwagon'];                  // OPM-G's: its json and jpg in app/opmg/
@@ -103,8 +103,10 @@ export function framedPic(pic, F) {
 }
 // OPM-G's runs: what the brush holds counted to the canon's 79 mm (the cells' own dips already in their runs), every run after a dip landing inside
 export const canonRuns = (passes, lap = FORMG.lap, ride = CANON.ride) => idleRunsOf(passes, ride, lap).map(r => r.idle || !r.dip ? r : { ...r, pts: landInside(r.pts, true) });
-export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false) => idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, canon ? canonRuns(passes, lap) : null);
-export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false) => canon ? canonRuns(passes, lap) : idleRunsOf(passes, every, lap);
+// the brush's runs as the page sends them, both FORM-G's and OPM-G's by the dose (canon.js, the owner, 2026-11-09): every run on a dip of its own, a short leg after 60 mm
+// of line a dip at its start; OPM-G's after a dip landing inside, FORM-G's, not on the canon, at its start as its other dips
+export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false) => canon ? dosed(canonRuns(passes, lap)) : dosed(idleRunsOf(passes, every, lap), false);
+export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false) => idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, brushRuns(passes, every, lap, canon));
 // where the canvas may lie, its left and bottom edges from home, mm, so that the carriage keeps within the walls: from plotRun's own carriage, run with no Here (the elbow's sweep takes
 // the carriage past a leg's end, about 20 mm at the bottom, less than none at the top; the walls press a path silently, so this is what counts)
 export function placeRange(pic, carriage, walls) {

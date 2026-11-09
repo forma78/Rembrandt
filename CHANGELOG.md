@@ -5,12 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.2 — 2026-11-09
 
+- **FORM-G and OPM-G: the dose, real 3's** (the owner, 2026-11-09: "FORM-G and OPM-G need fixing too"). The dose is the canon's now, `canon.js`
+  (`DOSE`, `dosed`): every run on a dip of its own, no cell on what another one left; a leg under 30 mm after 60 mm of line since the dip, a dip of its own at
+  its start; the idle runs as they were. OPM-G's new dips land inside as the canon's; FORM-G's, not on the canon, at the run's start as its other dips, its
+  points as they were. The cup at hand, the canvas in the middle of its range (est.): FORM-G's porsche 1357 → 2100 dips, ≈ 9 h 46 → 11 h 03; the red 911
+  1473 → 2381, ≈ 10 h 33 → 12 h 10; the white 962 → 1784, ≈ 7 h 46 → 9 h 08; the watch 734 → 1554, ≈ 6 h 34 → 7 h 53; OPM-G's G-wagon 931 → 1459,
+  ≈ 5 h 48 → 7 h 00; the black one in modules, its legs alone, 1551 → 4521, ≈ 17 h 43 → 22 h 27. LAB's sheets as they were, real 3 with it.
 - **LAB: real 3's dose — every run on a dip of its own** (the owner, 2026-11-09, real 3 on canvas, `LAB/IMG_2606`, `IMG_2609`: Jar 22's short cells came
   out dabs of ≈ 8 mm for 17 and 13 mm, the 20 mm tail of its long leg pale: "a real problem: not short legs but very short"; "clearly it needs a second
   dip"; "can we fix it in the process?"). By the canon a leg under 30 mm rode on what a longer one left (13, 9 and 4 mm after one dip for 15 mm), and the
   tail went on after 79 mm of leg. Now on real 3 every run starts on its own dip, and a short leg after 60 mm of line since the dip gets a dip at its start;
   each lands inside as the canon's do; the idle runs, so every leg, as they were. Layer 1 66 → 119 dips (≈ + 12 min), layer 2 57 → 100 (est.). LAB's real 3
-  alone: FORM-G and OPM-G keep the canon. The page alone: rembrandt.py and the board as they are.
+  alone at first; FORM-G and OPM-G the same day, above. The page alone: rembrandt.py and the board as they are.
 - **LAB: Start from** (the owner, 2026-11-09, real 3 stopped on its second jar: "even in a test I need a key to go back and repeat; the same choice as in
   FORM-G"). Over RUN, a choice of the sheet's numbers, `2 · Jar 5`, as FORM-G's: RUN starts on it, its jar in the cup first and no pause before it, the
   numbers before it left out (grey in the list), every other pause and run as in the whole; back to an earlier number to repeat it. Kept till another sheet

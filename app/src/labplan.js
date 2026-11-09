@@ -11,7 +11,7 @@ import { cellOf, passesOf, canonRuns, canonCellsOf, seqOf } from './formgplan.js
 import { idleRunsOf } from './idleplan.js';
 import { REAL_PIECES, REAL_LONG } from './labreal.js';
 import { REAL3 } from './labreal3.js';
-import { longEndFirst, startOnLong, ridersOnLong, jarsByCanvas, landInside, CANON } from './canon.js';
+import { longEndFirst, startOnLong, ridersOnLong, jarsByCanvas, landInside, dosed, CANON } from './canon.js';
 
 export const LAB = {
   speed: 25, travel: 120,      // mm/s, OPM-N's brush and a flight
@@ -481,29 +481,8 @@ export function real3Note() {
   return `The canon of the jars: less line than the canvas's long side, ${S14.size} mm, ${R3.out.length ? `${R3.out.length} went into the nearest by colour (${went})` : 'none went'}`
     + `${R3.kept.length ? `; ${R3.kept.length} stay though short, no jar near them (ΔE over ${CANON.jarDE}): ${R3.kept.map(k => `${k.name} ${(k.line / 1000).toFixed(2)} m`).join(', ')}` : ''}. ${REAL3.pic.jars.length} jars → ${R3.pic.jars.length} (est.).`;
 }
-// Real 3's dose (the owner, 2026-11-09, real 3 on canvas: Jar 22's short cells came out dabs of 8 mm for 17 and 13, its leg's 20 mm tail after 79 mm pale:
-// "a real problem: not short legs but very short"; "clearly it needs a second dip"; "can we fix it in the process?"): the canon's riders (a leg under 30 mm on
-// what a longer one left) off here, every cell on a dip of its own; and a short leg (under 30 mm) that comes after DOSE.tail mm of line since the dip, a dip
-// of its own at its start. Every run after a dip lands inside as the canon's do. LAB's real 3 alone: FORM-G and OPM-G keep the canon as it is (est.).
-export const DOSE = { tail: 60 };
-function dosed(runs) {
-  const L = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
-  return runs.flatMap(r => {
-    if (r.idle) return [r];
-    const out = []; let cur = [r.pts[0]], s = 0, dip = r.dip;
-    for (let i = 1; i < r.pts.length; i++) {
-      const a = r.pts[i - 1], b = r.pts[i];
-      if (Math.abs(b[0] - a[0]) > 1e-6) {           // a step across: the leg after it, along y
-        let j = i + 1, leg = 0;
-        while (j < r.pts.length && Math.abs(r.pts[j][0] - r.pts[j - 1][0]) < 1e-6) { leg += Math.abs(r.pts[j][1] - r.pts[j - 1][1]); j++; }
-        if (s >= DOSE.tail && leg > 0 && leg < CANON.rideUnder) { out.push({ ...r, pts: cur, dip, beyond: true }); cur = [b]; s = 0; dip = true; continue; }
-      }
-      s += L(a, b); cur.push(b);
-    }
-    out.push({ ...r, pts: cur, dip });
-    return out.map((q, k) => k === 0 && r.dip ? q : { ...q, dip: true, pts: landInside(q.pts, true) });   // the first as the canon had it, every other one on its own dip
-  });
-}
+// Real 3's dose: canon.js's DOSE and dosed, since 2026-11-09 the canon's (LAB's real 3 first, then FORM-G and OPM-G on the owner's word)
+export { DOSE } from './canon.js';
 export function real3Of(layer = 1, { dose = true } = {}) {
   const pic = R3.pic, list = seqOf(pic), passes = passesOf(pic, { canon: true }), runs = dose ? dosed(canonRuns(passes)) : canonRuns(passes);
   const at = ([x, y]) => ({ x: y - REAL3.frame.y0 + S16.bottom, y: x + S16.left });

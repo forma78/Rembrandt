@@ -105,7 +105,8 @@ async function start(key, blocks, info, log) {
 const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...o });
 const remoteRows = R => ({ colours: R.passes.map(q => { const j = jarOf(q.pencil); return { name: j?.name ?? q.pencil, hex: j?.hex ?? '#7F7F7F', code: j?.code || j?.hex || '', cells: q.cells }; }), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) });
 const dragWay = tracks => `${tracks} legs in all, only up and down, ${fmt(PIC.pitch, 0)} mm apart, the snake back and forth with the brush down; then at once an idle run over the cell, no dip, +${fmt(S.over, 1)} mm past the ends and none at its very end`
-  + (CANON_RUN ? `. A long leg by the canon, no. 9: after every dip the brush lands inside the leg, 16 mm along it, back to its start, then along it; legs under 30 mm go on what a longer one leaves, to 79 mm of line` : '');
+  + (CANON_RUN ? `. A long leg by the canon, no. 9: after every dip the brush lands inside the leg, 16 mm along it, back to its start, then along it` : '')
+  + `. The dose: every run on a dip of its own, none on what another left; a leg under 30 mm after 60 mm of line since the dip, a dip of its own at its start`;
 $('#btnDrag').onclick = async () => {
   await loadInk();
   if (!PIC) return;
@@ -117,7 +118,7 @@ $('#btnDrag').onclick = async () => {
   if (cupProblem(cup())) return warn(`DRAG dips in ${cupName()}: ${cupProblem(cup())}`);
   const whole = R.passes;
   const say = () => { const n = R.passes.length, first = jarOf(R.passes[0].pencil); const two = R.passes.filter(q => q.layer === 2).length; return (two ? `Two layers, one list: ${n - two ? `${n - two} jars, then ` : ''}${two} of them again over the dry first layer, the last in the list; Start from reaches them on another day. ` : '') + `One brush, ${n} line${n === 1 ? '' : 's'} of the list, in this order, light to dark. Every jar's cells by their numbers, 1, 2, 3 …, every one on its own: ${dragWay(R.passes.reduce((a, q) => a + q.tracks, 0))}; from cell to cell up through the air. `
-    + `The paint from ${cupName()}: put ${first?.name ?? 'the first'} in it now — a dip at every jar's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of line` : 'no other'}, ${R.dips} dips. `
+    + `The paint from ${cupName()}: put ${first?.name ?? 'the first'} in it now — a dip at every cell's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of line` : 'none in it'} and before a short leg after 60 mm, ${R.dips} dips. `
     + (n > 1 ? `Between two lines it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the cup — wipe it, put the next jar in the cup, Continue. ` : '')
     + `${fmt(R.mm / 1000, 1)} m of brush at ${S.speed} mm/s, ≈ ${hm(R.seconds)} (est.). ` + (PIC.frame ? `Only the frame, ${frameSize()} mm, at its place in the picture: its canvas's left edge ${frameHome().left} mm, its bottom edge ${frameHome().bottom} mm from home — is it laid there?` : `The canvas's left edge ${placeNow().edgeLeft} mm, its bottom edge ${placeNow().edgeBottom} mm from home.`); };
   if (!await askDraw(R.passes, say(), { from: whole.length > 1 ? { passes: whole, pick: i => { from = i; R = paintRun(i); return { passes: R.passes, text: say() }; } } : null })) return;
