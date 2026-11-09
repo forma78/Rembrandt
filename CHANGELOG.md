@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.2 — 2026-11-09
 
+- **LAB: real 3's dose — every run on a dip of its own** (the owner, 2026-11-09, real 3 on canvas, `LAB/IMG_2606`, `IMG_2609`: Jar 22's short cells came
+  out dabs of ≈ 8 mm for 17 and 13 mm, the 20 mm tail of its long leg pale: "a real problem: not short legs but very short"; "clearly it needs a second
+  dip"; "can we fix it in the process?"). By the canon a leg under 30 mm rode on what a longer one left (13, 9 and 4 mm after one dip for 15 mm), and the
+  tail went on after 79 mm of leg. Now on real 3 every run starts on its own dip, and a short leg after 60 mm of line since the dip gets a dip at its start;
+  each lands inside as the canon's do; the idle runs, so every leg, as they were. Layer 1 66 → 119 dips (≈ + 12 min), layer 2 57 → 100 (est.). LAB's real 3
+  alone: FORM-G and OPM-G keep the canon. The page alone: rembrandt.py and the board as they are.
 - **LAB: Start from** (the owner, 2026-11-09, real 3 stopped on its second jar: "even in a test I need a key to go back and repeat; the same choice as in
   FORM-G"). Over RUN, a choice of the sheet's numbers, `2 · Jar 5`, as FORM-G's: RUN starts on it, its jar in the cup first and no pause before it, the
   numbers before it left out (grey in the list), every other pause and run as in the whole; back to an earlier number to repeat it. Kept till another sheet

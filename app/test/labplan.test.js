@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LAB, labPlan, labSize, endSecs, rowsOfCell, sliceLine, snakeRuns, dipsOnLong, startOnLong } from '../src/labplan.js';
+import { LAB, labPlan, labSize, endSecs, rowsOfCell, sliceLine, snakeRuns, dipsOnLong, startOnLong, real3Of, DOSE } from '../src/labplan.js';
 import { dragRowsOf } from '../src/opmplan.js';
 import { reach } from '../src/machine.js';
 import { idleCellOf, idleRunsOf } from '../src/idleplan.js';
@@ -988,16 +988,35 @@ test('real 3: a number a jar, in FORM-G\'s list, the first layer on 16, the jars
   assert.deepEqual(labSize(16), { h: 176, w: 200 });
 });
 
-test('real 3: nothing of LAB\'s own: its runs are formgplan.js\'s canon runs of the piece, the same dips, at the picture\'s own size', () => {
+test('real 3: nothing of LAB\'s own but the dose: its runs are formgplan.js\'s canon runs of the piece, at the picture\'s own size; the dose off, the same dips', () => {
   const passes = passesOf(PIC3, { canon: true }), runs = canonRuns(passes), list = seqOf(PIC3);
-  const first = runs.filter(r => list[r.pass].layer === 1);
-  assert.equal(P16.remote.rows.length, first.length);
-  const dips = P16.blocks.filter(b => b.kind === 'joint' && b.rim !== undefined).length;
-  assert.equal(dips, first.filter(r => r.dip).length);
+  const first = runs.filter(r => list[r.pass].layer === 1), raw = real3Of(1, { dose: false }).flatMap(q => q.runs);
+  assert.equal(raw.length, first.length);
+  assert.equal(raw.filter(r => r.dip).length, first.filter(r => r.dip).length);
   // every leg as long as in the picture: the pressed pieces along X keep their lengths
   const len = rs => rs.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((q, i) => Math.abs(q[1] - r.pts[i][1])).filter(v => v > 1)).sort((a, b) => a - b);
-  const lab = P16.strokes.flatMap(q => q.lines.map(([a, b]) => Math.abs(b.x - a.x)).filter(v => v > 1)).sort((a, b) => a - b);
+  const lab = len(raw.map(r => ({ ...r, pts: r.pts.map(p => [p.y, p.x]) })));
   assert.deepEqual(lab.map(v => +v.toFixed(2)), len(first).map(v => +v.toFixed(2)));
+});
+
+test('real 3\'s dose (the owner, 2026-11-09: its short cells dabs, a 20 mm tail after 79 mm pale: "it needs a second dip"): every run on a dip of its own, a short leg after DOSE.tail mm a dip at its start; the idle runs, so every leg, as the canon has them', () => {
+  for (const layer of [1, 2]) {
+    const a = real3Of(layer, { dose: false }).flatMap(q => q.runs), b = real3Of(layer).flatMap(q => q.runs);
+    assert.deepEqual(b.filter(r => r.idle).map(r => r.pts), a.filter(r => r.idle).map(r => r.pts), `layer ${layer}: the idle runs, every cell's whole line, as they were`);
+    assert.ok(b.filter(r => !r.idle).every(r => r.dip), `layer ${layer}: no run on what another left`);
+    for (const r of b.filter(r => !r.idle)) {            // along a run: no short leg starts after DOSE.tail mm since its dip
+      let s = 0;
+      for (let i = 1; i < r.pts.length; i++) {
+        const p = r.pts[i - 1], q = r.pts[i];
+        if (Math.abs(q.y - p.y) > 1e-6) { let j = i + 1, leg = 0; while (j < r.pts.length && Math.abs(r.pts[j].y - r.pts[j - 1].y) < 1e-6) { leg += Math.abs(r.pts[j].x - r.pts[j - 1].x); j++; } assert.ok(!(s >= DOSE.tail && leg > 0 && leg < 30), `a ${leg} mm leg after ${s.toFixed(0)} mm`); }
+        s += Math.hypot(q.x - p.x, q.y - p.y);
+      }
+    }
+  }
+  const j22 = real3Of(1).find(q => q.jar.name === 'Jar 22').runs.filter(r => !r.idle);
+  assert.ok(j22.some(r => r.dip && r.pts.at(-1).x === 61 && r.pts.at(-1).y === 45), 'Jar 22\'s tail, its own dip');
+  const P = labPlan({ x0: 0, y0: 0, cup, sheet: 16 });
+  assert.equal(P.blocks.filter(x => x.kind === 'joint' && x.rim !== undefined).length, real3Of(1).flatMap(q => q.runs).filter(r => r.dip).length, 'the plan dips where the runs say');
 });
 
 test('real 3: on the 20 × 20 at X 0, Y 0, as real 2: the carriage within the wall', () => {
