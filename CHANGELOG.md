@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.2 — 2026-11-09
 
+- **LAB: a jar is one film on the sheet** (the owner, 2026-11-09, of real 3's layer 1: "black strokes on the lamp, and we have no black run"; "layer 2's
+  strokes still stay in the first"). Every line of a number was its own film of 72 %, so wherever the same brush goes twice (back to the leg's start, canon
+  no. 9; the 15 mm lap after a dip; every corner) it drew darker: 31 % of layer 1's area. Now a number's lines sit whole in one group that holds the
+  opacity, on the layers, the dry test and Result alike; only two different jars over each other come out deeper. The black that stays is real: number 19,
+  Ink #0C0C0C, 3 cells at the lamp, kept by the jar canon (no jar within ΔE 25). Layer 1: 19 jars, layer 2: the 14 of two coats again. A view: the runs
+  are as they were.
 - **LAB 4.0 · dry test: how long the yellow dries before the red** (2026-11-09). The owner, of real 3's preview: "the yellow is all but covered by the
   red: it will be mush"; of the light under the dark: "what interval? how long is the light paint given to dry?"; "make a small sheet 20 × 20, we test how long
   it dries, I never counted". Five yellow bands (Indicator), one change of jar, then the red (Jar 32) on each at 5, 10, 20, 30, 45 min: across the band, from
