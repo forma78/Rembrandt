@@ -7,7 +7,7 @@
 // stroke along Y, the hook. The wrist rolls round the arm: it sweeps the tip along Y, and lifts it hardly
 // at all at small angles. All the numbers est.; the sheet is there to measure them.
 import { handDip, homeBlocks } from './strokes.js';
-import { cellOf, passesOf, canonRuns, seqOf } from './formgplan.js';
+import { cellOf, passesOf, canonRuns, canonCellsOf, seqOf } from './formgplan.js';
 import { idleRunsOf } from './idleplan.js';
 import { REAL_PIECES, REAL_LONG } from './labreal.js';
 import { REAL3 } from './labreal3.js';
@@ -496,16 +496,54 @@ function sheetReal3(layer) {
       say: `${j.name} ${j.hex}${layer === 2 ? '' : j.coats === 2 ? ' (its second coat on layer 2)' : ''}: ${q.cells} cells, ${q.runs.filter(r => !r.idle).length} runs, ${dips} dips, ${(line / 1000).toFixed(2)} m${took}` };
   });
 }
+// LAB 4.0 · dry test (the owner, 2026-11-09, of real 3's preview: "the yellow is all but covered by the red: it will be mush, not a mix of yellow and red"; of the light
+// under the dark by 3 mm: "a good rule, but the devil is in the details: what interval? how long is the light paint given to dry?"; "yes, make a small sheet 20 × 20, we test
+// how long it dries, I never counted"): five yellow bands of short legs as the lamp's indicator, then the red, each band's at its own age, 5, 10, 20, 30, 45 min. On every band
+// three touches: the red across it, over its whole height; from above, ending 3 mm in, as a darker cell over the lighter's under-lap, its idle run +2 mm past the ends as today;
+// from below the same, its idle run 0 past the ends. The machine waits by itself, the brush parked in the jar so its tip does not dry; the one change of jar right after the
+// yellow, at once (CHANGE assumed: a longer one makes every age as much older). Every cell by the canon, as real 3. All est.
+const S18 = { ages: [45, 30, 20, 10, 5], lefts: [14, 50, 86, 122, 158], legs: 6, band: [95, 115], seen: [98, 112], across: [70, 140], above: 150, below: 60, change: 60,
+  yellow: { name: 'Indicator', hex: '#EE8A22' }, red: { name: 'Jar 32', hex: '#7E0D0D' } };
+const runS = seq => seq.reduce((t, r) => t + (r.dip ? 12 : 0) + 2 + lengthOf((r.beyond ? liftBeyond(r.pts) : r.pts)) / LAB.speed, 0);   // as labPlan2 counts its seconds
+export function sheetDry() {
+  const { legs, band: [b0, b1], seen: [v0, v1], across: [a0, a1], above, below } = S18, mini = { pitch: 5 };
+  const at = ([x, y]) => ({ x: y, y: x });      // a leg [across, from, to]: across the sheet's Y, along its X
+  const runsOf = (cells, over) => canonRuns([{ byCell: canonCellsOf(mini, { cells }, { over }) }]).map(r => ({ pts: r.pts.map(at), dip: r.dip, idle: r.idle, beyond: r.beyond }));
+  const snake = (y0, n, from, to) => ({ n: 1, legs: Array.from({ length: n }, (_, k) => k % 2 ? [y0 + 5 * k, to, from] : [y0 + 5 * k, from, to]) });
+  const yellow = S18.lefts.map(L => runsOf([snake(L, legs, b0, b1)], 2));
+  const red = S18.lefts.map(L => [...runsOf([snake(L, 3, a0, a1)], 2), ...runsOf([snake(L + 15, 3, above, v1)], 2), ...runsOf([snake(L + 15, 3, below, v0)], 0)]);
+  // the clock: the yellow bands one after another, the change, then every red at its band's age, the brush parked in the jar till then
+  const ys = yellow.map(runS), mid = ys.map((d, k) => ys.slice(0, k).reduce((t, v) => t + v, 0) + d / 2);
+  let t = ys.reduce((a, b) => a + b, 0) + S18.change;
+  const order = [4, 3, 2, 1, 0], parks = [];
+  for (const k of order) { const due = mid[k] + S18.ages[k] * 60; parks[k] = Math.max(0, due - t); t = Math.max(t, due) + runS(red[k]); }
+  const name = k => String.fromCharCode(65 + k), Y = S18.yellow, Rd = S18.red;
+  return [
+    ...yellow.map((seq, k) => ({ kind: 'real', c: k, hue: Y.hex, jar: `${Y.name} ${Y.hex}`, wide: true, mm: S3.mm, way: {}, seq, pts: seq[0].pts,
+      say: `Yellow band ${name(k)}, ${Y.name} ${Y.hex}: ${legs} legs of ${b1 - b0} mm, its red after ${S18.ages[k]} min` })),
+    ...order.map((k, i) => ({ kind: 'real', c: 5 + i, hue: Rd.hex, jar: `${Rd.name} ${Rd.hex}`, wide: true, mm: S3.mm, way: {}, seq: red[k], pts: red[k][0].pts, parkS: Math.round(parks[k]),
+      ...(i ? {} : { pause: `The yellow is done: wipe the brush, put the red, ${Rd.name} ${Rd.hex}, in the cup at once, then Continue: the bands' clocks are running` }),
+      say: `Red on band ${name(k)} at ${S18.ages[k]} min (the brush ${Math.round(parks[k] / 60)} min in the jar before it): across the band; from above, 3 mm in, its idle run +2 mm; from below, 3 mm in, idle 0` })),
+  ];
+}
+// the brush in the jar for so many seconds: a dip whose paint is a row of waits, as rembrandt.py takes them (10 s at most each)
+function parkDip(c, row, s) {
+  const d = handDip(c, row), waits = [];
+  for (let left = s + c.dwell; left > 1e-6; left -= 10) waits.push({ kind: 'wait', s: +Math.min(10, left).toFixed(1), row, dip: true });
+  return [...d.slice(0, 3), ...waits, ...d.slice(4)];
+}
 function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
-  const first = handDip(cup, 0), strokes = [], rows = [], tips = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3 · layer 1' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
+  const first = handDip(cup, 0), strokes = [], rows = [], tips = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 18 ? 'LAB 4.0 · dry test' : sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3 · layer 1' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
   const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
   let dips = 0, mm = 0, slowS = 0;
-  (sheet === 17 ? sheetReal3(2) : sheet === 16 ? sheetReal3(1) : sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
+  (sheet === 18 ? sheetDry() : sheet === 17 ? sheetReal3(2) : sheet === 16 ? sheetReal3(1) : sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
     const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup;
     if (q.kind === 'real') {                         // LAB 4.0: runs in the plan's order, each its own dip or none, the idle ones as they come
       if (q.pause) blocks.push({ kind: 'pause', why: q.pause, row: 0 });
-      q.seq.forEach(r => {
-        const pts = (r.beyond ? liftBeyond(r.pts) : r.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = r.dip ? handDip(c, row) : [];
+      q.seq.forEach((r, j) => {
+        const parked = !j && r.dip && q.parkS > 0;     // the dry test: the brush waits in the jar till its time
+        const pts = (r.beyond ? liftBeyond(r.pts) : r.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = !r.dip ? [] : parked ? parkDip(c, row, q.parkS) : handDip(c, row);
+        if (parked) slowS += q.parkS;
         // out of the paint slowly: the elbow from the paint to well above it, then as ever
         if (r.dip && q.way.slowAt) { dip.splice(4, 0, { kind: 'joint', joint: 'elbow', deg: S14.slowTo, speed: q.way.slowAt, fork: [S14.slowTo - 1, S14.slowTo + 1], row, dip: true }); slowS += (S14.slowTo - c.dip) / q.way.slowAt; }
         rows.push({ c: q.c, cells: [[n, 0]] }); tips.push({ n, pts: r.pts.map(shift), idle: !!r.idle, dip: !!r.dip });
@@ -534,7 +572,7 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks }) {
   });
   const pts = blocks.flatMap(b => (b.cmds || []).filter(c => c[0] === 'L' || c[0] === 'M').map(c => c.split(' ').slice(1).map(Number)));
   // runs: every run's tip in the run's order, its number, idle or not: the page's ▶ Play walks them
-  return { blocks, strokes, runs: tips, ...(sheet >= 16 ? { note: real3Note() } : {}), seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed + slowS),
+  return { blocks, strokes, runs: tips, ...(sheet === 16 || sheet === 17 ? { note: real3Note() } : {}), seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed + slowS),
     bounds: { x0: Math.min(...pts.map(p => p[0])), x1: Math.max(...pts.map(p => p[0])), y0: Math.min(...pts.map(p => p[1])), y1: Math.max(...pts.map(p => p[1])) },
     remote: { colours: sheet >= 16 ? strokes.map(q => ({ name: q.jar, hex: q.hue, code: '', cells: 1 })) : sheet === 14 || sheet === 15 ? [{ name: `${name} · the first paint`, hex: '#3E8E5A', code: '', cells: strokes.filter(q => q.hue === '#3E8E5A').length }, { name: `${name} · the second paint`, hex: '#2B6CB0', code: '', cells: strokes.filter(q => q.hue === '#2B6CB0').length }] : [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
 }

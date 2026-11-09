@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.2 — 2026-11-09
 
+- **LAB 4.0 · dry test: how long the yellow dries before the red** (2026-11-09). The owner, of real 3's preview: "the yellow is all but covered by the
+  red: it will be mush"; of the light under the dark: "what interval? how long is the light paint given to dry?"; "make a small sheet 20 × 20, we test how long
+  it dries, I never counted". Five yellow bands (Indicator), one change of jar, then the red (Jar 32) on each at 5, 10, 20, 30, 45 min: across the band, from
+  above 3 mm in with the idle run +2 mm as today, from below with idle 0. The machine waits by itself, the brush parked in the jar (rows of 10 s waits, as
+  rembrandt.py takes them). ≈ 47 min (est.). Read on real 3 first: the darker jars after the yellow in the same run leave 32 % of it seen, their idle runs
+  most of it (0 past the ends: 70 %); the second layer little. **Run the same evening** (LAB/IMG_2593 … 2599, `LAB/claude-grid-dry.jpg`,
+  `claude-numbering-dry.jpg`): at 5 and 20 min the red's turns mix with the yellow and it runs into the red, at 30 and 40 min it holds: the yellow, with
+  pouring medium, dries in ≈ 30 min. Along X the strokes lie where the plan has them within ≈ 1 mm (idle +2: the red 2 mm past the border; idle 0: on it);
+  across Y the track is ≈ 8 mm, not 4: the bands 32 … 35 mm wide for 29 (est., no ruler). LAB opens on real 3 · layer 1 again.
 - **LAB: real 3's first layer back on its key, `real 3 · layer 1`** (the owner, 2026-11-09: "we have layer 2 and Result, the two layers together, but
   layer 1 went missing somewhere; can you restore it, please"). It had never gone: sheet 16 was `real 3 · Porsche`, and Result, once on, stayed on at
   a pick of a sheet, so both keys showed the two layers together. Now the key says layer 1, and picking a sheet shows that sheet, Result off.

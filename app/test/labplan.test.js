@@ -1029,3 +1029,30 @@ test('real 3 by the canon of the jars: 200 mm, the LAB canvas\'s long side; ever
   for (const j of R.pic.jars) assert.ok(R.lineOf(j) >= 200 || R.kept.some(k => k.id === j.id), j.name);
   for (const o of R.out) assert.ok(P16.strokes.some(q => q.say.includes(`${o.name}'s`)), o.name);
 });
+
+// ---------- the dry test: five yellow bands, the red on each at its age, the brush parked in the jar ----------
+import { sheetDry } from '../src/labplan.js';
+const P18 = labPlan({ x0: 0, y0: 0, cup, sheet: 18 });
+test('dry test: five yellow bands, one change of jar, then the red on each, the youngest first; every wait one rembrandt.py takes', () => {
+  assert.equal(P18.strokes.length, 10);
+  assert.deepEqual(P18.strokes.map(q => q.hue), [...Array(5).fill('#EE8A22'), ...Array(5).fill('#7E0D0D')]);
+  assert.equal(P18.blocks.filter(b => b.kind === 'pause').length, 1);
+  const pause = P18.blocks.findIndex(b => b.kind === 'pause'), firstRed = P18.remote.rows.findIndex(r => r.cells[0][0] === 6) + 1;
+  assert.ok(P18.blocks.slice(0, pause).every(b => b.row === undefined || P18.remote.rows[b.row - 1]?.cells[0][0] <= 5 || b.row === 0), 'the yellow before the change');
+  assert.ok(P18.blocks.filter(b => b.kind === 'wait').every(b => b.s > 0 && b.s <= 10));
+  assert.ok(P18.blocks.filter(b => b.row === firstRed && b.kind === 'wait').length > 1, 'the first red waits in the jar');
+  const order = P18.strokes.slice(5).map(q => q.tip[0].y);
+  assert.deepEqual(order, [...order].sort((a, b) => b - a), 'E first, A last');
+  assert.ok(P18.bounds.x0 >= 0 && P18.bounds.x1 <= 200 && P18.bounds.y0 >= 10 && P18.bounds.y1 <= 190, JSON.stringify(P18.bounds));
+});
+test('dry test: on every band the red across it, from above 3 mm into it with its idle run past the end, from below 3 mm in with its idle run stopping at the end', () => {
+  const items = sheetDry(), red = items.slice(5);
+  for (const q of red) {
+    const legs = q.seq.filter(r => !r.idle), idle = q.seq.filter(r => r.idle), xs = rs => rs.flatMap(r => r.pts.map(p => p.x));
+    assert.ok(Math.min(...xs(legs.slice(0, 1))) <= 95 && Math.max(...xs(legs.slice(0, 1))) >= 115, 'across the band');
+    const [, above, below] = idle;                   // the three cells' idle runs: across, from above, from below
+    // the legs end half the tip in from the cell's edge (114, 96); the idle run +2 mm past them reaches the edge itself (112), its tip 2.3 mm into the yellow; at 0 it stops at the legs' end
+    assert.ok(Math.abs(Math.min(...xs([above])) - 112) < .01, `above: its idle run 2 mm past its legs, to 112: ${Math.min(...xs([above]))}`);
+    assert.ok(Math.abs(Math.max(...xs([below])) - 96) < .01, `below: its idle run stops at its legs' end, 96: ${Math.max(...xs([below]))}`);
+  }
+});

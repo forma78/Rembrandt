@@ -8,14 +8,14 @@ import './ui.js';
 const $ = s => document.querySelector(s), KEEP = 'rembrandt.lab.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
 const S = { x0: 200, y0: 150, press: LAB.press, sheet: 16, tracks: 4 };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEEP) || '{}')); } catch { }
-S.sheet = 16;                                // the sheet to run next, at every opening: real 3, the last
+S.sheet = 16;                                // the sheet to run next, at every opening: real 3's first layer (the dry test run 2026-11-09)
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 let ink = null;
 const say = (t, warn) => { $('#runRead').innerHTML = warn ? `<span class="warn">${t}</span>` : t; };
 const fake = () => ({ hand: true, on: true, up: [30, 35], to: [30, 35], dip: 15, paint: [14, 16], dwell: 1, swing: 40 });
 const planOf = sheet => labPlan({ x0: S.x0, y0: S.y0, press: S.press, sheet, tracks: S.tracks, cup: ink ? cupOf(ink) : fake() });
 const plan = () => planOf(S.sheet);
-const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2', 16: 'LAB 4.0 · real 3 · layer 1', 17: 'LAB 4.0 · real 3 · layer 2' })[S.sheet];
+const sheetName = () => ({ 1: 'LAB', 2: 'LAB 2.0', 3: 'LAB 3.0', 4: 'LAB 3.0 · long', 5: 'LAB 3.0 · seam', 6: 'LAB 3.0 · long snake', 7: 'LAB 3.0 · snake + idle', 8: 'LAB 3.0 · + idle 2.0', 9: 'LAB 3.0 · + idle 3.0', 10: 'LAB 3.0 · + idle 4.0', 11: 'LAB 3.0 · + idle 5.0', 12: 'LAB 3.0 · + idle 6.0', 13: 'LAB 3.0 · ladder', 14: 'LAB 4.0 · real strokes', 15: 'LAB 4.0 · real strokes 2', 16: 'LAB 4.0 · real 3 · layer 1', 17: 'LAB 4.0 · real 3 · layer 2', 18: 'LAB 4.0 · dry test' })[S.sheet];
 
 function outOfReach(P) {
   const R = reach(), B = P.bounds;
@@ -32,7 +32,7 @@ const hueOf = q => q.hue || HUE[q.kind] || '#D8453B';
 let SEL = null, PLAY = null, RESULT = false;
 // Result (the owner, 2026-11-08: "a result key, to see the whole result of the two passes"): real 3's first layer and its second coats over it, every coat a film about
 // COAT of the paint's own colour (est.), so a jar of two coats comes out deeper; the idle runs not drawn. A view of the plan, not a measurement.
-const COAT = 0.72, hasResult = () => S.sheet >= 16;
+const COAT = 0.72, hasResult = () => S.sheet === 16 || S.sheet === 17;
 function draw() {
   const P = plan(), { w, h, m, W, H, X, Y } = geom(), sel = P.strokes.some(q => q.n === SEL) ? SEL : null;
   const one = q => {
@@ -154,7 +154,7 @@ $('#btnRun').onclick = async () => {
   if (!(st.hand >= 1)) return say('Restart rembrandt.py first.', true);
   if (LIVE.includes(st.state)) return say(`A run is on (${st.state}): not now.`, true);
   const { w, h } = labSize(S.sheet), wr = P.strokes.filter(q => q.kind === 'wrist' || q.kind === 'markWrist').map(q => q.n);
-  if (!confirm(`${sheetName()}: ${P.strokes.length} numbers on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}${S.sheet >= 16 ? `\n\nThe first jar in the cup: ${P.strokes[0].jar}. It stops before each of the other ${P.strokes.length - 1}: wipe the brush, put that jar in the cup, then press CONTINUE on this page.${S.sheet === 17 ? ' Over real 3\'s first layer, dry, at the same place.' : ''}` : P.blocks.some(b => b.kind === 'pause') ? '\n\nIt stops for the second paint: wipe the brush, change the paint, then press CONTINUE on this page.' : ''}\n\nIs the scrap there, the jar on its bracket?`)) return;
+  if (!confirm(`${sheetName()}: ${P.strokes.length} numbers on a scrap ${w} × ${h + LAB.rowGap} mm, its bottom left at X ${S.x0}, Y ${S.y0}, ≈ ${Math.round(P.seconds / 60)} min.\n\n${wr.length ? `The wrist turns on strokes ${wr.join(', ')}: the hand on STOP.` : 'The elbow as ever, the carriage against it near the paper: the first strokes, the hand on STOP.'}${S.sheet === 18 ? `\n\nThe yellow, ${P.strokes[0].jar}, in the cup first. After the five yellow bands it stops: wipe the brush, put the red, ${P.strokes.at(-1).jar}, in the cup AT ONCE, then CONTINUE: the bands' clocks run from their painting. Then it waits by itself, the brush parked in the jar, ≈ ${Math.round(P.seconds / 60)} min in all.` : S.sheet >= 16 ? `\n\nThe first jar in the cup: ${P.strokes[0].jar}. It stops before each of the other ${P.strokes.length - 1}: wipe the brush, put that jar in the cup, then press CONTINUE on this page.${S.sheet === 17 ? ' Over real 3\'s first layer, dry, at the same place.' : ''}` : P.blocks.some(b => b.kind === 'pause') ? '\n\nIt stops for the second paint: wipe the brush, change the paint, then press CONTINUE on this page.' : ''}\n\nIs the scrap there, the jar on its bracket?`)) return;
   try {
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: P.blocks,
       log: { page: 'lab', pass: 'lab', label: `${sheetName()} · ${P.strokes.length} numbers${S.sheet >= 3 && S.sheet < 13 ? `, ${S.tracks} tracks` : ''} at X ${S.x0}, Y ${S.y0} · pressed ${S.press}°`, here: { x: S.x0, y: S.y0 }, cup: c, travel: LAB.travel, remote: P.remote, estimate_s: P.seconds } }) });
