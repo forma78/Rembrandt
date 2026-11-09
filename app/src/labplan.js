@@ -483,8 +483,22 @@ export function real3Note() {
 }
 // Real 3's dose: canon.js's DOSE and dosed, since 2026-11-09 the canon's (LAB's real 3 first, then FORM-G and OPM-G on the owner's word)
 export { DOSE } from './canon.js';
-export function real3Of(layer = 1, { dose = true } = {}) {
-  const pic = R3.pic, list = seqOf(pic), passes = passesOf(pic, { canon: true }), runs = dose ? dosed(canonRuns(passes)) : canonRuns(passes);
+// Real 3 on canvas, 2026-11-10 (the owner, LAB/IMG_2614 … 2616): Jar 27's 154 mm leg came out in two pieces with a seam between them, "as L 12 (real 2's fourth); we
+// chose L 9": its first run, 95 mm on one dip, gave out at ≈ 78 mm (est., the photo's scale from the legs, no ruler), and the second, 15 mm back from the planned 95,
+// began where it ended. So real 3's long legs a dip every R3_EVERY mm, the canon's 79 (what one dip holds, CANON.ride), no run longer (no slack: the last piece of a
+// leg on a dip of its own, however short): the next run 15 mm back over paint still laid.
+export const R3_EVERY = CANON.ride;
+// the owner's J3 compensation (the same day: "5–6 mm are cut off absolutely every leg … the machine must come in to land 3 mm earlier along X and leave the canvas 3 mm
+// later; only then do the dabs turn into full legs, as on the screen"): the elbow (J3) lowers the brush over the first mm of a run and the tip touches late, so every paint
+// run's path on the machine starts ELBOW_J3.early mm before its first point, back along its first piece, and ends ELBOW_J3.late mm past its last; the plan, the screen and
+// the idle runs as they were. Real 3's alone (est., to be read on the canvas).
+export const ELBOW_J3 = { early: 3, late: 3 };
+export function elbowEnds(pts, o = ELBOW_J3) {
+  const u = (a, b) => { const d = dist(a, b) || 1; return { x: (b.x - a.x) / d, y: (b.y - a.y) / d }; };
+  return [along(pts[0], u(pts[1], pts[0]), o.early), ...pts.slice(1, -1), along(pts.at(-1), u(pts.at(-2), pts.at(-1)), o.late)];
+}
+export function real3Of(layer = 1, { dose = true, every = R3_EVERY } = {}) {
+  const pic = R3.pic, list = seqOf(pic), passes = passesOf(pic, { canon: true, every, slack: 0 }), runs = dose ? dosed(canonRuns(passes)) : canonRuns(passes);
   const at = ([x, y]) => ({ x: y - REAL3.frame.y0 + S16.bottom, y: x + S16.left });
   return passes.map((P, k) => ({ jar: list[k], cells: P.cells, line: P.mm, took: pic.jars.find(j => j.id === (list[k].jar ?? list[k].id))?.took ?? [], runs: runs.filter(r => r.pass === k).map(r => ({ pts: r.pts.map(at), dip: r.dip, idle: r.idle, beyond: r.beyond })) }))
     .filter(q => q.jar.layer === layer);
@@ -494,7 +508,7 @@ function sheetReal3(layer) {
   return jars.map((q, k) => {
     const j = q.jar, line = q.line, dips = q.runs.filter(r => r.dip).length, took = q.took.length ? `; takes ${q.took.map(t => `${t.name}'s`).join(', ')} cells` : '';
     const pause = k ? `Jar ${k + 1} of ${jars.length}, ${j.name} ${j.hex}: wipe the brush, put it in the cup, then Continue` : undefined;
-    return { kind: 'real', c: k, hue: j.hex, jar: `${j.name} ${j.hex}`, wide: true, mm: S3.mm, way: {}, seq: q.runs, pts: q.runs[0].pts, ...(pause ? { pause } : {}),
+    return { kind: 'real', c: k, hue: j.hex, jar: `${j.name} ${j.hex}`, wide: true, mm: S3.mm, way: {}, elbow: true, floor: S16.bottom - 1, seq: q.runs, pts: q.runs[0].pts, ...(pause ? { pause } : {}),
       say: `${j.name} ${j.hex}${layer === 2 ? '' : j.coats === 2 ? ' (its second coat on layer 2)' : ''}: ${q.cells} cells, ${q.runs.filter(r => !r.idle).length} runs, ${dips} dips, ${(line / 1000).toFixed(2)} m${took}` };
   });
 }
@@ -546,7 +560,8 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks, from = 1 }) {
       if (q.pause && n > from) blocks.push({ kind: 'pause', why: q.pause, row: 0 });
       if (!skip) q.seq.forEach((r, j) => {
         const parked = !j && r.dip && q.parkS > 0;     // the dry test: the brush waits in the jar till its time
-        const pts = (r.beyond ? liftBeyond(r.pts) : r.pts).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = !r.dip ? [] : parked ? parkDip(c, row, q.parkS) : handDip(c, row);
+        const way = q.elbow && !r.idle ? elbowEnds(r.pts).map(t => t.x < q.floor ? { ...t, x: q.floor } : t) : r.pts;   // real 3: the J3 compensation, the machine's path alone, 1 mm past the piece's bottom at most
+        const pts = (r.beyond ? liftBeyond(way) : way).map(shift), row = rows.length + 1, R = rowPaint(pts, row, q.mm, p), dip = !r.dip ? [] : parked ? parkDip(c, row, q.parkS) : handDip(c, row);
         if (parked) slowS += q.parkS;
         // out of the paint slowly: the elbow from the paint to well above it, then as ever
         if (r.dip && q.way.slowAt) { dip.splice(4, 0, { kind: 'joint', joint: 'elbow', deg: S14.slowTo, speed: q.way.slowAt, fork: [S14.slowTo - 1, S14.slowTo + 1], row, dip: true }); slowS += (S14.slowTo - c.dip) / q.way.slowAt; }

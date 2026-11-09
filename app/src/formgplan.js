@@ -65,7 +65,7 @@ export function canonCellsOf(pic, jar, o = {}, layer = 1) {
   const every = o.every ?? FORMG.every, lap = o.lap ?? FORMG.lap, ride = o.ride ?? CANON.ride;
   const raw = layer === 2 ? jar.cells.map(c => c.air ? c : { ...c, legs: c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) }) : jar.cells;
   const cells = raw.flatMap(c => c.air ? [c] : startOnLong(c)).map((c, i) => cellOf(c, pic, i + 1, o));
-  const cut = cells.map(c => c.runs ? c : { ...c, runs: idleRunsOf([{ byCell: [c] }], every, lap).filter(r => !r.idle).map((r, j) => ({ pts: r.pts, dip: j > 0, beyond: r.beyond })) });
+  const cut = cells.map(c => c.runs ? c : { ...c, runs: idleRunsOf([{ byCell: [c] }], every, lap, o.slack).filter(r => !r.idle).map((r, j) => ({ pts: r.pts, dip: j > 0, beyond: r.beyond })) });
   return ridersOnLong(cut, ride).map((c, i) => ({ ...c, num: i + 1 }));
 }
 // the run's colours, the list's lines in their order; o.canon: OPM-G's

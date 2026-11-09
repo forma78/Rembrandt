@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LAB, labPlan, labSize, endSecs, rowsOfCell, sliceLine, snakeRuns, dipsOnLong, startOnLong, real3Of, DOSE } from '../src/labplan.js';
+import { LAB, labPlan, labSize, endSecs, rowsOfCell, sliceLine, snakeRuns, dipsOnLong, startOnLong, real3Of, DOSE, R3_EVERY, ELBOW_J3, elbowEnds } from '../src/labplan.js';
 import { dragRowsOf } from '../src/opmplan.js';
 import { reach } from '../src/machine.js';
 import { idleCellOf, idleRunsOf } from '../src/idleplan.js';
@@ -988,8 +988,9 @@ test('real 3: a number a jar, in FORM-G\'s list, the first layer on 16, the jars
   assert.deepEqual(labSize(16), { h: 176, w: 200 });
 });
 
-test('real 3: nothing of LAB\'s own but the dose: its runs are formgplan.js\'s canon runs of the piece, at the picture\'s own size; the dose off, the same dips', () => {
-  const passes = passesOf(PIC3, { canon: true }), runs = canonRuns(passes), list = seqOf(PIC3);
+test('real 3: nothing of LAB\'s own but the dose and a dip every 79 mm: its runs are formgplan.js\'s canon runs of the piece, at the picture\'s own size; the dose off, the same dips', () => {
+  assert.equal(R3_EVERY, 79);
+  const passes = passesOf(PIC3, { canon: true, every: R3_EVERY, slack: 0 }), runs = canonRuns(passes), list = seqOf(PIC3);
   const first = runs.filter(r => list[r.pass].layer === 1), raw = real3Of(1, { dose: false }).flatMap(q => q.runs);
   assert.equal(raw.length, first.length);
   assert.equal(raw.filter(r => r.dip).length, first.filter(r => r.dip).length);
@@ -1019,6 +1020,28 @@ test('real 3\'s dose (the owner, 2026-11-09: its short cells dabs, a 20 mm tail 
   assert.equal(P.blocks.filter(x => x.kind === 'joint' && x.rim !== undefined).length, real3Of(1).flatMap(q => q.runs).filter(r => r.dip).length, 'the plan dips where the runs say');
 });
 
+test('real 3 on the machine, the owner\'s J3 compensation (2026-11-10: "land 3 mm earlier along X, leave the canvas 3 mm later"): every paint run 3 mm longer at both ends, back along its first piece and on along its last; the idle runs and the screen as the plan', () => {
+  assert.deepEqual(ELBOW_J3, { early: 3, late: 3 });
+  assert.deepEqual(elbowEnds([{ x: 102, y: 50 }, { x: 118, y: 50 }, { x: 39, y: 50 }]), [{ x: 99, y: 50 }, { x: 118, y: 50 }, { x: 36, y: 50 }], 'Jar 22\'s leg: landing 3 mm farther inside, the end 3 mm on');
+  assert.deepEqual(elbowEnds([{ x: 128, y: 50 }, { x: 124, y: 50 }]), [{ x: 131, y: 50 }, { x: 121, y: 50 }], 'a 4 mm leg: 10 mm on the machine');
+  // Jar 27's 154 mm leg: a dip every 79 mm, the next run 15 mm back over paint still laid
+  const j27 = real3Of(1).find(q => q.jar.name === 'Jar 27').runs.filter(r => !r.idle && r.pts.every(p => p.y === 175));
+  assert.equal(j27.length, 3, JSON.stringify(j27.map(r => r.pts.map(p => p.x))));
+  for (const r of j27) assert.ok(r.pts.slice(1).reduce((t, q, i) => t + Math.abs(q.x - r.pts[i].x), 0) <= R3_EVERY + 2 * 16 + 1e-6, 'no run longer than 79 mm and its landing inside');
+  // no run of either layer longer than 79 mm and its landing inside, there and back (16 mm each way)
+  for (const layer of [1, 2]) for (const r of real3Of(layer).flatMap(q => q.runs).filter(r => !r.idle)) { const p = r.pts; assert.ok(p.slice(1).reduce((t, q, i) => t + Math.hypot(q.x - p[i].x, q.y - p[i].y), 0) <= R3_EVERY + 2 * 16 + 1e-6, `layer ${layer}: a run of ${p.map(q => q.x.toFixed(0)).join('→')}`); }
+  // the machine's rows: a paint row's pressed way 6 mm longer than the plan's run, an idle row's as the plan's; the screen's lines the plan's
+  const P = labPlan({ x0: 0, y0: 0, cup, sheet: 16 }), runs = real3Of(1).flatMap(q => q.runs);
+  const lines = P.strokes.flatMap(q => q.lines), plan = runs.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((b, i) => [r.pts[i], b]));
+  assert.equal(lines.length, plan.length);
+  lines.forEach(([a, b], i) => { assert.deepEqual([a, b], plan[i]); });
+  const L = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q.x - pts[i].x, q.y - pts[i].y), 0);
+  const paint = P.blocks.filter(b => b.kind === 'move' && b.paintMM > 0);
+  assert.equal(paint.length, runs.length, 'a row a run');
+  const more = runs.map((r, i) => paint[i].paintMM - (L(r.pts) + (r.beyond ? LAB.wide : 0)));
+  runs.forEach((r, i) => r.idle ? assert.ok(Math.abs(more[i]) < 1e-6, `idle row ${i + 1}: as the plan`) : assert.ok(more[i] > 1 && more[i] < 6 + 1e-6, `row ${i + 1}: ${more[i]} mm more`));
+  assert.ok(more.filter((v, i) => !runs[i].idle && Math.abs(v - 6) < 1e-6).length > runs.filter(r => !r.idle).length * 0.9, 'most 6 mm more; at the piece\'s bottom 1 mm past it at most');
+});
 test('real 3: on the 20 × 20 at X 0, Y 0, as real 2: the carriage within the wall', () => {
   for (const P of [P16, P17]) assert.ok(P.bounds.x0 >= 0 && P.bounds.x1 <= 200 && P.bounds.y0 >= 10 && P.bounds.y1 <= 190, JSON.stringify(P.bounds));
 });

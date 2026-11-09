@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.2 — 2026-11-09
 
+- **LAB: real 3's J3 compensation, and a dip every 79 mm** (the owner, 2026-11-10, real 3 on canvas, `LAB/IMG_2614` … `2616`: Jar 22 run again over
+  itself, its dip there now, "but the dabs stay"; "5–6 mm are cut off absolutely every leg … the machine must come in to land 3 mm earlier along X and leave
+  the canvas 3 mm later; only then do the dabs turn into full legs, as on the screen"; and of Jar 27's long leg in two pieces: "as L 12; we chose L 9").
+  The elbow lowers the brush over the first 8 mm of a run, the tip touching late, and a leg under 16 mm lands on its own start. Now every paint run's way on
+  the machine starts 3 mm before its first point, back along its first piece, and ends 3 mm past its last (`ELBOW_J3`, `elbowEnds`), 1 mm past the piece's
+  bottom at most; the plan, the screen and the idle runs as they were. Jar 27's 154 mm leg: its first run, 95 mm on one dip, gave out at ≈ 78 mm (est., the
+  photo's scale from the legs) and the second began there; real 3's long legs now a dip every 79 mm, the canon's (what one dip holds), no run longer (no
+  slack at a leg's end, `idleRunsOf`'s new `slack`, 0.25 elsewhere as ever), so the next starts 15 mm back over paint still laid. Layer 1: 128 dips, ≈ 42 min;
+  from 10 (Jar 29): 85 dips, ≈ 28 min; layer 2: 109, ≈ 36 min (est.). FORM-G, OPM-G and LAB's other sheets as they were.
 - **FORM-G and OPM-G: the dose, real 3's** (the owner, 2026-11-09: "FORM-G and OPM-G need fixing too"). The dose is the canon's now, `canon.js`
   (`DOSE`, `dosed`): every run on a dip of its own, no cell on what another one left; a leg under 30 mm after 60 mm of line since the dip, a dip of its own at
   its start; the idle runs as they were. OPM-G's new dips land inside as the canon's; FORM-G's, not on the canon, at the run's start as its other dips, its
