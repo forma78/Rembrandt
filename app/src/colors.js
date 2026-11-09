@@ -49,7 +49,7 @@ function cards() {
         <dt>Mix recipe</dt><dd>${recipe(r)}</dd>
         <dt>Advice</dt><dd class="advice">${esc(r.advice)}</dd>
         <dt>Medium</dt><dd>${esc(MEDIUM)}</dd>
-        <dt>Dry LAB</dt><dd class="mute">${r.dry ? `${chip(r.dry)} <code>${r.dry}</code>` : 'Measure on the canvas: dry, in daylight'}</dd>
+        <dt>Dry LAB</dt><dd class="mute">${r.dry ? `${chip(r.dry)} <code>${r.dry}</code>` : 'Next: a swatch from the jar, dry, in daylight, its name beside it'}</dd>
         <dt>ΔE</dt><dd>${r.dryDE != null ? `${r.dryDE} measured · ` : ''}<span class="mute">model ${r.de ?? '—'} (est.)${r.dryDE != null ? '' : ' · measured after the swatch dries'}</span></dd>
         <dt>Coats</dt><dd>${coats}</dd>
         <dt>Kuzya · swatch</dt><dd>${kz}</dd>

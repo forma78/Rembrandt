@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.1 — 2026-11-06
 
+- **COLORS: the owner's sheets of 2026-11-08 again, dry, in daylight** (2026-11-09, the owner: "I added to LAB photos of the dried paint in
+  daylight"; `LAB/IMG_2557 … 2570`). Every tube and every swatch ① … ⑬ measured again against the paper beside it in the same light. Wet under the
+  lamp they had read 5 … 28 ΔE off: ④ Red is Jar 23's Red after all (ΔE 6; the palette's Red within 5), not "too cool"; ⑦ is the palette's Deep
+  Red within 3 and redder than Jar 31; ⑤ lighter than Jar 27 (ΔE 14), no check for it; Naphthol Crimson a stand-in for Red, not near Jar 30;
+  ⑧ and ⑩ still cool. On the dry readings Jar 13 and Jar 22 (③ with ⑧) come out darker and redder in the model (ΔE 15 and 14, est.): their cards
+  say to look at their swatches first. The close-ups in low sun shine (8 … 17 ΔE lighter): not measured; ⑫ and ⑬ too dark for a photo (L under 5).
+  The jars already mixed: their own swatches, dry, fill Dry LAB next.
 - **COLORS, the library, a tab next to LAB** (2026-11-08). The owner: "README — sorry, I do not quite understand. Build a COLORS tab next to
   LAB, so that our library is there. Kuzya proposed cards"; "put the recommendations right in the cards!". A card a jar of LAB's real 3, in the tab's
   order and by its name there ("the names on the physical jars as on LAB / real 3"): Kuzya's card — Target, Mix recipe, Medium, Dry LAB, ΔE, Coats —

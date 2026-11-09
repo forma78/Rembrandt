@@ -63,3 +63,10 @@ test('every paint a source, a colour and its CIELAB; the ids once', () => {
     assert.equal(p.lab.length, 3, p.id);
   }
 });
+
+test('the sheets of 2026-11-08, dry in daylight, agree with the palette of 2026-10-12: ④ is Red, ⑦ is Deep Red', () => {
+  const de = (p, q) => Math.hypot(...paintOf(p).lab.map((v, i) => v - paintOf(q).lab[i]));
+  assert.ok(de('s4', 'red') <= 5, `④ against Red: ${de('s4', 'red')}`);
+  assert.ok(de('s7', 'deepred') <= 5, `⑦ against Deep Red: ${de('s7', 'deepred')}`);
+  for (const k of ['tubes', 'swatches']) assert.match(SOURCES[k].say, /dry/, k);
+});
