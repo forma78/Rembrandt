@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the carriage's travel 100 mm/s, a field of its own** (the owner, the same night: "the belt slipped several times; when it spins idle along X
+  with a crack it cannot guess the coordinates, it starts the headlights in the canvas's middle though they are at the top … FORM-G says 25 mm/s, in fact it is
+  125"; on hearing that the travels went at 180: "we must lower it"). The legs were at 25 (`F 25`, the journal's three runs of 23:18 … 23:23 too); the moves
+  with the brush up — home to a run's start, to a dip, between runs, home — at the Travel FORM-G had taken from OPM-N, 180 mm/s (`T 180`): the run's first,
+  home to the headlights at the top of a 70 × 100, ~830 mm with the jar on the carriage. Now 100 (the firmware's own default), the old 180 replaced once
+  (OPM-G's too, the same carriage), and **Travel, mm/s** under The brush, 20 … 180. Lost steps are the belt's: the owner checks the GT2 clamps.
 - **FORM-G: the red classic at the owner's place, its lowest lift-outs pressed against the bottom wall** (the owner, the same night: left edge −60, bottom
   edge −68 "is the canon for the 70 × 100 canvas"; "I calibrated it perfectly — fit the car to the physics"; the pen's outline found the canvas's centre,
   `FORM-G/IMG_2643.HEIC`; asked: shorten the car's rear, move it up, or let the carriage press against the wall — "Yes", the last, "not 6 mm above the pen's
