@@ -48,7 +48,7 @@ elif which == 'gwagon':
         pl.pids.append(f'j{i}')
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='locked', idle=True, dose=1.0)]
     title, sub = 'G-wagon', 'hyperrealism, 60 × 60, black, 50 cm across'
-    KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'grille': 'Grille', 'seat': 'Seats'}
+    KEEP = {'ink': 'Black', 'grille': 'Grille', 'seat': 'Seats'}   # a shade's grade by its jar's number (the owner, 2026-11-10: "the jar's number does it")
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 elif which in ('porsche-red', 'porsche-white'):
     # the red classic 911 (redcar.py's .pkl), the canon of the form, and its colours (whitecar.py's …): the green's technique, redgeo.py's geometry, their own fixed jars
@@ -65,7 +65,7 @@ elif which in ('porsche-red', 'porsche-white'):
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
     title, sub = {'porsche-red': ('Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'),
                   'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
-    KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
+    KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 else:
     import hyper2
@@ -80,7 +80,7 @@ else:
         pl.pids.append(f'j{i}')
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
     title, sub = 'Porsche', 'hyperrealism, 70 × 100, green, 85 cm long'
-    KEEP = {'chrome': 'Chrome', 'chromeM': 'Chrome, mid', 'chromeD': 'Chrome, dark', 'ink': 'Ink', 'wood': 'Wood', 'tail': 'Tail light', 'steel': 'Steel', 'creaseL': 'Crease, light', 'creaseD': 'Crease, dark', 'seam': 'Seam', 'louvre': 'Louvre'}
+    KEEP = {'ink': 'Black', 'wood': 'Wood', 'tail': 'Tail light', 'steel': 'Steel', 'seam': 'Seam', 'louvre': 'Louvre'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 pl.xs = (pl.W - pl.N * PITCH) / 2 + PITCH * (np.arange(pl.N) + 0.5)
 paintrun.STEP_MAX = 7.0

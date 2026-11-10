@@ -3,7 +3,16 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.2.2 — 2026-11-09
+## v.1.2.3 — 2026-11-10 · Colours by number
+
+- **A jar is its number; no hex** (the owner, 2026-11-10, on real 3's last jar: "paints have no RGB, and it is strange to mix Liquitex and Pebeo by
+  0C0C0C: let us take them out so they do not mislead"; "without 0C0C0C, just Black"; "I do not like hue dark / medium / light: there are not three of
+  them but 6 or 7. The jar's number does it: Jar 35, Jar 32, and that is all, without #7e0d0d"). The shades' grades go by their jar's number, its place in
+  the picture's list, light to dark: on the red 911 Chrome, Chrome mid and Chrome dark are Jar 1, Jar 3 and Jar 7 (the white: Jar 9, 22, 34; the green
+  Jar 6, 10, 13, its creases Jar 5 and Jar 44; the G-wagon Jar 1, 2, 3), the ink is Black, and the generator names them so. No hex in a jar's words on
+  LAB (the list, the pauses, Start from, the remote), COLORS (the cards: the colour as a chip) or FORM-G and OPM-G (a paint's own code only, if it has
+  one). A pause tells the number in the list from the jar: "Number 10 of 19: wipe the brush, put Jar 29 in the cup". Real 3's runs as they were.
+- **v.1.2.3 on every tab and in the saved SVGs.** The code and the notes; the photos of `LAB/` of 2026-11-09 night and 11-10 stay on this Mac.
 
 - **LAB: real 3's J3 compensation, and a dip every 79 mm** (the owner, 2026-11-10, real 3 on canvas, `LAB/IMG_2614` … `2616`: Jar 22 run again over
   itself, its dip there now, "but the dabs stay"; "5–6 mm are cut off absolutely every leg … the machine must come in to land 3 mm earlier along X and leave
@@ -35,7 +44,7 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   strokes still stay in the first"). Every line of a number was its own film of 72 %, so wherever the same brush goes twice (back to the leg's start, canon
   no. 9; the 15 mm lap after a dip; every corner) it drew darker: 31 % of layer 1's area. Now a number's lines sit whole in one group that holds the
   opacity, on the layers, the dry test and Result alike; only two different jars over each other come out deeper. The black that stays is real: number 19,
-  Ink #0C0C0C, 3 cells at the lamp, kept by the jar canon (no jar within ΔE 25). Layer 1: 19 jars, layer 2: the 14 of two coats again. A view: the runs
+  Ink (Black since v.1.2.3), 3 cells at the lamp, kept by the jar canon (no jar within ΔE 25). Layer 1: 19 jars, layer 2: the 14 of two coats again. A view: the runs
   are as they were.
 - **LAB 4.0 · dry test: how long the yellow dries before the red** (2026-11-09). The owner, of real 3's preview: "the yellow is all but covered by the
   red: it will be mush"; of the light under the dark: "what interval? how long is the light paint given to dry?"; "make a small sheet 20 × 20, we test how long

@@ -507,9 +507,9 @@ function sheetReal3(layer) {
   const jars = real3Of(layer);
   return jars.map((q, k) => {
     const j = q.jar, line = q.line, dips = q.runs.filter(r => r.dip).length, took = q.took.length ? `; takes ${q.took.map(t => `${t.name}'s`).join(', ')} cells` : '';
-    const pause = k ? `Jar ${k + 1} of ${jars.length}, ${j.name} ${j.hex}: wipe the brush, put it in the cup, then Continue` : undefined;
-    return { kind: 'real', c: k, hue: j.hex, jar: `${j.name} ${j.hex}`, wide: true, mm: S3.mm, way: {}, elbow: true, floor: S16.bottom - 1, seq: q.runs, pts: q.runs[0].pts, ...(pause ? { pause } : {}),
-      say: `${j.name} ${j.hex}${layer === 2 ? '' : j.coats === 2 ? ' (its second coat on layer 2)' : ''}: ${q.cells} cells, ${q.runs.filter(r => !r.idle).length} runs, ${dips} dips, ${(line / 1000).toFixed(2)} m${took}` };
+    const pause = k ? `Number ${k + 1} of ${jars.length}: wipe the brush, put ${j.name} in the cup, then Continue` : undefined;
+    return { kind: 'real', c: k, hue: j.hex, jar: j.name, wide: true, mm: S3.mm, way: {}, elbow: true, floor: S16.bottom - 1, seq: q.runs, pts: q.runs[0].pts, ...(pause ? { pause } : {}),
+      say: `${j.name}${layer === 2 ? '' : j.coats === 2 ? ' (its second coat on layer 2)' : ''}: ${q.cells} cells, ${q.runs.filter(r => !r.idle).length} runs, ${dips} dips, ${(line / 1000).toFixed(2)} m${took}` };
   });
 }
 // LAB 4.0 · dry test (the owner, 2026-11-09, of real 3's preview: "the yellow is all but covered by the red: it will be mush, not a mix of yellow and red"; of the light
@@ -535,10 +535,10 @@ export function sheetDry() {
   for (const k of order) { const due = mid[k] + S18.ages[k] * 60; parks[k] = Math.max(0, due - t); t = Math.max(t, due) + runS(red[k]); }
   const name = k => String.fromCharCode(65 + k), Y = S18.yellow, Rd = S18.red;
   return [
-    ...yellow.map((seq, k) => ({ kind: 'real', c: k, hue: Y.hex, jar: `${Y.name} ${Y.hex}`, wide: true, mm: S3.mm, way: {}, seq, pts: seq[0].pts,
-      say: `Yellow band ${name(k)}, ${Y.name} ${Y.hex}: ${legs} legs of ${b1 - b0} mm, its red after ${S18.ages[k]} min` })),
-    ...order.map((k, i) => ({ kind: 'real', c: 5 + i, hue: Rd.hex, jar: `${Rd.name} ${Rd.hex}`, wide: true, mm: S3.mm, way: {}, seq: red[k], pts: red[k][0].pts, parkS: Math.round(parks[k]),
-      ...(i ? {} : { pause: `The yellow is done: wipe the brush, put the red, ${Rd.name} ${Rd.hex}, in the cup at once, then Continue: the bands' clocks are running` }),
+    ...yellow.map((seq, k) => ({ kind: 'real', c: k, hue: Y.hex, jar: Y.name, wide: true, mm: S3.mm, way: {}, seq, pts: seq[0].pts,
+      say: `Yellow band ${name(k)}, ${Y.name}: ${legs} legs of ${b1 - b0} mm, its red after ${S18.ages[k]} min` })),
+    ...order.map((k, i) => ({ kind: 'real', c: 5 + i, hue: Rd.hex, jar: Rd.name, wide: true, mm: S3.mm, way: {}, seq: red[k], pts: red[k][0].pts, parkS: Math.round(parks[k]),
+      ...(i ? {} : { pause: `The yellow is done: wipe the brush, put the red, ${Rd.name}, in the cup at once, then Continue: the bands' clocks are running` }),
       say: `Red on band ${name(k)} at ${S18.ages[k]} min (the brush ${Math.round(parks[k] / 60)} min in the jar before it): across the band; from above, 3 mm in, its idle run +2 mm; from below, 3 mm in, idle 0` })),
   ];
 }

@@ -64,7 +64,7 @@ export const PAINTS = [
   ['s8', '⑧ violet + red', 'swatches', '#882E40', [33, 40, 10], 'Purple · Shuttle Art and a red; Kuzya\'s 8, Jar 34: too light, too cool (ΔE 23) — but it mutes ③'],
   ['s10', '⑩ violet + red', 'swatches', '#520314', [15, 35, 14], 'Kuzya\'s 10, Jar 38: darker and cooler than it (ΔE 11)'],
   ['s12', '⑫', 'swatches', '#100407', [2, 4, 0], 'Black, Purple and Deep Red; Kuzya\'s 12 (Seam, gone into Jar 43): too dark for a photo to read (L under 5)'],
-  ['s13', '⑬', 'swatches', '#111014', [5, 1, -2], 'near black on the photo, as Ink: a photo cannot tell the darkest apart'],
+  ['s13', '⑬', 'swatches', '#111014', [5, 1, -2], 'near black on the photo, as Black: a photo cannot tell the darkest apart'],
 ].map(([id, name, from, hex, lab, note]) => ({ id, name, from, hex, lab, note }));
 export const paintOf = id => PAINTS.find(p => p.id === id);
 
@@ -83,13 +83,13 @@ const MOTHERS = 'Not a mixing of its own: Red and Jar 43, the two mothers, by th
 // The recipe of every jar of real 3, by its name on the tab: parts [paint id or a jar's name, parts, or words for "a little"], the model's
 // ΔE against the hex (est.), the advice; pair: the jar mixed once with it; mother: mixed before the jars that take it.
 export const RECIPES = {
-  'Chrome': { parts: [['white', 'most'], ['black', 'a speck'], ['sandyellow', 'a speck']], de: 7,
+  'Jar 1': { parts: [['white', 'most'], ['black', 'a speck'], ['sandyellow', 'a speck']], de: 7,
     advice: 'A warm light grey. White, then the black on a knife\'s tip, then a speck of Sand Yellow for the warmth. Black is far stronger than white: add it last and little — too grey, and only a lot more white brings it back.' },
   'Jar 5': { parts: [['pink', 1], ['white', 3], ['sandyellow', 2]], de: 2, kuzya: 1, swatch: 's1',
     advice: 'Not ① as it is: dry in daylight ① is darker, pinker and cooler (L 66 against 72). Pink lightened with White; Sand Yellow takes the pink towards salmon. The yellow last, a little at a time.' },
   'Indicator': { parts: [['orangeyellow', 50], ['orange', 1]], de: 5,
     advice: 'Orange Yellow from the tube is nearly it; a touch of Orange reddens it to the indicator\'s amber. Too red: more Orange Yellow.' },
-  'Chrome, dark': { parts: [['white', 'most'], ['black', 'by drops']], de: 4,
+  'Jar 7': { parts: [['white', 'most'], ['black', 'by drops']], de: 4,
     advice: 'A neutral mid grey (L 64). Start from white, the black a drop at a time, stir and look between drops: one drop moves it far.' },
   'Jar 10': { parts: [['pink', 25], ['red', 1]], de: 8, kuzya: 2, swatch: 's2',
     advice: 'Pink from the tube is close; a touch of Red makes it deeper and redder. Not ② (magenta + white): magenta pulls it towards violet, the jar is a warm raspberry. The hardest of the light ones: check it dry in daylight.' },
@@ -110,8 +110,8 @@ export const RECIPES = {
   'Jar 36': { parts: [['red', 5], ['Jar 43', 3]], de: 3, kuzya: 9, pair: 'Jar 35', advice: MOTHERS },
   'Jar 38': { parts: [['red', 3], ['Jar 43', 5]], de: 4, kuzya: 10, swatch: 's10', advice: `More Jar 43 than Red now. Not ⑩ (violet + red): darker and cooler (ΔE 11, dry). ${MOTHERS}` },
   'Jar 43': { parts: [['red', 1], ['darkbrown', 1]], de: 4, kuzya: 11, mother: true,
-    advice: `Mix it first: with Red, one of the two mothers of every dark red. Red, then Dark Brown a little at a time until it matches the hex — about half and half; make plenty, nine jars take it. ${DARK} ⑫ in the brown's place comes out cooler.` },
-  'Ink': { parts: [['black', 1]], de: 2, swatch: 's13', advice: 'Black from the tube. ⑬ dries near black too, but a photo cannot tell the darkest apart (L under 5): Black is the sure one.' },
+    advice: `Mix it first: with Red, one of the two mothers of every dark red. Red, then Dark Brown a little at a time until it matches its card's colour — about half and half; make plenty, nine jars take it. ${DARK} ⑫ in the brown's place comes out cooler.` },
+  'Black': { parts: [['black', 1]], de: 2, swatch: 's13', advice: 'Black from the tube. ⑬ dries near black too, but a photo cannot tell the darkest apart (L under 5): Black is the sure one.' },
 };
 
 // The order to mix in: the two mothers, then every jar that takes them, then the rest

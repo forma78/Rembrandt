@@ -41,15 +41,15 @@ function cards() {
     const kz = r.kuzya ? `${r.kuzya}${sw ? ` · ${chip(sw.hex)}${esc(sw.name)}` : ''}` : sw ? `${chip(sw.hex)}${esc(sw.name)}` : '—';
     return `<article class="jcard${mixed ? ' mixed' : ''}" data-jar="${esc(j.name)}">
       <div class="jhead"><div class="jsw" style="background:${j.hex}"></div><div>
-        <h4>${esc(j.name)} — <code>${j.hex}</code></h4>
+        <h4>${esc(j.name)}</h4>
         <p class="jsub">No. ${i + 1} of ${L1.length} on LAB · real 3 · ${(j.line / 1000).toFixed(2)} m of line</p>
         <div class="badges">${badges}</div></div></div>
       <dl class="jrows">
-        <dt>Target</dt><dd>${chip(j.hex)} <code>${j.hex}</code></dd>
+        <dt>Target</dt><dd>${chip(j.hex)} the colour on the screen</dd>
         <dt>Mix recipe</dt><dd>${recipe(r)}</dd>
         <dt>Advice</dt><dd class="advice">${esc(r.advice)}</dd>
         <dt>Medium</dt><dd>${esc(MEDIUM)}</dd>
-        <dt>Dry LAB</dt><dd class="mute">${r.dry ? `${chip(r.dry)} <code>${r.dry}</code>` : 'Next: a swatch from the jar, dry, in daylight, its name beside it'}</dd>
+        <dt>Dry LAB</dt><dd class="mute">${r.dry ? `${chip(r.dry)} measured dry` : 'Next: a swatch from the jar, dry, in daylight, its name beside it'}</dd>
         <dt>ΔE</dt><dd>${r.dryDE != null ? `${r.dryDE} measured · ` : ''}<span class="mute">model ${r.de ?? '—'} (est.)${r.dryDE != null ? '' : ' · measured after the swatch dries'}</span></dd>
         <dt>Coats</dt><dd>${coats}</dd>
         <dt>Kuzya · swatch</dt><dd>${kz}</dd>
@@ -67,7 +67,7 @@ function cards() {
 
 function lead() {
   const order = [...ORDER, ...L1.map(j => j.name).filter(n => RECIPES[n]?.parts.some(([p]) => p === 'Jar 43') && !ORDER.includes(n))];
-  $('#lead').innerHTML = `On the jar: <b>its name, big</b> — the run asks for it by that name — and the hex and its number small. `
+  $('#lead').innerHTML = `On the jar: <b>its name, big</b>, the run asks for it by that name: a number, Jar 32, Jar 35; the number tells the shade, light to dark, no hex (a paint has no RGB). `
     + `The dark reds are <b>two mothers</b>, Red and Jar 43 (Red and Dark Brown), the rest of them mixed of those two; then the light ones on their own.`;
   const shown = order.filter(n => !RECIPES[n]?.pair || order.indexOf(RECIPES[n].pair) > order.indexOf(n));   // a pair once: one mixing
   $('#order').innerHTML = shown.map(n => `<li>${chip(jarHex(n))}${esc(RECIPES[n]?.pair ? `${n} · ${RECIPES[n].pair}` : n)}</li>`).join('') + '<li>the light ones, as their cards say</li>';
