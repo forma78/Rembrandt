@@ -5,11 +5,14 @@
 import './lamp.js';
 import { real3Of } from './labplan.js';
 import { PAINTS, paintOf, SOURCES, KUZYA, MEDIUM, RECIPES, ORDER, usesOf } from './colorlib.js';
+import { FORMG_LIB, OPMG_LIB } from './formgplan.js';
+import { entriesOf, sameHex, partsSay } from './colorreg.js';
+import { shelfOf, jarRecipe, labHex } from './colormix.js';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const KEY = 'rembrandt.colors.v01';
-const kept = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v && typeof v.mixed === 'object' ? v : { mixed: {} }; } catch { return { mixed: {} }; } };
+const kept = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v && typeof v.mixed === 'object' ? v : { mixed: {} }; } catch { return { mixed: {} }; } };   // { mixed: { 'Jar 5': true, 'porsche-race-k:j12': true }, work }
 const keep = v => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch { } };
 
 const L1 = real3Of(1).map(q => ({ name: q.jar.name, hex: q.jar.hex, coats: q.jar.coats, line: q.line }));
@@ -89,5 +92,83 @@ function paints() {
     }).join('')}</div></div>`).join('');
 }
 
+// ---------- every picture's jars (Kuzya's audit, 2026-11-10: "COLORS needs a registry, not 170 manual cards") ----------
+// The pictures of FORM-G's and OPM-G's libraries, read from their plans; LAB's real 3 as it was, with its recipes by hand. A picture's jar
+// its recipe from the model (colormix.js: Kubelka–Munk on the shelf's paints, the painter's families, est.), its key the picture's and its
+// own, so "Jar 5" of one picture is never another's.
+const SHELF = shelfOf(PAINTS), shelfOf_ = id => SHELF.find(p => p.id === id);
+let PLANS = [], ENTRIES = [], SAME = () => [];
+const RECIPE = new Map();
+const recipeFor = e => RECIPE.get(e.key) ?? RECIPE.set(e.key, jarRecipe(e.hex, SHELF)).get(e.key);
+const work = () => kept().work && PLANS.some(p => p.id === kept().work) ? kept().work : 'real3';
+const paintHex = id => shelfOf_(id)?.hex ?? (shelfOf_(id)?.lab ? labHex(shelfOf_(id).lab) : '#888');
+function modelRecipe(r) {
+  const parts = partsSay(r.parts), ratio = parts.every(([, n]) => typeof n === 'number');
+  return `<span class="recipe">${parts.map(([p, n]) => `<span class="part">${chip(paintHex(p))}${esc(shelfOf_(p)?.name ?? p)} ${typeof n === 'number' ? (parts.length > 1 ? `<b>${n}</b>` : '<em>as it is</em>') : `<em>${esc(n)}</em>`}</span>`).join(ratio ? '<span class="colon">:</span>' : '<span class="colon">+</span>')}</span>`;
+}
+const SAYS = { red: 'a red of the body: from the reds and the dark mother, no Black, no violet, no blue', olive: 'the neon in shade: the fluorescent lemon darkened', blue: 'a blue grey: Ultramarine with Black and White', grey: 'a grey: White with Black by drops and a tint' };
+const unsure = r => r.de > 3 || partsSay(r.parts).some(([, n]) => typeof n !== 'number');
+function workLead(id) {
+  const P = PLANS.find(p => p.id === id), E = ENTRIES.filter(e => e.art === id), R = E.map(recipeFor), uses = {};
+  R.forEach(r => r.parts.forEach(([p]) => { for (const q of p === 'mother' ? ['red', 'darkbrown'] : [p]) uses[q] = (uses[q] ?? 0) + 1; }));
+  const mothers = R.filter(r => r.parts.some(([p]) => p === 'mother')).length, two = E.filter(e => e.coats === 2).length, eye = R.filter(unsure).length;
+  $('#lead').innerHTML = `<b>${esc(P.title)}</b>, ${esc(`${P.w / 10} × ${P.h / 10}`)} cm: ${E.length} jars, ${two} of them two coats — make those enough for twice. `
+    + (mothers ? `<b>The dark mother first</b>: Red and Dark Brown half and half (real 3's Jar 43), ${mothers} jars take it; then the jars in the list's order, light to dark. ` : 'The jars in the list\'s order, light to dark. ')
+    + `The recipes are a model's (Kubelka–Munk on the paints of the shelf, every paint the same strength, est.): the reds sure by it, ${eye} jars marked <i>check by eye</i> — the model takes White too weak, so its light tints and greys are a start, not a measure. The tubes this picture takes, by how many jars:`;
+  $('#order').innerHTML = Object.entries(uses).sort((a, b) => b[1] - a[1]).map(([p, n]) => `<li>${chip(paintHex(p))}${esc(shelfOf_(p)?.name ?? p)} · ${n}</li>`).join('');
+}
+function workCards(id) {
+  const M = kept().mixed, P = PLANS.find(p => p.id === id), E = ENTRIES.filter(e => e.art === id);
+  $('#jarsTitle').textContent = `Jars · ${P.title} · ${P.w / 10} × ${P.h / 10}`;
+  $('#jarsHint').textContent = `${E.length} jars · ${E.filter(e => M[e.key]).length} mixed`;
+  $('#cards').innerHTML = E.map(e => {
+    const r = recipeFor(e), mixed = !!M[e.key], other = SAME(e);
+    const badges = [mixed ? '<span class="badge done">Mixed ✓</span>' : '<span class="badge">Recipe est. · model</span>',
+      r.parts.some(([p]) => p === 'mother') ? '<span class="badge mother">Takes the dark mother</span>' : '',
+      unsure(r) ? '<span class="badge check">Check by eye</span>' : ''].join('');
+    return `<article class="jcard${mixed ? ' mixed' : ''}" data-key="${esc(e.key)}">
+      <div class="jhead"><div class="jsw" style="background:${e.hex}"></div><div>
+        <h4>${esc(e.name)}</h4>
+        <p class="jsub">No. ${e.no} of ${E.length} on ${esc(P.title)} · ${(e.line / 1000).toFixed(2)} m of line${e.coats === 2 ? ', twice' : ''}</p>
+        <div class="badges">${badges}</div></div></div>
+      <dl class="jrows">
+        <dt>Target</dt><dd>${chip(e.hex)} the plan's colour · ${esc(e.hex)}</dd>
+        <dt>Mix recipe</dt><dd>${modelRecipe(r)}</dd>
+        <dt>Family</dt><dd class="advice">${esc(SAYS[r.family])}</dd>
+        <dt>Medium</dt><dd>${esc(MEDIUM)}</dd>
+        <dt>Dry LAB</dt><dd class="mute">Target · recipe pending: a swatch from the jar, dry, in daylight, its name beside it</dd>
+        <dt>ΔE</dt><dd><span class="mute">model ${r.de} (est.) · measured after the swatch dries</span></dd>
+        <dt>Coats</dt><dd>${e.coats === 2 ? '2 — again over the dry first layer: keep enough' : '1'}</dd>
+        <dt>Same hex</dt><dd class="mute">${other.length ? other.map(q => `${esc(q.title)} · ${esc(q.name)}`).join('; ') + ' — a candidate to share a mix after two dry swatches, not the same jar' : '—'}</dd>
+      </dl>
+      <button class="btn" data-mixkey="${esc(e.key)}" title="A tick in this browser only, while mixing">${mixed ? 'Mixed ✓ · undo' : 'Mark as mixed'}</button>
+    </article>`;
+  }).join('');
+  $('#cards').querySelectorAll('[data-mixkey]').forEach(b => b.onclick = () => {
+    const v = kept(), k = b.dataset.mixkey;
+    if (v.mixed[k]) delete v.mixed[k]; else v.mixed[k] = true;
+    keep(v); workCards(id);
+    $('#saved').textContent = `${ENTRIES.find(e => e.key === k)?.name}: ${v.mixed[k] ? 'mixed' : 'not mixed yet'} (this browser)`;
+  });
+}
+function works() {
+  const w = work();
+  $('#works').innerHTML = [['real3', 'LAB · real 3', '20 × 20'], ...PLANS.map(p => [p.id, p.title, `${p.w / 10} × ${p.h / 10}`])]
+    .map(([id, t, sz]) => `<button class="btn${id === w ? ' on' : ''}" data-work="${esc(id)}">${esc(t)} <span class="hint">${esc(sz)}</span></button>`).join('');
+  $('#works').querySelectorAll('[data-work]').forEach(b => b.onclick = () => { const v = kept(); v.work = b.dataset.work; keep(v); show(); });
+}
+function show() {
+  works();
+  const w = work();
+  if (w === 'real3') { $('#jarsTitle').textContent = 'Jars · LAB real 3'; lead(); cards(); }
+  else { workLead(w); workCards(w); }
+}
+
 lead(); cards(); kuzya(); paints();
-addEventListener('storage', e => { if (e.key === KEY) cards(); });   // ticked on another tab
+(async () => {
+  const load = async (dir, id) => { try { const r = await fetch(`${dir}/${id}.json`, { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch { return null; } };
+  PLANS = (await Promise.all([...FORMG_LIB.map(id => load('formg', id)), ...OPMG_LIB.map(id => load('opmg', id))])).filter(Boolean);
+  ENTRIES = entriesOf(PLANS); SAME = sameHex(ENTRIES);
+  show();
+})();
+addEventListener('storage', e => { if (e.key === KEY) show(); });   // ticked on another tab

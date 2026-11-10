@@ -29,6 +29,9 @@
   .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:var(--well);font-size:11px;color:var(--ink)}
   .badge.mother{background:#FFE9A8;color:#24221F}
   .badge.done{background:#4F7A28;color:#fff}
+  .badge.check{background:#F6D7C8;color:#24221F}
+  .works{margin-bottom:8px}
+  .works .btn.on{outline:2px solid var(--orange);outline-offset:1px}   /* the picture whose jars are shown (2026-11-10) */
   .jrows{display:grid;grid-template-columns:96px 1fr;gap:7px 10px;margin:0;padding-top:10px;border-top:1px solid var(--rule);font-size:12.5px;line-height:1.4}
   .jrows dt{color:var(--mute)}
   .jrows dd{margin:0;min-width:0}
@@ -87,12 +90,13 @@
 <main class="colors">
   <section class="sec">
     <h3>COLORS <span class="hint">the library · every number est.</span></h3>
-    <nav class="cnav"><a class="btn" href="#jars">Jars · real 3</a><a class="btn" href="#kuzya">Kuzya's scale</a><a class="btn" href="#paints">Paints on the shelf</a></nav>
+    <nav class="cnav works" id="works" aria-label="Whose jars"></nav>
+    <nav class="cnav"><a class="btn" href="#jars">Jars</a><a class="btn" href="#kuzya">Kuzya's scale</a><a class="btn" href="#paints">Paints on the shelf</a></nav>
     <p class="lead" id="lead"></p>
     <ol class="order" id="order"></ol>
   </section>
   <section class="sec" id="jars">
-    <h3>Jars · LAB real 3 <span class="hint" id="jarsHint"></span></h3>
+    <h3><span id="jarsTitle">Jars · LAB real 3</span> <span class="hint" id="jarsHint"></span></h3>
     <div class="cards" id="cards"></div>
   </section>
   <section class="sec" id="kuzya">
@@ -106,7 +110,7 @@
 </main>
 
 <footer class="status">
-  <span id="hint">COLORS: the jars of LAB · real 3 and what fills them. The recipes are a model's, est.: check every jar dry, in daylight.</span>
+  <span id="hint">COLORS: the jars of LAB · real 3 and of every picture in FORM-G and OPM-G, and what fills them. The recipes are a model's, est.: check every jar dry, in daylight.</span>
   <span id="saved"></span>
 </footer>
 <script type="module" src="src/colors.js"></script>

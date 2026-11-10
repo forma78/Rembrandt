@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **COLORS: every picture's jars, and a recipe for each from the model** (the owner, the same night, at the table with the jars: "I am a little lost;
+  I do not know where to start … 43 against 49 is good. But how to mix them?"; Kuzya's audit `FORM-G/Rembrandt_COLORS_FORM-G_Registry_Audit_Claude_2026-11-10.pdf`:
+  "COLORS needs a registry, not 170 manual cards"). A row of pictures over the jars: LAB · real 3 as it was (its hand recipes, its ticks), and every picture of
+  FORM-G's and OPM-G's libraries read from its own plan (`colorreg.js`), a jar's key its picture's and its own (`porsche-race-k:j12`: "Jar 5" is another paint
+  in every picture); the plans untouched. A picture's jar its recipe from `colormix.js`: Kubelka–Munk on the paints of the shelf as real 3's recipes were worked
+  out, two-constant now (White scatters 6 times a plain paint, Sand Yellow 2.5, est.: one-constant made White a weakling, a mid grey White 200 : Black 1), and the
+  painter's families by the jar's colour — a red from the reds, Pink and the dark mother (Red + Dark Brown 1 : 1, real 3's Jar 43), no Black, no violet, no
+  blue, no White in a fierce red; an olive from the fluorescent lemon; a blue grey Ultramarine, Black, White; a grey White with Black by drops. Real 3's dark
+  reds come out as the hand recipes, within ΔE 2 (test). Parts in words when one is under a fortieth ("White most, Black by drops"); a jar the model is unsure
+  of, Check by eye; Dry LAB "Target · recipe pending"; the same hex in another picture a candidate, never one jar. The lead: the dark mother first, the
+  tubes the picture takes and in how many jars. 7 pictures, 276 jars, 214 hexes in this tree.
 - **FORM-G: v.2 Kuzya first** (the owner, the same night, the two side by side, `FORM-G/Screenshot 2026-11-10 at 10.25.08 PM.png`: "I like v.2 more, though
   I admit I do not know who would see the difference with the naked eye. In Kuzya's version the headlights and the hood's passage at the border hood + lower
   front are better worked out, so I would take v.2"). `porsche-race-k` the first card; the first version the second, kept.
