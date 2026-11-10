@@ -5,6 +5,7 @@
   python3 export_formg.py porsche <plan.pkl>  (hyper2.py's .pkl)
   python3 export_formg.py porsche-red <plan.pkl>  (redcar.py's .pkl)
   python3 export_formg.py porsche-white <plan.pkl>  (whitecar.py's .pkl)
+  python3 export_formg.py porsche-race <plan.pkl>  (racecar.py's .pkl)
   python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
 
 Run each in its own process: hyper.py and hyper2.py fill the same paint table on import. Coordinates in the JSON: mm from the canvas's bottom left corner, x right, y up."""
@@ -66,6 +67,22 @@ elif which in ('porsche-red', 'porsche-white'):
     title, sub = {'porsche-red': ('Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'),
                   'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
     KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
+    jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
+elif which == 'porsche-race':
+    # the red racing 911's face (racecar.py's .pkl), on 60 × 60: the red classic's technique, racegeo.py's geometry; the neon the owner's fluorescent lemon as it comes
+    import hyper2
+    import paintrun
+    from watchplan import P, PITCH, MARGIN
+    pl.W, pl.H = 600, 600
+    P.clear()
+    pl.pids = []
+    for i, (name, hexv, coats) in enumerate(d['jars']):
+        P[f'j{i}'] = hyper2.jar(hexv, coats, name)
+        P[f'j{i}'].name = name
+        pl.pids.append(f'j{i}')
+    pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
+    title, sub = 'Porsche GT, red', 'hyperrealism, 60 × 60, the red racing 911 from the front, 54 cm across'
+    KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'neon': 'Neon, fluorescent lemon', 'seam': 'Seam'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 else:
     import hyper2

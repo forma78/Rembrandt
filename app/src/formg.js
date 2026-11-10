@@ -607,7 +607,8 @@ lampSwitch($('#lamp'));
     LIB[id] = pic;
     const im = new Image(); im.onload = kick; im.src = pic.image; IMG[id] = im;
   }
-  $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
+  // every card its canvas (the owner, 2026-11-10: "better to sign them: I thought our red Porsche was 60 × 80, and it is 70 × 100"; a picture is planned for its own size, never scaled)
+  $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b><span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
   if (!LIB[S.pic]) S.pic = LIBRARY[0];
   PIC = picNow(S.pic); SEQ = seqOf(PIC);
   await loadInk();

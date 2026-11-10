@@ -12,11 +12,12 @@ A plan is one grid of columns 5 mm apart, the brush's. Every column is solved on
 | `cargeo.py`, `hyper2.py` | the green 911: its outline, the badges off, 60 jars made to measure |
 | `whitecar.py`, `porsche-white.jars.json` | the white 911 in the canon's form, its tones off the owner's and Kuzya's picture laid onto the canon; a colour of the canon is such a subclass of `RedCar`: its picture (`source`), its body's shadows (`tone_map`), its fixed jars |
 | `redgeo.py`, `redcar.py`, `porsche-red.jars.json` | the red classic 911 (2026-11-08), the canon of the 911's form (the owner: "I would take the red one as the canon"); its jars kept in the json, so that an edit does not re-make the palette (`RED_NEW_JARS=1` makes them again): hyper2's technique on a geometry read off the picture and made symmetric about the axis — the outline, the glass, the louvres, the lights, the cap, the panels' seams fitted to the picture's own; no leg across a part's edge or a seam; the crest and the wiper off; after the plan (`touch`, 2026-11-10) the indicators 10 mm deep and a black mark of two columns where the crest was, nothing else moved |
+| `racegeo.py`, `racecar.py`, `porsche-race.jars.json` | the red racing 911 from the front on 60 × 60, 54 cm across (2026-11-10), in the green's place in the library: the red classic's `RedCar` on a geometry read off the picture, symmetric about the axis — the wing, the glass, the mirrors, the headlights, the bonnet's vents, the neon, the intakes and the splitter, each its own part; the body's seams the picture's own thin lines, found, not drawn; the stickers and the crest off, a grey mark of two columns in the crest's place; the banner's PORSCHE a hint, every column through the letters one leg of a grey by their share of it; the neon the owner's fluorescent lemon as it comes |
 | `distance_core.py`, `far.py`, `farcar.py` | the view from 3 and 6 m: S-CIELAB's widths of blur, a model, not a measurement |
 | `gwagongeo.py`, `gwagon.py`, `farwagon.py` | OPM-G's G-wagon on 60 × 60: its outline off a white ground, the badges off; the grille's slats on the grid, the bull bar's chrome, the headlights, the seats' red by geometry; 36 jars at most, every jar 1 m of line at least; no span under 12 mm; the view from 3 and 6 m |
 | `export_formg.py` | a finished plan into `app/formg/<id>.json` (OPM-G's into `app/opmg/`), the cells, a jar's layers |
 
-The photos are others' and stay out of git (`.gitignore`): `OPM-G/Blue-Patek…`, `OPM-G/porsche-911-1.jpg`, `OPM-G/g-wagon.JPG`, and the pictures in `FORM-G/` itself (`Top-Down Classic Red Porsche 911.png`).
+The photos are others' and stay out of git (`.gitignore`): `OPM-G/Blue-Patek…`, `OPM-G/porsche-911-1.jpg`, `OPM-G/g-wagon.JPG`, and the pictures in `FORM-G/` itself (`Top-Down Classic Red Porsche 911.png`, `Red Porsche GT Race Car.png`).
 
 To run: a venv with numpy, pillow and scipy, the working directory this one.
 
@@ -27,6 +28,8 @@ python export_formg.py watch watch.jpg.pkl
 python export_formg.py porsche porsche.jpg.pkl
 python redcar.py 6 2 porsche-red.jpg     # the red 911; its jpg to 3 px/mm in app/formg/
 python export_formg.py porsche-red porsche-red.jpg.pkl
+python racecar.py 6 2 porsche-race.jpg    # the racing 911's face; its jpg to 3 px/mm in app/formg/
+python export_formg.py porsche-race porsche-race.jpg.pkl
 python gwagon.py 6 2 gwagon.jpg      # OPM-G's: its plan into app/opmg/
 python export_formg.py gwagon gwagon.jpg.pkl
 python farwagon.py gwagon.jpg gwagon_distance.jpg

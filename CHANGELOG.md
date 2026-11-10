@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the red racing 911's face on 60 × 60, in the green's place; every card its canvas** (the owner, the same evening: "the frontal racing
+  Porsche's face … in place of the green Porsche in FORM-G"; "we make the face right now"; "better to sign them: I thought our red Porsche was 60 × 80, and it is
+  70 × 100"). `porsche-race`, "Porsche GT, red", 54 cm across, first in the library; the green out of it (`porsche.json` stays, the tests' and LAB's). Its
+  generator `racegeo.py` + `racecar.py`: the red classic's `RedCar` on a geometry read off `FORM-G/Red Porsche GT Race Car.png`, symmetric about the axis — the
+  wing, the glass, the mirrors, the headlights, the bonnet's vents, the neon, the intakes and the splitter each a part; the body's seams the picture's own thin
+  lines, by colour. The stickers and the crest off, a grey mark of two columns in the crest's place. PORSCHE on the banner a hint, as the owner asked ("the letters
+  as if not there, but you know what is written"; his LEGO/ Mona Lisa: "OPM in its purest form"): a band the letters' height, every column one leg — an upright
+  light grey, the bars a darker grey, the gaps black. The neon the owner's fluorescent lemon, a jar as it comes. After Kuzya's read of the first try ("a rather
+  flat graphic illustration"; "for a glossy body not only steps of red: cool reflections, light coral and pink shades, near-neutral highlights"; the owner: "I
+  agree with Kuzya completely, we were taught this at art school"): the picture's body is flat itself, 70 % within L* 32 … 48, so on the body its light and shade
+  between 6 and 40 mm made stronger (`VOLUME`) and its colour laid by L* as gloss (`GLOSS`, `HUES`: shadows crimson, light coral, a highlight's fringe pink to
+  lilac, the highlight near neutral), the chroma down to the gamut (else a clip turns every hue back to the same red); the jars clustered over every tone evenly;
+  `LAM` 1400 and `JIT` 2/3 (Kuzya's), the glass read sharp. The volume's band against the photo's on the body: correlation 0.853 → 0.914, spread 0.90 → 1.18;
+  49 jars, 34 of them two layers, 1894 legs, 75 m of line (all est.). On the cards the canvas, cm, under the title (FORM-G and OPM-G). Not run.
 - **FORM-G: DRAW BW, the outline alone** (the owner, the same evening, DRAW BW's whole contour ≈ 1 h: "a long time; to centre it the Porsche's contour without
   the lines inside is enough; four crosses as TEST's are not"). DRAW BW's question now picks what it draws, **Draw**: the outline alone, where the paint meets the
   bare canvas (`contourOf(pic, { outline: true })`) — the red 911 one line, 2.63 m, ≈ 2 min (est.), the default — or every border between two colours, 713 lines,
