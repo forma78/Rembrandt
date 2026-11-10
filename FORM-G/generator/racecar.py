@@ -31,6 +31,61 @@ RACE_FIXED = [('chrome', '#E6E5DF', 1), ('chromeM', '#C6C6C1', 1), ('chromeD', '
 PARTS = ['wing', 'wind', 'mirrors', 'heads', 'vents', 'neon', 'lower']
 
 
+def segment_var(pal, lab, lams, prev, beta, ban):
+    """hyper2's Palette.segment, a cut's cost its own at every bin (lams[i]: a run starting at bin i) — dear on flat paint, cheap where the form turns"""
+    K, n = pal.K, len(lab)
+    if n == 0:
+        return np.zeros(0, int)
+    S1 = np.vstack([np.zeros((1, 3), np.float32), np.cumsum(lab, axis=0)])
+    S2 = np.concatenate([[0.0], np.cumsum((lab * lab).sum(axis=1))])
+    aff = np.zeros((n + 1, K), np.float32)
+    on = prev >= 0
+    if on.any():
+        hit = np.zeros((n, K), np.float32)
+        hit[np.flatnonzero(on), prev[on]] = 1.0
+        aff[1:] = np.cumsum(hit, axis=0)
+    if n < H.LBINS[0]:
+        j = int(np.argmin(np.abs(np.array(H.LBINS) - n)))
+        d = lab[:, None, :] - pal.A_LAB[j][None, :, :]
+        return np.full(n, int(((d * d).sum(axis=(0, 2)) + ban * n - beta * aff[n]).argmin()))
+    D, Pk = {}, {}
+    for j, l in enumerate(H.LBINS):
+        if l > n:
+            break
+        d1 = S1[l:] - S1[:-l]
+        d2 = S2[l:] - S2[:-l]
+        c = d2[:, None] - 2 * (d1 @ pal.A_LAB[j].T) + l * pal.A_NORM[j][None, :] + ban[None, :] * l - beta * (aff[l:] - aff[:-l])
+        Pk[l] = c.argmin(axis=1)
+        D[l] = c.min(axis=1)
+    ls = sorted(D)
+    dp = [1e18] * (n + 1)
+    back = [(0, 0)] * (n + 1)
+    dp[0] = -float(lams[0])
+    for r in range(H.LBINS[0], n + 1):
+        bv, bl = 1e18, 0
+        for l in ls:
+            if l > r:
+                break
+            v = dp[r - l]
+            if v >= 1e17:
+                continue
+            v = v + float(lams[r - l]) + D[l][r - l]
+            if v < bv:
+                bv, bl = v, l
+        dp[r] = bv
+        back[r] = (bl, int(Pk[bl][r - bl]) if bl else 0)
+    out = np.zeros(n, int)
+    r = n
+    while r > 0:
+        l, k = back[r]
+        if l == 0:
+            out[:r] = out[r] if r < n else 0
+            break
+        out[r - l:r] = k
+        r -= l
+    return out
+
+
 def band(Lg, m, lo, hi):
     """a grid's L* (rows 1 mm, columns 5 mm) between lo and hi mm, within the mask"""
     w = m.astype(np.float32)
@@ -61,6 +116,9 @@ class RaceFace(RedCar):
                                 # highlight's fringe pink to lilac, the highlight near neutral and cool (est.)
     LAM = 1400.0                # a cut of a column's colour, its cost: hyper2's 2200 kept a lit bonnet and its shade in one leg (Kuzya) (est.)
     JIT = (2.0, 3.0)            # the columns' hue apart for the eye to mix, a* b*: hyper2's 3.5, 5.0 painterly, too much for smooth paint (Kuzya) (est.)
+    JIT_BODY = None             # 0: no hue apart on the red body at all (Kuzya's audit, B); None: JIT everywhere
+    SURFACE = None              # (LAM where the paint is flat, LAM where the form turns, slope from, slope to — L* a mm): a cut's cost by the form (Kuzya's audit, C); None: LAM
+    SLOPE_MM = 8.0              # the body's light smoothed over so many mm along a column before its slope is read: the form, not the brush's grain (est.)
 
     def __init__(self):
         self.N = int((self.W - 2 * MARGIN) / PITCH)
@@ -160,7 +218,14 @@ class RaceFace(RedCar):
         self.cut = np.where(m, pid * 4096 + count, -1)
         self.lock = -np.ones((self.R, self.N), np.int16)
         self.locks()
-        return self.glossy(T)
+        T = self.glossy(T)
+        # the form's turns along a column: the slope of the body's light over SLOPE_MM (Kuzya's C: "a region-level L* target … lower the segment penalty near
+        # meaningful L* gradients"), L* a mm
+        Lb = to_lab(T)[..., 0]
+        w = self.body.astype(np.float32)
+        sm = ndi.gaussian_filter1d(Lb * w, self.SLOPE_MM, axis=0) / np.maximum(ndi.gaussian_filter1d(w, self.SLOPE_MM, axis=0), 1e-3)
+        self.slope = np.where(self.body, np.abs(np.gradient(sm, axis=0)), 0.0)
+        return T
 
     def glossy(self, T):
         """the body's volume made stronger (VOLUME) and its colour laid as a painter lays gloss (GLOSS, HUES): shadows cooler, light warmer, a highlight's fringe pink
@@ -283,8 +348,9 @@ class RaceFace(RedCar):
             na, nb = na / (na.std() + 1e-6), nb / (nb.std() + 1e-6)
             fade = np.clip(lab[:, 0] / 100, 0, 1) ** 1.5
             lab2 = lab.copy()
-            lab2[:, 1] += self.JIT[0] * (2 * taua[c] - 1 + 0.5 * na) * fade
-            lab2[:, 2] += self.JIT[1] * (2 * taub[c] - 1 + 0.5 * nb) * fade
+            jit = np.where(self.body[:, c], 0.0, 1.0) if self.JIT_BODY == 0 else 1.0     # Kuzya's B: none on the red body
+            lab2[:, 1] += self.JIT[0] * (2 * taua[c] - 1 + 0.5 * na) * fade * jit
+            lab2[:, 2] += self.JIT[1] * (2 * taub[c] - 1 + 0.5 * nb) * fade * jit
             lab2 *= H.WEIGHT
             applied = np.zeros((R, 3), np.float32)
             key = self.cut[:, c].astype(np.int64) * 64 + self.lock[:, c].astype(np.int64) + 1
@@ -301,7 +367,11 @@ class RaceFace(RedCar):
                 edges[-1] = v
                 lb = np.stack([lab2[edges[q]:edges[q + 1]].mean(axis=0) for q in range(bins)])
                 prev = grid[edges[:-1], c - 1].astype(int) if c > 0 else -np.ones(bins, int)
-                path = pal.segment(lb, self.LAM, prev, self.BETA, ban_body if self.body[u, c] else None)
+                if self.SURFACE and self.body[u, c]:                                  # Kuzya's C: a cut cheap where the form turns, dear where the paint is flat
+                    lam = np.interp(np.array([self.slope[edges[q]:edges[q + 1], c].max() for q in range(bins)]), self.SURFACE[2:], self.SURFACE[:2])
+                    path = segment_var(pal, lb, lam, prev, self.BETA, ban_body)
+                else:
+                    path = pal.segment(lb, self.LAM, prev, self.BETA, ban_body if self.body[u, c] else None)
                 for q in range(bins):
                     grid[edges[q]:edges[q + 1], c] = path[q]
                 q = u

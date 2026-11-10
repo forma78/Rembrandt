@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the racing 911's face, v.2 Kuzya, a card of its own** (the owner, the same night, of Kuzya's audit
+  `FORM-G/Rembrandt_FORM-G_GT_Color_Tone_Audit_2026-11-10.pdf`: "honestly I do not quite see the problem between what we have now and what Kuzya proposes. What
+  if it gets worse? So it is safer to make v.2 Kuzya"). `porsche-race-k`, after the first, which stays as it is: `racecark.py`, the first's target, geometry and
+  starting jars, and the audit's B, C and D — no hue apart on the red body (`JIT` 0 there); a cut's cost by the form, 2800 where the body's light is flat, 700
+  where it turns (its slope 0.4 … 1.4 L* a mm, `segment_var`); jars whose dried legs the brush model cannot tell apart, dE under 2.5, one (the audit: 26 of the
+  first's 49 jars on the 0D floor, 13 pairs under dE 3). 43 jars (the first 49), 28 of them two layers (34), 1873 legs, 453 under 12 mm (456). By the audit's
+  own measures against the picture (macro L* spread, sigma 25 px): the hood 5.4 → 7.6 (the first 8.5), the lower front 12.3 → 14.7 (14.9), its texture 6.8 (7.0).
+  The first's planner takes the audit's B and C as switches, off for it (`JIT_BODY`, `SURFACE`). Not run.
 - **FORM-G: the red racing 911's face on 60 × 60, in the green's place; every card its canvas** (the owner, the same evening: "the frontal racing
   Porsche's face … in place of the green Porsche in FORM-G"; "we make the face right now"; "better to sign them: I thought our red Porsche was 60 × 80, and it is
   70 × 100"). `porsche-race`, "Porsche GT, red", 54 cm across, first in the library; the green out of it (`porsche.json` stays, the tests' and LAB's). Its
