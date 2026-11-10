@@ -138,7 +138,8 @@ function penRun(k) {
   PENRUNS.set(key, out);
   return out;
 }
-const warn = t => { $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
+let warnAt = 0;   // a warning stays WARN_S before the next look at the run writes over it
+const WARN_S = 5, warn = t => { warnAt = Date.now(); $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
 let RUN = null, RUN_INFO = null, RUN_KEY = null, lastSt = null;
 async function start(key, blocks, info, log) {
   playStop();
@@ -147,7 +148,7 @@ async function start(key, blocks, info, log) {
     if (st && !(st.hand >= 1)) { alert('The cup at hand (INK-Y): restart rembrandt.py first — the one running does not know it yet. Nothing was sent.'); return; }
   }
   try {
-    RUN = blocks; RUN_INFO = info; RUN_KEY = key;
+    RUN = blocks; RUN_INFO = info; RUN_KEY = key; S.runPic = S.pic; save();             // the picture this run is of: the page keeps to it while it runs (runPicture)
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, log }) });
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
@@ -562,8 +563,14 @@ function markRun(at) { [...$('#runList').children].forEach(q => { const i = q.da
 function settle() { RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); PENRUNS.clear(); save(); showKeys(); showPanel(); kick(); }
 $('#lib').onclick = async e => {
   const b = e.target.closest('.fg-card'); if (!b) return;
-  playStop(); popHide(); only = null; S.pic = b.dataset.id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); save();
+  if (lastSt && LIVE.includes(lastSt.state) && S.runPic && b.dataset.id !== S.runPic) return warn(`A run of ${esc(LIB[S.runPic]?.title ?? S.runPic)} is on: the library stays on it till the run ends or stops — the board's steps are read by its plan, its jars by its names.`);
+  choose(b.dataset.id);
 };
+// a picture chosen in the library; while a run is on, the page keeps to the run's own (the owner, 2026-11-11: the classic's v.1 running, its v.2 card clicked to
+// look at it — the LCD read the board's steps by v.2's plan, "Jar 1 · 1/63", 0 %, and v.2's jar numbers, one ahead of v.1's from its Jar 2 on, were taken for
+// the run's: "the 7th is orange and the 8th grey")
+function choose(id) { playStop(); popHide(); only = null; S.pic = id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); save(); }
+function runPicture(st) { if (st && LIVE.includes(st.state) && S.runPic && S.pic !== S.runPic && LIB[S.runPic]) choose(S.runPic); }   // a page opened during a run: back on its picture
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; playStop(); S.view = b.dataset.view; save(); showKeys(); kick(); };
 $('#runList').onclick = e => { const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#runList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
 for (const [id, k, lo, hi] of [['#fSpeed', 'speed', 5, 120], ['#fEvery', 'dipEvery', 0, 200], ['#fLap', 'dipLap', 0, 30], ['#fOver', 'over', 0, 8], ['#fPen', 'penSpeed', 5, 120], ['#fTravel', 'travel', 20, 180]]) {
@@ -616,8 +623,9 @@ async function watch() {
   let st = null;
   try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
   lastSt = st;
+  runPicture(st);
   lcd(st);
-  $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${esc(st.message)}</span>` : '';
+  if (Date.now() - warnAt > WARN_S * 1000) $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${esc(st.message)}</span>` : '';
 }
 
 // ---------- start ----------

@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G keeps to the running picture** (the owner, 2026-11-11, the classic's v.1 on the machine, its v.2 card clicked to look at it: the LCD read the
+  board's steps by v.2's plan — "Jar 1 · 1/63", 0 % — and v.2's jar numbers, one ahead of v.1's from its Jar 2 on, were taken for the run's: "Jar 8 is in the
+  machine, I have Jar 9 ready, but Rembrandt says put Jar 8"; "the 7th is orange and the 8th grey"). The run's picture is kept (`S.runPic`, at every start);
+  while a run is on, a click on another card is refused with why, and a page opened during a run goes back to the run's picture. A warning stays 5 s before
+  the next look at the run writes over it. Nothing on the canvas went wrong: the grey was run again with the grey (from the journal).
 - **FORM-G: the red classic's v.2 Kuzya, a card of its own** (the owner, 2026-11-11: "can what Kuzya wrote be applied to the classic Porsche, 100 × 70?
   Maybe make a v.2 to compare?"). `porsche-red-k` after the red, which stays as it is (he paints it): `redcark.py`, RedCar's form, target and kept jars, and
   the GT audit's B, C, D as on the GT's face — no hue apart on the body, a cut by the form, jars the brush model cannot tell apart one (eight merged); the
