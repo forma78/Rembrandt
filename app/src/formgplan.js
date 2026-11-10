@@ -135,8 +135,9 @@ export function placeRange(pic, carriage, walls) {
 // every one once: a column's colours one over another in the list's order, light to dark, the later on top (the light runs under its darker neighbour, paintrun.py's UNDER);
 // where a column's colour changes, a line across it, the column's width; where two columns side by side differ, a line between them, along. So the steps of the 5 mm
 // columns, as the brush lays them. The lines joined end to end as far as they go without a lift, each next the nearest. → { lines: [[[x, y], …]], mm, pieces } in the
-// picture's mm, x right, y up, as the legs.
-export function contourOf(pic) {
+// picture's mm, x right, y up, as the legs. o.outline: the outline alone, every border between a colour and the bare canvas, none inside (the owner, the same evening,
+// the whole contour ≈ 1 h: "a long time; to centre it the Porsche's contour without the lines inside is enough; four crosses as TEST's are not")
+export function contourOf(pic, o = {}) {
   const p = pic.pitch, half = p / 2, E = 1e-6, r2 = v => Math.round(v * 100) / 100;
   const cols = new Map();                                              // a column's index → { x, iv: [[lo, hi, k]] }, what shows of every jar, bottom up
   pic.jars.forEach((j, k) => j.cells.forEach(c => c.legs.forEach(([x, a, b]) => {
@@ -152,15 +153,16 @@ export function contourOf(pic) {
   })));
   for (const col of cols.values()) col.iv = col.iv.reduce((m, q) => { const l = m.at(-1); if (l && l[2] === q[2] && Math.abs(l[1] - q[0]) < E) l[1] = q[1]; else m.push([...q]); return m; }, []);
   const jarAt = (col, y) => { if (!col) return -1; for (const q of col.iv) if (y > q[0] && y < q[1]) return q[2]; return -1; };
+  const border = (u, v) => u !== v && (!o.outline || u === -1 || v === -1);
   const ends = col => col ? col.iv.flatMap(q => [q[0], q[1]]) : [];
   const segs = [];
   for (const [i, col] of cols) {                                       // across a column, where its colour changes
-    for (const y of [...new Set(ends(col).map(r2))]) if (jarAt(col, y - 1e-3) !== jarAt(col, y + 1e-3)) segs.push([[r2(col.x - half), y], [r2(col.x + half), y]]);
+    for (const y of [...new Set(ends(col).map(r2))]) if (border(jarAt(col, y - 1e-3), jarAt(col, y + 1e-3))) segs.push([[r2(col.x - half), y], [r2(col.x + half), y]]);
     for (const j of [i - 1, i]) {                                      // along, between it and its neighbour on either side; every pair once
       const L = cols.get(j), R = cols.get(j + 1);
       if (j === i - 1 && L) continue;                                  // that pair is its left neighbour's
       const xb = r2((L ?? R) === L ? L.x + half : R.x - half), ys = [...new Set([...ends(L), ...ends(R)].map(r2))].sort((u, v) => u - v);
-      for (let m = 1; m < ys.length; m++) { const y = (ys[m - 1] + ys[m]) / 2; if (jarAt(L, y) !== jarAt(R, y)) segs.push([[xb, ys[m - 1]], [xb, ys[m]]]); }
+      for (let m = 1; m < ys.length; m++) { const y = (ys[m - 1] + ys[m]) / 2; if (border(jarAt(L, y), jarAt(R, y))) segs.push([[xb, ys[m - 1]], [xb, ys[m]]]); }
     }
   }
   // the graph of their ends: walked edge after edge, straight on where it can, from an end where an odd number meet first, so as few lines as it takes

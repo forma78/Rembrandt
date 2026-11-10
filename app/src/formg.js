@@ -96,21 +96,24 @@ function walls(P_) {
 // to centre the canvas and study all the details"): formgplan.js's contourOf, every border between two colours once, in one pen, as OPM-N's DRAW BW: the pen pressed on
 // its lines, the carriage on them, up between them; once, over the first line's start, the holder down and a p-pause, the pen in with its tip on the paper (rembrandt.py's
 // p-pause: nothing lifted). No dip, no jar, no wipe. With the cup at hand the elbow up into its fork and the shoulder to 0 first, as every run of the brush
-const CONTOURS = new Map(), PENRUNS = new Map();
-const contour = () => CONTOURS.get(pk()) ?? CONTOURS.set(pk(), contourOf(PIC)).get(pk());
+// S.bw: 'outline', the picture's outline alone, to lay the canvas by — the default (the owner, the same evening: "to centre it the Porsche's contour without the lines inside
+// is enough"); 'all', every border between two colours, to study the picture
+const CONTOURS = new Map(), PENRUNS = new Map(), BW_KINDS = { outline: 'The outline alone', all: 'Every border between two colours' };
+const bwKind = k => (k ?? S.bw) === 'all' ? 'all' : 'outline';
+const contour = k => { const key = `${pk()}|${bwKind(k)}`; return CONTOURS.get(key) ?? CONTOURS.set(key, contourOf(PIC, { outline: bwKind(k) === 'outline' })).get(key); };
 const penAt = () => ({ press: S.press, glide: S.press + PEN.air, in: S.press + PEN.in });
-function penRun() {
+function penRun(k) {
   if (!PIC) return EMPTY;
-  const c = dipCup(), key = JSON.stringify([pk(), S.press, S.penSpeed, S.travel, hereNow(), !!c.hand]);
+  const c = dipCup(), key = JSON.stringify([pk(), bwKind(k), S.press, S.penSpeed, S.travel, hereNow(), !!c.hand]);
   if (PENRUNS.has(key)) return PENRUNS.get(key);
-  const C = contour(), o = { cw: PIC.w, ch: PIC.h }, at = penAt();
+  const C = contour(k), o = { cw: PIC.w, ch: PIC.h }, at = penAt();
   if (!C.lines.length) return EMPTY;
   const ps = C.lines.map((l, i) => l.slice(1).map((b, j) => ({ ...machinePiece({ t: 'L', a: l[j], b }, o), tilt: 0, row: i + 1 })));
   const r = plotRun({ ...DEFAULTS, speed: S.penSpeed, travel: S.travel, tail: TAIL_MIN, lift: true, ink: false, snake: false, pause: false, minPiece: 0.005, pencil: { press: at.press, glide: at.glide }, hover: at.glide, here: hereNow(), rows: ps.length }, [{ key: 'DRAW', ps, why: null }]);
   const H = c.hand ? handDip(c, 0) : null, blocks = H ? [{ ...H[0], dip: false }, { ...H[5], dip: false }, ...r.blocks.slice(1)] : r.blocks.slice();
-  const k = blocks.findIndex(b => b.kind === 'move' && b.row === 1 && /^T /.test(b.cmds[0]));   // over the first line's start: down, the pen in
-  if (k >= 0) blocks.splice(k + 1, 0, { kind: 'arm', cmd: `J 2 ${at.in}`, row: 1 }, { kind: 'p-pause', why: `DRAW BW: the brush out, the pen in the holder, its tip on the paper; then Continue`, row: 1 });
-  const out = { key, ...r, blocks, rows: C.lines.map((l, i) => ({ label: `DRAW BW · line ${i + 1} of ${C.lines.length}`, cells: [] })), mm: C.mm, lines: C.lines.length, passes: [] };
+  const first = blocks.findIndex(b => b.kind === 'move' && b.row === 1 && /^T /.test(b.cmds[0]));   // over the first line's start: down, the pen in
+  if (first >= 0) blocks.splice(first + 1, 0, { kind: 'arm', cmd: `J 2 ${at.in}`, row: 1 }, { kind: 'p-pause', why: `DRAW BW: the brush out, the pen in the holder, its tip on the paper; then Continue`, row: 1 });
+  const out = { key, ...r, blocks, rows: C.lines.map((l, i) => ({ label: `DRAW BW · ${bwKind(k) === 'outline' ? 'the outline · ' : ''}line ${i + 1} of ${C.lines.length}`, cells: [] })), mm: C.mm, lines: C.lines.length, kind: bwKind(k), passes: [] };
   if (PENRUNS.size > 4) PENRUNS.clear();
   PENRUNS.set(key, out);
   return out;
@@ -157,25 +160,38 @@ $('#btnDrag').onclick = async () => {
   await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
     logOf({ pass: 'drag', settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R), ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
 };
+// its checks, OPM-N's: the plan, the walls, the debug of the pen's downs (strokes.js, landingCheck): every mm of every line with the pen down → a warning, or the debug
+function bwCheck(R) {
+  const at = penAt();
+  if (!R.rows.length) return 'Nothing to draw.';
+  if (R.fault) return `Not run: the plan is wrong — ${R.fault}.`;
+  if (walls(R)) return walls(R).replace('The brush', 'The pen');
+  const dbg = landingCheck(R.blocks, at.press, at.glide);
+  if (!dbg.ok) return `Not run — debug: ${dbg.bad.length} drawn piece${dbg.bad.length === 1 ? '' : 's'} with the pen not down${dbg.bad.length ? `, the first at carriage X ${fmt(dbg.bad[0].at[0], 1)} · Y ${fmt(dbg.bad[0].at[1], 1)}, the elbow at ${dbg.bad[0].deg === null ? 'nothing yet' : sgn(dbg.bad[0].deg)}, not ${sgn(at.press)}` : ''}.`;
+  return { dbg };
+}
+function bwText(R, dbg) {
+  const at = penAt(), all = R.kind === 'all';
+  return `Debug ✓ ${dbg.lines} line${dbg.lines === 1 ? '' : 's'}: ${dbg.downs} down${dbg.downs === 1 ? '' : 's'} to ${sgn(at.press)}; ${fmt(dbg.pressed / 1000, 2)} m drawn, every mm of it with the pen down.\n\n`
+    + (all ? `Every border between two colours of ${PIC.title} and its outline on the bare canvas, the steps of the ${fmt(PIC.pitch, 0)} mm columns as the brush lays them — ${R.lines} lines, every one once`
+      : `The outline of ${PIC.title} alone, where its paint meets the bare canvas, the steps of the ${fmt(PIC.pitch, 0)} mm columns as the brush lays them, no line inside — ${R.lines} line${R.lines === 1 ? '' : 's'}`)
+    + `, in one pen, no dip, no jar: ${fmt(R.mm / 1000, 2)} m at ${S.penSpeed} mm/s, ≈ ${hm(R.seconds)} (est.). `
+    + `The carriage goes over the first line and puts the holder down, ${sgn(at.in)}: the brush out, the pen in, its tip on the paper, then Continue — no stop after it. The pen draws at the brush's elbow, ${sgn(at.press)} (Elbow live · brush, live while it draws), the carriage on the line, so it goes where the brush will paint; ${sgn(at.glide)} over a line's start, up between lines. `
+    + (PIC.frame ? `Only the frame, ${frameSize()} mm, at its place in the picture: its paper's left edge ${frameHome().left} mm, its bottom edge ${frameHome().bottom} mm from home — is it taped there?` : `The paper where the canvas will lie: its left edge ${placeNow().edgeLeft} mm, its bottom edge ${placeNow().edgeBottom} mm from home — is it taped there?`);
+}
 if ($('#btnBw')) $('#btnBw').onclick = async () => {
   await loadInk();
   if (!PIC) return;
   if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: STOP it first.');
-  const R = penRun(), at = penAt();
-  if (!R.rows.length) return warn('Nothing to draw.');
-  if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);
-  if (walls(R)) return warn(walls(R).replace('The brush', 'The pen'));
-  // the debug of the pen's downs, OPM-N's (strokes.js, landingCheck): every mm of every line with the pen down
-  const dbg = landingCheck(R.blocks, at.press, at.glide);
-  if (!dbg.ok) return warn(`Not run — debug: ${dbg.bad.length} drawn piece${dbg.bad.length === 1 ? '' : 's'} with the pen not down${dbg.bad.length ? `, the first at carriage X ${fmt(dbg.bad[0].at[0], 1)} · Y ${fmt(dbg.bad[0].at[1], 1)}, the elbow at ${dbg.bad[0].deg === null ? 'nothing yet' : sgn(dbg.bad[0].deg)}, not ${sgn(at.press)}` : ''}.`);
-  const text = `Debug ✓ ${dbg.lines} line${dbg.lines === 1 ? '' : 's'}: ${dbg.downs} down${dbg.downs === 1 ? '' : 's'} to ${sgn(at.press)}; ${fmt(dbg.pressed / 1000, 2)} m drawn, every mm of it with the pen down.\n\n`
-    + `The contour in one pen, no dip, no jar: every border between two colours of ${PIC.title} and its outline on the bare canvas, the steps of the ${fmt(PIC.pitch, 0)} mm columns as the brush lays them — ${R.lines} lines, every one once, ${fmt(R.mm / 1000, 1)} m at ${S.penSpeed} mm/s, ≈ ${hm(R.seconds)} (est.). `
-    + `The carriage goes over the first line and puts the holder down, ${sgn(at.in)}: the brush out, the pen in, its tip on the paper, then Continue — no stop after it. The pen draws at the brush's elbow, ${sgn(at.press)} (Elbow live · brush, live while it draws), the carriage on the line, so it goes where the brush will paint; ${sgn(at.glide)} over a line's start, up between lines. `
-    + (PIC.frame ? `Only the frame, ${frameSize()} mm, at its place in the picture: its paper's left edge ${frameHome().left} mm, its bottom edge ${frameHome().bottom} mm from home — is it taped there?` : `The paper where the canvas will lie: its left edge ${placeNow().edgeLeft} mm, its bottom edge ${placeNow().edgeBottom} mm from home — is it taped there?`);
-  if (!await askDraw(null, text, { pen: true })) return;
+  const textOf = R => { const c = bwCheck(R); return typeof c === 'string' ? c : bwText(R, c.dbg); };
+  const choice = { label: 'Draw', value: bwKind(), options: Object.entries(BW_KINDS).map(([v, t]) => ({ value: v, text: `${t} · ≈ ${hm(penRun(v).seconds)}` })), pick: v => { S.bw = v; save(); kick(); return textOf(penRun(v)); } };
+  if (!await askDraw(null, textOf(penRun()), { pen: true, choice })) { showPanel(); return; }
+  const R = penRun(), c = bwCheck(R);                                                // the one picked: its own checks
+  if (typeof c === 'string') return warn(c);
+  const at = penAt();
   S.view = 'contour'; RUN_PRESS = S.press; save(); showKeys(); kick();
-  await start('bw', R.blocks, { seconds: R.seconds, rows: R.rows, passes: [] },
-    logOf({ pass: 'draw bw', label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''} · DRAW BW, the pen`, settings: { ...S, place: placeNow() }, debug: { lines: dbg.lines, downs: dbg.downs, ups: dbg.ups, press: at.press, glide: at.glide }, estimate_s: Math.round(R.seconds) }));
+  await start('bw', R.blocks, { seconds: R.seconds, rows: R.rows, passes: [], bw: R.kind },
+    logOf({ pass: 'draw bw', label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''} · DRAW BW, the pen · ${R.kind === 'all' ? 'every border' : 'the outline'}`, settings: { ...S, place: placeNow() }, debug: { lines: c.dbg.lines, downs: c.dbg.downs, ups: c.dbg.ups, press: at.press, glide: at.glide }, estimate_s: Math.round(R.seconds) }));
 };
 // OPM-N's question: the first jar big, the order, the time, Start from; DRAG or Cancel, Esc Cancel
 const runRows = passes => passes.map((q, i) => { const j = jarOf(q.pencil); return `<li><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
@@ -197,8 +213,15 @@ function askDraw(passes, text, o = {}) {
     $('#drawAskList').innerHTML = runRows(passes);
   };
   show(passes, text);
-  const row = $('#drawAskFrom');
-  row.hidden = !o.from; row.style.display = o.from ? '' : 'none';
+  const row = $('#drawAskFrom'), on = o.from || o.choice;
+  row.hidden = !on; row.style.display = on ? '' : 'none';
+  row.querySelector('span').textContent = o.choice ? o.choice.label : 'Start from';
+  if (o.choice) {                                                                     // DRAW BW: the outline alone, or every border
+    const sel = $('#drawFrom');
+    sel.innerHTML = o.choice.options.map(q => `<option value="${q.value}">${esc(q.text)}</option>`).join('');
+    sel.value = o.choice.value;
+    sel.onchange = () => { $('#drawAskText').textContent = o.choice.pick(sel.value); };
+  }
   if (o.from) {
     const sel = $('#drawFrom');
     sel.innerHTML = o.from.passes.map((q, i) => `<option value="${i}">${i + 1} · ${esc(jarOf(q.pencil)?.name ?? q.pencil)}</option>`).join('');
@@ -477,7 +500,7 @@ function showPanel() {
   if ($('#frameRead')) $('#frameRead').innerHTML = F ? `<b>Frame ${frameSize()} mm</b>, its bottom left corner ${fmt(F.x0, 0)} → ${fmt(F.y0, 0)} ↑ mm from the picture's: lay its canvas with the left edge <b>${frameHome().left}</b> and the bottom edge <b>${frameHome().bottom}</b> mm from home. ${PIC.jars.length} of the ${all} jars in it, ${P.length} lines of the list, ${fmt(R.mm / 1000, 1)} m of brush, ≈ ${hm(R.seconds)} (est.).`
     : 'No frame: the whole picture. F, or Frame, lays one round a piece to try first, at its place from home: a click a 200 × 200 there, a drag any size.';
   for (const [id, k] of [['#fSpeed', 'speed'], ['#fEvery', 'dipEvery'], ['#fLap', 'dipLap'], ['#fOver', 'over'], ['#fPen', 'penSpeed']]) if ($(id) && document.activeElement !== $(id)) $(id).value = S[k];
-  if ($('#bwRead')) { const B = penRun(); $('#bwRead').innerHTML = B.lines ? `DRAW BW: ${B.lines} lines, ${fmt(B.mm / 1000, 1)} m of pen, ≈ ${hm(B.seconds)} (est.).` : ''; }
+  if ($('#bwRead')) { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
   $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
@@ -556,7 +579,7 @@ function lcd(st) {
   const cellNow = row?.cells?.[0]?.[0];
   const list = plan(), at = pid ? list.findIndex(q => q.pencil === pid) : -1;
   if (live || Q) markRun(at);
-  if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour().lines[st.row - 1] : null } : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
+  if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour(RUN_INFO?.bw).lines[st.row - 1] : null } : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
   const now = Q ? `Cell ${Q.q.num}${Q.q.idle ? ', idle' : ''} · ${fmt(pct / 100 * Q.metres / 1000, 1)} of ${fmt(Q.metres / 1000, 1)} m · est.` : waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (RUN_KEY === 'bw' ? (st.brush_on ? ' · the pen on' : ' · the pen up') : st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', home: 'HOME', drag: 'DRAG', bw: 'DRAW BW' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(pct / 100 * Q.metres / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>

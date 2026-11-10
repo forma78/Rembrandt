@@ -304,6 +304,16 @@ test('DRAW BW\'s contour: every border between two colours as the brush leaves t
   }
   assert.ok(red.lines.length > 100 && red.mm > 20000, `${red.lines.length} lines, ${(red.mm / 1000).toFixed(1)} m`);
 });
+test('DRAW BW\'s outline alone (the owner, 2026-11-10: "to centre it the contour without the lines inside is enough"): only where a colour meets the bare canvas', async () => {
+  const { contourOf } = await import('../src/formgplan.js');
+  const pic = { ...PIC, w: 10, h: 20, jars: [{ id: 'a', cells: [{ n: 1, legs: [[2.5, 0, 20], [7.5, 20, 0]] }] }, { id: 'b', cells: [{ n: 1, legs: [[7.5, 10, 20]] }] }] };
+  const O = contourOf(pic, { outline: true });
+  assert.equal(O.mm, 60, 'round both columns, nothing between A and B');
+  assert.equal(O.lines.length, 1, 'one closed line');
+  assert.deepEqual(O.lines[0][0], O.lines[0].at(-1));
+  const red = contourOf(load('porsche-red'), { outline: true }), all = contourOf(load('porsche-red'));
+  assert.ok(red.mm < all.mm / 5 && red.lines.length < 10, `${red.lines.length} lines, ${(red.mm / 1000).toFixed(2)} m`);
+});
 
 test('DRAW BW through plotRun, the pen at the brush\'s elbow: no fault, every mm with the pen down, within the walls where the brush\'s run is', async () => {
   const { contourOf, PEN } = await import('../src/formgplan.js');

@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: DRAW BW, the outline alone** (the owner, the same evening, DRAW BW's whole contour ≈ 1 h: "a long time; to centre it the Porsche's contour without
+  the lines inside is enough; four crosses as TEST's are not"). DRAW BW's question now picks what it draws, **Draw**: the outline alone, where the paint meets the
+  bare canvas (`contourOf(pic, { outline: true })`) — the red 911 one line, 2.63 m, ≈ 2 min (est.), the default — or every border between two colours, 713 lines,
+  ≈ 1 h; Contour shows the one picked. Its run as before. The first run of the whole contour stopped at 9.5 % on "J 2 25: the elbow does not answer: is the 12 V
+  on?": the journal has the elbow silent, then the shoulder, the elbow and the wrist together — the arm's power or its bus, not the plan.
 - **FORM-G's red 911: the indicators as bright as the original's, and a black mark for the crest** (the owner, 2026-11-10, `FORM-G/geometry.png`, the white 911
   for the example: "maybe strengthen the yellow as in the original? And a black badge on the bonnet, so that VW or Audi do not take us to court: no Porsche logo, but
   a mark one cannot read"; "the red ate the indicators, so I took the white Porsche as the example"). The red picture's amber is 1–3 mm deep, the white's 6–7 mm;
