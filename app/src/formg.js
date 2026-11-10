@@ -88,9 +88,23 @@ function paintRun(from = 0) {
   return out;
 }
 // plotRun presses a path past a wall into it, which here would change the picture (the owner's rule on the brush: "never silently"): such a run is not run
+// — but for a picture in PRESS_OK, at the bottom wall alone, so many mm at most past it, its lowest legs' lift-outs pressed (said on the page, written in the
+// journal). The owner, 2026-11-10, of the red classic at his calibrated place for the 70 × 100 canvas, left edge −60, bottom edge −68 ("the canon for the
+// 70 × 100 canvas"; the pen found the canvas's centre, FORM-G/IMG_2643.HEIC): asked whether to shorten the car, move it, or let the carriage press against the
+// wall — "Yes", the last. There the carriage would go about 6 mm past the bottom wall, the stop 9.45 mm past it: the lift-outs of the rear bumper's tips and
+// the diffuser pressed — the tip mostly off the canvas by then, the lift's last few mm of slide in the white under the car; a landing from below may lose ~2 mm
+// of its touch (est.); no leg gone. (plotRun has pressed every path since 2026-10-03, the owner: "remove this restriction".)
+const PRESS_OK = { 'porsche-red': 8 };
+function pressOk() {
+  const lim = PRESS_OK[PIC?.id];
+  if (!lim || PIC.frame) return 0;
+  const rg = rangeOf(), c = placeNow(), low = rg.bottom[0] - c.edgeBottom;
+  return c.edgeLeft >= rg.left[0] && c.edgeLeft <= rg.left[1] && c.edgeBottom <= rg.bottom[1] && low > 0 && low <= lim ? low : 0;
+}
 function walls(P_) {
   if (!P_) return '';
-  return P_.pastWall > 0.05 || P_.gone ? `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls${P_.gone ? `, ${P_.gone} legs gone` : ''}: move the canvas, as below.` : '';
+  if (P_.gone) return `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls, ${P_.gone} legs gone: move the canvas, as below.`;
+  return P_.pastWall > 0.05 && !pressOk() ? `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls: move the canvas, as below.` : '';
 }
 // DRAW BW (the owner, 2026-11-10: "before working with the paints, a DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace on paper, the contour,
 // to centre the canvas and study all the details"): formgplan.js's contourOf, every border between two colours once, in one pen, as OPM-N's DRAW BW: the pen pressed on
@@ -158,7 +172,7 @@ $('#btnDrag').onclick = async () => {
   if (walls(R)) return warn(walls(R));
   S.view = 'drag'; RUN_PRESS = S.press; save(); showKeys(); kick();
   await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
-    logOf({ pass: 'drag', settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R), ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
+    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R), ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
 };
 // its checks, OPM-N's: the plan, the walls, the debug of the pen's downs (strokes.js, landingCheck): every mm of every line with the pen down → a warning, or the debug
 function bwCheck(R) {
@@ -495,6 +509,7 @@ function showPanel() {
   if (document.activeElement !== L) L.value = c.edgeLeft;
   if (document.activeElement !== B) B.value = c.edgeBottom;
   $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}Within the walls for this picture: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line on the screen).`;
+  if (pressOk()) $('#placeRead').insertAdjacentHTML('afterbegin', `<b>The lowest legs' lift-outs pressed against the bottom wall</b>: the carriage would go ${fmt(pressOk(), 1)} mm past it (${fmt(PRESS_OK[PIC.id], 0)} at most for this picture, the stop 9.45), so it stops at the wall; no leg gone (the owner's “yes”, 2026-11-10, est.).<br>`);
   const F = PIC.frame, all = LIB[S.pic].jars.length, nb = $('#btnNoFrame');
   if (nb) nb.disabled = !F;
   if ($('#frameRead')) $('#frameRead').innerHTML = F ? `<b>Frame ${frameSize()} mm</b>, its bottom left corner ${fmt(F.x0, 0)} → ${fmt(F.y0, 0)} ↑ mm from the picture's: lay its canvas with the left edge <b>${frameHome().left}</b> and the bottom edge <b>${frameHome().bottom}</b> mm from home. ${PIC.jars.length} of the ${all} jars in it, ${P.length} lines of the list, ${fmt(R.mm / 1000, 1)} m of brush, ≈ ${hm(R.seconds)} (est.).`

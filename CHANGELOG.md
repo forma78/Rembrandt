@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the red classic at the owner's place, its lowest lift-outs pressed against the bottom wall** (the owner, the same night: left edge −60, bottom
+  edge −68 "is the canon for the 70 × 100 canvas"; "I calibrated it perfectly — fit the car to the physics"; the pen's outline found the canvas's centre,
+  `FORM-G/IMG_2643.HEIC`; asked: shorten the car's rear, move it up, or let the carriage press against the wall — "Yes", the last, "not 6 mm above the pen's
+  outline"). There the carriage would go about 6 mm past the bottom wall (the stop 9.45 mm past it); the page's "16 mm" was plotRun's sum over every piece
+  pressed, not a depth. `PRESS_OK` in `formg.js`: for the red classic only, at the bottom wall only, 8 mm at most, no leg gone — the page says so above the
+  place and the journal's DRAG start carries `pressed_bottom_mm`; anything else as before, refused. What it costs (est.): the lift-outs of the rear bumper's
+  tips and the diffuser stop at the wall, the tip mostly off the canvas by then; a landing from below may lose ~2 mm of its touch. Not run.
 - **GT v.2 Kuzya: the canon of the jars, 43 → 35** (the owner, the same night, of the canon's nine — every jar with less line than the canvas's long side,
   60 cm, into the jar nearest in colour: "Jar 9, Jar 29 and Jar 19 go into other jars — these may. Better not touch 22, 10 and 31"). Eight moved: Jar 28 → 27,
   Jar 11 → 12, Jar 9 → 15, Jar 5 → 4, Jar 2 → 4, Jar 40 → Seam, Jar 29 → 25, Jar 19 → 20; Jar 32 stays, it would have gone into 31. No jar renumbered (Kuzya's
