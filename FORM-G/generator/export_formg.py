@@ -5,6 +5,7 @@
   python3 export_formg.py porsche <plan.pkl>  (hyper2.py's .pkl)
   python3 export_formg.py porsche-red <plan.pkl>  (redcar.py's .pkl)
   python3 export_formg.py porsche-white <plan.pkl>  (whitecar.py's .pkl)
+  python3 export_formg.py porsche-red-k <plan.pkl>  (redcark.py's .pkl)
   python3 export_formg.py porsche-race <plan.pkl>  (racecar.py's .pkl)
   python3 export_formg.py porsche-race-k <plan.pkl>  (racecark.py's .pkl)
   python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
@@ -52,7 +53,7 @@ elif which == 'gwagon':
     title, sub = 'G-wagon', 'hyperrealism, 60 × 60, black, 50 cm across'
     KEEP = {'ink': 'Black', 'grille': 'Grille', 'seat': 'Seats'}   # a shade's grade by its jar's number (the owner, 2026-11-10: "the jar's number does it")
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
-elif which in ('porsche-red', 'porsche-white'):
+elif which in ('porsche-red', 'porsche-red-k', 'porsche-white'):
     # the red classic 911 (redcar.py's .pkl), the canon of the form, and its colours (whitecar.py's …): the green's technique, redgeo.py's geometry, their own fixed jars
     import hyper2
     import paintrun
@@ -66,6 +67,7 @@ elif which in ('porsche-red', 'porsche-white'):
         pl.pids.append(f'j{i}')
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
     title, sub = {'porsche-red': ('Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'),
+                  'porsche-red-k': ('Porsche, red · v.2 Kuzya', 'hyperrealism, 70 × 100, classic red, 84 cm long; Kuzya\'s audit: no hue apart on the body, a cut by the form, jars the eye cannot tell apart one'),
                   'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
     KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')

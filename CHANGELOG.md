@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the red classic's v.2 Kuzya, a card of its own** (the owner, 2026-11-11: "can what Kuzya wrote be applied to the classic Porsche, 100 × 70?
+  Maybe make a v.2 to compare?"). `porsche-red-k` after the red, which stays as it is (he paints it): `redcark.py`, RedCar's form, target and kept jars, and
+  the GT audit's B, C, D as on the GT's face — no hue apart on the body, a cut by the form, jars the brush model cannot tell apart one (eight merged); the
+  GT's gloss not, it was not the audit's. 42 jars (49), 21 of two layers (29), 63 lines of the list (78), 1576 legs, 354 under 12 mm (341), 63.3 m of line;
+  the outline to the mm the red's, so its pen outline and its place (−60, −68, `PRESS_OK`) the same. Against the picture, the body's macro L* spread 17.4 (the
+  red's 17.7, the photo's 18.8), its correlation 0.970 (0.972): the same picture, fewer jars. Not run.
 - **FORM-G: the carriage's travel 100 mm/s, a field of its own** (the owner, the same night: "the belt slipped several times; when it spins idle along X
   with a crack it cannot guess the coordinates, it starts the headlights in the canvas's middle though they are at the top … FORM-G says 25 mm/s, in fact it is
   125"; on hearing that the travels went at 180: "we must lower it"). The legs were at 25 (`F 25`, the journal's three runs of 23:18 … 23:23 too); the moves

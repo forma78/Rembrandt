@@ -100,7 +100,7 @@ function paintRun(from = 0) {
 // wall — "Yes", the last. There the carriage would go about 6 mm past the bottom wall, the stop 9.45 mm past it: the lift-outs of the rear bumper's tips and
 // the diffuser pressed — the tip mostly off the canvas by then, the lift's last few mm of slide in the white under the car; a landing from below may lose ~2 mm
 // of its touch (est.); no leg gone. (plotRun has pressed every path since 2026-10-03, the owner: "remove this restriction".)
-const PRESS_OK = { 'porsche-red': 8 };
+const PRESS_OK = { 'porsche-red': 8, 'porsche-red-k': 8 };   // its v.2 Kuzya the same form at the same place (2026-11-11)
 function pressOk() {
   const lim = PRESS_OK[PIC?.id];
   if (!lim || PIC.frame) return 0;
