@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: v.2 Kuzya first** (the owner, the same night, the two side by side, `FORM-G/Screenshot 2026-11-10 at 10.25.08 PM.png`: "I like v.2 more, though
+  I admit I do not know who would see the difference with the naked eye. In Kuzya's version the headlights and the hood's passage at the border hood + lower
+  front are better worked out, so I would take v.2"). `porsche-race-k` the first card; the first version the second, kept.
 - **FORM-G: the racing 911's face, v.2 Kuzya, a card of its own** (the owner, the same night, of Kuzya's audit
   `FORM-G/Rembrandt_FORM-G_GT_Color_Tone_Audit_2026-11-10.pdf`: "honestly I do not quite see the problem between what we have now and what Kuzya proposes. What
   if it gets worse? So it is safer to make v.2 Kuzya"). `porsche-race-k`, after the first, which stays as it is: `racecark.py`, the first's target, geometry and
