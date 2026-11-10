@@ -20,8 +20,8 @@ test('the registry: every jar of every picture, its key its own, in the plan\'s 
   const five = E.filter(e => e.name === 'Jar 5');
   assert.ok(new Set(five.map(e => e.hex)).size > 1 && new Set(five.map(e => e.key)).size === five.length, '"Jar 5" is another paint in every picture, and another key');
   const v2 = E.filter(e => e.art === 'porsche-race-k');
-  assert.equal(v2.length, 43);
-  assert.equal(v2.filter(e => e.coats === 2).length, 28);
+  assert.equal(v2.length, 35);   // 43, then the jar canon on the owner's word (2026-11-10): eight jars under 60 cm into their nearest, not 22, 10, 31
+  assert.equal(v2.filter(e => e.coats === 2).length, 24);
   console.log(`registry: ${plans.length} pictures, ${E.length} jars, ${new Set(E.map(e => e.hex)).size} hexes`);
 });
 

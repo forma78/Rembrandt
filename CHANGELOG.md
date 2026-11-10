@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **GT v.2 Kuzya: the canon of the jars, 43 → 35** (the owner, the same night, of the canon's nine — every jar with less line than the canvas's long side,
+  60 cm, into the jar nearest in colour: "Jar 9, Jar 29 and Jar 19 go into other jars — these may. Better not touch 22, 10 and 31"). Eight moved: Jar 28 → 27,
+  Jar 11 → 12, Jar 9 → 15, Jar 5 → 4, Jar 2 → 4, Jar 40 → Seam, Jar 29 → 25, Jar 19 → 20; Jar 32 stays, it would have gone into 31. No jar renumbered (Kuzya's
+  audit): the names as they were, a gap where a jar went. Every leg still painted, none moved; 24 of the 35 two layers. `FORM-G/generator/jarcanon.py` does it
+  on the finished plan, the render painted again from the generator's grid with the same moves.
 - **COLORS: every picture's jars, and a recipe for each from the model** (the owner, the same night, at the table with the jars: "I am a little lost;
   I do not know where to start … 43 against 49 is good. But how to mix them?"; Kuzya's audit `FORM-G/Rembrandt_COLORS_FORM-G_Registry_Audit_Claude_2026-11-10.pdf`:
   "COLORS needs a registry, not 170 manual cards"). A row of pictures over the jars: LAB · real 3 as it was (its hand recipes, its ticks), and every picture of
