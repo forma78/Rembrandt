@@ -51,5 +51,5 @@ for i, (name, hexv, coats) in enumerate(d['jars']):
 paintrun.STEP_MAX = 7.0
 img, st = H.paint_all(pl, 6)
 Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8)).resize((pl.W * 3, pl.H * 3), Image.LANCZOS).save(out, quality=93, subsampling=0)
-pickle.dump(dict(grid=grid, form=d['form'], st=st, jars=d['jars']), open(out + '.pkl', 'wb'))
+pickle.dump(dict(grid=grid, form=d['form'], st=st, jars=d['jars']), open(pkl + '.canon.pkl', 'wb'))   # beside the plan it came from, not in app/
 print('render', out, 'jars painted', len(st['per']))
