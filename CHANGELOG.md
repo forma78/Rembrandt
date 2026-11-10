@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G's red 911: the indicators as bright as the original's, and a black mark for the crest** (the owner, 2026-11-10, `FORM-G/geometry.png`, the white 911
+  for the example: "maybe strengthen the yellow as in the original? And a black badge on the bonnet, so that VW or Audi do not take us to court: no Porsche logo, but
+  a mark one cannot read"; "the red ate the indicators, so I took the white Porsche as the example"). The red picture's amber is 1–3 mm deep, the white's 6–7 mm;
+  in the plan the Indicator's legs were 7–11 mm, a sliver once its red neighbours spill over it. Now every column of the strip 10 mm deep from its front edge
+  (est.), its missing column filled: the Indicator 227 → 418 mm of line, its legs 16–17 mm with the light's run under the dark. Where the crest was, off since
+  2026-11-08, two columns of Black about the axis, 10 × 17 mm, no shape of anything. `redcar.py`, `touch`, `AMBER_MM`, `BADGE`: laid on the finished grid, so not
+  a leg of the rest moves (the plan made again first came out byte for byte the one in FORM-G); the white 911 as it was. 49 jars as before; the red jars round the
+  strips a few mm less. DRAW BW 713 lines, 40.1 m; DRAG 2663 dips, ≈ 13 h 10 (est.). LAB's real 3 stays the piece it painted (`labreal3.js` not made again).
 - **FORM-G: DRAW BW, the contour in a pen** (the owner, 2026-11-10, before the red 911 on 70 × 100, ≈ 12 h of paint: "before working with the paints I need a
   DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace on paper, the contour, to centre the canvas and study all the details").
   `contourOf` (`formgplan.js`): every border the brush leaves between two colours, and the outline on the bare canvas — a column's colours one over another in the

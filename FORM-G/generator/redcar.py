@@ -45,6 +45,13 @@ class RedCar(H.Car):
                                # so the whole car 0.8 % smaller, the green's painted 843, rather than its chrome tips cut short
     KCLUSTERS = 44             # 34 of the body's reds, 10 of the rest, in pairs: about 90 jars before the ones with next to nothing to paint are taken out. 60 gave 59 jars, the same picture (dE 9.7), more short legs
     MIN_LEGS, MIN_LINE = 4, 0.10
+    # after the plan, the owner's two marks (2026-11-10, FORM-G/geometry.png, the white 911 as the example: "maybe strengthen the yellow as in the original? And a
+    # black badge on the bonnet, so that VW or Audi do not take us to court: no Porsche logo, but a mark one cannot read"; "the red ate the indicators, so I took
+    # the white Porsche as the example"): the indicators' amber AMBER_MM deep at least, every column of it, from its front edge back into the body (the white's
+    # strip about 6–7 mm, the red picture's 1–3, under the 5 mm brush and its red neighbours' 2 mm spill a sliver: est.), a gap in the strip filled; and BADGE,
+    # where the crest was (redgeo.CREST, off since 2026-11-08), two columns of ink about the axis, the crest's height. Laid on the finished grid (touch), so not a
+    # leg of the rest of the plan moves. None leaves them out (the white 911 as it was)
+    AMBER_MM, BADGE = 10, True
 
     def __init__(self):
         self.N = int((self.W - 2 * MARGIN) / PITCH)
@@ -257,6 +264,33 @@ class RedCar(H.Car):
             rows = np.flatnonzero(hd[:, c])
             L[rows, self.N - 1 - c] = L[rows, c]
 
+    def touch(self):
+        """the owner's marks on the finished grid (AMBER_MM, BADGE): its cells, the locked ones' form (no idle run, the dark's dose); nothing else changes"""
+        names = [p.name for p in self.pal.jars]
+        G, Fm, front = self.grid, self.form, self.py < 300                     # the indicators at the front, not the tail's side lights
+        if self.AMBER_MM and 'amber' in names:
+            a, mid, depth = names.index('amber'), self.N // 2, int(round(self.AMBER_MM))
+            top = {}
+            for c in range(mid):                                                # the left one, its front edge in every column
+                rows = np.flatnonzero((G[:, c] == a) & front[:, c])
+                if len(rows):
+                    top[c] = int(rows.min())
+            cs = sorted(top)
+            for c in range(cs[0], cs[-1] + 1) if cs else []:                    # a column missing in the strip: its front edge between its neighbours'
+                if c not in top:
+                    lo, hi = max(q for q in cs if q < c), min(q for q in cs if q > c)
+                    top[c] = int(round(top[lo] + (top[hi] - top[lo]) * (c - lo) / (hi - lo)))
+            for c, r0 in top.items():
+                for cc in (c, self.N - 1 - c):                                  # the right one its mirror, column for column
+                    for r in range(r0, r0 + depth):
+                        if self.mask[r, cc] and (self.body[r, cc] or G[r, cc] == a):
+                            G[r, cc], Fm[r, cc] = a, 1
+        if self.BADGE and 'ink' in names:
+            x0, y0, x1, y1 = redgeo.CREST
+            on = (np.abs(self.px - redgeo.AXIS) * self.s * self.WIDEN < PITCH) & (self.py >= y0) & (self.py <= y1) & self.body
+            G[on], Fm[on] = names.index('ink'), 1
+        return self
+
     def plan(self):
         """hyper2's plan, every column cut at a part's edge and a seam's crossing (self.key), its carry kept on its own side of them"""
         R, N, pal = self.R, self.N, self.pal
@@ -365,6 +399,9 @@ def main(cls, default_out):
         print(f'pass {i}: dE mean {d[0]:.1f}, p90 {d[1]:.1f}, L* off {d[2]:+.1f}, chroma aim {d[3]:.1f} painted {d[4]:.1f}  [{time.time()-t0:.0f}s]', flush=True)
         if not final:
             car.plan()
+    if hasattr(car, 'touch'):                                                   # the owner's marks on the finished grid (RedCar's), and its render again
+        car.touch()
+        img, st = paint_all(car, ppm)
     save(img, out)
     two = sum(1 for p in st['per'].values() if p['coats'] == 2)
     print('legs', st['legs'], 'lifts', st['runs'], 'line m', round(st['line'] / 1000, 1), 'idle m', round(st['idle'] / 1000, 1), 'dips', int(st['dips']), 'short<12', st['shortlegs'], 'jars', len(st['per']), 'two-coat jars', two)

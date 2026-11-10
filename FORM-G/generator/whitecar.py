@@ -39,6 +39,7 @@ class WhiteCar(RedCar):
     FIXED = WHITE_FIXED
     SEAM, SHADOW, WING = 'seam', ('chromeM', 'chromeD'), 'chromeM'
     KEEP = 'porsche-white.jars.json'
+    AMBER_MM, BADGE = None, None    # the red's marks of 2026-11-10 (redcar.py) not the white's: it stays as it was
 
     def source(self, g):
         wim = np.asarray(Image.open(WPHOTO).convert('RGB'), dtype=np.float32) / 255.0
