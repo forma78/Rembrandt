@@ -16,7 +16,7 @@
 // the canon of a long leg (canon.js, README "How a long leg is laid"): a dip's run lands inside its first leg and goes back to its start; short end legs off a cell on their own;
 // legs under 30 mm after a longer one, to 79 mm of plan. FORM-G's own run as it was. Both by the dose since 2026-11-09 (canon.js, real 3's): every run on a dip of its own.
 import { IDLE, idleLine, idleRowsOf, idleRunsOf } from './idleplan.js';
-import { CANON, startOnLong, ridersOnLong, landInside, dosed } from './canon.js';
+import { CANON, startOnLong, ridersOnLong, landInside, dosed, ELBOW_J3, elbowEndsOf } from './canon.js';
 
 export const FORMG_LIB = ['porsche', 'porsche-red', 'porsche-white', 'watch'];   // the library: a name here, its json and jpg in app/formg/; the red classic 911 and the white in its form since 2026-11-08
 export const OPMG_LIB = ['gwagon'];                  // OPM-G's: its json and jpg in app/opmg/
@@ -105,11 +105,98 @@ export function framedPic(pic, F) {
 export const canonRuns = (passes, lap = FORMG.lap, ride = CANON.ride) => idleRunsOf(passes, ride, lap).map(r => r.idle || !r.dip ? r : { ...r, pts: landInside(r.pts, true) });
 // the brush's runs as the page sends them, both FORM-G's and OPM-G's by the dose (canon.js, the owner, 2026-11-09): every run on a dip of its own, a short leg after 60 mm
 // of line a dip at its start; OPM-G's after a dip landing inside, FORM-G's, not on the canon, at its start as its other dips
-export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false) => canon ? dosed(canonRuns(passes, lap)) : dosed(idleRunsOf(passes, every, lap), false);
-export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false) => idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, brushRuns(passes, every, lap, canon));
+// slack: how much longer than `every` a long leg's last run may go on one dip (idleplan.js's runsOfCell; FORM-G's none since real 3, R3)
+export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false, slack = 0.25) => canon ? dosed(canonRuns(passes, lap)) : dosed(idleRunsOf(passes, every, lap, slack), false);
+// FORM-G's run as LAB's real 3 (the owner, 2026-11-10, before the red 911 on 70 × 100: "take the latest changes of LAB / real 3 into account"; "3 + 3, yes"): a dip every
+// 79 mm of line at most, the canon's, what one dip holds (real 3, Jar 27's 154 mm leg gave out at ≈ 78 mm), no run longer, no slack; and the J3 compensation, every paint
+// run on the machine 3 mm earlier and 3 mm later (canon.js, ELBOW_J3). The screen, ▶ Play and the idle runs as they were. est.
+export const R3 = { every: CANON.ride, slack: 0, j3: ELBOW_J3 };
+// the paint runs' ways on the machine, the J3's ends on them; `floor`, `ceil`: y, mm, a way's end no farther (the walls), else as far as J3 says
+export const j3Runs = (runs, j3 = ELBOW_J3, o = {}) => runs.map(r => {
+  if (r.idle || !j3) return r;
+  const lo = o.floor ?? -Infinity, hi = o.ceil ?? Infinity;
+  return { ...r, pts: elbowEndsOf(r.pts, j3).map(([x, y]) => [x, Math.min(hi, Math.max(lo, y))]) };
+});
+// o: { slack, j3, floor, ceil } — FORM-G's R3 and its picture's legs' reach; none, as before (OPM-G)
+export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false, o = {}) => {
+  const runs = brushRuns(passes, every, lap, canon, o.slack ?? 0.25);
+  return idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, o.j3 ? j3Runs(runs, o.j3, o) : runs);
+};
 // where the canvas may lie, its left and bottom edges from home, mm, so that the carriage keeps within the walls: from plotRun's own carriage, run with no Here (the elbow's sweep takes
 // the carriage past a leg's end, about 20 mm at the bottom, less than none at the top; the walls press a path silently, so this is what counts)
 export function placeRange(pic, carriage, walls) {
   const c = carriage, m = 0.2;
   return { left: [-(pic.w / 2 + c.y0) + m, walls.y.max - walls.y.min - pic.w / 2 - c.y1 - m], bottom: [-(pic.h / 2 + c.x0) + m, walls.x.max - walls.x.min - pic.h / 2 - c.x1 - m] };
 }
+
+// ---------- DRAW BW, the pen ----------
+// The owner, 2026-11-10, before the red 911 on 70 × 100: "before working with the paints, a DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace
+// on paper, the contour, to centre the canvas and study all the details". Every border the brush leaves between two colours, and between a colour and the bare canvas,
+// every one once: a column's colours one over another in the list's order, light to dark, the later on top (the light runs under its darker neighbour, paintrun.py's UNDER);
+// where a column's colour changes, a line across it, the column's width; where two columns side by side differ, a line between them, along. So the steps of the 5 mm
+// columns, as the brush lays them. The lines joined end to end as far as they go without a lift, each next the nearest. → { lines: [[[x, y], …]], mm, pieces } in the
+// picture's mm, x right, y up, as the legs.
+export function contourOf(pic) {
+  const p = pic.pitch, half = p / 2, E = 1e-6, r2 = v => Math.round(v * 100) / 100;
+  const cols = new Map();                                              // a column's index → { x, iv: [[lo, hi, k]] }, what shows of every jar, bottom up
+  pic.jars.forEach((j, k) => j.cells.forEach(c => c.legs.forEach(([x, a, b]) => {
+    const i = Math.round((x - half) / p), lo = Math.min(a, b), hi = Math.max(a, b);
+    if (hi - lo < E) return;
+    const col = cols.get(i) ?? cols.set(i, { x, iv: [] }).get(i), out = [];
+    for (const q of col.iv) {                                          // the new one over what is there
+      if (q[1] <= lo + E || q[0] >= hi - E) { out.push(q); continue; }
+      if (q[0] < lo - E) out.push([q[0], lo, q[2]]);
+      if (q[1] > hi + E) out.push([hi, q[1], q[2]]);
+    }
+    out.push([lo, hi, k]); out.sort((u, v) => u[0] - v[0]); col.iv = out;
+  })));
+  for (const col of cols.values()) col.iv = col.iv.reduce((m, q) => { const l = m.at(-1); if (l && l[2] === q[2] && Math.abs(l[1] - q[0]) < E) l[1] = q[1]; else m.push([...q]); return m; }, []);
+  const jarAt = (col, y) => { if (!col) return -1; for (const q of col.iv) if (y > q[0] && y < q[1]) return q[2]; return -1; };
+  const ends = col => col ? col.iv.flatMap(q => [q[0], q[1]]) : [];
+  const segs = [];
+  for (const [i, col] of cols) {                                       // across a column, where its colour changes
+    for (const y of [...new Set(ends(col).map(r2))]) if (jarAt(col, y - 1e-3) !== jarAt(col, y + 1e-3)) segs.push([[r2(col.x - half), y], [r2(col.x + half), y]]);
+    for (const j of [i - 1, i]) {                                      // along, between it and its neighbour on either side; every pair once
+      const L = cols.get(j), R = cols.get(j + 1);
+      if (j === i - 1 && L) continue;                                  // that pair is its left neighbour's
+      const xb = r2((L ?? R) === L ? L.x + half : R.x - half), ys = [...new Set([...ends(L), ...ends(R)].map(r2))].sort((u, v) => u - v);
+      for (let m = 1; m < ys.length; m++) { const y = (ys[m - 1] + ys[m]) / 2; if (jarAt(L, y) !== jarAt(R, y)) segs.push([[xb, ys[m - 1]], [xb, ys[m]]]); }
+    }
+  }
+  // the graph of their ends: walked edge after edge, straight on where it can, from an end where an odd number meet first, so as few lines as it takes
+  const id = q => `${q[0]},${q[1]}`, at = new Map(), used = new Array(segs.length).fill(false);
+  segs.forEach((s, e) => s.forEach(q => { const k = id(q); (at.get(k) ?? at.set(k, []).get(k)).push(e); }));
+  const free = k => at.get(k).filter(e => !used[e]), other = (e, q) => id(segs[e][0]) === id(q) ? segs[e][1] : segs[e][0];
+  const walk = q0 => {
+    const pts = [q0]; let q = q0, dir = null;
+    for (;;) {
+      const f = free(id(q));
+      if (!f.length) return pts;
+      const d = e => { const o = other(e, q); return [Math.sign(r2(o[0] - q[0])), Math.sign(r2(o[1] - q[1]))]; };
+      const e = (dir && f.find(e => { const v = d(e); return v[0] === dir[0] && v[1] === dir[1]; })) ?? f[0];
+      used[e] = true; dir = d(e); q = other(e, q);
+      if (pts.length > 1) { const a = pts.at(-2), b = pts.at(-1); if ((a[0] === b[0] && b[0] === q[0]) || (a[1] === b[1] && b[1] === q[1])) pts.pop(); }
+      pts.push(q);
+    }
+  };
+  const lines = [];
+  for (const odd of [true, false]) for (const [k, es] of at) {
+    if (odd && es.length % 2 === 0) continue;
+    while (free(k).length) lines.push(walk(segs[free(k)[0]][id(segs[free(k)[0]][0]) === k ? 0 : 1]));
+  }
+  // in their order, each next the nearest end of what is left, from the picture's bottom left, the nearer end first; one that starts where the last ended goes on in it, no lift
+  const left = lines.slice(), order = [];
+  let here = [0, 0];
+  while (left.length) {
+    let best = 0, flip = false, bd = Infinity;
+    left.forEach((l, n) => { for (const [q, f] of [[l[0], false], [l.at(-1), true]]) { const dd = Math.hypot(q[0] - here[0], q[1] - here[1]); if (dd < bd) { bd = dd; best = n; flip = f; } } });
+    const l = left.splice(best, 1)[0], o = flip ? l.slice().reverse() : l;
+    if (order.length && bd < 1e-6) order.at(-1).push(...o.slice(1)); else order.push(o);
+    here = o.at(-1);
+  }
+  return { lines: order, mm: order.reduce((t, l) => t + lengthOf(l), 0), pieces: segs.length };
+}
+// the pen in the brush's holder, DRAW BW's (est.): it goes in at the brush's pose + `in`, its tip on the paper, and draws at the brush's pose, ELBOW LIVE · brush, so it
+// goes where the brush will — the carriage on the line, as the brush pressed; it waits over a line's start `air` above that, as OPM-P's pencil (PEN_AIR), and between
+// lines it is up; `speed`, mm/s along its lines
+export const PEN = { in: 1.4, air: 3, speed: 40 };

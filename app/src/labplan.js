@@ -11,7 +11,7 @@ import { cellOf, passesOf, canonRuns, canonCellsOf, seqOf } from './formgplan.js
 import { idleRunsOf } from './idleplan.js';
 import { REAL_PIECES, REAL_LONG } from './labreal.js';
 import { REAL3 } from './labreal3.js';
-import { longEndFirst, startOnLong, ridersOnLong, jarsByCanvas, landInside, dosed, CANON } from './canon.js';
+import { longEndFirst, startOnLong, ridersOnLong, jarsByCanvas, landInside, dosed, CANON, ELBOW_J3 } from './canon.js';
 
 export const LAB = {
   speed: 25, travel: 120,      // mm/s, OPM-N's brush and a flight
@@ -492,7 +492,7 @@ export const R3_EVERY = CANON.ride;
 // later; only then do the dabs turn into full legs, as on the screen"): the elbow (J3) lowers the brush over the first mm of a run and the tip touches late, so every paint
 // run's path on the machine starts ELBOW_J3.early mm before its first point, back along its first piece, and ends ELBOW_J3.late mm past its last; the plan, the screen and
 // the idle runs as they were. Real 3's alone (est., to be read on the canvas).
-export const ELBOW_J3 = { early: 3, late: 3 };
+export { ELBOW_J3 };                               // canon.js's since FORM-G took it too, 2026-11-10
 export function elbowEnds(pts, o = ELBOW_J3) {
   const u = (a, b) => { const d = dist(a, b) || 1; return { x: (b.x - a.x) / d, y: (b.y - a.y) / d }; };
   return [along(pts[0], u(pts[1], pts[0]), o.early), ...pts.slice(1, -1), along(pts.at(-1), u(pts.at(-2), pts.at(-1)), o.late)];

@@ -266,3 +266,58 @@ test('OPM-G\'s run by the dose: every run on a dip of its own, landing inside as
     assert.equal(rows.ps.filter(p => !p[0].nodip).length, a.filter(r => r.dip).length, `${id}: a row's dip as its run's`);
   }
 });
+
+// ---------- FORM-G as LAB's real 3, and DRAW BW (the owner, 2026-11-10, before the red 911 on 70 × 100) ----------
+test('FORM-G\'s run as real 3: a dip every 79 mm, no slack, the J3 compensation 3 + 3 on the machine\'s path alone, the idle runs and the screen as they were', async () => {
+  const { R3, j3Runs } = await import('../src/formgplan.js');
+  const { ELBOW_J3 } = await import('../src/canon.js');
+  assert.deepEqual(R3, { every: 79, slack: 0, j3: { early: 3, late: 3 } });
+  assert.equal(R3.j3, ELBOW_J3, 'LAB\'s and FORM-G\'s one number');
+  assert.deepEqual(j3Runs([{ pts: [[10, 50], [10, 80], [15, 80], [15, 60]], dip: true }, { pts: [[10, 50], [10, 80]], idle: true }]),
+    [{ pts: [[10, 47], [10, 80], [15, 80], [15, 57]], dip: true }, { pts: [[10, 50], [10, 80]], idle: true }], 'landing 3 mm before the first point, back along its first piece; lifting 3 mm past the last; the idle run as it was');
+  assert.deepEqual(j3Runs([{ pts: [[10, 4], [10, 30]] }], R3.j3, { floor: 2 })[0].pts, [[10, 2], [10, 33]], 'no farther than the floor');
+  const pic = load('porsche-red'), P = passesOf(pic), runs = brushRuns(P, R3.every, FORMG_LAP, false, R3.slack);
+  const len = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
+  for (const r of runs.filter(r => !r.idle)) assert.ok(len(r.pts) <= R3.every + 1e-6, `a run of ${len(r.pts).toFixed(1)} mm on one dip`);
+  const plain = rowsOf(pic, P, R3.every, FORMG_LAP, false, { slack: 0 }), j3 = rowsOf(pic, P, R3.every, FORMG_LAP, false, { slack: 0, j3: R3.j3 });
+  assert.equal(j3.ps.length, plain.ps.length);
+  const rowLen = p => p.reduce((t, g) => t + Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), 0);
+  runs.forEach((r, i) => assert.ok(Math.abs(rowLen(j3.ps[i]) - rowLen(plain.ps[i]) - (r.idle ? 0 : 6)) < 1e-6, `row ${i + 1}: ${r.idle ? 'idle, as it was' : '6 mm longer on the machine'}`));
+  assert.deepEqual(rowsOf(pic, P), rowsOf(pic, P, FORMG_EVERY, FORMG_LAP, false, {}), 'without R3 as before (OPM-G\'s, and the defaults)');
+});
+const FORMG_EVERY = 95, FORMG_LAP = 15;
+
+test('DRAW BW\'s contour: every border between two colours as the brush leaves them, the later jar over the earlier, every piece once, joined', async () => {
+  const { contourOf } = await import('../src/formgplan.js');
+  // two columns: A the whole of both, 20 mm; B, darker, over the right one's top half
+  const pic = { ...PIC, w: 10, h: 20, jars: [{ id: 'a', cells: [{ n: 1, legs: [[2.5, 0, 20], [7.5, 20, 0]] }] }, { id: 'b', cells: [{ n: 1, legs: [[7.5, 10, 20]] }] }] };
+  const C = contourOf(pic);
+  assert.equal(C.mm, 60 + 5 + 10, 'the outline round both, B\'s bottom across its column, and between the columns where A meets B');
+  assert.ok(C.lines.length <= 2, `${C.lines.length} lines`);
+  for (const l of C.lines) for (let i = 1; i < l.length; i++) assert.ok(l[i][0] === l[i - 1][0] || l[i][1] === l[i - 1][1], 'along or across, the columns\' steps');
+  assert.equal(contourOf({ ...pic, jars: [pic.jars[0]] }).mm, 60, 'one colour: its outline alone');
+  // the red 911: one line for every border, never twice
+  const red = contourOf(load('porsche-red')), seen = new Set();
+  for (const l of red.lines) for (let i = 1; i < l.length; i++) {
+    const a = l[i - 1], b = l[i], k = [a, b].map(q => q.join(',')).sort().join('|');
+    assert.ok(!seen.has(k), 'a piece drawn twice'); seen.add(k);
+  }
+  assert.ok(red.lines.length > 100 && red.mm > 20000, `${red.lines.length} lines, ${(red.mm / 1000).toFixed(1)} m`);
+});
+
+test('DRAW BW through plotRun, the pen at the brush\'s elbow: no fault, every mm with the pen down, within the walls where the brush\'s run is', async () => {
+  const { contourOf, PEN } = await import('../src/formgplan.js');
+  const { machinePiece } = await import('../src/inkaplan.js');
+  const { landingCheck, TAIL_MIN } = await import('../src/strokes.js');
+  const pic = load('porsche-red'), rg = rangeOf(pic), W = reach(), mid = ([a, b]) => (a + b) / 2;
+  const here = { x: W.x.min + mid(rg.bottom) + pic.h / 2, y: W.y.min + mid(rg.left) + pic.w / 2 }, C = contourOf(pic), press = 0, glide = press + PEN.air;
+  const ps = C.lines.map((l, i) => l.slice(1).map((b, j) => ({ ...machinePiece({ t: 'L', a: l[j], b }, { cw: pic.w, ch: pic.h }), tilt: 0, row: i + 1 })));
+  const r = plotRun({ ...DEFAULTS, speed: PEN.speed, travel: 180, tail: TAIL_MIN, lift: true, ink: false, snake: false, pause: false, minPiece: 0.005, pencil: { press, glide }, hover: glide, here, rows: ps.length }, [{ key: 'DRAW', ps, why: null }]);
+  assert.equal(r.fault, '');
+  assert.ok(r.pastWall < 0.05 && !r.gone, `${r.pastWall} mm past the walls`);
+  assert.equal(r.dips, 0, 'no dip');
+  const dbg = landingCheck(r.blocks, press, glide);
+  assert.ok(dbg.ok, `${dbg.bad.length} pieces not down`);
+  assert.equal(dbg.lines, C.lines.length);
+  assert.ok(Math.abs(dbg.pressed - dbg.drawn) < 1e-6 && Math.abs(dbg.drawn - (C.mm - 2 * TAIL_MIN * C.lines.length)) < 1, `${dbg.pressed} of ${C.mm} mm pressed (the landings' and the lifts' ${TAIL_MIN} mm apart)`);
+});

@@ -17,6 +17,7 @@
   html.night .fg-shelf{background:#26282B}
   .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
   .runkeys.passes.one{grid-template-columns:1fr}
+  .type .runkeys.deck.passes.two{grid-template-columns:1fr 1fr}   /* DRAW BW · DRAG SNAKE (2026-11-10) */
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   #cv.drag{cursor:grabbing}
   #cv.frame{cursor:crosshair}
@@ -94,7 +95,9 @@
         <button class="btn" id="btnTest" title="TEST, before the run: one dip in the cup, a dot at each corner of the picture's box, four dots to lay the canvas by, and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
         <button class="btn" id="btnPause" title="PAUSE: the carriage brakes on its line; CONT. goes on from there"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
-      <div class="runkeys deck passes one">
+      <!-- DRAW BW (the owner, 2026-11-10: "before working with the paints, a DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace on paper, the contour, to centre the canvas and study all the details") -->
+      <div class="runkeys deck passes two">
+        <button class="btn pass" id="btnBw" data-pass="bw" title="DRAW BW: the contour in one pen, in the brush's holder — every border between two colours and the outline on the bare canvas, the steps of the 5 mm columns as the brush lays them, every line once; no dip, no jar. It stops once, over the first line, the holder down: the brush out, the pen in, its tip on the paper, Continue. The pen draws at the brush's elbow (Elbow live · brush), so it goes where the brush will paint"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z" class="fill"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw BW</span></button>
         <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG SNAKE, LAB's + idle 6.0: a jar after another, one brush, its cells by their numbers, every one on its own — its legs only up and down, the brush down, across to the next inside the cell, a dip every so many mm; then at once an idle run over it, no dip; up through the air from cell to cell; between two jars a pause to wipe the brush and load the next. Its question: Start from"><svg viewBox="0 0 24 24"><path d="M5 6.5h12.5a2.75 2.75 0 0 1 0 5.5H6.5a2.75 2.75 0 0 0 0 5.5H19"/></svg><span>Drag Snake</span></button>
       </div>
       <button class="btn backone" id="btnBack" disabled title="BACK ONE CELL, as a player's ⏮. The brush already painting a cell: this cell again, from its first leg. Not yet — in the air, in the cup, at a jar's pause: the cell before it, the last of the jar before if this is its jar's first. The brush up at once, through the air there, its dip as the plan has it, and on from there.">⏮ BACK ONE CELL</button>
@@ -105,6 +108,7 @@
       <div class="toggles looks" id="views">
         <button class="tog" data-view="picture" title="The painting as the brush will leave it: the simulation, est.">Picture</button>
         <button class="tog" data-view="drag" title="The legs in their jars' colours, as wide as the brush">Drag</button>
+        <button class="tog" data-view="contour" title="DRAW BW's lines, the pen's, every border between two colours, over the picture veiled">Contour</button>
         <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell, the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
       </div>
       <div class="grid4 keys"><button class="btn" id="btnRemote" title="The iPhone's remote: DIP, Pause · Continue and STOP from the iPhone, the colour and the cell on it — its address with the key as a QR code; the iPhone on the same Wi-Fi">iPhone remote</button></div>
@@ -132,7 +136,9 @@
         <label title="A dip every so many mm of line">Dip every, mm<input id="fEvery" type="number" step="1" min="0" max="200"></label>
         <label title="After a dip in the middle of a leg, on from so many mm back">Dip overlap, mm<input id="fLap" type="number" step="0.5" min="0" max="30"></label>
         <label title="The idle run, past a leg's ends at its start and its turns; none at its very end">Idle past, mm<input id="fOver" type="number" step="0.5" min="0" max="8"></label>
+        <label title="DRAW BW: the pen along its lines, mm/s (est.)">Pen, mm/s<input id="fPen" type="number" step="1" min="5" max="120"></label>
       </div>
+      <p class="read" id="bwRead"></p>
     </section>
     <section class="sec">
       <h3>The jars <span class="hint" id="jarsHint"></span></h3>

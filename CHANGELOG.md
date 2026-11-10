@@ -3,6 +3,24 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.2.3 — 2026-11-10
+
+- **FORM-G: DRAW BW, the contour in a pen** (the owner, 2026-11-10, before the red 911 on 70 × 100, ≈ 12 h of paint: "before working with the paints I need a
+  DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace on paper, the contour, to centre the canvas and study all the details").
+  `contourOf` (`formgplan.js`): every border the brush leaves between two colours, and the outline on the bare canvas — a column's colours one over another in the
+  list's order, the darker on top; a line across a column where its colour changes, a line between two columns where they differ: the steps of the 5 mm columns,
+  every piece once, joined into as few lines as go on without a lift, each next the nearest. The run as OPM-N's DRAW BW: the elbow up into the cup's fork and the
+  shoulder to 0 first; over the first line's start the holder down at the brush's pose + 1.4° and a p-pause — the brush out, the pen in, its tip on the paper,
+  Continue; the pen pressed at the brush's elbow (Elbow live · brush, live while it draws), the carriage on the line, so it goes where the brush will paint; +3° over a
+  line's start, up between lines; no dip, no jar, home at the end. The debug of the pen's downs before it runs (`landingCheck`). Contour, a view: the lines over the
+  picture veiled, the line the pen is on in orange. Pen, mm/s, 40 (est.). The red 911: 716 lines, 40.2 m, ≈ 1 h 01 (est.). FORM-G's page alone; OPM-G as it was.
+- **FORM-G: the run as LAB's real 3, a dip every 79 mm and the J3 compensation** (the owner, 2026-11-10: "take into account the latest changes of LAB / real 3: we
+  made the dab-legs longer"; "3 + 3, yes"). Real 3's last changes (2026-11-10, above v.1.2.3) on FORM-G's DRAG SNAKE: no run longer than Dip every, now 79 mm (the
+  canon's, what one dip holds; once, where it was still the old 95), no slack at a leg's end; every paint run's way on the machine 3 mm before its first point and
+  3 mm past its last (`ELBOW_J3`, now `canon.js`'s, LAB's from there; `R3`, `j3Runs`); the screen, ▶ Play and the idle runs as they were. The red 911, the cup at
+  hand: 2381 → 2659 dips, ≈ 12 h 10 → 13 h 10 (est.); the canvas's bottom edge −61 … −58 mm from home (was −60 … −57). FORM-G's run is still not by the canon
+  no. 9 (no landing inside), real 3's was. OPM-G and LAB as they were.
+
 ## v.1.2.3 — 2026-11-10 · Colours by number
 
 - **A jar is its number; no hex** (the owner, 2026-11-10, on real 3's last jar: "paints have no RGB, and it is strange to mix Liquitex and Pebeo by

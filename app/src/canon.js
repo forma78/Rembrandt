@@ -77,6 +77,19 @@ export function dosed(runs, land = true) {
   });
 }
 
+// The J3 compensation (the owner, 2026-11-10, LAB's real 3 on canvas, LAB/IMG_2614 … 2616: "5–6 mm are cut off absolutely every leg … the machine must come in to
+// land 3 mm earlier along X and leave the canvas 3 mm later; only then do the dabs turn into full legs, as on the screen"): the elbow (J3) lowers the brush over the
+// first mm of a run and the tip touches late, so every paint run's way on the machine starts `early` mm before its first point, back along its first piece, and ends
+// `late` mm past its last; the plan, the screen and the idle runs as they were. LAB's real 3 first (labplan.js), FORM-G's run the same day (the owner, before the red
+// 911 on 70 × 100: "take the latest changes of LAB / real 3 into account"; "3 + 3, yes"). est.
+export const ELBOW_J3 = { early: 3, late: 3 };
+// a run's points, [x, y], its ends drawn out so: the first `early` mm back along its first piece, the last `late` on along its last
+export function elbowEndsOf(pts, o = ELBOW_J3) {
+  if (pts.length < 2) return pts;
+  const on = (a, b, s) => { const d = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [b[0] + (b[0] - a[0]) / d * s, b[1] + (b[1] - a[1]) / d * s]; };
+  return [on(pts[1], pts[0], o.early), ...pts.slice(1, -1), on(pts.at(-2), pts.at(-1), o.late)];
+}
+
 // The canon of the jars (the owner, 2026-11-08: "honestly, I do not have so many jars; nor do I see the point of nuances of RGB: ours is optical mixing, so I propose
 // a compromise. The rule 'take less than 1 m' is for a canvas whose long side is 1 metre; ours is 100 × 70 cm, all fair. But LAB's canvas is 20 × 20 cm: I propose a
 // universal rule. Take out the jars with less than the canvas's own long side, if they do not change the look; so under 20 cm. It can go into the canon."):
