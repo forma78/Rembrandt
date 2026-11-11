@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **rembrandt.py: a silent arm pauses the run; the servos' volts in the journal** (the owner, 2026-11-11, of all three servos silent at once mid-run,
+  back when the carriage was moved, and the STOP, HOME and Start from it took: asked whether a silent arm should pause the run, Continue the same move
+  again, and whether the servos' volts should go into the journal: "Yes. I allow it"). Silent past SILENT_WAIT (90 s, as before) at a joint's move, at
+  the zero of all three, or at a stroke's W on the path: the run **paused** where it is, `ARM SILENT: … — the servos' 12 V or ground is off. Check the
+  board's 12 V terminal and its switch, the servo cable's plugs …`; asked every 2 s, "The arm answers again (11.6 V): Continue"; Continue makes the
+  same move again — the carriage, jogged meanwhile, first back where the arm went silent, the brush up if it was over the canvas (the shoulder at 0);
+  STOP ends it as stopped, not an error, in the 90 s wait too. No DIP, Back or Go to while it is silent; the iPhone's remote says "The arm is silent" in
+  red, not a change of paint. The journal: every dip and the "silent" note with every servo's volts and °C at the last look (`volts`, `temp_c`, the
+  look's `V` read them all along), "arm back" with them again, "back to" for the carriage. A silent arm at a run's start: an error, said plainly.
+  Restart rembrandt.py with no run on. Not run on the machine.
 - **FORM-G: the library on the left, the panel in the right corner** (the owner, 2026-11-11, of the panel moved to the left the same day: "the other way round:
   the panel on the RIGHT, the library on the LEFT, please"). THE LIBRARY a column left of the picture, PROGRESS and the keys in the right corner as before;
   a card's (i) opens to the right of the library, over the picture.

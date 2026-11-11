@@ -339,6 +339,7 @@ function showProgress() {
   let cls = '', sw = '', big = '', small = '';
   if (off) { cls = 'bad'; big = 'No connection'; small = 'The phone and the Mac on the home Wi-Fi? The machine goes on by itself.'; }
   else if (s?.state === 'error') { cls = 'bad'; big = 'The run stopped'; small = s.message || 'See the Mac.'; }
+  else if (s?.silent && s.state === 'paused') { cls = 'bad'; big = (s.message || '').startsWith('The arm answers again') ? 'The arm answers again' : 'The arm is silent'; small = s.message; }   // rembrandt.py's pause on a silent arm (2026-11-11)
   else if (s?.state === 'paused' && s.message) { cls = 'call'; sw = s.next?.hex || ''; big = s.next ? `Change the paint: ${s.next.name}` : s.message; small = s.next ? 'Wipe the brush, put it in the cup, then ▶ Continue on Remote' : 'Continue on Remote'; }
   else if (s?.state === 'paused') { cls = 'call'; big = 'Paused'; small = 'Continue on Remote'; }
   else if (s?.state === 'stopped') { cls = 'bad'; big = 'Stopped'; small = s.message || ''; }

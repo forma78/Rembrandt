@@ -424,8 +424,18 @@ def parse_look(text):
     return {int(j): int(p) for j, p in re.findall(r"(\d): поза (\d+)", text or "")}
 
 
+def parse_power(text):
+    """the same look → {1: (11.3, 31), …}: every servo's own volts and °C, as it reads them"""
+    return {int(j): (int(v) + int(t) / 10, int(c)) for j, v, t, c in re.findall(r"(\d): поза \d+, (\d+),(\d) В, (-?\d+) °C", text or "")}
+
+
 class ArmError(Exception):
     pass
+
+
+class ArmSilent(ArmError):
+    """A joint, or the zero of all three, the bus would not read past SILENT_WAIT: the servos' 12 V or ground off
+    (the owner, 2026-11-11). The runner pauses on it, it does not end the run."""
 
 
 BUS_TRIES, BUS_GAP = 5, 0.2   # a read or a reply lost: asked again, about a second in all, before it counts
@@ -463,6 +473,7 @@ class Arm:
         self.clock = clock or (time.monotonic if sleep is time.sleep else lambda: self.slept)
         self.lock = threading.Lock()
         self.stopped = threading.Event()   # set by stop(): a move under way gives up
+        self.power, self.power_t = {}, None   # the servos' own volts and °C at the last look that read them, and when (time.time())
 
     def stop(self):
         """STOP for the arm (2026-10-02): a slow stroke stays where it is.
@@ -474,7 +485,12 @@ class Arm:
         # need: joints worth asking again for (the owner, 2026-11-04: one silent read stopped a
         # six-hour run). Silent for about a second, the 12 V may well be off: the caller's to say.
         for n in range(BUS_TRIES):
-            raw, z = parse_look(self.send("/look")), self.zero()
+            text = self.send("/look")
+            raw, z = parse_look(text), self.zero()
+            pw = parse_power(text)
+            if pw:
+                self.power = {k: pw[jid] for k, (jid, _, _) in JOINTS.items() if jid in pw}
+                self.power_t = time.time()
             out = {}
             for k, (jid, sign, _) in JOINTS.items():
                 out[k] = None if jid not in raw else round(TURN[k] * sign * (raw[jid] - z[k]) / TICKS_PER_DEG, 1)
@@ -484,6 +500,14 @@ class Arm:
             self.note(f"look: {', '.join(silent)} silent, asked again")
             self.sleep(BUS_GAP)
         return out, raw
+
+    def power_note(self):
+        # for the journal: every servo's volts and °C at the last look that read them, and how long ago (the owner, 2026-11-11, "yes":
+        # to see whether the 12 V sags before the bus goes silent)
+        if not self.power:
+            return {}
+        return {"volts": {k: v for k, (v, _) in self.power.items()}, "temp_c": {k: c for k, (_, c) in self.power.items()},
+                **({"look_s_ago": round(time.time() - self.power_t, 1)} if self.power_t else {})}
 
     def patient(self, need, joint):
         # angles(need); a joint still silent waited for, SILENT_WAIT at most by the clock, noted every 10 s, then given back as it is (the
@@ -526,7 +550,8 @@ class Arm:
                 break
             self.note(f"zero: {in_english(r)}, asked again")
             self.sleep(BUS_GAP)
-        raise ArmError(f"arm zero: {in_english(r)}")
+        silent = (r == NO_REPLY or r.startswith("ok Z")) and not self.stopped.is_set()   # a joint the board could not read: the bus silent
+        raise (ArmSilent if silent else ArmError)(f"arm zero: {in_english(r)}")
 
     def move_to(self, joint, deg, speed=None, within=0.6, fork=None):
         """speed: degrees a second, for a slow stroke of the brush; None — the
@@ -548,7 +573,9 @@ class Arm:
                 g = self.guard()
                 ang, raw = self.patient(tuple(JOINTS) if g else (joint,), joint)
                 if ang[joint] is None:
-                    raise ArmError(f"the {joint} does not answer: is the 12 V on?")
+                    if self.stopped.is_set():
+                        raise ArmError(f"the {joint} stopped: STOP")
+                    raise ArmSilent(f"the {joint} does not answer: is the 12 V on?")
                 a = ang[joint]
                 d = deg - a
                 # whole degrees from where it stands, and no step past the reach
@@ -668,6 +695,14 @@ class Abort(Exception):
 
 
 LIVE = ("running", "stopping", "pausing", "paused")   # a run the page must not start over
+# A silent arm pauses the run (the owner, 2026-11-11, of all three servos silent at once mid-run and back when the carriage was moved: "yes, I allow
+# it" — the run paused in place, Continue the same move again, no STOP and HOME, no cell lost; the servos' volts in the journal). What the pause says:
+ARM_SILENT_SAY = ("ARM SILENT: {who} — the servos' 12 V or ground is off. Check the board's 12 V terminal and its switch, "
+                  "the servo cable's plugs at the board and at the arm. When they answer, Continue: the same move again"
+                  " (the carriage moved meanwhile: the brush up and back to its place first)")
+ARM_BACK_SAY = "The arm answers again{volts}: Continue — the same move again"
+SILENT_LOOK_S = 2.0      # paused on a silent arm: asked every so many seconds whether it answers again
+MOVED_MM = 0.5           # the carriage farther than this from where the arm went silent: back there before the move again
 SWING_DEG = -54                                         # brush off: the wrist to −54° (src/machine.js; +90° until the camera, 2026-09-30)
 ON_PATH_MM = 0.5                                        # a braked carriage stands on its path
 
@@ -1074,6 +1109,7 @@ class Runner:
         # INK-Y: (rim, °/s, the elbow's fork up) while a dip holds the shoulder turned over the cup at
         # hand — the elbow up, then the shoulder back, by itself before a jump and at the next run's start
         self._swung = None
+        self._silent = None              # paused on a silent arm: the joints silent (_silent_pause)
 
     def set_trim(self, deg):
         # ELBOW LIVE: from the next W 2 sent on, the board's queue of pieces
@@ -1110,7 +1146,7 @@ class Runner:
                     "x_mm": mm("x", 0), "y_mm": mm("y", 1), "brush_on": self.brush_on,
                     "started": self.started, "trim": self.trim, "row": self.row,
                     "in_row": round(self.painted - self.row_base.get(self.row, self.painted), 1),
-                    "dips": self.dips, "cup": bool(self.cup),
+                    "dips": self.dips, "cup": bool(self.cup), "silent": self._silent,
                     "hand": 1}   # this runner knows the cup at hand (INK-Y), its forks and its guard: the pages ask before such a run
 
     def where(self):
@@ -1127,7 +1163,7 @@ class Runner:
             if q[1] <= st["in_row"] + 0.05:
                 cell = q[0]
         nxt = None
-        if st["state"] in ("pausing", "paused"):
+        if st["state"] in ("pausing", "paused") and not self._silent:      # a silent arm's pause is no change of paint
             for b in self.blocks[self.block:]:
                 r = b.get("row") or 0
                 if 0 < r <= len(rows) and rows[r - 1].get("c") != k:
@@ -1262,7 +1298,7 @@ class Runner:
         # run was started with, and on by itself. Paused, it dips and stays
         # paused. False: nothing running, or no cup in the run.
         with self.lock:
-            if self.state not in ("running", "pausing", "paused") or not self.cup or self._stop or (self.cup.get("hand") and not self.arm):
+            if self.state not in ("running", "pausing", "paused") or not self.cup or self._stop or (self.cup.get("hand") and not self.arm) or self._silent:
                 return False
             self._dip = True
             if self.state == "running":
@@ -1278,6 +1314,8 @@ class Runner:
         with self.lock:
             if self.state not in ("running", "pausing", "paused") or self._stop:
                 return False, f"the runner is {self.state}"
+            if self._silent:
+                return False, "the arm is silent: Continue once it answers"
         t = self._target(colour, num)
         if t is None:
             return False, f"no cell {num} in colour {colour + 1}"
@@ -1482,8 +1520,11 @@ class Runner:
                 raise Abort("the board cannot run a path (" + r + "): flash the firmware, "
                             "firmware/CNCDM-001")
             if self.arm:
+                self.arm.stopped.clear()   # a STOP of the run before: not this one's (a silent arm waited for, _arm_steps)
                 try:
                     self.arm.hold()     # nothing moves; the whole arm holds from here on
+                except ArmSilent as e:
+                    raise Abort(f"{e}: the arm does not answer — the servos' 12 V or ground (the board's terminal and switch, the servo cable)")
                 except ArmError as e:
                     raise Abort(str(e))
             self._unswing()             # a run stopped over the jar at hand: the elbow up, the shoulder back first
@@ -1576,9 +1617,15 @@ class Runner:
             # in RUBENS's degrees, from where the joint really is (class Arm)
             was = self.arm.angles(need=(name,))[0].get(name) if name == "elbow" and self.page in PENCIL_PAGES and not fork else None
             try:
-                self.arm.move_to(name, deg, fork=fork)
+                while True:
+                    try:
+                        self.arm.move_to(name, deg, fork=fork)
+                        break
+                    except ArmSilent as e:              # paused till Continue, then the same move again; STOP ends the run
+                        if not self._silent_pause(f"{cmd}: {e}"):
+                            return
             except ArmError as e:
-                if self._stop and fork:
+                if self._stop and (fork or "stopped: STOP" in str(e)):    # STOP while a silent arm was waited for: stopped, not an error
                     return
                 got = self.arm.angles(need=(name,))[0].get(name) if was is not None and "does not get to" in str(e) else None
                 if got is None or not (was > deg and deg < got <= deg + REST_MAX and got < was):
@@ -1609,7 +1656,13 @@ class Runner:
         # `fork`: there anywhere in it (the shoulder to the jar at hand)
         deg, fork = float(b["deg"]), b.get("fork")
         try:
-            got = self.arm.move_to(b["joint"], deg, float(b["speed"]), float(b.get("within", 0.6)), fork=fork and fork_of(fork, b["joint"]))
+            while True:
+                try:
+                    got = self.arm.move_to(b["joint"], deg, float(b["speed"]), float(b.get("within", 0.6)), fork=fork and fork_of(fork, b["joint"]))
+                    break
+                except ArmSilent as e:                  # paused till Continue, then the same turn again; STOP ends the run
+                    if not self._silent_pause(f"{b['joint']} to {b['deg']}°: {e}"):
+                        return
         except ArmError as e:
             if self._stop:
                 return
@@ -1701,16 +1754,24 @@ class Runner:
         names = {ARM_JOINT[int(c.split()[1])] for c in pieces if c[0] == "W"}
         a = {k: 0.0 for k in names}
         if self.arm:
-            ang, _ = self.arm.angles(need=tuple(names))
+            while True:                                  # a silent arm waited for, then the run paused till Continue (_silent_pause)
+                ang, _ = self.arm.patient(tuple(names), "path")
+                miss = [k for k in sorted(names) if ang.get(k) is None]
+                if not miss:
+                    try:
+                        self.arm.rezero_patient()
+                        break
+                    except ArmSilent as e:
+                        miss, why = [], f"W: {e}"
+                    except ArmError as e:
+                        raise Abort(str(e))
+                else:
+                    why = f"W: the {', '.join(miss)} does not answer: is the 12 V on?"
+                if self._stop or not self._silent_pause(why):
+                    return pieces                        # STOP: _move sends none of them
             for k in names:
-                if ang.get(k) is None:
-                    raise Abort(f"W: the {k} does not answer: is the 12 V on?")
                 a[k] = ang[k]
             self._wbase = dict(a)
-            try:
-                self.arm.rezero()
-            except ArmError as e:
-                raise Abort(str(e))
         out = []
         for c in pieces:
             if c[0] == "W":
@@ -1774,6 +1835,74 @@ class Runner:
         self._move({"kind": "move", "cmds": rest_of(b["cmds"], j), "paintMM": left,
                     "painted": (b.get("painted") or [])[j:]})
 
+    def _silent_pause(self, why, at=None):
+        # The arm silent past SILENT_WAIT (the owner, 2026-11-11: all three servos silent at once mid-run, back when the carriage
+        # was moved; "yes, I allow it"): the run paused where it is, nothing lifted — the arm cannot be — the message says what to
+        # check; asked every SILENT_LOOK_S whether it answers again, said so with its volts. Continue: True, the caller makes the
+        # same move again — the carriage, moved meanwhile, first back where it was, the brush up if it was over the canvas.
+        # STOP: False, the run ends as stopped. The journal: "silent" with the servos' last volts, "arm back", "continue".
+        if self._stop:
+            return False
+        p = self._ping()                                 # where the arm went silent; `at` given: silent again before the carriage went back there
+        at = at or ((p["x"] / STEPS_PER_MM[0], p["y"] / STEPS_PER_MM[1]) if p and p["x"] is not None and p["y"] is not None else None)
+        ang = self.arm.angles()[0]
+        joints = [k for k in JOINTS if ang.get(k) is None] or [k for k in JOINTS if k in why] or list(JOINTS)   # who is silent now, by a look
+        who = f"the {joints[0]} does not answer" if len(joints) == 1 else f"the {', the '.join(joints[:-1])} and the {joints[-1]} do not answer"
+        say = ARM_SILENT_SAY.format(who=who)
+        with self.lock:
+            if self._stop:
+                return False
+            self._silent, self._pause, self._auto, self.state, self.message = joints, True, False, "paused", say
+        self.log({"event": "silent", "why": why, "block": self.block, **({"at_mm": [round(at[0], 1), round(at[1], 1)]} if at else {}), **self.arm.power_note()})
+        t, back = 0.0, False
+        while True:
+            with self.lock:
+                if self._stop or not self._pause:
+                    break
+            self.sleep(0.2)
+            t += 0.2
+            if t < SILENT_LOOK_S:
+                self._ping()                             # the board's watchdog fed, as a pause does
+                continue
+            t = 0.0
+            ang = self.arm.angles()[0]
+            now = all(ang.get(k) is not None for k in JOINTS)
+            if now != back:
+                back = now
+                v = self.arm.power_note().get("volts") or {}
+                with self.lock:
+                    if self._pause and not self._stop:
+                        self.message = ARM_BACK_SAY.format(volts=f" ({min(v.values()):.1f} V)" if v else "") if now else say
+                if now:
+                    self.log({"event": "arm back", "block": self.block, **self.arm.power_note()})
+        with self.lock:
+            stopped = bool(self._stop)
+            self._silent = None
+            if not stopped:
+                self.message = ""
+        if stopped:
+            return False
+        self.log({"event": "continue", "block": self.block, "after": "silent"})
+        q = self._ping()
+        here = (q["x"] / STEPS_PER_MM[0], q["y"] / STEPS_PER_MM[1]) if q and q["x"] is not None and q["y"] is not None else None
+        if at and here and max(abs(here[0] - at[0]), abs(here[1] - at[1])) > MOVED_MM:
+            # moved by hand meanwhile (a jog): the brush up if it is over the canvas — the shoulder at 0, not over the jar at hand — and
+            # back through the air to where the arm went silent, so that the move again starts where the plan has it
+            ang = self.arm.angles(need=("shoulder", "elbow"))[0]
+            if ang.get("shoulder") is not None and abs(ang["shoulder"]) < 2 and ang.get("elbow") is not None and ang["elbow"] < BRUSH_UP_DEG:
+                try:
+                    self.arm.move_to("elbow", BRUSH_UP_DEG)
+                    self._brush_at(BRUSH_UP_DEG)
+                except ArmSilent as e:
+                    return self._silent_pause(f"J 2 {BRUSH_UP_DEG}: {e}", at)
+                except ArmError as e:
+                    raise Abort(f"the brush up before going back: {e}")
+            self.log({"event": "back to", "block": self.block, "from_mm": [round(here[0], 1), round(here[1], 1)], "to_mm": [round(at[0], 1), round(at[1], 1)]})
+            self._move({"kind": "move", "cmds": [f"T {self.travel:g}", f"M {at[0]:.2f} {at[1]:.2f}", "G"], "paintMM": 0})
+            if self._stop:
+                return False
+        return True
+
     def _hold(self):
         # Paused: the brush off the canvas, the motors still, the watchdog fed
         # by the pings. Continue puts the brush back as it was, tilted too.
@@ -1816,7 +1945,8 @@ class Runner:
         w = self.where()
         return {"block": self.block, "row": w["row"], "in_row": w["in_row"], "painted_mm": w["painted_mm"],
                 **({"colour": w["colour"].get("name")} if isinstance(w["colour"], dict) else {}),
-                **({"cell": w["cell"]} if w["cell"] is not None else {})}
+                **({"cell": w["cell"]} if w["cell"] is not None else {}),
+                **(self.arm.power_note() if self.arm else {})}     # the servos' volts and °C at the last look (2026-11-11)
 
     def _dip_now(self):
         # the brush over the cup's rim, to the cup, into its paint for its

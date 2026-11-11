@@ -1920,5 +1920,176 @@ class PercentTest(unittest.TestCase):
             self.assertAlmostEqual(r.painted, 1000.0 * want / track[2], delta=0.1)
 
 
+class SilentArmTest(unittest.TestCase):
+    """A silent arm pauses the run (the owner, 2026-11-11: all three servos silent at once mid-run, back when the carriage
+    was moved; "yes, I allow it"): Continue makes the same move again, STOP ends the run as stopped, the servos' volts in
+    the journal."""
+
+    SILENT = "ok V | X MCPWM_PCNT, Y MCPWM_PCNT | путь: пусто 0 | 1: молчит | 2: молчит | 3: молчит"
+
+    def runner(self, blocks, when, act):
+        # the bus silent from the moment `when(b)` says so; `act(r, b, s)` at every sleep while the run is paused on it
+        b, logs, s = FakeBoard(), [], {"on": False, "seen": []}
+        def send(path):
+            if s["on"] and path.startswith("/look"):
+                return self.SILENT
+            if s["on"] and path.startswith("/zero"):
+                return "ok Z 0"
+            return b.send(path)
+        arm = Arm(send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
+        r = Runner(send, sleep=b.sleep, swing_s=0, arm=arm, log=logs.append)
+        def later():
+            if not s["on"] and not s.get("was") and when(b):
+                s["on"] = s["was"] = True
+            if r.state == "paused" and r._silent:
+                s["seen"].append(r.message)
+                act(r, b, s)
+        b.on_sleep = later
+        self.assertTrue(r.start(blocks)[0])
+        r.thread.join(10)
+        return r, b, logs, s
+
+    BLOCKS = [arm(False), paint(3), arm(True), travel(30, 60)]
+
+    def test_silent_past_the_wait_the_run_pauses_and_continue_makes_the_same_move(self):
+        def act(r, b, s):
+            if s["on"]:
+                s["on"] = False                  # the contact back: the arm answers
+            elif r.message.startswith("The arm answers again"):
+                r.resume()
+        r, b, logs, s = self.runner(self.BLOCKS, lambda b: "G" in b.log, act)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertTrue(s["seen"][0].startswith("ARM SILENT: the shoulder, the elbow and the wrist do not answer"), s["seen"][0])
+        self.assertIn("The arm answers again (11.3 V): Continue", s["seen"][-1])
+        self.assertTrue(any(c == f"J 2 {BRUSH_UP_DEG}" or c.startswith("J 2 ") and c != "J 2 0" for c in b.log[b.log.index("G"):]), b.log)
+        ev = [e["event"] for e in logs]
+        self.assertIn("silent", ev); self.assertIn("arm back", ev)
+        silent = next(e for e in logs if e["event"] == "silent")
+        self.assertEqual(silent["volts"], {"shoulder": 11.3, "elbow": 11.3, "wrist": 11.3}, silent)
+        self.assertEqual(next(e for e in logs if e["event"] == "continue")["after"], "silent")
+        self.assertEqual(ev[-1], "done")
+        self.assertIsNone(r.status()["silent"])
+
+    def test_stop_while_paused_on_a_silent_arm_ends_it_as_stopped(self):
+        r, b, logs, s = self.runner(self.BLOCKS, lambda b: "G" in b.log, lambda r, b, s: r.stop())
+        self.assertEqual(r.state, "stopped", r.message)
+        self.assertNotIn("M 30.00 60.00", b.log, "nothing after the stop")
+
+    def test_no_dip_and_no_jump_while_it_is_silent_and_no_paint_to_change(self):
+        said = {}
+        def act(r, b, s):
+            if not said:
+                said.update(dip=r.dip(), goto=r.goto(0, 1), status=r.status(), next=r.where()["next"])
+                r.stop()
+        r, b, logs, s = self.runner(self.BLOCKS, lambda b: "G" in b.log, act)
+        self.assertFalse(said["dip"]); self.assertFalse(said["goto"][0])
+        self.assertEqual(said["status"]["silent"], ["shoulder", "elbow", "wrist"]); self.assertEqual(said["status"]["state"], "paused")
+        self.assertIsNone(said["next"])
+
+    def test_silent_at_a_stroke_s_landing_on_the_path_pauses_too(self):
+        # W on the path reads where the joints stand: silent there, paused, not "W: the elbow does not answer"
+        row = {"kind": "move", "cmds": ["F 20", "W 2 5 211", "L 1.00 50.00", "W 2 0 88", "L 2.00 50.00", "G"], "paintMM": 2}
+        def act(r, b, s):
+            if s["on"]:
+                s["on"] = False
+            elif r.message.startswith("The arm answers again"):
+                r.resume()
+        r, b, logs, s = self.runner([arm(True), travel(1, 50), row, arm(True)], lambda b: any(c.startswith("M ") for c in b.log), act)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertIn("W:", next(e for e in logs if e["event"] == "silent")["why"])
+        self.assertTrue(any(c.startswith("W 2") for c in b.log), b.log)
+
+    def test_the_carriage_moved_meanwhile_the_brush_up_and_back_to_its_place_first(self):
+        moved = {}
+        def act(r, b, s):
+            if s["on"]:
+                moved["at"] = (b.x, b.y)
+                b.x += round(40 * STEPS_PER_MM[0])            # a jog of 40 mm along X while paused
+                s["on"] = False
+            elif r.message.startswith("The arm answers again"):
+                r.resume()
+        r, b, logs, s = self.runner(self.BLOCKS, lambda b: "G" in b.log, act)
+        self.assertEqual(r.state, "done", r.message)
+        x, y = moved["at"][0] / STEPS_PER_MM[0], moved["at"][1] / STEPS_PER_MM[1]
+        back = [i for i, c in enumerate(b.log) if c == f"M {x:.2f} {y:.2f}"]
+        self.assertTrue(back, b.log)
+        up = [i for i, c in enumerate(b.log) if c.startswith("J 2 ") and i > b.log.index("G")]   # the firmware's degrees: the elbow up, at its slower lift
+        self.assertTrue(up and up[0] < back[0] and b.log[up[0]].endswith(f" v{rubens.ELBOW_UP_SPEED:g}"), f"the brush up before the carriage goes back: {b.log}")
+        self.assertTrue(any(e["event"] == "back to" for e in logs))
+
+    def test_stop_while_a_silent_arm_is_waited_for_ends_it_as_stopped(self):
+        # STOP within the SILENT_WAIT, before the pause: stopped, not an error
+        n = {"k": 0}
+        def when(b):
+            return "G" in b.log
+        b, logs, s = FakeBoard(), [], {"on": False}
+        def send(path):
+            if s["on"] and path.startswith("/look"):
+                n["k"] += 1
+                if n["k"] == 20:
+                    r.stop()
+                return self.SILENT
+            return b.send(path)
+        arm_ = Arm(send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
+        r = Runner(send, sleep=b.sleep, swing_s=0, arm=arm_, log=logs.append)
+        b.on_sleep = lambda: s.update(on=s["on"] or when(b))
+        self.assertTrue(r.start(self.BLOCKS)[0])
+        r.thread.join(10)
+        self.assertEqual(r.state, "stopped", r.message)
+        self.assertNotIn("silent", [e["event"] for e in logs])
+
+    def test_silent_again_at_the_brush_s_lift_it_still_goes_back_to_where_it_first_went_silent(self):
+        b, logs, st = FakeBoard(), [], {"phase": 0, "looks": 0}
+        def send(path):
+            if path.startswith("/look"):
+                if st["phase"] == 3:                      # after the first Continue: the look before the lift answers, the lift's own does not
+                    st["looks"] += 1
+                    if st["looks"] == 2:
+                        st["phase"] = 4
+                if st["phase"] in (1, 4):
+                    return self.SILENT
+            if path.startswith("/zero") and st["phase"] in (1, 4):
+                return "ok Z 0"
+            return b.send(path)
+        arm_ = Arm(send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
+        r = Runner(send, sleep=b.sleep, swing_s=0, arm=arm_, log=logs.append)
+        def later():
+            if st["phase"] == 0 and "G" in b.log:
+                st["phase"] = 1
+            elif st["phase"] == 1 and r._silent:
+                st["at"] = (b.x, b.y)
+                b.x += round(40 * STEPS_PER_MM[0])          # a jog while paused
+                st["phase"] = 2
+            elif st["phase"] == 2 and r._silent and r.message.startswith("The arm answers again"):
+                st["phase"] = 3
+                r.resume()
+            elif st["phase"] == 4 and r._silent:
+                st["phase"] = 5
+            elif st["phase"] == 5 and r._silent and r.message.startswith("The arm answers again"):
+                st["phase"] = 6
+                r.resume()
+        b.on_sleep = later
+        self.assertTrue(r.start(self.BLOCKS)[0])
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        silent = [e for e in logs if e["event"] == "silent"]
+        self.assertEqual(len(silent), 2, [e["event"] for e in logs])
+        self.assertIn(f"J 2 {BRUSH_UP_DEG}", silent[1]["why"])
+        x, y = st["at"][0] / STEPS_PER_MM[0], st["at"][1] / STEPS_PER_MM[1]
+        self.assertEqual(silent[1]["at_mm"], [round(x, 1), round(y, 1)], "the first place kept")
+        self.assertIn(f"M {x:.2f} {y:.2f}", b.log)
+
+    def test_every_dip_in_the_journal_carries_the_servos_volts(self):
+        self.assertEqual(rubens.parse_power("ok V | 1: поза 2499, 11,3 В, 31 °C | 2: молчит | 3: поза 1, 12,0 В, -2 °C"), {1: (11.3, 31), 3: (12.0, -2)})
+        b = FakeBoard()
+        a = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep)
+        self.assertEqual(a.power_note(), {})
+        a.angles()
+        n = a.power_note()
+        self.assertEqual(n["volts"], {"shoulder": 11.3, "elbow": 11.3, "wrist": 11.3}); self.assertEqual(n["temp_c"]["elbow"], 30)
+        r = Runner(b.send, sleep=b.sleep, swing_s=0, arm=a)
+        self.assertEqual(r._dip_note()["volts"]["wrist"], 11.3)
+
+
 if __name__ == "__main__":
     unittest.main()
