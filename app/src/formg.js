@@ -584,13 +584,22 @@ function showMarks() {
   const b = $('#btnMarks'), r = $('#marksRead');
   if (!b || !r) return;
   b.classList.toggle('on', S.marks !== false); b.setAttribute('aria-pressed', String(S.marks !== false));
-  if (S.marks === false) { r.innerHTML = 'MARKS off: no marks at the edges.'; return; }
-  if (PIC.frame) { r.innerHTML = 'MARKS: none in a frame — the whole picture only.'; return; }
+  if (S.marks === false) { r.innerHTML = 'MARKS off: no marks at the edges.'; return canvasReads(); }
+  if (PIC.frame) { r.innerHTML = 'MARKS: none in a frame — the whole picture only.'; return canvasReads(); }
   const mk = marksNow(), mm = v => fmt(v, 0);
   r.innerHTML = (mk.strips.length ? `<b>MARKS</b>, ${mk.n} cells a strip, a jar's first coat at the edge's side, its second next to it; after every jar change one dip, then its marks in this order. Tape the paper: `
     + mk.strips.map(s => `<b>${sideSay(s)}</b> ${mm(s.box[0])}–${mm(s.box[2])} → · ${mm(s.box[1])}–${mm(s.box[3])} ↑${Math.abs(s.shift) >= 0.5 ? ` (${mm(Math.abs(s.shift))} mm ${s.side === 'left' || s.side === 'right' ? (s.shift > 0 ? 'above' : 'below') : (s.shift > 0 ? 'right of' : 'left of')} the middle: the reach)` : ''}`).join('; ') + ' mm from the canvas\'s left and bottom edges (the white strips on the screen; est.). ' : '<span class="warn">MARKS: no room for a strip anywhere.</span> ')
     + mk.missing.map(q => `No ${q.side} strip (${q.no}): ${q.why}.`).join(' ');
+  canvasReads();
 }
+// The canvas's two reads, the walls and MARKS, behind its (i) (the owner, 2026-11-11: "hide these two poems, about the canvas and
+// the Marks, under an (i)"); one with a warning shows all the same
+let CANVAS_INFO = false;
+function canvasReads() {
+  for (const id of ['#placeRead', '#marksRead']) { const p = $(id); if (p) p.hidden = !CANVAS_INFO && !p.querySelector('.warn'); }
+  $('#canvasInfo')?.classList.toggle('on', CANVAS_INFO);
+}
+if ($('#canvasInfo')) $('#canvasInfo').onclick = () => { CANVAS_INFO = !CANVAS_INFO; canvasReads(); };
 if ($('#btnMarks')) $('#btnMarks').onclick = () => {
   if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: MARKS stay as they are till it ends or stops.');
   S.marks = S.marks === false; settle();

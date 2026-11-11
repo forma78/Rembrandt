@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: The canvas's two reads behind an (i)** (the owner, 2026-11-11: "before pushing, hide these two poems, about the canvas and the Marks, under
+  an (i)"). The walls' read and MARKS' are hidden; the (i) by the section's title shows and hides both. A read with a warning (the picture past the walls,
+  no room for a strip) shows all the same.
 - **The arm's silences: the cause found** (the owner, 2026-11-11 ~22:15: "the wires on electrical tape that go to the board from the black drag chain;
   inside you cannot see how the wires are joined, so I did not feel them"). Not the shoulder's plug, not the shoulder–elbow cable: the silences went on
   after both; the servos stayed stiff through them (the 12 V on, only the signal lost). Written at the top of `machine/2026-11-11 arm silent.txt`.

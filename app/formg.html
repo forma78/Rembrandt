@@ -121,18 +121,18 @@
       </div>
     </section>
     <section class="sec">
-      <h3>The canvas <span class="hint">from home, mm · a picture its own</span></h3>
+      <h3>The canvas <span class="hint">from home, mm · a picture its own</span> <button class="info" id="canvasInfo" title="Where the canvas may lie for this picture, the walls; MARKS: where to tape the paper strips">i</button></h3>
       <div class="fg-grid">
         <label title="The canvas's left edge, mm to the right of home; minus: left of it">Left edge →<input id="fLeft" type="number" step="1"></label>
         <label title="The canvas's bottom edge, mm above home; minus: below it">Bottom edge ↑<input id="fBottom" type="number" step="1"></label>
       </div>
-      <p class="read" id="placeRead"></p>
+      <p class="read" id="placeRead" hidden></p>
       <!-- F, the frame (the owner, 2026-11-08: "a 20 × 20 cm piece first, how many paints mix"; OPM-W's F carried over): only what lies in it is run, at its place from home -->
       <div class="grid4 keys"><button class="btn" id="btnFrame" title="F, the frame: a drag on the picture round a piece to try first, or a click, a 200 × 200 there — only the legs in it are run, at their place from home, its canvas laid there. With F on, a drag in the frame moves it, a click in it takes it away (F)">▭ Frame · F</button><button class="btn" id="btnNoFrame" title="The frame taken away: the whole picture">Whole picture</button></div>
       <p class="read" id="frameRead"></p>
       <!-- MARKS (the owner, 2026-11-11, FORM-G/IMG_2683: "typographic marks along the canvas's edges: every colour, when we change the jar, the machine dips once, then makes a mark on four sides") -->
       <div class="grid4 keys"><button class="btn" id="btnMarks" aria-pressed="true" title="MARKS, the printer's marks at the middles of the canvas's edges, on paper strips taped there: after every change of jar, before its first cell, one dip, then a mark in its cell on every strip — 1 the left, 2 the top, 3 the right, 4 the bottom, where the brush reaches beside the picture. A jar's first coat in the row at the edge's side, its second coat next to it. A click turns them off or on">▦ Marks</button></div>
-      <p class="read" id="marksRead"></p>
+      <p class="read" id="marksRead" hidden></p>
     </section>
     <section class="sec">
       <h3>The brush <span class="hint">OPM-N's, est.</span></h3>
