@@ -1030,10 +1030,29 @@ class LateReplyTest(unittest.TestCase):
     def test_a_stale_line_for_a_look_is_read_again(self):
         self.arm(FakeBoard(), {"/look": [rubens.NO_REPLY, "ok Z 3"]}).move_to("shoulder", 0)
 
-    def test_silent_for_a_second_it_does_not_answer(self):
-        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит"] * rubens.BUS_TRIES})
+    def test_silent_for_a_second_it_is_waited_for(self):
+        # the owner, 2026-11-11: the arm silent about 80 s at a lift, then answering by itself — waited for, not an error
+        notes = []
+        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит"] * (rubens.BUS_TRIES * 3)}, notes)
+        a.move_to("shoulder", 0)
+        self.assertTrue(any("waiting" in n for n in notes), notes)
+
+    def test_silent_past_the_wait_it_does_not_answer(self):
+        tries = rubens.BUS_TRIES * (int(rubens.SILENT_WAIT / (rubens.SILENT_GAP + rubens.BUS_TRIES * rubens.BUS_GAP)) + 3)
+        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит"] * tries})
         with self.assertRaisesRegex(ArmError, "shoulder does not answer"):
             a.move_to("shoulder", 0)
+
+    def test_the_elbow_lifts_in_the_air_slower_and_goes_down_as_before(self):
+        b = FakeBoard()
+        a = self.arm(b)
+        a.move_to("elbow", 20)
+        up = [c for c in b.log if c.startswith("J 2")]
+        self.assertTrue(up and all(c.split()[-1].lstrip("v") == f"{rubens.ELBOW_UP_SPEED:g}" for c in up), up)
+        b.log.clear()
+        a.move_to("elbow", 5)
+        down = [c for c in b.log if c.startswith("J 2")]
+        self.assertTrue(down and not any(t.startswith("v") for c in down for t in c.split()), down)
 
     def test_a_late_reply_to_J_does_not_stop_it(self):
         b, notes = FakeBoard(), []

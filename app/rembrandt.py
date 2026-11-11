@@ -429,6 +429,12 @@ class ArmError(Exception):
 
 
 BUS_TRIES, BUS_GAP = 5, 0.2   # a read or a reply lost: asked again, about a second in all, before it counts
+# The owner, 2026-11-11, the arm silent at the elbow's lifts on the red classic's run (00:34, J 2 12; 01:36, J 2 32.5; the night before in DRAW BW): "it looks like
+# there is no [lack of] 12 V, just a heavy load; I touch nothing, the wire is well in" — asked to lift the elbow slower and wait longer before an error: "both".
+# ELBOW_UP_SPEED: the elbow up in the air (a dip, the brush up after a row) at so many °/s, not the firmware's ~53, the peak current less (est.); the lift on
+# the move (W on the path) untouched, it is the stroke's own. SILENT_WAIT: a joint silent at a move is waited for so long, asked every second, before it
+# counts — at 00:34 all three were silent about 80 s, then answered by themselves (est.).
+ELBOW_UP_SPEED, SILENT_WAIT, SILENT_GAP = 28.0, 90.0, 1.0
 
 
 class Arm:
@@ -472,6 +478,33 @@ class Arm:
             self.sleep(BUS_GAP)
         return out, raw
 
+    def patient(self, need, joint):
+        # angles(need); a joint still silent waited for, SILENT_WAIT at most, noted, then given back as it is (the caller says it does not answer)
+        waited = 0.0
+        while True:
+            ang, raw = self.angles(need=need)
+            silent = [k for k in need if ang[k] is None]
+            if not silent or self.stopped.is_set() or waited >= SILENT_WAIT:
+                return ang, raw
+            if waited == 0 or int(waited) % 10 < SILENT_GAP + BUS_TRIES * BUS_GAP:
+                self.note(f"{', '.join(silent)} silent at the {joint}'s move: waiting, {waited:.0f} s of {SILENT_WAIT:.0f}")
+            self.sleep(SILENT_GAP)
+            waited += SILENT_GAP + BUS_TRIES * BUS_GAP
+
+    def rezero_patient(self):
+        # rezero; a joint the board could not read waited for as patient() does
+        waited = 0.0
+        while True:
+            try:
+                return self.rezero()
+            except ArmError:
+                if self.stopped.is_set() or waited >= SILENT_WAIT:
+                    raise
+                if waited == 0:
+                    self.note(f"zero: a joint silent, waiting up to {SILENT_WAIT:.0f} s")
+                self.sleep(SILENT_GAP)
+                waited += SILENT_GAP + BUS_TRIES * BUS_GAP
+
     def rezero(self):
         # Z: the zero of all three where they stand, nothing moves. A joint the board could not read
         # keeps its old zero and answers "ok Z 2": the step after it would count from there.
@@ -503,7 +536,7 @@ class Arm:
                 if self.stopped.is_set():
                     raise ArmError(f"the {joint} stopped: STOP")
                 g = self.guard()
-                ang, raw = self.angles(need=tuple(JOINTS) if g else (joint,))
+                ang, raw = self.patient(tuple(JOINTS) if g else (joint,), joint)
                 if ang[joint] is None:
                     raise ArmError(f"the {joint} does not answer: is the 12 V on?")
                 a = ang[joint]
@@ -521,14 +554,15 @@ class Arm:
                 why = g and hand_refuses(joint, a, a + step, ang, g)
                 if why:
                     raise ArmError(why)
-                self.rezero()
+                self.rezero_patient()
                 fw = TURN[joint] * step                    # the firmware's degrees
-                r = self.send(f"/servo?j={joint}&d={fw}" + (f"&v={speed:g}" if speed else ""))
+                v = speed or (ELBOW_UP_SPEED if joint == "elbow" and step > 0 else None)   # the elbow up in the air, slower (ELBOW_UP_SPEED)
+                r = self.send(f"/servo?j={joint}&d={fw}" + (f"&v={v:g}" if v else ""))
                 if r == NO_REPLY:                          # on its way or not, the next look tells; this loop sends it again if not
                     self.note(f"{joint}: no answer to J, looking where it stands")
                 elif not r.startswith("ok J"):
                     raise ArmError(f"{joint}: {in_english(r)}")
-                self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / speed + 2 if speed else 4.0)
+                self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / v + 2 if v else 4.0)
             raise ArmError(f"the {joint} does not get to {deg}°")
 
     def hold(self):

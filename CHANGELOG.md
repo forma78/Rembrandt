@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **rembrandt.py: the elbow lifts slower in the air; a silent arm waited for** (the owner, 2026-11-11, the arm silent at the elbow's lifts on the classic's
+  run — 00:34 `J 2 12`, all three servos silent about 80 s, then answering by themselves; 01:36 `J 2 32.5`, a dip: "it looks like there is no [lack of] 12 V,
+  just a heavy load; I touch nothing, the wire is well in"; asked to lift slower and wait longer: "both, yes"). `Arm.move_to`: the elbow up in the air — a
+  dip's lifts, the brush up after a row, the page's jog — at `ELBOW_UP_SPEED` 28 °/s, not the firmware's ~53 (est.); down as before; the lift on the move
+  (W on the path) untouched, the stroke's own. A joint silent at a move, or a zero the board could not take of all three, waited for `SILENT_WAIT` 90 s, asked
+  every second, noted in the journal, before the error it was (est.). About 1 s more a dip: some 20 minutes on a 12-hour run (est.). Restart rembrandt.py.
 - **The classic's v.2 Kuzya under v.1's jar numbers, from v.1's paints alone** (the owner, 2026-11-11, COLORS' Indicator "No. 6 of 49" on the red and "No. 7
   of 42" on its v.2: "why did you do that? I have 36 jars with numbers; on the orange No. 6, the canon. I cannot keep a jar for every picture of the very same
   paint under another number … the v.2's numbering must not differ"). v.2 had started from the generator's kept jars, kept one v.1's prune had taken out
