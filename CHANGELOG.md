@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: MARKS, the printer's marks at the middles of the canvas's edges** (the owner, 2026-11-11, `FORM-G/IMG_2683` … `IMG_2687`, paper strips taped over
+  the canvas, a grid drawn on each, the first cell red: "typographic marks along the canvas's edges: every colour, when we change the jar, the machine dips once,
+  then makes a mark on four sides — as our TEST, but this time in paint, in the middle of the edges: left, right, top and bottom"). After every change of jar,
+  before its first cell: one dip, then a mark in its cell on every strip, in his order — 1 the left, 2 the top, 3 the right, 4 the bottom; then its first cell on
+  a dip of its own, as before. A mark a leg of 8 mm along X; every jar its cell by its place in the list, the first at the top of a side strip, at the left of a
+  top or a bottom one; a jar's first coat in the row at the edge's side, its second coat next to it, inward (asked, "yes, a second row"). A strip lies where the
+  brush reaches, 15 mm in from the canvas's edge at least, 12 clear of the picture, about the edge's middle; where there is no room the page says why. The
+  classic 911 on 70 × 100 at his place (left −60, bottom −68): the car takes 843 of the reach's 865 mm along X, 11 mm left above and under it — asked, "only
+  left and right": the left strip 68–88 mm from the canvas's left edge, the right 601–621, both 335–665 mm up for v.3's 24 jars (v.2: 216–784); the canvas's own
+  edges past the reach there. The racing face on 60 × 60 gets the top and the bottom instead. ▦ Marks in The canvas turns them off; none in a frame. On the
+  screen the white strips, the marks on Drag; ▶ Play paints them; the DRAG question says so. v.3 with marks ≈ 13 h 00 min, 13 min of them the marks (est.).
+  `formgplan.js` (`MARKS`, `stripsOf`, `marksOf`, `withMarks`), `idleplan.js` (a mark's row is no cell: BACK ONE CELL and the remote pass it by). All est.,
+  not run.
 - **FORM-G: the classic's v.3, half the jar changes** (the owner, 2026-11-11: "13 hours and 62 jar changes are physically hard for me. Let us cut their number
   in two … I think we can risk cutting the colours in half without an obvious loss in the optical perception. If it does not work, we can always go back to
   v.2"; "if every colour's legs grow from 1 metre to 3–4, the paintings can go into production"). A card after v.2: **24 jars, 31 lines of the list** (v.2: 41

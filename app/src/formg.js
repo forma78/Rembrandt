@@ -1,6 +1,6 @@
 // FORM-G's page: the library, the picture, OPM-N's DRAG SNAKE (formgplan.js). inka.js's run as it is on OPM-N, its question with Start from, its LCD, BACK ONE CELL, the remote and ELBOW LIVE,
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
-import { FORMG, FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN } from './formgplan.js';
+import { FORMG, FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -65,6 +65,22 @@ const hereNow = () => { const R = reach(), c = placeNow(); return { x: R.x.min +
 const frameSize = () => `${fmt(PIC.frame.x1 - PIC.frame.x0, 0)} × ${fmt(PIC.frame.y1 - PIC.frame.y0, 0)}`;
 const frameHome = () => ({ left: Math.round(placeNow().edgeLeft + PIC.frame.x0), bottom: Math.round(placeNow().edgeBottom + PIC.frame.y0) });
 
+// MARKS (formgplan.js, the owner, 2026-11-11): every line's marks at the middles of the canvas's edges, where the brush reaches at the canvas's place; FORM-G's whole
+// picture only — none in a frame (its own small canvas), none on OPM-G. S.marks: the switch, on at first
+const MARKSNOW = new Map();
+function marksNow() {
+  if (CANON_RUN || !PIC || PIC.frame || S.marks === false) return null;
+  const W = reach(), c = placeNow(), key = JSON.stringify([pk(), c, SEQ.length]);
+  if (!MARKSNOW.has(key)) {
+    const on = { x0: Math.max(0, -c.edgeLeft), x1: Math.min(PIC.w, W.y.max - W.y.min - c.edgeLeft), y0: Math.max(0, -c.edgeBottom), y1: Math.min(PIC.h, W.x.max - W.x.min - c.edgeBottom) };
+    const n = SEQ.filter(j => j.coat !== 2).length, st = stripsOf(PIC, on, n);
+    if (MARKSNOW.size > 6) MARKSNOW.clear();
+    MARKSNOW.set(key, { ...st, n, M: marksOf(SEQ, st) });
+  }
+  return MARKSNOW.get(key);
+}
+const sideSay = q => `${q.no} ${q.side}`;
+
 // ---------- the run, as OPM-N's paintRun ----------
 let INK = {};
 async function loadInk() { try { const r = await fetch('/ink', { cache: 'no-store' }); INK = r.ok ? await r.json() : {}; } catch { INK = {}; } }
@@ -82,11 +98,11 @@ function plan() {                                                               
 // the run from a line of the list on; the pause before the second layer's first says what it is
 function paintRun(from = 0) {
   if (!PIC) return EMPTY;
-  const key = JSON.stringify([pk(), S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from]);
+  const mk = marksNow(), key = JSON.stringify([pk(), S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from, mk ? mk.strips.map(q => q.no) : 0]);
   if (RUNS.has(key)) return RUNS.get(key);
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
-  const R = rowsOf(PIC, passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN), name = id => jarOf(id)?.name ?? id;
+  const R = rowsOf(PIC, passes, S.dipEvery, S.dipLap, CANON_RUN, { ...R3RUN, marks: mk?.M }), name = id => jarOf(id)?.name ?? id;
   const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : passes[k].layer === 2 && passes[k - 1].layer === 1 ? `the first layer is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` })));
   const n = plan().length, rows = from ? R.info.map(q => ({ ...q, label: q.label.replace(/^(\d+)\/\d+ · /, (_, k) => `${from + +k}/${n} · `) })) : R.info;   // a line's number in the whole list, a run from a later line too
   const out = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows, lifts: R.lifts, mm: passes.reduce((a, q) => a + q.mm, 0), passes };
@@ -178,6 +194,7 @@ $('#btnDrag').onclick = async () => {
   const whole = R.passes;
   const say = () => { const n = R.passes.length, first = jarOf(R.passes[0].pencil); const two = R.passes.filter(q => q.layer === 2).length; return (two ? `Two layers, one list: ${n - two ? `${n - two} jars, then ` : ''}${layer2Say(R.passes)} over the dry first layer, the last in the list; Start from reaches them on another day. ` : '') + `One brush, ${n} line${n === 1 ? '' : 's'} of the list, in this order, light to dark. Every jar's cells by their numbers, 1, 2, 3 …, every one on its own: ${dragWay(R.passes.reduce((a, q) => a + q.tracks, 0))}; from cell to cell up through the air. `
     + `The paint from ${cupName()}: put ${first?.name ?? 'the first'} in it now — a dip at every cell's start, ${S.dipEvery ? `then every ${S.dipEvery} mm of line` : 'none in it'} and before a short leg after 60 mm, ${R.dips} dips. `
+    + (marksNow()?.strips.length ? `After every change of jar, before its first cell: one dip, then its marks, ${marksNow().strips.map(sideSay).join(', ')} — the paper strips taped there (MARKS, The canvas). ` : '')
     + (n > 1 ? `Between two lines it stops ${n - 1} time${n > 2 ? 's' : ''}: the brush up +${S.wipe}° over the cup — wipe it, put the next jar in the cup, Continue. ` : '')
     + `${fmt(R.mm / 1000, 1)} m of brush at ${S.speed} mm/s, ≈ ${hm(R.seconds)} (est.). ` + (PIC.frame ? `Only the frame, ${frameSize()} mm, at its place in the picture: its canvas's left edge ${frameHome().left} mm, its bottom edge ${frameHome().bottom} mm from home — is it laid there?` : `The canvas's left edge ${placeNow().edgeLeft} mm, its bottom edge ${placeNow().edgeBottom} mm from home.`); };
   if (!await askDraw(R.passes, say(), { from: whole.length > 1 ? { passes: whole, pick: i => { from = i; R = paintRun(i); return { passes: R.passes, text: say() }; } } : null })) return;
@@ -392,6 +409,7 @@ function draw() {
     if (only) { g.fillStyle = 'rgba(243,240,230,.82)'; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); drawLegs(g, plan().filter(q => q.pencil === only)); }
   } else if (S.view === 'contour') drawContour(g);
   else drawLegs(g, plan());
+  drawMarks(g);
   // F, the frame, as OPM-W's, its size by it, the picture round it veiled; the one being dragged while it is. Solid, not dashed: the walls' line here is dashed
   const F = fgrab?.f ?? S.frames[S.pic];
   if (F) {
@@ -410,6 +428,28 @@ function draw() {
   if (NOW?.cell) { g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(2, 1.6 * K); g.strokeStyle = '#EB7A25'; legsPath(g, NOW.cell); g.stroke(); }
   // ▶ Play's brush, a ring in its jar's colour, orange on the idle run
   if (PLAY?.tip) { g.fillStyle = PLAY.q.hex; g.strokeStyle = PLAY.q.idle ? '#EB7A25' : '#24221F'; g.lineWidth = PLAY.q.idle ? 2.5 : 1.5; g.beginPath(); g.arc(sx(PLAY.tip[0]), sy(PLAY.tip[1]), 5, 0, 7); g.fill(); g.stroke(); }
+}
+// MARKS on the screen: every strip the paper to tape there, its cells' grid, and on Drag every line's marks in its jar's colour, as wide as the brush
+function drawMarks(g) {
+  const mk = marksNow();
+  if (!mk?.strips.length) return;
+  g.save();
+  for (const s of mk.strips) {
+    const [x0, y0, x1, y1] = s.box, p = 3;
+    g.fillStyle = 'rgba(255,255,255,.9)'; g.strokeStyle = 'rgba(36,34,31,.45)'; g.lineWidth = 1;
+    if (!PLAY) g.fillRect(sx(x0 - p), sy(y1 + p), (x1 - x0 + 2 * p) * K, (y1 - y0 + 2 * p) * K);   // ▶ Play paints the marks itself, under it
+    g.strokeRect(sx(x0 - p), sy(y1 + p), (x1 - x0 + 2 * p) * K, (y1 - y0 + 2 * p) * K);
+    g.fillStyle = '#B3470C'; g.font = '600 11px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.fillText(String(s.no), sx((x0 + x1) / 2), sy(y1 + p) - 5);
+  }
+  if (PLAY) { g.restore(); return; }
+  if (S.view === 'drag' || (lastSt && LIVE.includes(lastSt.state) && RUN_KEY === 'drag')) {
+    g.lineCap = 'round'; g.lineWidth = Math.max(0.5, MARKS.trail * K * 0.92);
+    for (const m of mk.M) { const j = SEQ[m.pass]; if (!j) continue; g.strokeStyle = j.hex; for (const q of m.marks) { g.beginPath(); g.moveTo(sx(q.pts[0][0]), sy(q.pts[0][1])); g.lineTo(sx(q.pts[1][0]), sy(q.pts[1][1])); g.stroke(); } }
+  } else {
+    g.strokeStyle = 'rgba(36,34,31,.28)'; g.lineWidth = 1;
+    for (const s of mk.strips) for (let k = 0; k < mk.n; k++) for (const row of [0, 1]) { const [x, y] = s.cell(k, row), w = MARKS.trail, h = MARKS.leg; g.strokeRect(sx(x - w / 2), sy(y + h / 2), w * K, h * K); }
+  }
+  g.restore();
 }
 const toPt = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
 cv.addEventListener('wheel', e => {
@@ -486,9 +526,9 @@ $('#btnPlay').onclick = () => {
   if (!PIC) return;
   const passes = plan(), list = [], s = 2, off = document.createElement('canvas'), c = off.getContext('2d');
   let mm = 0;
-  for (const r of brushRuns(passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN.slack)) {
+  for (const r of withMarks(brushRuns(passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN.slack), passes, SEQ, marksNow()?.M)) {
     const hex = jarOf(passes[r.pass].pencil).hex;
-    r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle }); });
+    r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle, mark: r.mark ? r.say : null }); });
   }
   if (!list.length) return;
   off.width = PIC.w * s; off.height = PIC.h * s; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = PIC.pitch * s * 0.92;
@@ -528,6 +568,7 @@ function showPanel() {
   if (document.activeElement !== B) B.value = c.edgeBottom;
   $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}Within the walls for this picture: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line on the screen).`;
   if (pressOk()) $('#placeRead').insertAdjacentHTML('afterbegin', `<b>The lowest legs' lift-outs pressed against the bottom wall</b>: the carriage would go ${fmt(pressOk(), 1)} mm past it (${fmt(PRESS_OK[PIC.id], 0)} at most for this picture, the stop 9.45), so it stops at the wall; no leg gone (the owner's “yes”, 2026-11-10, est.).<br>`);
+  showMarks();
   const F = PIC.frame, all = LIB[S.pic].jars.length, nb = $('#btnNoFrame');
   if (nb) nb.disabled = !F;
   if ($('#frameRead')) $('#frameRead').innerHTML = F ? `<b>Frame ${frameSize()} mm</b>, its bottom left corner ${fmt(F.x0, 0)} → ${fmt(F.y0, 0)} ↑ mm from the picture's: lay its canvas with the left edge <b>${frameHome().left}</b> and the bottom edge <b>${frameHome().bottom}</b> mm from home. ${PIC.jars.length} of the ${all} jars in it, ${P.length} lines of the list, ${fmt(R.mm / 1000, 1)} m of brush, ≈ ${hm(R.seconds)} (est.).`
@@ -538,6 +579,22 @@ function showPanel() {
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
 }
+// MARKS: where to tape the paper, mm from the canvas's own edges; what has no room, and why
+function showMarks() {
+  const b = $('#btnMarks'), r = $('#marksRead');
+  if (!b || !r) return;
+  b.classList.toggle('on', S.marks !== false); b.setAttribute('aria-pressed', String(S.marks !== false));
+  if (S.marks === false) { r.innerHTML = 'MARKS off: no marks at the edges.'; return; }
+  if (PIC.frame) { r.innerHTML = 'MARKS: none in a frame — the whole picture only.'; return; }
+  const mk = marksNow(), mm = v => fmt(v, 0);
+  r.innerHTML = (mk.strips.length ? `<b>MARKS</b>, ${mk.n} cells a strip, a jar's first coat at the edge's side, its second next to it; after every jar change one dip, then its marks in this order. Tape the paper: `
+    + mk.strips.map(s => `<b>${sideSay(s)}</b> ${mm(s.box[0])}–${mm(s.box[2])} → · ${mm(s.box[1])}–${mm(s.box[3])} ↑${Math.abs(s.shift) >= 0.5 ? ` (${mm(Math.abs(s.shift))} mm ${s.side === 'left' || s.side === 'right' ? (s.shift > 0 ? 'above' : 'below') : (s.shift > 0 ? 'right of' : 'left of')} the middle: the reach)` : ''}`).join('; ') + ' mm from the canvas\'s left and bottom edges (the white strips on the screen; est.). ' : '<span class="warn">MARKS: no room for a strip anywhere.</span> ')
+    + mk.missing.map(q => `No ${q.side} strip (${q.no}): ${q.why}.`).join(' ');
+}
+if ($('#btnMarks')) $('#btnMarks').onclick = () => {
+  if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: MARKS stay as they are till it ends or stops.');
+  S.marks = S.marks === false; settle();
+};
 // a card's (i), on hover (the owner, 2026-11-06: under the preview's text "we do in an (i), on hover"): that picture's numbers, by its own plan and its own place on the canvas, once for the numbers as they are
 const READS = new Map();
 function readOf(id) {
@@ -571,7 +628,7 @@ const popHide = () => { $('#libPop').hidden = true; };
   addEventListener('pointerdown', e => { if (!inf(e)) popHide(); });                  // a finger has no hover: a tap on the (i) shows it, a tap elsewhere takes it away
 }
 function markRun(at) { [...$('#runList').children].forEach(q => { const i = q.dataset.i === undefined ? -2 : +q.dataset.i; q.classList.toggle('now', i === at); q.classList.toggle('done', at >= 0 && i >= 0 && i < at); }); }
-function settle() { RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); PENRUNS.clear(); save(); showKeys(); showPanel(); kick(); }
+function settle() { RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); PENRUNS.clear(); MARKSNOW.clear(); save(); showKeys(); showPanel(); kick(); }
 $('#lib').onclick = async e => {
   const b = e.target.closest('.fg-card'); if (!b) return;
   if (lastSt && LIVE.includes(lastSt.state) && S.runPic && b.dataset.id !== S.runPic) return warn(`A run of ${esc(LIB[S.runPic]?.title ?? S.runPic)} is on: the library stays on it till the run ends or stops — the board's steps are read by its plan, its jars by its names.`);
@@ -630,8 +687,8 @@ function lcd(st) {
   const cellNow = row?.cells?.[0]?.[0];
   const list = all, at = pid ? list.findIndex(q => q.pencil === pid) : -1;   // the line's place in the whole list, a run from a later line too
   if (live || Q) markRun(at);
-  if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour(RUN_INFO?.bw).lines[st.row - 1] : null } : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
-  const now = Q ? `Cell ${Q.q.num}${Q.q.idle ? ', idle' : ''} · ${fmt(pct / 100 * Q.metres / 1000, 1)} of ${fmt(Q.metres / 1000, 1)} m · est.` : waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (RUN_KEY === 'bw' ? (st.brush_on ? ' · the pen on' : ' · the pen up') : st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
+  if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour(RUN_INFO?.bw).lines[st.row - 1] : null } : row?.mark ? {} : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
+  const now = Q ? `${Q.q.mark ? `${Q.q.mark[0].toUpperCase()}${Q.q.mark.slice(1)}` : `Cell ${Q.q.num}${Q.q.idle ? ', idle' : ''}`} · ${fmt(pct / 100 * Q.metres / 1000, 1)} of ${fmt(Q.metres / 1000, 1)} m · est.` : waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (RUN_KEY === 'bw' ? (st.brush_on ? ' · the pen on' : ' · the pen up') : st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', home: 'HOME', drag: 'DRAG', bw: 'DRAW BW' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(pct / 100 * Q.metres / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">

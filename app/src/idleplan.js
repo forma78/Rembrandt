@@ -139,7 +139,8 @@ export function idleRowsOf(passes, pencils, o, every = 0, lap = 0, runs = null) 
   for (const r of runs ?? idleRunsOf(passes, every, lap)) {
     const row = ps.length + 1, P = passes[r.pass];
     ps.push(piecesOf(r.pts).map((g, i) => ({ ...machinePiece(g, o), tilt: 0, row, ...(i ? {} : { sweep: SWEEP_MM, beyond: r.beyond, nodip: !r.dip }) })));
-    info.push({ label: `${r.pass + 1}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil} · cell ${r.num} · ${r.say}`, pencil: P.pencil, pass: r.pass, L: lengthOf(r.pts), cells: [[r.num, 0]] });
+    // a mark (FORM-G's MARKS, formgplan.js) is no cell: BACK ONE CELL and the remote's cell pass it by
+    info.push({ label: `${r.pass + 1}/${passes.length} · ${byId[P.pencil]?.name ?? P.pencil} · ${r.mark ? '' : `cell ${r.num} · `}${r.say}`, pencil: P.pencil, pass: r.pass, L: lengthOf(r.pts), cells: r.mark ? [] : [[r.num, 0]], ...(r.mark ? { mark: r.mark } : {}) });
     groups[r.pass].push(ps.length - 1);
   }
   return { ps, info, lifts: Math.max(0, ps.length - passes.length), groups };

@@ -122,11 +122,86 @@ export const j3Runs = (runs, j3 = ELBOW_J3, o = {}) => runs.map(r => {
   const lo = o.floor ?? -Infinity, hi = o.ceil ?? Infinity;
   return { ...r, pts: elbowEndsOf(r.pts, j3).map(([x, y]) => [x, Math.min(hi, Math.max(lo, y))]) };
 });
-// o: { slack, j3, floor, ceil } — FORM-G's R3 and its picture's legs' reach; none, as before (OPM-G)
+// o: { slack, j3, floor, ceil } — FORM-G's R3 and its picture's legs' reach; none, as before (OPM-G); o.marks: marksOf's strips, every line's marks before its cells
 export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false, o = {}) => {
-  const runs = brushRuns(passes, every, lap, canon, o.slack ?? 0.25);
+  const runs = withMarks(brushRuns(passes, every, lap, canon, o.slack ?? 0.25), passes, seqOf(pic), o.marks);
   return idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, o.j3 ? j3Runs(runs, o.j3, o) : runs);
 };
+
+// ---------- MARKS, the printer's marks at the middles of the canvas's edges ----------
+// The owner, 2026-11-11 (FORM-G/IMG_2683 … IMG_2687, paper strips taped over the canvas, a grid drawn on each): "typographic marks along the canvas's edges: every colour,
+// when we change the jar, the machine dips once, then makes a mark on four sides — as our TEST, but this time in paint, in the middle of the edges: left, right, top and
+// bottom". Four strips, his numbers: 1 the left, 2 the top, 3 the right, 4 the bottom, the marks in that order. Every jar its cell in every strip, by its place in the list
+// (its first line), the first at the top of a side strip and at the left of a top or a bottom one; a jar's first coat in the row nearer the canvas's edge, its second coat
+// in the row inside it, next to it (asked whether a second coat marks too: "yes, a second row"). A mark is a leg along X, the only way the brush paints; one dip for all
+// of a line's marks, then its first cell on a dip of its own. A strip lies where the brush reaches, `wall` in from a wall, `edge` in from the canvas's edge at least,
+// `clear` off the picture: as near the edge as that lets it, about the edge's middle, or as near it as the reach lets it. Where there is no room it is not laid and the page says so — the classic 911 on 70 × 100 at the owner's place
+// (left −60, bottom −68): the car takes 843 of the reach's 865 mm along X, 11 mm left above its nose and under its tail (asked, the owner: "only left and right").
+// mm, est.: leg the mark; along its cells' pitch along X (a side strip) and its two rows apart there (a top or bottom one), the leg and its bulbs; across, the same across
+// X, the trail ≈ 8 mm wide (LAB's real 3); wall: from a wall across X, and along X as the elbow sweeps the carriage past a leg's end, more at the bottom
+export const MARKS = { leg: 8, along: 14, across: 12, edge: 15, clear: 12, trail: 8, wall: 8, wallBottom: 25, wallTop: 8 };
+export const MARK_SIDES = [{ no: 1, side: 'left' }, { no: 2, side: 'top' }, { no: 3, side: 'right' }, { no: 4, side: 'bottom' }];
+// a jar's cell: its place among the list's first lines; a second coat, its jar's
+export function markCellsOf(seq) {
+  const k = new Map();
+  for (const j of seq) if (j.coat !== 2 && !k.has(j.id)) k.set(j.id, k.size);
+  return seq.map(j => ({ id: j.id, k: k.get(j.coat === 2 ? j.jar : j.id), row: j.coat === 2 ? 1 : 0 }));
+}
+// pic: its w, h and box (its legs' bounds); reach: the canvas's part the brush reaches, { x0, x1, y0, y1 }, mm on the canvas as the legs; n: the cells a strip (the jars)
+// → { strips: [{ no, side, shift, cell(k, row) → [x, y], box: [x0, y0, x1, y1] }], missing: [{ no, side, why }] }, a mark's middle at cell(k, row); shift: mm off the
+// edge's middle, where the reach is off the canvas's
+export function stripsOf(pic, reach, n, o = MARKS) {
+  const [bx0, by0, bx1, by1] = pic.box, half = o.trail / 2, strips = [], missing = [];
+  const lo = (a, b) => Math.max(a, b), hi = (a, b) => Math.min(a, b);
+  const middle = (m, a, b) => a > b + 1e-9 ? null : Math.min(b, Math.max(a, m));   // the edge's middle, or as near it as the reach lets the strip lie; null: longer than the reach
+  for (const { no, side } of MARK_SIDES) {
+    const upright = side === 'left' || side === 'right';
+    // across the strip: the outer row (the first coats) as near the canvas's edge as it may lie, the inner one a row in from it; along it, its n cells about the edge's middle
+    let outer, inner, room, why;
+    if (upright) {
+      const len = (n - 1) * o.along + o.leg;
+      if (side === 'left') { outer = lo(o.edge, reach.x0 + o.wall) + half; inner = outer + o.across; room = bx0 - half - o.clear - (inner + half); }
+      else { outer = hi(pic.w - o.edge, reach.x1 - o.wall) - half; inner = outer - o.across; room = (inner - half) - (bx1 + half + o.clear); }
+      why = `${Math.round(Math.max(0, side === 'left' ? bx0 - half - lo(o.edge, reach.x0 + o.wall) : hi(pic.w - o.edge, reach.x1 - o.wall) - bx1 - half))} mm between the picture and where the brush may mark, ${Math.round(o.trail + o.across + o.clear)} needed`;
+      if (room < 0) { missing.push({ no, side, why }); continue; }
+      const mid = middle(pic.h / 2, reach.y0 + o.wallBottom + len / 2, reach.y1 - o.wallTop - len / 2);
+      if (mid === null) { missing.push({ no, side, why: `${n} cells, ${Math.round(len)} mm, are longer than the reach along X there` }); continue; }
+      const y0 = mid + (n - 1) * o.along / 2;                           // the first at the top
+      strips.push({ no, side, shift: mid - pic.h / 2, cell: (k, row) => [row ? inner : outer, y0 - k * o.along], box: [Math.min(outer, inner) - half, y0 - (n - 1) * o.along - o.leg / 2, Math.max(outer, inner) + half, y0 + o.leg / 2] });
+    } else {
+      const len = (n - 1) * o.across + o.trail;
+      if (side === 'top') { outer = hi(pic.h - o.edge, reach.y1 - o.wallTop) - o.leg / 2; inner = outer - o.along; room = (inner - o.leg / 2) - (by1 + o.clear); }
+      else { outer = lo(o.edge, reach.y0 + o.wallBottom) + o.leg / 2; inner = outer + o.along; room = by0 - o.clear - (inner + o.leg / 2); }
+      why = `${Math.round(Math.max(0, side === 'top' ? hi(pic.h - o.edge, reach.y1 - o.wallTop) - by1 : by0 - lo(o.edge, reach.y0 + o.wallBottom)))} mm between the picture and where the brush may mark, ${Math.round(o.leg + o.along + o.clear)} needed`;
+      if (room < 0) { missing.push({ no, side, why }); continue; }
+      const mid = middle(pic.w / 2, reach.x0 + o.wall + len / 2, reach.x1 - o.wall - len / 2);
+      if (mid === null) { missing.push({ no, side, why: `${n} cells, ${Math.round(len)} mm, are wider than the reach across X there` }); continue; }
+      const x0 = mid - (n - 1) * o.across / 2;                           // the first at the left
+      strips.push({ no, side, shift: mid - pic.w / 2, cell: (k, row) => [x0 + k * o.across, row ? inner : outer], box: [x0 - half, Math.min(outer, inner) - o.leg / 2, x0 + (n - 1) * o.across + half, Math.max(outer, inner) + o.leg / 2] });
+    }
+  }
+  return { strips, missing };
+}
+// every line's marks: for the list (seq, the passes' jars in order) on the strips → [{ pass, k, row, marks: [{ no, side, pts }] }], a mark from its bottom up
+export function marksOf(seq, S, o = MARKS) {
+  if (!S?.strips.length) return [];
+  return markCellsOf(seq).map(({ k, row }, pass) => ({ pass, k, row, marks: S.strips.map(s => { const [x, y] = s.cell(k, row); return { no: s.no, side: s.side, pts: [[x, y - o.leg / 2], [x, y + o.leg / 2]] }; }) }));
+}
+// the brush's runs with every line's marks before its first: one dip for them all, its first cell on a dip of its own as it was
+export function withMarks(runs, passes, seq, M) {
+  if (!M?.length) return runs;
+  const out = [];
+  let was = -1;
+  for (const r of runs) {
+    if (r.pass !== was) {
+      was = r.pass;
+      const m = M[passes[r.pass] ? seq.findIndex(j => j.id === passes[r.pass].pencil) : -1];
+      if (m) m.marks.forEach((q, i) => out.push({ pass: r.pass, num: 0, pts: q.pts, say: `mark ${q.no}, ${q.side}${m.row ? ', 2nd coat' : ''}`, dip: i === 0, idle: false, beyond: true, mark: q.no }));
+    }
+    out.push(r);
+  }
+  return out;
+}
 // where the canvas may lie, its left and bottom edges from home, mm, so that the carriage keeps within the walls: from plotRun's own carriage, run with no Here (the elbow's sweep takes
 // the carriage past a leg's end, about 20 mm at the bottom, less than none at the top; the walls press a path silently, so this is what counts)
 export function placeRange(pic, carriage, walls) {

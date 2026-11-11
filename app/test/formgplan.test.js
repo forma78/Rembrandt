@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
 import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -389,3 +389,61 @@ test('the classic\'s v.3: v.2\'s jars halved, every one a v.2 jar under its own 
   assert.ok(lineOfPic(v3) / v3.jars.length > 1.6 * lineOfPic(v2) / v2.jars.length, 'a jar\'s line longer ("from 1 metre to 3–4")');
 });
 
+// MARKS (the owner, 2026-11-11, FORM-G/IMG_2683: "every colour, when we change the jar, the machine dips once, then makes a mark on four sides … in the middle of the edges")
+const placed = (pic, c) => { const W = reach(); return { x0: Math.max(0, -c.edgeLeft), x1: Math.min(pic.w, W.y.max - W.y.min - c.edgeLeft), y0: Math.max(0, -c.edgeBottom), y1: Math.min(pic.h, W.x.max - W.x.min - c.edgeBottom) }; };
+test('MARKS on the classic at the owner\'s place, left −60, bottom −68: the left and the right strip about the middle of the sides, where the brush reaches, clear of the car; none at the top and the bottom, and why', () => {
+  const pic = load('porsche-red-v3'), on = placed(pic, { edgeLeft: -60, edgeBottom: -68 }), n = 24, st = stripsOf(pic, on, n);
+  assert.deepEqual(on, { x0: 60, x1: 628.5, y0: 68, y1: 933 });
+  assert.deepEqual(st.strips.map(s => [s.no, s.side]), [[1, 'left'], [3, 'right']]);
+  assert.deepEqual(st.missing.map(q => [q.no, q.side]), [[2, 'top'], [4, 'bottom']], 'the car takes 843 of the 865 mm along X (the owner: "only left and right")');
+  for (const q of st.missing) assert.match(q.why, /mm between the picture and where the brush may mark, \d+ needed/);
+  for (const s of st.strips) {
+    const [x0, y0, x1, y1] = s.box;
+    assert.ok(x0 >= on.x0 + MARKS.wall - 1e-9 && x1 <= on.x1 - MARKS.wall + 1e-9, `${s.side}: within the reach across, ${x0} … ${x1}`);
+    assert.ok(x1 + MARKS.clear <= pic.box[0] - MARKS.trail / 2 || x0 - MARKS.clear >= pic.box[2] + MARKS.trail / 2, `${s.side}: clear of the car`);
+    assert.ok(Math.abs((y0 + y1) / 2 - pic.h / 2) < 1e-6, `${s.side}: about the side's middle`);
+    assert.ok(s.cell(0, 0)[1] > s.cell(1, 0)[1], 'the first at the top');
+    assert.ok(Math.abs(s.cell(0, 0)[0] - (s.side === 'left' ? 0 : pic.w)) < Math.abs(s.cell(0, 1)[0] - (s.side === 'left' ? 0 : pic.w)), 'the first coats at the edge\'s side');
+  }
+  assert.ok(st.strips[0].box[0] < 75 && st.strips[1].box[2] > 615, 'as near the edges as the reach lets them');
+});
+test('MARKS on a canvas with room all round: four strips, the owner\'s order — 1 the left, 2 the top, 3 the right, 4 the bottom; the first at the left of a top or a bottom one', () => {
+  const pic = { w: 600, h: 600, box: [150, 150, 450, 450] }, st = stripsOf(pic, { x0: 0, x1: 568, y0: 0, y1: 600 }, 10);
+  assert.deepEqual(st.strips.map(s => s.no), [1, 2, 3, 4]); assert.deepEqual(st.missing, []);
+  const top = st.strips[1], bottom = st.strips[3];
+  assert.ok(top.cell(0, 0)[0] < top.cell(1, 0)[0] && bottom.cell(0, 0)[0] < bottom.cell(1, 0)[0], 'left to right');
+  assert.ok(top.cell(0, 0)[1] > top.cell(0, 1)[1] && bottom.cell(0, 0)[1] < bottom.cell(0, 1)[1], 'the first coats at the edge\'s side');
+  assert.ok(Math.abs((top.box[0] + top.box[2]) / 2 - 300) < 1e-6, 'about the edge\'s middle');
+  assert.ok(st.strips[2].box[2] <= 568 - MARKS.wall + 1e-9, 'the right one within the reach, not at the canvas\'s edge past it');
+  assert.ok(st.strips.every(s => s.shift === 0), 'all about the edges\' middles');
+  const off = stripsOf(pic, { x0: 0, x1: 500, y0: 0, y1: 600 }, 40), t = off.strips.find(s => s.side === 'top');
+  assert.ok(t.shift < -40 && Math.abs(t.box[2] - (500 - MARKS.wall)) < 1e-6, `the reach off the canvas's middle: as near it as the reach lets the strip, ${t.shift} mm off`);
+  const narrow = stripsOf(pic, { x0: 0, x1: 568, y0: 0, y1: 600 }, 60);
+  assert.deepEqual(narrow.strips, [], '60 cells: no strip takes them on a 60 × 60');
+  assert.deepEqual(narrow.missing.map(q => /longer than the reach along X/.test(q.why) ? 'along' : /wider than the reach across X/.test(q.why) ? 'across' : q.why), ['along', 'across', 'along', 'across']);
+});
+test('MARKS in the run: every line\'s marks before its first cell, one dip for them all, the cell on a dip of its own; a second coat in its jar\'s cell, the inner row; no cell for BACK ONE CELL; nothing more past the walls', () => {
+  const pic = load('porsche-red-v3'), c = { edgeLeft: -60, edgeBottom: -68 }, seq = seqOf(pic), st = stripsOf(pic, placed(pic, c), 24), M = marksOf(seq, st);
+  const cells = markCellsOf(seq);
+  assert.equal(M.length, 31);
+  assert.deepEqual(cells.filter(q => q.row === 0).map(q => q.k), [...Array(24).keys()], 'every jar its cell, in the list\'s order, Jar 6 the last');
+  for (const [i, j] of seq.entries()) if (j.coat === 2) assert.deepEqual([cells[i].k, cells[i].row], [cells[seq.findIndex(q => q.id === j.jar)].k, 1], `${j.name}: its jar's cell, the inner row`);
+  const P = passesOf(pic), runs = withMarks(brushRuns(P, R3.every, undefined, false, R3.slack), P, seq, M);
+  for (let k = 0; k < P.length; k++) {
+    const mine = runs.filter(r => r.pass === k), first = mine.findIndex(r => !r.mark);
+    assert.deepEqual(mine.slice(0, first).map(r => [r.mark, r.dip]), [[1, true], [3, false]], `line ${k + 1}: its marks first, 1 then 3, one dip`);
+    assert.ok(mine[first].dip, `line ${k + 1}: its first cell on a dip of its own`);
+    assert.ok(mine.slice(first).every(r => !r.mark));
+    for (const r of mine.slice(0, first)) { assert.equal(r.pts[0][0], r.pts[1][0], 'a mark along X'); assert.ok(Math.abs(r.pts[1][1] - r.pts[0][1] - MARKS.leg) < 1e-9); }
+  }
+  const W = reach(), here = { x: W.x.min + c.edgeBottom + pic.h / 2, y: W.y.min + c.edgeLeft + pic.w / 2 };
+  const run = marks => { const R = rowsOf(pic, P, R3.every, undefined, false, { slack: R3.slack, j3: R3.j3, marks }); return { R, r: plotRun({ ...OPTS, rows: R.ps.length, here }, grouped(R)) }; };
+  const a = run(undefined), b = run(M);
+  assert.equal(b.R.ps.length, a.R.ps.length + 31 * 2);
+  assert.equal(b.r.fault, ''); assert.equal(b.r.gone, 0);
+  assert.ok(Math.abs(b.r.pastWall - a.r.pastWall) < 1e-6, `nothing more pressed into a wall: ${a.r.pastWall} → ${b.r.pastWall}`);
+  assert.equal(b.r.blocks.filter(q => q.kind === 'pause').length, P.length - 1, 'a pause between lines, as before');
+  const marks = b.R.info.filter(q => q.mark);
+  assert.equal(marks.length, 62); assert.ok(marks.every(q => q.cells.length === 0 && /· mark [13], (left|right)/.test(q.label)));
+  assert.ok(b.r.seconds - a.r.seconds < 30 * 60, `the marks' time: ${Math.round((b.r.seconds - a.r.seconds) / 60)} min`);
+});
