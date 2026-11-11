@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **`machine/2026-11-11 arm silent.txt`: every silence of the arm since the cup at hand, by phase of the dip** (the owner, 2026-11-11, "push it, I'll show
+  it to Claude in the chat too"). From the run journal, which stays on the Mac: per hour spent in it, the elbow up before the turn to the jar 10.3, just after
+  the shoulder came back to 0 8.6, the turn 2.1, in the jar 0, in the row 2.5; no volt sag before any; the same after the shoulder's plugs were swapped.
 - **Photos: JPG only, no HEIC** (the owner, 2026-11-11: "just delete all the HEIC, let there be JPGs everywhere, for order"). Every HEIC in the folder
   (59: FORM-G, INKA, OPM-G, OPM-N, OPM, St_John) is a full-size JPG of the same name (`sips`), its size checked, the HEIC deleted. In git: St_John's nine
   and OPM's one, their location tags taken out, the picture and its turn as they were. The two notes that named `FORM-G/IMG_2643.HEIC` name the JPG.

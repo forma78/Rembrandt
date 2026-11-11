@@ -1,0 +1,960 @@
+CNCDM-001, the arm (three Waveshare ST3235 bus servos: shoulder, elbow, wrist) going silent mid-run, 2026-11-04 ... 11-11.
+The owner's suspect, 2026-11-11 evening: the shoulder servo's plug (Waveshare's design, the wires could rub and work loose);
+he swapped its two plugs between 19:43 and 19:57. After it (20:03 ... 20:53) the silences go on in the same phases, two of 77-84 s.
+The steppers and the board keep running through a silence; the servos' volts read 11.0-11.2 V up to the last look before every one.
+Three times the same evening the carriage stopped short of a block's end (20:00:59 171.6 mm, 20:05:33 3.2 mm, 20:36:12 15.7 mm,
+the last 8 s after an 84 s silence ended).
+
+THE ARM SILENT: every case in the run journal (app/logs/runs.jsonl), 2026-11-03 18:00 (the cup at hand) to 2026-11-11 20:54:32
+
+How to read it. A "dip" line is written as the shoulder STARTS its turn to the jar at hand (+32.5°; the elbow is already up at +32.5).
+A hand dip after it: the shoulder +32.5 (40°/s), the elbow down to +14 into the paint, 1 s, the elbow up to +32.5, the shoulder back to 0;
+about 6 s in all, then the elbow down to the canvas (J 2 25, J 2 12) and the row. "t dip" = seconds since the last dip line,
+"to next" = seconds from the end of the silence to the next dip line. The journal keeps whole seconds; only a look that FAILS is
+written ("look: ... silent, asked again" names the joints that did not answer). The volts are in the dip lines since 2026-11-11 19:20 only.
+
+By phase (painting runs only):
+  1  before the turn: the elbow up to +32.5 to go to the jar, the shoulder still at 0       15 cases (6 long or ended the run),  87 min spent in it, 10.3 an hour
+  2  the turn: the shoulder to the jar (+32.5) and the elbow into the paint                  6 cases (3 long or ended the run), 174 min spent in it, 2.1 an hour
+  3  in the jar: the paint, the elbow up, the shoulder back to 0                             0 cases (0 long or ended the run), 131 min spent in it, 0.0 an hour
+  4  just after the shoulder came back to 0: the elbow down to the canvas (J 2 25, J 2 12)  24 cases (6 long or ended the run), 167 min spent in it, 8.6 an hour
+  5  in the row: the legs and lifts                                                          6 cases (1 long or ended the run), 142 min spent in it, 2.5 an hour
+  0  not while painting (HOME, a start, DRAW BW)                                            29
+
+when                ph t dip  to next jar       cell first silent           at move  command     lasted  then
+2026-11-04 17:44:50 2  0              Light Pea 8    shoulder to 32.5°: the          shoulder to 32.5°     0s  start
+2026-11-04 22:43:58 4  9              LAB       4    shoulder, wrist                 J 2 25          2s  start
+2026-11-10 19:46:40 0                                elbow                           J 2 25          4s  start
+2026-11-10 19:48:23 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-10 19:48:31 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-10 19:48:40 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-10 23:07:28 4  9      8       Jar 1     4    elbow                                           1s  dip
+2026-11-10 23:15:56 4  9      12      Jar 1     5    elbow                                           0s  dip
+2026-11-10 23:34:30 4  11     13      Jar 1     5    elbow                                           2s  dip
+2026-11-10 23:37:26 4  9      14      Jar 1     13   elbow                                           0s  dip
+2026-11-11 00:09:51 4  10     5       Jar 3     2    elbow                                           0s  dip
+2026-11-11 00:10:03 4  7      18      Jar 3     3    shoulder, elbow                                 0s  dip
+2026-11-11 00:34:08 4  10             Jar 7     7    elbow                           J 2 12          5s  start
+2026-11-11 00:35:17 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 00:35:26 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 01:06:17 4  8      10      Jar 9     7    shoulder                                        0s  dip
+2026-11-11 01:09:41 1  19     0       Jar 9     16   shoulder                                        0s  dip   [the next jar's dip line 0 s after]
+2026-11-11 01:36:01 2  3      19      Jar 11    4    shoulder, elbow                                 0s  dip
+2026-11-11 01:36:54 1  17             Jar 11    6    shoulder, elbow, wrist          J 2 32.5        3s  start   [the elbow to +32.5 (the jar's fork) refused]
+2026-11-11 01:51:35 4  8              Jar 13    7    elbow                           J 2 25          5s  start
+2026-11-11 01:52:06 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 01:52:08 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 01:52:16 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 02:22:23 1  21     1       Jar 16    19   shoulder                                        0s  dip   [the next jar's dip line 1 s after]
+2026-11-11 02:22:51 5  13             Jar 16    20   elbow                                           0s  pause
+2026-11-11 02:34:28 4  8      9       Jar 18    8    elbow                                           2s  dip
+2026-11-11 02:59:14 1  19             Jar 19    18   shoulder, elbow, wrist elbow                  100s  stopped   [ended at block +13 = the next jar's elbow-up block (rows of 14 blocks)]
+2026-11-11 03:00:58 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 03:01:05 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 03:01:08 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 03:02:42 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 03:05:43 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 03:05:47 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 03:26:10 2  3      15      Jar 21    14   shoulder                                        0s  dip
+2026-11-11 03:32:33 2  1      22      Jar 21    31   shoulder, elbow, wrist                          0s  dip
+2026-11-11 03:34:14 4  8      8       Jar 21    36   elbow                                           0s  dip
+2026-11-11 03:39:04 5  15     6       Jar 22    8    elbow                                           0s  dip
+2026-11-11 03:39:25 1  15     1       Jar 22    9    shoulder, elbow, wrist elbow                   76s  dip   [the next jar's dip line 1 s after]
+2026-11-11 03:40:50 4  8              Jar 22    10   elbow                                           0s  error: J 2 25: the elbow does not answer: is the 12 V on?
+2026-11-11 03:40:55 5  13             Jar 22    10   elbow                  elbow    J 2 25         95s  start
+2026-11-11 03:48:44 0                                arm zero: ok Z 1                arm zero: ok Z 1     0s  start
+2026-11-11 12:41:57 1  22     2       Jar 1     3    shoulder                                        0s  dip   [the next jar's dip line 2 s after]
+2026-11-11 12:42:07 4  8      10      Jar 1     4    elbow                                           2s  dip
+2026-11-11 12:47:37 5  15             Jar 1     19   elbow                  elbow                    6s  pause
+2026-11-11 12:49:01 4  9      10      Jar 2     1    elbow                                           2s  dip
+2026-11-11 12:49:09 5  17     4       Jar 2     1    elbow                                           0s  dip
+2026-11-11 13:11:14 1  18     1       Jar 3     14   shoulder                                        0s  dip   [the next jar's dip line 1 s after]
+2026-11-11 13:24:23 1  17             Jar 5     9    shoulder, elbow, wrist elbow    J 2 32.5       92s  start   [the elbow to +32.5 (the jar's fork) refused]
+2026-11-11 13:27:08 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 13:27:11 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 13:27:13 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 13:27:18 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 13:27:39 0                                shoulder, elbow, wrist shoulder                 9s  start
+2026-11-11 13:33:35 1  20             Jar 7     2    shoulder, elbow, wrist elbow                   29s  stopped   [ended at block +13 = the next jar's elbow-up block (rows of 14 blocks)]
+2026-11-11 13:34:05 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 13:34:13 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 19:22:06 4  10     2       Jar 1     4    elbow                  elbow                   31s  dip
+2026-11-11 19:31:26 1  25     1       Jar 2          shoulder, elbow, wrist                          0s  dip   [the next jar's dip line 1 s after]
+2026-11-11 19:31:35 4  8      10      Jar 2     1    elbow                  elbow                   16s  dip
+2026-11-11 19:32:24 4  8      7       Jar 2     3    elbow                                           0s  dip
+2026-11-11 19:34:01 1  21     0       Jar 2     8    shoulder                                        0s  dip   [the next jar's dip line 0 s after]
+2026-11-11 19:34:35 4  9      87      Jar 2     9    elbow                  elbow                    7s  dip
+2026-11-11 19:34:59 1  33     1       Jar 2     9    shoulder, elbow, wrist elbow                   69s  dip   [the next jar's dip line 1 s after]
+2026-11-11 19:36:11 2  2              Jar 2     10   shoulder, elbow, wrist shoulder                57s  stopped   [ended at block +1: the elbow into the paint, the shoulder already turned]
+2026-11-11 19:37:22 2  73             Jar 2     10   shoulder, elbow, wrist elbow                   74s  stopped   [ended at block +1: the elbow into the paint, the shoulder already turned]
+2026-11-11 19:38:42 0                                arm zero: ok Z 0: the           arm zero: ok Z 0     0s  start
+2026-11-11 19:39:09 0                                arm zero: ok Z 0: the           arm zero: ok Z 0     0s  start
+2026-11-11 19:42:50 0                                arm zero: ok Z 0: the           arm zero: ok Z 0     0s  start
+2026-11-11 19:42:54 0                                arm zero: ok Z 0                arm zero: ok Z 0     0s  start
+2026-11-11 19:43:02 0                                arm zero: ok Z 0: the           arm zero: ok Z 0     0s  start
+2026-11-11 19:54:02 0                                shoulder, elbow, wrist elbow                  142s  start
+2026-11-11 20:03:18 1  19     1       Jar 3     1    shoulder                                        0s  dip   [the next jar's dip line 1 s after]
+2026-11-11 20:19:52 4  9      18      Jar 3     7    elbow                                           1s  dip
+2026-11-11 20:21:12 4  8      7       Jar 3     11   elbow                  elbow                    8s  dip
+2026-11-11 20:33:30 4  8      14      Jar 7     3    elbow                  elbow                    6s  dip
+2026-11-11 20:34:27 1  19     0       Jar 7     5    shoulder                                        0s  dip   [the next jar's dip line 0 s after]
+2026-11-11 20:34:38 4  11     2       Jar 7     6    elbow                  elbow                   84s  dip
+2026-11-11 20:41:20 4  10     3       Jar 10    2    elbow                  elbow                   77s  dip
+2026-11-11 20:43:50 5  21     5       Jar 10    3    elbow                                           0s  dip
+2026-11-11 20:53:05 1  17     1       Jar 12    4    shoulder, elbow, wrist                          0s  dip   [the next jar's dip line 1 s after]
+
+
+THE JOURNAL LINES, every case (a "bus" line repeated is folded; "near" lines carry the angle in "at", their time is lost)
+
+---- 2026-11-04 17:44:50 ----
+{"at": "2026-11-04 17:44:50", "event": "dip", "by": "plan", "block": 335, "row": 34, "in_row": 0.0, "painted_mm": 2359.2, "colour": "Light Peach", "cell": 8}
+{"at": "2026-11-04 17:44:50", "event": "error", "message": "shoulder to 32.5°: the shoulder does not answer: is the 12 V on?", "block": 335, "blocks": 18842, "percent": 1.7, "seconds": 420}
+{"at": "2026-11-04 18:03:26", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "label": "OPM-N · HOME", "here": {"x": 300, "y": 300}}
+
+---- 2026-11-04 22:43:58 ----
+{"at": "2026-11-04 22:43:49", "event": "dip", "by": "plan", "block": 41, "row": 4, "in_row": 0.0, "painted_mm": 50.0, "colour": "LAB", "cell": 4}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 45}
+{"at": "2026-11-04 22:43:58", "event": "bus", "what": "look: shoulder, wrist silent, asked again"}
+{"at": "2026-11-04 22:43:58", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x2 more, to 2026-11-04 22:43:59
+{"at": "2026-11-04 22:44:00", "event": "error", "message": "J 2 25: the elbow does not answer: is the 12 V on?", "block": 48, "blocks": 227, "percent": 10.0, "seconds": 48}
+{"at": "2026-11-04 22:44:16", "event": "start", "blocks": 227, "paint_mm": 1002.5, "page": "lab", "pass": "lab", "label": "LAB · 21 strokes at X 0, Y 0 · pressed 0°", "here": {"x": 0, "y": 0}, "cup": {"hand": true, "on": true, "x": null, "y": null, "est": {"swing": true}, "up": [30, 35], "to": [30, 35], "dip": 14, "dwell": 1, "swing": 40, "diameter": 57, "paint": [14, 15]}, "travel": 120, "estimate_s": 336}
+
+---- 2026-11-10 19:46:40 ----
+{"at": "2026-11-10 19:42:28", "event": "continue", "block": 5}
+{"at": "2026-11-10 19:46:40", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-10 19:46:41
+{"at": "2026-11-10 19:46:42", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-10 19:46:44
+{"at": "2026-11-10 19:46:44", "event": "error", "message": "J 2 25: the elbow does not answer: is the 12 V on?", "block": 168, "blocks": 2858, "percent": 9.5, "seconds": 266}
+{"at": "2026-11-10 19:48:23", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 442, "y": 350}}
+
+---- 2026-11-10 19:48:23 ----
+{"at": "2026-11-10 19:48:23", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 442, "y": 350}}
+{"at": "2026-11-10 19:48:23", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-10 19:48:31", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 442, "y": 350}}
+
+---- 2026-11-10 19:48:31 ----
+{"at": "2026-11-10 19:48:31", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 442, "y": 350}}
+{"at": "2026-11-10 19:48:31", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-10 19:48:40", "event": "start", "blocks": 26, "paint_mm": 24.0, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red", "here": {"x": 442, "y": 350}, "pass": "test", "cup": {"hand": true, "on": true, "x": null, "y": null, "est": {"swing": true}, "up": [30, 35], "to": [30, 35], "dip": 14, "dwell": 1, "swing": 40, "diameter": 57, "paint": [14, 15]}, "dots": [{"name": "TL", "x": 862, "y": 152.5}, {"name": "TR", "x": 862, "y": 547.5}, {"name": "BR", "x": 23, "y": 547.5}, {"name": "BL", "x": 23, "y": 152.5}], "estimate_s": 38}
+
+---- 2026-11-10 19:48:40 ----
+{"at": "2026-11-10 19:48:40", "event": "start", "blocks": 26, "paint_mm": 24.0, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red", "here": {"x": 442, "y": 350}, "pass": "test", "cup": {"hand": true, "on": true, "x": null, "y": null, "est": {"swing": true}, "up": [30, 35], "to": [30, 35], "dip": 14, "dwell": 1, "swing": 40, "diameter": 57, "paint": [14, 15]}, "dots": [{"name": "TL", "x": 862, "y": 152.5}, {"name": "TR", "x": 862, "y": 547.5}, {"name": "BR", "x": 23, "y": 547.5}, {"name": "BL", "x": 23, "y": 152.5}], "estimate_s": 38}
+{"at": "2026-11-10 19:48:40", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 26, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-10 19:48:43", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 442, "y": 350}}
+
+---- 2026-11-10 23:07:28 ----
+{"at": "2026-11-10 23:07:19", "event": "dip", "by": "plan", "block": 57, "row": 8, "in_row": 0.0, "painted_mm": 449.6, "colour": "Jar 1", "cell": 4}
+{"at": "2026-11-10 23:07:28", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x1 more, to 2026-11-10 23:07:29
+{"at": "2026-11-10 23:07:37", "event": "dip", "by": "plan", "block": 71, "row": 10, "in_row": 0.0, "painted_mm": 542.1, "colour": "Jar 1", "cell": 5}
+
+---- 2026-11-10 23:15:56 ----
+{"at": "2026-11-10 23:15:47", "event": "dip", "by": "plan", "block": 71, "row": 10, "in_row": 0.0, "painted_mm": 542.1, "colour": "Jar 1", "cell": 5}
+{"at": "2026-11-10 23:15:56", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-10 23:16:08", "event": "dip", "by": "plan", "block": 85, "row": 12, "in_row": 0.0, "painted_mm": 639.0, "colour": "Jar 1", "cell": 6}
+
+---- 2026-11-10 23:34:30 ----
+{"at": "2026-11-10 23:34:19", "event": "dip", "by": "plan", "block": 71, "row": 10, "in_row": 0.0, "painted_mm": 542.1, "colour": "Jar 1", "cell": 5}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 75}
+{"at": "2026-11-10 23:34:30", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-10 23:34:32
+{"at": "2026-11-10 23:34:45", "event": "dip", "by": "plan", "block": 85, "row": 12, "in_row": 0.0, "painted_mm": 639.0, "colour": "Jar 1", "cell": 6}
+
+---- 2026-11-10 23:37:26 ----
+{"at": "2026-11-10 23:37:17", "event": "dip", "by": "plan", "block": 203, "row": 28, "in_row": 0.0, "painted_mm": 1716.1, "colour": "Jar 1", "cell": 13}
+{"at": "2026-11-10 23:37:26", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-10 23:37:40", "event": "dip", "by": "plan", "block": 217, "row": 30, "in_row": 0.0, "painted_mm": 1799.8, "colour": "Jar 1", "cell": 14}
+
+---- 2026-11-11 00:09:51 ----
+{"at": "2026-11-11 00:09:41", "event": "dip", "by": "plan", "block": 479, "row": 66, "in_row": 0.0, "painted_mm": 3716.2, "colour": "Jar 3", "cell": 2}
+{"at": "2026-11-11 00:09:51", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 00:09:56", "event": "dip", "by": "plan", "block": 493, "row": 68, "in_row": 0.0, "painted_mm": 3784.7, "colour": "Jar 3", "cell": 3}
+
+---- 2026-11-11 00:10:03 ----
+{"at": "2026-11-11 00:09:56", "event": "dip", "by": "plan", "block": 493, "row": 68, "in_row": 0.0, "painted_mm": 3784.7, "colour": "Jar 3", "cell": 3}
+{"at": "2026-11-11 00:10:03", "event": "bus", "what": "look: shoulder, elbow silent, asked again"}
+{"at": "2026-11-11 00:10:05", "event": "bus", "what": "zero: ok Z 0, asked again"}
+      ... the same x2 more, to 2026-11-11 00:10:06
+{"at": "2026-11-11 00:10:21", "event": "dip", "by": "plan", "block": 507, "row": 70, "in_row": 0.0, "painted_mm": 3849.2, "colour": "Jar 3", "cell": 4}
+
+---- 2026-11-11 00:34:08 ----
+{"at": "2026-11-11 00:33:58", "event": "dip", "by": "plan", "block": 1235, "row": 169, "in_row": 0.0, "painted_mm": 9753.1, "colour": "Jar 7", "cell": 7}
+{"at": "2026-11-11 00:34:08", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 00:34:10
+{"at": "2026-11-11 00:34:11", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 00:34:12
+{"at": "2026-11-11 00:34:13", "event": "error", "message": "J 2 12: the elbow does not answer: is the 12 V on?", "block": 1244, "blocks": 33304, "percent": 3.0, "seconds": 3686}
+{"at": "2026-11-11 00:35:15", "event": "start", "blocks": 32158, "paint_mm": 316931.1, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red", "here": {"x": 432, "y": 290}, "pass": "drag", "pressed_bottom_mm": 5.8, "cup": {"hand": true, "on": true, "x": null, "y": null, "est": {"swing": true}, "up": [30, 35], "to": [30, 35], "dip": 14, "dwell": 1, "swing": 40, "diameter": 57, "paint": [14, 15]}, "travel": 100, "from_colour": "Jar 7", "estimate_s": 43960}
+
+---- 2026-11-11 00:35:17 ----
+{"at": "2026-11-11 00:35:15", "event": "start", "blocks": 32158, "paint_mm": 316931.1, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red", "here": {"x": 432, "y": 290}, "pass": "drag", "pressed_bottom_mm": 5.8, "cup": {"hand": true, "on": true, "x": null, "y": null, "est": {"swing": true}, "up": [30, 35], "to": [30, 35], "dip": 14, "dwell": 1, "swing": 40, "diameter": 57, "paint": [14, 15]}, "travel": 100, "from_colour": "Jar 7", "estimate_s": 43960}
+{"at": "2026-11-11 00:35:15", "event": "bus", "what": "zero: ok Z 0, asked again"}
+      ... the same x4 more, to 2026-11-11 00:35:17
+{"at": "2026-11-11 00:35:17", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 32158, "percent": 0.0, "seconds": 3}
+{"at": "2026-11-11 00:35:26", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 00:35:26 ----
+{"at": "2026-11-11 00:35:26", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 00:35:26", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 00:35:28", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 01:06:17 ----
+{"at": "2026-11-11 01:06:09", "event": "dip", "by": "plan", "block": 425, "row": 60, "in_row": 0.0, "painted_mm": 2618.5, "colour": "Jar 9", "cell": 7}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 429}
+{"at": "2026-11-11 01:06:17", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 01:06:27", "event": "dip", "by": "plan", "block": 439, "row": 62, "in_row": 0.0, "painted_mm": 2684.0, "colour": "Jar 9", "cell": 8}
+
+---- 2026-11-11 01:09:41 ----
+{"at": "2026-11-11 01:09:22", "event": "dip", "by": "plan", "block": 571, "row": 80, "in_row": 0.0, "painted_mm": 3831.7, "colour": "Jar 9", "cell": 16}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 575}
+{"at": "2026-11-11 01:09:41", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 01:09:41", "event": "dip", "by": "plan", "block": 585, "row": 82, "in_row": 0.0, "painted_mm": 3942.2, "colour": "Jar 9", "cell": 17}
+
+---- 2026-11-11 01:36:01 ----
+{"at": "2026-11-11 01:35:58", "event": "dip", "by": "plan", "block": 863, "row": 119, "in_row": 0.0, "painted_mm": 6417.9, "colour": "Jar 11", "cell": 4}
+{"at": "2026-11-11 01:36:01", "event": "bus", "what": "look: shoulder, elbow silent, asked again"}
+{"at": "2026-11-11 01:36:20", "event": "dip", "by": "plan", "block": 877, "row": 121, "in_row": 0.0, "painted_mm": 6505.4, "colour": "Jar 11", "cell": 5}
+
+---- 2026-11-11 01:36:54 ----
+{"at": "2026-11-11 01:36:37", "event": "dip", "by": "plan", "block": 891, "row": 123, "in_row": 0.0, "painted_mm": 6576.9, "colour": "Jar 11", "cell": 6}
+{"at": "2026-11-11 01:36:54", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 01:36:56
+{"at": "2026-11-11 01:36:57", "event": "error", "message": "J 2 32.5: the elbow does not answer: is the 12 V on?", "block": 904, "blocks": 32158, "percent": 2.1, "seconds": 3674}
+{"at": "2026-11-11 01:43:36", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 01:51:35 ----
+{"at": "2026-11-11 01:51:27", "event": "dip", "by": "plan", "block": 171, "row": 24, "in_row": 0.0, "painted_mm": 1160.2, "colour": "Jar 13", "cell": 7}
+{"at": "2026-11-11 01:51:35", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 01:51:37
+{"at": "2026-11-11 01:51:38", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 01:51:39
+{"at": "2026-11-11 01:51:40", "event": "error", "message": "J 2 25: the elbow does not answer: is the 12 V on?", "block": 178, "blocks": 31228, "percent": 0.4, "seconds": 308}
+{"at": "2026-11-11 01:52:06", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 01:52:06 ----
+{"at": "2026-11-11 01:52:06", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 01:52:06", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 01:52:07", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 01:52:08 ----
+{"at": "2026-11-11 01:52:07", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 01:52:08", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 01:52:16", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 01:52:16 ----
+{"at": "2026-11-11 01:52:16", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 01:52:16", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 01:52:39", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 02:22:23 ----
+{"at": "2026-11-11 02:22:02", "event": "dip", "by": "plan", "block": 715, "row": 98, "in_row": 0.0, "painted_mm": 5797.5, "colour": "Jar 16", "cell": 19}
+{"at": "2026-11-11 02:22:23", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 02:22:24", "event": "dip", "by": "plan", "block": 729, "row": 100, "in_row": 0.0, "painted_mm": 6015.0, "colour": "Jar 16", "cell": 20}
+
+---- 2026-11-11 02:22:51 ----
+{"at": "2026-11-11 02:22:38", "event": "dip", "by": "plan", "block": 739, "row": 101, "in_row": 0.0, "painted_mm": 6109.8, "colour": "Jar 16", "cell": 20}
+{"at": "2026-11-11 02:22:51", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 02:23:03", "event": "pause", "why": "wipe the brush, put Jar 17 in the cup, then Continue", "block": 753}
+
+---- 2026-11-11 02:34:28 ----
+{"at": "2026-11-11 02:34:20", "event": "dip", "by": "plan", "block": 1109, "row": 152, "in_row": 0.0, "painted_mm": 8600.9, "colour": "Jar 18", "cell": 8}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 1113}
+{"at": "2026-11-11 02:34:28", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 02:34:30
+{"at": "2026-11-11 02:34:39", "event": "dip", "by": "plan", "block": 1123, "row": 154, "in_row": 0.0, "painted_mm": 8678.4, "colour": "Jar 18", "cell": 9}
+
+---- 2026-11-11 02:59:14 ----
+{"at": "2026-11-11 02:58:55", "event": "dip", "by": "plan", "block": 1427, "row": 195, "in_row": 0.0, "painted_mm": 11224.8, "colour": "Jar 19", "cell": 18}
+{"at": "2026-11-11 02:59:14", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 02:59:15
+{"at": "2026-11-11 02:59:16", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 0 s of 90"}
+{"at": "2026-11-11 02:59:17", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x19 more, to 2026-11-11 02:59:32
+{"at": "2026-11-11 02:59:33", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 10 s of 90"}
+{"at": "2026-11-11 02:59:34", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x19 more, to 2026-11-11 02:59:50
+{"at": "2026-11-11 02:59:50", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 20 s of 90"}
+{"at": "2026-11-11 02:59:52", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x19 more, to 2026-11-11 03:00:07
+{"at": "2026-11-11 03:00:08", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 30 s of 90"}
+{"at": "2026-11-11 03:00:09", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x19 more, to 2026-11-11 03:00:24
+{"at": "2026-11-11 03:00:25", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 40 s of 90"}
+{"at": "2026-11-11 03:00:26", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x19 more, to 2026-11-11 03:00:41
+{"at": "2026-11-11 03:00:42", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 50 s of 90"}
+{"at": "2026-11-11 03:00:43", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x13 more, to 2026-11-11 03:00:54
+{"at": "2026-11-11 03:00:55", "event": "stopped", "message": "", "block": 1440, "blocks": 30892, "percent": 3.7, "seconds": 3530}
+
+---- 2026-11-11 03:00:58 ----
+{"at": "2026-11-11 03:00:58", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 03:00:58", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 03:01:05", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 03:01:05 ----
+{"at": "2026-11-11 03:01:05", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 03:01:05", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 03:01:07", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 03:01:08 ----
+{"at": "2026-11-11 03:01:07", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 03:01:08", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 03:02:41", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 03:02:42 ----
+{"at": "2026-11-11 03:02:41", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 03:02:42", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 03:05:43", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 03:05:43 ----
+{"at": "2026-11-11 03:05:43", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 03:05:43", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 03:05:46", "event": "start", "blocks": 26, "paint_mm": 24.0, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red", "here": {"x": 432, "y": 290}, "pass": "test", "cup": {"hand": true, "on": true, "x": null, "y": null, "est": {"swing": true}, "up": [30, 35], "to": [30, 35], "dip": 14, "dwell": 1, "swing": 40, "diameter": 57, "paint": [14, 15]}, "dots": [{"name": "TL", "x": 852, "y": 92.5}, {"name": "TR", "x": 852, "y": 487.5}, {"name": "BR", "x": 13, "y": 487.5}, {"name": "BL", "x": 13, "y": 92.5}], "estimate_s": 47}
+
+---- 2026-11-11 03:05:47 ----
+{"at": "2026-11-11 03:05:46", "event": "start", "blocks": 26, "paint_mm": 24.0, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red", "here": {"x": 432, "y": 290}, "pass": "test", "cup": {"hand": true, "on": true, "x": null, "y": null, "est": {"swing": true}, "up": [30, 35], "to": [30, 35], "dip": 14, "dwell": 1, "swing": 40, "diameter": 57, "paint": [14, 15]}, "dots": [{"name": "TL", "x": 852, "y": 92.5}, {"name": "TR", "x": 852, "y": 487.5}, {"name": "BR", "x": 13, "y": 487.5}, {"name": "BL", "x": 13, "y": 92.5}], "estimate_s": 47}
+{"at": "2026-11-11 03:05:47", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 26, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 03:07:30", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 03:26:10 ----
+{"at": "2026-11-11 03:26:07", "event": "dip", "by": "plan", "block": 689, "row": 96, "in_row": 0.0, "painted_mm": 4739.5, "colour": "Jar 21", "cell": 14}
+{"at": "2026-11-11 03:26:10", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 03:26:25", "event": "dip", "by": "plan", "block": 703, "row": 98, "in_row": 0.0, "painted_mm": 4807.0, "colour": "Jar 21", "cell": 15}
+
+---- 2026-11-11 03:32:33 ----
+{"at": "2026-11-11 03:32:32", "event": "dip", "by": "plan", "block": 967, "row": 134, "in_row": 0.0, "painted_mm": 6801.8, "colour": "Jar 21", "cell": 31}
+{"at": "2026-11-11 03:32:33", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+{"at": "2026-11-11 03:32:33", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 03:32:55", "event": "dip", "by": "plan", "block": 981, "row": 136, "in_row": 0.0, "painted_mm": 6949.3, "colour": "Jar 21", "cell": 32}
+
+---- 2026-11-11 03:34:14 ----
+{"at": "2026-11-11 03:34:06", "event": "dip", "by": "plan", "block": 1037, "row": 144, "in_row": 0.0, "painted_mm": 7255.3, "colour": "Jar 21", "cell": 36}
+{"at": "2026-11-11 03:34:14", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 03:34:22", "event": "dip", "by": "plan", "block": 1051, "row": 146, "in_row": 0.0, "painted_mm": 7322.9, "colour": "Jar 21", "cell": 37}
+
+---- 2026-11-11 03:39:04 ----
+{"at": "2026-11-11 03:38:49", "event": "dip", "by": "plan", "block": 1175, "row": 163, "in_row": 0.0, "painted_mm": 8210.5, "colour": "Jar 22", "cell": 8}
+{"at": "2026-11-11 03:39:04", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 03:39:10", "event": "dip", "by": "plan", "block": 1189, "row": 165, "in_row": 0.0, "painted_mm": 8290.0, "colour": "Jar 22", "cell": 9}
+
+---- 2026-11-11 03:39:25 ----
+{"at": "2026-11-11 03:39:10", "event": "dip", "by": "plan", "block": 1189, "row": 165, "in_row": 0.0, "painted_mm": 8290.0, "colour": "Jar 22", "cell": 9}
+{"at": "2026-11-11 03:39:25", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 03:39:26
+{"at": "2026-11-11 03:39:27", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 03:39:28", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:39:37
+{"at": "2026-11-11 03:39:37", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 03:39:39", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:39:47
+{"at": "2026-11-11 03:39:48", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 03:39:49", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:39:57
+{"at": "2026-11-11 03:39:58", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 03:39:59", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:40:08
+{"at": "2026-11-11 03:40:08", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 03:40:10", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:40:18
+{"at": "2026-11-11 03:40:19", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 54 s of 90"}
+{"at": "2026-11-11 03:40:20", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:40:28
+{"at": "2026-11-11 03:40:29", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 65 s of 90"}
+{"at": "2026-11-11 03:40:30", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:40:39
+{"at": "2026-11-11 03:40:39", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 75 s of 90"}
+{"at": "2026-11-11 03:40:41", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+{"at": "2026-11-11 03:40:42", "event": "dip", "by": "plan", "block": 1203, "row": 167, "in_row": 0.0, "painted_mm": 8365.5, "colour": "Jar 22", "cell": 10}
+
+---- 2026-11-11 03:40:50 ----
+{"at": "2026-11-11 03:40:42", "event": "dip", "by": "plan", "block": 1203, "row": 167, "in_row": 0.0, "painted_mm": 8365.5, "colour": "Jar 22", "cell": 10}
+{"at": "2026-11-11 03:40:50", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x4 more, to 2026-11-11 03:40:57
+{"at": "2026-11-11 03:40:58", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 03:41:00
+{"at": "2026-11-11 03:41:00", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 03:41:01", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:10
+{"at": "2026-11-11 03:41:10", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 03:41:12", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:20
+{"at": "2026-11-11 03:41:21", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 03:41:22", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:31
+{"at": "2026-11-11 03:41:31", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 03:41:32", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:41
+{"at": "2026-11-11 03:41:41", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 03:41:43", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:51
+{"at": "2026-11-11 03:41:52", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 54 s of 90"}
+{"at": "2026-11-11 03:41:53", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:42:02
+{"at": "2026-11-11 03:42:02", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 65 s of 90"}
+{"at": "2026-11-11 03:42:04", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:42:12
+{"at": "2026-11-11 03:42:13", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 75 s of 90"}
+{"at": "2026-11-11 03:42:14", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:42:22
+{"at": "2026-11-11 03:42:23", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 85 s of 90"}
+{"at": "2026-11-11 03:42:24", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 03:42:29
+{"at": "2026-11-11 03:42:30", "event": "error", "message": "J 2 25: the elbow does not answer: is the 12 V on?", "block": 1214, "blocks": 29758, "percent": 2.8, "seconds": 2071}
+
+---- 2026-11-11 03:40:55 ----
+{"at": "2026-11-11 03:40:42", "event": "dip", "by": "plan", "block": 1203, "row": 167, "in_row": 0.0, "painted_mm": 8365.5, "colour": "Jar 22", "cell": 10}
+{"at": "2026-11-11 03:40:50", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x4 more, to 2026-11-11 03:40:57
+{"at": "2026-11-11 03:40:58", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 03:41:00
+{"at": "2026-11-11 03:41:00", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 03:41:01", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:10
+{"at": "2026-11-11 03:41:10", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 03:41:12", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:20
+{"at": "2026-11-11 03:41:21", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 03:41:22", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:31
+{"at": "2026-11-11 03:41:31", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 03:41:32", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:41
+{"at": "2026-11-11 03:41:41", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 03:41:43", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:41:51
+{"at": "2026-11-11 03:41:52", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 54 s of 90"}
+{"at": "2026-11-11 03:41:53", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:42:02
+{"at": "2026-11-11 03:42:02", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 65 s of 90"}
+{"at": "2026-11-11 03:42:04", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:42:12
+{"at": "2026-11-11 03:42:13", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 75 s of 90"}
+{"at": "2026-11-11 03:42:14", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 03:42:22
+{"at": "2026-11-11 03:42:23", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 85 s of 90"}
+{"at": "2026-11-11 03:42:24", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 03:42:29
+{"at": "2026-11-11 03:42:30", "event": "error", "message": "J 2 25: the elbow does not answer: is the 12 V on?", "block": 1214, "blocks": 29758, "percent": 2.8, "seconds": 2071}
+{"at": "2026-11-11 03:48:43", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 03:48:44 ----
+{"at": "2026-11-11 03:48:43", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 03:48:44", "event": "error", "message": "arm zero: ok Z 1", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 03:48:45", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 12:41:57 ----
+{"at": "2026-11-11 12:41:35", "event": "dip", "by": "plan", "block": 43, "row": 6, "in_row": 0.0, "painted_mm": 372.4, "colour": "Jar 1", "cell": 3}
+{"at": "2026-11-11 12:41:57", "event": "bus", "what": "look: shoulder silent, asked again"}
+      ... the same x1 more, to 2026-11-11 12:41:57
+{"at": "2026-11-11 12:41:59", "event": "dip", "by": "plan", "block": 57, "row": 8, "in_row": 0.0, "painted_mm": 446.1, "colour": "Jar 1", "cell": 4}
+
+---- 2026-11-11 12:42:07 ----
+{"at": "2026-11-11 12:41:59", "event": "dip", "by": "plan", "block": 57, "row": 8, "in_row": 0.0, "painted_mm": 446.1, "colour": "Jar 1", "cell": 4}
+{"at": "2026-11-11 12:42:07", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x2 more, to 2026-11-11 12:42:08
+{"at": "2026-11-11 12:42:09", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+{"at": "2026-11-11 12:42:19", "event": "dip", "by": "plan", "block": 71, "row": 10, "in_row": 0.0, "painted_mm": 537.6, "colour": "Jar 1", "cell": 5}
+
+---- 2026-11-11 12:47:37 ----
+{"at": "2026-11-11 12:47:22", "event": "dip", "by": "plan", "block": 287, "row": 40, "in_row": 0.0, "painted_mm": 2229.0, "colour": "Jar 1", "cell": 19}
+{"at": "2026-11-11 12:47:37", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 12:47:39
+{"at": "2026-11-11 12:47:40", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 12:47:41
+{"at": "2026-11-11 12:47:42", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 12:47:43", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 12:47:45", "event": "pause", "why": "wipe the brush, put Jar 2 in the cup, then Continue", "block": 301}
+
+---- 2026-11-11 12:49:01 ----
+{"at": "2026-11-11 12:48:52", "event": "dip", "by": "plan", "block": 303, "row": 42, "in_row": 0.0, "painted_mm": 2312.5, "colour": "Jar 2", "cell": 1}
+{"at": "2026-11-11 12:49:01", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 12:49:02
+{"at": "2026-11-11 12:49:03", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 12:49:09", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 12:49:13", "event": "dip", "by": "plan", "block": 317, "row": 44, "in_row": 0.0, "painted_mm": 2400.0, "colour": "Jar 2", "cell": 2}
+
+---- 2026-11-11 12:49:09 ----
+{"at": "2026-11-11 12:48:52", "event": "dip", "by": "plan", "block": 303, "row": 42, "in_row": 0.0, "painted_mm": 2312.5, "colour": "Jar 2", "cell": 1}
+{"at": "2026-11-11 12:49:01", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 12:49:02
+{"at": "2026-11-11 12:49:03", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 12:49:09", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 12:49:13", "event": "dip", "by": "plan", "block": 317, "row": 44, "in_row": 0.0, "painted_mm": 2400.0, "colour": "Jar 2", "cell": 2}
+
+---- 2026-11-11 13:11:14 ----
+{"at": "2026-11-11 13:10:56", "event": "dip", "by": "plan", "block": 667, "row": 92, "in_row": 0.0, "painted_mm": 4850.0, "colour": "Jar 3", "cell": 14}
+{"at": "2026-11-11 13:11:14", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 13:11:15", "event": "dip", "by": "plan", "block": 681, "row": 94, "in_row": 0.0, "painted_mm": 4893.7, "colour": "Jar 3", "cell": 15}
+
+---- 2026-11-11 13:24:23 ----
+{"at": "2026-11-11 13:24:06", "event": "dip", "by": "plan", "block": 943, "row": 130, "in_row": 0.0, "painted_mm": 7020.7, "colour": "Jar 5", "cell": 9}
+{"at": "2026-11-11 13:24:23", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 13:24:25
+{"at": "2026-11-11 13:24:25", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 13:24:26", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:24:35
+{"at": "2026-11-11 13:24:36", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 13:24:37", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:24:45
+{"at": "2026-11-11 13:24:46", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 13:24:47", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:24:56
+{"at": "2026-11-11 13:24:56", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 13:24:58", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:25:06
+{"at": "2026-11-11 13:25:07", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 13:25:08", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:25:16
+{"at": "2026-11-11 13:25:17", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 54 s of 90"}
+{"at": "2026-11-11 13:25:18", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:25:27
+{"at": "2026-11-11 13:25:27", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 65 s of 90"}
+{"at": "2026-11-11 13:25:29", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:25:37
+{"at": "2026-11-11 13:25:38", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 75 s of 90"}
+{"at": "2026-11-11 13:25:39", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:25:47
+{"at": "2026-11-11 13:25:48", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 85 s of 90"}
+{"at": "2026-11-11 13:25:49", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 13:25:54
+{"at": "2026-11-11 13:25:55", "event": "error", "message": "J 2 32.5: the elbow does not answer: is the 12 V on?", "block": 956, "blocks": 33304, "percent": 2.2, "seconds": 2720}
+{"at": "2026-11-11 13:27:08", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 13:27:08 ----
+{"at": "2026-11-11 13:27:08", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 13:27:08", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 13:27:10", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 13:27:11 ----
+{"at": "2026-11-11 13:27:10", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 13:27:11", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 13:27:12", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 13:27:13 ----
+{"at": "2026-11-11 13:27:12", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 13:27:13", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 13:27:18", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 13:27:18 ----
+{"at": "2026-11-11 13:27:18", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 13:27:18", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 13:27:39", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 13:27:41
+{"at": "2026-11-11 13:27:41", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 13:27:43", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 13:27:48
+{"at": "2026-11-11 13:27:56", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 13:27:39 ----
+{"at": "2026-11-11 13:27:18", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 13:27:39", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 13:27:41
+{"at": "2026-11-11 13:27:41", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 13:27:43", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 13:27:48
+{"at": "2026-11-11 13:27:56", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 13:33:35 ----
+{"at": "2026-11-11 13:33:15", "event": "dip", "by": "plan", "block": 131, "row": 17, "in_row": 0.0, "painted_mm": 1397.8, "colour": "Jar 7", "cell": 2}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 135}
+{"at": "2026-11-11 13:33:35", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 13:33:36
+{"at": "2026-11-11 13:33:37", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 13:33:38", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:33:47
+{"at": "2026-11-11 13:33:47", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 13:33:49", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 13:33:58
+{"at": "2026-11-11 13:33:58", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 24 s of 90"}
+{"at": "2026-11-11 13:34:00", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x6 more, to 2026-11-11 13:34:04
+{"at": "2026-11-11 13:34:05", "event": "stopped", "message": "", "block": 144, "blocks": 32270, "percent": 0.5, "seconds": 340}
+
+---- 2026-11-11 13:34:05 ----
+{"at": "2026-11-11 13:34:05", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "label": "OPM-N · HOME", "here": {"x": 100, "y": 100}}
+{"at": "2026-11-11 13:34:05", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 13:34:13", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 13:34:13 ----
+{"at": "2026-11-11 13:34:13", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 13:34:13", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 0}
+{"at": "2026-11-11 13:34:32", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 19:22:06 ----
+{"at": "2026-11-11 19:21:56", "event": "dip", "by": "plan", "block": 71, "row": 10, "in_row": 0.0, "painted_mm": 511.9, "colour": "Jar 1", "cell": 4, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 25, "elbow": 26, "wrist": 26}, "look_s_ago": 0.0}
+{"at": "2026-11-11 19:22:06", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:22:08
+{"at": "2026-11-11 19:22:09", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:22:10
+{"at": "2026-11-11 19:22:11", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:22:12", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:22:21
+{"at": "2026-11-11 19:22:21", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 19:22:22", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 19:22:26", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 19:22:29", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:22:30
+{"at": "2026-11-11 19:22:31", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:22:32", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 19:22:37
+{"at": "2026-11-11 19:22:39", "event": "dip", "by": "plan", "block": 85, "row": 12, "in_row": 0.0, "painted_mm": 603.9, "colour": "Jar 1", "cell": 5, "volts": {"shoulder": 11.1, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 27, "wrist": 26}, "look_s_ago": 0.0}
+
+---- 2026-11-11 19:31:26 ----
+{"at": "2026-11-11 19:31:01", "event": "dip", "by": "plan", "block": 317, "row": 44, "in_row": 0.0, "painted_mm": 2386.8, "colour": "Jar 2", "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 19:31:26", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+{"at": "2026-11-11 19:31:27", "event": "dip", "by": "plan", "block": 331, "row": 46, "in_row": 0.0, "painted_mm": 2450.8, "colour": "Jar 2", "cell": 1, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 26}, "look_s_ago": 0.0}
+
+---- 2026-11-11 19:31:35 ----
+{"at": "2026-11-11 19:31:27", "event": "dip", "by": "plan", "block": 331, "row": 46, "in_row": 0.0, "painted_mm": 2450.8, "colour": "Jar 2", "cell": 1, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 26}, "look_s_ago": 0.0}
+{"at": "2026-11-11 19:31:35", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:31:36
+{"at": "2026-11-11 19:31:37", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:31:39
+{"at": "2026-11-11 19:31:39", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:31:41", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:31:49
+{"at": "2026-11-11 19:31:50", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 19:31:51", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 19:32:01", "event": "dip", "by": "plan", "block": 345, "row": 48, "in_row": 0.0, "painted_mm": 2508.8, "colour": "Jar 2", "cell": 2, "volts": {"shoulder": 11.1, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 19:32:24 ----
+{"at": "2026-11-11 19:32:16", "event": "dip", "by": "plan", "block": 359, "row": 50, "in_row": 0.0, "painted_mm": 2576.8, "colour": "Jar 2", "cell": 3, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 19:32:24", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 19:32:31", "event": "dip", "by": "plan", "block": 373, "row": 52, "in_row": 0.0, "painted_mm": 2656.8, "colour": "Jar 2", "cell": 4, "volts": {"shoulder": 11.1, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 33}, "look_s_ago": 0.0}
+
+---- 2026-11-11 19:34:01 ----
+{"at": "2026-11-11 19:33:40", "event": "dip", "by": "plan", "block": 429, "row": 60, "in_row": 0.0, "painted_mm": 3034.8, "colour": "Jar 2", "cell": 8, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 26}, "look_s_ago": 0.0}
+{"at": "2026-11-11 19:34:01", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 19:34:01", "event": "dip", "by": "plan", "block": 443, "row": 62, "in_row": 0.0, "painted_mm": 3210.8, "colour": "Jar 2", "cell": 9, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 19:34:35 ----
+{"at": "2026-11-11 19:34:26", "event": "dip", "by": "plan", "block": 463, "row": 64, "in_row": 0.0, "painted_mm": 3400.8, "colour": "Jar 2", "cell": 9, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 26}, "look_s_ago": 0.0}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 467}
+{"at": "2026-11-11 19:34:35", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:34:37
+{"at": "2026-11-11 19:34:37", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:34:39
+{"at": "2026-11-11 19:34:40", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:34:41", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x6 more, to 2026-11-11 19:35:01
+{"at": "2026-11-11 19:35:01", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:35:03", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:11
+{"at": "2026-11-11 19:35:12", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 19:35:13", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:22
+{"at": "2026-11-11 19:35:22", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 19:35:23", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:32
+{"at": "2026-11-11 19:35:32", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 19:35:34", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:42
+{"at": "2026-11-11 19:35:43", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 19:35:44", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:53
+{"at": "2026-11-11 19:35:53", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 54 s of 90"}
+{"at": "2026-11-11 19:35:55", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:36:03
+{"at": "2026-11-11 19:36:04", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 65 s of 90"}
+{"at": "2026-11-11 19:36:05", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x4 more, to 2026-11-11 19:36:08
+{"at": "2026-11-11 19:36:09", "event": "dip", "by": "plan", "block": 477, "row": 66, "in_row": 0.0, "painted_mm": 3741.2, "colour": "Jar 2", "cell": 10, "volts": {"shoulder": 11.0, "elbow": 10.8, "wrist": 10.9}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 19:34:59 ----
+{"at": "2026-11-11 19:34:26", "event": "dip", "by": "plan", "block": 463, "row": 64, "in_row": 0.0, "painted_mm": 3400.8, "colour": "Jar 2", "cell": 9, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 25, "wrist": 26}, "look_s_ago": 0.0}
+{"at": 0.6, "event": "near", "joint": "shoulder", "deg": 0.0, "block": 467}
+{"at": "2026-11-11 19:34:35", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:34:37
+{"at": "2026-11-11 19:34:37", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:34:39
+{"at": "2026-11-11 19:34:40", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:34:41", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x6 more, to 2026-11-11 19:35:01
+{"at": "2026-11-11 19:35:01", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:35:03", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:11
+{"at": "2026-11-11 19:35:12", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 19:35:13", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:22
+{"at": "2026-11-11 19:35:22", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 19:35:23", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:32
+{"at": "2026-11-11 19:35:32", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 19:35:34", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:42
+{"at": "2026-11-11 19:35:43", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 19:35:44", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:35:53
+{"at": "2026-11-11 19:35:53", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 54 s of 90"}
+{"at": "2026-11-11 19:35:55", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:36:03
+{"at": "2026-11-11 19:36:04", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 65 s of 90"}
+{"at": "2026-11-11 19:36:05", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x4 more, to 2026-11-11 19:36:08
+{"at": "2026-11-11 19:36:09", "event": "dip", "by": "plan", "block": 477, "row": 66, "in_row": 0.0, "painted_mm": 3741.2, "colour": "Jar 2", "cell": 10, "volts": {"shoulder": 11.0, "elbow": 10.8, "wrist": 10.9}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 19:36:11 ----
+{"at": "2026-11-11 19:36:09", "event": "dip", "by": "plan", "block": 477, "row": 66, "in_row": 0.0, "painted_mm": 3741.2, "colour": "Jar 2", "cell": 10, "volts": {"shoulder": 11.0, "elbow": 10.8, "wrist": 10.9}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 19:36:11", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:36:12
+{"at": "2026-11-11 19:36:13", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:36:14", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:36:22
+{"at": "2026-11-11 19:36:23", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 19:36:24", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:36:33
+{"at": "2026-11-11 19:36:33", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 19:36:35", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:36:43
+{"at": "2026-11-11 19:36:44", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 19:36:45", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:36:54
+{"at": "2026-11-11 19:36:54", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 19:36:55", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:37:04
+{"at": "2026-11-11 19:37:05", "event": "bus", "what": "shoulder, elbow, wrist silent at the shoulder's move: waiting, 55 s of 90"}
+{"at": "2026-11-11 19:37:06", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 19:37:24
+{"at": "2026-11-11 19:37:25", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 3 s of 90"}
+{"at": "2026-11-11 19:37:26", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:37:36
+{"at": "2026-11-11 19:37:36", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 15 s of 90"}
+{"at": "2026-11-11 19:37:38", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:37:48
+{"at": "2026-11-11 19:37:48", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 26 s of 90"}
+{"at": "2026-11-11 19:37:49", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:37:58
+{"at": "2026-11-11 19:37:58", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 37 s of 90"}
+{"at": "2026-11-11 19:38:00", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:38:08
+{"at": "2026-11-11 19:38:09", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 47 s of 90"}
+{"at": "2026-11-11 19:38:10", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:38:19
+{"at": "2026-11-11 19:38:19", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 57 s of 90"}
+{"at": "2026-11-11 19:38:20", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:38:29
+{"at": "2026-11-11 19:38:29", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 68 s of 90"}
+{"at": "2026-11-11 19:38:31", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 19:38:36
+{"at": "2026-11-11 19:38:38", "event": "stopped", "message": "", "block": 478, "blocks": 30976, "percent": 1.1, "seconds": 1114}
+
+---- 2026-11-11 19:37:22 ----
+{"at": "2026-11-11 19:37:07", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x6 more, to 2026-11-11 19:37:24
+{"at": "2026-11-11 19:37:25", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 3 s of 90"}
+{"at": "2026-11-11 19:37:26", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:37:36
+{"at": "2026-11-11 19:37:36", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 15 s of 90"}
+{"at": "2026-11-11 19:37:38", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:37:48
+{"at": "2026-11-11 19:37:48", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 26 s of 90"}
+{"at": "2026-11-11 19:37:49", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:37:58
+{"at": "2026-11-11 19:37:58", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 37 s of 90"}
+{"at": "2026-11-11 19:38:00", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:38:08
+{"at": "2026-11-11 19:38:09", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 47 s of 90"}
+{"at": "2026-11-11 19:38:10", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:38:19
+{"at": "2026-11-11 19:38:19", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 57 s of 90"}
+{"at": "2026-11-11 19:38:20", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:38:29
+{"at": "2026-11-11 19:38:29", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 68 s of 90"}
+{"at": "2026-11-11 19:38:31", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 19:38:36
+{"at": "2026-11-11 19:38:38", "event": "stopped", "message": "", "block": 478, "blocks": 30976, "percent": 1.1, "seconds": 1114}
+
+---- 2026-11-11 19:38:42 ----
+{"at": "2026-11-11 19:38:40", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 19:38:40", "event": "bus", "what": "zero: ok Z 0, asked again"}
+      ... the same x4 more, to 2026-11-11 19:38:42
+{"at": "2026-11-11 19:38:42", "event": "error", "message": "arm zero: ok Z 0: the arm does not answer — the servos' 12 V or ground (the board's terminal and switch, the servo cable)", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 3}
+{"at": "2026-11-11 19:39:06", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 19:39:09 ----
+{"at": "2026-11-11 19:39:06", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 19:39:06", "event": "bus", "what": "zero: ok Z 0, asked again"}
+      ... the same x4 more, to 2026-11-11 19:39:08
+{"at": "2026-11-11 19:39:09", "event": "error", "message": "arm zero: ok Z 0: the arm does not answer — the servos' 12 V or ground (the board's terminal and switch, the servo cable)", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 3}
+{"at": "2026-11-11 19:42:48", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 19:42:50 ----
+{"at": "2026-11-11 19:42:48", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 19:42:48", "event": "bus", "what": "zero: ok Z 0, asked again"}
+      ... the same x4 more, to 2026-11-11 19:42:50
+{"at": "2026-11-11 19:42:50", "event": "error", "message": "arm zero: ok Z 0: the arm does not answer — the servos' 12 V or ground (the board's terminal and switch, the servo cable)", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 3}
+{"at": "2026-11-11 19:42:52", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 19:42:54 ----
+{"at": "2026-11-11 19:42:52", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+{"at": "2026-11-11 19:42:53", "event": "bus", "what": "zero: ok Z 0, asked again"}
+      ... the same x2 more, to 2026-11-11 19:42:54
+{"at": "2026-11-11 19:42:54", "event": "error", "message": "arm zero: ok Z 0", "block": 0, "blocks": 2, "percent": 0.0, "seconds": 2}
+{"at": "2026-11-11 19:43:00", "event": "start", "blocks": 10, "paint_mm": 2626, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red · v.3 · DRAW BW, the pen · the outline", "here": {"x": 432, "y": 290}, "pass": "draw bw", "estimate_s": 97}
+
+---- 2026-11-11 19:43:02 ----
+{"at": "2026-11-11 19:43:00", "event": "start", "blocks": 10, "paint_mm": 2626, "page": "opmn", "tab": "formg", "label": "FORM-G · Porsche, red · v.3 · DRAW BW, the pen · the outline", "here": {"x": 432, "y": 290}, "pass": "draw bw", "estimate_s": 97}
+{"at": "2026-11-11 19:43:00", "event": "bus", "what": "zero: ok Z 0, asked again"}
+      ... the same x4 more, to 2026-11-11 19:43:02
+{"at": "2026-11-11 19:43:02", "event": "error", "message": "arm zero: ok Z 0: the arm does not answer — the servos' 12 V or ground (the board's terminal and switch, the servo cable)", "block": 0, "blocks": 10, "percent": 0.0, "seconds": 3}
+{"at": "2026-11-11 19:48:22", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 19:54:02 ----
+{"at": "2026-11-11 19:48:31", "event": "done", "message": "", "block": 1, "blocks": 2, "percent": 0.0, "seconds": 9}
+{"at": "2026-11-11 19:54:02", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:54:04
+{"at": "2026-11-11 19:54:04", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:54:06", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:54:14
+{"at": "2026-11-11 19:54:15", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 19:54:16", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:54:24
+{"at": "2026-11-11 19:54:25", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 19:54:26", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:54:35
+{"at": "2026-11-11 19:54:35", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 19:54:37", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:54:45
+{"at": "2026-11-11 19:54:46", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 44 s of 90"}
+{"at": "2026-11-11 19:54:47", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 19:54:55
+{"at": "2026-11-11 19:54:56", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 54 s of 90"}
+{"at": "2026-11-11 19:54:57", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 19:55:02
+{"at": "2026-11-11 19:55:04", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x7 more, to 2026-11-11 19:55:08
+{"at": "2026-11-11 19:55:09", "event": "bus", "what": "elbow, wrist silent at the elbow's move: waiting, 67 s of 90"}
+{"at": "2026-11-11 19:55:10", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x15 more, to 2026-11-11 19:55:20
+{"at": "2026-11-11 19:55:21", "event": "bus", "what": "elbow, wrist silent at the elbow's move: waiting, 79 s of 90"}
+{"at": "2026-11-11 19:55:22", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x19 more, to 2026-11-11 19:55:34
+{"at": "2026-11-11 19:55:35", "event": "bus", "what": "elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 19:55:36", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x15 more, to 2026-11-11 19:55:46
+{"at": "2026-11-11 19:55:46", "event": "bus", "what": "elbow, wrist silent at the elbow's move: waiting, 14 s of 90"}
+{"at": "2026-11-11 19:55:48", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x15 more, to 2026-11-11 19:55:58
+{"at": "2026-11-11 19:55:58", "event": "bus", "what": "elbow, wrist silent at the elbow's move: waiting, 26 s of 90"}
+{"at": "2026-11-11 19:55:59", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x15 more, to 2026-11-11 19:56:10
+{"at": "2026-11-11 19:56:10", "event": "bus", "what": "elbow, wrist silent at the elbow's move: waiting, 38 s of 90"}
+{"at": "2026-11-11 19:56:11", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x15 more, to 2026-11-11 19:56:21
+{"at": "2026-11-11 19:56:22", "event": "bus", "what": "elbow, wrist silent at the elbow's move: waiting, 49 s of 90"}
+{"at": "2026-11-11 19:56:23", "event": "bus", "what": "look: elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 19:56:24
+{"at": "2026-11-11 19:57:00", "event": "start", "blocks": 2, "paint_mm": 0, "page": "opmn", "tab": "formg", "label": "FORM-G · HOME", "here": {"x": 432, "y": 290}}
+
+---- 2026-11-11 20:03:18 ----
+{"at": "2026-11-11 20:02:59", "event": "dip", "by": "plan", "block": 19, "row": 3, "in_row": 0.0, "painted_mm": 64.0, "colour": "Jar 3", "cell": 1, "volts": {"shoulder": 11.2, "elbow": 11.1, "wrist": 11.1}, "temp_c": {"shoulder": 25, "elbow": 25, "wrist": 26}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:03:18", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 20:03:19", "event": "dip", "by": "plan", "block": 33, "row": 5, "in_row": 0.0, "painted_mm": 108.2, "colour": "Jar 3", "cell": 2, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 10.9}, "temp_c": {"shoulder": 25, "elbow": 25, "wrist": 26}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:19:52 ----
+{"at": "2026-11-11 20:19:43", "event": "dip", "by": "plan", "block": 123, "row": 17, "in_row": 0.0, "painted_mm": 711.0, "colour": "Jar 3", "cell": 7, "volts": {"shoulder": 11.2, "elbow": 11.1, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:19:52", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:19:53
+{"at": "2026-11-11 20:20:11", "event": "dip", "by": "plan", "block": 137, "row": 19, "in_row": 0.0, "painted_mm": 924.0, "colour": "Jar 3", "cell": 8, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:21:12 ----
+{"at": "2026-11-11 20:21:04", "event": "dip", "by": "plan", "block": 179, "row": 25, "in_row": 0.0, "painted_mm": 1081.0, "colour": "Jar 3", "cell": 11, "volts": {"shoulder": 11.2, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:21:12", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:21:14
+{"at": "2026-11-11 20:21:15", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:21:16
+{"at": "2026-11-11 20:21:17", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 20:21:18", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:21:20
+{"at": "2026-11-11 20:21:27", "event": "dip", "by": "plan", "block": 193, "row": 27, "in_row": 0.0, "painted_mm": 1145.0, "colour": "Jar 3", "cell": 12, "volts": {"shoulder": 11.2, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:33:30 ----
+{"at": "2026-11-11 20:33:22", "event": "dip", "by": "plan", "block": 615, "row": 85, "in_row": 0.0, "painted_mm": 4140.2, "colour": "Jar 7", "cell": 3, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:33:30", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:33:32
+{"at": "2026-11-11 20:33:32", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:33:34
+{"at": "2026-11-11 20:33:35", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 20:33:36", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+{"at": "2026-11-11 20:33:36", "event": "bus", "what": "look: shoulder, elbow silent, asked again"}
+{"at": "2026-11-11 20:33:50", "event": "dip", "by": "plan", "block": 629, "row": 87, "in_row": 0.0, "painted_mm": 4212.2, "colour": "Jar 7", "cell": 4, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:34:27 ----
+{"at": "2026-11-11 20:34:08", "event": "dip", "by": "plan", "block": 643, "row": 89, "in_row": 0.0, "painted_mm": 4362.2, "colour": "Jar 7", "cell": 5, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:34:27", "event": "bus", "what": "look: shoulder silent, asked again"}
+{"at": "2026-11-11 20:34:27", "event": "dip", "by": "plan", "block": 657, "row": 91, "in_row": 0.0, "painted_mm": 4406.2, "colour": "Jar 7", "cell": 6, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:34:38 ----
+{"at": "2026-11-11 20:34:27", "event": "dip", "by": "plan", "block": 657, "row": 91, "in_row": 0.0, "painted_mm": 4406.2, "colour": "Jar 7", "cell": 6, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:34:38", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:34:40
+{"at": "2026-11-11 20:34:41", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x2 more, to 2026-11-11 20:34:42
+{"at": "2026-11-11 20:34:42", "event": "bus", "what": "look: shoulder, elbow silent, asked again"}
+{"at": "2026-11-11 20:34:45", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x2 more, to 2026-11-11 20:34:46
+{"at": "2026-11-11 20:34:49", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:34:51
+{"at": "2026-11-11 20:34:52", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 20:34:53", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:35:01
+{"at": "2026-11-11 20:35:02", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 20:35:03", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:35:13
+{"at": "2026-11-11 20:35:14", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 25 s of 90"}
+{"at": "2026-11-11 20:35:15", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:35:25
+{"at": "2026-11-11 20:35:26", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 37 s of 90"}
+{"at": "2026-11-11 20:35:28", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:35:37
+{"at": "2026-11-11 20:35:38", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 49 s of 90"}
+{"at": "2026-11-11 20:35:40", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:35:50
+{"at": "2026-11-11 20:35:50", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 61 s of 90"}
+{"at": "2026-11-11 20:35:52", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:36:02
+{"at": "2026-11-11 20:36:02", "event": "bus", "what": "shoulder, elbow silent at the elbow's move: waiting, 73 s of 90"}
+{"at": "2026-11-11 20:36:04", "event": "dip", "by": "plan", "block": 671, "row": 93, "in_row": 0.0, "painted_mm": 4478.2, "colour": "Jar 7", "cell": 7, "volts": {"shoulder": 11.2, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:41:20 ----
+{"at": "2026-11-11 20:41:10", "event": "dip", "by": "plan", "block": 33, "row": 5, "in_row": 0.0, "painted_mm": 266.0, "colour": "Jar 10", "cell": 2, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:41:20", "event": "bus", "what": "look: elbow silent, asked again"}
+      ... the same x1 more, to 2026-11-11 20:41:20
+{"at": "2026-11-11 20:41:24", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:41:26
+{"at": "2026-11-11 20:41:27", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 2 s of 90"}
+{"at": "2026-11-11 20:41:28", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:41:36
+{"at": "2026-11-11 20:41:37", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 13 s of 90"}
+{"at": "2026-11-11 20:41:38", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:41:47
+{"at": "2026-11-11 20:41:47", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 23 s of 90"}
+{"at": "2026-11-11 20:41:49", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:41:57
+{"at": "2026-11-11 20:41:58", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 34 s of 90"}
+{"at": "2026-11-11 20:41:59", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:42:09
+{"at": "2026-11-11 20:42:10", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 46 s of 90"}
+{"at": "2026-11-11 20:42:11", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:42:21
+{"at": "2026-11-11 20:42:22", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 58 s of 90"}
+{"at": "2026-11-11 20:42:23", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x11 more, to 2026-11-11 20:42:33
+{"at": "2026-11-11 20:42:34", "event": "bus", "what": "shoulder, elbow, wrist silent at the elbow's move: waiting, 70 s of 90"}
+{"at": "2026-11-11 20:42:35", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x3 more, to 2026-11-11 20:42:37
+{"at": "2026-11-11 20:42:40", "event": "dip", "by": "plan", "block": 43, "row": 6, "in_row": 0.0, "painted_mm": 361.0, "colour": "Jar 10", "cell": 2, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:43:50 ----
+{"at": "2026-11-11 20:43:29", "event": "dip", "by": "plan", "block": 77, "row": 10, "in_row": 0.0, "painted_mm": 769.0, "colour": "Jar 10", "cell": 3, "volts": {"shoulder": 11.2, "elbow": 11.1, "wrist": 11.1}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:43:50", "event": "bus", "what": "look: elbow silent, asked again"}
+{"at": "2026-11-11 20:43:55", "event": "dip", "by": "plan", "block": 91, "row": 12, "in_row": 0.0, "painted_mm": 1049.0, "colour": "Jar 10", "cell": 4, "volts": {"shoulder": 11.1, "elbow": 11.0, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+
+---- 2026-11-11 20:53:05 ----
+{"at": "2026-11-11 20:52:48", "event": "dip", "by": "plan", "block": 409, "row": 56, "in_row": 0.0, "painted_mm": 3200.0, "colour": "Jar 12", "cell": 4, "volts": {"shoulder": 11.0, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
+{"at": "2026-11-11 20:53:05", "event": "bus", "what": "look: shoulder, elbow, wrist silent, asked again"}
+      ... the same x1 more, to 2026-11-11 20:53:05
+{"at": "2026-11-11 20:53:06", "event": "dip", "by": "plan", "block": 423, "row": 58, "in_row": 0.0, "painted_mm": 3260.0, "colour": "Jar 12", "cell": 5, "volts": {"shoulder": 11.1, "elbow": 10.9, "wrist": 11.0}, "temp_c": {"shoulder": 26, "elbow": 26, "wrist": 27}, "look_s_ago": 0.0}
