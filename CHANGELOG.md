@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **The classic's v.2 Kuzya under v.1's jar numbers, from v.1's paints alone** (the owner, 2026-11-11, COLORS' Indicator "No. 6 of 49" on the red and "No. 7
+  of 42" on its v.2: "why did you do that? I have 36 jars with numbers; on the orange No. 6, the canon. I cannot keep a jar for every picture of the very same
+  paint under another number … the v.2's numbering must not differ"). v.2 had started from the generator's kept jars, kept one v.1's prune had taken out
+  (#F6BEB0), and the export numbered every jar again by its place. Now `redcark.py` starts from v.1's 49 as painted (`porsche-red-k.jars.json`, made from
+  `app/formg/porsche-red.json`), so the plan, its prune and the merge only take out; `export_formg.py` names every jar of it as v.1 does, paint for paint.
+  41 jars, 21 of two layers; gone the eight steps of dark red the audit had pointed at (Jars 23, 26, 29, 32, 33, 35, 38, 41); every other jar its v.1 number.
+  COLORS: a card's place in its run's list no longer reads as a jar's number ("line 6 of 49 in the run of …"); the yellow family's words fit an amber too.
 - **FORM-G keeps to the running picture** (the owner, 2026-11-11, the classic's v.1 on the machine, its v.2 card clicked to look at it: the LCD read the
   board's steps by v.2's plan — "Jar 1 · 1/63", 0 % — and v.2's jar numbers, one ahead of v.1's from its Jar 2 on, were taken for the run's: "Jar 8 is in the
   machine, I have Jar 9 ready, but Rembrandt says put Jar 8"; "the 7th is orange and the 8th grey"). The run's picture is kept (`S.runPic`, at every start);

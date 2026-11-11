@@ -16,6 +16,10 @@ from racecark import RaceFaceK
 
 
 class RedCarK(RedCar):
+    # its jars v.1's as painted (porsche-red-k.jars.json, made from app/formg/porsche-red.json), so the plan, its prune and D take jars out and never bring a
+    # paint v.1 has not; export_formg.py names every jar as v.1 does (the owner, 2026-11-11: "I have 36 numbered jars; the orange is No. 6, the canon; I cannot
+    # keep a jar for every picture of the very same paint under another number"; the first v.2 had kept #F6BEB0 v.1's prune had taken out, and renumbered all)
+    KEEP = 'porsche-red-k.jars.json'
     JIT_BODY = 0
     SURFACE = RaceFaceK.SURFACE
     MERGE_DE = RaceFaceK.MERGE_DE

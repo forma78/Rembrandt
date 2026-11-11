@@ -106,7 +106,7 @@ function modelRecipe(r) {
   const parts = partsSay(r.parts), ratio = parts.every(([, n]) => typeof n === 'number');
   return `<span class="recipe">${parts.map(([p, n]) => `<span class="part">${chip(paintHex(p))}${esc(shelfOf_(p)?.name ?? p)} ${typeof n === 'number' ? (parts.length > 1 ? `<b>${n}</b>` : '<em>as it is</em>') : `<em>${esc(n)}</em>`}</span>`).join(ratio ? '<span class="colon">:</span>' : '<span class="colon">+</span>')}</span>`;
 }
-const SAYS = { red: 'a red of the body: from the reds and the dark mother, no Black, no violet, no blue', olive: 'the neon in shade: the fluorescent lemon darkened', blue: 'a blue grey: Ultramarine with Black and White', grey: 'a grey: White with Black by drops and a tint' };
+const SAYS = { red: 'a red of the body: from the reds and the dark mother, no Black, no violet, no blue', olive: 'a yellow, an amber or an olive: the yellows and the ochre — the fluorescent lemon for a neon — darker with Dark Brown or Black', blue: 'a blue grey: Ultramarine with Black and White', grey: 'a grey: White with Black by drops and a tint' };
 const unsure = r => r.de > 3 || partsSay(r.parts).some(([, n]) => typeof n !== 'number');
 function workLead(id) {
   const P = PLANS.find(p => p.id === id), E = ENTRIES.filter(e => e.art === id), R = E.map(recipeFor), uses = {};
@@ -129,7 +129,7 @@ function workCards(id) {
     return `<article class="jcard${mixed ? ' mixed' : ''}" data-key="${esc(e.key)}">
       <div class="jhead"><div class="jsw" style="background:${e.hex}"></div><div>
         <h4>${esc(e.name)}</h4>
-        <p class="jsub">No. ${e.no} of ${E.length} on ${esc(P.title)} · ${(e.line / 1000).toFixed(2)} m of line${e.coats === 2 ? ', twice' : ''}</p>
+        <p class="jsub">its jar by its name · line ${e.no} of ${E.length} in the run of ${esc(P.title)} · ${(e.line / 1000).toFixed(2)} m of line${e.coats === 2 ? ', twice' : ''}</p>
         <div class="badges">${badges}</div></div></div>
       <dl class="jrows">
         <dt>Target</dt><dd>${chip(e.hex)} the plan's colour · ${esc(e.hex)}</dd>

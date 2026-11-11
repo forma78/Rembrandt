@@ -1,0 +1,205 @@
+{
+ "note": "RedCarK (redcark.py): the red classic's v.1 jars as painted, its fixed ones apart \u2014 v.2 takes no paint v.1 has not (the owner, 2026-11-11: 'I have 36 numbered jars; the orange is No. 6, the canon'); exported under v.1's names",
+ "jars": [
+  {
+   "name": "Jar 2",
+   "hex": "#F8BACE",
+   "coats": 1
+  },
+  {
+   "name": "Jar 4",
+   "hex": "#F596AD",
+   "coats": 1
+  },
+  {
+   "name": "Jar 5",
+   "hex": "#F29B8B",
+   "coats": 1
+  },
+  {
+   "name": "Jar 8",
+   "hex": "#C2798F",
+   "coats": 1
+  },
+  {
+   "name": "Jar 9",
+   "hex": "#E66551",
+   "coats": 1
+  },
+  {
+   "name": "Jar 10",
+   "hex": "#ED3F58",
+   "coats": 1
+  },
+  {
+   "name": "Jar 11",
+   "hex": "#8F7773",
+   "coats": 1
+  },
+  {
+   "name": "Jar 12",
+   "hex": "#757C91",
+   "coats": 1
+  },
+  {
+   "name": "Jar 13",
+   "hex": "#D4462F",
+   "coats": 2
+  },
+  {
+   "name": "Jar 15",
+   "hex": "#AE5C4D",
+   "coats": 1
+  },
+  {
+   "name": "Jar 16",
+   "hex": "#E20D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 17",
+   "hex": "#C83D56",
+   "coats": 1
+  },
+  {
+   "name": "Jar 18",
+   "hex": "#CA1E34",
+   "coats": 1
+  },
+  {
+   "name": "Jar 19",
+   "hex": "#CE0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 20",
+   "hex": "#C12614",
+   "coats": 1
+  },
+  {
+   "name": "Jar 21",
+   "hex": "#C70D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 22",
+   "hex": "#A13624",
+   "coats": 2
+  },
+  {
+   "name": "Jar 23",
+   "hex": "#B40D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 24",
+   "hex": "#AE0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 25",
+   "hex": "#7D3B2D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 26",
+   "hex": "#9E0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 27",
+   "hex": "#9D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 29",
+   "hex": "#8E0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 30",
+   "hex": "#8D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 31",
+   "hex": "#800D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 32",
+   "hex": "#7E0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 33",
+   "hex": "#7D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 34",
+   "hex": "#760D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 35",
+   "hex": "#6F0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 36",
+   "hex": "#6C0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 37",
+   "hex": "#620D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 38",
+   "hex": "#5F0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 39",
+   "hex": "#5A0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 41",
+   "hex": "#550D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 42",
+   "hex": "#242737",
+   "coats": 1
+  },
+  {
+   "name": "Jar 43",
+   "hex": "#510D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 44",
+   "hex": "#490D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 46",
+   "hex": "#101D29",
+   "coats": 2
+  },
+  {
+   "name": "Jar 47",
+   "hex": "#211A15",
+   "coats": 2
+  },
+  {
+   "name": "Jar 48",
+   "hex": "#280D0D",
+   "coats": 2
+  }
+ ]
+}

@@ -71,6 +71,10 @@ elif which in ('porsche-red', 'porsche-red-k', 'porsche-white'):
                   'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
     KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
+    if which == 'porsche-red-k':
+        # the classic's v.2 under v.1's names, paint for paint: a jar is the owner's numbered jar, not a place in a list (2026-11-11: "the orange is No. 6, the canon")
+        V1 = {j['hex']: j['name'] for j in json.load(open(os.path.join(OUT, 'porsche-red.json')))['jars']}
+        jarname = lambda pid, n: (V1[P[pid].hex], '')
 elif which in ('porsche-race', 'porsche-race-k'):
     # the red racing 911's face (racecar.py's .pkl), on 60 × 60: the red classic's technique, racegeo.py's geometry; the neon the owner's fluorescent lemon as it comes;
     # its v.2 Kuzya (racecark.py's .pkl), Kuzya's audit laid on it, a card of its own
