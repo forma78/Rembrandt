@@ -1,3 +1,8 @@
+FOUND, 2026-11-11 ~22:15, by the owner: the wires under electrical tape that run from the black drag chain to the board — a
+splice hidden under the tape, the joint not to be seen, so it was never felt. Not the shoulder's plug (swapped 19:43-19:57) nor the
+shoulder-elbow cable (replaced ~21:50): the silences went on after both. During a silence the servos stayed stiff (the 12 V on),
+only the signal lost. Below: the record as it was before the finding.
+
 CNCDM-001, the arm (three Waveshare ST3235 bus servos: shoulder, elbow, wrist) going silent mid-run, 2026-11-04 ... 11-11.
 The owner's suspect, 2026-11-11 evening: the shoulder servo's plug (Waveshare's design, the wires could rub and work loose);
 he swapped its two plugs between 19:43 and 19:57. After it (20:03 ... 20:53) the silences go on in the same phases, two of 77-84 s.

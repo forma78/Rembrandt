@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **The arm's silences: the cause found** (the owner, 2026-11-11 ~22:15: "the wires on electrical tape that go to the board from the black drag chain;
+  inside you cannot see how the wires are joined, so I did not feel them"). Not the shoulder's plug, not the shoulder–elbow cable: the silences went on
+  after both; the servos stayed stiff through them (the 12 V on, only the signal lost). Written at the top of `machine/2026-11-11 arm silent.txt`.
 - **`machine/2026-11-11 arm silent.txt`: every silence of the arm since the cup at hand, by phase of the dip** (the owner, 2026-11-11, "push it, I'll show
   it to Claude in the chat too"). From the run journal, which stays on the Mac: per hour spent in it, the elbow up before the turn to the jar 10.3, just after
   the shoulder came back to 0 8.6, the turn 2.1, in the jar 0, in the row 2.5; no volt sag before any; the same after the shoulder's plugs were swapped.
