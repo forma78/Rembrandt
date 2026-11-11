@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **Photos: JPG only, no HEIC** (the owner, 2026-11-11: "just delete all the HEIC, let there be JPGs everywhere, for order"). Every HEIC in the folder
+  (59: FORM-G, INKA, OPM-G, OPM-N, OPM, St_John) is a full-size JPG of the same name (`sips`), its size checked, the HEIC deleted. In git: St_John's nine
+  and OPM's one, their location tags taken out, the picture and its turn as they were. The two notes that named `FORM-G/IMG_2643.HEIC` name the JPG.
 - **rembrandt.py: a miss up to 4 mm at a block's end goes on** (the owner, 2026-11-11, of "the carriage did not get there: X 26.4 Y 387.5 mm instead of
   X 23.2 Y 387.5 … HARD STOP sent" on the red classic's v.3: "no HARD STOP when X is 26.4 and 23.2 is wanted — is that a punishment? a trip to STOP / HOME only
   makes it worse. A miss up to 4 mm can be forgiven"). `ARRIVAL_MM` 1 → 4 mm: the next block goes from where the carriage stands to its own ends; a miss over
@@ -118,7 +121,7 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   (OPM-G's too, the same carriage), and **Travel, mm/s** under The brush, 20 … 180. Lost steps are the belt's: the owner checks the GT2 clamps.
 - **FORM-G: the red classic at the owner's place, its lowest lift-outs pressed against the bottom wall** (the owner, the same night: left edge −60, bottom
   edge −68 "is the canon for the 70 × 100 canvas"; "I calibrated it perfectly — fit the car to the physics"; the pen's outline found the canvas's centre,
-  `FORM-G/IMG_2643.HEIC`; asked: shorten the car's rear, move it up, or let the carriage press against the wall — "Yes", the last, "not 6 mm above the pen's
+  `FORM-G/IMG_2643.jpg`; asked: shorten the car's rear, move it up, or let the carriage press against the wall — "Yes", the last, "not 6 mm above the pen's
   outline"). There the carriage would go about 6 mm past the bottom wall (the stop 9.45 mm past it); the page's "16 mm" was plotRun's sum over every piece
   pressed, not a depth. `PRESS_OK` in `formg.js`: for the red classic only, at the bottom wall only, 8 mm at most, no leg gone — the page says so above the
   place and the journal's DRAG start carries `pressed_bottom_mm`; anything else as before, refused. What it costs (est.): the lift-outs of the rear bumper's

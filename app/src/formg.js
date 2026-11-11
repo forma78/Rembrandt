@@ -113,7 +113,7 @@ function paintRun(from = 0) {
 // plotRun presses a path past a wall into it, which here would change the picture (the owner's rule on the brush: "never silently"): such a run is not run
 // — but for a picture in PRESS_OK, at the bottom wall alone, so many mm at most past it, its lowest legs' lift-outs pressed (said on the page, written in the
 // journal). The owner, 2026-11-10, of the red classic at his calibrated place for the 70 × 100 canvas, left edge −60, bottom edge −68 ("the canon for the
-// 70 × 100 canvas"; the pen found the canvas's centre, FORM-G/IMG_2643.HEIC): asked whether to shorten the car, move it, or let the carriage press against the
+// 70 × 100 canvas"; the pen found the canvas's centre, FORM-G/IMG_2643.jpg): asked whether to shorten the car, move it, or let the carriage press against the
 // wall — "Yes", the last. There the carriage would go about 6 mm past the bottom wall, the stop 9.45 mm past it: the lift-outs of the rear bumper's tips and
 // the diffuser pressed — the tip mostly off the canvas by then, the lift's last few mm of slide in the white under the car; a landing from below may lose ~2 mm
 // of its touch (est.); no leg gone. (plotRun has pressed every path since 2026-10-03, the owner: "remove this restriction".)
