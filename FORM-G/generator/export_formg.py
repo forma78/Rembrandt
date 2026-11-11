@@ -67,7 +67,7 @@ elif which in ('porsche-red', 'porsche-red-k', 'porsche-white'):
         pl.pids.append(f'j{i}')
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
     title, sub = {'porsche-red': ('Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'),
-                  'porsche-red-k': ('Porsche, red · v.2 Kuzya', 'hyperrealism, 70 × 100, classic red, 84 cm long; Kuzya\'s audit: no hue apart on the body, a cut by the form, jars the eye cannot tell apart one'),
+                  'porsche-red-k': ('Porsche, red · v.2', 'hyperrealism, 70 × 100, classic red, 84 cm long; no hue apart on the body, a cut by the form, jars the eye cannot tell apart one'),   # no "Kuzya" on the card (the owner, 2026-11-11: "it only makes noise")
                   'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
     KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
     if which != 'porsche-white':
@@ -94,7 +94,7 @@ elif which in ('porsche-race', 'porsche-race-k'):
         pl.pids.append(f'j{i}')
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
     title, sub = {'porsche-race': ('Porsche GT, red', 'hyperrealism, 60 × 60, the red racing 911 from the front, 54 cm across'),
-                  'porsche-race-k': ('Porsche GT, red · v.2 Kuzya', 'hyperrealism, 60 × 60, the red racing 911 from the front, 54 cm across; Kuzya\'s audit: no hue apart on the body, a cut by the form, jars the eye cannot tell apart one')}[which]
+                  'porsche-race-k': ('Porsche GT, red · v.2', 'hyperrealism, 60 × 60, the red racing 911 from the front, 54 cm across; no hue apart on the body, a cut by the form, jars the eye cannot tell apart one')}[which]
     KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'neon': 'Neon, fluorescent lemon', 'seam': 'Seam'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
 else:

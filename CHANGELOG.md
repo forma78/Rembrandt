@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: each 911's v.2 alone in THE LIBRARY, no "Kuzya" on the cards** (the owner, 2026-11-11: "remove the cards Porsche GT, red — leave only v.2 in THE LIBRARY.
+  The same with the classic's v.2. Remove the words Kuzya, they only make noise"). `FORMG_LIB`: Porsche GT, red · v.2; Porsche, red · v.2; the white; the watch. Their v.1,
+  `porsche-race.json` and `porsche-red.json`, stay on the disk (the tests, v.2's names). A page left on a v.1 opens its v.2; the classic's place, the owner's canon for
+  the 70 × 100 (left −60, bottom −68), carried to its v.2 once — the same outline to the mm, the same PRESS_OK.
 - **FORM-G: Jar 6 by its number, the first of Layer 2 (canon)** (the owner, 2026-11-11, the red classic's v.1 on canvas, the orange between the greys: "call the orange
   Jar 6; the swatch is next to it, I see it anyway. Calling a colour Indicator is strange — we do not call the black Wheels"; "Jar 6, the orange, is sensitive to the grey next
   to it. Before it Jar 3, right after it Jar 7 — I propose to take the orange to the very start of Layer 2 and put it into the canon: Jar 6 always at the start of Layer 2. In

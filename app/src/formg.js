@@ -643,7 +643,11 @@ lampSwitch($('#lamp'));
   }
   // every card its canvas (the owner, 2026-11-10: "better to sign them: I thought our red Porsche was 60 × 80, and it is 70 × 100"; a picture is planned for its own size, never scaled)
   $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b><span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
-  if (!LIB[S.pic]) S.pic = LIBRARY[0];
+  // each 911's v.1 off the library (the owner, 2026-11-11: "leave only v.2"): a page left on a v.1 opens its v.2; the classic's place on the canvas, the owner's canon for
+  // the 70 × 100 (left −60, bottom −68), carried to its v.2 once — the same outline to the mm, the same pen outline and PRESS_OK
+  const GONE = { 'porsche-red': 'porsche-red-k', 'porsche-race': 'porsche-race-k' };
+  if (!LIB[S.pic]) S.pic = LIB[GONE[S.pic]] ? GONE[S.pic] : LIBRARY[0];
+  if (!CANON_RUN && !S.v2place) { if (S.place['porsche-red']) S.place['porsche-red-k'] = { ...S.place['porsche-red'] }; S.v2place = 1; save(); }
   PIC = picNow(S.pic); SEQ = seqOf(PIC);
   await loadInk();
   layout(); settle(); watch();
