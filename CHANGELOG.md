@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the classic's v.3, half the jar changes** (the owner, 2026-11-11: "13 hours and 62 jar changes are physically hard for me. Let us cut their number
+  in two … I think we can risk cutting the colours in half without an obvious loss in the optical perception. If it does not work, we can always go back to
+  v.2"; "if every colour's legs grow from 1 metre to 3–4, the paintings can go into production"). A card after v.2: **24 jars, 31 lines of the list** (v.2: 41
+  and 62), 7 of them two coats (21). Every jar a v.2 jar under its own number and paint, none new — 18 of them among the jars he has mixed (1, 2, 3, 5, 6, 7, 8,
+  9, 10, 11, 12, 14, 15, 16, 17, 28, 31, 45), 6 to mix (27, 39, 40, 42, 46, Black). Chosen so that every jar that goes lies within a mix of two neighbouring
+  columns of those that stay (CIEDE2000, weighted by its line, est.): the body's twelve dark reds 16 … 48 become four, 16, 27, 31, 39, with the seam 45 and
+  Black; then the whole picture planned again by `redcark.py`'s RedCarK with those jars (`redcarv3.py`), so their legs go to the jars that can paint them,
+  never recoloured one by one. Against the photo dE 10.0 (v.2 9.7, v.1 9.6); 1432 legs (1577), 290 under 12 mm (356), 62.9 m of legs (63.3); a jar's
+  line 2.6 m on average (1.5) — the dark reds 4 … 10 m, the light ones, the details, still under 1 m (the median 0.8). v.2 against v.3 seen from 3 m (the model): mean ΔE 4.3, v.1 against v.2, which he saw no difference in, 3.1. ≈ 12 h 47 min without
+  the marks (v.2 13 h 50, est.). The same outline to the mm: v.2's place on the canvas carried to it once, the same DRAW BW outline, PRESS_OK. The indicators
+  by `amber_trim.py` as v.2's; the render's bulbs not moved by hand. Not run.
 - **FORM-G: the classic's v.2, the indicators' cosmetics by the owner's marks** (the owner, 2026-11-11, on the trimmed version, `FORM-G/details-2-5.png`: "it
   got better, cosmetics remain"; "literally 4 strokes on the left and 4 strokes on the right can be pulled down, and the two outermost orange ones removed, I
   crossed them out in green"). The four strokes at each indicator's outer corner (x 217.5 … 232.5, 467.5 … 482.5) keep the generator's own start again, their

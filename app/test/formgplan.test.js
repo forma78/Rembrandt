@@ -20,7 +20,7 @@ function runOf(pic, place) {
 const rangeOf = pic => { const R = rowsOf(pic, passesOf(pic)); return placeRange(pic, plotRun({ ...OPTS, rows: R.ps.length }, grouped(R)).carriage, reach()); };
 
 test('the library: every picture has its plan and its image, one grid, the brush 5 mm', () => {
-  assert.deepEqual(FORMG_LIB, ['porsche-race-k', 'porsche-red-k', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk
+  assert.deepEqual(FORMG_LIB, ['porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk; the classic's v.3 after its v.2 (2026-11-11)
   for (const id of FORMG_LIB) assert.doesNotMatch(load(id).title + load(id).sub, /Kuzya/, `${id}: no "Kuzya" on its card (the owner, 2026-11-11: "it only makes noise")`);
   for (const id of FORMG_LIB) {
     const pic = load(id);
@@ -50,9 +50,10 @@ test('two layers, one list: every jar once, light to dark, then the jars that ne
 });
 
 test('the orange, Jar 6, the first of Layer 2 (the canon, the owner, 2026-11-11: "Jar 6, the orange, is sensitive to the grey next to it … Jar 6 always at the start of Layer 2")', () => {
-  for (const id of ['porsche-red-k', 'porsche-red']) {
+  for (const id of ['porsche-red-k', 'porsche-red', 'porsche-red-v3']) {
     const pic = load(id), S = seqOf(pic), one = S.filter(q => q.layer === 1), at = S.findIndex(q => q.id === 'j6');
-    assert.equal(pic.jars[5].name, 'Jar 6'); assert.equal(pic.jars[5].hex, '#EE8A22'); assert.ok(pic.jars[5].late);
+    const six = pic.jars.find(j => j.name === 'Jar 6');
+    assert.equal(six.id, 'j6'); assert.equal(six.hex, '#EE8A22'); assert.ok(six.late);
     assert.equal(at, one.length, `${id}: the orange the first line of Layer 2`);
     assert.ok(S.slice(0, at).every(q => q.layer === 1 && q.id !== 'j6') && S.slice(at).every(q => q.layer === 2), `${id}: the first layer whole before it`);
     assert.equal(S.filter(q => q.jar === 'j6' || q.id === 'j6').length, 1, `${id}: once, as its one coat`);
@@ -374,3 +375,17 @@ test('DRAW BW through plotRun, the pen at the brush\'s elbow: no fault, every mm
   assert.equal(dbg.lines, C.lines.length);
   assert.ok(Math.abs(dbg.pressed - dbg.drawn) < 1e-6 && Math.abs(dbg.drawn - (C.mm - 2 * TAIL_MIN * C.lines.length)) < 1, `${dbg.pressed} of ${C.mm} mm pressed (the landings' and the lifts' ${TAIL_MIN} mm apart)`);
 });
+
+// the classic's v.3 (the owner, 2026-11-11: "13 hours and 62 jar changes are physically hard for me. Let us cut their number in two … if it does not work, we can always go back to v.2")
+const lineOfPic = p => p.jars.reduce((t, j) => t + j.cells.reduce((u, c) => u + c.legs.reduce((v, l) => v + Math.abs(l[2] - l[1]), 0), 0), 0);
+test('the classic\'s v.3: v.2\'s jars halved, every one a v.2 jar under its own number and paint, none new; 31 lines of the list, not 62; the same outline', () => {
+  const v2 = load('porsche-red-k'), v3 = load('porsche-red-v3'), by = new Map(v2.jars.map(j => [j.name, j]));
+  assert.equal(seqOf(v2).length, 62);
+  assert.equal(v3.jars.length, 24); assert.equal(seqOf(v3).length, 31); assert.equal(v3.jars.filter(j => j.coats === 2).length, 7);
+  for (const j of v3.jars) { const q = by.get(j.name); assert.ok(q, `${j.name}: not a v.2 jar`); assert.equal(j.hex, q.hex, `${j.name}: v.2's paint`); assert.equal(j.coats, q.coats, j.name); }
+  assert.deepEqual(v3.box, v2.box, 'the same outline: the same place on the canvas, DRAW BW\'s outline, PRESS_OK');
+  assert.equal(v3.w, 700); assert.equal(v3.h, 1000);
+  assert.ok(Math.abs(lineOfPic(v3) - lineOfPic(v2)) / lineOfPic(v2) < 0.05, `the same picture painted: ${lineOfPic(v3)} mm of legs, v.2 ${lineOfPic(v2)}`);
+  assert.ok(lineOfPic(v3) / v3.jars.length > 1.6 * lineOfPic(v2) / v2.jars.length, 'a jar\'s line longer ("from 1 metre to 3–4")');
+});
+

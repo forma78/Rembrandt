@@ -1,0 +1,80 @@
+{
+ "note": "RedCarV3 (redcarv3.py): the classic's v.2 jars halved (the owner, 2026-11-11: '13 hours and 62 jar changes are physically hard for me; let us cut their number in two'), the fixed ones apart; every jar a v.2 jar under its own number, none new; chosen so that every jar that goes lies within a mix of two neighbouring columns of those that stay (CIEDE2000, est.)",
+ "jars": [
+  {
+   "name": "Jar 2",
+   "hex": "#F8BACE",
+   "coats": 1
+  },
+  {
+   "name": "Jar 5",
+   "hex": "#F29B8B",
+   "coats": 1
+  },
+  {
+   "name": "Jar 8",
+   "hex": "#C2798F",
+   "coats": 1
+  },
+  {
+   "name": "Jar 9",
+   "hex": "#E66551",
+   "coats": 1
+  },
+  {
+   "name": "Jar 10",
+   "hex": "#ED3F58",
+   "coats": 1
+  },
+  {
+   "name": "Jar 11",
+   "hex": "#8F7773",
+   "coats": 1
+  },
+  {
+   "name": "Jar 12",
+   "hex": "#757C91",
+   "coats": 1
+  },
+  {
+   "name": "Jar 15",
+   "hex": "#AE5C4D",
+   "coats": 1
+  },
+  {
+   "name": "Jar 16",
+   "hex": "#E20D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 17",
+   "hex": "#C83D56",
+   "coats": 1
+  },
+  {
+   "name": "Jar 27",
+   "hex": "#9D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 31",
+   "hex": "#800D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 39",
+   "hex": "#5A0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 42",
+   "hex": "#242737",
+   "coats": 1
+  },
+  {
+   "name": "Jar 46",
+   "hex": "#101D29",
+   "coats": 2
+  }
+ ]
+}

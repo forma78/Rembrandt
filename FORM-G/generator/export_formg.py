@@ -6,6 +6,7 @@
   python3 export_formg.py porsche-red <plan.pkl>  (redcar.py's .pkl)
   python3 export_formg.py porsche-white <plan.pkl>  (whitecar.py's .pkl)
   python3 export_formg.py porsche-red-k <plan.pkl>  (redcark.py's .pkl)
+  python3 export_formg.py porsche-red-v3 <plan.pkl>  (redcarv3.py's .pkl)
   python3 export_formg.py porsche-race <plan.pkl>  (racecar.py's .pkl)
   python3 export_formg.py porsche-race-k <plan.pkl>  (racecark.py's .pkl)
   python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
@@ -53,7 +54,7 @@ elif which == 'gwagon':
     title, sub = 'G-wagon', 'hyperrealism, 60 × 60, black, 50 cm across'
     KEEP = {'ink': 'Black', 'grille': 'Grille', 'seat': 'Seats'}   # a shade's grade by its jar's number (the owner, 2026-11-10: "the jar's number does it")
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
-elif which in ('porsche-red', 'porsche-red-k', 'porsche-white'):
+elif which in ('porsche-red', 'porsche-red-k', 'porsche-red-v3', 'porsche-white'):
     # the red classic 911 (redcar.py's .pkl), the canon of the form, and its colours (whitecar.py's …): the green's technique, redgeo.py's geometry, their own fixed jars
     import hyper2
     import paintrun
@@ -68,6 +69,7 @@ elif which in ('porsche-red', 'porsche-red-k', 'porsche-white'):
     pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
     title, sub = {'porsche-red': ('Porsche, red', 'hyperrealism, 70 × 100, classic red, 84 cm long'),
                   'porsche-red-k': ('Porsche, red · v.2', 'hyperrealism, 70 × 100, classic red, 84 cm long; no hue apart on the body, a cut by the form, jars the eye cannot tell apart one'),   # no "Kuzya" on the card (the owner, 2026-11-11: "it only makes noise")
+                  'porsche-red-v3': ('Porsche, red · v.3', 'hyperrealism, 70 × 100, classic red, 84 cm long; v.2 with half the jar changes: 24 of its jars, 31 lines'),
                   'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
     KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
     if which != 'porsche-white':
@@ -75,8 +77,8 @@ elif which in ('porsche-red', 'porsche-red-k', 'porsche-white'):
         # anyway … we do not call the black Wheels"): the orange Jar 6, the tail light Jar 14, the carbon Jar 40, the seam Jar 45 — their places in v.1's list
         KEEP = {'ink': 'Black'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
-    if which == 'porsche-red-k':
-        # the classic's v.2 under v.1's names, paint for paint: a jar is the owner's numbered jar, not a place in a list (2026-11-11: "the orange is No. 6, the canon")
+    if which in ('porsche-red-k', 'porsche-red-v3'):
+        # the classic's v.2 (and v.3, v.2's jars halved) under v.1's names, paint for paint: a jar is the owner's numbered jar, not a place in a list (2026-11-11: "the orange is No. 6, the canon")
         V1 = {j['hex']: j['name'] for j in json.load(open(os.path.join(OUT, 'porsche-red.json')))['jars']}
         jarname = lambda pid, n: (V1[P[pid].hex], '')
 elif which in ('porsche-race', 'porsche-race-k'):
@@ -149,7 +151,7 @@ assert total_legs == d['st']['legs'], (total_legs, d['st']['legs'])
 ys = [v for j in jars for c in j['cells'] for l in c['legs'] for v in l[1:]]
 xs = [l[0] for j in jars for c in j['cells'] for l in c['legs']]
 out = dict(id=which, title=title, sub=sub, w=pl.W, h=pl.H, pitch=PITCH, image=f'{os.path.basename(OUT)}/{which}.jpg', columns=int(pl.N), box=[min(xs), min(ys), max(xs), max(ys)], jars=jars)
-if which == 'porsche-red-k':
+if which in ('porsche-red-k', 'porsche-red-v3'):
     # the front indicators' orange left whole, the bumper's reds from its front end on (the owner, 2026-11-11, details-2-3.png; amber_trim.py)
     import amber_trim
     amber_trim.trim(out)
