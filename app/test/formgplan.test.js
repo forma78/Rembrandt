@@ -68,6 +68,21 @@ test('the orange, Jar 6, the first of Layer 2 (the canon, the owner, 2026-11-11:
   assert.deepEqual(P[1].byCell[0].legs, [[[10, 22], [10, 98]], [[15, 98], [15, 22]]]);
 });
 
+test('the front indicators\' orange left whole on the classic\'s v.2: no other jar\'s leg on its bumper side reaches onto it (the owner, 2026-11-11, details-2-3.png: "so that the red does not climb onto the orange at all")', () => {
+  const pic = load('porsche-red-k'), amber = new Map();
+  for (const c of pic.jars.find(j => j.late).cells) for (const [x, a, b] of c.legs) if (Math.min(a, b) >= 500) amber.set(x, [Math.min(a, b), Math.max(a, b)]);
+  assert.ok(amber.size >= 20, 'both front indicators');
+  let above = 0;
+  for (const j of pic.jars.filter(q => !q.late)) for (const c of j.cells) for (const [x, a, b] of c.legs) {
+    const o = amber.get(x), lo = Math.min(a, b), hi = Math.max(a, b);
+    if (!o || hi <= o[0] || (lo + hi) / 2 <= (o[0] + o[1]) / 2) continue;   // not on it, or on the wing's side
+    assert.ok(lo >= o[1] - 1e-9, `${j.name} at x ${x}: ${lo}…${hi} over the orange ${o[0]}…${o[1]}`);
+    above++;
+  }
+  assert.ok(above >= 20, 'the bumper\'s reds still there, from the orange\'s front end on');
+  for (const j of pic.jars) j.cells.forEach((c, i) => { assert.equal(c.n, i + 1); for (let k = 1; k < c.legs.length; k++) assert.ok(Math.abs(c.legs[k][0] - c.legs[k - 1][0]) <= pic.pitch + 1e-9, `${j.name} cell ${c.n}: a step across a gap`); });
+});
+
 test('the second layer: the same legs, every cell the other way round, so that its dips and bulbs do not fall on the first\'s', () => {
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', coats: 2, cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20]] }] }] };
   const [one, two] = passesOf(pic);

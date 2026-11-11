@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the front indicators' orange whole on the classic's v.2** (the owner, 2026-11-11, `FORM-G/details-2-3.png`, the photo beside the Drag view: "trim
+  the red on the bumper a little, so that it does not climb onto the orange at all; on the left the photo, as in the original — it will be neater"). paintrun.py
+  runs a lighter span UNDER, 3 mm, under the darker one it butts, for the darker comes after it; the orange is the first of Layer 2 since the same day, and the
+  bumper's dark reds' second coats come after it again. Now in every column of a front indicator a leg of another jar on the bumper's side starts where the
+  orange ends: 26 legs 3 mm shorter (Jars 17, 20, 21, 22, 24, 27, 30, 34, 36, 37, 39), 3 left with under 3 mm out (Jar 36 and Jar 43 at x 267.5, Jar 37 at
+  432.5), their cells broken there; 1576 legs, 946 cells. The wing's side behind the orange as it was. `FORM-G/generator/amber_trim.py`, in `export_formg.py`
+  for v.2; the render's bulbs moved up the same 3 mm by hand, the orange under them. Not run.
 - **rembrandt.py: a silent arm pauses the run; the servos' volts in the journal** (the owner, 2026-11-11, of all three servos silent at once mid-run,
   back when the carriage was moved, and the STOP, HOME and Start from it took: asked whether a silent arm should pause the run, Continue the same move
   again, and whether the servos' volts should go into the journal: "Yes. I allow it"). Silent past SILENT_WAIT (90 s, as before) at a joint's move, at

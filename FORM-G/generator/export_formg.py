@@ -149,6 +149,10 @@ assert total_legs == d['st']['legs'], (total_legs, d['st']['legs'])
 ys = [v for j in jars for c in j['cells'] for l in c['legs'] for v in l[1:]]
 xs = [l[0] for j in jars for c in j['cells'] for l in c['legs']]
 out = dict(id=which, title=title, sub=sub, w=pl.W, h=pl.H, pitch=PITCH, image=f'{os.path.basename(OUT)}/{which}.jpg', columns=int(pl.N), box=[min(xs), min(ys), max(xs), max(ys)], jars=jars)
+if which == 'porsche-red-k':
+    # the front indicators' orange left whole, the bumper's reds from its front end on (the owner, 2026-11-11, details-2-3.png; amber_trim.py)
+    import amber_trim
+    amber_trim.trim(out)
 path = os.path.join(OUT, f'{which}.json')
 with open(path, 'w') as f:
     json.dump(out, f, separators=(',', ':'))
