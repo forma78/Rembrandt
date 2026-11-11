@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G and the iPhone's remote: PROGRESS of the whole picture after a Start from** (the owner, 2026-11-11, of the arm gone silent on the red classic's run: "I take
+  them home by Stop, Home. That puts PROGRESS back to zero, the % on the screen go off"). A DRAG from a later line of the list counts the lines before it done: the %, the
+  sticks, the jar's "7/62" and the row's, the total the picture's, the time left the run's; the remote the same (every colour of the run its line in the whole list and the
+  picture's mm, `whole`, passed on by rembrandt.py as it is). A page opened during such a run finds its run's lines again when its plan gives the very blocks the board has.
+  rembrandt.py untouched. The journal of the night and the day: all three servos silent at once at 02:59, 03:39, 03:40 and 13:24, 76 … 100 s each, all over the canvas
+  (Y 130 … 480, X 55 … 805), while the carriage still moved (the owner) — the servos' own branch of the 12 V, the board's terminal and switch, the servo cable, not the
+  supply; the firmware README's note of 2026-09-22 too: "the whole bus silent at once is the ground, not the servos".
 - **FORM-G: the panel on the left** (the owner, 2026-11-11: "move the panel from the right corner to the left, please"): PROGRESS, the keys, the canvas, the brush and the
   jars in a column on the left under the tabs, the picture in the middle, THE LIBRARY on the right as before. A phone as before.
 - **FORM-G: each 911's v.2 alone in THE LIBRARY, no "Kuzya" on the cards** (the owner, 2026-11-11: "remove the cards Porsche GT, red — leave only v.2 in THE LIBRARY.

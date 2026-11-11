@@ -155,13 +155,18 @@ async function call(path, post) {
   if (r.status === 403) throw new Error('key');
   return r.json();
 }
+// a run from a later line of the list (FORM-G's Start from): its colours carry the whole list's place, n of `of`, and `whole` — the picture's mm before the run, the run's,
+// all of it, the whole's seconds — so PROGRESS reads the whole picture, as the page's (2026-11-11); a run without them as before
+const wholeOf = s => s?.colour?.whole || s?.next?.whole || PLAN?.colours?.[0]?.whole || null;
+const pctOf = s => { const p = !s ? 0 : s.state === 'done' ? 100 : s.percent || 0, W = wholeOf(s); return W && W.all ? (W.mm0 + p / 100 * W.run) / W.all * 100 : p; };
+const lineOf = s => s?.colour?.n ? `${s.colour.n}/${s.colour.of}` : `${s.colour_n}/${s.colours}`;
 function show() {
   const s = st, live = s && LIVE.includes(s.state), paused = s && ['paused', 'pausing'].includes(s.state), c = s?.colour;
   $('#sw').style.background = c?.hex || '#3A3733';
   $('#name').textContent = c ? c.name : live ? 'Running' : s ? ({ done: 'Done', stopped: 'Stopped', error: 'Error', idle: 'Nothing running' }[s.state] || s.state) : '—';
   $('#cell').innerHTML = s?.cell ? `Cell ${s.cell}<small>${c?.cells ? ` / ${c.cells}` : ''}</small>` : '&nbsp;';
-  $('#sub').textContent = c && s.colour_n ? `colour ${s.colour_n} of ${s.colours} · ${Math.round(s.percent)} %` : s ? `${Math.round(s.percent || 0)} %` : '';
-  $('#bar').style.width = `${Math.max(0, Math.min(100, s?.percent || 0))}%`;
+  $('#sub').textContent = c && s.colour_n ? `colour ${lineOf(s).replace('/', ' of ')} · ${Math.round(pctOf(s))} %` : s ? `${Math.round(pctOf(s))} %` : '';
+  $('#bar').style.width = `${Math.max(0, Math.min(100, pctOf(s)))}%`;
   const say = $('#say');
   say.classList.toggle('call', !!(paused && s.message));
   say.textContent = Date.now() - noteAt < 3000 ? note : !s ? 'Connecting …' : s.state === 'error' ? s.message : paused && s.next ? `Next: ${s.next.name} — wipe the brush, change the cup, ▶` : paused ? (s.message || 'Paused') : s.message || (live ? 'Painting' : 'Start DRAG on OPM-N');
@@ -314,9 +319,9 @@ function showProgress() {
   const s = st, live = s && LIVE.includes(s.state), c = s?.colour, off = fails > 2;
   if (PLAN && (s?.state === 'idle' || planOf !== s?.started)) setPlan(null, { started: null });   // the run it was of is gone
   if (s) loadPlan(s);
-  const pct = !s ? 0 : s.state === 'done' ? 100 : s.percent || 0, rate = s?.started ? mmPerS(s) : 0, left = rate && s ? Math.max(0, s.paint_mm - s.painted_mm) / rate : 0;
+  const pct = pctOf(s), rate = s?.started ? mmPerS(s) : 0, left = rate && s ? Math.max(0, s.paint_mm - s.painted_mm) / rate : 0;
   const stateName = !s ? 'connecting' : live ? (s.state === 'paused' ? 'paused' : 'live') : s.state === 'idle' ? 'nothing running' : s.state;
-  const est = s?.estimate_s || (PLAN?.blocks === s?.blocks ? PLAN?.estimate_s : 0) || 0;
+  const est = wholeOf(s)?.s || s?.estimate_s || (PLAN?.blocks === s?.blocks ? PLAN?.estimate_s : 0) || 0;   // a run from a later line: the whole picture's
   const k = s?.colour_n ? s.colour_n - 1 : -1, nextC = s?.next || (PLAN && k >= 0 ? PLAN.colours[k + 1] : null), code = c?.code ? ` ${c.code}` : '';
   const nth = PLAN && s?.row ? PLAN.nth[s.row - 1] : 0, of = PLAN && k >= 0 ? PLAN.count[k] : 0;
   const nowLine = !s ? '' : s.state === 'error' ? 'error' : s.cell && c ? `cell ${s.cell}/${c.cells}${nth ? ` · dip ${nth}/${of}` : ''}${s.brush_on ? ' · brush on' : ' · brush off'}` : live ? 'on its way' : s.state === 'done' ? 'done' : '';
@@ -327,7 +332,7 @@ function showProgress() {
       <div class="lcd-times"><span class="k">left</span>${live ? lcdTime(left) : segments('--:--', 18)}${est ? `<span class="k">total</span>${lcdTime(est)}` : ''}<span class="k">ends</span>${live && rate ? segments(clockAt(left), 18) : segments('--:--', 18)}</div>
     </div>
     ${sticks(pct / 100)}
-    ${c ? `<div class="lcd-pen"><i class="sw" style="background:${esc(c.hex)}"></i><span class="pt"><span class="pn">${esc(c.name)}${esc(code)}</span><span class="pk">${s.state === 'paused' && s.message && s.next ? 'finished' : 'painting'} · ${s.colour_n}/${s.colours}</span></span>${nextC ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${esc(nextC.hex)}"></i><span>${esc(nextC.name)}</span></span></span>` : s.colour_n === s.colours ? '<span class="nx"><span class="pk">the last</span></span>' : ''}</div>` : ''}
+    ${c ? `<div class="lcd-pen"><i class="sw" style="background:${esc(c.hex)}"></i><span class="pt"><span class="pn">${esc(c.name)}${esc(code)}</span><span class="pk">${s.state === 'paused' && s.message && s.next ? 'finished' : 'painting'} · ${lineOf(s)}</span></span>${nextC ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${esc(nextC.hex)}"></i><span>${esc(nextC.name)}</span></span></span>` : s.colour_n === s.colours ? '<span class="nx"><span class="pk">the last</span></span>' : ''}</div>` : ''}
     <div class="lcd-now">${esc(nowLine) || '&nbsp;'}</div>`;
   // the hint: when you are wanted next
   const h = $('#hint');

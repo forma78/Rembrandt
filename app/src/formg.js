@@ -88,7 +88,8 @@ function paintRun(from = 0) {
   if (!passes.length) return EMPTY;
   const R = rowsOf(PIC, passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN), name = id => jarOf(id)?.name ?? id;
   const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : passes[k].layer === 2 && passes[k - 1].layer === 1 ? `the first layer is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` })));
-  const out = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows: R.info, lifts: R.lifts, mm: passes.reduce((a, q) => a + q.mm, 0), passes };
+  const n = plan().length, rows = from ? R.info.map(q => ({ ...q, label: q.label.replace(/^(\d+)\/\d+ · /, (_, k) => `${from + +k}/${n} · `) })) : R.info;   // a line's number in the whole list, a run from a later line too
+  const out = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows, lifts: R.lifts, mm: passes.reduce((a, q) => a + q.mm, 0), passes };
   if (RUNS.size > 6) RUNS.clear();
   RUNS.set(key, out);
   return out;
@@ -148,14 +149,19 @@ async function start(key, blocks, info, log) {
     if (st && !(st.hand >= 1)) { alert('The cup at hand (INK-Y): restart rembrandt.py first — the one running does not know it yet. Nothing was sent.'); return; }
   }
   try {
-    RUN = blocks; RUN_INFO = info; RUN_KEY = key; S.runPic = S.pic; save();             // the picture this run is of: the page keeps to it while it runs (runPicture)
+    RUN = blocks; RUN_INFO = info; RUN_KEY = key; S.runPic = S.pic; S.runFrom = info.from ?? 0; S.runKey = key; save();   // the picture this run is of: the page keeps to it while it runs (runPicture); the line it started from, for PROGRESS
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, log }) });
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 }
 // rembrandt.py knows OPM-N's brush by its page (PENCIL_PAGES: the elbow may rest on the canvas just above its aim): FORM-G's the same brush, so the same page, its own `tab` in the journal; rembrandt.py as it was
 const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...o });
-const remoteRows = R => ({ colours: R.passes.map(q => { const j = jarOf(q.pencil); return { name: j?.name ?? q.pencil, hex: j?.hex ?? '#7F7F7F', code: j?.code || '', cells: q.cells }; }), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) });
+// the iPhone's rows; every colour its line in the whole list, n of `of`, and a run from a later line `whole`: the picture's mm before it, the run's, all of it, the whole's seconds —
+// so the remote's PROGRESS reads the whole picture, as the page's (rembrandt.py passes a colour on as it is)
+const remoteRows = (R, from = 0) => {
+  const all = plan(), W = from ? { mm0: Math.round(all.slice(0, from).reduce((a, q) => a + q.mm, 0)), run: Math.round(R.mm), all: Math.round(all.reduce((a, q) => a + q.mm, 0)), s: Math.round(paintRun().seconds) } : null;
+  return { colours: R.passes.map((q, i) => { const j = jarOf(q.pencil); return { name: j?.name ?? q.pencil, hex: j?.hex ?? '#7F7F7F', code: j?.code || '', cells: q.cells, n: from + i + 1, of: all.length, ...(W ? { whole: W } : {}) }; }), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) };
+};
 const dragWay = tracks => `${tracks} legs in all, only up and down, ${fmt(PIC.pitch, 0)} mm apart, the snake back and forth with the brush down; then at once an idle run over the cell, no dip, +${fmt(S.over, 1)} mm past the ends and none at its very end`
   + (CANON_RUN ? `. A long leg by the canon, no. 9: after every dip the brush lands inside the leg, 16 mm along it, back to its start, then along it` : '')
   + `. The dose: every run on a dip of its own, none on what another left; a leg under 30 mm after 60 mm of line since the dip, a dip of its own at its start`
@@ -178,8 +184,8 @@ $('#btnDrag').onclick = async () => {
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);               // the run from a later jar: its own plan
   if (walls(R)) return warn(walls(R));
   S.view = 'drag'; RUN_PRESS = S.press; save(); showKeys(); kick();
-  await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil) },
-    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R), ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
+  await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from },
+    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R, from), ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
 };
 // its checks, OPM-N's: the plan, the walls, the debug of the pen's downs (strokes.js, landingCheck): every mm of every line with the pen down → a warning, or the debug
 function bwCheck(R) {
@@ -575,7 +581,14 @@ $('#lib').onclick = async e => {
 // look at it — the LCD read the board's steps by v.2's plan, "Jar 1 · 1/63", 0 %, and v.2's jar numbers, one ahead of v.1's from its Jar 2 on, were taken for
 // the run's: "the 7th is orange and the 8th grey")
 function choose(id) { playStop(); popHide(); only = null; S.pic = id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); save(); }
-function runPicture(st) { if (st && LIVE.includes(st.state) && S.runPic && S.pic !== S.runPic && LIB[S.runPic]) choose(S.runPic); }   // a page opened during a run: back on its picture
+function runPicture(st) {                                                             // a page opened during a run: back on its picture
+  if (st && LIVE.includes(st.state) && S.runPic && S.pic !== S.runPic && LIB[S.runPic]) choose(S.runPic);
+  // and its run's lines, the line it started from with them (PROGRESS, the LCD's jar), when the plan here gives the very blocks the board has
+  if (st && LIVE.includes(st.state) && !RUN_INFO && S.runKey === 'drag' && S.pic === S.runPic && PIC) {
+    const R = paintRun(S.runFrom ?? 0);
+    if (R.blocks.length === st.blocks) { RUN = R.blocks; RUN_KEY = 'drag'; RUN_INFO = { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from: S.runFrom ?? 0 }; }
+  }
+}
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; playStop(); S.view = b.dataset.view; save(); showKeys(); kick(); };
 $('#runList').onclick = e => { const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#runList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
 for (const [id, k, lo, hi] of [['#fSpeed', 'speed', 5, 120], ['#fEvery', 'dipEvery', 0, 200], ['#fLap', 'dipLap', 0, 30], ['#fOver', 'over', 0, 8], ['#fPen', 'penSpeed', 5, 120], ['#fTravel', 'travel', 20, 180]]) {
@@ -594,11 +607,16 @@ let started = null;
 function lcd(st) {
   const P_ = paintRun(), live = st && LIVE.includes(st.state);
   const Q = PLAY && !live ? PLAY : null;                                              // ▶ Play, nothing running: the run as it would go — how far, the time left (est.), its jar now
-  const pct = Q ? Q.want / Q.mm * 100 : st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
+  const runPct = Q ? Q.want / Q.mm * 100 : st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
   if (live && !started) started = st.started || Date.now() / 1000;
   if (!live) started = null;
   const R_ = live && RUN_INFO ? RUN_INFO : P_;
-  const total = Q ? Q.seconds : R_.seconds, left = !Q && live && started && pct >= 3 ? (Date.now() / 1000 - started) * (100 - pct) / pct : total * (1 - pct / 100);
+  // a DRAG from a later line of the list (Start from, after a STOP or on another day): PROGRESS the whole picture's, the lines before it done, the run's own share after them
+  // (the owner, 2026-11-11: "I take them home by Stop, Home. That puts PROGRESS back to zero, the % on the screen go off"); the time left the run's, the total the picture's
+  const from = !Q && st && st.state !== 'idle' && RUN_KEY === 'drag' ? RUN_INFO?.from ?? 0 : 0, all = plan();
+  const mm0 = from ? all.slice(0, from).reduce((a, q) => a + q.mm, 0) : 0, mmAll = from ? all.reduce((a, q) => a + q.mm, 0) : 0;
+  const pct = from && mmAll ? (mm0 + runPct / 100 * (mmAll - mm0)) / mmAll * 100 : runPct;
+  const runTotal = Q ? Q.seconds : R_.seconds, total = from ? P_.seconds : runTotal, left = !Q && live && started && runPct >= 3 ? (Date.now() / 1000 - started) * (100 - runPct) / runPct : runTotal * (1 - runPct / 100);
   const state = Q ? 'play' : !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b = st && RUN?.[st.block], row = live && st.row ? R_.rows?.[st.row - 1] : null;
   const waiting = st?.state === 'paused' && st.message;
@@ -610,7 +628,7 @@ function lcd(st) {
   showElbow();
   const ids = Q ? Q.ids : (live && RUN_INFO?.passes) || P_.passes.map(q => q.pencil), pid = Q ? Q.ids[Q.n] : row?.pencil ?? (!live ? ids[0] : null), j = pid && jarOf(pid), nx = j && jarOf(ids[ids.indexOf(pid) + 1]);
   const cellNow = row?.cells?.[0]?.[0];
-  const list = plan(), at = pid ? list.findIndex(q => q.pencil === pid) : -1;
+  const list = all, at = pid ? list.findIndex(q => q.pencil === pid) : -1;   // the line's place in the whole list, a run from a later line too
   if (live || Q) markRun(at);
   if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour(RUN_INFO?.bw).lines[st.row - 1] : null } : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
   const now = Q ? `Cell ${Q.q.num}${Q.q.idle ? ', idle' : ''} · ${fmt(pct / 100 * Q.metres / 1000, 1)} of ${fmt(Q.metres / 1000, 1)} m · est.` : waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (RUN_KEY === 'bw' ? (st.brush_on ? ' · the pen on' : ' · the pen up') : st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
@@ -621,7 +639,7 @@ function lcd(st) {
       <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>
     </div>
     ${sticks(pct / 100)}
-    ${j ? `<div class="lcd-pencil"><i class="sw" style="background:${j.hex}"></i><span class="pt"><span class="pn">${esc(j.name)}</span><span class="pk">${live || Q ? 'painting' : 'first'} · ${Math.max(0, ids.indexOf(pid)) + 1}/${ids.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
+    ${j ? `<div class="lcd-pencil"><i class="sw" style="background:${j.hex}"></i><span class="pt"><span class="pn">${esc(j.name)}</span><span class="pk">${live || Q ? 'painting' : 'first'} · ${Math.max(0, at) + 1}/${list.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
     <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
 }
 async function watch() {
