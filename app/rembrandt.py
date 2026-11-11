@@ -97,7 +97,14 @@ RUNAWAY_MM = 12.0
 # brush down, from the wrong place (2026-09-28: X stuck after a HARD STOP,
 # three passes ran along Y only). An arc's end is recomputed by the board
 # from its start radius, a tenth of a mm at most.
-ARRIVAL_MM = 1.0
+# The owner, 2026-11-11, of "X 26.4 instead of X 23.2" and a HARD STOP on the red
+# classic's v.3: "no HARD STOP when X is 26.4 and 23.2 is wanted — is that a
+# punishment? a trip to STOP / HOME only makes it worse. A miss up to 4 mm can be
+# forgiven." A miss up to ARRIVAL_MM goes on (the next block goes from where the
+# carriage stands to its own ends), noted in the journal ("short") past
+# ARRIVAL_NOTE_MM; past ARRIVAL_MM the path was stopped (171.6 mm off at 20:00
+# the same evening): HARD STOP, as before.
+ARRIVAL_MM, ARRIVAL_NOTE_MM = 4.0, 1.0
 
 # What the board answers, in the words of the Job tab.
 BOARD_WORDS = [
@@ -2027,7 +2034,11 @@ class Runner:
         if p is None or p["x"] is None or p["y"] is None:
             raise Abort("lost the board")
         x, y = p["x"] / STEPS_PER_MM[0], p["y"] / STEPS_PER_MM[1]
-        if math.hypot(x - end[0], y - end[1]) > ARRIVAL_MM:
+        miss = math.hypot(x - end[0], y - end[1])
+        if ARRIVAL_NOTE_MM < miss <= ARRIVAL_MM:      # forgiven (the owner, 2026-11-11: up to 4 mm)
+            self.log({"event": "short", "block": self.block, "miss_mm": round(miss, 1),
+                      "here_mm": [round(x, 1), round(y, 1)], "end_mm": [round(end[0], 1), round(end[1], 1)]})
+        if miss > ARRIVAL_MM:
             self.send("/cmd?a=K&n=0")
             raise Abort(f"the carriage did not get there: X {x:.1f} Y {y:.1f} mm instead of "
                         f"X {end[0]:.1f} Y {end[1]:.1f}. The board stopped the path itself "

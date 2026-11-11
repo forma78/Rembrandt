@@ -26,10 +26,11 @@ class FakeBoard:
 
     SIGN, OFF, LIM = {1: -1, 2: 1, 3: 1}, {1: 5, 2: 5, 3: 0}, {1: 45, 2: 45, 3: 150}
 
-    def __init__(self, zero=True, rate=3, edge_on=None, paths=True, stuck_x=False, knows_w=True):
+    def __init__(self, zero=True, rate=3, edge_on=None, paths=True, stuck_x=False, knows_w=True, short_x=0.0):
         self.log, self.queue, self.running = [], [], False
         self.zero, self.rate, self.edge_on, self.paths = zero, rate, edge_on, paths
         self.stuck_x = stuck_x                 # X does not move: the path ends early
+        self.short_x = short_x                 # mm: every path ends so far short of its end along X
         self.knows_w = knows_w                 # False: the firmware before 2026-10-02's W
         self.max_queue, self.on_sleep = 0, None
         self.x, self.y = 800, 267
@@ -143,6 +144,8 @@ class FakeBoard:
                 self.x, self.y = round(end[0] * STEPS_PER_MM[0]), round(end[1] * STEPS_PER_MM[1])
             if not self.queue:
                 self.running = False
+                if self.short_x and not self.stuck_x:
+                    self.x -= round(self.short_x * STEPS_PER_MM[0])
 
 
 def run(board, blocks, **kw):
@@ -332,6 +335,25 @@ class RunnerTest(unittest.TestCase):
         self.assertIn("did not get there", r.message)
         self.assertNotIn(ON, b.log)            # the brush never went down
         self.assertIn("K", b.log)
+
+    def test_a_miss_up_to_4_mm_goes_on_noted(self):
+        # the owner, 2026-11-11 ("X 26.4 instead of X 23.2"): "a miss up to 4 mm can be forgiven"
+        for short, state in ((3.2, "done"), (6.0, "error")):
+            b, got = FakeBoard(short_x=short), []
+            r = Runner(b.send, sleep=b.sleep, swing_s=0.4, log=got.append)
+            ok, _ = r.start([arm(True), travel(100, 20), arm(False), paint(5), arm(True)])
+            self.assertTrue(ok)
+            r.thread.join(10)
+            self.assertEqual(r.state, state, (short, r.message))
+            short_ev = [e for e in got if e.get("event") == "short"]
+            if state == "done":
+                self.assertIn(ON, b.log)                 # the brush went down and painted
+                self.assertNotIn("K", b.log)
+                self.assertTrue(short_ev and all(e["miss_mm"] == 3.2 for e in short_ev), short_ev)
+            else:
+                self.assertIn("did not get there", r.message)
+                self.assertNotIn(ON, b.log)              # past 4 mm: the brush never went down
+                self.assertIn("K", b.log)
 
     def test_board_words_in_english(self):
         self.assertEqual(in_english("край A"), "past a wall")

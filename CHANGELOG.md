@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **rembrandt.py: a miss up to 4 mm at a block's end goes on** (the owner, 2026-11-11, of "the carriage did not get there: X 26.4 Y 387.5 mm instead of
+  X 23.2 Y 387.5 … HARD STOP sent" on the red classic's v.3: "no HARD STOP when X is 26.4 and 23.2 is wanted — is that a punishment? a trip to STOP / HOME only
+  makes it worse. A miss up to 4 mm can be forgiven"). `ARRIVAL_MM` 1 → 4 mm: the next block goes from where the carriage stands to its own ends; a miss over
+  1 mm is a `short` line in the run journal (block, mm, where, where wanted). Past 4 mm the board stopped the path (171.6 mm off at 20:00 the same evening):
+  HARD STOP, as before. Test: 3.2 mm short paints on, 6 mm stops with the brush up.
 - **FORM-G: MARKS, the printer's marks at the middles of the canvas's edges** (the owner, 2026-11-11, `FORM-G/IMG_2683` … `IMG_2687`, paper strips taped over
   the canvas, a grid drawn on each, the first cell red: "typographic marks along the canvas's edges: every colour, when we change the jar, the machine dips once,
   then makes a mark on four sides — as our TEST, but this time in paint, in the middle of the edges: left, right, top and bottom"). After every change of jar,
