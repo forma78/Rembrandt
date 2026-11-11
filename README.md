@@ -276,6 +276,21 @@ do not change the look; so under 20 cm. It can go into the canon."
 `src/canon.js`, `jarsByCanvas`. On LAB's real 3 (200 mm: 33 jars → 19); FORM-G's pictures (1 m)
 with the canon's switch there, after real 3.
 
+## The orange, Jar 6, first in Layer 2 (canon)
+
+The owner, 2026-11-11, after the red classic's first jars on canvas, the orange painted between the
+greys: "Jar 6, the orange, is sensitive to the grey next to it. Before it Jar 3, right after it Jar 7.
+I propose to take the orange to the very start of Layer 2, and to put it into the canon for the
+future: Jar 6 always at the start of Layer 2."
+
+1. **The orange of the indicators** — Jar 6, his numbered jar of `#EE8A22` — is not in the first
+   layer: it is **the first line of Layer 2**, once, on the dry first layer, its cells run as a first
+   coat runs them. The first layer one line shorter: on the red classic's v.2, 40 lines, Black the
+   40th; Jar 6 the 41st, then the second coats.
+2. A jar `late` in a picture's plan (`formgplan.js`, `seqOf`); the generator marks the amber jar so
+   (`FORM-G/generator/export_formg.py`). On the red classic, v.2 and v.1, and the white since the
+   same day.
+
 ## Working rules
 
 - **The artist decides what to paint. The brush determines how it can be

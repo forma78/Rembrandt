@@ -48,6 +48,25 @@ test('two layers, one list: every jar once, light to dark, then the jars that ne
   assert.equal(seqOf(watch).length, watch.jars.length, 'the watch: as its picture, one layer');
 });
 
+test('the orange, Jar 6, the first of Layer 2 (the canon, the owner, 2026-11-11: "Jar 6, the orange, is sensitive to the grey next to it … Jar 6 always at the start of Layer 2")', () => {
+  for (const id of ['porsche-red-k', 'porsche-red']) {
+    const pic = load(id), S = seqOf(pic), one = S.filter(q => q.layer === 1), at = S.findIndex(q => q.id === 'j6');
+    assert.equal(pic.jars[5].name, 'Jar 6'); assert.equal(pic.jars[5].hex, '#EE8A22'); assert.ok(pic.jars[5].late);
+    assert.equal(at, one.length, `${id}: the orange the first line of Layer 2`);
+    assert.ok(S.slice(0, at).every(q => q.layer === 1 && q.id !== 'j6') && S.slice(at).every(q => q.layer === 2), `${id}: the first layer whole before it`);
+    assert.equal(S.filter(q => q.jar === 'j6' || q.id === 'j6').length, 1, `${id}: once, as its one coat`);
+    assert.equal(one.at(-1).name, 'Black', `${id}: Black the last of the first layer`);
+    assert.ok(pic.jars.every(j => j.name === 'Black' || /^Jar \d+$/.test(j.name)), `${id}: a jar by its number, Black the one word ("we do not call the black Wheels")`);
+  }
+  const k = seqOf(load('porsche-red-k'));
+  assert.equal(k.length, 62); assert.equal(k.findIndex(q => q.id === 'j6') + 1, 41, 'v.2: Jar 6 the 41st line, Black the 40th'); assert.equal(k[39].name, 'Black');
+  // its cells as a first coat runs them, not turned round as a second coat's
+  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', coats: 1, late: true, cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20]] }] }, { id: 'b', name: 'B', hex: '#445566', coats: 2, cells: [{ n: 1, legs: [[30, 20, 100]] }] }] };
+  const P = passesOf(pic);
+  assert.deepEqual(P.map(q => [q.pencil, q.layer]), [['b', 1], ['a', 2], ['b:2', 2]]);
+  assert.deepEqual(P[1].byCell[0].legs, [[[10, 22], [10, 98]], [[15, 98], [15, 22]]]);
+});
+
 test('the second layer: the same legs, every cell the other way round, so that its dips and bulbs do not fall on the first\'s', () => {
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', coats: 2, cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20]] }] }] };
   const [one, two] = passesOf(pic);

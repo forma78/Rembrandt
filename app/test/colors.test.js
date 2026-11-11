@@ -16,7 +16,9 @@ test('the registry: every jar of every picture, its key its own, in the plan\'s 
   const E = entriesOf(plans);
   assert.equal(E.length, plans.reduce((a, p) => a + p.jars.length, 0));
   assert.equal(new Set(E.map(e => e.key)).size, E.length, 'a key twice');
-  for (const p of plans) assert.deepEqual(E.filter(e => e.art === p.id).map(e => e.name), p.jars.map(j => j.name), `${p.id}: the list's order`);
+  for (const p of plans) assert.deepEqual(E.filter(e => e.art === p.id).map(e => e.name), [...p.jars.filter(j => !j.late), ...p.jars.filter(j => j.late)].map(j => j.name), `${p.id}: the list's order, a late jar after the first layer's`);
+  const red = E.filter(e => e.art === 'porsche-red-k');
+  assert.deepEqual([red.at(-2).name, red.at(-1).name, red.at(-1).no], ['Black', 'Jar 6', 41], 'the orange the first of Layer 2, its line 41');
   const five = E.filter(e => e.name === 'Jar 5');
   assert.ok(new Set(five.map(e => e.hex)).size > 1 && new Set(five.map(e => e.key)).size === five.length, '"Jar 5" is another paint in every picture, and another key');
   const v2 = E.filter(e => e.art === 'porsche-race-k');

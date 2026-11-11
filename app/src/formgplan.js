@@ -25,7 +25,12 @@ export const passOf = pitch => pitch * IDLE.pass / IDLE.step;   // the idle run'
 
 const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
 // the run's list: every jar, then the jars of the second layer again
-export const seqOf = pic => [...pic.jars.map(j => ({ ...j, layer: 1 })), ...pic.jars.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2 }))];
+// A jar `late` (the canon, README "The orange, Jar 6, first in Layer 2"; the owner, 2026-11-11: "Jar 6, the orange, is sensitive to the grey next to it … I propose to take the
+// orange to the very start of Layer 2"): out of the first layer, the first of the second, on the dry first layer — its own coat, `coat` 1, its cells as the first layer's run them
+export const seqOf = pic => {
+  const now = pic.jars.filter(j => !j.late), late = pic.jars.filter(j => j.late);
+  return [...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...pic.jars.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2 }))];
+};
 // a leg's points: half the tip in from both ends of its span, as idleCellOf; too short for that, the shortest it can land on, in the middle of its span
 function legOf(x, a, b, tip) {
   const d = b >= a ? 1 : -1, L = Math.abs(b - a), m = FORMG.minLeg;
@@ -71,7 +76,7 @@ export function canonCellsOf(pic, jar, o = {}, layer = 1) {
 // the run's colours, the list's lines in their order; o.canon: OPM-G's
 export function passesOf(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = o.canon ? canonCellsOf(pic, j, o, j.layer) : j.cells.map((c, i) => cellOf(c, pic, i + 1, o, j.layer));
+    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => cellOf(c, pic, i + 1, o, j.coat ?? j.layer));   // a cell the other way round on its second coat, not on a late jar's one
     return { pencil: j.id, layer: j.layer, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }

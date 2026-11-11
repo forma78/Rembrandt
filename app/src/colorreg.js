@@ -6,9 +6,10 @@
 // a jar's line, mm: its legs, each from end to end (the audit's measure), once — a second coat paints it again
 export const lineOf = jar => jar.cells.reduce((t, c) => t + c.legs.reduce((u, l) => u + Math.abs(l[1] - l[2]), 0), 0);
 
-// every jar of every picture: { key, art, title, size, no, name, hex, coats, line }, in each picture's own list order
+// every jar of every picture: { key, art, title, size, no, name, hex, coats, line }, in each picture's own list order — a `late` jar after the first layer's,
+// as the run has it (the orange, Jar 6, the first of Layer 2: README's canon, 2026-11-11)
 export function entriesOf(plans) {
-  return plans.flatMap(p => p.jars.map((j, i) => ({
+  return plans.flatMap(p => [...p.jars.filter(j => !j.late), ...p.jars.filter(j => j.late)].map((j, i) => ({
     key: `${p.id}:${j.id}`, art: p.id, title: p.title, size: `${p.w / 10} × ${p.h / 10}`, no: i + 1, name: j.name, hex: j.hex.toUpperCase(), coats: j.coats ?? 1, line: lineOf(j),
   })));
 }

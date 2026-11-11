@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: Jar 6 by its number, the first of Layer 2 (canon)** (the owner, 2026-11-11, the red classic's v.1 on canvas, the orange between the greys: "call the orange
+  Jar 6; the swatch is next to it, I see it anyway. Calling a colour Indicator is strange — we do not call the black Wheels"; "Jar 6, the orange, is sensitive to the grey next
+  to it. Before it Jar 3, right after it Jar 7 — I propose to take the orange to the very start of Layer 2 and put it into the canon: Jar 6 always at the start of Layer 2. In
+  the Porsche's v.2 it will be line 41, for it leaves Layer 1 and the last, #41 Black, becomes #40"). The red classic's jars by their numbers alone, Black the one word: the
+  orange Jar 6, the tail light Jar 14, the carbon Jar 40, the seam Jar 45 — their places in v.1's list, v.2 under the same (`porsche-red.json`, `porsche-red-k.json`,
+  `export_formg.py`). A jar `late` in a plan: out of the first layer, the first line of the second, once, its cells as a first coat's; the orange on the red classic, v.2 and
+  v.1, and on the white. v.2's list: 40 lines, Black the 40th, Jar 6 the 41st, then the 21 second coats, 62 in all as before; the pause before it "the first layer is done:
+  let it dry". COLORS lists a late jar after the first layer's. README: **The orange, Jar 6, first in Layer 2 (canon)**. The red Jar 21's second coat, the orange's chief
+  neighbour (18 legs touching), comes ≈ 22 min of painting after it (est.; LAB: dry ≈ 30 min).
 - **rembrandt.py: a silent arm's wait by the clock** (the night of 2026-11-11, 02:59: all three servos silent at an elbow move after Jar 19's
   cell 18, the journal's "50 s of 90" at 86 s — a read of a silent bus is slower than its gaps, so the count of sleeps ran slow and the 90 s would
   have been about 150; the owner: "put it on the real clock"). `Arm.patient` and `Arm.rezero_patient` by `Arm.clock` (time.monotonic; with a sleep

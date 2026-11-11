@@ -70,6 +70,10 @@ elif which in ('porsche-red', 'porsche-red-k', 'porsche-white'):
                   'porsche-red-k': ('Porsche, red · v.2 Kuzya', 'hyperrealism, 70 × 100, classic red, 84 cm long; Kuzya\'s audit: no hue apart on the body, a cut by the form, jars the eye cannot tell apart one'),
                   'porsche-white': ('Porsche, white', 'hyperrealism, 70 × 100, white, saddle-tan leather, the red\'s form, 84 cm long')}[which]
     KEEP = {'ink': 'Black', 'carbon': 'Carbon', 'tail': 'Tail light', 'amber': 'Indicator', 'seam': 'Seam', 'louvre': 'Louvre'}
+    if which != 'porsche-white':
+        # the red classic's jars by their numbers alone, Black the one word (the owner, 2026-11-11, of "Indicator": "call it Jar 6; the swatch is next to it, I see it
+        # anyway … we do not call the black Wheels"): the orange Jar 6, the tail light Jar 14, the carbon Jar 40, the seam Jar 45 — their places in v.1's list
+        KEEP = {'ink': 'Black'}
     jarname = lambda pid, n: (KEEP.get(P[pid].name, f'Jar {n}'), '')
     if which == 'porsche-red-k':
         # the classic's v.2 under v.1's names, paint for paint: a jar is the owner's numbered jar, not a place in a list (2026-11-11: "the orange is No. 6, the canon")
@@ -139,7 +143,8 @@ for pi in order:
             cell['air'] = True
             cell['cuts'] = [round(float(pl.H - y), 1) for y in np.arange(np.ceil((ya + jit) / rib) * rib - jit, yb - 20, rib) if y > ya + 20]
         cells.append(cell)
-    jars.append(dict(id=pid, name=name, code=code, hex=P[pid].hex, coats=int(getattr(P[pid], 'coats', 1)), cells=cells))
+    # the orange of the indicators `late`: out of the first layer, the first of the second (the canon, README "The orange, Jar 6, first in Layer 2", 2026-11-11)
+    jars.append(dict(id=pid, name=name, code=code, hex=P[pid].hex, coats=int(getattr(P[pid], 'coats', 1)), **({'late': True} if P[pid].name == 'amber' else {}), cells=cells))
 assert total_legs == d['st']['legs'], (total_legs, d['st']['legs'])
 ys = [v for j in jars for c in j['cells'] for l in c['legs'] for v in l[1:]]
 xs = [l[0] for j in jars for c in j['cells'] for l in c['legs']]
