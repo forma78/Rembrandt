@@ -669,20 +669,20 @@ for (const [id, k] of [['#fLeft', 'edgeLeft'], ['#fBottom', 'edgeBottom']]) {
 // ---------- the LCD, OPM-N's ----------
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
 const lcdTime = t => (t || 0) < 3600 ? segments(mmss(t), 17) : `<span class="hm">${segments(String(Math.floor(t / 3600)), 17)}<span class="tu">h</span>${segments(String(Math.floor(t % 3600 / 60)).padStart(2, '0'), 17)}<span class="tu">min</span></span>`;
-let started = null;
 function lcd(st) {
   const P_ = paintRun(), live = st && LIVE.includes(st.state);
   const Q = PLAY && !live ? PLAY : null;                                              // ▶ Play, nothing running: the run as it would go — how far, the time left (est.), its jar now
   const runPct = Q ? Q.want / Q.mm * 100 : st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
-  if (live && !started) started = st.started || Date.now() / 1000;
-  if (!live) started = null;
   const R_ = live && RUN_INFO ? RUN_INFO : P_;
   // a DRAG from a later line of the list (Start from, after a STOP or on another day): PROGRESS the whole picture's, the lines before it done, the run's own share after them
   // (the owner, 2026-11-11: "I take them home by Stop, Home. That puts PROGRESS back to zero, the % on the screen go off"); the time left the run's, the total the picture's
   const from = !Q && st && st.state !== 'idle' && RUN_KEY === 'drag' ? RUN_INFO?.from ?? 0 : 0, all = plan();
   const mm0 = from ? all.slice(0, from).reduce((a, q) => a + q.mm, 0) : 0, mmAll = from ? all.reduce((a, q) => a + q.mm, 0) : 0;
   const pct = from && mmAll ? (mm0 + runPct / 100 * (mmAll - mm0)) / mmAll * 100 : runPct;
-  const runTotal = Q ? Q.seconds : R_.seconds, total = from ? P_.seconds : runTotal, left = !Q && live && started && runPct >= 3 ? (Date.now() / 1000 - started) * (100 - runPct) / runPct : runTotal * (1 - runPct / 100);
+  // the time left by steps (the owner, 2026-11-12: "measuring by steps is a great idea"; rembrandt.py, PACE_MIN_S): the steps left, each
+  // its seconds on the runner's own clock, a pause's time out (pace_s) — before there are enough of them, the plan's over its steps
+  const runTotal = Q ? Q.seconds : R_.seconds, total = from ? P_.seconds : runTotal, steps = !Q && live && st.blocks ? Math.max(0, st.blocks - st.block) : 0;
+  const left = !Q && live && st.blocks ? steps * (st.pace_s > 0 ? st.pace_s : runTotal / st.blocks) : runTotal * (1 - runPct / 100);
   const state = Q ? 'play' : !st ? 'no server' : live ? (st.state === 'paused' ? 'paused' : 'live') : st.state === 'idle' ? 'plan' : st.state;
   const b = st && RUN?.[st.block], row = live && st.row ? R_.rows?.[st.row - 1] : null;
   const waiting = st?.state === 'paused' && st.message;

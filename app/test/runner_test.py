@@ -650,6 +650,45 @@ class DipTest(unittest.TestCase):
         self.assertEqual((w["cell"], w["next"]["name"]), (3, "Cream"))
 
 
+class PaceTest(unittest.TestCase):
+    """The pace (the owner, 2026-11-12, of LEFT 9 h 57, 8 h 01, 8 h 30 within half an
+    hour: "measuring by steps is a great idea"): seconds a step on the runner's own
+    clock; a pause's time — a jar change, the night — no step's."""
+
+    def test_a_night_paused_at_a_jar_change_is_not_in_the_pace(self):
+        b, clk, seen = FakeBoard(rate=1), {"t": 0.0}, {}
+
+        def tick(dt):
+            clk["t"] += dt
+            b.sleep(dt)
+        r = Runner(b.send, sleep=tick, swing_s=0.2, clock=lambda: clk["t"])
+
+        def later():
+            if r.state == "paused" and not seen:
+                seen["night"] = True
+                clk["t"] += 8 * 3600             # paused for the night
+                r.resume()
+        b.on_sleep = later
+        r.start([arm(False), paint(4), arm(True), {"kind": "pause", "why": "Jar 28"}, arm(False), paint(4), arm(True)])
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertTrue(seen, "it paused")
+        st = r.status()
+        self.assertEqual(st["run_steps"], 5, "0→1→2→3 (the pause's block), then 4→5→6; the last block's own time not yet")
+        self.assertLess(st["run_s"], 60, "the night not in it")
+        self.assertGreater(st["run_s"], 0)
+        self.assertIsNone(st["pace_s"], "too few seconds yet: the pages go by the plan")
+        orig = rubens.PACE_MIN_S, rubens.PACE_MIN_STEPS
+        rubens.PACE_MIN_S, rubens.PACE_MIN_STEPS = 0, 1
+        try:
+            self.assertAlmostEqual(r.status()["pace_s"], r._pace_s / 5, places=3)
+        finally:
+            rubens.PACE_MIN_S, rubens.PACE_MIN_STEPS = orig
+        r.start([arm(False), paint(2)])
+        r.thread.join(10)
+        self.assertEqual(r.status()["run_steps"], 1, "a new run, a new count")
+
+
 class HandDipTest(unittest.TestCase):
     """INK-Y (the owner, 2026-11-03; README, How to dip): the cup at hand, on
     the carriage by the arm — the elbow up into its fork, only then the
@@ -1175,7 +1214,7 @@ class RemoteGateTest(unittest.TestCase):
         r.note = {"label": "OPM-N · 1 blend · 600 × 400 mm · brush 6 mm", "here": {"x": 300, "y": 200}, "estimate_s": 77}
         pic = json.loads(self.ask("do_GET", f"/remote/plan?{key}", phone)["body"])
         self.assertEqual((pic["ok"], pic["started"], pic["blocks"], pic["paint_mm"], pic["estimate_s"], pic["canvas"]), (True, 123.0, 5, 75.7, 77, [600.0, 400.0]))
-        self.assertEqual(pic["rows"][0], {"c": 0, "mm": 60.0, "p": [[20, 20, 20, 80], [40, 80, 40, 20]]}, "half millimetres, the turn left out")
+        self.assertEqual(pic["rows"][0], {"c": 0, "mm": 60.0, "b": 2, "p": [[20, 20, 20, 80], [40, 80, 40, 20]]}, "half millimetres, the turn left out; its last block")
         arc = pic["rows"][1]["p"][0]
         self.assertEqual((arc[:2], arc[-2:]), ([100, 100], [120, 120]), "an arc from its start to its end")
         self.assertGreater(len(arc), 4, "with points between")
@@ -1186,6 +1225,12 @@ class RemoteGateTest(unittest.TestCase):
         pic = rubens.plan_picture([{"kind": "move", "cmds": ["T 180", "M 0 0", "G"], "row": 1}, {"kind": "move", "cmds": ["F 25", "L 0 50", "L 0 10", "G"], "paintMM": 90, "row": 1}], {"rows": [{"c": 0}]}, None)
         self.assertEqual(pic["rows"][0]["p"], [[0, 0, 0, 100, 0, 20]], "out and back: all three points")
         self.assertIsNone(pic["canvas"])
+
+    def test_every_row_its_last_block_for_the_steps_to_a_colours_end(self):
+        mv = lambda r: {"kind": "move", "cmds": ["F 25", "L 0 5", "G"], "paintMM": 5, "row": r}
+        pic = rubens.plan_picture([mv(1), {"kind": "arm", "cmd": "J 2 0", "row": 1}, {"kind": "pause", "why": "Jar 2"}, mv(2), mv(2)],
+                                  {"rows": [{"c": 0}, {"c": 1}, {"c": 1}]}, None)
+        self.assertEqual([q.get("b") for q in pic["rows"]], [1, 4, None], "a row's arm too; a row with no block none")
 
     def test_this_mac_as_before_and_its_link_with_the_key(self):
         for me in ("127.0.0.1", "::1", "192.168.0.227"):

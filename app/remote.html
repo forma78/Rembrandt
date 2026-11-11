@@ -218,28 +218,30 @@ const lcdTime = t => { t = Math.max(0, Math.round(t || 0)); const p2 = v => Stri
 const clockAt = sec => { const d = new Date(Date.now() + sec * 1000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const inWords = t => { const m = Math.max(1, Math.round(t / 60)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 
-// The pace: the paint the machine really lays while it runs, as this phone sees it. A jump (Go to, Back,
-// Skip) is no paint, a pause no time: so the time left is the machine's, its stops for the paint on top.
-const PACE_KEY = 'rembrandt.remote.pace';
-let pace = { started: 0, dt: 0, dp: 0, t: 0, p: 0, saved: 0 };
-try { const k = JSON.parse(localStorage.getItem(PACE_KEY) || 'null'); if (k?.started) pace = { ...pace, started: k.started, dt: k.dt || 0, dp: k.dp || 0 }; } catch { }
+// The pace (the owner, 2026-11-12, of LEFT 9 h 57, 8 h 01, 8 h 30 within half an hour: "measuring by steps is a great idea"):
+// the time goes by steps, not by paint — the journal's jars 1.22 … 1.49 s a step, but 3.6 … 8.7 mm a second. rembrandt.py's
+// own clock over the whole run, a pause's time out (pace_s); a server from before it: this phone's own watch, by steps, only
+// from one look to the next (a phone asleep, a jump, a pause no step's time); before either, the plan's estimate over its
+// steps. The paint changes on top.
+const PACE_KEY = 'rembrandt.remote.steps';
+let pace = { started: 0, dt: 0, dn: 0, t: 0, b: 0, saved: 0 };
+try { const k = JSON.parse(localStorage.getItem(PACE_KEY) || 'null'); if (k?.started) pace = { ...pace, started: k.started, dt: k.dt || 0, dn: k.dn || 0 }; } catch { }
 function feedPace(s) {
   if (!s?.started) return;
-  if (pace.started !== s.started) pace = { started: s.started, dt: 0, dp: 0, t: 0, p: 0, saved: 0 };
+  if (pace.started !== s.started) pace = { started: s.started, dt: 0, dn: 0, t: 0, b: 0, saved: 0 };
   const now = Date.now() / 1000, run = s.state === 'running';
   if (run && pace.t) {
-    const dt = now - pace.t, dp = s.painted_mm - pace.p;
-    if (dt > 0 && dp >= 0 && dp / dt <= 60) { pace.dt += dt; pace.dp += dp; }
+    const dt = now - pace.t, dn = s.block - pace.b;
+    if (dt > 0 && dt <= 20 && dn >= 0 && dn / dt <= 5) { pace.dt += dt; pace.dn += dn; }
   }
-  pace.t = run ? now : 0; pace.p = s.painted_mm;
-  if (now - pace.saved > 10) { pace.saved = now; try { localStorage.setItem(PACE_KEY, JSON.stringify({ started: pace.started, dt: pace.dt, dp: pace.dp })); } catch { } }
+  pace.t = run ? now : 0; pace.b = s.block;
+  if (now - pace.saved > 10) { pace.saved = now; try { localStorage.setItem(PACE_KEY, JSON.stringify({ started: pace.started, dt: pace.dt, dn: pace.dn })); } catch { } }
 }
-function mmPerS(s) {
-  if (pace.started === s.started && pace.dt >= 120 && pace.dp > 0) return pace.dp / pace.dt;
-  const est = s.estimate_s || PLAN?.estimate_s;
-  if (est && s.paint_mm) return s.paint_mm / est;
-  const el = Date.now() / 1000 - s.started;
-  return s.started && s.painted_mm > 0 && el > 0 ? s.painted_mm / el : 0;
+function secPerStep(s) {
+  if (s.pace_s > 0) return s.pace_s;
+  if (pace.started === s.started && pace.dt >= 120 && pace.dn > 0) return pace.dt / pace.dn;
+  const est = s.estimate_s || (PLAN?.blocks === s.blocks ? PLAN?.estimate_s : 0);
+  return est && s.blocks ? est / s.blocks : 0;
 }
 
 // The picture: the run's lines, off the server (rembrandt.py, /remote/plan), a server not restarted yet
@@ -249,10 +251,10 @@ function setPlan(p, s) {
   PLAN = p; planOf = s.started; drawn = null;
   if (!p) return;
   const rows = p.rows, n = p.colours.length;
-  p.first = Array(n).fill(0); p.count = Array(n).fill(0); p.endMM = Array(n).fill(0);
+  p.first = Array(n).fill(0); p.count = Array(n).fill(0); p.endMM = Array(n).fill(0); p.endB = Array(n).fill(null);   // endB: a colour's last step (rembrandt.py's `b`)
   p.nth = Array(rows.length).fill(0);
   let mm = 0;
-  rows.forEach((r, i) => { mm += r.mm; if (r.c >= 0 && r.c < n) { if (!p.count[r.c]) p.first[r.c] = i; p.nth[i] = ++p.count[r.c]; p.endMM[r.c] = mm; } });
+  rows.forEach((r, i) => { mm += r.mm; if (r.c >= 0 && r.c < n) { if (!p.count[r.c]) p.first[r.c] = i; p.nth[i] = ++p.count[r.c]; p.endMM[r.c] = mm; if (r.b != null) p.endB[r.c] = Math.max(p.endB[r.c] ?? -1, r.b); } });
 }
 async function loadPlan(s) {
   if (!s?.started || !['running', 'stopping', 'pausing', 'paused', 'done', 'stopped', 'error'].includes(s.state) || planOf === s.started || Date.now() - planAt < 15000) return;
@@ -319,7 +321,7 @@ function showProgress() {
   const s = st, live = s && LIVE.includes(s.state), c = s?.colour, off = fails > 2;
   if (PLAN && (s?.state === 'idle' || planOf !== s?.started)) setPlan(null, { started: null });   // the run it was of is gone
   if (s) loadPlan(s);
-  const pct = pctOf(s), rate = s?.started ? mmPerS(s) : 0, left = rate && s ? Math.max(0, s.paint_mm - s.painted_mm) / rate : 0;
+  const pct = pctOf(s), sps = s?.started ? secPerStep(s) : 0, left = sps && s ? Math.max(0, s.blocks - s.block) * sps : 0;   // the steps left, each its seconds
   const stateName = !s ? 'connecting' : live ? (s.state === 'paused' ? 'paused' : 'live') : s.state === 'idle' ? 'nothing running' : s.state;
   const est = wholeOf(s)?.s || s?.estimate_s || (PLAN?.blocks === s?.blocks ? PLAN?.estimate_s : 0) || 0;   // a run from a later line: the whole picture's
   const k = s?.colour_n ? s.colour_n - 1 : -1, nextC = s?.next || (PLAN && k >= 0 ? PLAN.colours[k + 1] : null), code = c?.code ? ` ${c.code}` : '';
@@ -329,7 +331,7 @@ function showProgress() {
     <div class="lcd-top"><span>${live ? (s.state === 'paused' ? '❚❚ ' : '▶ ') : ''}${stateName}${live && c ? ' · drag' : ''}</span><span>${off ? 'no connection' : live && s.blocks ? `step ${s.block + 1}/${s.blocks}` : ''}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(s?.started || s?.state === 'done' ? String(Math.min(100, Math.floor(pct))).padStart(2, ' ') : '--', 64)}<span class="u">%</span></div>
-      <div class="lcd-times"><span class="k">left</span>${live ? lcdTime(left) : segments('--:--', 18)}${est ? `<span class="k">total</span>${lcdTime(est)}` : ''}<span class="k">ends</span>${live && rate ? segments(clockAt(left), 18) : segments('--:--', 18)}</div>
+      <div class="lcd-times"><span class="k">left</span>${live ? lcdTime(left) : segments('--:--', 18)}${est ? `<span class="k">total</span>${lcdTime(est)}` : ''}<span class="k">ends</span>${live && sps ? segments(clockAt(left), 18) : segments('--:--', 18)}</div>
     </div>
     ${sticks(pct / 100)}
     ${c ? `<div class="lcd-pen"><i class="sw" style="background:${esc(c.hex)}"></i><span class="pt"><span class="pn">${esc(c.name)}${esc(code)}</span><span class="pk">${s.state === 'paused' && s.message && s.next ? 'finished' : 'painting'} · ${lineOf(s)}</span></span>${nextC ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${esc(nextC.hex)}"></i><span>${esc(nextC.name)}</span></span></span>` : s.colour_n === s.colours ? '<span class="nx"><span class="pk">the last</span></span>' : ''}</div>` : ''}
@@ -344,8 +346,8 @@ function showProgress() {
   else if (s?.state === 'paused') { cls = 'call'; big = 'Paused'; small = 'Continue on Remote'; }
   else if (s?.state === 'stopped') { cls = 'bad'; big = 'Stopped'; small = s.message || ''; }
   else if (s?.state === 'done') { big = 'Done'; small = 'The whole picture is painted.'; }
-  else if (live && PLAN && k >= 0 && rate) {
-    const inC = Math.max(0, PLAN.endMM[k] - s.painted_mm) / rate, more = PLAN.colours.length - 1 - k;
+  else if (live && PLAN && k >= 0 && sps) {
+    const eb = PLAN.endB?.[k], inC = eb != null ? Math.max(0, eb + 1 - s.block) * sps : Math.max(0, PLAN.endMM[k] - s.painted_mm) / Math.max(1, s.paint_mm - s.painted_mm) * left, more = PLAN.colours.length - 1 - k;   // to the colour's last step; a server from before: its paint's share of LEFT
     if (nextC) { sw = nextC.hex; big = `${nextC.name} in ≈ ${inWords(inC)}, at ${clockAt(inC)}`; small = `Next paint change · ${more} to go, on top of LEFT`; }
     else { big = 'The last colour'; small = 'No more paint changes.'; }
   }

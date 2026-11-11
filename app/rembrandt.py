@@ -33,7 +33,7 @@ bridge.py of the old machine repo held it on port 8765.
   the same point (OPM-N's DIP, 2026-11-02); into the cup at hand where the
   carriage stands, the elbow up before the shoulder turns (INK-Y, 2026-11-03).
 - /remote: the iPhone's remote (OPM-N, 2026-11-02): GET /remote the page,
-  GET /remote/state?k=<key> where the run is — its colour, its cell —
+  GET /remote/state?k=<key> where the run is — its colour, its cell, its pace (s a step, PACE_MIN_S) —
   GET /remote/plan?k=<key> the run's lines for the mini-screen (2026-11-04; reads only) —
   POST /remote/dip|pause|continue|stop|back|skip?k=<key>, /remote/goto?n=<cell>&k=<key>
   (a cell of the colour now); GET /remote/link (this Mac)
@@ -105,6 +105,15 @@ RUNAWAY_MM = 12.0
 # ARRIVAL_NOTE_MM; past ARRIVAL_MM the path was stopped (171.6 mm off at 20:00
 # the same evening): HARD STOP, as before.
 ARRIVAL_MM, ARRIVAL_NOTE_MM = 4.0, 1.0
+
+# The pace (the owner, 2026-11-12, of three PROGRESS screens: LEFT 9 h 57, 8 h 01,
+# 8 h 30 within half an hour; "measuring by steps is a great idea"): the time goes
+# by steps, not by paint — the journal's jars 1.22 … 1.49 s a step, but 3.6 … 8.7
+# mm a second. The runner's own clock, while it runs: from one block's start to
+# the next; a pause, a jump (Back, Skip, Go to), a silent arm's wait break it and
+# are not counted. Its seconds a step once it has PACE_MIN_S of them over
+# PACE_MIN_STEPS steps (/run's pace_s; the plan's own before that, on the pages).
+PACE_MIN_S, PACE_MIN_STEPS = 120, 30
 
 # What the board answers, in the words of the Job tab.
 BOARD_WORDS = [
@@ -769,7 +778,7 @@ def plan_picture(blocks, info, note=None):
     """The iPhone's mini-screen (the owner, 2026-11-04: "a tab with the yellow
     PROGRESS and a mini-screen with the picture; in six and a half hours I may
     be anywhere"): the run as the brush paints it, read off its blocks. Every
-    row of the page's rows: its colour `c`, its paint `mm`, and `p`, its painted
+    row of the page's rows: its colour `c`, its paint `mm`, `b` its last block, and `p`, its painted
     lines, each a flat [x, y, x, y …] of the carriage in half millimetres, a
     straight stretch two points. Reads only; nothing here moves."""
     rows = (info or {}).get("rows") or []
@@ -813,6 +822,10 @@ def plan_picture(blocks, info, note=None):
             if len(line) > 1:
                 row["p"].append(thin(line))
         at = block_end(path) or at
+    for i, blk in enumerate(blocks):     # `b`: the row's last block, for the steps to a colour's end (PACE_MIN_S, 2026-11-12)
+        r = blk.get("row")
+        if isinstance(r, int) and not isinstance(r, bool) and 0 < r <= len(out):
+            out[r - 1]["b"] = i
     for row in out:
         row["mm"] = round(row["mm"], 1)
     note = note or {}
@@ -1086,8 +1099,8 @@ class Runner:
     fake board.
     """
 
-    def __init__(self, send, sleep=time.sleep, swing_s=1.8, arm=None, log=None):
-        self.send, self.sleep, self.swing_s, self.arm = send, sleep, swing_s, arm
+    def __init__(self, send, sleep=time.sleep, swing_s=1.8, arm=None, log=None, clock=time.monotonic):
+        self.send, self.sleep, self.swing_s, self.arm, self.clock = send, sleep, swing_s, arm, clock
         self.log = log or (lambda entry: None)     # run_log in the server
         self.lock = threading.Lock()
         self.state, self.message = "idle", ""
@@ -1117,6 +1130,16 @@ class Runner:
         # hand — the elbow up, then the shoulder back, by itself before a jump and at the next run's start
         self._swung = None
         self._silent = None              # paused on a silent arm: the joints silent (_silent_pause)
+        self._pace_s, self._pace_n, self._mark = 0.0, 0, None   # PACE_MIN_S: the seconds run, the steps in them, the last block's start (clock, block)
+
+    def _pace_break(self):
+        # a pause, a jump, a silent arm: the time from the last block's start not counted
+        with self.lock:
+            self._mark = None
+
+    def pace(self):
+        # seconds a step on this run's own clock, once there are enough of them
+        return round(self._pace_s / self._pace_n, 3) if self._pace_s >= PACE_MIN_S and self._pace_n >= PACE_MIN_STEPS else None
 
     def set_trim(self, deg):
         # ELBOW LIVE: from the next W 2 sent on, the board's queue of pieces
@@ -1154,6 +1177,7 @@ class Runner:
                     "started": self.started, "trim": self.trim, "row": self.row,
                     "in_row": round(self.painted - self.row_base.get(self.row, self.painted), 1),
                     "dips": self.dips, "cup": bool(self.cup), "silent": self._silent,
+                    "pace_s": self.pace(), "run_s": round(self._pace_s), "run_steps": self._pace_n,
                     "hand": 1}   # this runner knows the cup at hand (INK-Y), its forks and its guard: the pages ask before such a run
 
     def where(self):
@@ -1246,6 +1270,7 @@ class Runner:
             self._dip = self._auto = False
             self._jump = None
             self.dips, self.row, self.row_base = 0, 0, {}
+            self._pace_s, self._pace_n, self._mark = 0.0, 0, None
         self.log({"event": "start", "blocks": len(self.blocks), "paint_mm": round(self.paint_total, 1),
                   **({k: v for k, v in note.items() if k != "remote"} if isinstance(note, dict) else {})})
         self.thread = threading.Thread(target=self.run, daemon=True)
@@ -1479,6 +1504,7 @@ class Runner:
         # through the air to the cell's start, the brush up, and on from there;
         # → the block to go on with
         i, j, what = self._jump
+        self._pace_break()
         w = self.where()
         with self.lock:
             self._jump = None
@@ -1548,6 +1574,11 @@ class Runner:
                 i += 1
                 with self.lock:
                     self.block = i - 1
+                    now = self.clock()
+                    if self._mark is not None and self.block > self._mark[1]:     # PACE_MIN_S: the steps since the last start, in its time
+                        self._pace_s += now - self._mark[0]
+                        self._pace_n += self.block - self._mark[1]
+                    self._mark = (now, self.block)
                     r = b.get("row")
                     if isinstance(r, int) and r > 0 and b["kind"] == "move":
                         self.row_base.setdefault(r, self.painted)
@@ -1848,6 +1879,7 @@ class Runner:
         # check; asked every SILENT_LOOK_S whether it answers again, said so with its volts. Continue: True, the caller makes the
         # same move again — the carriage, moved meanwhile, first back where it was, the brush up if it was over the canvas.
         # STOP: False, the run ends as stopped. The journal: "silent" with the servos' last volts, "arm back", "continue".
+        self._pace_break()
         if self._stop:
             return False
         p = self._ping()                                 # where the arm went silent; `at` given: silent again before the carriage went back there
@@ -1914,6 +1946,7 @@ class Runner:
         # Paused: the brush off the canvas, the motors still, the watchdog fed
         # by the pings. Continue puts the brush back as it was, tilted too.
         # The pencil's pause lifts nothing and puts nothing back.
+        self._pace_break()                               # PACE_MIN_S: a pause's time no step's
         was_on, lift = self.brush_on and not self._pencil, self.lift
         if was_on:
             self._arm(f"J 2 {BRUSH_UP_DEG}")

@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **PROGRESS: the time left by steps, on rembrandt.py's own clock** (the owner, 2026-11-12, of three iPhone screens within half an hour, LEFT
+  9 h 57, 8 h 01, 8 h 30: "measuring by steps is a great idea"). The journal's 31 clean jar stretches (v.2, v.3): 1.22 … 1.49 s a step on every
+  jar, but 3.6 … 8.7 mm a second — the phone paced by paint, and only while it was looked at. Now the runner times every step from one block's
+  start to the next, a pause (a jar change, the night), a jump and a silent arm's wait not counted; `/run` gives `pace_s` once it has 120 s
+  over 30 steps, `run_s`, `run_steps`; `/remote/plan`'s rows their last block `b`. The phone and FORM-G: LEFT = the steps left × pace_s, the
+  plan's own seconds a step before that (≈ 1.40 on the classic v.3); the phone's "Jar N in ≈" to the colour's last step. A server from before:
+  the phone's own watch, by steps. % stays by paint. Restart rembrandt.py between runs.
 - **FORM-G: The canvas's two reads behind an (i)** (the owner, 2026-11-11: "before pushing, hide these two poems, about the canvas and the Marks, under
   an (i)"). The walls' read and MARKS' are hidden; the (i) by the section's title shows and hides both. A read with a warning (the picture past the walls,
   no room for a strip) shows all the same.
