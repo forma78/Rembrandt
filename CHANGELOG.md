@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the library on the left, the panel in the right corner** (the owner, 2026-11-11, of the panel moved to the left the same day: "the other way round:
+  the panel on the RIGHT, the library on the LEFT, please"). THE LIBRARY a column left of the picture, PROGRESS and the keys in the right corner as before;
+  a card's (i) opens to the right of the library, over the picture.
 - **FORM-G and the iPhone's remote: PROGRESS of the whole picture after a Start from** (the owner, 2026-11-11, of the arm gone silent on the red classic's run: "I take
   them home by Stop, Home. That puts PROGRESS back to zero, the % on the screen go off"). A DRAG from a later line of the list counts the lines before it done: the %, the
   sticks, the jar's "7/62" and the row's, the total the picture's, the time left the run's; the remote the same (every colour of the run its line in the whole list and the

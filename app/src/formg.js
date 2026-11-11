@@ -556,7 +556,7 @@ function readOf(id) {
 function popShow(el) {
   const pop = $('#libPop'), r = el.getBoundingClientRect();
   pop.innerHTML = readOf(el.dataset.read); pop.hidden = false;
-  const w = pop.offsetWidth, h = pop.offsetHeight, x = $('.fg-shelf').getBoundingClientRect().left - w - 8, side = x >= 8;   // to the left of the library, over the picture's free room; on a phone under the (i)
+  const w = pop.offsetWidth, h = pop.offsetHeight, x = $('.fg-shelf').getBoundingClientRect().right + 8, side = x + w <= innerWidth - 8 && innerWidth > 760;   // to the right of the library, over the picture's free room (the library on the left since 2026-11-11); on a phone under the (i)
   pop.style.left = `${side ? x : Math.max(8, Math.min(innerWidth - w - 8, r.right - w))}px`;
   pop.style.top = `${Math.max(8, Math.min(innerHeight - h - 8, side ? r.top - h + 24 : r.bottom + 6))}px`;
 }

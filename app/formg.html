@@ -7,14 +7,14 @@
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
 <style>
-  /* FORM-G: the picture, the library by it on the right (the owner, 2026-11-06: "I would not put THE LIBRARY before PROGRESS; better on the right, there is plenty of room there; one picture to a row, not two, and a little smaller");
-     the machine's panel on the left, under the tabs, since 2026-11-11 ("move the panel from the right corner to the left, please") */
-  body.type{grid-template-columns:340px minmax(0,1fr) 132px}
-  body.type .top{grid-column:1/4}
+  /* FORM-G: the library on the left, the picture, the machine's panel in the right corner (the owner, 2026-11-06: "one picture to a row, not two, and a little smaller";
+     2026-11-11: "the panel on the RIGHT, the library on the LEFT, please" — the library had been between the picture and the panel) */
+  body.type{grid-template-columns:132px minmax(0,1fr) 340px}
+  body.type .top{grid-column:1/3}
   body.type .stage{grid-column:2;grid-row:2/4}
-  body.type .panel{grid-column:1;grid-row:2/4;border-left:0;border-right:1px solid var(--line)}
+  body.type .panel{grid-column:3}
   body.type .status{grid-column:1/4}
-  .fg-shelf{grid-column:3;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-left:1px solid var(--line);background:#ECEAE6}
+  .fg-shelf{grid-column:1;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-right:1px solid var(--line);background:#ECEAE6}
   html.night .fg-shelf{background:#26282B}
   .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
   .runkeys.passes.one{grid-template-columns:1fr}
@@ -52,10 +52,9 @@
   #runList li.fg-sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:default}
   #runList li.fg-sep:hover{background:none}
   @media (max-width: 760px), (max-height: 500px) {                                  /* a phone: the library a row under the picture */
-    .fg-shelf{order:3;flex:none;overflow:visible;border-left:0;border-bottom:1px solid var(--line);padding:10px 12px}
+    .fg-shelf{order:3;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px}
     .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
     .fg-item{width:104px}
-    body.type .panel{border-right:0}
   }
 </style>
 </head>
