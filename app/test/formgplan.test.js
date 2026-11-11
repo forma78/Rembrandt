@@ -68,18 +68,26 @@ test('the orange, Jar 6, the first of Layer 2 (the canon, the owner, 2026-11-11:
   assert.deepEqual(P[1].byCell[0].legs, [[[10, 22], [10, 98]], [[15, 98], [15, 22]]]);
 });
 
-test('the front indicators\' orange left whole on the classic\'s v.2: no other jar\'s leg on its bumper side reaches onto it (the owner, 2026-11-11, details-2-3.png: "so that the red does not climb onto the orange at all")', () => {
-  const pic = load('porsche-red-k'), amber = new Map();
+test('the front indicators\' orange on the classic\'s v.2 by the owner\'s marks: the bumper\'s reds from its front end on, but the four strokes at each outer corner; the two inner tips out, no bare canvas (2026-11-11, details-2-3.png, details-2-5.png)', () => {
+  const pic = load('porsche-red-k'), amber = new Map(), CORNERS = [217.5, 222.5, 227.5, 232.5, 467.5, 472.5, 477.5, 482.5];
+  const at = x => pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.filter(l => l[0] === x).map(l => ({ jar: j, lo: Math.min(l[1], l[2]), hi: Math.max(l[1], l[2]) }))));
   for (const c of pic.jars.find(j => j.late).cells) for (const [x, a, b] of c.legs) if (Math.min(a, b) >= 500) amber.set(x, [Math.min(a, b), Math.max(a, b)]);
-  assert.ok(amber.size >= 20, 'both front indicators');
-  let above = 0;
+  assert.ok(amber.size >= 20 && !amber.has(267.5) && !amber.has(432.5), 'both front indicators, their inner tips out ("the two outermost orange ones removed")');
+  let above = 0, corner = 0;
   for (const j of pic.jars.filter(q => !q.late)) for (const c of j.cells) for (const [x, a, b] of c.legs) {
     const o = amber.get(x), lo = Math.min(a, b), hi = Math.max(a, b);
     if (!o || hi <= o[0] || (lo + hi) / 2 <= (o[0] + o[1]) / 2) continue;   // not on it, or on the wing's side
+    if (CORNERS.includes(x)) { assert.ok(lo < o[1], `${j.name} at x ${x}: a corner stroke pulled down onto the orange's 3 mm`); corner++; continue; }
     assert.ok(lo >= o[1] - 1e-9, `${j.name} at x ${x}: ${lo}…${hi} over the orange ${o[0]}…${o[1]}`);
     above++;
   }
-  assert.ok(above >= 20, 'the bumper\'s reds still there, from the orange\'s front end on');
+  assert.equal(corner, 8, 'four strokes at each indicator\'s corner ("literally 4 strokes on the left and 4 on the right")');
+  assert.ok(above >= 10, 'the bumper\'s reds still there, from the orange\'s front end on');
+  for (const x of [267.5, 432.5]) {                                                   // the tips: the red under them on to the bumper's leg, no gap
+    const legs = at(x).filter(q => q.hi > 880).sort((p, q) => p.lo - q.lo);
+    for (let k = 1; k < legs.length; k++) assert.ok(legs[k].lo <= Math.max(...legs.slice(0, k).map(q => q.hi)), `x ${x}: bare canvas at ${legs[k].lo}`);
+    assert.ok(legs.every(q => !q.jar.late));
+  }
   for (const j of pic.jars) j.cells.forEach((c, i) => { assert.equal(c.n, i + 1); for (let k = 1; k < c.legs.length; k++) assert.ok(Math.abs(c.legs[k][0] - c.legs[k - 1][0]) <= pic.pitch + 1e-9, `${j.name} cell ${c.n}: a step across a gap`); });
 });
 

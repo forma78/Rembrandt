@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the classic's v.2, the indicators' cosmetics by the owner's marks** (the owner, 2026-11-11, on the trimmed version, `FORM-G/details-2-5.png`: "it
+  got better, cosmetics remain"; "literally 4 strokes on the left and 4 strokes on the right can be pulled down, and the two outermost orange ones removed, I
+  crossed them out in green"). The four strokes at each indicator's outer corner (x 217.5 … 232.5, 467.5 … 482.5) keep the generator's own start again, their
+  lower ends on the straight line he drew; the lone orange leg at each indicator's inner end (x 267.5, 432.5) out, the red leg under it — Jar 34, Jar 24 — on
+  to where the orange ended, under the bumper's leg above, so no bare canvas. Jar 6: 3 cells (5); 20 legs changed in all, 1577 legs, 946 cells. `amber_trim.py`
+  from the untrimmed plan again; the render the same way. Not run.
 - **FORM-G: the front indicators' orange whole on the classic's v.2** (the owner, 2026-11-11, `FORM-G/details-2-3.png`, the photo beside the Drag view: "trim
   the red on the bumper a little, so that it does not climb onto the orange at all; on the left the photo, as in the original — it will be neater"). paintrun.py
   runs a lighter span UNDER, 3 mm, under the darker one it butts, for the darker comes after it; the orange is the first of Layer 2 since the same day, and the
