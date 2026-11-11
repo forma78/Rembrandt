@@ -1038,10 +1038,23 @@ class LateReplyTest(unittest.TestCase):
         self.assertTrue(any("waiting" in n for n in notes), notes)
 
     def test_silent_past_the_wait_it_does_not_answer(self):
-        tries = rubens.BUS_TRIES * (int(rubens.SILENT_WAIT / (rubens.SILENT_GAP + rubens.BUS_TRIES * rubens.BUS_GAP)) + 3)
-        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит"] * tries})
+        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит"] * 2000})
         with self.assertRaisesRegex(ArmError, "shoulder does not answer"):
             a.move_to("shoulder", 0)
+        self.assertGreaterEqual(a.slept, rubens.SILENT_WAIT)
+
+    def test_the_wait_is_by_the_clock_not_by_the_sleeps(self):
+        # the night of 2026-11-11: a read of a silent bus slower than its gaps, "50 s of 90" at 86 s; here every read 10 s by the clock
+        t, notes = [0.0], []
+        def clock():
+            t[0] += 10.0
+            return t[0]
+        a = self.arm(FakeBoard(), {"/look": ["ok V | 1: молчит"] * 2000}, notes, clock=clock)
+        with self.assertRaisesRegex(ArmError, "shoulder does not answer"):
+            a.move_to("shoulder", 0)
+        self.assertLess(a.slept, 20, "gave up by the clock, not after 90 s of sleeps")
+        waits = [n for n in notes if "waiting" in n]
+        self.assertTrue(waits and len(waits) <= 10, waits)
 
     def test_the_elbow_lifts_in_the_air_slower_and_goes_down_as_before(self):
         b = FakeBoard()

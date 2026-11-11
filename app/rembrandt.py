@@ -450,10 +450,17 @@ class Arm:
     STOP; a move takes up to about 2 s (MOVE_SPEED, ~53°/s).
     """
 
-    def __init__(self, send, zero=lambda: ARM_ZERO, sleep=time.sleep, guard=lambda: None, note=lambda what: None):
+    def __init__(self, send, zero=lambda: ARM_ZERO, sleep=time.sleep, guard=lambda: None, note=lambda what: None, clock=None):
         # guard() → the cup at hand's forks while it is on (hand_guard), else None: hand_refuses
         # note(what): a read or a reply the bus lost and got over, for the journal
-        self.send, self.zero, self.sleep, self.guard, self.note = send, zero, sleep, guard, note
+        # clock(): seconds, for the waits of a silent arm (patient): the real clock; with a sleep not the real one (the tests), the time slept
+        self.send, self.zero, self.guard, self.note = send, zero, guard, note
+        self.slept = 0.0
+        def nap(dt):
+            self.slept += dt
+            sleep(dt)
+        self.sleep = nap
+        self.clock = clock or (time.monotonic if sleep is time.sleep else lambda: self.slept)
         self.lock = threading.Lock()
         self.stopped = threading.Event()   # set by stop(): a move under way gives up
 
@@ -479,31 +486,34 @@ class Arm:
         return out, raw
 
     def patient(self, need, joint):
-        # angles(need); a joint still silent waited for, SILENT_WAIT at most, noted, then given back as it is (the caller says it does not answer)
-        waited = 0.0
+        # angles(need); a joint still silent waited for, SILENT_WAIT at most by the clock, noted every 10 s, then given back as it is (the
+        # caller says it does not answer). The wait by the clock, not by the sleeps counted: a read of a silent bus is slower than its
+        # gaps, and the count had said "50 s of 90" at 86 s (the night of 2026-11-11)
+        t0, noted = self.clock(), None
         while True:
             ang, raw = self.angles(need=need)
             silent = [k for k in need if ang[k] is None]
+            waited = self.clock() - t0
             if not silent or self.stopped.is_set() or waited >= SILENT_WAIT:
                 return ang, raw
-            if waited == 0 or int(waited) % 10 < SILENT_GAP + BUS_TRIES * BUS_GAP:
+            if noted is None or waited - noted >= 10:
+                noted = waited
                 self.note(f"{', '.join(silent)} silent at the {joint}'s move: waiting, {waited:.0f} s of {SILENT_WAIT:.0f}")
             self.sleep(SILENT_GAP)
-            waited += SILENT_GAP + BUS_TRIES * BUS_GAP
 
     def rezero_patient(self):
-        # rezero; a joint the board could not read waited for as patient() does
-        waited = 0.0
+        # rezero; a joint the board could not read waited for as patient() does, by the clock
+        t0, noted = self.clock(), False
         while True:
             try:
                 return self.rezero()
             except ArmError:
-                if self.stopped.is_set() or waited >= SILENT_WAIT:
+                if self.stopped.is_set() or self.clock() - t0 >= SILENT_WAIT:
                     raise
-                if waited == 0:
+                if not noted:
+                    noted = True
                     self.note(f"zero: a joint silent, waiting up to {SILENT_WAIT:.0f} s")
                 self.sleep(SILENT_GAP)
-                waited += SILENT_GAP + BUS_TRIES * BUS_GAP
 
     def rezero(self):
         # Z: the zero of all three where they stand, nothing moves. A joint the board could not read

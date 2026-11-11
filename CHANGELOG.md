@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **rembrandt.py: a silent arm's wait by the clock** (the night of 2026-11-11, 02:59: all three servos silent at an elbow move after Jar 19's
+  cell 18, the journal's "50 s of 90" at 86 s — a read of a silent bus is slower than its gaps, so the count of sleeps ran slow and the 90 s would
+  have been about 150; the owner: "put it on the real clock"). `Arm.patient` and `Arm.rezero_patient` by `Arm.clock` (time.monotonic; with a sleep
+  not the real one, the tests, the time slept), the journal's note every 10 s by it. Not run on the machine.
 - **rembrandt.py: the elbow lifts slower in the air; a silent arm waited for** (the owner, 2026-11-11, the arm silent at the elbow's lifts on the classic's
   run — 00:34 `J 2 12`, all three servos silent about 80 s, then answering by themselves; 01:36 `J 2 32.5`, a dip: "it looks like there is no [lack of] 12 V,
   just a heavy load; I touch nothing, the wire is well in"; asked to lift slower and wait longer: "both, yes"). `Arm.move_to`: the elbow up in the air — a
