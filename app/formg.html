@@ -7,12 +7,13 @@
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
 <style>
-  /* FORM-G: the picture, the library by it on the right, then the machine (the owner, 2026-11-06: "I would not put THE LIBRARY before PROGRESS; better on the right, there is plenty of room there; one picture to a row, not two, and a little smaller") */
-  body.type{grid-template-columns:0 minmax(0,1fr) 132px 340px}
+  /* FORM-G: the picture, the library by it on the right (the owner, 2026-11-06: "I would not put THE LIBRARY before PROGRESS; better on the right, there is plenty of room there; one picture to a row, not two, and a little smaller");
+     the machine's panel on the left, under the tabs, since 2026-11-11 ("move the panel from the right corner to the left, please") */
+  body.type{grid-template-columns:340px minmax(0,1fr) 132px}
   body.type .top{grid-column:1/4}
-  body.type .stage{grid-row:2/4}
-  body.type .panel{grid-column:4}
-  body.type .status{grid-column:1/5}
+  body.type .stage{grid-column:2;grid-row:2/4}
+  body.type .panel{grid-column:1;grid-row:2/4;border-left:0;border-right:1px solid var(--line)}
+  body.type .status{grid-column:1/4}
   .fg-shelf{grid-column:3;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-left:1px solid var(--line);background:#ECEAE6}
   html.night .fg-shelf{background:#26282B}
   .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
@@ -54,6 +55,7 @@
     .fg-shelf{order:3;flex:none;overflow:visible;border-left:0;border-bottom:1px solid var(--line);padding:10px 12px}
     .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
     .fg-item{width:104px}
+    body.type .panel{border-right:0}
   }
 </style>
 </head>

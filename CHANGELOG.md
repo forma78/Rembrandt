@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the panel on the left** (the owner, 2026-11-11: "move the panel from the right corner to the left, please"): PROGRESS, the keys, the canvas, the brush and the
+  jars in a column on the left under the tabs, the picture in the middle, THE LIBRARY on the right as before. A phone as before.
 - **FORM-G: each 911's v.2 alone in THE LIBRARY, no "Kuzya" on the cards** (the owner, 2026-11-11: "remove the cards Porsche GT, red — leave only v.2 in THE LIBRARY.
   The same with the classic's v.2. Remove the words Kuzya, they only make noise"). `FORMG_LIB`: Porsche GT, red · v.2; Porsche, red · v.2; the white; the watch. Their v.1,
   `porsche-race.json` and `porsche-red.json`, stay on the disk (the tests, v.2's names). A page left on a v.1 opens its v.2; the classic's place, the owner's canon for
