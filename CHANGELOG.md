@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO, a new tab after FORM-G** (2026-11-12; `HOLO-Claude/HOLO.md`, the owner's talk with cloud-Claude: a painting to bring the
+  reels back while the Porsche is painted — vertical legs alone, the brush lays even puddles from the cup at hand, then drags them; run 1 the
+  light, run 2 the shadow on the dry first). The owner: "so as not to reinvent the wheel, we take the ready examples of 40 × 40 and 60 × 60 and
+  set them as FORM-G: on the left LIBRARY, on the right the commands' settings"; and of the palette, "very beautiful, but I would like to stay
+  within the range where our jars are already mixed and there is paint … I can easily add four more colours". `holo.html`, `src/holoplan.js`,
+  `src/holo.js`, `app/holo/`: cloud-Claude's three pictures (the fan warm 40 × 40, the fan blue 60 × 60, the tiers 60 × 60), their composition
+  untouched, every colour one of his jars off `HOLO-Claude/IMAGE 2026-11-12 12:32:52.jpg` — Jar 1, 6, 12, 13, 20, 39, 45, 48, Cream, Pale
+  yellow, Amber, Sky, Dark blue — and four new ones for the empty jars, from the tubes on the shelf: Orange (COLORS' indicator recipe), Sky Blue,
+  the blue 04, Ultramarine (`HOLO-Claude/generator/holo_jars.py`, est.). The list run 1's jars light to dark, then run 2's; views Picture,
+  Puddles 1, Puddles 2, Drag; ▶ Play with the LCD, a batch of puddles laid, then dragged; the puddles' numbers (est., LAB to give them);
+  RUN 1 · RUN 2 ask their question with Start from and send nothing: a dab is a new move, wired on the owner's word.
 - **PROGRESS: the time left by steps, on rembrandt.py's own clock** (the owner, 2026-11-12, of three iPhone screens within half an hour, LEFT
   9 h 57, 8 h 01, 8 h 30: "measuring by steps is a great idea"). The journal's 31 clean jar stretches (v.2, v.3): 1.22 … 1.49 s a step on every
   jar, but 3.6 … 8.7 mm a second — the phone paced by paint, and only while it was looked at. Now the runner times every step from one block's

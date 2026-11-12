@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · HOLO</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* HOLO: FORM-G's page — the library on the left, the picture, the panel on the right (the owner, 2026-11-12: "as FORM-G: on the left the LIBRARY, on the right the commands' settings") */
+  body.type{grid-template-columns:132px minmax(0,1fr) 340px}
+  body.type .top{grid-column:1/3}
+  body.type .stage{grid-column:2;grid-row:2/4}
+  body.type .panel{grid-column:3}
+  body.type .status{grid-column:1/4}
+  .fg-shelf{grid-column:1;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-right:1px solid var(--line);background:#ECEAE6}
+  html.night .fg-shelf{background:#26282B}
+  .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .type .runkeys.deck.passes.two{grid-template-columns:1fr 1fr}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #cv.drag{cursor:grabbing}
+  .fg-lib{display:flex;flex-direction:column;gap:10px}
+  .fg-item{position:relative;flex:none}
+  .fg-card{display:flex;flex-direction:column;gap:5px;width:100%;box-sizing:border-box;padding:5px 5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
+  .fg-card.on{outline:2px solid var(--orange);outline-offset:1px}
+  .fg-card img{display:block;width:100%;height:92px;object-fit:contain;background:#F3F0E6;border-radius:5px}
+  .fg-card b{font:600 11px/16px var(--mono);letter-spacing:.06em;padding-right:20px}
+  .fg-card .sz{margin-top:-4px;font:500 10px/14px var(--mono);letter-spacing:.04em;color:var(--mute);padding-right:20px}
+  .fg-item .info{position:absolute;right:6px;bottom:6px;margin:0}
+  .fg-pop{position:fixed;z-index:60;width:290px;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:var(--card,#F7F5F1);color:var(--ink);font-size:11.5px;line-height:1.42;box-shadow:0 8px 28px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.08);pointer-events:none}
+  .fg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 8px;margin-top:6px}
+  .fg-grid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .fg-grid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:5px 6px;font:12px var(--mono)}
+  #runList{max-height:none;margin:6px 0 0;padding:0;list-style:none}
+  #runList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px;cursor:pointer}
+  #runList li:hover{background:rgba(127,127,127,.14)}
+  #runList li.only{outline:1.5px solid var(--orange)}
+  #runList li.now{background:rgba(235,122,37,.2)}
+  #runList li.done{opacity:.45}
+  #runList .no{font:10px var(--mono);color:var(--mute);text-align:right}
+  #runList .sw,.newjars .sw{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  #runList .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #runList .nm em{font:normal 9.5px var(--mono);color:var(--mute)}
+  #runList .nm .new{font:600 9px var(--mono);letter-spacing:.06em;color:#B3470C}
+  #runList .tg{font:10px var(--mono);color:var(--mute)}
+  #runList li.fg-sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:default}
+  #runList li.fg-sep:first-child{margin-top:0;border-top:0}
+  #runList li.fg-sep:hover{background:none}
+  .newjars{margin:10px 0 0;padding:0;list-style:none;font-size:11px;line-height:1.38}
+  .newjars li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:6px;align-items:start;padding:3px 0}
+  .newjars li .sw{margin-top:1px}
+  .newjars b{font-weight:600}
+  .newjars span{color:var(--mute)}
+  .holo-note{margin:8px 0 0;font-size:11px;line-height:1.4;color:var(--mute)}
+  .askbox .wait{margin:6px 0 2px;padding:8px 10px;border-radius:8px;background:rgba(235,122,37,.14);font-size:12px;line-height:1.4}
+  @media (max-width: 760px), (max-height: 500px) {                                  /* a phone: the library a row under the picture */
+    .fg-shelf{order:3;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px}
+    .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
+    .fg-item{width:104px}
+  }
+</style>
+</head>
+<body class="adjust arm3 nolan type love alu ccd" data-tab="holo">
+<!-- Rembrandt · HOLO (HOLO-Claude/HOLO.md, 2026-11-12): vertical legs alone, in two runs — the brush lays even puddles of paint from the cup at hand,
+     then drags them; run 1 the light, run 2 the shadow on the dry first. A library of finished pictures as FORM-G's (the owner: "so as not to reinvent
+     the wheel, we take the ready examples of 40 × 40 and 60 × 60 and set them as FORM-G: on the left LIBRARY, on the right the commands' settings"),
+     every picture in his jars ("stay within the range where our jars are already mixed and there is paint"). src/holoplan.js, src/holo.js; its pictures
+     in holo/, made by HOLO-Claude/generator/holo_jars.py. Nothing on this page moves the machine yet: a dab is a new move, wired on his word. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.2.3</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="holo.html" class="on">HOLO</a>
+      <a href="formg.html">FORM-G</a>
+      <a href="opmn.html">OPM-N</a>
+      <a href="lab.html">LAB</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <section class="stage" id="stage"><canvas id="cv"></canvas></section>
+  <aside class="fg-shelf" aria-label="The library">
+    <h3>The library</h3>
+    <div class="fg-lib" id="lib"></div>
+  </aside>
+  <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <!-- the two runs, HOLO.md: run 1 the light, run 2 the shadow on the dry first; each a jar at a time, its puddles laid a batch, then dragged -->
+      <div class="runkeys deck passes two">
+        <button class="btn pass" id="btnRun1" data-run="1" title="RUN 1 · LIGHT: a jar at a time, light to dark. Along every leg of a slat of its ground a puddle every so many mm, one dab each — a dip, then the brush down there, a mark of 8 mm; then one stroke the leg's whole length through its puddles, no dip. A batch of about 100 dabs laid, then dragged while wet. Its question: Start from"><svg viewBox="0 0 24 24"><circle cx="7" cy="6" r="1.8" class="dot"/><circle cx="7" cy="12" r="1.8" class="dot"/><circle cx="7" cy="18" r="1.8" class="dot"/><path d="M15 4v16" class="bold"/></svg><span>Run 1 · light</span></button>
+        <button class="btn pass" id="btnRun2" data-run="2" title="RUN 2 · SHADOW, on the dry first run: a jar at a time, light to dark. For every shadowed band of every leg one puddle at the band's edge, 1 to 4 dabs by its length, then one stroke from it towards the band's far end, no dip, till it gives out: sharp at its start, soft into its own band. Its question: Start from"><svg viewBox="0 0 24 24"><circle cx="8" cy="5.5" r="2.2" class="dot"/><path d="M8 8v11" class="bold"/><path d="M16 5.5v14" class="thin"/></svg><span>Run 2 · shadow</span></button>
+      </div>
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="picture" title="The painting as the two runs will leave it: a model, est., not a photo">Picture</button>
+        <button class="tog" data-view="p1" title="Run 1's puddles on the bare canvas, before a stroke: the reel's shot — a row of even dots, a jar at a time">Puddles 1</button>
+        <button class="tog" data-view="p2" title="Run 1 dragged and dry, run 2's dark puddles laid on it, every one at its band's edge: bigger, more dabs">Puddles 2</button>
+        <button class="tog" data-view="drag" title="The strokes in their jars' colours, as wide as the brush: run 1's legs, run 2's shadows fading from their puddles">Drag</button>
+        <button class="tog" id="btnPlay" title="The two runs as they will go, a jar after another, a batch of puddles laid, then dragged; the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
+      </div>
+    </section>
+    <section class="sec">
+      <h3>The canvas <span class="hint">from home, mm · a picture its own</span> <button class="info" id="canvasInfo" title="Where the canvas may lie for this picture, the walls">i</button></h3>
+      <div class="fg-grid">
+        <label title="The canvas's left edge, mm to the right of home; minus: left of it">Left edge →<input id="fLeft" type="number" step="1"></label>
+        <label title="The canvas's bottom edge, mm above home; minus: below it">Bottom edge ↑<input id="fBottom" type="number" step="1"></label>
+      </div>
+      <p class="read" id="placeRead" hidden></p>
+    </section>
+    <section class="sec">
+      <h3>The puddles <span class="hint">est. — LAB gives them</span></h3>
+      <div class="fg-grid">
+        <label title="Run 1: a puddle every so many mm along a leg at most, the first and the last 4 mm in from the field's edges">Puddle every, mm<input id="fGap" type="number" step="1" min="15" max="120"></label>
+        <label title="Run 2: how far one dab lasts along a stroke; a shadow's dabs by its band's length (1 … 3 on the fan, 1 … 4 on the tiers). Empty: the plan's own">A dab lasts, mm<input id="fLasts" type="number" step="1" min="20" max="150" placeholder="plan"></label>
+        <label title="A batch: so many dabs laid, then dragged while wet (≈ 15 min); whole legs in run 1">Batch, dabs<input id="fBatch" type="number" step="10" min="10" max="400"></label>
+        <label title="A dab's time: a hand dip at the cup at hand (≈ 6 s, the run journal), the way to its place and the mark">A dab, s<input id="fSDab" type="number" step="0.5" min="2" max="30"></label>
+        <label title="The brush along a stroke, mm/s">Speed, mm/s<input id="fSpeed" type="number" step="1" min="5" max="120"></label>
+        <label title="A dab: MARKS' mark, a leg along X with the brush down, mm">Dab leg, mm<input id="fMark" type="number" step="1" min="2" max="20" disabled></label>
+      </div>
+      <p class="read" id="puddleRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The jars <span class="hint" id="jarsHint"></span></h3>
+      <ol id="runList"></ol>
+      <ul class="newjars" id="newJars"></ul>
+      <p class="holo-note" id="jarNote"></p>
+    </section>
+  </aside>
+</main>
+
+<div class="fg-pop" id="libPop" role="tooltip" hidden></div>
+
+<div class="ask" id="runAsk" hidden>
+  <div class="askbox drawask" role="dialog" aria-labelledby="runAskTitle">
+    <h3 id="runAskTitle">RUN</h3>
+    <div class="firstpen" id="runAskFirst"></div>
+    <label class="askfrom" id="runAskFrom" title="The run from this line of the list on, the ones before it not painted again; this question only"><span>Start from</span><select id="runFrom"></select></label>
+    <ol class="runlist one" id="runAskList"></ol>
+    <p id="runAskText"></p>
+    <p class="wait">Not wired to the machine yet: a dab — a dip, then a mark with no line after it — is a new move in a run, and goes in on your word (HOLO.md, "Ask the owner before"), after LAB's sheet gives the dab, how far a puddle lasts and the open time.</p>
+    <div class="grid4 keys"><button class="btn pass" id="runGo" disabled>▶ RUN</button><button class="btn" id="runNo">Close</button></div>
+  </div>
+</div>
+
+<footer class="status">
+  <span id="hint">HOLO — vertical legs, two runs: puddles laid, then dragged. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its strokes.</span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/holo.js"></script>
+</body>
+</html>
