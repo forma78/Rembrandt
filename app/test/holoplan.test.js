@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { HOLO, HOLO_LIB, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange } from '../src/holoplan.js';
+import { HOLO, HOLO_LIB, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange, contourHolo } from '../src/holoplan.js';
 
 // HOLO (HOLO-Claude/HOLO.md, 2026-11-12): cloud-Claude's three pictures in the owner's jars, two runs of puddles laid, then dragged.
 const load = id => JSON.parse(fs.readFileSync(new URL(`../holo/${id}.json`, import.meta.url)));
@@ -81,4 +81,24 @@ test('where the canvas may lie: the field within the walls; the 60 × 60 blue\'s
   assert.ok(r.left[0] <= r.left[1] && r.left[1] - r.left[0] < 15, `${r.left}: its outer legs' middles 555 mm apart, the walls 568.5`);
   const t = placeRange(load('holo-40-warm'), WALLS);
   assert.ok(t.left[1] - t.left[0] > 150 && t.bottom[1] - t.bottom[0] > 400);
+});
+
+test('DRAW BW: the outline where the paint meets the bare canvas, every border once; a jar in both runs one colour', () => {
+  const W = load('holo-40-warm'), O = contourHolo(W, { outline: true }), A = contourHolo(W), f = W.field;
+  // the warm fan: every slat a ground, so the outline is the field's own rectangle, once round — a few shadows end up to 2.6 mm past its top
+  // and bottom in the plan (cloud-Claude's), and the pen goes round them
+  assert.equal(O.lines.length, 1);
+  assert.ok(Math.abs(O.mm - 2 * ((f.x1 - f.x0) + (f.y1 - f.y0))) < 15, `outline ${O.mm} mm`);
+  const near = (v, e) => Math.abs(v - e) <= 3;
+  for (const l of O.lines) for (const [x, y] of l) assert.ok(near(x, f.x0) || near(x, f.x1) || near(y, f.y0) || near(y, f.y1), `${x},${y} by the field's edge`);
+  assert.ok(A.mm > O.mm * 4 && A.lines.length > O.lines.length, 'every border more than the outline');
+  // every run-2 stroke's start a border across its leg
+  const starts = new Set(A.lines.flatMap(l => l.map(q => q[1])));
+  for (const L of planOf(W).filter(q => q.run === 2)) for (const q of L.strokes) assert.ok(starts.has(Math.round(q.pts[0][1] * 100) / 100), `a shadow's start at ${q.pts[0][1]}`);
+  // the blue fan's Sky Blue, a ground and a shadow: no line where it meets itself
+  const B = load('holo-60-blue'), byJar = contourHolo(B), one = contourHolo(B, { outline: false });
+  assert.equal(byJar.mm, one.mm);
+  // the tiers: bare slats, so the outline goes in round them too
+  const T = load('holo-60-tiers'), OT = contourHolo(T, { outline: true });
+  assert.ok(OT.mm > 2 * ((T.field.x1 - T.field.x0) + (T.field.y1 - T.field.y0)) + 1, `tiers outline ${OT.mm} mm`);
 });

@@ -14,6 +14,8 @@
 // Nothing here moves the machine: the plan, its numbers and ▶ Play. A dab is a new move in a run — a dip, then a mark with no line after
 // it — and is wired on the owner's word (HOLO.md, "Ask the owner before"). Every number est.
 
+import { contourOf } from './formgplan.js';
+
 export const HOLO_LIB = ['holo-40-warm', 'holo-60-blue', 'holo-60-tiers'];   // the library: its json and jpgs in app/holo/
 // est.: a dab MARKS' mark, a leg of 8 mm on a dip of its own; a batch of puddles laid, then dragged while wet (≈ 100 dabs, ≈ 15 min);
 // 9 s a dab (the run journal's hand dip of ≈ 6 s, the way to the place and the mark); the brush along a drag, mm/s
@@ -87,6 +89,15 @@ export function movesOf(lines, o = {}) {
 // how much paint a run-2 stroke leaves at a point, 0 … 1, by its share of the way from its start (est., the study's: thick where it
 // starts, gone where the band ends; on TIERS laid full over `full` of it, then giving out)
 export const shadeAt = (u, full = 0) => u < 0 || u > 1 ? 0 : full ? (u <= full ? 1 : Math.max(0, 1 - (u - full) / (1 - full)) ** 1.3) : (1 - u) ** 1.5;
+
+// DRAW BW's lines (FORM-G's, the owner, 2026-11-14: HOLO "has no STOP and HOME", and DRAW BW and ⏮ BACK ONE JAR as FORM-G's): formgplan.js's
+// contourOf over the strokes as the brush lays them, every line of the list in its order — run 1's grounds the field's height, run 2's shadows
+// from their puddle to where they end, over them; a jar in both runs one colour. o.outline: where the paint meets the bare canvas alone.
+// → { lines: [[[x, y], …]], mm, pieces }, the picture's mm
+export function contourHolo(pic, o = {}) {
+  const jars = seqOf(pic).map(line => ({ id: line.jar, cells: [{ legs: workOf(pic, line).strokes.map(q => [q.x, q.pts[0][1], q.pts[1][1]]) }] }));
+  return contourOf({ pitch: pic.pitch, jars }, { outline: !!o.outline, key: j => j.id });
+}
 
 // where the canvas may lie, its left and bottom edges from home, mm: the outer legs' middles within the Y walls — the arm lies along X, the
 // elbow sweeps the tip along a leg, never across it — and the legs' ends within the X walls, more room at the bottom, where the elbow

@@ -224,6 +224,14 @@ New: `src/holoplan.js` (a plan's json into rows: a jar's batches, lay then
 drag), `src/holo.js`, `app/holo.html`, `app/holo/` for the plans, a LAB
 sheet for the three numbers. No change to the firmware.
 
+## The owner's answers, 2026-11-14
+
+- **The order**: "first LAB, then the 40 × 40 first" — LAB's sheet below, then `holo-40-warm`.
+- **Two jars**: "Jar 6 is orange, Jar 12 is lilac" — Jar 6 FORM-G's `#EE8A22`, so the new Orange (its recipe) is
+  out; Jar 12 the lid's lilac (`generator/holo_jars.py`).
+- **The keys** (`ux-ui.png`, FORM-G's panel beside HOLO's): "HOLO has no STOP and HOME"; "add DRAW BW and ⏮ BACK
+  ONE JAR". The page has FORM-G's machine keys since; RUN 1 · RUN 2 still send nothing.
+
 ## Ask the owner before
 
 - **Anything that moves the machine** (README): a dab is a new move in a

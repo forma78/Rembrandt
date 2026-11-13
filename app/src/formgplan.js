@@ -219,11 +219,12 @@ export function placeRange(pic, carriage, walls) {
 // where a column's colour changes, a line across it, the column's width; where two columns side by side differ, a line between them, along. So the steps of the 5 mm
 // columns, as the brush lays them. The lines joined end to end as far as they go without a lift, each next the nearest. → { lines: [[[x, y], …]], mm, pieces } in the
 // picture's mm, x right, y up, as the legs. o.outline: the outline alone, every border between a colour and the bare canvas, none inside (the owner, the same evening,
-// the whole contour ≈ 1 h: "a long time; to centre it the Porsche's contour without the lines inside is enough; four crosses as TEST's are not")
+// the whole contour ≈ 1 h: "a long time; to centre it the Porsche's contour without the lines inside is enough; four crosses as TEST's are not").
+// o.key(jar, k): its colour, where two lines of a list are one paint (HOLO's jar in both runs, 2026-11-14); a jar's place in the list by default
 export function contourOf(pic, o = {}) {
   const p = pic.pitch, half = p / 2, E = 1e-6, r2 = v => Math.round(v * 100) / 100;
   const cols = new Map();                                              // a column's index → { x, iv: [[lo, hi, k]] }, what shows of every jar, bottom up
-  pic.jars.forEach((j, k) => j.cells.forEach(c => c.legs.forEach(([x, a, b]) => {
+  pic.jars.forEach((j, n) => { const k = o.key ? o.key(j, n) : n; j.cells.forEach(c => c.legs.forEach(([x, a, b]) => {
     const i = Math.round((x - half) / p), lo = Math.min(a, b), hi = Math.max(a, b);
     if (hi - lo < E) return;
     const col = cols.get(i) ?? cols.set(i, { x, iv: [] }).get(i), out = [];
@@ -233,7 +234,7 @@ export function contourOf(pic, o = {}) {
       if (q[1] > hi + E) out.push([hi, q[1], q[2]]);
     }
     out.push([lo, hi, k]); out.sort((u, v) => u[0] - v[0]); col.iv = out;
-  })));
+  })); });
   for (const col of cols.values()) col.iv = col.iv.reduce((m, q) => { const l = m.at(-1); if (l && l[2] === q[2] && Math.abs(l[1] - q[0]) < E) l[1] = q[1]; else m.push([...q]); return m; }, []);
   const jarAt = (col, y) => { if (!col) return -1; for (const q of col.iv) if (y > q[0] && y < q[1]) return q[2]; return -1; };
   const border = (u, v) => u !== v && (!o.outline || u === -1 || v === -1);

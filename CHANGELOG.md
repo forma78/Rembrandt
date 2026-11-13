@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: FORM-G's machine keys** (2026-11-14; the owner, `HOLO-Claude/ux-ui.png`, FORM-G's panel beside HOLO's: "HOLO has no STOP and
+  HOME"; "add DRAW BW and ⏮ BACK ONE JAR"; and of the order, "first LAB, then the 40 × 40 first"). `holo.html`, `src/holo.js`: TEST ·
+  PAUSE, DRAW BW · RUN 1 · RUN 2, ⏮ BACK ONE JAR, STOP · HOME, a Contour view, the iPhone's remote and ELBOW LIVE · brush, formg.js's as
+  they are, copied so that FORM-G stays as it was; the LCD reads a run on the machine as FORM-G's, and a run of another page as such.
+  DRAW BW: the pen along `contourHolo` (`src/holoplan.js`) — formgplan.js's `contourOf` over the strokes as the brush lays them, run 1's
+  grounds and run 2's shadows from their puddle to where they end — the outline alone (the 40 × 40 1.5 m, ≈ 1 min) or every border
+  (164 lines, 10.4 m, ≈ 14 min, est.); `contourOf` takes a colour key, so a jar in both runs is one colour (FORM-G's contours to the byte
+  as they were). TEST: a dot at each corner of the field. The pen's press, its speed and the travel from FORM-G's once. RUN 1 · RUN 2
+  still send nothing: a dab is a new move, after LAB's sheet; BACK ONE JAR is theirs (rembrandt.py's `back_jar`), off in DRAW BW and TEST.
 - **HOLO: Jar 6 orange, Jar 12 lilac** (2026-11-14; asked whether the lids or FORM-G's hex are right, the owner: "Jar 6 is orange, Jar 12
   is lilac"). `HOLO-Claude/generator/holo_jars.py`: Jar 6 FORM-G's orange of the indicators, `#EE8A22`, not the photo's red orange; Jar 12 the
   photo's lilac `#BCCBEE` as it was, its note his word. New · Orange, COLORS' recipe of that very orange, is Jar 6 itself: out, Jar 6 the

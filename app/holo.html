@@ -16,7 +16,14 @@
   .fg-shelf{grid-column:1;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-right:1px solid var(--line);background:#ECEAE6}
   html.night .fg-shelf{background:#26282B}
   .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
-  .type .runkeys.deck.passes.two{grid-template-columns:1fr 1fr}
+  .type .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* DRAW BW · RUN 1 · RUN 2, FORM-G's DRAW BW · DRAG SNAKE (2026-11-14) */
+  .type .runkeys.deck.passes .btn{padding-left:4px;padding-right:4px;letter-spacing:.02em;white-space:nowrap}   /* three in a row: RUN 2 · SHADOW its own width */
+  .type #views .tog,.type #views .tog[data-view]{flex:1 1 auto;min-width:0;font-size:10px;padding-left:2px;padding-right:2px}   /* six views in the panel's width, Contour with them, each its own width */
+  .type #views #btnPlay{flex:none;padding-left:5px;padding-right:5px}
+  .remotebox{margin-top:8px;padding:10px;border-radius:8px;background:#fff;color:#24221F;font-size:11px;line-height:1.4}
+  .remotebox svg{display:block;width:180px;height:180px;margin:0 auto 6px}
+  .remotebox p{margin:0 0 4px}
+  .remotebox code{display:block;word-break:break-all;font-size:10px;color:#6B665E}
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   #cv.drag{cursor:grabbing}
   .fg-lib{display:flex;flex-direction:column;gap:10px}
@@ -65,7 +72,9 @@
      then drags them; run 1 the light, run 2 the shadow on the dry first. A library of finished pictures as FORM-G's (the owner: "so as not to reinvent
      the wheel, we take the ready examples of 40 × 40 and 60 × 60 and set them as FORM-G: on the left LIBRARY, on the right the commands' settings"),
      every picture in his jars ("stay within the range where our jars are already mixed and there is paint"). src/holoplan.js, src/holo.js; its pictures
-     in holo/, made by HOLO-Claude/generator/holo_jars.py. Nothing on this page moves the machine yet: a dab is a new move, wired on his word. -->
+     in holo/, made by HOLO-Claude/generator/holo_jars.py. FORM-G's machine keys (the owner, 2026-11-14, HOLO-Claude/ux-ui.png: "HOLO has no STOP and HOME";
+     "add DRAW BW and ⏮ BACK ONE JAR"): TEST, PAUSE, DRAW BW, BACK ONE JAR, STOP, HOME, the iPhone's remote and ELBOW LIVE, FORM-G's moves as they are.
+     RUN 1 · RUN 2 send nothing yet: a dab is a new move, wired after LAB's sheet ("first LAB, then the 40 × 40 first"). -->
 <header class="top">
   <div class="brand">
     <span class="logo">REMBRANDT</span>
@@ -95,17 +104,34 @@
       <h3>Progress <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
-      <!-- the two runs, HOLO.md: run 1 the light, run 2 the shadow on the dry first; each a jar at a time, its puddles laid a batch, then dragged -->
-      <div class="runkeys deck passes two">
+      <div class="runkeys deck">
+        <button class="btn" id="btnTest" title="TEST, before the run: one dip in the cup, a dot at each corner of the field, four dots to lay the canvas by, and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <button class="btn" id="btnPause" title="PAUSE: the carriage brakes on its line; CONT. goes on from there"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
+      </div>
+      <!-- DRAW BW, FORM-G's (2026-11-14); the two runs, HOLO.md: run 1 the light, run 2 the shadow on the dry first; each a jar at a time, its puddles laid a batch, then dragged -->
+      <div class="runkeys deck passes">
+        <button class="btn pass" id="btnBw" data-pass="bw" title="DRAW BW, FORM-G's: the lines in one pen, in the brush's holder — its question picks: the outline alone, where the paint meets the bare canvas, to lay the canvas by; or every border between two colours too, to study the picture: the strokes as the brush lays them, run 1's grounds and where run 2's shadows start and end. Every line once; no dip, no jar. It stops once, over the first line, the holder down: the brush out, the pen in, its tip on the paper, Continue. The pen draws at the brush's elbow (Elbow live · brush), so it goes where the brush will paint"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z" class="fill"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw BW</span></button>
         <button class="btn pass" id="btnRun1" data-run="1" title="RUN 1 · LIGHT: a jar at a time, light to dark. Along every leg of a slat of its ground a puddle every so many mm, one dab each — a dip, then the brush down there, a mark of 8 mm; then one stroke the leg's whole length through its puddles, no dip. A batch of about 100 dabs laid, then dragged while wet. Its question: Start from"><svg viewBox="0 0 24 24"><circle cx="7" cy="6" r="1.8" class="dot"/><circle cx="7" cy="12" r="1.8" class="dot"/><circle cx="7" cy="18" r="1.8" class="dot"/><path d="M15 4v16" class="bold"/></svg><span>Run 1 · light</span></button>
         <button class="btn pass" id="btnRun2" data-run="2" title="RUN 2 · SHADOW, on the dry first run: a jar at a time, light to dark. For every shadowed band of every leg one puddle at the band's edge, 1 to 4 dabs by its length, then one stroke from it towards the band's far end, no dip, till it gives out: sharp at its start, soft into its own band. Its question: Start from"><svg viewBox="0 0 24 24"><circle cx="8" cy="5.5" r="2.2" class="dot"/><path d="M8 8v11" class="bold"/><path d="M16 5.5v14" class="thin"/></svg><span>Run 2 · shadow</span></button>
+      </div>
+      <button class="btn backone" id="btnBack" disabled title="BACK ONE JAR, FORM-G's, as a player's ⏮ by jars: the jar begun — painting it, or at the pause after it — this jar again from its start; not yet, the jar before it. From its own pause: put the jar in the cup, Continue. For RUN 1 · RUN 2 once they run on the machine, after LAB; DRAW BW and TEST have no jars to go back to">⏮ BACK ONE JAR</button>
+      <div class="stops deckstops">
+        <button class="btn" id="btnStop" title="STOP: the carriage brakes on its line">STOP</button>
+        <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
       </div>
       <div class="toggles looks" id="views">
         <button class="tog" data-view="picture" title="The painting as the two runs will leave it: a model, est., not a photo">Picture</button>
         <button class="tog" data-view="p1" title="Run 1's puddles on the bare canvas, before a stroke: the reel's shot — a row of even dots, a jar at a time">Puddles 1</button>
         <button class="tog" data-view="p2" title="Run 1 dragged and dry, run 2's dark puddles laid on it, every one at its band's edge: bigger, more dabs">Puddles 2</button>
         <button class="tog" data-view="drag" title="The strokes in their jars' colours, as wide as the brush: run 1's legs, run 2's shadows fading from their puddles">Drag</button>
+        <button class="tog" data-view="contour" title="DRAW BW's lines, the pen's, as its question last picked them — the outline alone, or every border between two colours — over the picture veiled">Contour</button>
         <button class="tog" id="btnPlay" title="The two runs as they will go, a jar after another, a batch of puddles laid, then dragged; the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
+      </div>
+      <div class="grid4 keys"><button class="btn" id="btnRemote" title="The iPhone's remote: Pause · Continue and STOP from the iPhone — its address with the key as a QR code; the iPhone on the same Wi-Fi">iPhone remote</button></div>
+      <div class="remotebox" id="remoteBox" hidden></div>
+      <div class="elbowlive" id="elbowBrush">
+        <div class="elh"><span class="elk">Elbow live · brush</span><span class="elv" id="brushNow">0.0°</span></div>
+        <div class="elrow"><button class="btn" data-btrim="-0.1" title="The brush 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="brushSl" step="0.1"><button class="btn" data-btrim="0.1" title="The brush 0.1° higher: less pressure">▲</button></div>
       </div>
     </section>
     <section class="sec">
@@ -115,6 +141,14 @@
         <label title="The canvas's bottom edge, mm above home; minus: below it">Bottom edge ↑<input id="fBottom" type="number" step="1"></label>
       </div>
       <p class="read" id="placeRead" hidden></p>
+    </section>
+    <section class="sec">
+      <h3>The pen · the carriage <span class="hint">FORM-G's, est.</span></h3>
+      <div class="fg-grid">
+        <label title="DRAW BW: the pen along its lines, mm/s (est.)">Pen, mm/s<input id="fPen" type="number" step="1" min="5" max="120"></label>
+        <label title="The carriage between lines, to a dip, to home, the brush up: mm/s. 180 slipped the X belt with the jar on the carriage (2026-11-10)">Travel, mm/s<input id="fTravel" type="number" step="5" min="20" max="180"></label>
+      </div>
+      <p class="read" id="bwRead"></p>
     </section>
     <section class="sec">
       <h3>The puddles <span class="hint">est. — LAB gives them</span></h3>
@@ -138,6 +172,16 @@
 </main>
 
 <div class="fg-pop" id="libPop" role="tooltip" hidden></div>
+
+<div class="ask" id="drawAsk" hidden>
+  <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
+    <h3 id="drawAskTitle">DRAW BW</h3>
+    <div class="firstpen" id="drawAskFirst"></div>
+    <label class="askfrom" id="drawAskFrom" title="The outline alone, or every border between two colours; this question only"><span>Draw</span><select id="drawFrom"></select></label>
+    <p id="drawAskText"></p>
+    <div class="grid4 keys"><button class="btn pass" id="drawGo">✎ DRAW BW</button><button class="btn" id="drawNo">Cancel</button></div>
+  </div>
+</div>
 
 <div class="ask" id="runAsk" hidden>
   <div class="askbox drawask" role="dialog" aria-labelledby="runAskTitle">
