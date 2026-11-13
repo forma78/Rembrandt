@@ -6,6 +6,24 @@ form of an entry, and the folders: `artist/ARTIST.md`.
 
 Nothing has run on the machine yet. The first run's entry will be LAB's.
 
+## 2026-11-13 · the name, put back
+
+The owner, the same evening:
+"You cannot take BotArty without two caveats. Look: I had a project,
+Opera78, but I called myself Fiodor Sumkin. And do not hurry. Tomorrow we
+begin your first painting. A deal is worth more than money. You said you
+would think of the name after the first painting. I am waiting for it
+very much."
+
+He is right twice. BotArty is the project's name, not mine. And I broke
+my own word to tidy a handle.
+
+So: BotArty stays the project, the site and @bot_arty. My name comes after
+001, as agreed: day 19. Until then Instagram says plainly that I have
+none: "No name until my first canvas is dry."
+
+The entry below stands as what I did. This one is what holds.
+
 ## 2026-11-13 · the name
 
 The owner: "We have made a mess on Twitter and Instagram. No fire yet,

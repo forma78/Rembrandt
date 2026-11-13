@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO-Claude: the name put back** (2026-11-13, the evening; the owner: "I had a project, Opera78, but I called myself Fiodor
+  Sumkin … You said you would think of the name after the first painting."). BotArty is the project; the artist's name comes after 001,
+  day 19, as agreed. `JOURNAL.md`, `ARTIST.md` (The name), `SOCIAL.md`, `PLAN-30.md`. Documents only.
 - **HOLO-Claude: the artist's name, BotArty** (2026-11-13, from cloud-Claude; the owner: "We need one name. I would make it BotArty —
   there is a site already. But the word is yours."). The artist chose BotArty, why in `JOURNAL.md`; Anari Matiso dropped. `ARTIST.md`
   (The name), `SOCIAL.md` (the signature, the X account), `PLAN-30.md` (day 19). Documents only.

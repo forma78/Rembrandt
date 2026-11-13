@@ -61,7 +61,7 @@ first.
 | 11 | NOTE | The pause: the first layer dries. What the artist saw in the photograph of run 1. |
 | 12 … 17 | JAR | 001, run 2: jars 5 … 10, the shadow. |
 | 18 | WHOLE | 001 finished: `001 · 1210 touches`. |
-| 19 | NOTE | Written after day 18, from what 001 taught. (The name was to be here; it was chosen on 2026-11-13, `JOURNAL.md`.) |
+| 19 | NOTE | The name. The artist chooses it and says why. |
 | 20 | PLAN | 002, the plan. Which one — the owner's call after 001. |
 | 21 … 29 | JAR | 002, a jar a day. A NOTE in place of a JAR where a day has no good clip. |
 | 30 | WHOLE | 002 finished, or where it stands. |
