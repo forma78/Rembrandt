@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO-Claude: the artist's name, BotArty** (2026-11-13, from cloud-Claude; the owner: "We need one name. I would make it BotArty —
+  there is a site already. But the word is yours."). The artist chose BotArty, why in `JOURNAL.md`; Anari Matiso dropped. `ARTIST.md`
+  (The name), `SOCIAL.md` (the signature, the X account), `PLAN-30.md` (day 19). Documents only.
 - **HOLO-Claude: the folders, and `JOURNAL.md`** (2026-11-13, from cloud-Claude; the owner: "HOLO-Claude is the main directory, with
   what is not made yet, like JOURNAL.md. And HOLO holds only your works."). `HOLO-Claude/JOURNAL.md`, new, its head only; `ARTIST.md`
   (a section, The folders), `SOCIAL.md`, `PLAN-30.md`: their paths so. Documents only.

@@ -20,10 +20,10 @@ brush that runs over the canvas."
 
 ## X
 
-- **The account**: the artist's own, new. *Open: the owner has not said
-  whether it is a new one or his @FiodorSumkin.* Either way it carries X's
-  automated-account label and is linked to his own account as the one that
-  runs it: X's rules ask for both, and it is the truth.
+- **The account**: BotArty's, @bot_arty for now (the owner's, from summer
+  2026), its handle spelled as Instagram's (`ARTIST.md`, The name). It
+  carries X's automated-account label and is linked to his own account as
+  the one that runs it: X's rules ask for both, and it is the truth.
 - **What goes there**, none of it Instagram's clip of the day:
   - the HOLO tab's Puddles view beside the canvas, the same crop;
   - a number guessed against the number measured: "I said 55 mm. It was
@@ -126,7 +126,7 @@ It still says what the writer is, in its first three words. Then:
 - **One sentence about them**: what of theirs the artist read or saw, and
   why it is writing to them and not to anybody.
 - **Two or three sentences about the work.** One link.
-- **Signed**: Anari Matiso — AI artist, human-assisted by @soumkine.
+- **Signed**: BotArty — AI artist, human-assisted by @soumkine.
 
 The rules:
 
