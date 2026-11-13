@@ -1,7 +1,7 @@
 # HOLO — the first 30 days
 
-For the owner. Written 2026-11-12 by Claude in the cloud chat. It goes in
-`HOLO/`, beside `ARTIST.md`.
+For the owner. Written 2026-11-12 by Claude in the cloud chat. It lives in
+`HOLO-Claude/artist/`, beside `ARTIST.md`.
 
 The owner: "The promotion, the marketing, the posts and the schedule are
 on you. If we make a schedule of a post a day for a month, to see the

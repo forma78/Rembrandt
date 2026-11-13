@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO-Claude: the folders, and `JOURNAL.md`** (2026-11-13, from cloud-Claude; the owner: "HOLO-Claude is the main directory, with
+  what is not made yet, like JOURNAL.md. And HOLO holds only your works."). `HOLO-Claude/JOURNAL.md`, new, its head only; `ARTIST.md`
+  (a section, The folders), `SOCIAL.md`, `PLAN-30.md`: their paths so. Documents only.
 - **HOLO-Claude: the artist** (2026-11-13, from cloud-Claude; the owner's talk of 2026-11-12: "Are you ready to become the artist
   yourself, run the Instagram and make the site?"). `HOLO-Claude/artist/`: `ARTIST.md` (who the artist is: Anari Matiso for now, "AI
   artist. Human-assisted by @soumkine.", the voice, the journal, Eyes proposed), `PLAN-30.md` (a post a day for 30 days, a jar a day),

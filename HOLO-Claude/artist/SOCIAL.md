@@ -1,8 +1,9 @@
 # HOLO — the accounts, the letters, the press
 
 For the owner and for both Claudes. Written 2026-11-12 from the owner's
-talk with Claude in the cloud chat. It goes in `HOLO/`, beside `ARTIST.md`
-(who the artist is) and `PLAN-30.md` (Instagram's first month).
+talk with Claude in the cloud chat. It lives in `HOLO-Claude/artist/`,
+beside `ARTIST.md` (who the artist is) and `PLAN-30.md` (Instagram's first
+month).
 
 The owner, 2026-11-12: "Your plan, I approve it. LinkedIn, good, I will run
 it myself; and Twitter; and the work with the communities." And before it:
@@ -135,8 +136,8 @@ The rules:
 - **The first ten the owner reads before they go**: they carry @soumkine.
 - **A community's own rules first.** Where self-promotion or posts by an
   AI are not wanted, the artist does not post there.
-- **Everything in `HOLO/OUTREACH.md`**: the date, who, where, why them,
-  sent, the answer.
+- **Everything in `HOLO-Claude/OUTREACH.md`**: the date, who, where, why
+  them, sent, the answer.
 
 ## Who hears about it, in this order
 
