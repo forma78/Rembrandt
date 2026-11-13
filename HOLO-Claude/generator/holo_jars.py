@@ -6,7 +6,8 @@ already mixed and there is paint" — HOLO-Claude/IMAGE 2026-11-12 12:32:52.jpg,
 The compositions are cloud-Claude's, untouched (holo_study.py: the same slats, bands, puddles and seeds; the owner: "all is excellent"); only every
 jar of a picture is one of his, by hand, light for light and dark for dark, each family kept (a shadow only over its own family or white):
   - a numbered jar: its hex as FORM-G's red classic has it (app/formg/porsche-red-k.json), the colour it was mixed to — the photo's wet, glossy
-    darks read 8 … 10 L lighter (COLORS' note); but Jar 6 and Jar 12 by the photo, which shows another colour on the lid (est.; asked);
+    darks read 8 … 10 L lighter (COLORS' note); Jar 12 by the photo, its lid's lilac, not FORM-G's blue grey (the owner, 2026-11-14:
+    "Jar 6 is orange, Jar 12 is lilac"), so Jar 6 FORM-G's orange of the indicators and the new Orange that was its very recipe gone;
   - a jar with no number on its lid: by the photo, white-balanced on the empty aluminium lids, est.;
   - four new jars, the four empty ones: straight from tubes on the shelf (colorlib.js, measured dry, est.), one a mix COLORS already knows.
 
@@ -23,8 +24,8 @@ OUT = os.path.join(HERE, '..', '..', 'app', 'holo')
 # the owner's jars: id, name, his number (None: none on the lid yet), hex, seen ('formg', 'photo', 'tube'), a note
 JARS = [
     ('j1', 'Jar 1', 1, '#E6E5DF', 'formg', ''),
-    ('j6', 'Jar 6', 6, '#FF4600', 'photo', "the lid reads a red orange; FORM-G's hex is the amber #EE8A22 (asked)"),
-    ('j12', 'Jar 12', 12, '#BCCBEE', 'photo', "the lid reads a pale periwinkle; FORM-G's hex is the blue grey #757C91 (asked)"),
+    ('j6', 'Jar 6', 6, '#EE8A22', 'formg', ''),                    # the owner, 2026-11-14: "orange", FORM-G's orange of the indicators
+    ('j12', 'Jar 12', 12, '#BCCBEE', 'photo', "lilac, its lid's colour (the owner, 2026-11-14), not FORM-G's blue grey #757C91"),
     ('j13', 'Jar 13', 13, '#D4462F', 'formg', ''),
     ('j20', 'Jar 20', 20, '#C12614', 'formg', ''),
     ('j27', 'Jar 27', 27, '#9D0D0D', 'formg', ''),
@@ -36,8 +37,8 @@ JARS = [
     ('amber', 'Amber', None, '#FFA401', 'photo', 'no number on its lid yet'),
     ('sky', 'Sky', None, '#58BCF6', 'photo', 'no number on its lid yet'),
     ('darkblue', 'Dark blue', None, '#33366B', 'photo', 'no number on its lid yet; a photo reads a dark lighter than it is'),
-    # the four empty jars, new: from the tubes on the shelf (colorlib.js, PAINTS, dry in daylight), 1 : 1 with pouring medium as every jar
-    ('orange', 'New · Orange', None, '#EE8A22', 'tube', "Orange Yellow 50 : Orange 1, COLORS' recipe of the indicator's amber (ΔE 5, est.)"),
+    # the four empty jars, new: from the tubes on the shelf (colorlib.js, PAINTS, dry in daylight), 1 : 1 with pouring medium as every jar;
+    # a fourth, New · Orange, was COLORS' recipe of the indicator's amber — Jar 6 itself (2026-11-14), so it is out
     ('skyblue', 'New · Sky Blue', None, '#4090C0', 'tube', 'Sky Blue straight from the tube'),
     ('blue04', 'New · Blue 04', None, '#1653AA', 'tube', "the blue marked 04 on the palette sheet, straight from the tube"),
     ('ultra', 'New · Ultramarine', None, '#101F7E', 'tube', 'Ultramarine straight from the tube'),
@@ -46,11 +47,11 @@ JAR = {j[0]: j for j in JARS}
 
 # every picture: cloud-Claude's colour → the owner's jar, by its role (a ground light, a shadow dark, the family kept)
 MAP = {
-    'holo-40-warm': {'#F2E9DC': 'j1', '#FAD321': 'paleyellow', '#F0AC26': 'amber', '#EB870F': 'orange',
-                     '#E45C06': 'j6', '#C22303': 'j13', '#791406': 'j39', '#3B0807': 'j45', '#2B49C7': 'blue04', '#141A55': 'darkblue'},
+    'holo-40-warm': {'#F2E9DC': 'j1', '#FAD321': 'paleyellow', '#F0AC26': 'amber', '#EB870F': 'j6',
+                     '#E45C06': 'j13', '#C22303': 'j20', '#791406': 'j39', '#3B0807': 'j45', '#2B49C7': 'blue04', '#141A55': 'darkblue'},
     'holo-60-blue': {'#F1F3F2': 'j1', '#C6E7FA': 'j12', '#EDDAC9': 'cream', '#46A4EF': 'sky', '#1C77E8': 'skyblue',
-                     '#134BC9': 'blue04', '#0F1DC2': 'ultra', '#09116C': 'ultra', '#0E0820': 'j48', '#F15518': 'j6', '#80241C': 'j39'},
-    'holo-60-tiers': {'#E6D9C3': 'j1', '#D98A4E': 'orange', '#A43E20': 'j20', '#622019': 'j39', '#33140F': 'j45',
+                     '#134BC9': 'blue04', '#0F1DC2': 'ultra', '#09116C': 'ultra', '#0E0820': 'j48', '#F15518': 'j13', '#80241C': 'j39'},
+    'holo-60-tiers': {'#E6D9C3': 'j1', '#D98A4E': 'j6', '#A43E20': 'j20', '#622019': 'j39', '#33140F': 'j45',
                       '#8DBDE1': 'sky', '#3D8BD3': 'skyblue', '#0539A5': 'blue04', '#02036C': 'ultra', '#090715': 'j48', '#C3271B': 'j13'},
 }
 SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-60-tiers': 'the tiers'}

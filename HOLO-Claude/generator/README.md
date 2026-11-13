@@ -7,14 +7,15 @@ there is paint" — `../IMAGE 2026-11-12 12:32:52.jpg`, his jars of the day, and
 
 `holo_jars.py` takes `../HOLO/study/holo_study.py` as it is — the same slats, bands, puddles and seeds — and gives every colour of a picture one of
 his jars, by hand, light for light and dark for dark, a family kept (a shadow only over its own family or white). A numbered jar by its hex in
-FORM-G's red classic (`app/formg/porsche-red-k.json`), but Jar 6 and Jar 12, whose lids read another colour, by the photo; a jar with no number by
-the photo, white-balanced on the empty aluminium lids; the four new ones from the tubes on the shelf (`app/src/colorlib.js`). All est.
+FORM-G's red classic (`app/formg/porsche-red-k.json`), but Jar 12 by the photo, its lid's lilac (the owner, 2026-11-14: "Jar 6 is orange, Jar 12 is
+lilac"); a jar with no number by the photo, white-balanced on the empty aluminium lids; the new ones from the tubes on the shelf
+(`app/src/colorlib.js`) — three: the fourth, Orange, was the recipe of Jar 6's own orange, so Jar 6 in its place. All est.
 
 | picture | jars | new |
 |---|---|---|
-| `holo-40-warm`, the fan, warm, 40 × 40 | 10 | Orange, Blue 04 |
+| `holo-40-warm`, the fan, warm, 40 × 40 | 10 | Blue 04 |
 | `holo-60-blue`, the fan, blue, 60 × 60 | 10 | Sky Blue, Blue 04, Ultramarine |
-| `holo-60-tiers`, the tiers, 60 × 60 | 11 | Orange, Sky Blue, Blue 04, Ultramarine |
+| `holo-60-tiers`, the tiers, 60 × 60 | 11 | Sky Blue, Blue 04, Ultramarine |
 
 To run: a venv with numpy, pillow and scipy, the working directory this one; about a minute.
 

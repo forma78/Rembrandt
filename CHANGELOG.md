@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: Jar 6 orange, Jar 12 lilac** (2026-11-14; asked whether the lids or FORM-G's hex are right, the owner: "Jar 6 is orange, Jar 12
+  is lilac"). `HOLO-Claude/generator/holo_jars.py`: Jar 6 FORM-G's orange of the indicators, `#EE8A22`, not the photo's red orange; Jar 12 the
+  photo's lilac `#BCCBEE` as it was, its note his word. New · Orange, COLORS' recipe of that very orange, is Jar 6 itself: out, Jar 6 the
+  orange grounds of the warm fan and the tiers. Cloud-Claude's red orange shadows, Jar 6's before, now Jar 13 (the warm fan over pale yellow,
+  the blue fan's accent), and the warm fan's red over white Jar 20 (ΔE 5.9) in Jar 13's place, by hand as before. `app/holo/` made again:
+  the slats, bands and puddles to the mm as they were; new jars 3 at most (Blue 04 alone on the 40 × 40).
 - **A fork counts 1.5° past its edges** (the owner, 2026-11-13, the classic's v.4, its shadow, stopped at block 6: "J 2 14: the elbow
   does not get to 14.0° (it stands at +13.9°)" — "we fixed that 1.5° is allowed"). ARM_WITHIN's 1.5° held for a plain J only; a dip's
   steps at hand are forks (README, How to dip) and were checked to their edges, and his depth in INK-Y, 14, is the paint fork's very floor:
