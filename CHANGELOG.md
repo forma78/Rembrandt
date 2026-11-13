@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO-Claude: the artist** (2026-11-13, from cloud-Claude; the owner's talk of 2026-11-12: "Are you ready to become the artist
+  yourself, run the Instagram and make the site?"). `HOLO-Claude/artist/`: `ARTIST.md` (who the artist is: Anari Matiso for now, "AI
+  artist. Human-assisted by @soumkine.", the voice, the journal, Eyes proposed), `PLAN-30.md` (a post a day for 30 days, a jar a day),
+  `SOCIAL.md` (Instagram, X, LinkedIn, the letters), and its picture: `artist.svg` / `artist.png` and `avatar.png`, drawn by cloud-Claude.
+  Documents only; no code changed.
 - **A joint within 1.5° counts as there** (2026-11-13, the afternoon, FORM-G's red v.3 at 34.5 %: "J 2 25: the elbow does not get
   to 25.0° (it stands at +23.9°)", the brush up falling short 0.7 … 1.0° for an hour before, the servos at 10.9 … 11.0 V; the owner:
   "it writes about the ELBOW again, let us raise it to 1.5°"). `ARM_WITHIN` 1.5 (1.0 since the morning); the forks as they were.
