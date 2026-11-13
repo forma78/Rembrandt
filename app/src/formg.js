@@ -73,7 +73,7 @@ function marksNow() {
   const W = reach(), c = placeNow(), key = JSON.stringify([pk(), c, SEQ.length]);
   if (!MARKSNOW.has(key)) {
     const on = { x0: Math.max(0, -c.edgeLeft), x1: Math.min(PIC.w, W.y.max - W.y.min - c.edgeLeft), y0: Math.max(0, -c.edgeBottom), y1: Math.min(PIC.h, W.x.max - W.x.min - c.edgeBottom) };
-    const n = SEQ.filter(j => j.coat !== 2).length, st = stripsOf(PIC, on, n);
+    const n = SEQ.filter(j => j.coat !== 2 && !j.last).length, st = stripsOf(PIC, on, n);   // a jar `last` no cell (markCellsOf)
     if (MARKSNOW.size > 6) MARKSNOW.clear();
     MARKSNOW.set(key, { ...st, n, M: marksOf(SEQ, st) });
   }
@@ -117,7 +117,7 @@ function paintRun(from = 0) {
 // wall — "Yes", the last. There the carriage would go about 6 mm past the bottom wall, the stop 9.45 mm past it: the lift-outs of the rear bumper's tips and
 // the diffuser pressed — the tip mostly off the canvas by then, the lift's last few mm of slide in the white under the car; a landing from below may lose ~2 mm
 // of its touch (est.); no leg gone. (plotRun has pressed every path since 2026-10-03, the owner: "remove this restriction".)
-const PRESS_OK = { 'porsche-red': 8, 'porsche-red-k': 8, 'porsche-red-v3': 8 };   // its v.2 Kuzya the same form at the same place (2026-11-11), its v.3 too, the same outline to the mm
+const PRESS_OK = { 'porsche-red': 8, 'porsche-red-k': 8, 'porsche-red-v3': 8, 'porsche-red-v4': 8 };   // its v.2 Kuzya the same form at the same place (2026-11-11), its v.3 too, the same outline to the mm; v.4 v.3 and its shadow, no lower
 function pressOk() {
   const lim = PRESS_OK[PIC?.id];
   if (!lim || PIC.frame) return 0;
@@ -238,9 +238,11 @@ if ($('#btnBw')) $('#btnBw').onclick = async () => {
     logOf({ pass: 'draw bw', label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''} · DRAW BW, the pen · ${R.kind === 'all' ? 'every border' : 'the outline'}`, settings: { ...S, place: placeNow() }, debug: { lines: c.dbg.lines, downs: c.dbg.downs, ups: c.dbg.ups, press: at.press, glide: at.glide }, estimate_s: Math.round(R.seconds) }));
 };
 // the second layer in words: a late jar first (the orange, Jar 6: README's canon, 2026-11-11), then the jars again
+// and a jar `last` after them (v.4's shadow, 2026-11-13)
 function layer2Say(passes) {
-  const two = passes.filter(q => q.layer === 2), late = two.filter(q => jarOf(q.pencil)?.coat === 1).map(q => jarOf(q.pencil)?.name ?? q.pencil), again = two.length - late.length;
-  return `${late.length ? `${late.join(', ')} first, then ` : ''}${again} of the jars again`;
+  const all = passes.filter(q => q.layer === 2), two = all.filter(q => !jarOf(q.pencil)?.last), end = all.filter(q => jarOf(q.pencil)?.last && jarOf(q.pencil)?.coat === 1).map(q => jarOf(q.pencil)?.name ?? q.pencil);
+  const late = two.filter(q => jarOf(q.pencil)?.coat === 1).map(q => jarOf(q.pencil)?.name ?? q.pencil), again = two.length - late.length, k = all.length - two.length;
+  return [late.length ? `${late.join(', ')} first` : '', again || !end.length ? `${again} of the jars again` : '', end.length ? `${end.join(', ')} last, ${k} line${k === 1 ? '' : 's'}` : ''].filter(Boolean).join(', then ');
 }
 // OPM-N's question: the first jar big, the order, the time, Start from; DRAG or Cancel, Esc Cancel
 const runRows = passes => passes.map((q, i) => { const j = jarOf(q.pencil); return `<li><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
@@ -446,7 +448,7 @@ function drawMarks(g) {
   if (PLAY) { g.restore(); return; }
   if (S.view === 'drag' || (lastSt && LIVE.includes(lastSt.state) && RUN_KEY === 'drag')) {
     g.lineCap = 'round'; g.lineWidth = Math.max(0.5, MARKS.trail * K * 0.92);
-    for (const m of mk.M) { const j = SEQ[m.pass]; if (!j) continue; g.strokeStyle = j.hex; for (const q of m.marks) { g.beginPath(); g.moveTo(sx(q.pts[0][0]), sy(q.pts[0][1])); g.lineTo(sx(q.pts[1][0]), sy(q.pts[1][1])); g.stroke(); } }
+    for (const m of mk.M) { const j = m && SEQ[m.pass]; /* a jar `last` none: v.4's shadow */ if (!j) continue; g.strokeStyle = j.hex; for (const q of m.marks) { g.beginPath(); g.moveTo(sx(q.pts[0][0]), sy(q.pts[0][1])); g.lineTo(sx(q.pts[1][0]), sy(q.pts[1][1])); g.stroke(); } }
   } else {
     g.strokeStyle = 'rgba(36,34,31,.28)'; g.lineWidth = 1;
     for (const s of mk.strips) for (let k = 0; k < mk.n; k++) for (const row of [0, 1]) { const [x, y] = s.cell(k, row), w = MARKS.trail, h = MARKS.leg; g.strokeRect(sx(x - w / 2), sy(y + h / 2), w * K, h * K); }
@@ -577,7 +579,7 @@ function showPanel() {
     : 'No frame: the whole picture. F, or Frame, lays one round a piece to try first, at its place from home: a click a 200 × 200 there, a drag any size.';
   for (const [id, k] of [['#fSpeed', 'speed'], ['#fEvery', 'dipEvery'], ['#fLap', 'dipLap'], ['#fOver', 'over'], ['#fPen', 'penSpeed'], ['#fTravel', 'travel']]) if ($(id) && document.activeElement !== $(id)) $(id).value = S[k];
   if ($('#bwRead')) { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
-  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
+  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
 }
@@ -736,6 +738,8 @@ lampSwitch($('#lamp'));
   if (!CANON_RUN && !S.v2place) { if (S.place['porsche-red']) S.place['porsche-red-k'] = { ...S.place['porsche-red'] }; S.v2place = 1; save(); }
   // the classic's v.3 (2026-11-11), v.2's form and outline to the mm: v.2's place on the canvas once, the owner's canon for the 70 × 100
   if (!CANON_RUN && !S.v3place) { const was = S.place['porsche-red-k'] ?? S.place['porsche-red']; if (was && !S.place['porsche-red-v3']) S.place['porsche-red-v3'] = { ...was }; S.v3place = 1; save(); }
+  // its v.4 (2026-11-13), v.3 to the leg and its shadow, on the canvas v.3 painted: v.3's place once
+  if (!CANON_RUN && !S.v4place) { const was = S.place['porsche-red-v3']; if (was && !S.place['porsche-red-v4']) S.place['porsche-red-v4'] = { ...was }; S.v4place = 1; save(); }
   PIC = picNow(S.pic); SEQ = seqOf(PIC);
   await loadInk();
   layout(); settle(); watch();

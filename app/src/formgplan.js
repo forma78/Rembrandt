@@ -18,7 +18,7 @@
 import { IDLE, idleLine, idleRowsOf, idleRunsOf } from './idleplan.js';
 import { CANON, startOnLong, ridersOnLong, landInside, dosed, ELBOW_J3, elbowEndsOf } from './canon.js';
 
-export const FORMG_LIB = ['porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-white', 'watch'];   // the library: a name here, its json and jpg in app/formg/; the red classic 911 and the white in its form since 2026-11-08; the red racing 911's face on 60 × 60 in the green's place since 2026-11-10 (the owner: "we make the face right now, in place of the green"; porsche.json stays, the tests' and LAB's); each 911's v.2 alone since 2026-11-11 (the owner: "remove the cards Porsche GT, red — leave only v.2 in THE LIBRARY; the same with the classic's v.2"): their v.1, porsche-race.json and porsche-red.json, stay on the disk, the tests' and v.2's names'; the classic's v.3 after its v.2 since 2026-11-11, v.2's jars halved (the owner: "13 hours and 62 jar changes are physically hard for me … if it does not work, we can always go back to v.2")
+export const FORMG_LIB = ['porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-white', 'watch'];   // the library: a name here, its json and jpg in app/formg/; the red classic 911 and the white in its form since 2026-11-08; the red racing 911's face on 60 × 60 in the green's place since 2026-11-10 (the owner: "we make the face right now, in place of the green"; porsche.json stays, the tests' and LAB's); each 911's v.2 alone since 2026-11-11 (the owner: "remove the cards Porsche GT, red — leave only v.2 in THE LIBRARY; the same with the classic's v.2"): their v.1, porsche-race.json and porsche-red.json, stay on the disk, the tests' and v.2's names'; the classic's v.3 after its v.2 since 2026-11-11, v.2's jars halved (the owner: "13 hours and 62 jar changes are physically hard for me … if it does not work, we can always go back to v.2"); its v.4 after it since 2026-11-13, v.3 to the leg and a shadow beside it in Black, the last line, over the old lines on his 70 × 100 (FORM-G/generator/redcarv4.py)
 export const OPMG_LIB = ['gwagon'];                  // OPM-G's: its json and jpg in app/opmg/
 export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30 };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.)
 export const passOf = pitch => pitch * IDLE.pass / IDLE.step;   // the idle run's legs apart: LAB's 4.38 to its 5.83, on this grid (est.)
@@ -27,9 +27,12 @@ const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p
 // the run's list: every jar, then the jars of the second layer again
 // A jar `late` (the canon, README "The orange, Jar 6, first in Layer 2"; the owner, 2026-11-11: "Jar 6, the orange, is sensitive to the grey next to it … I propose to take the
 // orange to the very start of Layer 2"): out of the first layer, the first of the second, on the dry first layer — its own coat, `coat` 1, its cells as the first layer's run them
+// A jar `last` (the red classic's v.4, its shadow; the owner, 2026-11-13: "just draw me the shadow, about 10 cm to the side"): after every other line, its second coat
+// at once after its first, so Start from its first line runs it alone on a picture already painted
 export const seqOf = pic => {
-  const now = pic.jars.filter(j => !j.late), late = pic.jars.filter(j => j.late);
-  return [...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...pic.jars.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2 }))];
+  const two = js => js.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2 }));
+  const first = pic.jars.filter(j => !j.last), now = first.filter(j => !j.late), late = first.filter(j => j.late), last = pic.jars.filter(j => j.last);
+  return [...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
 };
 // a leg's points: half the tip in from both ends of its span, as idleCellOf; too short for that, the shortest it can land on, in the middle of its span
 function legOf(x, a, b, tip) {
@@ -141,10 +144,10 @@ export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon 
 // X, the trail ≈ 8 mm wide (LAB's real 3); wall: from a wall across X, and along X as the elbow sweeps the carriage past a leg's end, more at the bottom
 export const MARKS = { leg: 8, along: 14, across: 12, edge: 15, clear: 12, trail: 8, wall: 8, wallBottom: 25, wallTop: 8 };
 export const MARK_SIDES = [{ no: 1, side: 'left' }, { no: 2, side: 'top' }, { no: 3, side: 'right' }, { no: 4, side: 'bottom' }];
-// a jar's cell: its place among the list's first lines; a second coat, its jar's
+// a jar's cell: its place among the list's first lines; a second coat, its jar's. A jar `last` none (v.4's shadow, 2026-11-13: the strips as v.3 laid them, its Black there)
 export function markCellsOf(seq) {
   const k = new Map();
-  for (const j of seq) if (j.coat !== 2 && !k.has(j.id)) k.set(j.id, k.size);
+  for (const j of seq) if (j.coat !== 2 && !j.last && !k.has(j.id)) k.set(j.id, k.size);
   return seq.map(j => ({ id: j.id, k: k.get(j.coat === 2 ? j.jar : j.id), row: j.coat === 2 ? 1 : 0 }));
 }
 // pic: its w, h and box (its legs' bounds); reach: the canvas's part the brush reaches, { x0, x1, y0, y1 }, mm on the canvas as the legs; n: the cells a strip (the jars)
@@ -182,10 +185,10 @@ export function stripsOf(pic, reach, n, o = MARKS) {
   }
   return { strips, missing };
 }
-// every line's marks: for the list (seq, the passes' jars in order) on the strips → [{ pass, k, row, marks: [{ no, side, pts }] }], a mark from its bottom up
+// every line's marks: for the list (seq, the passes' jars in order) on the strips → [{ pass, k, row, marks: [{ no, side, pts }] }], a mark from its bottom up; null a jar `last`'s
 export function marksOf(seq, S, o = MARKS) {
   if (!S?.strips.length) return [];
-  return markCellsOf(seq).map(({ k, row }, pass) => ({ pass, k, row, marks: S.strips.map(s => { const [x, y] = s.cell(k, row); return { no: s.no, side: s.side, pts: [[x, y - o.leg / 2], [x, y + o.leg / 2]] }; }) }));
+  return markCellsOf(seq).map(({ k, row }, pass) => k === undefined ? null : ({ pass, k, row, marks: S.strips.map(s => { const [x, y] = s.cell(k, row); return { no: s.no, side: s.side, pts: [[x, y - o.leg / 2], [x, y + o.leg / 2]] }; }) }));
 }
 // the brush's runs with every line's marks before its first: one dip for them all, its first cell on a dip of its own as it was
 export function withMarks(runs, passes, seq, M) {

@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the classic's v.4, its shadow beside the car** (the owner, 2026-11-13, of his 70 × 100 painted by v.3, `FORM-G/IMG_6176.JPG`
+  and `FORM-G/shadow.png`: "at the very start I shifted the Porsche a little, and this is an expensive canvas … I decided to keep it. But
+  on its right the old red lines stayed"; "the Porsche's form is not to be touched"; "just draw me the shadow, about 10 cm to the side,
+  that is enough for me"; the old lines are the first runs of 2026-11-10/11, `FORM-G/IMG_2682.jpg`, while the arm's wires came loose in the
+  drag chain). `porsche-red-v4`, a card after v.3 (`FORM-G/generator/redcarv4.py`): v.3's plan to the leg, and one jar more, *Black ·
+  shadow* — the car's silhouette moved 80 mm to the right, the car taken out of it: its edge the car's own a hand away (the wings, the
+  mirror), round its front and rear corners as far as the moved silhouette reaches; 6 mm off the car along a column (the J3's 3 + 3), 5 mm
+  above the car's lowest line (so the carriage presses the bottom wall no more than v.3, 6.5 of PRESS_OK's 8). 80 mm, not 100: at his
+  place, left −60, the brush reaches 628 mm from the canvas's left edge; the rear wing ends at 547.5. Two coats, as the car's Black (one
+  coat of a long leg leaves a film the old reds would show through), 13.0 m a coat, 34 cells. A jar `last` (`seqOf`): after every line,
+  its second coat at once after its first — lines 32 and 33 of 33, so Start from 32 runs the shadow alone, 54 m of brush, ≈ 1 h 50 min
+  (est.); no MARKS cell (the strips as v.3 laid them); its place v.3's once (`S.v4place`), PRESS_OK the same. Checked in headless Chrome
+  on a copy of the app (not rembrandt.py): the card, the list, the walls, Start from. Not run.
 - **HOLO-Claude: the artist** (2026-11-13, from cloud-Claude; the owner's talk of 2026-11-12: "Are you ready to become the artist
   yourself, run the Instagram and make the site?"). `HOLO-Claude/artist/`: `ARTIST.md` (who the artist is: Anari Matiso for now, "AI
   artist. Human-assisted by @soumkine.", the voice, the journal, Eyes proposed), `PLAN-30.md` (a post a day for 30 days, a jar a day),

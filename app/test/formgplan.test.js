@@ -20,7 +20,7 @@ function runOf(pic, place) {
 const rangeOf = pic => { const R = rowsOf(pic, passesOf(pic)); return placeRange(pic, plotRun({ ...OPTS, rows: R.ps.length }, grouped(R)).carriage, reach()); };
 
 test('the library: every picture has its plan and its image, one grid, the brush 5 mm', () => {
-  assert.deepEqual(FORMG_LIB, ['porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk; the classic's v.3 after its v.2 (2026-11-11)
+  assert.deepEqual(FORMG_LIB, ['porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk; the classic's v.3 after its v.2 (2026-11-11), its v.4 after it (2026-11-13)
   for (const id of FORMG_LIB) assert.doesNotMatch(load(id).title + load(id).sub, /Kuzya/, `${id}: no "Kuzya" on its card (the owner, 2026-11-11: "it only makes noise")`);
   for (const id of FORMG_LIB) {
     const pic = load(id);
@@ -67,6 +67,30 @@ test('the orange, Jar 6, the first of Layer 2 (the canon, the owner, 2026-11-11:
   const P = passesOf(pic);
   assert.deepEqual(P.map(q => [q.pencil, q.layer]), [['b', 1], ['a', 2], ['b:2', 2]]);
   assert.deepEqual(P[1].byCell[0].legs, [[[10, 22], [10, 98]], [[15, 98], [15, 22]]]);
+});
+
+test('the classic\'s v.4: v.3 to the leg, its shadow beside the car in Black, the last two lines, never on the car (the owner, 2026-11-13: "the Porsche\'s form is not to be touched"; "about 10 cm to the side")', () => {
+  const v3 = load('porsche-red-v3'), v4 = load('porsche-red-v4'), S = seqOf(v4), sh = v4.jars.at(-1);
+  assert.deepEqual(v4.jars.slice(0, -1), v3.jars, 'the car as v.3 painted it, every jar, cell and leg');
+  assert.ok(sh.last && sh.name === 'Black · shadow' && sh.hex === v3.jars.find(j => j.name === 'Black').hex && sh.coats === 2, 'the car\'s Black, two coats');
+  assert.deepEqual(S.slice(0, seqOf(v3).length).map(q => q.id), seqOf(v3).map(q => q.id), 'v.3\'s list as it was');
+  assert.deepEqual(S.slice(-2).map(q => [q.id, q.coat]), [['shadow', 1], ['shadow:2', 2]], 'the shadow\'s two coats the last two lines: Start from its first runs it alone');
+  const car = new Map();
+  for (const j of v3.jars) for (const c of j.cells) for (const [x, a, b] of c.legs) (car.get(x) ?? car.set(x, []).get(x)).push([Math.min(a, b), Math.max(a, b)]);
+  const right = Math.max(...car.keys());
+  for (const c of sh.cells) for (const [x, a, b] of c.legs) {
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    assert.ok(hi - lo >= 8 && x > 450 && x <= right + 80, `a leg at ${x}: beside the car, on its right, 8 cm at most: what the brush reaches at the place (left −60)`);
+    for (const [p, q] of car.get(x) ?? []) assert.ok(hi <= p - 6 || lo >= q + 6, `a leg at ${x} ${lo}…${hi}: 6 mm off the car's ${p}…${q} along the column, the J3's 3 + 3`);
+  }
+  for (const c of sh.cells) for (let k = 1; k < c.legs.length; k++) assert.ok(c.legs[k][0] - c.legs[k - 1][0] === 5 && Math.abs(c.legs[k][1] - c.legs[k - 1][2]) <= 7, 'a snake: the next column, a step of 7 mm at most');
+  // MARKS: the shadow no cell, v.3's lines theirs as v.3 laid them on the paper
+  const cells = markCellsOf(S), M = marksOf(S, { strips: [{ no: 1, side: 'left', cell: (k, row) => [k, row] }] });
+  assert.deepEqual(cells.slice(0, -2), markCellsOf(seqOf(v3)));
+  assert.deepEqual(cells.slice(-2).map(q => q.k), [undefined, undefined]);
+  assert.deepEqual(M.slice(-2), [null, null], 'no marks before the shadow\'s lines');
+  const P = passesOf(v4), runs = withMarks(P.map((q, k) => ({ pass: k, num: 1, pts: [] })), P, S, M);
+  assert.ok(runs.filter(r => r.pass >= P.length - 2).every(r => !r.mark));
 });
 
 test('the front indicators\' orange on the classic\'s v.2 by the owner\'s marks: the bumper\'s reds from its front end on, but the four strokes at each outer corner; the two inner tips out, no bare canvas (2026-11-11, details-2-3.png, details-2-5.png)', () => {
