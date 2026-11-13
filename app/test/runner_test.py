@@ -1025,6 +1025,74 @@ class GotoTest(unittest.TestCase):
     def test_back_one_nothing_running_refused(self):
         self.assertEqual(Runner(FakeBoard().send).back_one(), (False, "no cell now", None))
 
+    # BACK ONE JAR (the owner, 2026-11-13, FORM-G): as FORM-G's plan lays a jar's change — the pause first, row 0,
+    # then the next jar's flight; the run's first jar no pause, its MARKS a row of no cell before its cells
+    ROWSJ = {"colours": [{"name": "Jar 6", "hex": "#EE8A22", "cells": 2}, {"name": "Jar 16", "hex": "#E81200", "cells": 1}, {"name": "Jar 3", "hex": "#7F7F7F", "cells": 1}],
+             "rows": [{"c": 0, "cells": []}, {"c": 0, "cells": [[1, 0]]}, {"c": 0, "cells": [[2, 0]]}, {"c": 1, "cells": [[1, 0]]}, {"c": 2, "cells": [[1, 0]]}]}
+
+    def blocksj(self):
+        def row(r, x):
+            paint = {"kind": "move", "row": r, "paintMM": 3.0, "painted": [1, 1, 1], "cmds": ["F 25", "W 2 0 200", f"L {x + 1}.00 50.00", f"L {x + 2}.00 50.00", f"L {x + 3}.00 50.00", "G"]}
+            return [{"kind": "move", "row": r, "cmds": ["T 180", f"M {x}.00 50.00", "G"], "paintMM": 0}, {"kind": "arm", "cmd": "J 2 12", "row": r}, paint, {"kind": "arm", "cmd": OFF, "row": r}]
+        pause = lambda jar: {"kind": "pause", "why": f"wipe the brush, put {jar} in the cup, then Continue", "row": 0}
+        return [*row(1, 10), *row(2, 20), *row(3, 30), pause("Jar 16"), *row(4, 40), pause("Jar 3"), *row(5, 50)]
+
+    def backed_jar(self, when, press):
+        b, got, seen = FakeBoard(rate=1), [], {"said": []}
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2, log=got.append)
+
+        def later():
+            if "asked" not in seen and when(r, b):
+                seen["where"] = r.where()
+                seen["asked"] = press(r)
+                return
+            if r.state == "paused" and (r.message or "").startswith("wipe") and r._jump is None:
+                seen["said"].append(r.message)
+                r.resume()
+        b.on_sleep = later
+        r.start(self.blocksj(), {"page": "opmn", "tab": "formg", "remote": self.ROWSJ, "cup": DipTest.CUP})
+        r.thread.join(10)
+        return r, b, got, seen
+
+    def test_back_one_jar_at_the_next_jar_s_pause_the_first_jar_again_asked_for(self):
+        # the owner's case: Jar 6, the run's first, done; the pause for Jar 16, the row still Jar 6's
+        at = lambda r, b: r.state == "paused" and "Jar 16" in (r.message or "")
+        r, b, got, seen = self.backed_jar(at, lambda r: (r.back_jar(), r.back_jar(sure=True)))
+        self.assertEqual(seen["where"]["colour"]["name"], "Jar 6", "at FORM-G's pause the row is the jar's just done")
+        self.assertEqual(seen["asked"][0], (False, "Jar 6: is it in the cup?", {"colour": "Jar 6"}), "the first jar has no pause of its own")
+        self.assertEqual(seen["asked"][1], (True, "Jar 6 from its start", None))
+        self.assertEqual(r.state, "done", r.message)
+        for x in (11, 21, 31):
+            self.assertEqual(b.log.count(f"L {x}.00 50.00"), 2, f"Jar 6 again, its MARKS row too: {x}")
+        self.assertEqual((b.log.count("L 41.00 50.00"), b.log.count("L 51.00 50.00")), (1, 1), "Jar 16 and Jar 3 once, after it")
+        self.assertEqual(seen["said"], ["wipe the brush, put Jar 16 in the cup, then Continue", "wipe the brush, put Jar 3 in the cup, then Continue"])
+        self.assertEqual(r.status()["percent"], 100.0)
+
+    def test_back_one_jar_by_its_own_pause_no_question(self):
+        at = lambda r, b: r.state == "paused" and "Jar 3" in (r.message or "")
+        r, b, got, seen = self.backed_jar(at, lambda r: r.back_jar())
+        self.assertEqual(seen["asked"], (True, "Jar 16 from its start", None), "Jar 16's own pause names it: no question")
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(seen["said"], ["wipe the brush, put Jar 16 in the cup, then Continue"] * 2 + ["wipe the brush, put Jar 3 in the cup, then Continue"])
+        self.assertEqual((b.log.count("L 31.00 50.00"), b.log.count("L 41.00 50.00"), b.log.count("L 51.00 50.00")), (1, 2, 1))
+
+    def test_back_one_jar_while_painting_it_this_jar_again(self):
+        r, b, got, seen = self.backed_jar(lambda r, b: r.state == "running" and r.block == 15 and b.x >= 42.5 * STEPS_PER_MM[0], lambda r: r.back_jar())
+        self.assertEqual(seen["asked"], (True, "Jar 16 from its start", None))
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(seen["said"][:2], ["wipe the brush, put Jar 16 in the cup, then Continue"] * 2, "its pause again")
+        self.assertEqual(b.log.count("L 41.00 50.00"), 2)
+
+    def test_back_one_jar_in_the_air_to_a_jar_the_jar_before(self):
+        r, b, got, seen = self.backed_jar(lambda r, b: r.state == "running" and r.block == 13, lambda r: r.back_jar())
+        self.assertEqual(seen["where"]["colour"]["name"], "Jar 16")
+        self.assertEqual(seen["asked"], (False, "Jar 6: is it in the cup?", {"colour": "Jar 6"}), "Jar 16 not begun: the jar before")
+        self.assertEqual(r.state, "done", r.message)
+        self.assertEqual(b.log.count("L 11.00 50.00"), 1, "asked, not sure: nothing moved")
+
+    def test_back_one_jar_nothing_running_refused(self):
+        self.assertEqual(Runner(FakeBoard().send).back_jar(), (False, "no jar now", None))
+
     def test_from_piece_keeps_the_landing_of_its_piece(self):
         c = ["F 25", "W 2 0 200", "L 1 0", "W 2 25 211", "L 2 0", "W 2 10 211", "L 3 0", "W 2 0 200", "L 4 0", "G"]
         self.assertEqual(rubens.from_piece(c, 3), ["F 25", "W 2 0 200", "L 4 0", "G"])

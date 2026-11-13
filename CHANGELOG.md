@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: ⏮ BACK ONE JAR in BACK ONE CELL's place** (2026-11-13; the owner: "there are no cells in FORM-G … better BACK ONE
+  JAR — I have just run the orange no. 6, so as to go over it once more without pressing STOP / HOME"). A player's ⏮ by jars: the jar
+  begun — painting it, or at the pause after it — this jar again from its start; not yet, in the air to its first cell, the jar before.
+  Its start is its own pause ("put Jar … in the cup", then Continue), its MARKS and its cells as the run laid them; the run's first jar
+  has no pause, so the page asks if it is in the cup. `rembrandt.py`, `back_jar` and `POST /run/backjar` (an older rembrandt.py answers
+  404, nothing moves); `formg.js`, `formg.html`, `opmg.html` (OPM-G's page is FORM-G's). OPM-N keeps BACK ONE CELL; the iPhone's ⏮ Back
+  as it was. Needs `rembrandt.py` restarted when no run is on.
 - **A joint within 1° counts as there** (2026-11-13, FORM-G's red v.3 on the machine: "J 2 12: the elbow does not get to 12.0°", the
   elbow at +11.3° after a dip, and "J 2 33" the day before; the owner: "let us allow an error of 1°, or it will wear us out with its
   complaints"). `rembrandt.py`: `ARM_WITHIN` 1.0 (was 0.6) for every J of a run, an arm stroke and a jog; the forks of the cup at hand

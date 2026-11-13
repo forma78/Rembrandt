@@ -311,19 +311,21 @@ let paused = false;
 $('#btnPause').onclick = () => post(paused ? '/run/continue' : '/run/pause');
 $('#btnStop').onclick = () => post('/run/stop');
 let backSaid = 0;
-$('#btnBack').onclick = async () => {                                                 // OPM-N's BACK ONE CELL, rembrandt.py's back_one
-  const press = async sure => { const r = await fetch('/run/back' + (sure ? '?sure=1' : ''), { method: 'POST' }); return r.status === 404 ? { old: true } : r.json(); };
+// BACK ONE JAR in BACK ONE CELL's place (the owner, 2026-11-13: "there are no cells in FORM-G … better BACK ONE JAR —
+// I have just run the orange no. 6, so as to go over it once more without pressing STOP / HOME"), rembrandt.py's back_jar
+$('#btnBack').onclick = async () => {
+  const press = async sure => { const r = await fetch('/run/backjar' + (sure ? '?sure=1' : ''), { method: 'POST' }); return r.status === 404 ? { old: true } : r.json(); };
   try {
     let a = await press(false);
-    if (a.old) return alert('BACK ONE CELL did nothing: the rembrandt.py running is from before it. Start it again when no run is on — Ctrl+C in its window, then python3 rembrandt.py. The run in hand ends with it.');
+    if (a.old) return alert('BACK ONE JAR did nothing: the rembrandt.py running is from before it. Start it again when no run is on — Ctrl+C in its window, then python3 rembrandt.py. The run in hand ends with it.');
     if (a.ask) {
-      if (!confirm(`Back to ${a.ask.colour}, cell ${a.ask.cell}. It flies there, dips and paints at once: is ${a.ask.colour} in the cup?`)) return;
+      if (!confirm(`Back to ${a.ask.colour}, from its start. It flies there, dips and paints at once: is ${a.ask.colour} in the cup?`)) return;
       a = await press(true);
     }
-    if (!a.ok) return alert(`BACK ONE CELL did nothing: ${a.message ?? a.state ?? 'not now'}.`);
+    if (!a.ok) return alert(`BACK ONE JAR did nothing: ${a.message ?? a.state ?? 'not now'}.`);
     const b = $('#btnBack'); b.textContent = `⏮ ${a.message}`; b.classList.add('call');
-    clearTimeout(backSaid); backSaid = setTimeout(() => { b.textContent = '⏮ BACK ONE CELL'; b.classList.remove('call'); }, 4000);
-  } catch { alert('BACK ONE CELL did nothing: no answer from rembrandt.py.'); }
+    clearTimeout(backSaid); backSaid = setTimeout(() => { b.textContent = '⏮ BACK ONE JAR'; b.classList.remove('call'); }, 4000);
+  } catch { alert('BACK ONE JAR did nothing: no answer from rembrandt.py.'); }
 };
 $('#btnRemote').onclick = async () => {
   const box = $('#remoteBox'), b = $('#btnRemote');

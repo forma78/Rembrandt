@@ -37,7 +37,7 @@ bridge.py of the old machine repo held it on port 8765.
   GET /remote/plan?k=<key> the run's lines for the mini-screen (2026-11-04; reads only) —
   POST /remote/dip|pause|continue|stop|back|skip?k=<key>, /remote/goto?n=<cell>&k=<key>
   (a cell of the colour now); GET /remote/link (this Mac)
-  POST /run/back[?sure=1] BACK ONE CELL, OPM-N's key (this Mac)
+  POST /run/back[?sure=1] BACK ONE CELL, OPM-N's key (this Mac); /run/backjar[?sure=1] BACK ONE JAR, FORM-G's
   the address with the key, for OPM-N's QR code. POST /brush/off and /brush/on lift the brush with the elbow to +25° or press it at 0° (within REACH)
   (only the wrist, only these two, not while a job runs — the owner asked for
   them on the Job tab, 2026-09-27). A board without the pass firmware
@@ -1402,6 +1402,53 @@ class Runner:
         name = ((self.rows or {}).get("colours") or [{}] * (c + 1))[c].get("name")
         return ok, f"cell {n} of {name}" if ok else why, None          # the key says where it goes
 
+    def back_jar(self, sure=False):
+        # BACK ONE JAR, FORM-G's key in BACK ONE CELL's place (the owner, 2026-11-13: "there are no cells in
+        # FORM-G … better BACK ONE JAR — I have just run the orange no. 6, so as to go over it once more without
+        # pressing STOP / HOME"), as a player's ⏮ by jars: the jar begun — painting it, or at the pause after it
+        # (FORM-G's pause comes before the next jar's flight, the row still this jar's) — this jar again from its
+        # start; not yet — in the air to its first cell — the jar before it. Its start: its own pause, "put Jar … in
+        # the cup", then its MARKS and its cells as the run laid them; the run's first jar has no pause, so not
+        # without sure — the next jar may be in the cup already. → ok, why, and what to ask (the jar), or None
+        w = self.where()
+        if not w["colour_n"]:
+            return False, "no jar now", None
+        c = w["colour_n"] - 1
+        t = self._jar_start(c)
+        if t is None:
+            return False, f"no start of jar {c + 1}", None
+        cols = (self.rows or {}).get("colours") or []
+        if self._paint_before(*t) >= w["painted_mm"] - BACK_BEGUN_MM:
+            if c == 0 or self._jar_start(c - 1) is None:
+                return False, f"{cols[c].get('name')} is the run's first jar, not begun yet", None
+            c, t = c - 1, self._jar_start(c - 1)
+        if not sure and not self._pause_on_way(t):
+            return False, f"{cols[c].get('name')}: is it in the cup?", {"colour": cols[c].get("name")}
+        with self.lock:
+            if self.state not in ("running", "pausing", "paused") or self._stop:
+                return False, f"the runner is {self.state}", None
+            if self._silent:
+                return False, "the arm is silent: Continue once it answers", None
+            self._jump = (*t, "back")
+            self._pause, self._auto = True, True
+            if self.state == "running":
+                self._pencil, self.state = False, "pausing"
+        return True, f"{cols[c].get('name')} from its start", None          # the key says where it goes
+
+    def _jar_start(self, colour):
+        # where a jar's line starts, (block, None): its own pause right before its first row, or that row's first
+        # block (its MARKS before its cells); None: none
+        rs = self._rows_of(colour)
+        i = next((k for k, b in enumerate(self.blocks) if rs and b.get("row") == rs[0]), None)
+        if i is None:
+            return None
+        k = i
+        while k > 0 and not self.blocks[k - 1].get("row"):          # the row-0 blocks just before it: the pause among them
+            k -= 1
+            if self.blocks[k].get("kind") in ("pause", "p-pause"):
+                return k, None
+        return i, None
+
     def _cell_before(self, c, n):
         # the cell before cell `n` of colour `c` that has a place in the plan; None: none
         cols = (self.rows or {}).get("colours") or []
@@ -2479,8 +2526,8 @@ class Handler(SimpleHTTPRequestHandler):
             except (KeyError, IndexError, ValueError):
                 return self.reply(400, "trim: /run/trim?deg=<degrees>")
             return self.reply(200, json.dumps({"ok": True, "trim": t}), "application/json")
-        if path == "/run/back":
-            ok, why, ask = RUNNER.back_one(sure="sure" in parse_qs(urlparse(self.path).query))
+        if path in ("/run/back", "/run/backjar"):
+            ok, why, ask = (RUNNER.back_jar if path == "/run/backjar" else RUNNER.back_one)(sure="sure" in parse_qs(urlparse(self.path).query))
             return self.reply(200 if ok else 409, json.dumps({"ok": ok, "message": why, "state": RUNNER.state, **({"ask": ask} if ask else {})}), "application/json")
         if path == "/run/dip":
             ok = RUNNER.dip()
