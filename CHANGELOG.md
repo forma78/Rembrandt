@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **A joint within 1° counts as there** (2026-11-13, FORM-G's red v.3 on the machine: "J 2 12: the elbow does not get to 12.0°", the
+  elbow at +11.3° after a dip, and "J 2 33" the day before; the owner: "let us allow an error of 1°, or it will wear us out with its
+  complaints"). `rembrandt.py`: `ARM_WITHIN` 1.0 (was 0.6) for every J of a run, an arm stroke and a jog; the forks of the cup at hand
+  as they were, the shoulder back from a dip 1.5 as before; a miss of 0.6° or more in the journal, "near", the J's too; the last
+  nudge's landing looked at before the run stops, and the stop says where the joint stands. Needs `rembrandt.py` restarted.
 - **HOLO, a new tab after FORM-G** (2026-11-12; `HOLO-Claude/HOLO.md`, the owner's talk with cloud-Claude: a painting to bring the
   reels back while the Porsche is painted — vertical legs alone, the brush lays even puddles from the cup at hand, then drags them; run 1 the
   light, run 2 the shadow on the dry first). The owner: "so as not to reinvent the wheel, we take the ready examples of 40 × 40 and 60 × 60 and

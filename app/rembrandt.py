@@ -569,15 +569,16 @@ class Arm:
         silent = (r == NO_REPLY or r.startswith("ok Z")) and not self.stopped.is_set()   # a joint the board could not read: the bus silent
         raise (ArmSilent if silent else ArmError)(f"arm zero: {in_english(r)}")
 
-    def move_to(self, joint, deg, speed=None, within=0.6, fork=None):
+    def move_to(self, joint, deg, speed=None, within=None, fork=None):
         """speed: degrees a second, for a slow stroke of the brush; None — the
-        firmware's own, about 53°/s. within: how near counts as there — the
-        firmware turns whole degrees; the shoulder back from a dip is let off
-        more (DIP_WITHIN). fork (lo, hi): there anywhere in it, every step
+        firmware's own, about 53°/s. within: how near counts as there, ARM_WITHIN
+        unless given — the firmware turns whole degrees; the shoulder back from a
+        dip is let off more (DIP_WITHIN). fork (lo, hi): there anywhere in it, every step
         landing in it — the cup at hand's dips (README, How to dip). Refused
         when the cup at hand forbids it (hand_refuses). → the angle it stands at."""
         jid, sign, lim = JOINTS[joint]
         lo, hi = REACH[joint]
+        within = ARM_WITHIN if within is None else within
         if not lo <= deg <= hi:
             raise ArmError(f"the {joint} may go {lo}…+{hi}° only, not {deg:+g}°"
                            + (f": the camera is in the way past +{hi}°" if joint == "wrist" and deg > hi else ""))
@@ -600,7 +601,7 @@ class Arm:
                     step += 1 if a + step < fork[0] else -1 if a + step > fork[1] else 0
                 step = min(step, math.floor(hi - a + 1e-9)) if step > 0 else max(step, math.ceil(lo - a - 1e-9))
                 step = max(-lim, min(lim, step))
-                if (fork[0] <= a <= fork[1] if fork else abs(d) < within) or step == 0:
+                if (fork[0] <= a <= fork[1] if fork else abs(d) <= within) or step == 0:
                     if fork and not fork[0] <= a <= fork[1]:
                         raise ArmError(f"the {joint} stands at {a:+.1f}°, not in {fork[0]:+g}…{fork[1]:+g}°")
                     return a
@@ -616,7 +617,11 @@ class Arm:
                 elif not r.startswith("ok J"):
                     raise ArmError(f"{joint}: {in_english(r)}")
                 self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / v + 2 if v else 4.0)
-            raise ArmError(f"the {joint} does not get to {deg}°")
+            # the last step's landing, looked at too: it may have got there
+            a = self.angles(need=(joint,))[0].get(joint)
+            if a is not None and (fork[0] <= a <= fork[1] if fork else abs(deg - a) <= within):
+                return a
+            raise ArmError(f"the {joint} does not get to {deg}°" + (f" (it stands at {a:+.1f}°)" if a is not None else ""))
 
     def hold(self):
         # After power-on the shoulder and elbow hold only once commanded
@@ -983,6 +988,12 @@ HAND_UP = (30.0, 35.0)   # the elbow up, before the shoulder turns: his fork (th
 # the run stopped ("does not get to 0.0°") — "maybe just ignore such deviations?". Whole degrees' steps
 # leave up to 0.5° and the servo ~0.6° more; every one off 0.6° or more goes to the journal ("near").
 DIP_WITHIN = 1.5
+# How near any other turn of a joint counts as there, degrees, a J of the run or a jog's (the owner, 2026-11-13,
+# FORM-G's red v.3, "J 2 12: the elbow does not get to 12.0°", it stood at +11.3°, after "J 2 33" the day before:
+# "let us allow an error of 1°, or it will wear us out with its complaints"). Was 0.6. A fork is its own (the
+# cup at hand's dips); a miss of ARM_NEAR or more goes to the journal ("near").
+ARM_WITHIN = 1.0
+ARM_NEAR = 0.6
 
 
 def fork_of(f, joint):
@@ -1657,7 +1668,9 @@ class Runner:
             try:
                 while True:
                     try:
-                        self.arm.move_to(name, deg, fork=fork)
+                        at = self.arm.move_to(name, deg, fork=fork)
+                        if not fork and isinstance(at, (int, float)) and abs(at - deg) >= ARM_NEAR:
+                            self.log({"event": "near", "joint": name, "deg": deg, "at": at, "block": self.block})
                         break
                     except ArmSilent as e:              # paused till Continue, then the same move again; STOP ends the run
                         if not self._silent_pause(f"{cmd}: {e}"):
@@ -1696,7 +1709,7 @@ class Runner:
         try:
             while True:
                 try:
-                    got = self.arm.move_to(b["joint"], deg, float(b["speed"]), float(b.get("within", 0.6)), fork=fork and fork_of(fork, b["joint"]))
+                    got = self.arm.move_to(b["joint"], deg, float(b["speed"]), float(b.get("within", ARM_WITHIN)), fork=fork and fork_of(fork, b["joint"]))
                     break
                 except ArmSilent as e:                  # paused till Continue, then the same turn again; STOP ends the run
                     if not self._silent_pause(f"{b['joint']} to {b['deg']}°: {e}"):
@@ -1705,7 +1718,7 @@ class Runner:
             if self._stop:
                 return
             raise Abort(f"{b['joint']} to {b['deg']}°: {e}")
-        if not fork and isinstance(got, (int, float)) and abs(got - deg) >= 0.6:
+        if not fork and isinstance(got, (int, float)) and abs(got - deg) >= ARM_NEAR:
             self.log({"event": "near", "joint": b["joint"], "deg": deg, "at": got, "block": self.block})
         self._ping()
 

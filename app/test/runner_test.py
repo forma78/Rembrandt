@@ -1572,8 +1572,23 @@ class RestTest(unittest.TestCase):
     def test_the_brush_or_too_far_above_stops_as_before(self):
         r, _, _ = self.run_on("ccd", 6.1)
         self.assertEqual(r.state, "error"); self.assertIn("J 2 5", r.message)
+        self.assertIn("it stands at +6.1°", r.message)
         r, _, _ = self.run_on("opm", 18)
         self.assertEqual(r.state, "error"); self.assertIn("does not get to", r.message)
+
+    def test_the_brush_a_degree_off_goes_on_in_the_journal(self):
+        # the owner, 2026-11-13, FORM-G's red v.3: "J 2 12: the elbow does not get to 12.0°", it stood at
+        # +11.3° — "let us allow an error of 1°" (ARM_WITHIN); the miss goes to the journal, "near"
+        b, t, logs = FakeBoard(), ElbowOnPathTest(), []
+        b.raw[2] = 1759 - round(BRUSH_UP_DEG * TICKS_PER_DEG)
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2, arm=Arm(b.send, zero=lambda: t.ZERO, sleep=b.sleep), log=logs.append)
+        b.elbow_cap = t.ZERO["elbow"] - round(5.7 * TICKS_PER_DEG)          # held 0.7° above J 2 5
+        r.start(self.blocks(), {"page": "ccd"})
+        r.thread.join(60)
+        self.assertEqual(r.state, "done", r.message)
+        near = [e for e in logs if e["event"] == "near"]
+        self.assertEqual([(e["joint"], e["deg"]) for e in near], [("elbow", 5.0)], near)
+        self.assertAlmostEqual(near[0]["at"], 5.7, delta=0.1)
 
 
 class ArmTest(unittest.TestCase):
