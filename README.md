@@ -200,7 +200,9 @@ How Rembrandt keeps it (INK-Y, `src/inkypage.js`; `strokes.js`,
 `handDip`; `rembrandt.py`, `hand_guard`): the five steps are the plan's
 own blocks, the carriage standing over the line's start; every step a fork
 the joint counts as there in, aimed at its middle (the firmware turns
-whole degrees, the servo stops up to ~1° short); and while the cup at hand
+whole degrees, the servo stops up to ~1° short), and since 2026-11-13 up to
+1.5° past its edges once a step was aimed into it (`FORK_WITHIN`, the owner:
+"we fixed that 1.5° is allowed"; the miss in the journal); and while the cup at hand
 is on, `rembrandt.py` refuses a turn of the shoulder with the elbow out of
 its fork up, the elbow below +14° with the shoulder off 0, and the wrist
 with the shoulder off 0 — a run's or a jog's.

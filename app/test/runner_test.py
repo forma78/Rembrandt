@@ -781,6 +781,39 @@ class HandDipTest(unittest.TestCase):
         self.assertEqual(r.state, "done", r.message)
         self.assertLess(abs(arm.angles()[0]["shoulder"]), 1.5)
 
+    def test_an_elbow_a_tenth_past_its_forks_floor_counts_as_there_in_the_journal(self):
+        # the owner, 2026-11-13, the red classic's v.4, its shadow, at block 6: "J 2 14: the elbow does not get to 14.0° (it stands at
+        # +13.9°)" — the depth in INK-Y 14, the fork's floor, and a 1° nudge did not stir the servo; "we fixed that 1.5° is allowed",
+        # asked: a fork ±1.5° too (FORK_WITHIN), the miss in the journal ("near"); 2° and more past it, an error as before
+        def board(past):
+            class Over(FakeBoard):
+                def turn(self, jid, d):
+                    before = self.raw[2]
+                    FakeBoard.turn(self, jid, d)
+                    if jid == 2:
+                        moved = self.raw[2] - before
+                        if abs(d) <= 3:
+                            self.raw[2] = before                                  # a nudge of a degree or few: the servo does not stir
+                        elif moved > 0:                                           # the elbow down: past where it was sent
+                            self.raw[2] += round(past * TICKS_PER_DEG)
+            return Over(rate=1)
+        plan = [{**b, "cmd": "J 2 14", "fork": [14, 15]} if b.get("cmd") == "J 2 15" else b for b in self.plan()]
+        cup = {**self.CUP, "dip": 14}
+        logs = []
+        r, arm, seen = self.runner(board(0.7), log=logs.append)
+        self.assertTrue(r.start(plan, {"page": "opmn", "cup": cup})[0])
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        near = [e for e in logs if e["event"] == "near" and e.get("fork")]
+        self.assertEqual([(e["joint"], e["deg"], e["fork"]) for e in near], [("elbow", 14.0, [14, 15])], near)
+        self.assertTrue(12.5 <= near[0]["at"] < 14, near)
+        self.assertTrue(self.elbow_at_turns and all(30 <= e <= 35 for e in self.elbow_at_turns), f"the elbow up at every turn: {self.elbow_at_turns}")
+        r, arm, seen = self.runner(board(2.5))
+        r.start(plan, {"page": "opmn", "cup": cup})
+        r.thread.join(10)
+        self.assertEqual(r.state, "error", r.message)
+        self.assertIn("J 2 14: the elbow does not get to 14.0°", r.message)
+
     def test_the_guard_refuses_the_shoulder_with_the_elbow_down_and_the_elbow_into_the_jar_past_its_floor(self):
         b = FakeBoard(rate=1)
         arm = Arm(b.send, zero=lambda: ArmStrokeRunTest.ZERO, sleep=b.sleep, guard=lambda: self.GUARD)

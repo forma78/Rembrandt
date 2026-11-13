@@ -579,6 +579,8 @@ class Arm:
         jid, sign, lim = JOINTS[joint]
         lo, hi = REACH[joint]
         within = ARM_WITHIN if within is None else within
+        near_fork = lambda a: fork[0] - FORK_WITHIN <= a <= fork[1] + FORK_WITHIN   # noqa: E731  (after a step aimed into it: FORK_WITHIN)
+        sent = False
         if not lo <= deg <= hi:
             raise ArmError(f"the {joint} may go {lo}…+{hi}° only, not {deg:+g}°"
                            + (f": the camera is in the way past +{hi}°" if joint == "wrist" and deg > hi else ""))
@@ -601,8 +603,8 @@ class Arm:
                     step += 1 if a + step < fork[0] else -1 if a + step > fork[1] else 0
                 step = min(step, math.floor(hi - a + 1e-9)) if step > 0 else max(step, math.ceil(lo - a - 1e-9))
                 step = max(-lim, min(lim, step))
-                if (fork[0] <= a <= fork[1] if fork else abs(d) <= within) or step == 0:
-                    if fork and not fork[0] <= a <= fork[1]:
+                if (fork[0] <= a <= fork[1] or (sent and near_fork(a)) if fork else abs(d) <= within) or step == 0:
+                    if fork and not near_fork(a):
                         raise ArmError(f"the {joint} stands at {a:+.1f}°, not in {fork[0]:+g}…{fork[1]:+g}°")
                     return a
                 why = g and hand_refuses(joint, a, a + step, ang, g)
@@ -617,9 +619,10 @@ class Arm:
                 elif not r.startswith("ok J"):
                     raise ArmError(f"{joint}: {in_english(r)}")
                 self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / v + 2 if v else 4.0)
+                sent = True
             # the last step's landing, looked at too: it may have got there
             a = self.angles(need=(joint,))[0].get(joint)
-            if a is not None and (fork[0] <= a <= fork[1] if fork else abs(deg - a) <= within):
+            if a is not None and (near_fork(a) if fork else abs(deg - a) <= within):
                 return a
             raise ArmError(f"the {joint} does not get to {deg}°" + (f" (it stands at {a:+.1f}°)" if a is not None else ""))
 
@@ -996,6 +999,12 @@ DIP_WITHIN = 1.5
 # ARM_NEAR or more goes to the journal ("near").
 ARM_WITHIN = 1.5
 ARM_NEAR = 0.6
+# How near a fork counts as there, past its edges, once a step has been aimed into it (the owner, 2026-11-13, the red classic's
+# v.4, its shadow, at block 6: "J 2 14: the elbow does not get to 14.0° (it stands at +13.9°)" — the jar's depth in INK-Y 14, the
+# fork's very floor, and a 1° nudge did not move the servo: "we fixed that 1.5° is allowed"; asked, a fork ±1.5° too). Every step
+# still aims into the fork itself; the guard keeps its own GUARD_SLACK (hand_refuses): the shoulder turns only with the elbow up
+# in its fork. A fork reached only past its edge goes to the journal ("near").
+FORK_WITHIN = ARM_WITHIN
 
 
 def fork_of(f, joint):
@@ -1720,6 +1729,8 @@ class Runner:
                         at = self.arm.move_to(name, deg, fork=fork)
                         if not fork and isinstance(at, (int, float)) and abs(at - deg) >= ARM_NEAR:
                             self.log({"event": "near", "joint": name, "deg": deg, "at": at, "block": self.block})
+                        elif fork and isinstance(at, (int, float)) and not fork[0] <= at <= fork[1]:   # a fork reached past its edge (FORK_WITHIN)
+                            self.log({"event": "near", "joint": name, "deg": deg, "at": at, "fork": list(fork), "block": self.block})
                         break
                     except ArmSilent as e:              # paused till Continue, then the same move again; STOP ends the run
                         if not self._silent_pause(f"{cmd}: {e}"):
@@ -1769,6 +1780,8 @@ class Runner:
             raise Abort(f"{b['joint']} to {b['deg']}°: {e}")
         if not fork and isinstance(got, (int, float)) and abs(got - deg) >= ARM_NEAR:
             self.log({"event": "near", "joint": b["joint"], "deg": deg, "at": got, "block": self.block})
+        elif fork and isinstance(got, (int, float)) and not float(fork[0]) <= got <= float(fork[1]):   # a fork reached past its edge (FORK_WITHIN)
+            self.log({"event": "near", "joint": b["joint"], "deg": deg, "at": got, "fork": list(fork), "block": self.block})
         self._ping()
 
     def _raw(self, cmd):

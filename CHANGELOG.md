@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **A fork counts 1.5° past its edges** (the owner, 2026-11-13, the classic's v.4, its shadow, stopped at block 6: "J 2 14: the elbow
+  does not get to 14.0° (it stands at +13.9°)" — "we fixed that 1.5° is allowed"). ARM_WITHIN's 1.5° held for a plain J only; a dip's
+  steps at hand are forks (README, How to dip) and were checked to their edges, and his depth in INK-Y, 14, is the paint fork's very floor:
+  the servo went 0.1° past it and a 1° nudge did not stir it. Asked (the fork ±0.2° as the guard's slack, ±1.5°, or the depth 15 in
+  INK-Y), he chose ±1.5°: `FORK_WITHIN` in `rembrandt.py` — a fork reached within 1.5° of its edges counts as there once a step has been
+  aimed into it, every step still aimed into the fork itself; the miss in the journal ("near", with its fork). The guard is as it was
+  (`hand_refuses`, GUARD_SLACK 0.2): the shoulder turns only with the elbow up in its fork, the elbow is never sent below the floor.
+  `runner_test.py`: the elbow 0.7° past the floor goes on in the journal, 2.5° past it stops as before. Needs rembrandt.py restarted.
 - **FORM-G: the classic's v.4, its shadow beside the car** (the owner, 2026-11-13, of his 70 × 100 painted by v.3, `FORM-G/IMG_6176.JPG`
   and `FORM-G/shadow.png`: "at the very start I shifted the Porsche a little, and this is an expensive canvas … I decided to keep it. But
   on its right the old red lines stayed"; "the Porsche's form is not to be touched"; "just draw me the shadow, about 10 cm to the side,
