@@ -990,9 +990,11 @@ HAND_UP = (30.0, 35.0)   # the elbow up, before the shoulder turns: his fork (th
 DIP_WITHIN = 1.5
 # How near any other turn of a joint counts as there, degrees, a J of the run or a jog's (the owner, 2026-11-13,
 # FORM-G's red v.3, "J 2 12: the elbow does not get to 12.0°", it stood at +11.3°, after "J 2 33" the day before:
-# "let us allow an error of 1°, or it will wear us out with its complaints"). Was 0.6. A fork is its own (the
-# cup at hand's dips); a miss of ARM_NEAR or more goes to the journal ("near").
-ARM_WITHIN = 1.0
+# "let us allow an error of 1°, or it will wear us out with its complaints"). Was 0.6. The same afternoon, at 34.5 %,
+# "J 2 25: the elbow does not get to 25.0° (it stands at +23.9°)", the brush up falling short 0.7 … 1.0° for an hour:
+# "it writes about the ELBOW again, let us raise it to 1.5°". A fork is its own (the cup at hand's dips); a miss of
+# ARM_NEAR or more goes to the journal ("near").
+ARM_WITHIN = 1.5
 ARM_NEAR = 0.6
 
 

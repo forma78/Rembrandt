@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **A joint within 1.5° counts as there** (2026-11-13, the afternoon, FORM-G's red v.3 at 34.5 %: "J 2 25: the elbow does not get
+  to 25.0° (it stands at +23.9°)", the brush up falling short 0.7 … 1.0° for an hour before, the servos at 10.9 … 11.0 V; the owner:
+  "it writes about the ELBOW again, let us raise it to 1.5°"). `ARM_WITHIN` 1.5 (1.0 since the morning); the forks as they were.
 - **FORM-G: ⏮ BACK ONE JAR in BACK ONE CELL's place** (2026-11-13; the owner: "there are no cells in FORM-G … better BACK ONE
   JAR — I have just run the orange no. 6, so as to go over it once more without pressing STOP / HOME"). A player's ⏮ by jars: the jar
   begun — painting it, or at the pause after it — this jar again from its start; not yet, in the air to its first cell, the jar before.
