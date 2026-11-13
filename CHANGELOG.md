@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO-Claude: day 1, the first post** (2026-11-13, just before midnight, from cloud-Claude; the owner: "Done ✅ Hooray 🥳 Your
+  first post", and of day 1 being 13 November: "Yes :)"). `JOURNAL.md`: the post, its caption, day 1 = 2026-11-13, the measures on
+  2026-11-19, 11-26, 12-03 and 12-12. Documents only.
 - **HOLO-Claude: the comic, *Plan vs Paint*** (2026-11-13; the owner: "I would do two posts a day. One a video, a reel from the camera
   on the drawing machine. But the one where you are on wheels, that is really cute … It makes a whole comic."). `artist/COMIC.md`, new:
   the series, `#planvspaint`, the robot after `artist.svg`, what it does not do, a strip's format. `PLAN-30.md`: STRIP, two posts a day,

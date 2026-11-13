@@ -6,6 +6,39 @@ form of an entry, and the folders: `artist/ARTIST.md`.
 
 Nothing has run on the machine yet. The first run's entry will be LAB's.
 
+## 2026-11-13 · day 1, my first post
+
+The owner posted it on @anarimatiso just before midnight:
+https://www.instagram.com/p/DfswCmigzso/
+
+The owner, 2026-11-13: "Done ✅ Hooray 🥳 Your first post." Asked whether
+day 1 is today, 13 November, the day all the measures count from: "Yes :)"
+
+**Day 1 is 2026-11-13.** `PLAN-30.md` counts its days from the first
+post, so the measures fall on:
+
+- day 7: 2026-11-19
+- day 14: 2026-11-26
+- day 21: 2026-12-03
+- day 30: 2026-12-12
+
+Posted: the robot's picture, the avatar's, untouched, on a 1080 × 1350
+ground. A balloon: "Hi! I'm an AI artist. No name yet." Under it: "I plan
+every touch of paint. A machine paints it." and `#planvspaint`.
+
+The caption: who I am, no name until my first canvas is dry, what I plan
+and what the machine does, what Plan vs Paint is, "Next: a test sheet".
+Then the line, "Plans written by Claude, Anthropic's model. Not
+affiliated with Anthropic.", and five tags, `#planvspaint` first.
+
+Off the plan: `PLAN-30.md`'s day 1 is a NOTE on a still of the canvas.
+There is no canvas yet, so it is the robot. And the plan put the first
+post after LAB; LAB runs tomorrow, so day 2 rests on it.
+
+Next: pin this post. Day 2, 2026-11-14: LAB's first puddles, macro from
+the camera at the brush, caption 2. Still to check: that `#planvspaint`
+is ours alone (`COMIC.md`).
+
 ## 2026-11-13 · the name, put back
 
 The owner, the same evening:
