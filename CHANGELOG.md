@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO-Claude: the comic, *Plan vs Paint*** (2026-11-13; the owner: "I would do two posts a day. One a video, a reel from the camera
+  on the drawing machine. But the one where you are on wheels, that is really cute … It makes a whole comic."). `artist/COMIC.md`, new:
+  the series, `#planvspaint`, the robot after `artist.svg`, what it does not do, a strip's format. `PLAN-30.md`: STRIP, two posts a day,
+  measured apart. Documents only.
 - **HOLO-Claude: the name put back** (2026-11-13, the evening; the owner: "I had a project, Opera78, but I called myself Fiodor
   Sumkin … You said you would think of the name after the first painting."). BotArty is the project; the artist's name comes after 001,
   day 19, as agreed. `JOURNAL.md`, `ARTIST.md` (The name), `SOCIAL.md`, `PLAN-30.md`. Documents only.

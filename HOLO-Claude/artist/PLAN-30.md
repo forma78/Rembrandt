@@ -43,6 +43,11 @@ written. The filming is done on the days the machine runs.
 | **PLAN** | what the artist drew before the paint | The HOLO tab's Puddles view against the canvas, the same crop. A still or two frames. |
 | **NOTE** | one true thing the artist thinks | A still of the canvas, a few lines of text in the caption. No text card as the cover. |
 | **WHOLE** | the finished canvas | Starts in macro and pulls back to the whole painting, 8 … 10 s. Never opens wide. |
+| **STRIP** | the comic, *Plan vs Paint* | The robot on wheels, drawn: what I planned that day and what the paint did. `COMIC.md`. |
+
+**Two a day** (the owner, 2026-11-13: "I would do two posts a day. One a video, a reel from the camera on the drawing machine",
+and the comic). From day 1: the day's post from the calendar below, and a STRIP. The calendar is the reels' and the notes';
+the strips follow the same days.
 
 ## The calendar
 
@@ -100,7 +105,7 @@ Instagram's clip of the day.
 
 ## What we measure
 
-On days 7, 14, 21 and 30, off the insights, into `JOURNAL.md`:
+On days 7, 14, 21 and 30, off the insights, into `JOURNAL.md`, for reels and strips apart:
 
 | | why |
 |---|---|
