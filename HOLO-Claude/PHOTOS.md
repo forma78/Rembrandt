@@ -36,6 +36,24 @@ from the iPhone, and from the MacBook the video from the MacBook."
 - The machine camera's frames live in `eyes/`, and are listed here too.
 - No other artist's work here (README).
 
+## 2026-11-14 · run 1 with a ruler, from the iPhone
+
+`photos/2026-11-14/`, 8 photos, sent at 21:10. The owner: "I made you
+photos with the ruler, as you asked. The canvas is still wet, but I laid
+it carefully." A clear ruler, cm and mm, laid on the wet canvas, so its
+mm are a few tenths off the paint's (parallax, est.).
+
+| file | what it shows |
+|---|---|
+| `IMG_2928.jpg` | From above, nearly the whole canvas, the legs across the frame, the ruler 0–30 cm along them at the bottom. Most slats dragged: lines with the puddles' rims round them, heaps at line ends. At the top a row of groups not yet dragged; the machine camera on its bracket; the slips above and below. |
+| `IMG_2929.jpg` | Close, the ruler 0–10 cm along the legs: six dragged lines 5 mm apart, the rims of the puddles, heaps at the left ends. |
+| `IMG_2930.jpg` | Close, the ruler 17–28 cm: lines above and below it, the rims beside them. |
+| `IMG_2931.jpg` | Low, the ruler 20–35 cm, the tip on the canvas top right: the lines' right ends, some a thin loop, some a heap. |
+| `IMG_2932.jpg` | From above: the brush in its holder, the cup at hand full of the near-white, the ruler 0–20 cm. |
+| `IMG_2933.jpg` | Turned, the ruler 0–18 cm: the lines' ends, heap and loop by turns; two groups not yet dragged at the left. |
+| `IMG_2934.jpg` | The ruler 0–7 cm along the legs: three groups not yet dragged, two with a spike of paint along the leg. |
+| `IMG_2935.jpg` | The ruler 0–7 cm across the legs, by the canvas's edge: line ends in their rims, heaps, groups not yet dragged. |
+
 ## 2026-11-14 · run 1 after the drag, from the iPhone
 
 `photos/2026-11-14/`, 4 more, sent at 20:57. `IMG_2923` came again, the
