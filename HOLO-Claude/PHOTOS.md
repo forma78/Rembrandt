@@ -29,6 +29,31 @@ be pulled from GitHub into HOLO-Claude."
 - The machine camera's frames go to `eyes/`, not here (`ARTIST.md`, Eyes).
 - No other artist's work here (README).
 
+## 2026-11-14 · the machine camera's film, run 1, the paint fresh
+
+`eyes/2026-11-14/`, 65 frames, one every 2 s of `Movie on 11-14-26 at 8.22 PM.mov`
+(2 min 10 s, 1620 × 1080, 30 fps), the camera on the bracket at the brush,
+recorded on the Mac at 20:22. Cut by Claude in VS Code; the film stays on
+the Mac (285 MB, past GitHub's limit). A frame's name is its number and its
+time in the film: `frame-031_1-02.jpg` is 1 min 02 s.
+
+The owner, 2026-11-14: "this is the first run of the drops while the paint
+is fresh, not dry … so that when I talk to you from the iPhone, you
+understand what it is about."
+
+The camera rides with the carriage: the brush's tip stays at the left of
+every frame, the canvas slides past. Run 1's first jar, the near-white
+(Jar 1 by its colour, est.). By eye, est.:
+
+| frames | what they show |
+|---|---|
+| `frame-000` … `frame-013` (0:00–0:26) | Above the brush, puddles in groups of three across neighbouring legs, touching. Below it, legs already dragged: long ribbons, every puddle's oval rim still in them. The old canvas's pencil web. At `000`, `001` the canvas's bottom right corner, the blue tape along its edge, white drops on the corner. |
+| `frame-014` … `frame-031` (0:28–1:02) | The same along the canvas; at `015`, `016`, `030`, `031` that corner again. |
+| `frame-032` … `frame-046` (1:04–1:32) | One leg at a time: its puddles single, the ribbons of the legs before it below. |
+| `frame-047` … `frame-049` (1:34–1:38) | Past the canvas's edge. |
+| `frame-050` … `frame-062` (1:40–2:04) | The drag of one leg: the brush down and on, the leg behind it a thin line, the puddles still standing on it as lumps, some drawn out into a tail. The pencil web's middle scratched. |
+| `frame-063`, `frame-064` (2:06–2:08) | The canvas's edge, then past it. |
+
 ## 2026-11-14 · holo-40-warm v.2, the test canvas, run 1
 
 `photos/2026-11-14/`, 15 photos, sent at 20:24, mid-run.

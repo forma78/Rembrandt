@@ -45,6 +45,14 @@ everything we find in this test. I recommend choosing the name after."
 So 001 is the next canvas, its plan changed by what this one shows, and
 the name comes after it, as agreed.
 
+Seen in the machine camera's film, the paint fresh (`eyes/2026-11-14/`,
+`PHOTOS.md`; added by Claude in VS Code, by eye, est.):
+- The drag does not spread a puddle into a band: behind the brush the leg
+  is a thin line, the puddles still standing on it as lumps, some drawn
+  out into a tail (frame-050 … frame-062).
+- The legs dragged before, below the groups of three, are long ribbons,
+  every puddle's oval rim still in them (frame-000 … frame-013).
+
 Next, at the drag:
 - does one stroke take its own leg's puddles, or push them into the
   neighbouring leg where they have run together;
