@@ -75,6 +75,7 @@ Rembrandt/
     ink.html         Ink: the cup the brush dips into (new)
     inky.html        INK-Y, the cup at hand: the jar on the carriage by the arm, a dip by How to dip below — the elbow up, the shoulder over the jar, the elbow in, up, the shoulder back (new, 2026-11-03, the cup on the beam the night before; once on, every dip goes there; src/inkypage.js)
     lab.html         LAB, a sheet of trial strokes on a scrap, numbered: how the brush lands and lifts across the arm and along it, the elbow, the carriage against it, the wrist (new, 2026-11-04; src/labplan.js, src/lab.js)
+    labh.html        LAB-H, HOLO's LAB sheet on a 20 × 20, one jar: A a dab (1, 2, 3 on the same 8 mm or end to end), B how far a puddle of 1 … 4 dabs lasts, C run 1's puddles every 30, 40, 55 mm dragged, D the open time, puddles dragged at 30, 20, 10, 5 min, the brush in the jar between; LAB's page with that sheet alone, none of LAB's other keys (new, 2026-11-14; src/labplan.js's sheetHolo, src/labh.js)
     colors.html      COLORS, the library, after LAB (the owner, 2026-11-08: "so that our library is there"): a card a jar of LAB's real 3 by its name there — Kuzya's card, Target, Mix recipe, Advice, Medium, Dry LAB, ΔE, Coats — his scale, and the paints on the shelf measured off LAB/'s photos, all est. (new, 2026-11-08; src/colorlib.js, src/colors.js; LAB/)
     adjustments.html Adjustments (new)
     calibration.html Calibration (from RUBENS); the wave test, the pencil's lines left and right (wavetest.js, 2026-10-29)

@@ -542,6 +542,52 @@ export function sheetDry() {
       say: `Red on band ${name(k)} at ${S18.ages[k]} min (the brush ${Math.round(parks[k] / 60)} min in the jar before it): across the band; from above, 3 mm in, its idle run +2 mm; from below, 3 mm in, idle 0` })),
   ];
 }
+// LAB-H, HOLO's sheet (HOLO-Claude/HOLO.md, "LAB first"; the owner, 2026-11-14: "first LAB, then the 40 × 40 first"; "copy what LAB has and make a separate
+// tab LAB-H so as not to get confused"): the numbers HOLO's plans stand on, on a 20 × 20 scrap, one jar. A dab is MARKS' mark (formgplan.js): a dip at the cup at
+// hand, then the brush down along X for 8 mm (est.), the J3 compensation as real 3's. Every leg up X, the brush only up and down.
+//   A, a dab: a puddle of 1, 2, 3 dabs — the 2 and the 3 on the same 8 mm, or end to end — no stroke: its size.
+//   B, how far a puddle lasts: a puddle of 1 … 4 dabs on the same 8 mm, then at once one stroke from it up the leg, no dip, 150 mm, as run 2's shadow.
+//   C, run 1 as planned: a puddle every 30, 40, 55 mm up a leg, one dab each, then one stroke the leg's length through them, no dip.
+//   D, the open time: a puddle of 2 dabs dragged as B's, 30, 20, 10, 5 min after it was laid. The four drags come last, one after another; each puddle is
+//      laid that long before its own, the brush waiting in the jar between, its tip wet (the dry test's); a drag after a dab of its own at the leg's foot,
+//      as a batch's drags come right after its last dab (HOLO.md, "Batches"). The clock by the plan's own seconds: every age est.
+export const SH = { size: 200, dab: 8, leg: [45, 195], lasts: [1, 2, 3, 4], gaps: [30, 40, 55], inset: 4, ages: [30, 20, 10, 5], open: 2, foot: 12,
+  A: [[1, 'same'], [2, 'same'], [2, 'end'], [3, 'same'], [3, 'end']], cols: { A: [15, 30, 45, 60, 75], B: [14, 29, 44, 59], C: [79, 94, 109], D: [129, 144, 159, 174] } };
+export function sheetHolo(jar = { name: 'Jar 39', hex: '#5A0D0D' }) {
+  const P = (x, y) => ({ x, y }), [x0, x1] = SH.leg;
+  const dab = (x, y) => ({ pts: [P(x, y), P(x + SH.dab, y)], dip: true, idle: false });
+  const stroke = y => ({ pts: [P(x0, y), P(x1, y)], dip: false, idle: false });
+  const puddle = (y, k, end = false, x = x0) => Array.from({ length: k }, (_, i) => dab(end ? x + i * SH.dab : x, y));
+  const item = (seq, say, extra = {}) => ({ kind: 'real', c: 0, hue: jar.hex, jar: jar.name, wide: true, mm: S3.mm, way: {}, elbow: true, floor: 2, holo: true, seq, pts: seq[0].pts, say, ...extra });
+  const A = SH.A.map(([k, how], i) => item(puddle(SH.cols.A[i], k, how === 'end', SH.foot), `A · a dab: ${k === 1 ? 'one dab, 8 mm' : `${k} dabs ${how === 'same' ? 'on the same 8 mm' : `end to end, ${k * SH.dab} mm`}`}, no stroke — its size`));
+  const B = SH.lasts.map((k, i) => item([...puddle(SH.cols.B[i], k), stroke(SH.cols.B[i])], `B · how far it lasts: a puddle of ${k} dab${k > 1 ? 's' : ''}, then at once one stroke from it, no dip, ${x1 - x0} mm up — mm laid full, mm of fade`));
+  const C = SH.gaps.map((g, i) => {
+    const a = x0 + SH.inset, b = x1 - SH.inset, m = Math.ceil((b - a) / g) + 1, xs = Array.from({ length: m }, (_, k) => Math.round((a + (b - a) * k / (m - 1)) * 10) / 10);
+    return item([...xs.map(x => dab(x, SH.cols.C[i])), stroke(SH.cols.C[i])], `C · run 1: a puddle every ${g} mm at most, ${m} of them, one dab each, then one stroke the leg's ${x1 - x0} mm through them, no dip`);
+  });
+  // D's clock: the four drags in a row from tD, `off` from tD to each one's stroke; every puddle laid to end `age` before its stroke, the brush parked till
+  // then. Every number its est. start and end, t0 · t1, s from the run's first; a drag its stroke's, `strokeAt`
+  const lays = SH.cols.D.map(y => puddle(y, SH.open)), drags = SH.cols.D.map(y => [dab(SH.foot, y), stroke(y)]);
+  const off = []; let o = 0;
+  drags.forEach((q, k) => { off[k] = o + runS([q[0]]); o += runS(q); });
+  let t = 0;
+  for (const q of [...A, ...B, ...C]) { q.t0 = t; t += runS(q.seq); q.t1 = t; }
+  const mins = s => Math.round(s / 60), D1 = [], D2 = [];
+  let tD = 0;
+  lays.forEach((seq, k) => {
+    const park = k ? Math.max(0, tD + off[k] - SH.ages[k] * 60 - runS(seq) - t) : 0, t0 = t;
+    t += park + runS(seq);
+    if (!k) tD = t + SH.ages[0] * 60 - off[0];
+    D1.push(item(seq, `D · open time, ${SH.ages[k]} min: a puddle of ${SH.open} dabs laid${park ? ` (the brush ${mins(park)} min in the jar before it)` : ''}; dragged at the end`, { parkS: Math.round(park), age: SH.ages[k], t0, t1: t }));
+  });
+  drags.forEach((seq, k) => {
+    const park = k ? 0 : Math.max(0, tD - t), t0 = t;
+    t += park; const strokeAt = t + runS([seq[0]]); t += runS(seq);
+    D2.push(item(seq, `D · open time, ${SH.ages[k]} min: a dab at the leg's foot, then the stroke from the puddle laid ${SH.ages[k]} min before, no dip${park ? ` (the brush ${mins(park)} min in the jar before it)` : ''}`, { parkS: Math.round(park), age: SH.ages[k], t0, t1: t, strokeAt }));
+  });
+  return [...A, ...B, ...C, ...D1, ...D2];
+}
+
 // the brush in the jar for so many seconds: a dip whose paint is a row of waits, as rembrandt.py takes them (10 s at most each)
 function parkDip(c, row, s) {
   const d = handDip(c, row), waits = [];
@@ -550,11 +596,11 @@ function parkDip(c, row, s) {
 }
 // from: Start from (the owner, 2026-11-09, real 3 stopped on its second jar: "even in a test I need a key to go back and repeat; a choice as in FORM-G"):
 // the numbers before it not run, the first one run without its pause (its jar is in the cup at RUN); the strokes all kept, numbered as ever
-function labPlan2({ x0, y0, cup, press, sheet, tracks, from = 1 }) {
-  const first = handDip(cup, 0), strokes = [], rows = [], tips = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 18 ? 'LAB 4.0 · dry test' : sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3 · layer 1' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
+function labPlan2({ x0, y0, cup, press, sheet, tracks, from = 1, jar }) {
+  const first = handDip(cup, 0), strokes = [], rows = [], tips = [], shift = p => ({ x: x0 + p.x, y: y0 + p.y }), name = sheet === 19 ? 'LAB-H · HOLO' : sheet === 18 ? 'LAB 4.0 · dry test' : sheet === 17 ? 'LAB 4.0 · real 3 · layer 2' : sheet === 16 ? 'LAB 4.0 · real 3 · layer 1' : sheet === 15 ? 'LAB 4.0 · real strokes 2' : sheet === 14 ? 'LAB 4.0 · real strokes' : sheet === 13 ? 'LAB 3.0 · ladder' : sheet === 12 ? 'LAB 3.0 · + idle 6.0' : sheet === 11 ? 'LAB 3.0 · + idle 5.0' : sheet === 10 ? 'LAB 3.0 · + idle 4.0' : sheet === 9 ? 'LAB 3.0 · + idle 3.0' : sheet === 8 ? 'LAB 3.0 · + idle 2.0' : sheet === 7 ? 'LAB 3.0 · snake + idle' : sheet === 6 ? 'LAB 3.0 · long snake' : sheet === 5 ? 'LAB 3.0 · seam' : sheet === 4 ? 'LAB 3.0 · long' : sheet === 3 ? 'LAB 3.0' : 'LAB 2.0';
   const blocks = [{ ...first[0], dip: false }, { ...first[5], dip: false }, arm(3, 0, 0)];
   let dips = 0, mm = 0, slowS = 0;
-  (sheet === 18 ? sheetDry() : sheet === 17 ? sheetReal3(2) : sheet === 16 ? sheetReal3(1) : sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
+  (sheet === 19 ? sheetHolo(jar) : sheet === 18 ? sheetDry() : sheet === 17 ? sheetReal3(2) : sheet === 16 ? sheetReal3(1) : sheet === 15 ? sheetReal(S15_WAYS) : sheet === 14 ? sheetReal(S14.ways) : sheet === 13 ? sheet13() : sheet === 12 ? sheet12(tracks) : sheet === 11 ? sheet8(tracks, 'inside', true) : sheet === 10 ? sheet8(tracks, 'inside') : sheet === 9 ? sheet8(tracks, 'ridges') : sheet === 8 ? sheet8(tracks) : sheet === 7 ? sheet7(tracks) : sheet === 6 ? sheet6(tracks) : sheet === 5 ? sheet5(tracks) : sheet === 4 ? sheet4(tracks) : sheet === 3 ? sheet3(tracks) : sheet2()).forEach((q, i) => {
     const n = i + 1, p = q.press ?? press, c = q.dip ? { ...cup, dip: q.dip, paint: [q.dip - 1, q.dip] } : cup, skip = n < from;
     if (q.kind === 'real') {                         // LAB 4.0: runs in the plan's order, each its own dip or none, the idle ones as they come
       if (q.pause && n > from) blocks.push({ kind: 'pause', why: q.pause, row: 0 });
@@ -570,7 +616,7 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks, from = 1 }) {
         dips += r.dip ? 1 : 0; mm += lengthOf(pts);
       });
       const tip = q.seq[0].pts.map(shift);
-      strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, ...(q.wide ? { wide: true, jar: q.jar } : {}), tip, from: tip[0], to: tip.at(-1), via: [], lines: q.seq.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((b, j) => [shift(r.pts[j]), shift(b)])) });
+      strokes.push({ n, kind: q.kind, hue: q.hue, say: q.say, ...(q.wide ? { wide: true, jar: q.jar } : {}), ...(q.holo ? { holo: q.seq.map(r => ({ pts: r.pts.map(shift), dab: r.dip })), age: q.age, parkS: q.parkS ?? 0 } : {}), tip, from: tip[0], to: tip.at(-1), via: [], lines: q.seq.filter(r => !r.idle).flatMap(r => r.pts.slice(1).map((b, j) => [shift(r.pts[j]), shift(b)])) });
       return;
     }
     const runs = skip ? [] : q.runs ?? (q.kind === 'cell' ? (q.every ? snakeRuns(q.pts, q.every, q.lap) : rowsOfCell(q.pts)) : q.kind === 'oneway' ? q.tracks : [q.pts]);
@@ -593,14 +639,14 @@ function labPlan2({ x0, y0, cup, press, sheet, tracks, from = 1 }) {
   // runs: every run's tip in the run's order, its number, idle or not: the page's ▶ Play walks them
   return { blocks, strokes, runs: tips, ...(sheet === 16 || sheet === 17 ? { note: real3Note() } : {}), seconds: dips * 12 + rows.length * 2 + Math.round(mm / LAB.speed + slowS),
     bounds: { x0: Math.min(...pts.map(p => p[0])), x1: Math.max(...pts.map(p => p[0])), y0: Math.min(...pts.map(p => p[1])), y1: Math.max(...pts.map(p => p[1])) },
-    remote: { colours: sheet >= 16 ? strokes.map(q => ({ name: q.jar, hex: q.hue, code: '', cells: 1 })) : sheet === 14 || sheet === 15 ? [{ name: `${name} · the first paint`, hex: '#3E8E5A', code: '', cells: strokes.filter(q => q.hue === '#3E8E5A').length }, { name: `${name} · the second paint`, hex: '#2B6CB0', code: '', cells: strokes.filter(q => q.hue === '#2B6CB0').length }] : [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
+    remote: { colours: sheet === 19 ? [{ name: `${name} · ${strokes[0]?.jar ?? ''}`, hex: strokes[0]?.hue ?? '#5A0D0D', code: '', cells: strokes.length }] : sheet >= 16 ? strokes.map(q => ({ name: q.jar, hex: q.hue, code: '', cells: 1 })) : sheet === 14 || sheet === 15 ? [{ name: `${name} · the first paint`, hex: '#3E8E5A', code: '', cells: strokes.filter(q => q.hue === '#3E8E5A').length }, { name: `${name} · the second paint`, hex: '#2B6CB0', code: '', cells: strokes.filter(q => q.hue === '#2B6CB0').length }] : [{ name, hex: '#2B6CB0', code: '', cells: strokes.length }], rows } };
 }
 
 // the sheet at its bottom left corner (x0, y0), carriage mm: X up, Y right, as on every tab; at its end the
 // brush up and the carriage home, as OPM-N's run (the owner, 2026-11-05: "it stops there, I go to OPM-N and lead
 // it home from there"). bounds: the sheet's own, home is no part of them.
-export function labPlan({ x0, y0, cup, press = LAB.press, sheet = 1, tracks, from = 1 }) {
-  const P = sheet >= 2 ? labPlan2({ x0, y0, cup, press, sheet, tracks, from }) : labPlan1({ x0, y0, cup, press });
+export function labPlan({ x0, y0, cup, press = LAB.press, sheet = 1, tracks, from = 1, jar }) {
+  const P = sheet >= 2 ? labPlan2({ x0, y0, cup, press, sheet, tracks, from, jar }) : labPlan1({ x0, y0, cup, press });
   return { ...P, blocks: [...P.blocks, ...homeBlocks(LAB.travel).map(b => ({ ...b, row: P.remote.rows.length }))] };
 }
 function labPlan1({ x0, y0, cup, press }) {

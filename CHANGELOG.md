@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **LAB-H, HOLO's LAB sheet, a tab of its own** (2026-11-14, the night; the owner: "first LAB, then the 40 × 40 first"; "let us do it now, only
+  copy what LAB has and make a separate tab LAB-H so as not to get confused. All those keys of the old LAB we do not need in the new one for
+  HOLO"). `labh.html`, `src/labh.js`: LAB's page with one sheet — the corner, Pressed, the jar (the 40 × 40's, Jar 39 at first), Take the
+  carriage's place, ▶ Play, RUN THE SHEET, PAUSE, STOP, HOME, the numbers; no other sheet, tracks, Start from or Result. `src/labplan.js`,
+  `sheetHolo`, sheet 19, by LAB 4.0's runs as they are (the cup at hand, the J3 compensation, the brush parked in the jar as the dry test's):
+  on a 20 × 20, one jar, every leg up X, a dab MARKS' mark, a dip and 8 mm. A, a puddle of 1, 2, 3 dabs, on the same 8 mm or end to end, no
+  stroke; B, a puddle of 1 … 4 dabs, then at once one stroke from it, no dip, 150 mm — how far it lasts; C, run 1 as planned, a puddle every
+  30, 40, 55 mm, one stroke through them; D, the open time, a puddle of 2 dabs dragged 30, 20, 10, 5 min after it was laid — the four drags
+  last, each after a dab at its leg's foot, every puddle laid that long before, the brush in the jar between (est. by the plan's clock).
+  20 numbers, 48 dabs, no pause, ≈ 42 min (est.). In the top row after LAB. HOLO.md's two looks need a dry ground and two jars: not yet.
 - **HOLO: FORM-G's machine keys** (2026-11-14; the owner, `HOLO-Claude/ux-ui.png`, FORM-G's panel beside HOLO's: "HOLO has no STOP and
   HOME"; "add DRAW BW and ⏮ BACK ONE JAR"; and of the order, "first LAB, then the 40 × 40 first"). `holo.html`, `src/holo.js`: TEST ·
   PAUSE, DRAW BW · RUN 1 · RUN 2, ⏮ BACK ONE JAR, STOP · HOME, a Contour view, the iPhone's remote and ELBOW LIVE · brush, formg.js's as

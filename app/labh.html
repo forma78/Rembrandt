@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · LAB-H</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* LAB-H: LAB's page, HOLO's one sheet on the left, its numbered list on the right */
+  .lablist{margin:6px 0 0;padding-left:22px;font-size:12px;line-height:1.35;color:var(--ink)}
+  .lablist li{margin:0 0 4px}
+  .lablist li[data-n]{cursor:pointer;border-radius:3px}
+  .lablist li.on{outline:2px solid #E8751A;outline-offset:2px}   /* a number picked: its strokes alone on the sheet */
+  .lablist li.now{background:#FFE9A8}                            /* ▶ Play: the number now */
+  .lablist li.before{opacity:.45}                                 /* before Start from: left out of RUN */
+  .labfrom{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .labfrom select{flex:1;min-width:0;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:4px;padding:5px 6px;font:13px var(--mono);text-transform:none;letter-spacing:0}
+  .labfrom select.on{border-color:#E8751A;box-shadow:0 0 0 1px #E8751A}
+  #btnPlay.on,#btnResult.on{background:#E8751A;color:#fff;border-color:#E8751A}
+  .lablist .sw{display:inline-block;width:11px;height:11px;margin:0 5px -1px 0;border-radius:2px;border:1px solid rgba(0,0,0,.25)}   /* real 3: the jar's colour */
+  .labgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .labgrid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .labcall{margin:0 0 8px;padding:9px 11px;border-radius:6px;background:#FFE9A8;border:1px solid #D9A400;color:#24221F;font-size:13px;font-weight:600;line-height:1.35}
+  #btnPause.call,#btnPause.call:hover{background:#E8751A;color:#fff;font-weight:700;box-shadow:0 0 0 2px #E8751A}
+  .labgrid select{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 4px;font:12px var(--mono)}
+  .labgrid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:#fff;border-radius:4px;padding:5px 6px;font:12px var(--mono)}
+</style>
+</head>
+<body>
+<!-- Rembrandt · LAB-H, HOLO's LAB sheet (HOLO-Claude/HOLO.md, "LAB first"; the owner, 2026-11-14: "first LAB, then the 40 × 40 first"; "copy what LAB has
+     and make a separate tab LAB-H so as not to get confused. All those keys of the old LAB we do not need in the new one for HOLO"): LAB's page with one sheet
+     — a dab, how far a puddle lasts, run 1, the open time — on a 20 × 20 scrap, one jar. src/labplan.js (sheetHolo), src/labh.js. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.2.3</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="holo.html">HOLO</a>
+      <a href="labh.html" class="on">LAB-H</a>
+      <a href="inky.html">INK-Y</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+  <div class="top-right">
+    <span class="link-state" id="linkState">…</span>
+  </div>
+</header>
+
+<main class="cal">
+  <section class="stage" id="stage"></section>
+  <aside class="panel">
+    <section class="sec">
+      <h3>HOLO's sheet <span class="hint">a 20 × 20 scrap, its bottom left corner · all est.</span></h3>
+      <div class="labgrid">
+        <label>X, corner, mm<input id="fX" type="number" step="1"></label>
+        <label>Y, corner, mm<input id="fY" type="number" step="1"></label>
+        <label title="The brush pressed, the elbow's degrees, as LAB's">Pressed, °<input id="fPress" type="number" step="0.5"></label>
+        <label title="The one jar of the whole sheet: the 40 × 40's jars, the first picture after LAB-H. Only its name and colour change: the journal and the screen">Jar<select id="fJar"></select></label>
+      </div>
+      <div class="grid4 keys"><button class="btn" id="btnHere" title="X and Y become where the carriage stands: jog it over the scrap's bottom left corner on INK-Y">Take the carriage's place</button><button class="btn" id="btnPlay" title="The sheet as it will run, number after number, run after run, the brush's tip a dot. A view: it moves nothing on the machine">▶ Play</button></div>
+      <p class="read" id="planRead"></p>
+      <p class="read" id="noteRead"></p>
+      <p class="read" id="playRead"></p>
+      <p class="read" id="selRead"></p>
+    </section>
+    <section class="sec">
+      <h3>Run <span class="hint">the paint in the jar, the brush in the holder</span></h3>
+      <p class="labcall" id="labCall" hidden></p>
+      <div class="grid4 keys">
+        <button class="btn primary" id="btnRun">RUN THE SHEET</button>
+        <button class="btn" id="btnPause" disabled title="PAUSE: the carriage brakes on its line. CONTINUE goes on from there">PAUSE</button>
+        <button class="btn" id="btnStop">STOP</button>
+        <button class="btn" id="btnLabHome" title="The brush up, the carriage home">HOME</button>
+      </div>
+      <p class="read" id="runRead"></p>
+      <p class="read" id="stateRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The numbers <span class="hint">what each one measures</span></h3>
+      <ol class="lablist" id="list"></ol>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint">LAB-H — HOLO's sheet: a dab, how far a puddle lasts, run 1's puddles, the open time. A number of the list: its strokes alone.</span>
+  <span id="saved"></span>
+</footer>
+<script type="module" src="src/labh.js"></script>
+</body>
+</html>

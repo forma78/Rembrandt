@@ -226,7 +226,11 @@ sheet for the three numbers. No change to the firmware.
 
 ## The owner's answers, 2026-11-14
 
-- **The order**: "first LAB, then the 40 × 40 first" — LAB's sheet below, then `holo-40-warm`.
+- **The order**: "first LAB, then the 40 × 40 first" — LAB's sheet below, then `holo-40-warm`. The sheet is
+  its own tab, LAB-H (`app/labh.html`): "copy what LAB has and make a separate tab LAB-H so as not to get
+  confused. All those keys of the old LAB we do not need in the new one for HOLO". Its A, B and D are the three
+  numbers below, C run 1's puddle every 30, 40, 55 mm; the two looks (a dark over a dry light, a blue over cream)
+  need a dry ground and two jars: a sheet of their own, not yet.
 - **Two jars**: "Jar 6 is orange, Jar 12 is lilac" — Jar 6 FORM-G's `#EE8A22`, so the new Orange (its recipe) is
   out; Jar 12 the lid's lilac (`generator/holo_jars.py`).
 - **The keys** (`ux-ui.png`, FORM-G's panel beside HOLO's): "HOLO has no STOP and HOME"; "add DRAW BW and ⏮ BACK
