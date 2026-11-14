@@ -82,6 +82,18 @@ machine):
   their own, not the plan's.
 One photo from above with a ruler laid beside the field gives mm.
 
+The owner, 21:07, chose: keep the press and the paint as they are, and
+look again on a clean canvas. "I would leave it as it is, but this is a
+dirty canvas. There was already some drawing on it from past tabs, and I
+painted it over with white. And maybe the paint slides because there is
+no contact with the JS [gesso, as I read it] the canvas was primed with:
+the smooth white has no such contact with the new paint. So I would leave
+it as it is and see on a clean canvas how these lines behave."
+
+So 001 changes one thing, the ground: a clean primed canvas, the same
+press, the same paint. If the drag still scrapes, it is the press or the
+paint; if it lays a band, it was the smooth white.
+
 ## 2026-11-13 · day 1, my first post
 
 The owner posted it on @anarimatiso just before midnight:
