@@ -57,7 +57,7 @@ function placeNow() {
 function wallsSay() {
   const r = rangeOf(), c = placeNow(), out = [];
   if (r.left[0] > r.left[1]) out.push(`the field, ${fmt(PIC.field.x1 - PIC.field.x0, 0)} mm across, is wider than the reach between the Y walls with their margins`);
-  else if (c.edgeLeft < r.left[0] || c.edgeLeft > r.left[1]) out.push(`the left edge out of ${fmt(r.left[0], 0)} … ${fmt(r.left[1], 0)}${r.marks ? ', MARKS\' slips beside it' : ''}`);
+  else if (c.edgeLeft < r.left[0] || c.edgeLeft > r.left[1]) out.push(`the left edge out of ${fmt(r.left[0], 0)} … ${fmt(r.left[1], 0)}${r.marks ? ', MARKS\' marks within the walls' : ''}`);
   if (c.edgeBottom < r.bottom[0] || c.edgeBottom > r.bottom[1]) out.push(`the bottom edge out of ${fmt(r.bottom[0], 0)} … ${fmt(r.bottom[1], 0)}`);
   return out.length ? `Past the walls: ${out.join('; ')}.` : '';
 }
@@ -269,8 +269,8 @@ async function watch() {
 const cv = $('#cv'), stage = $('#stage'), ctx = cv.getContext('2d');
 let K = 1, OX = 0, OY = 0, fitted = '', only = null, PLAY = null, NOW = null;
 const PLAY_MS = 180000;
-const besideNow = () => PIC && opts().marks ? besideOf(PIC) : null;   // MARKS' slips beside the canvas, where they fit
-function fit() { const r = stage.getBoundingClientRect(), m = 26, e = besideNow() ? MARKS_BESIDE.slip + 6 : 0, k = Math.min((r.width - 2 * m) / (PIC.w + 2 * e), (r.height - 2 * m) / PIC.h); K = k; OX = (r.width - PIC.w * k) / 2; OY = (r.height - PIC.h * k) / 2; }
+const besideNow = () => { const w = PIC && opts().marks; return w ? besideOf(PIC, w) : null; };   // MARKS' slips, off the canvas or on it, where they fit
+function fit() { const r = stage.getBoundingClientRect(), m = 26, e = besideNow()?.where === 'off' ? MARKS_BESIDE.slip + 6 : 0, k = Math.min((r.width - 2 * m) / (PIC.w + 2 * e), (r.height - 2 * m) / PIC.h); K = k; OX = (r.width - PIC.w * k) / 2; OY = (r.height - PIC.h * k) / 2; }
 const sx = x => OX + x * K, sy = y => OY + (PIC.h - y) * K;
 function layout() {
   const r = stage.getBoundingClientRect(), d = devicePixelRatio || 1;
@@ -477,7 +477,7 @@ function runText(run, lines) {
     ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm; then one stroke the leg's whole field through them, no dip, even legs from the top down, odd ones up. `
     : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length, then one stroke towards its far end, no dip, till it gives out. `)
     + `${d} dabs in ${b} batches of about ${S.batch}, every batch laid, then dragged while wet; ${fmt(mm / 1000, 1)} m of strokes; ≈ ${hm(lines.reduce((t, q) => t + q.seconds, 0))} at ${S.sDab} s a dab (est.). Between two jars a pause: wipe the brush, put the next jar in the cup. `
-    + (lines.some(q => q.marks.length) ? `After every change of jar, before its first puddle: one dip, then its MARKS on the slips beside the canvas, 1 the left, 3 the right — the paper on the plates there (The canvas). ` : '')
+    + (lines.some(q => q.marks.length) ? `After every change of jar, before its first puddle: one dip, then its MARKS, 1 the left slip, 3 the right — ${besideNow()?.where === 'on' ? 'the paper taped over the canvas\'s margins' : 'the paper on the plates beside the canvas'} (The canvas). ` : '')
     + `The canvas's left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home.`;
 }
 function askRun(run) {
@@ -534,10 +534,13 @@ function showPanel() {
 }
 // MARKS' read: where the slips go, or why there are none (README's canon, 2026-11-14)
 function marksSay(rg) {
-  if (!rg.marks) return `<br><b>MARKS</b>: none — the canvas, ${fmt(PIC.w, 0)} mm across Y, leaves no room beside it within the walls; the slips' marks fit beside a canvas up to ${rg.widest} mm across (the owner, 2026-11-14: "only 40 × 40 for now").`;
-  const B = besideNow(), o = MARKS_BESIDE, s = B.strips[0].slip;
-  return `<br><b>MARKS</b> beside the canvas: a paper slip on each plate, <b>1</b> by the middle of the left edge, <b>3</b> by the right, against the edge, ${o.slip} mm out from it, ${fmt(s[1], 0)}–${fmt(s[3], 0)} mm up from the canvas's bottom edge; `
-    + `${B.n} cells, a jar a cell, the first at the top${B.rows > 1 ? ', a jar\'s run 2 in a second row farther out' : ''}, the marks ${o.gap}–${fmt(B.depth, 0)} mm out from the edge. After every change of jar one dip, then its mark on 1, then on 3, then its first puddle on a dip of its own (est.).`;
+  const o = MARKS_BESIDE, f = PIC.field;
+  if (!rg.marks) return `<br><b>MARKS</b>: none — the field, ${fmt(f.x1 - f.x0, 0)} mm across Y, leaves the reach no room for the marks on the canvas's margins by it, nor beside the canvas; they fit by a field up to ${rg.widest} mm across. A narrower field is a new card (v.2), on the owner's word.`;
+  const B = besideNow(), s = B.strips[0].slip, r = B.strips[1].slip, on = B.where === 'on';
+  return `<br><b>MARKS</b> ${on ? 'on the canvas, as the 70 × 100\'s' : 'beside the canvas'}: a paper slip ${on ? 'taped over each margin' : 'on each plate'}, <b>1</b> by the middle of the left edge, <b>3</b> by the right — `
+    + (on ? `across the canvas the left ${fmt(Math.max(0, s[0]), 0)}–${fmt(s[2], 0)} mm, the right ${fmt(r[0], 0)}–${fmt(Math.min(PIC.w, r[2]), 0)}, ${o.paper} mm short of the field` : `against the edge, ${o.slip} mm out from it`)
+    + `, ${fmt(s[1], 0)}–${fmt(s[3], 0)} mm up from the canvas's bottom edge; ${B.n} cells, a jar a cell, the first at the top${B.rows > 1 ? ', a jar\'s run 2 in a second row farther out' : ''}, the marks ${on ? `${o.clear} mm off the field` : `${o.gap} mm off the canvas's edge`}. `
+    + `After every change of jar one dip, then its mark on 1, then on 3, then its first puddle on a dip of its own (est.).`;
 }
 let CANVAS_INFO = false;
 function canvasReads() { const p = $('#placeRead'); p.hidden = !CANVAS_INFO && !p.querySelector('.warn'); $('#canvasInfo').classList.toggle('on', CANVAS_INFO); }

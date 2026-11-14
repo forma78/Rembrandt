@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: MARKS on the canvas where it is wider than the reach; the mark the brush's 5 mm, the slips 3 cm** (2026-11-14; the owner,
+  `HOLO-Claude/IMG_2904.jpg`, the red classic's strips laid on a 60 × 60: "we will put them right on the canvas, as with 70 × 100";
+  "3 cm left and 3 cm right is enough"; "IMPORTANT — the brush is 5 mm"). Off the canvas where the reach has room for both slips' marks
+  beside it, else on its margins by the field, the marks 4 mm off it, the slip 2 mm short of it (est.); else none, The canvas says by
+  how wide a field they would fit. The tiers (field 540): on the canvas, its left edge −20 … −11, the slips 0–28 and 572–600 mm across
+  it; the blue (560, two rows): none, a field up to 526 would do; the 40 × 40 off it, its left edge 14 … 155. `holoplan.js`
+  (`besideOf(pic, 'off' | 'on')`, `placeRange`), `holo.js`. Tests; checked in headless Chrome.
 - **HOLO: MARKS beside the canvas, the canon's first** (2026-11-14; the owner, of the 60 × 60s: "only 40 × 40 for now"; "we can boldly
   make 55 cm"). The 40 × 40's two paper slips off the canvas, 1 by the middle of its left edge, 3 by its right, 40 × 150 mm (125–275 mm
   up), the photo's: a jar a cell, the first at the top, a jar in both runs its run 2 in a second row farther out; the marks 8 mm off the

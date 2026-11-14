@@ -102,9 +102,19 @@ test('MARKS beside the canvas (the canon of 2026-11-14): the 40 × 40 its two sl
   assert.ok(P.every((L, i) => L.marks.length === 2 && L.seconds > P0[i].seconds) && P0.every(L => !L.marks.length));
   const M = movesOf(P);
   for (let i = 0; i < P.length; i++) { const own = M.filter(m => m.line === i); assert.deepEqual(own.slice(0, 2).map(m => [m.kind, m.no]), [['mark', 1], ['mark', 3]]); assert.equal(own[2].kind, 'dab'); }
-  // the 60 × 60s: the canvas alone wider than the reach across Y — no marks, the place by the field as before
-  for (const id of ['holo-60-blue', 'holo-60-tiers']) { const q = placeRange(load(id), WALLS); assert.ok(!q.marks && q.widest < 600 && q.widest > 500, `${id}: ${q.widest}`); }
-  assert.deepEqual(placeRange(load('holo-60-blue'), WALLS).left, [-19, -12]);
+  // the 60 × 60s: the canvas alone wider than the reach across Y — on it, by the field (IMG_2904, "right on the canvas, as with 70 × 100"),
+  // where the field leaves the reach room: the tiers, 540 mm, one row; the blue, 560 mm and two rows, none — its place by the field as before
+  assert.equal(r.marks, 'off', 'the 40 × 40 beside the canvas, the canon\'s photo');
+  const T = load('holo-60-tiers'), q = placeRange(T, WALLS), TB = besideOf(T, 'on');
+  assert.equal(q.marks, 'on'); assert.ok(q.left[0] <= q.left[1]);
+  for (const left of q.left) for (const L of TB.marks) for (const m of L) {
+    const y = left + m.at[0];
+    assert.ok(y - o.trail / 2 >= 0.2 - 1e-9 && y + o.trail / 2 <= WALLS.y.max - 0.2 + 1e-9, `tiers, left ${left}: a mark at Y ${y}`);
+    assert.ok(m.side === 'left' ? m.at[0] + o.trail / 2 <= T.field.x0 - o.clear + 1e-9 && m.at[0] - o.trail / 2 >= 0 : m.at[0] - o.trail / 2 >= T.field.x1 + o.clear - 1e-9 && m.at[0] + o.trail / 2 <= T.w, 'on the canvas\'s margin, clear of the field');
+  }
+  const b = placeRange(load('holo-60-blue'), WALLS);
+  assert.ok(!b.marks && b.widest < 560 && b.widest > 500, `the blue: none, a field up to ${b.widest} would do`);
+  assert.deepEqual(b.left, [-19, -12]);
 });
 
 test('MARKS\' cells: a jar a cell by its first line, a jar in both runs its run-2 line in a second row', () => {

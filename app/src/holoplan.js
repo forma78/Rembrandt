@@ -75,35 +75,42 @@ export function workOf(pic, line, o = {}) {
 // papers will lie, so that the machine dips as in color_marks.png — this is the new canon. All the new pictures come with such tables." Paper
 // slips on the metal plates by the middles of the canvas's left and right edges, off the canvas, FORM-G's MARKS on them: after every change of
 // jar one dip, then its mark on the left slip (1), then on the right (3), then its first puddle on a dip of its own. A jar's cell by its place
-// among the list's jars, the first at the top; a jar in both runs its run-2 line in a second row, farther out (FORM-G's second coat). Not on a
-// 60 × 60: the canvas alone is wider than the reach across Y (the owner, the same day: "only 40 × 40 for now").
-// mm, est.: leg, along, across, trail FORM-G's MARKS; gap, the canvas's edge to the nearer row's trail; slip, the paper across Y off the photo
-// (≈ 40 × 150); a mark after the line's first sMark s more, the way across the canvas to the other slip
-export const MARKS_BESIDE = { leg: 8, along: 14, across: 12, trail: 8, gap: 8, slip: 40, sMark: 5 };
+// among the list's jars, the first at the top; a jar in both runs its run-2 line in a second row, farther out (FORM-G's second coat).
+// Where: 'off' the canvas, as above, where the reach across Y has room for them beside it (the 40 × 40); else 'on' it, the slips taped over the
+// canvas's margins by the field's edges — the owner, the same day, of a 60 × 60 wider than the reach (HOLO-Claude/IMG_2904.jpg, the red classic's
+// two strips on a 60 × 60, their marks the machine's): "we will put them right on the canvas, as with 70 × 100" — where the field leaves the
+// reach room for them (the tiers, 540 mm; not the blue, 560).
+// mm, est.: leg, along, across FORM-G's MARKS; trail, the brush's own 5 mm (the owner, the same day: "IMPORTANT — the brush is 5 mm"; LAB's
+// real 3 dry test measured a track ≈ 8 mm across Y, 2026-11-09); gap, the canvas's edge to the nearer row's trail off it; clear, the field's
+// edge to it on the canvas, and paper, the slip's edge short of the field there; slip, the paper across Y ("3 cm left and 3 cm right is
+// enough"); a mark after the line's first sMark s more, the way across the canvas to the other slip
+export const MARKS_BESIDE = { leg: 8, along: 14, across: 12, trail: 5, gap: 8, clear: 4, paper: 2, slip: 30, sMark: 5 };
 export function markCells(seq) {
   const k = new Map(), run1 = new Set(seq.filter(q => q.run === 1).map(q => q.jar));
   for (const q of seq) if (!k.has(q.jar)) k.set(q.jar, k.size);
   return seq.map(q => ({ k: k.get(q.jar), row: q.run === 2 && run1.has(q.jar) ? 1 : 0 }));
 }
-// → { n cells a slip, rows, depth: mm out from the canvas's edge its marks take, strips: [{ no, side, box: [x0, y0, x1, y1], slip: [x0, y0, x1, y1] }],
-// marks: a line of the list → [{ no, side, at: [x, y], pts }], a mark from its bottom up }; the picture's mm, the left slip at x < 0, the right past w
-export function besideOf(pic, o = MARKS_BESIDE) {
-  const cells = markCells(seqOf(pic)), n = Math.max(0, ...cells.map(c => c.k + 1)), rows = cells.some(c => c.row) ? 2 : 1;
-  const depth = o.gap + (rows - 1) * o.across + o.trail, top = pic.h / 2 + (n - 1) * o.along / 2, bottom = top - (n - 1) * o.along;
-  const xOf = (side, row) => { const d = o.gap + o.trail / 2 + row * o.across; return side === 'left' ? -d : pic.w + d; };
+// where: 'off' | 'on' → { where, n cells a slip, rows, x0 x1: the marks' outer edges across Y, strips: [{ no, side, box: [x0, y0, x1, y1], slip: [x0, y0,
+// x1, y1] }], marks: a line of the list → [{ no, side, at: [x, y], pts }], a mark from its bottom up }; the picture's mm, off it the left slip at x < 0
+export function besideOf(pic, where = 'off', o = MARKS_BESIDE) {
+  const cells = markCells(seqOf(pic)), n = Math.max(0, ...cells.map(c => c.k + 1)), rows = cells.some(c => c.row) ? 2 : 1, f = pic.field, on = where === 'on';
+  const top = pic.h / 2 + (n - 1) * o.along / 2, bottom = top - (n - 1) * o.along;
+  // off: from the canvas's edges outward; on: from the field's edges outward, over the canvas's margins
+  const xOf = (side, row) => { const d = (on ? o.clear : o.gap) + o.trail / 2 + row * o.across; return side === 'left' ? (on ? f.x0 : 0) - d : (on ? f.x1 : pic.w) + d; };
   const strips = [{ no: 1, side: 'left' }, { no: 3, side: 'right' }].map(s => {
-    const xs = [xOf(s.side, 0), xOf(s.side, rows - 1)], edge = s.side === 'left' ? 0 : pic.w, out = s.side === 'left' ? -o.slip : pic.w + o.slip;
+    const xs = [xOf(s.side, 0), xOf(s.side, rows - 1)], L = s.side === 'left';
+    const [a, b] = on ? (L ? [0, f.x0 - o.paper] : [f.x1 + o.paper, pic.w]) : (L ? [-o.slip, 0] : [pic.w, pic.w + o.slip]);
     return { ...s, box: [Math.min(...xs) - o.trail / 2, bottom - o.leg / 2, Math.max(...xs) + o.trail / 2, top + o.leg / 2],
-      slip: [Math.min(edge, out), bottom - o.leg / 2 - o.leg, Math.max(edge, out), top + o.leg / 2 + o.leg] };
+      slip: [Math.min(a, ...xs.map(x => x - o.trail / 2)), bottom - o.leg / 2 - o.leg, Math.max(b, ...xs.map(x => x + o.trail / 2)), top + o.leg / 2 + o.leg] };
   });
   const marks = cells.map(({ k, row }) => strips.map(s => { const x = xOf(s.side, row), y = top - k * o.along; return { no: s.no, side: s.side, at: [x, y], pts: [[x, y - o.leg / 2], [x, y + o.leg / 2]] }; }));
-  return { n, rows, depth, strips, marks };
+  return { where, n, rows, x0: strips[0].box[0], x1: strips[1].box[2], strips, marks };
 }
 
 // the whole list's work, every line its numbers and its time (est.: a dab sDab s, a stroke at `speed`); o.marks: every line its MARKS
-// first (besideOf's), a dip and its marks, sDab s the first, MARKS_BESIDE.sMark every next
+// first (besideOf's, 'off' or 'on' the canvas; true 'off'), a dip and its marks, sDab s the first, MARKS_BESIDE.sMark every next
 export function planOf(pic, o = {}) {
-  const sDab = o.sDab ?? HOLO.sDab, speed = o.speed ?? HOLO.speed, M = o.marks ? besideOf(pic).marks : null;
+  const sDab = o.sDab ?? HOLO.sDab, speed = o.speed ?? HOLO.speed, M = o.marks ? besideOf(pic, o.marks === true ? 'off' : o.marks).marks : null;
   return seqOf(pic).map((line, i) => {
     const w = workOf(pic, line, o), marks = M?.[i] ?? [], sm = marks.length ? sDab + (marks.length - 1) * MARKS_BESIDE.sMark : 0;
     return { ...line, ...w, marks, seconds: w.dabs * sDab + w.mm / speed + sm };
@@ -141,15 +148,19 @@ export function contourHolo(pic, o = {}) {
 // 60s' places by the legs' middles put the pen up to 2.5 mm past the Y wall, and the blue's TEST dots on it) — and the legs' ends within the
 // X walls, more room at the bottom, where the elbow sweeps the carriage past a leg's end, and at the top (MARKS' numbers, est.); EDGE_IN,
 // plotRun's own 0.1 mm inside, and FORM-G's 0.2 mm more; walls: machine.js's reach(). A plotRun of the run gives the real range once the
-// run is wired, as FORM-G's. With MARKS beside it (besideOf) both slips' marks within the Y walls too, where they fit: `marks` says if they
-// do, `widest` the widest canvas across Y they fit beside.
+// run is wired, as FORM-G's. With MARKS (besideOf) both slips' marks within the Y walls too: off the canvas where they fit so, else on it,
+// else none; `marks` says which ('off', 'on' or false), `widest` the widest field across Y they fit beside on the canvas.
 export const WALL = { side: 0, bottom: 25, top: 8 }, WALL_IN = 0.2;
-export function placeRange(pic, walls, w = WALL, beside = besideOf(pic)) {
+export function placeRange(pic, walls, w = WALL, o = MARKS_BESIDE) {
   const Y = walls.y.max - walls.y.min, X = walls.x.max - walls.x.min, f = pic.field;
   const r = (lo, hi, m = 0) => [Math.ceil(lo + m - 1e-9), Math.floor(hi - m + 1e-9)];   // whole mm, as the page takes them, rounded inward
   const left = r(w.side - f.x0, Y - w.side - f.x1, WALL_IN), bottom = r(w.bottom - f.y0, X - w.top - f.y1);   // X's margins are room enough
-  if (!beside?.n) return { left, bottom, marks: false, widest: null };
-  const m = r(beside.depth, Y - pic.w - beside.depth, WALL_IN), both = [Math.max(left[0], m[0]), Math.min(left[1], m[1])];
-  const widest = Math.floor(Y - 2 * (beside.depth + WALL_IN));
-  return both[0] <= both[1] ? { left: both, bottom, marks: true, widest } : { left, bottom, marks: false, widest };
+  const B = besideOf(pic, 'off', o);
+  if (!B.n) return { left, bottom, marks: false, widest: null };
+  const widest = Math.floor(Y - 2 * (WALL_IN + o.clear + o.trail + (B.rows - 1) * o.across));
+  for (const where of ['off', 'on']) {
+    const M = besideOf(pic, where, o), m = r(-M.x0, Y - M.x1, WALL_IN), both = [Math.max(left[0], m[0]), Math.min(left[1], m[1])];
+    if (both[0] <= both[1]) return { left: both, bottom, marks: where, widest };
+  }
+  return { left, bottom, marks: false, widest };
 }

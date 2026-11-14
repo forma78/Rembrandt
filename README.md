@@ -306,14 +306,18 @@ the machine dips as in color_marks.png — this is the new canon. All the new pi
    jar's mark, a leg of 8 mm along X, in its own cell of every strip; then its first cell on a dip of its own.
 2. **The strips lie off the canvas**: paper slips on the two metal plates beside it, one by the middle of the canvas's left
    edge, one by its right, against the edge. FORM-G's were taped over the canvas, 15 mm in from its edge.
-3. Off the photo, est.: a slip ≈ 40 mm across Y, ≈ 150 mm along X — FORM-G's cells 14 mm apart, about 10 jars a strip.
-4. The marks within the Y reach, 568.5 mm: beside a canvas up to 536 mm across Y (512 with a second row, a jar in both of
-   HOLO's runs), the marks 8 mm off the canvas's edge (est.). The 40 × 40 fits; a 60 × 60 is itself 31.5 mm wider than the
-   reach — the owner, asked: "only 40 × 40 for now". A wider canvas, up to 55 cm (the owner: "we can boldly make 55 cm"),
-   fits the reach itself, its marks not beside it across Y.
+3. **A canvas wider than the reach — on it**: the slips taped over its margins by the field's edges, the marks 4 mm off the
+   field (est.). The owner, the same day, of a 60 × 60 ("we will put them right on the canvas, as with 70 × 100"), and
+   `HOLO-Claude/IMG_2904.jpg`: the red classic's two strips laid on a 60 × 60, their marks the machine's.
+4. Sizes: a slip 3 cm across Y (the owner: "3 cm left and 3 cm right is enough"), ≈ 150 mm along X, FORM-G's cells 14 mm
+   apart; a mark as wide as the brush, 5 mm ("IMPORTANT — the brush is 5 mm"; LAB's real 3 measured a track ≈ 8 mm, est.).
+5. The marks within the Y reach, 568.5 mm, both slips': beside a canvas up to 550 mm across Y, on it by a field up to 550
+   (one row; 526 with a second, a jar in both of HOLO's runs). HOLO: the 40 × 40 off the canvas; the tiers (field 540) on
+   it; the blue (field 560, two rows) none — the owner, thinking it over.
 
-`holoplan.js` (`MARKS_BESIDE`, `besideOf`, `markCells`; `placeRange` keeps both slips' marks within the walls); on HOLO since
-2026-11-14 — the slips on the screen, the marks in the plan and ▶ Play. RUN 1 · RUN 2 still send nothing.
+`holoplan.js` (`MARKS_BESIDE`, `besideOf`, `markCells`; `placeRange` keeps both slips' marks within the walls, off the canvas
+first, else on it); on HOLO since 2026-11-14 — the slips on the screen, the marks in the plan and ▶ Play. RUN 1 · RUN 2 still
+send nothing.
 
 ## Working rules
 
