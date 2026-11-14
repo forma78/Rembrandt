@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: the v.1s hidden from the library** (2026-11-15; the owner: "let's hide all the v.1s, so as not to get confused"). The fan
+  warm, the fan blue and the tiers v.1 off the cards (`HOLO_HIDDEN`, `src/holoplan.js`); their json, renders and tests kept; a page
+  left on a v.1 opens its v.2, a live run of one still keeps the page on it. Four cards: warm v.2, blue v.2, tiers v.2, tiers v.3.
+  The test of the study's puddles skipped the v.2s only, so it failed on the tiers' v.3 since cff3ed1; now every v.2 and v.3.
 - **HOLO: a run-2 jar's row shows its strokes on the canvas again** (2026-11-15; the owner, `HOLO-Claude/Screenshot 2026-11-15 at
   12.07.05 AM.png` and `12.07.12 AM.png`: "the second layer does not show the paints selectively on the canvas, as the first does …
   a useful thing"). Run 1's loop left the canvas's alpha at its last dimmed jar's 0.08, so run 2's picked shadows were drawn nearly

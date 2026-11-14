@@ -339,6 +339,8 @@ consistent then! Keep the dance in the second layer — for now it is a 'relic' 
    dances.
 
 `holoplan.js` (`legsOf`, `puddlesAlong`, `bandOn`, `dabsOn`), `HOLO-Claude/generator/holo_v2.py`. Every v.1 kept; a v.2 after it.
+Since 2026-11-15 the v.1s are off the library's cards (`HOLO_HIDDEN`; the owner: "let's hide all the v.1s, so as not to get confused"),
+their files and tests kept; a page left on one opens its v.2.
 
 ## Working rules
 

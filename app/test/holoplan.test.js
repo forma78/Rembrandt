@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { HOLO, HOLO_LIB, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange, contourHolo, besideOf, markCells, MARKS_BESIDE, bandOn } from '../src/holoplan.js';
+import { HOLO, HOLO_LIB, HOLO_HIDDEN, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange, contourHolo, besideOf, markCells, MARKS_BESIDE, bandOn } from '../src/holoplan.js';
 
 // HOLO (HOLO-Claude/HOLO.md, 2026-11-12): cloud-Claude's three pictures in the owner's jars, two runs of puddles laid, then dragged.
 const load = id => JSON.parse(fs.readFileSync(new URL(`../holo/${id}.json`, import.meta.url)));
@@ -32,7 +32,7 @@ test('the plan counts what the study counted: run 1\'s dabs, run 2\'s puddles an
     assert.equal(r(1).reduce((t, q) => t + q.dabs, 0), p.count.run1_dabs, id);
     assert.equal(r(2).reduce((t, q) => t + q.puddles.length, 0), p.count.run2_puddles, id);
     assert.equal(r(2).reduce((t, q) => t + q.dabs, 0), p.count.run2_dabs, id);
-    if (p.version !== 2) assert.deepEqual(puddlesY(p), p.slats[0].puddles_y, `${id}: the puddles where the study laid them`);   // a v.2's every leg its own
+    if (!p.version) assert.deepEqual(puddlesY(p), p.slats[0].puddles_y, `${id}: the puddles where the study laid them`);   // a v.2's or v.3's every leg its own
     // every jar's dabs, run by run, as the json's
     for (const j of p.jars) for (const run of [1, 2]) assert.equal(P.find(q => q.jar === j.id && q.run === run)?.dabs ?? 0, j[`run${run}_dabs`], `${id} ${j.name} run ${run}`);
   }
@@ -154,6 +154,11 @@ test('DRAW BW: the outline where the paint meets the bare canvas, every border o
   // the tiers: bare slats, so the outline goes in round them too
   const T = load('holo-60-tiers'), OT = contourHolo(T, { outline: true });
   assert.ok(OT.mm > 2 * ((T.field.x1 - T.field.x0) + (T.field.y1 - T.field.y0)) + 1, `tiers outline ${OT.mm} mm`);
+});
+
+test('the v.1s hidden (the owner, 2026-11-15): every hidden one in the library, its v.2 shown; only v.1s hidden', () => {
+  assert.deepEqual([...HOLO_HIDDEN].sort(), ['holo-40-warm', 'holo-60-blue', 'holo-60-tiers']);
+  for (const id of HOLO_HIDDEN) { assert.ok(HOLO_LIB.includes(id) && HOLO_LIB.includes(id + '-v2') && !HOLO_HIDDEN.has(id + '-v2'), id); assert.ok(!load(id).version, `${id} a v.1`); }
 });
 
 test('v.2, ragged edges (the owner, 2026-11-14): every v.1 kept, its v.2 after it; every leg its own ends within the field\'s box, run 1 along them, run 2 within them', () => {

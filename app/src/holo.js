@@ -4,7 +4,7 @@
 // "add DRAW BW and ⏮ BACK ONE JAR"): TEST, PAUSE, DRAW BW, BACK ONE JAR, STOP, HOME, the iPhone's remote and ELBOW LIVE, formg.js's as they are,
 // copied so that FORM-G stays as it was. RUN 1 · RUN 2 on the machine since the owner's word, the same night ("it does not let me make a run"),
 // FORM-G's DRAG with holoplan.js's runsOf: the marks, a batch's dabs, its strokes.
-import { HOLO, HOLO_LIB, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesAlong, WALL, contourHolo, besideOf, MARKS_BESIDE, runsOf } from './holoplan.js';
+import { HOLO, HOLO_LIB, HOLO_HIDDEN, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesAlong, WALL, contourHolo, besideOf, MARKS_BESIDE, runsOf } from './holoplan.js';
 import { PEN, j3Runs } from './formgplan.js';
 import { ELBOW_J3 } from './canon.js';
 import { idleRowsOf } from './idleplan.js';
@@ -687,8 +687,9 @@ lampSwitch($('#lamp'));
     const im = new Image(); im.onload = kick; im.src = pic.image; IMG[id] = im;
     const a1 = new Image(); a1.onload = kick; a1.src = pic.after1; AFTER1[id] = a1;
   }
-  $('#lib').innerHTML = HOLO_LIB.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title.split(', ').slice(1).join(', '))}</b><span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
-  if (!LIB[S.pic]) S.pic = HOLO_LIB[0];
+  const shown = HOLO_LIB.filter(id => !HOLO_HIDDEN.has(id));
+  $('#lib').innerHTML = shown.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title.split(', ').slice(1).join(', '))}</b><span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
+  if (!LIB[S.pic] || HOLO_HIDDEN.has(S.pic)) S.pic = LIB[S.pic + '-v2'] ? S.pic + '-v2' : shown[0];   // a v.1 left open: its v.2 (a live run of one still wins, watch)
   PIC = LIB[S.pic];
   await loadInk();
   layout(); settle(); watch();
