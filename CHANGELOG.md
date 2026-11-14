@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: TEST touches TL twice as Preferences say; the field's corners, no margin** (2026-11-14; the owner: "I press TEST, but maybe the
+  margins of 5 mm on each side from the Preferences are off? … the button to touch the top left twice is lit, and the machine touches only
+  once"; then, of the field's corners as FORM-G's: "that suits me, then let us do it without margins"). HOLO's TEST, FORM-G's, read no
+  Preferences: now TL its two dots and the wait between (`testPrefs`), the dots at the corners of the picture's field as before, no margin;
+  the question says the canvas's place and its centre at carriage X · Y; the dots as crosses on the screen (INKA's). On the 40 × 40 v.2 the
+  dots 32.5 mm in from the canvas's left and right edges, 14.5 from its bottom, 23.4 from its top (v.1: 22.5, 22.5, 20, 20). Checked in
+  headless Chrome, nothing sent; run by the owner at 19:02.
 - **HOLO v.2: one rhythm for both runs** (2026-11-14; the owner, `HOLO-Claude/Screenshot 2026-11-14 at 4.36.18 PM.png`, run 1's puddles
   dancing with the ragged ends, and `4.30.38 PM.png`, run 2's band edges flat across a slat, arrows up to the legs' ends: "be consistent …
   one rhythm for two runs … keep the dance in the second layer — for now it is a 'relic' of v.1"). A v.2's bands are its composition's, in

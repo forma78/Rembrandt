@@ -9,7 +9,8 @@ import { PEN } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { machinePiece } from './inkaplan.js';
 import { cupOf, cupProblem, dipAt } from './ink.js';
-import { DOT_MM, NO_DIP } from './band.js';
+import { NO_DIP, DOT_MM } from './band.js';
+import { testPrefs } from './prefs.js';
 import { reach } from './machine.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch } from './lamp.js';
@@ -171,25 +172,41 @@ function askDraw(text, choice) {
     box.onclick = e => { if (e.target === box) end(false); };
   });
 }
-// TEST, FORM-G's: one dip in the cup, a dot at each corner of the legs' box — the field — the canvas laid by them, and home
+// TEST (the owner, 2026-11-14: "I press TEST, but maybe the margins of 5 mm on each side from the Preferences are off? … the button to touch
+// the top left twice is lit, and the machine touches only once"; then, of the field's corners as FORM-G's: "that suits me, then let us do it
+// without margins"): a dot at each corner of the picture's field — the legs' box, FORM-G's way, a 60 × 60 wider than the reach all the same —
+// and TL twice with its wait as Preferences say; no margin. One dip, and home.
+function boxDots(b, o = testPrefs()) {                                    // cornerDots's dots round any box, machine mm from Here
+  const dots = [['TL', b.x1, b.y0], ['TR', b.x1, b.y1], ['BR', b.x0, b.y1], ['BL', b.x0, b.y0]].map(([name, x, y]) => {
+    const d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name, at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } };
+  });
+  if ((o.first ?? 1) >= 2) dots.splice(1, 0, { ...dots[0], name: 'TL again', wait: o.gap ?? 0 });
+  return dots;
+}
+function testDots() {                                                    // → the dots, machine mm from Here; null: none
+  if (!PIC?.slats.length) return null;
+  const f = PIC.field;
+  return boxDots({ x0: f.y0 - PIC.h / 2, x1: f.y1 - PIC.h / 2, y0: f.x0 + PIC.pitch / 2 - PIC.w / 2, y1: f.x1 - PIC.pitch / 2 - PIC.w / 2 });
+}
 function testRun() {
-  const L = legsOf(PIC);
-  if (!L.length) return null;
-  const xs = L.map(g => g.x), x0 = PIC.field.y0 - PIC.h / 2, x1 = PIC.field.y1 - PIC.h / 2, y0 = Math.min(...xs) - PIC.w / 2, y1 = Math.max(...xs) - PIC.w / 2;
-  const dots = [['TL', x1, y0], ['TR', x1, y1], ['BR', x0, y1], ['BL', x0, y0]].map(([name, x, y]) => { const d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name, at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } }; });
-  return { ...plotRun(runOpts(dots.length), [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }]), dots };
+  const dots = testDots();
+  if (!dots) return null;
+  const passes = [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1, ...(d.wait !== undefined ? { wait: d.wait } : {}) }]), why: null }];
+  return { ...plotRun(runOpts(dots.length), passes), dots };
 }
 $('#btnTest').onclick = async () => {
   await loadInk();
   if (!PIC) return;
   if (isLive()) return warn('A run is on: STOP it first.');
-  const here = hereNow(), T = testRun();
+  const here = hereNow(), T = testRun(), c = placeNow();
   if (!T) return warn('Nothing to paint.');
   if (cupProblem(cup())) return warn(`TEST dips in ${cupName()}: ${cupProblem(cup())}`);
   if (T.fault) return warn(`Not run: the test is wrong — ${T.fault}.`);
   if (walls(T)) return warn(walls(T));
-  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of the field — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`)) return;
-  await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
+  const at = d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`, P = testPrefs();
+  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of the picture's field${P.first >= 2 ? `, two at TL ${P.gap} s apart (Preferences)` : ''} — ${T.dots.map(at).join(', ')} — and home.\n\n`
+    + `The canvas: its left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home; its centre at carriage X ${fmt(here.x, 0)} · Y ${fmt(here.y, 0)}.`)) return;
+  await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), centre: { x: here.x, y: here.y }, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
 };
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 $('#btnHome').onclick = () => { if (PIC && !isLive()) start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, logOf({ label: 'HOLO · HOME' })); };
@@ -329,6 +346,10 @@ function draw() {
   // the brush's reach, the walls, with the canvas as it lies
   const W = reach(), c = placeNow(), x0 = W.y.min - c.edgeLeft, x1 = W.y.max - c.edgeLeft, y0 = W.x.min - c.edgeBottom, y1 = W.x.max - c.edgeBottom;
   g.save(); g.setLineDash([6, 4]); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2; g.strokeRect(sx(x0), sy(y1), (x1 - x0) * K, (y1 - y0) * K); g.restore();
+  // TEST's dots as crosses where the brush will touch (INKA's): the field's corners
+  g.save(); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2;
+  for (const d of testDots() ?? []) { const X = sx(PIC.w / 2 + d.at.y), Y = sy(PIC.h / 2 + d.at.x); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
+  g.restore();
   // the line the pen is on, DRAW BW's
   if (NOW?.line) { g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(2, 1.6 * K); g.strokeStyle = '#EB7A25'; linePath(g, NOW.line); g.stroke(); }
   if (PLAY?.tip) { const t = PLAY.tip; g.fillStyle = t.hex; g.strokeStyle = t.kind === 'dab' ? '#EB7A25' : '#24221F'; g.lineWidth = 2; g.beginPath(); g.arc(sx(t.at[0]), sy(t.at[1]), 5, 0, 7); g.fill(); g.stroke(); }
@@ -376,6 +397,7 @@ cv.addEventListener('pointermove', e => { if (dragFrom) { OX = dragFrom[2] + e.c
 cv.addEventListener('pointerup', () => { dragFrom = null; cv.classList.remove('drag'); });
 cv.addEventListener('dblclick', () => { if (PIC) { fit(); kick(); } });
 new ResizeObserver(layout).observe(stage);
+addEventListener('storage', e => { if (e.key === null || e.key === 'rembrandt.prefs.v01') kick(); });   // Preferences changed in another tab: TEST's crosses anew
 
 // ▶ Play: the two runs as they will go, a batch's puddles laid, then dragged, on an offscreen canvas at 2 px a mm; FORM-G's clock, slow at first
 // (the clock squared), three minutes; the LCD follows it. A view: it moves nothing
