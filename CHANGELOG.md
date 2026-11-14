@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: two ways in — photos from the iPhone, films from the Mac** (2026-11-14, 20:57; the owner: "Video I can't shoot from the iPhone,
+  the camera is tied to the MacBook. You can add this to the README too. Photos to GitHub from the iPhone, and from the MacBook the video
+  from the MacBook"). README's `git pull` rule names both; `HOLO-Claude/PHOTOS.md` says how a film travels; four more photos of run 1
+  after the drag (`IMG_2924` … `IMG_2927`), their batch on top; `JOURNAL.md`, what the drag did. By cloud-Claude; no code changed.
 - **HOLO: the machine camera's film of run 1, the paint fresh, in frames** (2026-11-14, the evening; the owner: "this is the first
   run of the drops while the paint is fresh, not dry … so that when I talk to you from the iPhone, you understand what it is about").
   `HOLO-Claude/eyes/2026-11-14/`, 65 frames, one every 2 s of the 20:22 film (2 min 10 s; the film stays on the Mac, 285 MB); the batch

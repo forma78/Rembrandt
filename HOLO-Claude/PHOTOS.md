@@ -20,14 +20,33 @@ be pulled from GitHub into HOLO-Claude."
 3. Claude in VS Code runs `git pull` at the start of every session
    (README, Working rules) and reads the newest batch below.
 
+A film comes the other way. The machine's camera is wired to the MacBook,
+so its films stay on the Mac. Claude in VS Code cuts a frame every 2 s into
+`HOLO-Claude/eyes/<date>/`, named by its number and its time in the film,
+writes the batch here and pushes. The owner, 2026-11-14: "Video I can't
+shoot from the iPhone, the camera is tied to the MacBook … Photos to GitHub
+from the iPhone, and from the MacBook the video from the MacBook."
+
 - The copies are the chat's: 1512 × 2016, no EXIF, so no time and no
   place in them. The originals stay on the iPhone; a post is made from
   the original.
 - A photo is a look, not a measure. With no ruler in the frame, a number
   read off one is est.
 - What a run's photos show goes into `JOURNAL.md` (Seen), by file name.
-- The machine camera's frames go to `eyes/`, not here (`ARTIST.md`, Eyes).
+- The machine camera's frames live in `eyes/`, and are listed here too.
 - No other artist's work here (README).
+
+## 2026-11-14 · run 1 after the drag, from the iPhone
+
+`photos/2026-11-14/`, 4 more, sent at 20:57. `IMG_2923` came again, the
+same file: kept once.
+
+| file | what it shows |
+|---|---|
+| `IMG_2924.jpg` | From above, the left slats after the drag: every leg a narrow raised line, the puddles' oval rims still in it; the paint heaped at the legs' lower ends. |
+| `IMG_2925.jpg` | From above: dragged legs, and beside them the next leg's groups, two or three puddles run together into stubby shapes; the cup at hand, the arm. |
+| `IMG_2926.jpg` | Closer: four of those groups beside the dragged lines; bottom left, a lump drawn into a tail. |
+| `IMG_2927.jpg` | Low: the tip lifted, a ball of paint hanging at its end, over the groups; the cup at hand behind. |
 
 ## 2026-11-14 · the machine camera's film, run 1, the paint fresh
 

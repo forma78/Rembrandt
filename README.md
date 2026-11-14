@@ -342,16 +342,24 @@ consistent then! Keep the dance in the second layer — for now it is a 'relic' 
 
 ## Working rules
 
-- **`git pull` first.** Cloud-Claude pushes to this repository too: the
-  owner's iPhone photos of HOLO's runs (`HOLO-Claude/photos/<date>/`) and
-  the artist's `HOLO-Claude/JOURNAL.md`. At the start of every session, and
-  before every commit: `git pull`. Then read the newest batch at the top of
-  `HOLO-Claude/PHOTOS.md`: a line a photo, what it shows. (The owner,
-  2026-11-14: "I post the photos of the process here, from the iPhone. You
-  can upload them to GitHub yourself, start a PHOTOS.md for you in VS Code,
-  add an update to the README; so that when I open a new chat, you
-  understand that the new photos have to be pulled from GitHub into
-  HOLO-Claude.")
+- **`git pull` first. What the machine did comes in two ways**, both
+  listed in `HOLO-Claude/PHOTOS.md`, newest first:
+  - **photos**: the owner's iPhone → the cloud chat → cloud-Claude pushes
+    them to `HOLO-Claude/photos/<date>/`;
+  - **films**: the machine's camera is wired to the MacBook, so a film
+    stays on this Mac; Claude in VS Code cuts a frame every 2 s into
+    `HOLO-Claude/eyes/<date>/`, writes the batch in `PHOTOS.md` and pushes.
+
+  Cloud-Claude pushes `HOLO-Claude/JOURNAL.md` too. At the start of every
+  session, and before every commit: `git pull`, then read the newest batch
+  in `PHOTOS.md`. (The owner, 2026-11-14: "I post the photos of the
+  process here, from the iPhone. You can upload them to GitHub yourself,
+  start a PHOTOS.md for you in VS Code, add an update to the README; so
+  that when I open a new chat, you understand that the new photos have to
+  be pulled from GitHub into HOLO-Claude." Then: "Video I can't shoot from
+  the iPhone, the camera is tied to the MacBook. You can add this to the
+  README too. Photos to GitHub from the iPhone, and from the MacBook the
+  video from the MacBook. In fact you and I have just made a phone :))")
 - **The artist decides what to paint. The brush determines how it can be
   painted. The algorithm must reconcile the two without sacrificing either.**
   An algorithm may adapt a painting to the machine, but it must never silently
