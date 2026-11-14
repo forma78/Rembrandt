@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: the owner's photos through the cloud chat; `git pull` first** (2026-11-14, 20:24; the owner: "I post the photos of the process
+  here, from the iPhone. You can upload them to GitHub yourself, start a PHOTOS.md for you in VS Code, add an update to the README").
+  `HOLO-Claude/photos/2026-11-14/`, 15 photos of holo-40-warm v.2's run 1 on an old canvas; `HOLO-Claude/PHOTOS.md`, how a photo travels
+  and a line a photo; README's Working rules open with `git pull`, its folder layout has `photos/`; the artist's `ARTIST.md`, its folders.
+  By cloud-Claude; no code changed.
 - **HOLO: RUN 1 · RUN 2 on the machine** (2026-11-14, the night; the owner, of the question's "Not wired to the machine yet: a dab … goes
   in on your word": "it does not let me make a run"). FORM-G's DRAG with HOLO's plan (`holoplan.js`, `runsOf`; `holo.js`, `holoRun`): a line
   of the list its MARKS on one dip, then a batch at a time its puddles — every dab a dip of its own at the cup at hand and MARKS' mark, 8 mm

@@ -4,7 +4,53 @@ Newest first. Claude in VS Code writes an entry at the end of every run;
 Claude in the cloud chat reads it from GitHub, and writes here too. The
 form of an entry, and the folders: `artist/ARTIST.md`.
 
-Nothing has run on the machine yet. The first run's entry will be LAB's.
+The first run: 2026-11-14, holo-40-warm v.2 on an old canvas, as LAB.
+
+## 2026-11-14 · holo-40-warm v.2, the test canvas, run 1 — what I saw
+
+My first look at my own wet paint: the owner's 15 photos, sent mid-run
+(`PHOTOS.md`, `photos/2026-11-14/`). Not the run's entry: Claude in VS
+Code writes that at its end.
+
+The owner: "I forgot about LAB-H, I'm doing HOLO 40 × 40 cm right away,
+your first v.2. But it is LAB ;) I took an old canvas as a test, we will
+learn on this."
+
+Planned: `app/holo/holo-40-warm-v2.json`. Run 1, the light: four jars,
+641 dabs, Jar 1 first with 246. Along every leg a puddle every 40 mm, one
+dab each, a dab a mark of 8 mm (est.); then one stroke a leg through its
+puddles, no dip. A dab to last 55 mm (est.).
+
+Seen, Jar 1 by its colour (est.):
+- The puddles stand up off the canvas, glossy and thick: the shot the
+  reels need (IMG_2913, IMG_2922).
+- Neighbouring legs' puddles step against each other, v.2's rhythm, and
+  where they touch they run together: a group reads as one stepped shape,
+  not as dots (IMG_2913, IMG_2920, IMG_2922).
+- Every puddle has a ridge along it and a rounded end where the tip lifted
+  (IMG_2915, IMG_2918).
+- Not even: in most groups one puddle is about twice another (est., by
+  eye; IMG_2915, IMG_2922).
+- The paint strings. On the slip the jar's mark has a thread of paint
+  lying over it in a loop (IMG_2909, IMG_2912). On the canvas I see none.
+- The tip comes out of the jar loaded high, paint up its side (IMG_2915,
+  IMG_2919).
+
+Off the plan: LAB-H not run; this canvas is the LAB. Nothing measured:
+no ruler in the frames.
+
+Not 001. The owner, 20:40: "As I said, I skipped LAB, so we combined it
+with the run. The next one, 001, will be on a clean canvas, with
+everything we find in this test. I recommend choosing the name after."
+So 001 is the next canvas, its plan changed by what this one shows, and
+the name comes after it, as agreed.
+
+Next, at the drag:
+- does one stroke take its own leg's puddles, or push them into the
+  neighbouring leg where they have run together;
+- where a stroke gives out, against the 55 mm (est.);
+- a thread across the canvas between two puddles.
+One photo from above with a ruler laid beside the field gives mm.
 
 ## 2026-11-13 · day 1, my first post
 
