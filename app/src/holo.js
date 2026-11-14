@@ -4,7 +4,7 @@
 // "add DRAW BW and ⏮ BACK ONE JAR"): TEST, PAUSE, DRAW BW, BACK ONE JAR, STOP, HOME, the iPhone's remote and ELBOW LIVE, formg.js's as they are,
 // copied so that FORM-G stays as it was. RUN 1 · RUN 2 still ask their question and send nothing: a dab is a new move, wired after LAB's sheet
 // (the owner, the same night: "first LAB, then the 40 × 40 first").
-import { HOLO, HOLO_LIB, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesY, WALL, contourHolo } from './holoplan.js';
+import { HOLO, HOLO_LIB, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesY, WALL, contourHolo, besideOf, MARKS_BESIDE } from './holoplan.js';
 import { PEN } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { machinePiece } from './inkaplan.js';
@@ -35,11 +35,12 @@ if (!S.machine) {                                                               
 const LIB = {}, IMG = {}, AFTER1 = {};
 let PIC = null;
 const jarOf = id => PIC.jars.find(j => j.id === id);
-const opts = () => ({ gap: S.gap, lasts: S.lasts, batch: S.batch, sDab: S.sDab, speed: S.speed });
+// MARKS beside the canvas (README's canon, 2026-11-14) wherever they fit beside it within the walls: the 40 × 40, not a 60 × 60
+const opts = (pic = PIC) => ({ gap: S.gap, lasts: S.lasts, batch: S.batch, sDab: S.sDab, speed: S.speed, marks: !!pic && placeRange(pic, reach()).marks });
 const PLANS = new Map();
 function plan(pic = PIC) {
-  const key = JSON.stringify([pic.id, opts()]);
-  if (!PLANS.has(key)) { if (PLANS.size > 8) PLANS.clear(); PLANS.set(key, planOf(pic, opts())); }
+  const key = JSON.stringify([pic.id, opts(pic)]);
+  if (!PLANS.has(key)) { if (PLANS.size > 8) PLANS.clear(); PLANS.set(key, planOf(pic, opts(pic))); }
   return PLANS.get(key);
 }
 const total = P => P.reduce((t, q) => t + q.seconds, 0);
@@ -56,7 +57,7 @@ function placeNow() {
 function wallsSay() {
   const r = rangeOf(), c = placeNow(), out = [];
   if (r.left[0] > r.left[1]) out.push(`the field, ${fmt(PIC.field.x1 - PIC.field.x0, 0)} mm across, is wider than the reach between the Y walls with their margins`);
-  else if (c.edgeLeft < r.left[0] || c.edgeLeft > r.left[1]) out.push(`the left edge out of ${fmt(r.left[0], 0)} … ${fmt(r.left[1], 0)}`);
+  else if (c.edgeLeft < r.left[0] || c.edgeLeft > r.left[1]) out.push(`the left edge out of ${fmt(r.left[0], 0)} … ${fmt(r.left[1], 0)}${r.marks ? ', MARKS\' slips beside it' : ''}`);
   if (c.edgeBottom < r.bottom[0] || c.edgeBottom > r.bottom[1]) out.push(`the bottom edge out of ${fmt(r.bottom[0], 0)} … ${fmt(r.bottom[1], 0)}`);
   return out.length ? `Past the walls: ${out.join('; ')}.` : '';
 }
@@ -268,7 +269,8 @@ async function watch() {
 const cv = $('#cv'), stage = $('#stage'), ctx = cv.getContext('2d');
 let K = 1, OX = 0, OY = 0, fitted = '', only = null, PLAY = null, NOW = null;
 const PLAY_MS = 180000;
-function fit() { const r = stage.getBoundingClientRect(), m = 26, k = Math.min((r.width - 2 * m) / PIC.w, (r.height - 2 * m) / PIC.h); K = k; OX = (r.width - PIC.w * k) / 2; OY = (r.height - PIC.h * k) / 2; }
+const besideNow = () => PIC && opts().marks ? besideOf(PIC) : null;   // MARKS' slips beside the canvas, where they fit
+function fit() { const r = stage.getBoundingClientRect(), m = 26, e = besideNow() ? MARKS_BESIDE.slip + 6 : 0, k = Math.min((r.width - 2 * m) / (PIC.w + 2 * e), (r.height - 2 * m) / PIC.h); K = k; OX = (r.width - PIC.w * k) / 2; OY = (r.height - PIC.h * k) / 2; }
 const sx = x => OX + x * K, sy = y => OY + (PIC.h - y) * K;
 function layout() {
   const r = stage.getBoundingClientRect(), d = devicePixelRatio || 1;
@@ -323,12 +325,35 @@ function draw() {
   else if (S.view === 'p2') { img(AFTER1[S.pic]); drawPuddles(g, 2); }
   else if (S.view === 'contour') { img(IMG[S.pic], 0.28); drawContour(g); }
   else drawStrokes(g);
+  drawMarks(g);
   // the brush's reach, the walls, with the canvas as it lies
   const W = reach(), c = placeNow(), x0 = W.y.min - c.edgeLeft, x1 = W.y.max - c.edgeLeft, y0 = W.x.min - c.edgeBottom, y1 = W.x.max - c.edgeBottom;
   g.save(); g.setLineDash([6, 4]); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2; g.strokeRect(sx(x0), sy(y1), (x1 - x0) * K, (y1 - y0) * K); g.restore();
   // the line the pen is on, DRAW BW's
   if (NOW?.line) { g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(2, 1.6 * K); g.strokeStyle = '#EB7A25'; linePath(g, NOW.line); g.stroke(); }
   if (PLAY?.tip) { const t = PLAY.tip; g.fillStyle = t.hex; g.strokeStyle = t.kind === 'dab' ? '#EB7A25' : '#24221F'; g.lineWidth = 2; g.beginPath(); g.arc(sx(t.at[0]), sy(t.at[1]), 5, 0, 7); g.fill(); g.stroke(); }
+}
+// MARKS beside the canvas: every slip the paper on its plate, its number; its cells, and the marks in their jars' colours where the view shows the
+// paint (Picture, Drag), ▶ Play's as it lays them
+function drawMarks(g) {
+  const B = besideNow();
+  if (!B) return;
+  const o = MARKS_BESIDE, P = plan(), cellsOnly = ['p1', 'p2', 'contour'].includes(S.view) && !PLAY;
+  g.save();
+  for (const s of B.strips) {
+    const [x0, y0, x1, y1] = s.slip;
+    g.fillStyle = 'rgba(255,255,255,.92)'; g.strokeStyle = 'rgba(36,34,31,.45)'; g.lineWidth = 1;
+    g.fillRect(sx(x0), sy(y1), (x1 - x0) * K, (y1 - y0) * K); g.strokeRect(sx(x0), sy(y1), (x1 - x0) * K, (y1 - y0) * K);
+    g.fillStyle = '#B3470C'; g.font = '600 11px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.fillText(String(s.no), sx((x0 + x1) / 2), sy(y1) - 5);
+  }
+  g.strokeStyle = 'rgba(36,34,31,.28)'; g.lineWidth = 1;
+  for (const L of P) for (const m of L.marks) { const [x, y] = m.at; g.strokeRect(sx(x - o.trail / 2), sy(y + o.leg / 2), o.trail * K, o.leg * K); }
+  if (!cellsOnly) {
+    g.lineCap = 'round'; g.lineWidth = Math.max(0.5, o.trail * K * 0.92);
+    const shown = PLAY ? PLAY.marks : P.flatMap(L => L.marks.map(m => ({ pts: m.pts, hex: L.hex, key: L.key })));
+    for (const m of shown) { g.globalAlpha = dim(m.key); g.strokeStyle = m.hex; g.beginPath(); g.moveTo(sx(m.pts[0][0]), sy(m.pts[0][1])); g.lineTo(sx(m.pts[1][0]), sy(m.pts[1][1])); g.stroke(); }
+  }
+  g.restore();
 }
 // Contour: DRAW BW's lines as the pen draws them, over the picture veiled
 const linePath = (c, l) => { c.beginPath(); l.forEach((q, i) => i ? c.lineTo(sx(q[0]), sy(q[1])) : c.moveTo(sx(q[0]), sy(q[1]))); };
@@ -367,7 +392,7 @@ $('#btnPlay').onclick = () => {
   if (!M.length) return;
   off.width = PIC.w * s; off.height = PIC.h * s; c.fillStyle = GROUND; c.fillRect(0, 0, off.width, off.height);
   const X = x => x * s, Y = y => (PIC.h - y) * s, w = PIC.pitch * s * 0.92, end = M.at(-1).to;
-  const Q = PLAY = { cv: off, end, want: 0, i: 0, at: 0, tip: null, line: 0, t0: performance.now(), said: 0, P, M };
+  const Q = PLAY = { cv: off, end, want: 0, i: 0, at: 0, tip: null, line: 0, t0: performance.now(), said: 0, P, M, marks: [] };
   $('#btnPlay').textContent = '■ Stop'; $('#btnPlay').classList.add('on');
   const step = () => {
     if (PLAY !== Q) return;
@@ -375,7 +400,8 @@ $('#btnPlay').onclick = () => {
     Q.want = u < 1 ? end * u * u : end;
     while (Q.i < M.length && M[Q.i].from <= Q.want) {
       const m = M[Q.i], L = P[m.line], f = Math.min(1, (Q.want - m.from) / (m.to - m.from || 1));
-      if (m.kind === 'dab') { if (f >= 1) puddle(c, X(m.at[0]), Y(m.at[1]), m.dabs, L.hex, s); Q.tip = { kind: 'dab', at: m.at, hex: L.hex }; }
+      if (m.kind === 'mark') { if (f >= 1) Q.marks.push({ pts: m.pts, hex: L.hex, key: L.key }); Q.tip = { kind: 'dab', at: m.at, hex: L.hex }; }   // off the canvas: draw()'s
+      else if (m.kind === 'dab') { if (f >= 1) puddle(c, X(m.at[0]), Y(m.at[1]), m.dabs, L.hex, s); Q.tip = { kind: 'dab', at: m.at, hex: L.hex }; }
       else {
         const [a, b] = [m.pts[0][1], m.pts[1][1]], y = a + (b - a) * f, y0 = a + (b - a) * Q.at;
         if (L.run === 1) { c.strokeStyle = L.hex; c.lineWidth = w; c.lineCap = 'butt'; c.beginPath(); c.moveTo(X(m.pts[0][0]), Y(y0)); c.lineTo(X(m.pts[0][0]), Y(y)); c.stroke(); }
@@ -430,7 +456,7 @@ function lcd(st = lastSt) {
   const ended = !Q && st && st.state !== 'idle', pct = Q ? Q.want / Q.end * 100 : ended ? (st.state === 'done' ? 100 : st.percent || 0) : 0, at = Q ? Q.line : 0, j = P[at], nx = P[at + 1];
   if (Q) markRun(at);
   const m = Q?.M[Math.min(Q.i, Q.M.length - 1)], B = j?.batches.length ?? 0;
-  const now = Q && m ? `${j.run === 1 ? 'Run 1' : 'Run 2'} · batch ${m.batch + 1} of ${B} · ${m.kind === 'dab' ? 'laying the puddles' : 'dragging them'} · est.` : `${PIC.title} · ${dabsIn(P)} dabs · ${fmt(P.reduce((t, q) => t + q.mm, 0) / 1000, 1)} m of strokes`;
+  const now = Q && m ? `${j.run === 1 ? 'Run 1' : 'Run 2'} · ${m.kind === 'mark' ? `a new jar: one dip, its marks · ${m.no}, the ${m.side} slip` : `batch ${m.batch + 1} of ${B} · ${m.kind === 'dab' ? 'laying the puddles' : 'dragging them'}`} · est.` : `${PIC.title} · ${dabsIn(P)} dabs · ${fmt(P.reduce((t, q) => t + q.mm, 0) / 1000, 1)} m of strokes`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${Q ? '▶ play' : !st ? 'no server' : ended ? st.state : 'plan'}</span><span>${Q ? `line ${at + 1}/${P.length}` : `${P.length} lines`}</span></div>
     <div class="lcd-mid">
@@ -451,6 +477,7 @@ function runText(run, lines) {
     ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm; then one stroke the leg's whole field through them, no dip, even legs from the top down, odd ones up. `
     : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length, then one stroke towards its far end, no dip, till it gives out. `)
     + `${d} dabs in ${b} batches of about ${S.batch}, every batch laid, then dragged while wet; ${fmt(mm / 1000, 1)} m of strokes; ≈ ${hm(lines.reduce((t, q) => t + q.seconds, 0))} at ${S.sDab} s a dab (est.). Between two jars a pause: wipe the brush, put the next jar in the cup. `
+    + (lines.some(q => q.marks.length) ? `After every change of jar, before its first puddle: one dip, then its MARKS on the slips beside the canvas, 1 the left, 3 the right — the paper on the plates there (The canvas). ` : '')
     + `The canvas's left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home.`;
 }
 function askRun(run) {
@@ -488,7 +515,7 @@ function showPanel() {
   if (document.activeElement !== Lf) Lf.value = c.edgeLeft;
   if (document.activeElement !== Bf) Bf.value = c.edgeBottom;
   const f = PIC.field;
-  $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}The field ${fmt(f.x1 - f.x0, 0)} × ${fmt(f.y1 - f.y0, 0)} mm, ${fmt(f.x0, 0)} mm in from the canvas's edges. Within the walls for it: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line; est., the elbow's sweep at the bottom ${WALL.bottom} mm).`;
+  $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}The field ${fmt(f.x1 - f.x0, 0)} × ${fmt(f.y1 - f.y0, 0)} mm, ${fmt(f.x0, 0)} mm in from the canvas's edges. Within the walls for it: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line; est., the elbow's sweep at the bottom ${WALL.bottom} mm).` + marksSay(rg);
   canvasReads();
   for (const [id, k] of [['#fGap', 'gap'], ['#fBatch', 'batch'], ['#fSDab', 'sDab'], ['#fSpeed', 'speed']]) if (document.activeElement !== $(id)) $(id).value = S[k];
   if (document.activeElement !== $('#fLasts')) $('#fLasts').value = S.lasts ?? '';
@@ -504,6 +531,13 @@ function showPanel() {
   $('#jarNote').innerHTML = [none.length ? `${none.map(j => esc(j.name)).join(', ')}: no number on the lid yet, their colours off the photo (est.).` : '', ...photo.map(j => `${esc(j.name)}: ${esc(j.note)}.`)].filter(Boolean).join(' ');
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm · ${PIC.composition}`;
   lcd();
+}
+// MARKS' read: where the slips go, or why there are none (README's canon, 2026-11-14)
+function marksSay(rg) {
+  if (!rg.marks) return `<br><b>MARKS</b>: none — the canvas, ${fmt(PIC.w, 0)} mm across Y, leaves no room beside it within the walls; the slips' marks fit beside a canvas up to ${rg.widest} mm across (the owner, 2026-11-14: "only 40 × 40 for now").`;
+  const B = besideNow(), o = MARKS_BESIDE, s = B.strips[0].slip;
+  return `<br><b>MARKS</b> beside the canvas: a paper slip on each plate, <b>1</b> by the middle of the left edge, <b>3</b> by the right, against the edge, ${o.slip} mm out from it, ${fmt(s[1], 0)}–${fmt(s[3], 0)} mm up from the canvas's bottom edge; `
+    + `${B.n} cells, a jar a cell, the first at the top${B.rows > 1 ? ', a jar\'s run 2 in a second row farther out' : ''}, the marks ${o.gap}–${fmt(B.depth, 0)} mm out from the edge. After every change of jar one dip, then its mark on 1, then on 3, then its first puddle on a dip of its own (est.).`;
 }
 let CANVAS_INFO = false;
 function canvasReads() { const p = $('#placeRead'); p.hidden = !CANVAS_INFO && !p.querySelector('.warn'); $('#canvasInfo').classList.toggle('on', CANVAS_INFO); }

@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: MARKS beside the canvas, the canon's first** (2026-11-14; the owner, of the 60 × 60s: "only 40 × 40 for now"; "we can boldly
+  make 55 cm"). The 40 × 40's two paper slips off the canvas, 1 by the middle of its left edge, 3 by its right, 40 × 150 mm (125–275 mm
+  up), the photo's: a jar a cell, the first at the top, a jar in both runs its run 2 in a second row farther out; the marks 8 mm off the
+  canvas's edge (est.). After every change of jar one dip, its mark on 1, then on 3, then its first puddle on a dip of its own: in the
+  plan, its time (+ 2.4 min on the 40 × 40, est.), ▶ Play and its LCD, the RUN questions; the slips on the screen, their cells, the marks
+  in their jars' colours on Picture and Drag. The place keeps both slips' marks within the Y walls: the 40 × 40's left edge 17 … 152
+  (was −19 … 188). A 60 × 60: none, The canvas says why — the marks fit beside a canvas up to 536 mm across (est.). `holoplan.js`
+  (`MARKS_BESIDE`, `besideOf`, `markCells`, `placeRange`), `holo.js`. Tests; checked in headless Chrome. Nothing sent: RUN 1 · RUN 2
+  still unwired.
 - **README: MARKS beside the canvas, the canon** (2026-11-14; the owner, `HOLO-Claude/IMG_2903.jpg`, two places circled in green, and
   `color_marks.png`: "the places where the papers will lie, so that the machine dips as in color_marks.png — this is the new canon. All the
   new pictures come with such tables"). Every new picture its MARKS, FORM-G's, on paper slips on the two metal plates by the middles of

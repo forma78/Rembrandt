@@ -70,20 +70,57 @@ export function workOf(pic, line, o = {}) {
   const puddles = items.flatMap(q => q.puddles), strokes = items.map(q => q.stroke);
   return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), puddles, strokes, batches, mm: strokes.reduce((t, s) => t + Math.abs(s.pts[1][1] - s.pts[0][1]), 0) };
 }
-// the whole list's work, every line its numbers and its time (est.: a dab sDab s, a stroke at `speed`)
-export function planOf(pic, o = {}) {
-  const sDab = o.sDab ?? HOLO.sDab, speed = o.speed ?? HOLO.speed;
-  return seqOf(pic).map(line => { const w = workOf(pic, line, o); return { ...line, ...w, seconds: w.dabs * sDab + w.mm / speed }; });
+// ---------- MARKS beside the canvas (README's canon, 2026-11-14) ----------
+// The owner, 2026-11-14 (HOLO-Claude/IMG_2903.jpg, two places circled in green; color_marks.png, FORM-G's strips 1 and 3): "the places where the
+// papers will lie, so that the machine dips as in color_marks.png — this is the new canon. All the new pictures come with such tables." Paper
+// slips on the metal plates by the middles of the canvas's left and right edges, off the canvas, FORM-G's MARKS on them: after every change of
+// jar one dip, then its mark on the left slip (1), then on the right (3), then its first puddle on a dip of its own. A jar's cell by its place
+// among the list's jars, the first at the top; a jar in both runs its run-2 line in a second row, farther out (FORM-G's second coat). Not on a
+// 60 × 60: the canvas alone is wider than the reach across Y (the owner, the same day: "only 40 × 40 for now").
+// mm, est.: leg, along, across, trail FORM-G's MARKS; gap, the canvas's edge to the nearer row's trail; slip, the paper across Y off the photo
+// (≈ 40 × 150); a mark after the line's first sMark s more, the way across the canvas to the other slip
+export const MARKS_BESIDE = { leg: 8, along: 14, across: 12, trail: 8, gap: 8, slip: 40, sMark: 5 };
+export function markCells(seq) {
+  const k = new Map(), run1 = new Set(seq.filter(q => q.run === 1).map(q => q.jar));
+  for (const q of seq) if (!k.has(q.jar)) k.set(q.jar, k.size);
+  return seq.map(q => ({ k: k.get(q.jar), row: q.run === 2 && run1.has(q.jar) ? 1 : 0 }));
 }
-// the moves in their order, for ▶ Play and the LCD: a batch's dabs, then its strokes; every move its length in "mm of run" so a dab
-// weighs as much time as a stroke (est.: a dab sDab s = sDab × speed mm)
+// → { n cells a slip, rows, depth: mm out from the canvas's edge its marks take, strips: [{ no, side, box: [x0, y0, x1, y1], slip: [x0, y0, x1, y1] }],
+// marks: a line of the list → [{ no, side, at: [x, y], pts }], a mark from its bottom up }; the picture's mm, the left slip at x < 0, the right past w
+export function besideOf(pic, o = MARKS_BESIDE) {
+  const cells = markCells(seqOf(pic)), n = Math.max(0, ...cells.map(c => c.k + 1)), rows = cells.some(c => c.row) ? 2 : 1;
+  const depth = o.gap + (rows - 1) * o.across + o.trail, top = pic.h / 2 + (n - 1) * o.along / 2, bottom = top - (n - 1) * o.along;
+  const xOf = (side, row) => { const d = o.gap + o.trail / 2 + row * o.across; return side === 'left' ? -d : pic.w + d; };
+  const strips = [{ no: 1, side: 'left' }, { no: 3, side: 'right' }].map(s => {
+    const xs = [xOf(s.side, 0), xOf(s.side, rows - 1)], edge = s.side === 'left' ? 0 : pic.w, out = s.side === 'left' ? -o.slip : pic.w + o.slip;
+    return { ...s, box: [Math.min(...xs) - o.trail / 2, bottom - o.leg / 2, Math.max(...xs) + o.trail / 2, top + o.leg / 2],
+      slip: [Math.min(edge, out), bottom - o.leg / 2 - o.leg, Math.max(edge, out), top + o.leg / 2 + o.leg] };
+  });
+  const marks = cells.map(({ k, row }) => strips.map(s => { const x = xOf(s.side, row), y = top - k * o.along; return { no: s.no, side: s.side, at: [x, y], pts: [[x, y - o.leg / 2], [x, y + o.leg / 2]] }; }));
+  return { n, rows, depth, strips, marks };
+}
+
+// the whole list's work, every line its numbers and its time (est.: a dab sDab s, a stroke at `speed`); o.marks: every line its MARKS
+// first (besideOf's), a dip and its marks, sDab s the first, MARKS_BESIDE.sMark every next
+export function planOf(pic, o = {}) {
+  const sDab = o.sDab ?? HOLO.sDab, speed = o.speed ?? HOLO.speed, M = o.marks ? besideOf(pic).marks : null;
+  return seqOf(pic).map((line, i) => {
+    const w = workOf(pic, line, o), marks = M?.[i] ?? [], sm = marks.length ? sDab + (marks.length - 1) * MARKS_BESIDE.sMark : 0;
+    return { ...line, ...w, marks, seconds: w.dabs * sDab + w.mm / speed + sm };
+  });
+}
+// the moves in their order, for ▶ Play and the LCD: a line's marks, then a batch's dabs, then its strokes; every move its length in
+// "mm of run" so a dab weighs as much time as a stroke (est.: a dab sDab s = sDab × speed mm)
 export function movesOf(lines, o = {}) {
   const sDab = o.sDab ?? HOLO.sDab, speed = o.speed ?? HOLO.speed, out = [];
   let t = 0;
-  lines.forEach((L, li) => L.batches.forEach((B, bi) => {
-    for (const p of B.puddles) { const s = p.dabs * sDab; out.push({ kind: 'dab', line: li, batch: bi, at: [p.x, p.y], dabs: p.dabs, from: t, to: (t += s) }); }
-    for (const q of B.strokes) { const s = Math.abs(q.pts[1][1] - q.pts[0][1]) / speed; out.push({ kind: 'drag', line: li, batch: bi, pts: q.pts, fade: q.fade, from: t, to: (t += s) }); }
-  }));
+  lines.forEach((L, li) => {
+    (L.marks ?? []).forEach((m, i) => out.push({ kind: 'mark', line: li, batch: 0, no: m.no, side: m.side, at: m.at, pts: m.pts, from: t, to: (t += i ? MARKS_BESIDE.sMark : sDab) }));
+    L.batches.forEach((B, bi) => {
+      for (const p of B.puddles) { const s = p.dabs * sDab; out.push({ kind: 'dab', line: li, batch: bi, at: [p.x, p.y], dabs: p.dabs, from: t, to: (t += s) }); }
+      for (const q of B.strokes) { const s = Math.abs(q.pts[1][1] - q.pts[0][1]) / speed; out.push({ kind: 'drag', line: li, batch: bi, pts: q.pts, fade: q.fade, from: t, to: (t += s) }); }
+    });
+  });
   return out;
 }
 // how much paint a run-2 stroke leaves at a point, 0 … 1, by its share of the way from its start (est., the study's: thick where it
@@ -104,10 +141,15 @@ export function contourHolo(pic, o = {}) {
 // 60s' places by the legs' middles put the pen up to 2.5 mm past the Y wall, and the blue's TEST dots on it) — and the legs' ends within the
 // X walls, more room at the bottom, where the elbow sweeps the carriage past a leg's end, and at the top (MARKS' numbers, est.); EDGE_IN,
 // plotRun's own 0.1 mm inside, and FORM-G's 0.2 mm more; walls: machine.js's reach(). A plotRun of the run gives the real range once the
-// run is wired, as FORM-G's.
+// run is wired, as FORM-G's. With MARKS beside it (besideOf) both slips' marks within the Y walls too, where they fit: `marks` says if they
+// do, `widest` the widest canvas across Y they fit beside.
 export const WALL = { side: 0, bottom: 25, top: 8 }, WALL_IN = 0.2;
-export function placeRange(pic, walls, w = WALL) {
+export function placeRange(pic, walls, w = WALL, beside = besideOf(pic)) {
   const Y = walls.y.max - walls.y.min, X = walls.x.max - walls.x.min, f = pic.field;
   const r = (lo, hi, m = 0) => [Math.ceil(lo + m - 1e-9), Math.floor(hi - m + 1e-9)];   // whole mm, as the page takes them, rounded inward
-  return { left: r(w.side - f.x0, Y - w.side - f.x1, WALL_IN), bottom: r(w.bottom - f.y0, X - w.top - f.y1) };   // X's margins are room enough
+  const left = r(w.side - f.x0, Y - w.side - f.x1, WALL_IN), bottom = r(w.bottom - f.y0, X - w.top - f.y1);   // X's margins are room enough
+  if (!beside?.n) return { left, bottom, marks: false, widest: null };
+  const m = r(beside.depth, Y - pic.w - beside.depth, WALL_IN), both = [Math.max(left[0], m[0]), Math.min(left[1], m[1])];
+  const widest = Math.floor(Y - 2 * (beside.depth + WALL_IN));
+  return both[0] <= both[1] ? { left: both, bottom, marks: true, widest } : { left, bottom, marks: false, widest };
 }

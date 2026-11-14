@@ -307,10 +307,13 @@ the machine dips as in color_marks.png — this is the new canon. All the new pi
 2. **The strips lie off the canvas**: paper slips on the two metal plates beside it, one by the middle of the canvas's left
    edge, one by its right, against the edge. FORM-G's were taped over the canvas, 15 mm in from its edge.
 3. Off the photo, est.: a slip ≈ 40 mm across Y, ≈ 150 mm along X — FORM-G's cells 14 mm apart, about 10 jars a strip.
-4. The canvas and both slips within the Y reach, 568.5 mm: a canvas up to ≈ 470 mm across Y (est.). The 40 × 40 has 168 mm
-   to spare, 84 a side; a 60 × 60 is itself 31.5 mm wider than the reach — open, asked.
+4. The marks within the Y reach, 568.5 mm: beside a canvas up to 536 mm across Y (512 with a second row, a jar in both of
+   HOLO's runs), the marks 8 mm off the canvas's edge (est.). The 40 × 40 fits; a 60 × 60 is itself 31.5 mm wider than the
+   reach — the owner, asked: "only 40 × 40 for now". A wider canvas, up to 55 cm (the owner: "we can boldly make 55 cm"),
+   fits the reach itself, its marks not beside it across Y.
 
-Not built yet.
+`holoplan.js` (`MARKS_BESIDE`, `besideOf`, `markCells`; `placeRange` keeps both slips' marks within the walls); on HOLO since
+2026-11-14 — the slips on the screen, the marks in the plan and ▶ Play. RUN 1 · RUN 2 still send nothing.
 
 ## Working rules
 

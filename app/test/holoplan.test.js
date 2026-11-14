@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { HOLO, HOLO_LIB, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange, contourHolo } from '../src/holoplan.js';
+import { HOLO, HOLO_LIB, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange, contourHolo, besideOf, markCells, MARKS_BESIDE } from '../src/holoplan.js';
 
 // HOLO (HOLO-Claude/HOLO.md, 2026-11-12): cloud-Claude's three pictures in the owner's jars, two runs of puddles laid, then dragged.
 const load = id => JSON.parse(fs.readFileSync(new URL(`../holo/${id}.json`, import.meta.url)));
@@ -80,7 +80,38 @@ test('where the canvas may lie: the field within the walls; the 60 × 60 blue\'s
   const r = placeRange(load('holo-60-blue'), WALLS);
   assert.ok(r.left[0] <= r.left[1] && r.left[1] - r.left[0] < 15, `${r.left}: its outer legs' middles 555 mm apart, the walls 568.5`);
   const t = placeRange(load('holo-40-warm'), WALLS);
-  assert.ok(t.left[1] - t.left[0] > 150 && t.bottom[1] - t.bottom[0] > 400);
+  assert.ok(t.left[1] - t.left[0] > 120 && t.bottom[1] - t.bottom[0] > 400, 'the 40 × 40 with its slips beside it');
+});
+
+test('MARKS beside the canvas (the canon of 2026-11-14): the 40 × 40 its two slips off the canvas, left and right, both within the Y walls; a 60 × 60 none', () => {
+  const W = load('holo-40-warm'), B = besideOf(W), r = placeRange(W, WALLS), o = MARKS_BESIDE;
+  assert.ok(r.marks && r.left[0] <= r.left[1]);
+  assert.deepEqual(B.strips.map(s => [s.no, s.side]), [[1, 'left'], [3, 'right']]);
+  assert.equal(B.n, W.jars.length, 'a jar a cell');
+  for (const left of r.left) for (const L of B.marks) for (const m of L) {
+    const y = left + m.at[0];                                                        // the mark's middle across Y, mm from home
+    assert.ok(y - o.trail / 2 >= 0.2 - 1e-9 && y + o.trail / 2 <= WALLS.y.max - 0.2 + 1e-9, `left ${left}: a mark at Y ${y}`);
+    assert.ok(m.side === 'left' ? m.at[0] + o.trail / 2 <= -o.gap + 1e-9 : m.at[0] - o.trail / 2 >= W.w + o.gap - 1e-9, 'off the canvas, the gap from its edge');
+    assert.ok(m.at[1] > 0 && m.at[1] < W.h, 'about the edge\'s middle, along it');
+  }
+  const ys = B.marks.map(L => L[0].at[1]);
+  assert.ok(ys.every((y, i) => !i || y <= ys[i - 1]), 'the first at the top');
+  assert.ok(Math.abs((Math.max(...ys) + Math.min(...ys)) / 2 - W.h / 2) < 1e-6, 'about the middle of the edge');
+  // the plan: every line its marks first, one dip's worth, then its puddles; ▶ Play the same
+  const P = planOf(W, { marks: true }), P0 = planOf(W);
+  assert.ok(P.every((L, i) => L.marks.length === 2 && L.seconds > P0[i].seconds) && P0.every(L => !L.marks.length));
+  const M = movesOf(P);
+  for (let i = 0; i < P.length; i++) { const own = M.filter(m => m.line === i); assert.deepEqual(own.slice(0, 2).map(m => [m.kind, m.no]), [['mark', 1], ['mark', 3]]); assert.equal(own[2].kind, 'dab'); }
+  // the 60 × 60s: the canvas alone wider than the reach across Y — no marks, the place by the field as before
+  for (const id of ['holo-60-blue', 'holo-60-tiers']) { const q = placeRange(load(id), WALLS); assert.ok(!q.marks && q.widest < 600 && q.widest > 500, `${id}: ${q.widest}`); }
+  assert.deepEqual(placeRange(load('holo-60-blue'), WALLS).left, [-19, -12]);
+});
+
+test('MARKS\' cells: a jar a cell by its first line, a jar in both runs its run-2 line in a second row', () => {
+  const seq = [{ jar: 'a', run: 1 }, { jar: 'b', run: 1 }, { jar: 'c', run: 2 }, { jar: 'a', run: 2 }];
+  assert.deepEqual(markCells(seq), [{ k: 0, row: 0 }, { k: 1, row: 0 }, { k: 2, row: 0 }, { k: 0, row: 1 }]);
+  const blue = load('holo-60-blue'), B = besideOf(blue);
+  assert.equal(B.rows, 2, 'the blue: one jar in both runs'); assert.equal(B.n, blue.jars.length);
 });
 
 test('anywhere in the range the field\'s edges stay 0.2 mm inside the Y walls, in whole mm: the blue\'s TEST and DRAW BW no hair past Y\'s (2026-11-14)', () => {
