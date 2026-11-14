@@ -11,8 +11,11 @@ Every leg its own ends, top and bottom apart (his sketch: blocks stepped over ea
   - blocks: every slat its ends stepped from its neighbour's, a random walk of whole steps, now and then a jump;
   - a wave along the edge, through the slats, a few mm;
   - the sides: the outer slats shorter, a staircase in, each side its own.
-Run 1 lays every leg's puddles along its own length and drags it end to end; run 2's shadows keep to the core all a slat's legs share (a band
-cut by it, under 12 mm none). The 60 × 60s 520 mm across (v.1 560 and 540), so that MARKS fit on the canvas by the field (README's canon).
+Run 1 lays every leg's puddles along its own length and drags it end to end. One rhythm for both runs (the owner, the same day, of the first
+v.2, its run-2 bands flat across a slat while run 1's puddles danced with the legs' ends: "if the drops in run 1 are even in a row, then in run 2
+they are even … keep the dance in the second layer"; README): run 2's bands are the composition's, in its base frame (the v.1 field's height),
+laid on every leg between its own ends, the stroke's end never past it, a dab by its length there — holoplan.js's bandOn and dabsOn, the same
+numbers. The 60 × 60s 520 mm across (v.1 560 and 540), so that MARKS fit on the canvas by the field (README's canon).
 
 python holo_v2.py [id …]     (a venv with numpy, pillow and scipy; the working directory this one; ids the v.1 ones: holo-40-warm …)
 """
@@ -41,7 +44,7 @@ SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-6
 
 
 def ragged(st, c):
-    """every leg its ends (study's mm, y down): [top, bottom]; a slat's core, where all its legs are"""
+    """every leg its ends (study's mm, y down): [top, bottom]"""
     rng = np.random.default_rng(c['seed']); n = len(st.slats); m, out, step, deep = c['margin'], c['out'], c['step'], c['deep']
 
     def walk():
@@ -73,30 +76,40 @@ def ragged(st, c):
                 mid = (t + b) / 2; t, b = mid - 0.2 * (st.H - 2 * m), mid + 0.2 * (st.H - 2 * m)
             ends.append((round(float(t), 1), round(float(b), 1)))
         sl['ends'] = ends
-        sl['core'] = (max(e[0] for e in ends), min(e[1] for e in ends))
     for leg in st.legs:
         sl = leg['slat']; leg['ends'] = sl['ends'][leg['n'] - sl['i0']]
 
 
 def cut(st):
-    """run 1's puddles along every leg's own length; run 2's bands within its slat's core, as the study lays them"""
-    tiers = st.comp == 'tiers'
+    """run 1's puddles along every leg's own length, as the study lays them along the field"""
     for leg in st.legs:
         sl = leg['slat']; t, b = leg['ends']
         if not sl['light']: leg['light'] = []; continue
         g = sl['light'][0][1]; k = int(np.ceil((b - t - 8) / st.gap)) + 1
         leg['light'] = [(float(y), g, 1) for y in np.linspace(t + 4, b - 4, k)]
-    for sl in st.slats:
-        ct, cb = sl['core']; dark = []
-        for start, c, dose, blen, down, a, b in sl['dark']:
-            a2, b2 = max(a, ct), min(b, cb)
-            if b2 - a2 < 12: continue
-            L = b2 - a2
-            dose = int(np.clip(round(L / 45), 1, 4)) if tiers else int(np.clip(round(L / 55), 1, 3))
-            start = a2 + 5 if down else b2 - 5
-            reach = min(st.last * L, (cb - start) if down else (start - ct))   # never past the core's end, where some leg ends
-            dark.append((start, c, dose, reach / st.last, down, a2, b2))
-        sl['dark'] = dark
+
+
+jsround = lambda v: int(np.floor(v + 0.5))                             # JavaScript's Math.round, not Python's to-even
+
+
+def band_on(p, ends, band):
+    """holoplan.js's bandOn and dabsOn, number for number: the band on a leg between its ends, y up → (band, its dabs)"""
+    B = p['base']; y0, y1 = ends
+    w = lambda y: y0 + (y - B['y0']) * (y1 - y0) / (B['y1'] - B['y0'])
+    q = dict(band, y0=w(band['y0']), y1=w(band['y1']), start=w(band['start']), end=min(y1, max(y0, w(band['end']))))
+    return q, max(1, min(4 if p['composition'] == 'tiers' else 3, jsround((q['y1'] - q['y0']) / p['est']['a_dab_lasts'])))
+
+
+def warp_dark(st, p):
+    """every leg's run 2 from the plan's numbers, in the study's frame (y down) for its render: (start, jar, dabs, blen, down, a, b)"""
+    Hh = st.H
+    for leg in st.legs:
+        s = p['slats'][st.slats.index(leg['slat'])]; e = s['ends'][leg['n'] - leg['slat']['i0']]; dark = []
+        for band in s['bands']:
+            q, d = band_on(p, e, band)
+            down = band['way'] == 'down'
+            dark.append((Hh - q['start'], band['hex'], d, abs(q['end'] - q['start']) / st.last, down, Hh - q['y1'], Hh - q['y0']))
+        leg['dark'] = dark
 
 
 def render(st, stage, seed=7):
@@ -122,6 +135,7 @@ def render(st, stage, seed=7):
                 edge = np.ones(tw); edge[:2] = 0.82; edge[-2:] = 0.82; edge[2] = edge[-3] = 1.06
                 band = prof[:, None, :] * (streak[None, :, None] * (1 + drift[..., None])) * edge[None, :, None]
             if stage == 'r2':
+                leg['slat']['dark'] = leg['dark']                     # this leg's own bands, between its ends
                 sh = st.shadow(leg, n)
                 cap = (capmm * 2.2 / 1.6 * PPM).astype(int)
                 sft = lambda v, k: np.concatenate([np.zeros(k), v[:len(v) - k]]) if k > 0 else (np.concatenate([v[-k:], np.zeros(-k)]) if k < 0 else v)
@@ -138,7 +152,7 @@ def render(st, stage, seed=7):
     if stage in ('p1', 'p2'):
         d = ImageDraw.Draw(pil)
         for leg in st.legs:
-            pts = [(y, c, 1) for y, c, _ in leg['light']] if stage == 'p1' else [(q[0], q[1], q[2]) for q in leg['slat']['dark']]
+            pts = [(y, c, 1) for y, c, _ in leg['light']] if stage == 'p1' else [(q[0], q[1], q[2]) for q in leg['dark']]
             for y, c, dose in pts:
                 rx, ry = 2.0, 2.6 + 1.1 * dose
                 colr = tuple(int(v * 255) for v in H.l2s(H.hexlin(c))); X, Y = leg['x'] * PPM, y * PPM
@@ -147,24 +161,30 @@ def render(st, stage, seed=7):
 
 
 def plan(st, pid, title):
-    """the study's plan, every slat its legs' ends, the field the box round them all; the counts by every leg's own puddles"""
+    """the study's plan, its bands in the base frame (the v.1 field's height, `base`), every slat its legs' ends, the field the box round
+    them all; the counts by every leg's own puddles and its warped bands"""
     up = lambda y: round(st.H - y, 1)
     for sl in st.slats: sl['light'] = sl['light'][:1] if sl['light'] else []   # the ground's jar, for the study's own plan
     p = st.plan(pid, title)
-    jars = {}
-    for leg in st.legs:
-        for _, c, _ in leg['light']: jars.setdefault(c, [0, 0])[0] += 1
-        for q in leg['slat']['dark']: jars.setdefault(q[1], [0, 0])[1] += q[2]
-    for q in p['jars']: q['run1_dabs'], q['run2_dabs'] = jars.get(q['hex'], [0, 0])
-    p['jars'] = [q for q in p['jars'] if q['run1_dabs'] or q['run2_dabs']]
+    p['base'] = dict(y0=up(st.y1), y1=up(st.y0))
     for s, sl in zip(p['slats'], st.slats):
         s['ends'] = [[up(b), up(t)] for t, b in sl['ends']]         # y up: [bottom, top]
         s['puddles_y'] = []
+        for b in s['bands']: b['hex'] = b['jar']
+    jars = {}
+    for leg in st.legs:
+        for _, c, _ in leg['light']: jars.setdefault(c, [0, 0])[0] += 1
+    run2_puddles = run2_dabs = 0
+    for s, sl in zip(p['slats'], st.slats):
+        for e in s['ends']:
+            for band in s['bands']:
+                _, d = band_on(p, e, band); jars.setdefault(band['jar'], [0, 0])[1] += d; run2_puddles += 1; run2_dabs += d
+    for q in p['jars']: q['run1_dabs'], q['run2_dabs'] = jars.get(q['hex'], [0, 0])
+    p['jars'] = [q for q in p['jars'] if q['run1_dabs'] or q['run2_dabs']]
     top = min(l['ends'][0] for l in st.legs); bot = max(l['ends'][1] for l in st.legs)
     p['field'].update(y0=up(bot), y1=up(top))
     line = sum(l['ends'][1] - l['ends'][0] for l in st.legs)
-    p['count'].update(run1_dabs=sum(len(l['light']) for l in st.legs), run2_puddles=sum(len(l['slat']['dark']) for l in st.legs),
-                      run2_dabs=sum(q[2] for l in st.legs for q in l['slat']['dark']), line_m=round(line / 1000, 1))
+    p['count'].update(run1_dabs=sum(len(l['light']) for l in st.legs), run2_puddles=run2_puddles, run2_dabs=run2_dabs, line_m=round(line / 1000, 1))
     return p
 
 
@@ -174,9 +194,10 @@ def make(pid, out=OUT, renders=True):
     ragged(st, c); cut(st)
     vid = pid + '-v2'
     p = plan(st, vid, '')
+    warp_dark(st, p)
     for s in p['slats']:
         s['ground'] = byhex[s['ground']] if s['ground'] else None
-        for b in s['bands']: b['jar'] = byhex[b['jar']]
+        for b in s['bands']: b['jar'] = byhex[b['jar']]; del b['hex']
     src = {}
     for k, v in J.MAP[pid].items(): src.setdefault(v, []).append(k)
     jars = []

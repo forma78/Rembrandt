@@ -37,6 +37,18 @@ export function puddlesAlong(y0, y1, gap = HOLO.gap, inset = HOLO.inset) {
 // a shadow's dabs by its band's length: one every `lasts` mm of band, 1 … the composition's most (the study's: 55 mm a dab on FAN, 45 on TIERS)
 export const dabsOf = (pic, band, lasts) => lasts ? Math.max(1, Math.min(HOLO.maxDabs[pic.composition] ?? 3, Math.round((band.y1 - band.y0) / lasts))) : band.dabs;
 
+// One rhythm for both runs (the owner, 2026-11-14, of v.2: "if the drops in run 1 are even in a row, then in run 2 they are even; … keep the
+// dance in the second layer"; README): a v.2's bands are its composition's, in its base frame (pic.base, the v.1 field's height), laid on every
+// leg between its own ends as run 1's puddles are — stretched or pressed with the leg, the stroke's end never past it; a dab by its length there
+// (est., the study's 55 mm a dab on FAN, 45 on TIERS). v.1, no base: the band as it is.
+const warpOn = (pic, g) => { const B = pic.base; return y => g.y0 + (y - B.y0) * (g.y1 - g.y0) / (B.y1 - B.y0); };
+export function bandOn(pic, g, band) {
+  if (!pic.base) return band;
+  const w = warpOn(pic, g);
+  return { ...band, y0: w(band.y0), y1: w(band.y1), start: w(band.start), end: Math.min(g.y1, Math.max(g.y0, w(band.end))) };
+}
+export const dabsOn = (pic, band) => Math.max(1, Math.min(HOLO.maxDabs[pic.composition] ?? 3, Math.round((band.y1 - band.y0) / pic.est.a_dab_lasts)));
+
 // the run's list: run 1's jars light to dark, then run 2's, on the dry first; a jar in both runs a line in each
 export function seqOf(pic) {
   const by = (a, b) => b.L - a.L;
@@ -59,9 +71,9 @@ export function workOf(pic, line, o = {}) {
       items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), stroke: { x: g.x, pts: [[g.x, a], [g.x, b]], fade: null } });
     }
   } else {
-    for (const g of legs) for (const band of g.slat.bands) {
-      if (band.jar !== line.jar) continue;
-      const d = dabsOf(pic, band, lasts);
+    for (const g of legs) for (const band0 of g.slat.bands) {
+      if (band0.jar !== line.jar) continue;
+      const band = bandOn(pic, g, band0), d = pic.base && !lasts ? dabsOn(pic, band) : dabsOf(pic, band, lasts);
       items.push({ puddles: [{ x: g.x, y: band.start, dabs: d }], stroke: { x: g.x, pts: [[g.x, band.start], [g.x, band.end]], fade: { full: pic.est.shadow_full ?? 0, band } } });
     }
   }

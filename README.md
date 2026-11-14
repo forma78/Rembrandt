@@ -319,6 +319,25 @@ the machine dips as in color_marks.png — this is the new canon. All the new pi
 first, else on it); on HOLO since 2026-11-14 — the slips on the screen, the marks in the plan and ▶ Play. RUN 1 · RUN 2 still
 send nothing.
 
+## A picture's edges and its rhythm — HOLO's v.2 (canon)
+
+The owner, 2026-11-14, of the first three HOLO pictures (`HOLO-Claude/opm-n-screen.png`, `opm-w-screen.png`, his sketch
+`IMG_2907.jpg`): "the graphics live in a banal square, which still has to be laid evenly on the canvas, debugged as if it were a
+print on a T-shirt … my works have no four even edges, they sit in the middle of the picture and go out in rays. So if we do not hit
+the centre to the millimetre, nothing terrible: it will be the artist's intent." Then, of the first v.2 (`Screenshot 2026-11-14 at
+4.36.18 PM.png`, `4.30.38 PM.png`): "be consistent and remember how your first tab is made: one rhythm for two runs. If the drops are
+even in a row in the first run, then in the second they are even … in the first run the drops begin to 'dance'. A more complex rhythm
+appears, which makes the picture a work of art, not algorithmic rubbish from a UI/UX designer making iPhone wallpapers. But be
+consistent then! Keep the dance in the second layer — for now it is a 'relic' of v.1."
+
+1. **No even frame.** A picture's edges are ragged — blocks stepped over each other, a wave along them, a staircase in at a corner
+   or two — so that a canvas laid a few mm off reads as intent, and the work is not shut in a square.
+2. **One rhythm for both runs.** Whatever moves run 1's puddles moves run 2's too: a leg's every puddle, band and shadow laid
+   between its own ends by the same measure, stretched or pressed with the leg. No layer keeps the old even grid while another
+   dances.
+
+`holoplan.js` (`legsOf`, `puddlesAlong`, `bandOn`, `dabsOn`), `HOLO-Claude/generator/holo_v2.py`. Every v.1 kept; a v.2 after it.
+
 ## Working rules
 
 - **The artist decides what to paint. The brush determines how it can be

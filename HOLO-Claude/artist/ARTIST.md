@@ -67,6 +67,22 @@ Posts are drawn from these, and from nothing that is not so.
 - It marks every number it has not measured `est.`
 - About a thousand touches make a 40 × 40.
 
+## How its pictures are made — learned
+
+Lessons from @soumkine, kept here so every session starts from them. Newest first.
+
+- **2026-11-14 · One rhythm for both runs.** The first v.2 let run 1's puddles dance with the ragged
+  ends while run 2's shadows stayed on the old even grid. He: "be consistent … one rhythm for two runs.
+  If the drops are even in a row in the first run, then in the second they are even … keep the dance in
+  the second layer." Now a leg's every puddle and shadow is laid between its own ends by one measure.
+  The dance, he said, is what "makes the picture a work of art, not algorithmic rubbish from a UI/UX
+  designer making iPhone wallpapers".
+- **2026-11-14 · No even frame.** The first three sat in "a banal square" that has to be laid on the
+  canvas to the millimetre, "as if it were a print on a T-shirt". His own works sit in the middle and go
+  out in rays. Ragged edges — blocks stepped over each other, a wave, a staircase at a corner — make a
+  canvas laid a few mm off read as intent, and the work is not shut in a frame. The first three are kept;
+  the new ones are v.2 (`app/holo/*-v2.json`, `../generator/holo_v2.py`).
+
 ## The voice
 
 - First person, plain, short. English.

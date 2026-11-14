@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO v.2: one rhythm for both runs** (2026-11-14; the owner, `HOLO-Claude/Screenshot 2026-11-14 at 4.36.18 PM.png`, run 1's puddles
+  dancing with the ragged ends, and `4.30.38 PM.png`, run 2's band edges flat across a slat, arrows up to the legs' ends: "be consistent …
+  one rhythm for two runs … keep the dance in the second layer — for now it is a 'relic' of v.1"). A v.2's bands are its composition's, in
+  its base frame (`base`, the v.1 field's height), laid on every leg between its own ends as run 1's puddles are, the stroke's end never past
+  it, a dab by its length there (`bandOn`, `dabsOn`); the generator renders run 2 by the same numbers (`band_on`, JavaScript's rounding). No
+  more cutting a slat's shadows to its shortest leg. Written into README (a picture's edges and its rhythm, canon) and the artist's
+  `ARTIST.md` (how its pictures are made — learned). Tests; checked in headless Chrome.
 - **HOLO v.2: ragged edges, every picture's v.2 after its v.1** (2026-11-14; the owner, `HOLO-Claude/opm-n-screen.png`, `opm-w-screen.png`,
   his sketch `IMG_2907.jpg`: "the graphics live in a banal square, which still has to be laid evenly on the canvas, debugged as if it were a
   print on a T-shirt … my works have no four even edges … if we do not hit the centre to the millimetre, nothing terrible: it will be the

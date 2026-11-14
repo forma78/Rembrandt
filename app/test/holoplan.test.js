@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { HOLO, HOLO_LIB, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange, contourHolo, besideOf, markCells, MARKS_BESIDE } from '../src/holoplan.js';
+import { HOLO, HOLO_LIB, legsOf, puddlesY, dabsOf, seqOf, workOf, planOf, movesOf, shadeAt, placeRange, contourHolo, besideOf, markCells, MARKS_BESIDE, bandOn } from '../src/holoplan.js';
 
 // HOLO (HOLO-Claude/HOLO.md, 2026-11-12): cloud-Claude's three pictures in the owner's jars, two runs of puddles laid, then dragged.
 const load = id => JSON.parse(fs.readFileSync(new URL(`../holo/${id}.json`, import.meta.url)));
@@ -182,6 +182,16 @@ test('v.2, ragged edges (the owner, 2026-11-14): every v.1 kept, its v.2 after i
     // DRAW BW's outline round the ragged edge: every point of it on a leg's end or side
     const O = contourHolo(v2, { outline: true });
     assert.ok(O.lines.length >= 1 && O.mm > 2 * ((f.x1 - f.x0) + (f.y1 - f.y0)), `${id}-v2: the outline longer than the box's, ${O.mm}`);
+  }
+  // one rhythm for both runs: a band sits on every leg of its slat at the same share of the leg's own length, as run 1's puddles do
+  for (const id of ['holo-40-warm-v2', 'holo-60-tiers-v2']) {
+    const p = load(id), L = legsOf(p), sl = p.slats.find(s => s.bands.length && s.legs > 2 && new Set(s.ends.map(e => e[1])).size > 1);
+    const own = L.filter(g => g.slat === sl), share = (g, y) => (y - g.y0) / (g.y1 - g.y0);
+    for (const b of sl.bands) {
+      const at = own.map(g => share(g, bandOn(p, g, b).start));
+      assert.ok(Math.max(...at) - Math.min(...at) < 1e-9, `${id}: a band's start at one share of every leg, ${at}`);
+      const tops = own.map(g => bandOn(p, g, b).y1); assert.ok(new Set(tops.map(v => v.toFixed(3))).size > 1, 'its edge dances with the legs\' ends');
+    }
   }
   // v.1 as it was: every leg the field's whole height
   const v1 = load('holo-40-warm'); assert.ok(legsOf(v1).every(g => g.y0 === v1.field.y0 && g.y1 === v1.field.y1));
