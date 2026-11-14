@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: TEST at the canvas's own corners; Preferences' margin may be 0** (2026-11-14, the evening; the owner: "why 32.5 mm? The cross
+  this time has to stand right in the corner, no margin; then from the top left to the right it is exactly 40 cm, and from the bottom to
+  the top 40 cm too. That is how I will set the centre"; "in Preferences I am not allowed to make 0"). HOLO's TEST, its third way: band.js's
+  `cornerDots`, the canvas's corners Preferences' margin in, TL twice with its wait; a canvas wider than the reach (a 60 × 60) the field's
+  corners as before. A corner past a wall is not pressed into it: TEST says which and by how much (a 40 × 40 with its bottom edge at 0 has
+  its bottom corners on the wall). Preferences: the margin 0 … 100 mm (was 1 … 100), 0 "at each corner itself" (`prefs.js`, `testSay`,
+  the page's words) — for every tab's TEST. Checked in headless Chrome, nothing sent.
 - **HOLO: TEST touches TL twice as Preferences say; the field's corners, no margin** (2026-11-14; the owner: "I press TEST, but maybe the
   margins of 5 mm on each side from the Preferences are off? … the button to touch the top left twice is lit, and the machine touches only
   once"; then, of the field's corners as FORM-G's: "that suits me, then let us do it without margins"). HOLO's TEST, FORM-G's, read no

@@ -43,7 +43,7 @@ function show() {
   $('#testFirst').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.first === P.testFirst));
   board();
   const two = P.testFirst >= 2;
-  $('#testRead').innerHTML = `TEST puts a dot <b>${P.testMargin} mm</b> in from each corner of the canvas, round it TL, TR, BR, BL, then home`
+  $('#testRead').innerHTML = `TEST puts a dot ${P.testMargin ? `<b>${P.testMargin} mm</b> in from each corner` : '<b>at each corner itself</b>, no margin,'} of the canvas, round it TL, TR, BR, BL, then home`
     + (two ? `; at TL <b>two dots, ${P.testGap} s apart</b>, the brush up between — time to see where the new canvas goes.` : `; at TL <b>one dot</b>.`)
     + ' With INK ON, one dip in the cup before the first. 20 mm and one dot until 2026-10-20.';
 }

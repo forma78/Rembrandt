@@ -565,7 +565,7 @@ export function cornerDots(w, h, o = testPrefs()) {
 // for the pages' words: the margin, and what TEST does, as Preferences say
 export const testMargin = () => testPrefs().margin;
 export function testSay(p = testPrefs()) {
-  return `a dot ${p.margin} mm in from each corner${p.first >= 2 ? `, two at TL ${p.gap} s apart,` : ''}`;
+  return `a dot ${p.margin ? `${p.margin} mm in from each corner` : 'at each corner itself'}${p.first >= 2 ? `, two at TL ${p.gap} s apart,` : ''}`;
 }
 
 // ---------- into lines and arcs, for the machine ----------

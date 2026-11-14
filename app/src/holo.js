@@ -9,7 +9,7 @@ import { PEN } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { machinePiece } from './inkaplan.js';
 import { cupOf, cupProblem, dipAt } from './ink.js';
-import { NO_DIP, DOT_MM } from './band.js';
+import { NO_DIP, DOT_MM, cornerDots, testSay } from './band.js';
 import { testPrefs } from './prefs.js';
 import { reach } from './machine.js';
 import { segments, sticks } from './lcd.js';
@@ -173,9 +173,11 @@ function askDraw(text, choice) {
   });
 }
 // TEST (the owner, 2026-11-14: "I press TEST, but maybe the margins of 5 mm on each side from the Preferences are off? … the button to touch
-// the top left twice is lit, and the machine touches only once"; then, of the field's corners as FORM-G's: "that suits me, then let us do it
-// without margins"): a dot at each corner of the picture's field — the legs' box, FORM-G's way, a 60 × 60 wider than the reach all the same —
-// and TL twice with its wait as Preferences say; no margin. One dip, and home.
+// the top left twice is lit, and the machine touches only once"; then: "why 32.5 mm? The cross this time has to stand right in the corner, no
+// margin; then from the top left to the right it is exactly 40 cm, and from the bottom to the top 40 cm too. That is how I will set the
+// centre"): band.js's cornerDots, the canvas's own corners Preferences' margin in (0 the corner itself), TL twice with its wait. A canvas
+// wider than the reach (a 60 × 60, its far corners past the Y walls): the field's corners, FORM-G's way, TL twice all the same. One dip, home.
+const TEST_IN = 0.2;   // mm inside the walls, as the place's
 function boxDots(b, o = testPrefs()) {                                    // cornerDots's dots round any box, machine mm from Here
   const dots = [['TL', b.x1, b.y0], ['TR', b.x1, b.y1], ['BR', b.x0, b.y1], ['BL', b.x0, b.y0]].map(([name, x, y]) => {
     const d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name, at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } };
@@ -183,16 +185,23 @@ function boxDots(b, o = testPrefs()) {                                    // cor
   if ((o.first ?? 1) >= 2) dots.splice(1, 0, { ...dots[0], name: 'TL again', wait: o.gap ?? 0 });
   return dots;
 }
-function testDots() {                                                    // → the dots, machine mm from Here; null: none
+// → { dots, by: 'canvas' | 'field', off: the canvas's corners past a wall where it fits the reach, and how far }; null: none
+function testDots() {
   if (!PIC?.slats.length) return null;
-  const f = PIC.field;
-  return boxDots({ x0: f.y0 - PIC.h / 2, x1: f.y1 - PIC.h / 2, y0: f.x0 + PIC.pitch / 2 - PIC.w / 2, y1: f.x1 - PIC.pitch / 2 - PIC.w / 2 });
+  const R = reach(), h = hereNow(), f = PIC.field;
+  const past = q => { const x = h.x + q.x, y = h.y + q.y; return Math.max(R.x.min + TEST_IN - x, x - (R.x.max - TEST_IN), R.y.min + TEST_IN - y, y - (R.y.max - TEST_IN), 0); };
+  const fits = PIC.w <= R.y.max - R.y.min - 2 * TEST_IN && PIC.h <= R.x.max - R.x.min - 2 * TEST_IN;
+  if (fits) {
+    const dots = cornerDots(PIC.w, PIC.h).dots;
+    if (dots.length) return { dots, by: 'canvas', off: dots.filter(d => past(d.at) > 0 || past(d.to) > 0).map(d => ({ name: d.name, mm: Math.max(past(d.at), past(d.to)) })) };
+  }
+  return { dots: boxDots({ x0: f.y0 - PIC.h / 2, x1: f.y1 - PIC.h / 2, y0: f.x0 + PIC.pitch / 2 - PIC.w / 2, y1: f.x1 - PIC.pitch / 2 - PIC.w / 2 }), by: 'field', off: [] };
 }
 function testRun() {
-  const dots = testDots();
-  if (!dots) return null;
-  const passes = [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1, ...(d.wait !== undefined ? { wait: d.wait } : {}) }]), why: null }];
-  return { ...plotRun(runOpts(dots.length), passes), dots };
+  const D = testDots();
+  if (!D) return null;
+  const passes = [{ key: 'TEST', ps: D.dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1, ...(d.wait !== undefined ? { wait: d.wait } : {}) }]), why: null }];
+  return { ...plotRun(runOpts(D.dots.length), passes), ...D };
 }
 $('#btnTest').onclick = async () => {
   await loadInk();
@@ -200,13 +209,15 @@ $('#btnTest').onclick = async () => {
   if (isLive()) return warn('A run is on: STOP it first.');
   const here = hereNow(), T = testRun(), c = placeNow();
   if (!T) return warn('Nothing to paint.');
+  if (T.off.length) return warn(`TEST: ${T.off.map(d => `${d.name} ${fmt(d.mm, 1)} mm`).join(', ')} past the walls — the canvas's corners out of the brush's reach: move the canvas (The canvas) by as much.`);
   if (cupProblem(cup())) return warn(`TEST dips in ${cupName()}: ${cupProblem(cup())}`);
   if (T.fault) return warn(`Not run: the test is wrong — ${T.fault}.`);
   if (walls(T)) return warn(walls(T));
-  const at = d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`, P = testPrefs();
-  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of the picture's field${P.first >= 2 ? `, two at TL ${P.gap} s apart (Preferences)` : ''} — ${T.dots.map(at).join(', ')} — and home.\n\n`
+  const at = d => `${d.name} X ${fmt(here.x + d.at.x, 1)} · Y ${fmt(here.y + d.at.y, 1)}`, P = testPrefs();
+  if (!confirm(`TEST: one dip in the cup, then ${T.by === 'canvas' ? `${testSay()} of the ${PIC.w / 10} × ${PIC.h / 10} canvas (Preferences): TL to TR ${fmt(PIC.w - 2 * P.margin, 0)} mm, BL to TL ${fmt(PIC.h - 2 * P.margin, 0)} mm`
+      : `a dot at each corner of the picture's field${P.first >= 2 ? `, two at TL ${P.gap} s apart (Preferences)` : ''} — the ${PIC.w / 10} × ${PIC.h / 10} canvas is wider than the reach, its corners past the walls`} — ${T.dots.map(at).join(', ')} — and home.\n\n`
     + `The canvas: its left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home; its centre at carriage X ${fmt(here.x, 0)} · Y ${fmt(here.y, 0)}.`)) return;
-  await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), centre: { x: here.x, y: here.y }, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
+  await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), by: T.by, margin: T.by === 'canvas' ? testPrefs().margin : null, centre: { x: here.x, y: here.y }, dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
 };
 const post = async path => { try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 $('#btnHome').onclick = () => { if (PIC && !isLive()) start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, logOf({ label: 'HOLO · HOME' })); };
@@ -346,9 +357,9 @@ function draw() {
   // the brush's reach, the walls, with the canvas as it lies
   const W = reach(), c = placeNow(), x0 = W.y.min - c.edgeLeft, x1 = W.y.max - c.edgeLeft, y0 = W.x.min - c.edgeBottom, y1 = W.x.max - c.edgeBottom;
   g.save(); g.setLineDash([6, 4]); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2; g.strokeRect(sx(x0), sy(y1), (x1 - x0) * K, (y1 - y0) * K); g.restore();
-  // TEST's dots as crosses where the brush will touch (INKA's): the field's corners
+  // TEST's dots as crosses where the brush will touch (INKA's): the canvas's corners, or a 60 × 60's field's
   g.save(); g.strokeStyle = '#EB7A25'; g.lineWidth = 1.2;
-  for (const d of testDots() ?? []) { const X = sx(PIC.w / 2 + d.at.y), Y = sy(PIC.h / 2 + d.at.x); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
+  for (const d of testDots()?.dots ?? []) { const X = sx(PIC.w / 2 + d.at.y), Y = sy(PIC.h / 2 + d.at.x); g.beginPath(); g.moveTo(X - 5, Y); g.lineTo(X + 5, Y); g.moveTo(X, Y - 5); g.lineTo(X, Y + 5); g.stroke(); }
   g.restore();
   // the line the pen is on, DRAW BW's
   if (NOW?.line) { g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(2, 1.6 * K); g.strokeStyle = '#EB7A25'; linePath(g, NOW.line); g.stroke(); }

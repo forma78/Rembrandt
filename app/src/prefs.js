@@ -13,8 +13,10 @@
 
 export const PREFS_KEY = 'rembrandt.prefs.v01';
 export const PREFS_NEW = { testMargin: 10, testFirst: 2, testGap: 5 };
-// the limits: the margin mm, TL's dots, the wait s — no longer than a wait rembrandt.py takes (WAIT_MAX_S)
-export const PREFS_LIM = { testMargin: [1, 100], testFirst: [1, 2], testGap: [0, 10] };
+// the limits: the margin mm, 0 the corner itself (the owner, 2026-11-14: "the cross right in the corner, no margin; then from the top left to
+// the right it is exactly 40 cm, and from the bottom to the top 40 cm too. That is how I will set the centre"; "in Preferences I am not
+// allowed to make 0"), TL's dots, the wait s — no longer than a wait rembrandt.py takes (WAIT_MAX_S)
+export const PREFS_LIM = { testMargin: [0, 100], testFirst: [1, 2], testGap: [0, 10] };
 
 export function cleanPrefs(p = {}) {
   const out = { ...PREFS_NEW };
