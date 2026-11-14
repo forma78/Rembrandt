@@ -343,6 +343,7 @@ function drawStrokes(g) {
   for (const L of plan()) {
     if (L.run === 1) { g.strokeStyle = L.hex; g.lineWidth = w; g.lineCap = 'butt'; g.globalAlpha = dim(L.key); for (const q of L.strokes) { g.beginPath(); g.moveTo(sx(q.x), sy(q.pts[0][1])); g.lineTo(sx(q.x), sy(q.pts[1][1])); g.stroke(); } }
   }
+  g.globalAlpha = 1;                                                                  // run 1's last dimmed jar must not veil run 2's picked one
   for (const L of plan()) if (L.run === 2) for (const q of L.strokes) { if (only && only !== L.key) continue; shadow(g, q, L.hex, sx, sy, w); }
   g.globalAlpha = 1;
 }

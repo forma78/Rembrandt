@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: a run-2 jar's row shows its strokes on the canvas again** (2026-11-15; the owner, `HOLO-Claude/Screenshot 2026-11-15 at
+  12.07.05 AM.png` and `12.07.12 AM.png`: "the second layer does not show the paints selectively on the canvas, as the first does …
+  a useful thing"). Run 1's loop left the canvas's alpha at its last dimmed jar's 0.08, so run 2's picked shadows were drawn nearly
+  clear; `drawStrokes` (`src/holo.js`) sets it back to 1 before run 2. Checked in headless Chrome: Jar 13 picked, its strokes red on
+  the veiled picture. A view only; nothing sent to the machine.
 - **HOLO: two ways in — photos from the iPhone, films from the Mac** (2026-11-14, 20:57; the owner: "Video I can't shoot from the iPhone,
   the camera is tied to the MacBook. You can add this to the README too. Photos to GitHub from the iPhone, and from the MacBook the video
   from the MacBook"). README's `git pull` rule names both; `HOLO-Claude/PHOTOS.md` says how a film travels; four more photos of run 1
