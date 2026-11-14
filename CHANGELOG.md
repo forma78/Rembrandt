@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: ▶ Play ten times faster** (2026-11-14, the night; the owner: "for PLAY raise the speed ×10, it crawls like a turtle now"). The
+  whole run in 18 s (was three minutes, FORM-G's), the clock still squared, slow at first (`PLAY_MS`, `holo.js`). A view: nothing sent.
 - **HOLO: TEST at the canvas's own corners; Preferences' margin may be 0** (2026-11-14, the evening; the owner: "why 32.5 mm? The cross
   this time has to stand right in the corner, no margin; then from the top left to the right it is exactly 40 cm, and from the bottom to
   the top 40 cm too. That is how I will set the centre"; "in Preferences I am not allowed to make 0"). HOLO's TEST, its third way: band.js's

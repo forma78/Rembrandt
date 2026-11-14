@@ -296,7 +296,7 @@ async function watch() {
 // ---------- the screen ----------
 const cv = $('#cv'), stage = $('#stage'), ctx = cv.getContext('2d');
 let K = 1, OX = 0, OY = 0, fitted = '', only = null, PLAY = null, NOW = null;
-const PLAY_MS = 180000;
+const PLAY_MS = 18000;   // ▶ Play's whole run, 18 s (the owner, 2026-11-14: three minutes crawled "like a turtle", ×10)
 const besideNow = () => { const w = PIC && opts().marks; return w ? besideOf(PIC, w) : null; };   // MARKS' slips, off the canvas or on it, where they fit
 function fit() { const r = stage.getBoundingClientRect(), m = 26, e = besideNow()?.where === 'off' ? MARKS_BESIDE.slip + 6 : 0, k = Math.min((r.width - 2 * m) / (PIC.w + 2 * e), (r.height - 2 * m) / PIC.h); K = k; OX = (r.width - PIC.w * k) / 2; OY = (r.height - PIC.h * k) / 2; }
 const sx = x => OX + x * K, sy = y => OY + (PIC.h - y) * K;
@@ -411,7 +411,7 @@ new ResizeObserver(layout).observe(stage);
 addEventListener('storage', e => { if (e.key === null || e.key === 'rembrandt.prefs.v01') kick(); });   // Preferences changed in another tab: TEST's crosses anew
 
 // ▶ Play: the two runs as they will go, a batch's puddles laid, then dragged, on an offscreen canvas at 2 px a mm; FORM-G's clock, slow at first
-// (the clock squared), three minutes; the LCD follows it. A view: it moves nothing
+// (the clock squared), 18 s; the LCD follows it. A view: it moves nothing
 function playStop() {
   if (!PLAY) return;
   cancelAnimationFrame(PLAY.raf); clearTimeout(PLAY.end); PLAY = null;
