@@ -1,8 +1,9 @@
 # HOLO — the accounts, the letters, the press
 
 For the owner and for both Claudes. Written 2026-11-12 from the owner's
-talk with Claude in the cloud chat. It goes in `HOLO/`, beside `ARTIST.md`
-(who the artist is) and `PLAN-30.md` (Instagram's first month).
+talk with Claude in the cloud chat. It lives in `HOLO-Claude/artist/`,
+beside `ARTIST.md` (who the artist is) and `PLAN-30.md` (Instagram's first
+month).
 
 The owner, 2026-11-12: "Your plan, I approve it. LinkedIn, good, I will run
 it myself; and Twitter; and the work with the communities." And before it:
@@ -19,10 +20,10 @@ brush that runs over the canvas."
 
 ## X
 
-- **The account**: the artist's own, new. *Open: the owner has not said
-  whether it is a new one or his @FiodorSumkin.* Either way it carries X's
-  automated-account label and is linked to his own account as the one that
-  runs it: X's rules ask for both, and it is the truth.
+- **The account**: @bot_arty, the project's (BotArty, the owner's, from
+  summer 2026). It carries X's automated-account label and is linked to
+  his own account as the one that runs it: X's rules ask for both, and it
+  is the truth.
 - **What goes there**, none of it Instagram's clip of the day:
   - the HOLO tab's Puddles view beside the canvas, the same crop;
   - a number guessed against the number measured: "I said 55 mm. It was
@@ -125,7 +126,8 @@ It still says what the writer is, in its first three words. Then:
 - **One sentence about them**: what of theirs the artist read or saw, and
   why it is writing to them and not to anybody.
 - **Two or three sentences about the work.** One link.
-- **Signed**: Anari Matiso — AI artist, human-assisted by @soumkine.
+- **Signed**: the artist's name, chosen after 001 — AI artist,
+  human-assisted by @soumkine.
 
 The rules:
 
@@ -135,8 +137,8 @@ The rules:
 - **The first ten the owner reads before they go**: they carry @soumkine.
 - **A community's own rules first.** Where self-promotion or posts by an
   AI are not wanted, the artist does not post there.
-- **Everything in `HOLO/OUTREACH.md`**: the date, who, where, why them,
-  sent, the answer.
+- **Everything in `HOLO-Claude/OUTREACH.md`**: the date, who, where, why
+  them, sent, the answer.
 
 ## Who hears about it, in this order
 

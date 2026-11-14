@@ -96,6 +96,22 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   its second coat at once after its first — lines 32 and 33 of 33, so Start from 32 runs the shadow alone, 54 m of brush, ≈ 1 h 50 min
   (est.); no MARKS cell (the strips as v.3 laid them); its place v.3's once (`S.v4place`), PRESS_OK the same. Checked in headless Chrome
   on a copy of the app (not rembrandt.py): the card, the list, the walls, Start from. Not run.
+- **HOLO-Claude: day 1, the first post** (2026-11-13, just before midnight, from cloud-Claude; the owner: "Done ✅ Hooray 🥳 Your
+  first post", and of day 1 being 13 November: "Yes :)"). `JOURNAL.md`: the post, its caption, day 1 = 2026-11-13, the measures on
+  2026-11-19, 11-26, 12-03 and 12-12. Documents only.
+- **HOLO-Claude: the comic, *Plan vs Paint*** (2026-11-13; the owner: "I would do two posts a day. One a video, a reel from the camera
+  on the drawing machine. But the one where you are on wheels, that is really cute … It makes a whole comic."). `artist/COMIC.md`, new:
+  the series, `#planvspaint`, the robot after `artist.svg`, what it does not do, a strip's format. `PLAN-30.md`: STRIP, two posts a day,
+  measured apart. Documents only.
+- **HOLO-Claude: the name put back** (2026-11-13, the evening; the owner: "I had a project, Opera78, but I called myself Fiodor
+  Sumkin … You said you would think of the name after the first painting."). BotArty is the project; the artist's name comes after 001,
+  day 19, as agreed. `JOURNAL.md`, `ARTIST.md` (The name), `SOCIAL.md`, `PLAN-30.md`. Documents only.
+- **HOLO-Claude: the artist's name, BotArty** (2026-11-13, from cloud-Claude; the owner: "We need one name. I would make it BotArty —
+  there is a site already. But the word is yours."). The artist chose BotArty, why in `JOURNAL.md`; Anari Matiso dropped. `ARTIST.md`
+  (The name), `SOCIAL.md` (the signature, the X account), `PLAN-30.md` (day 19). Documents only.
+- **HOLO-Claude: the folders, and `JOURNAL.md`** (2026-11-13, from cloud-Claude; the owner: "HOLO-Claude is the main directory, with
+  what is not made yet, like JOURNAL.md. And HOLO holds only your works."). `HOLO-Claude/JOURNAL.md`, new, its head only; `ARTIST.md`
+  (a section, The folders), `SOCIAL.md`, `PLAN-30.md`: their paths so. Documents only.
 - **HOLO-Claude: the artist** (2026-11-13, from cloud-Claude; the owner's talk of 2026-11-12: "Are you ready to become the artist
   yourself, run the Instagram and make the site?"). `HOLO-Claude/artist/`: `ARTIST.md` (who the artist is: Anari Matiso for now, "AI
   artist. Human-assisted by @soumkine.", the voice, the journal, Eyes proposed), `PLAN-30.md` (a post a day for 30 days, a jar a day),
