@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: the machine camera's film of run 1, the paint fresh, in frames** (2026-11-14, the evening; the owner: "this is the first
+  run of the drops while the paint is fresh, not dry … so that when I talk to you from the iPhone, you understand what it is about").
+  `HOLO-Claude/eyes/2026-11-14/`, 65 frames, one every 2 s of the 20:22 film (2 min 10 s; the film stays on the Mac, 285 MB); the batch
+  at the top of `HOLO-Claude/PHOTOS.md`, what it shows in `JOURNAL.md`; README's folder layout has `eyes/`. No code changed.
 - **HOLO: the owner's photos through the cloud chat; `git pull` first** (2026-11-14, 20:24; the owner: "I post the photos of the process
   here, from the iPhone. You can upload them to GitHub yourself, start a PHOTOS.md for you in VS Code, add an update to the README").
   `HOLO-Claude/photos/2026-11-14/`, 15 photos of holo-40-warm v.2's run 1 on an old canvas; `HOLO-Claude/PHOTOS.md`, how a photo travels

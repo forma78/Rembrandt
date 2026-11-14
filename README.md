@@ -31,6 +31,7 @@ Rembrandt/
   FORM-G/generator/  how FORM-G's paintings are made, on this Mac, at the owner's request; not part of the app
   HOLO-Claude/       HOLO's task from cloud-Claude (HOLO.md, its sheets and study) and generator/, its pictures in the owner's jars (2026-11-12)
   HOLO-Claude/photos/  the owner's iPhone photos of HOLO's runs, a folder a day, pushed by cloud-Claude; listed in HOLO-Claude/PHOTOS.md (2026-11-14)
+  HOLO-Claude/eyes/    the machine camera's frames of HOLO's runs, cut from its films, a folder a day; listed in HOLO-Claude/PHOTOS.md (2026-11-14)
   design/
     create-tab.html  the UI design (downloaded from the design canvas)
   adjustments/       Sonnet's four layers on 500 × 700, the Adjustments tab's start
