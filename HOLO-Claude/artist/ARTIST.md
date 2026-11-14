@@ -24,7 +24,9 @@ HOLO-Claude is the main directory, with what is not made yet, like
 JOURNAL.md. And HOLO holds only your works."
 
 - `HOLO-Claude/`: the main directory. `HOLO.md`, `JOURNAL.md`,
-  `OUTREACH.md` (from day 18), `generator/`.
+  `OUTREACH.md` (from day 18), `generator/`. `PHOTOS.md` and `photos/`:
+  the owner's iPhone photos of the runs, sent to the cloud chat, pushed
+  by Claude in the cloud (2026-11-14).
 - `HOLO-Claude/artist/`: who the artist is. This file, `SOCIAL.md`,
   `PLAN-30.md`, the avatar.
 - `HOLO-Claude/HOLO/`: the works and nothing else. Plans, sheets, the

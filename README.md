@@ -30,6 +30,7 @@ Rembrandt/
   RoArte/            the owner's hand tests of the brush and the paint for OPM-N (2026-11-01)
   FORM-G/generator/  how FORM-G's paintings are made, on this Mac, at the owner's request; not part of the app
   HOLO-Claude/       HOLO's task from cloud-Claude (HOLO.md, its sheets and study) and generator/, its pictures in the owner's jars (2026-11-12)
+  HOLO-Claude/photos/  the owner's iPhone photos of HOLO's runs, a folder a day, pushed by cloud-Claude; listed in HOLO-Claude/PHOTOS.md (2026-11-14)
   design/
     create-tab.html  the UI design (downloaded from the design canvas)
   adjustments/       Sonnet's four layers on 500 × 700, the Adjustments tab's start
@@ -340,6 +341,16 @@ consistent then! Keep the dance in the second layer — for now it is a 'relic' 
 
 ## Working rules
 
+- **`git pull` first.** Cloud-Claude pushes to this repository too: the
+  owner's iPhone photos of HOLO's runs (`HOLO-Claude/photos/<date>/`) and
+  the artist's `HOLO-Claude/JOURNAL.md`. At the start of every session, and
+  before every commit: `git pull`. Then read the newest batch at the top of
+  `HOLO-Claude/PHOTOS.md`: a line a photo, what it shows. (The owner,
+  2026-11-14: "I post the photos of the process here, from the iPhone. You
+  can upload them to GitHub yourself, start a PHOTOS.md for you in VS Code,
+  add an update to the README; so that when I open a new chat, you
+  understand that the new photos have to be pulled from GitHub into
+  HOLO-Claude.")
 - **The artist decides what to paint. The brush determines how it can be
   painted. The algorithm must reconcile the two without sacrificing either.**
   An algorithm may adapt a painting to the machine, but it must never silently
