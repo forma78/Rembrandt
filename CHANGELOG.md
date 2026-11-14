@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: the canvas's place by the field's edges, no hair past the Y walls** (2026-11-14; the owner, TEST on the 60 × 60 blue: "The brush
+  would go 0 mm past the walls: move the canvas"). The place's range went by the outer legs' middles right to the Y wall, with none of
+  plotRun's 0.1 mm inside: at the blue's place, left −9, TEST's dots at TR and BR stood on the wall, 0.28 mm of their way past it, shown as
+  0 mm; and DRAW BW's pen, round the field's own edges half a pitch farther, would go 2.5 mm past (565 mm of its way) on both 60 × 60s.
+  `placeRange` (`holoplan.js`) now by the field's edges, 0.2 mm inside the Y walls as FORM-G's, in whole mm rounded inward: the blue
+  −19 … −12 (its place now −12), the tiers −29 … −2, the 40 × 40 −19 … 188; TEST and DRAW BW clear at both ends of every range. A place
+  kept from before out of it is not moved: The canvas says so in red. The warning reads the way along a wall in tenths, "0.3 mm of the
+  brush's way would lie past the walls". Test; checked in headless Chrome.
 - **LAB-H, HOLO's LAB sheet, a tab of its own** (2026-11-14, the night; the owner: "first LAB, then the 40 × 40 first"; "let us do it now, only
   copy what LAB has and make a separate tab LAB-H so as not to get confused. All those keys of the old LAB we do not need in the new one for
   HOLO"). `labh.html`, `src/labh.js`: LAB's page with one sheet — the corner, Pressed, the jar (the 40 × 40's, Jar 39 at first), Take the

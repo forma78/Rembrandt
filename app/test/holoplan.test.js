@@ -83,6 +83,18 @@ test('where the canvas may lie: the field within the walls; the 60 × 60 blue\'s
   assert.ok(t.left[1] - t.left[0] > 150 && t.bottom[1] - t.bottom[0] > 400);
 });
 
+test('anywhere in the range the field\'s edges stay 0.2 mm inside the Y walls, in whole mm: the blue\'s TEST and DRAW BW no hair past Y\'s (2026-11-14)', () => {
+  for (const id of HOLO_LIB) {
+    const p = load(id), r = placeRange(p, WALLS), f = p.field, Y = WALLS.y.max, X = WALLS.x.max;
+    for (const v of [...r.left, ...r.bottom]) assert.ok(Number.isInteger(v), `${id}: ${v} a whole mm`);
+    for (const left of r.left) assert.ok(left + f.x0 >= 0.2 - 1e-9 && left + f.x1 <= Y - 0.2 + 1e-9, `${id}: left ${left}, the field ${left + f.x0} … ${left + f.x1}`);
+    for (const bottom of r.bottom) assert.ok(bottom + f.y0 >= 25 && bottom + f.y1 <= X - 8, `${id}: bottom ${bottom}`);
+    // DRAW BW's lines, the outline and every border, across Y no farther than the field's edges
+    for (const outline of [true, false]) for (const [x] of contourHolo(p, { outline }).lines.flat()) assert.ok(x >= f.x0 - 1e-6 && x <= f.x1 + 1e-6, `${id}: a line at ${x}`);
+  }
+  assert.deepEqual(placeRange(load('holo-60-blue'), WALLS).left, [-19, -12], 'the blue: −9, its old place by the legs\' middles, put TEST\'s dots on the wall');
+});
+
 test('DRAW BW: the outline where the paint meets the bare canvas, every border once; a jar in both runs one colour', () => {
   const W = load('holo-40-warm'), O = contourHolo(W, { outline: true }), A = contourHolo(W), f = W.field;
   // the warm fan: every slat a ground, so the outline is the field's own rectangle, once round — a few shadows end up to 2.6 mm past its top

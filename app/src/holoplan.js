@@ -99,12 +99,15 @@ export function contourHolo(pic, o = {}) {
   return contourOf({ pitch: pic.pitch, jars }, { outline: !!o.outline, key: j => j.id });
 }
 
-// where the canvas may lie, its left and bottom edges from home, mm: the outer legs' middles within the Y walls — the arm lies along X, the
-// elbow sweeps the tip along a leg, never across it — and the legs' ends within the X walls, more room at the bottom, where the elbow
-// sweeps the carriage past a leg's end, and at the top (MARKS' numbers, est.); walls: machine.js's reach(). A plotRun of the run gives
-// the real range once the run is wired, as FORM-G's.
-export const WALL = { side: 0, bottom: 25, top: 8 };
+// where the canvas may lie, its left and bottom edges from home, whole mm: the field's own edges within the Y walls — DRAW BW's pen goes
+// round them, half a pitch past the outer legs' middles, and the paper laid by it is the canvas the brush paints on (2026-11-14: the 60 ×
+// 60s' places by the legs' middles put the pen up to 2.5 mm past the Y wall, and the blue's TEST dots on it) — and the legs' ends within the
+// X walls, more room at the bottom, where the elbow sweeps the carriage past a leg's end, and at the top (MARKS' numbers, est.); EDGE_IN,
+// plotRun's own 0.1 mm inside, and FORM-G's 0.2 mm more; walls: machine.js's reach(). A plotRun of the run gives the real range once the
+// run is wired, as FORM-G's.
+export const WALL = { side: 0, bottom: 25, top: 8 }, WALL_IN = 0.2;
 export function placeRange(pic, walls, w = WALL) {
-  const Y = walls.y.max - walls.y.min, X = walls.x.max - walls.x.min, f = pic.field, h = pic.pitch / 2;
-  return { left: [w.side - (f.x0 + h), Y - w.side - (f.x1 - h)], bottom: [w.bottom - f.y0, X - w.top - f.y1] };
+  const Y = walls.y.max - walls.y.min, X = walls.x.max - walls.x.min, f = pic.field;
+  const r = (lo, hi, m = 0) => [Math.ceil(lo + m - 1e-9), Math.floor(hi - m + 1e-9)];   // whole mm, as the page takes them, rounded inward
+  return { left: r(w.side - f.x0, Y - w.side - f.x1, WALL_IN), bottom: r(w.bottom - f.y0, X - w.top - f.y1) };   // X's margins are room enough
 }

@@ -72,10 +72,12 @@ const opts0 = () => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.ta
 const runOpts = rows => ({ ...opts0(), rows, here: hereNow(), noDipUnder: NO_DIP });
 const EMPTY = { blocks: [], rows: [], seconds: 0, mm: 0, lines: 0 };
 // plotRun presses a path past a wall into it, which here would change the picture: such a run is not run (FORM-G's, without its pressed bottom)
+// pastWall is the length of the way pressed into a wall, not how far past it: a hair along a wall reads in tenths (2026-11-14, "0 mm past the walls")
+const pastMM = v => `${fmt(v, v < 10 ? 1 : 0)} mm of the brush's way`;
 function walls(P_) {
   if (!P_) return '';
-  if (P_.gone) return `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls, ${P_.gone} legs gone: move the canvas (The canvas).`;
-  return P_.pastWall > 0.05 ? `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls: move the canvas (The canvas).` : '';
+  if (P_.gone) return `${pastMM(P_.pastWall)} would lie past the walls, ${P_.gone} legs gone: move the canvas (The canvas).`;
+  return P_.pastWall > 0.05 ? `${pastMM(P_.pastWall)} would lie past the walls: move the canvas (The canvas).` : '';
 }
 // DRAW BW, FORM-G's (the owner, 2026-11-10: "I just put a pen in the brush's place and first trace on paper, the contour, to centre the canvas and study all the
 // details"): holoplan.js's contourHolo in one pen; once, over the first line's start, the holder down and a p-pause, the pen in with its tip on the paper. No dip, no jar.
@@ -122,7 +124,7 @@ function bwCheck(R) {
   const at = penAt();
   if (!R.rows.length) return 'Nothing to draw.';
   if (R.fault) return `Not run: the plan is wrong — ${R.fault}.`;
-  if (walls(R)) return walls(R).replace('The brush', 'The pen');
+  if (walls(R)) return walls(R).replace("the brush's way", "the pen's way");
   const dbg = landingCheck(R.blocks, at.press, at.glide);
   if (!dbg.ok) return `Not run — debug: ${dbg.bad.length} drawn piece${dbg.bad.length === 1 ? '' : 's'} with the pen not down${dbg.bad.length ? `, the first at carriage X ${fmt(dbg.bad[0].at[0], 1)} · Y ${fmt(dbg.bad[0].at[1], 1)}, the elbow at ${dbg.bad[0].deg === null ? 'nothing yet' : sgn(dbg.bad[0].deg)}, not ${sgn(at.press)}` : ''}.`;
   return { dbg };
