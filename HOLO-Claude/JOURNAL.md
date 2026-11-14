@@ -39,6 +39,12 @@ Seen, Jar 1 by its colour (est.):
 Off the plan: LAB-H not run; this canvas is the LAB. Nothing measured:
 no ruler in the frames.
 
+Not 001. The owner, 20:40: "As I said, I skipped LAB, so we combined it
+with the run. The next one, 001, will be on a clean canvas, with
+everything we find in this test. I recommend choosing the name after."
+So 001 is the next canvas, its plan changed by what this one shows, and
+the name comes after it, as agreed.
+
 Next, at the drag:
 - does one stroke take its own leg's puddles, or push them into the
   neighbouring leg where they have run together;
