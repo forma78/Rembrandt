@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: RUN 1 · RUN 2 on the machine** (2026-11-14, the night; the owner, of the question's "Not wired to the machine yet: a dab … goes
+  in on your word": "it does not let me make a run"). FORM-G's DRAG with HOLO's plan (`holoplan.js`, `runsOf`; `holo.js`, `holoRun`): a line
+  of the list its MARKS on one dip, then a batch at a time its puddles — every dab a dip of its own at the cup at hand and MARKS' mark, 8 mm
+  along X centred on the puddle, the way its stroke goes, pressed to its end; a puddle of several dabs on the same 8 mm — then that batch's
+  strokes, no dip; no idle run after a stroke; every run's way with the J3 compensation; between two jars a pause, the brush up to wipe it.
+  Start from, BACK ONE JAR and the remote by its rows, as FORM-G's. The 40 × 40 v.2's run 1: 757 rows, 681 dips, 3 pauses, ≈ 2 h 29 min by
+  the machine's moves (est.). Before LAB-H's numbers: the dab, how far a puddle lasts and its open time the plan's guesses. Checked in headless
+  Chrome with every POST caught on the way (nothing reached rembrandt.py): the 40 × 40 v.2's RUN 1 and the tiers v.3's RUN 2, their blocks read.
 - **HOLO: the tiers' v.3** (2026-11-14, the night; the owner, of the blue redrawn on v.1's row: "the new one is better. Maybe you will make a
   v.3 for the tiers?"). v.1's row and colours, all 33 slats, pressed to 520 mm (one leg off each of its four widest), the v.2's ragged edges
   carried onto it (`holo_v2.py`, `MADE`); in HOLO's library after the tiers' v.2, which stays as it is. 1609 dabs, ≈ 4 h 46 min (est.). The

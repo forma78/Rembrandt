@@ -236,6 +236,11 @@ sheet for the three numbers. No change to the firmware.
 - **The keys** (`ux-ui.png`, FORM-G's panel beside HOLO's): "HOLO has no STOP and HOME"; "add DRAW BW and ⏮ BACK
   ONE JAR". The page has FORM-G's machine keys since; RUN 1 · RUN 2 still send nothing.
 
+- **The dab on the machine** (the same night, of RUN's "Not wired to the machine yet …": "it does not let me make a run"): RUN 1 · RUN 2
+  send their run before LAB-H's numbers. A line: its MARKS on one dip; a batch's puddles, every dab a dip of its own and MARKS' mark, 8 mm
+  along X centred on the puddle, the way its stroke goes, a puddle of several dabs on the same 8 mm; then the batch's strokes, no dip; no idle
+  run; the J3 compensation; between two jars a pause to wipe the brush and change the jar (`holoplan.js`, `runsOf`; `holo.js`, `holoRun`).
+
 ## Ask the owner before
 
 - **Anything that moves the machine** (README): a dab is a new move in a

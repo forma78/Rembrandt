@@ -2,10 +2,13 @@
 // as not to reinvent the wheel, we take the ready examples of 40 × 40 and 60 × 60 and set them as FORM-G") — the plan by holoplan.js, its two
 // runs on the screen, ▶ Play and its LCD. FORM-G's machine keys (the owner, 2026-11-14, HOLO-Claude/ux-ui.png: "HOLO has no STOP and HOME";
 // "add DRAW BW and ⏮ BACK ONE JAR"): TEST, PAUSE, DRAW BW, BACK ONE JAR, STOP, HOME, the iPhone's remote and ELBOW LIVE, formg.js's as they are,
-// copied so that FORM-G stays as it was. RUN 1 · RUN 2 still ask their question and send nothing: a dab is a new move, wired after LAB's sheet
-// (the owner, the same night: "first LAB, then the 40 × 40 first").
-import { HOLO, HOLO_LIB, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesAlong, WALL, contourHolo, besideOf, MARKS_BESIDE } from './holoplan.js';
-import { PEN } from './formgplan.js';
+// copied so that FORM-G stays as it was. RUN 1 · RUN 2 on the machine since the owner's word, the same night ("it does not let me make a run"),
+// FORM-G's DRAG with holoplan.js's runsOf: the marks, a batch's dabs, its strokes.
+import { HOLO, HOLO_LIB, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesAlong, WALL, contourHolo, besideOf, MARKS_BESIDE, runsOf } from './holoplan.js';
+import { PEN, j3Runs } from './formgplan.js';
+import { ELBOW_J3 } from './canon.js';
+import { idleRowsOf } from './idleplan.js';
+import { wipeBlocks, WIPE_NEW } from './inkaplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { machinePiece } from './inkaplan.js';
 import { cupOf, cupProblem, dipAt } from './ink.js';
@@ -115,7 +118,7 @@ async function start(key, blocks, info, log) {
     if (st && !(st.hand >= 1)) { alert('The cup at hand (INK-Y): restart rembrandt.py first — the one running does not know it yet. Nothing was sent.'); return; }
   }
   try {
-    RUN = blocks; RUN_INFO = info; RUN_KEY = key; S.runPic = S.pic; S.runKey = key; S.runBw = info.bw ?? null; S.runT = Date.now() / 1000; save();   // the picture this run is of, and when: the page keeps to it while it runs
+    RUN = blocks; RUN_INFO = info; RUN_KEY = key; S.runPic = S.pic; S.runKey = key; S.runBw = info.bw ?? null; S.runFrom = info.from ?? 0; S.runT = Date.now() / 1000; save();   // the picture this run is of, and when: the page keeps to it while it runs
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, log }) });
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
@@ -282,6 +285,10 @@ function runPicture(st) {
   if (!RUN_INFO && S.runKey === 'bw' && PIC) {
     const R = penRun(S.runBw ?? undefined);
     if (R.blocks.length === st.blocks) { RUN = R.blocks; RUN_KEY = 'bw'; RUN_INFO = { seconds: R.seconds, rows: R.rows, bw: R.kind }; }
+  }
+  if (!RUN_INFO && /^run[12]$/.test(S.runKey ?? '') && PIC) {                       // RUN 1 · RUN 2: its rows again when the plan gives the very blocks
+    const R = holoRun(+S.runKey.slice(3), S.runFrom ?? 0);
+    if (R.blocks.length === st.blocks) { RUN = R.blocks; RUN_KEY = S.runKey; RUN_INFO = { seconds: R.seconds, rows: R.rows, from: R.from }; }
   }
 }
 async function watch() {
@@ -502,36 +509,82 @@ function lcd(st = lastSt) {
 }
 function markRun(at) { [...$('#runList').children].forEach(q => { const i = q.dataset.i === undefined ? -2 : +q.dataset.i; q.classList.toggle('now', i === at); q.classList.toggle('done', at >= 0 && i >= 0 && i < at); }); }
 
-// ---------- RUN 1 · RUN 2: the question, as FORM-G's; nothing sent ----------
-const runRows = lines => lines.map((q, i) => `<li><span class="no">${i + 1}</span><i class="sw" style="background:${q.hex}"></i><span class="nm">${esc(q.name)}</span><span class="tg">${q.dabs} dabs</span></li>`).join('');
-function runText(run, lines) {
-  const d = lines.reduce((t, q) => t + q.dabs, 0), mm = lines.reduce((t, q) => t + q.mm, 0), b = lines.reduce((t, q) => t + q.batches.length, 0), c = placeNow();
-  return (run === 1
-    ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm; then one stroke the leg's whole length through them, no dip, even legs from the top down, odd ones up. `
-    : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length, then one stroke towards its far end, no dip, till it gives out. `)
-    + `${d} dabs in ${b} batches of about ${S.batch}, every batch laid, then dragged while wet; ${fmt(mm / 1000, 1)} m of strokes; ≈ ${hm(lines.reduce((t, q) => t + q.seconds, 0))} at ${S.sDab} s a dab (est.). Between two jars a pause: wipe the brush, put the next jar in the cup. `
-    + (lines.some(q => q.marks.length) ? `After every change of jar, before its first puddle: one dip, then its MARKS, 1 the left slip, 3 the right — ${besideNow()?.where === 'on' ? 'the paper taped over the canvas\'s margins' : 'the paper on the plates beside the canvas'} (The canvas). ` : '')
-    + `The canvas's left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home.`;
+// ---------- RUN 1 · RUN 2: the question, as FORM-G's, and the run ----------
+// The owner, 2026-11-14, the night, of the question's "Not wired to the machine yet …": "it does not let me make a run" — the dab wired before LAB-H's
+// numbers. FORM-G's DRAG as it is: holoplan.js's runsOf, idleRowsOf's rows, plotRun's moves, between two jars a pause (the brush up to wipe it, the next
+// jar in the cup, Continue), the J3 compensation on every run's way (formgplan.js, j3Runs); a dab a row of its own on a dip of its own (noDipUnder 0:
+// an 8 mm row dips all the same), a stroke on what the puddles left (nodip). Start from: the lines before it not painted again.
+const HRUNS = new Map();
+function holoRun(run, from = 0) {
+  if (!PIC) return EMPTY;
+  const all = plan().filter(q => q.run === run), lines = all.slice(from);
+  if (!lines.length) return EMPTY;
+  const key = JSON.stringify([PIC.id, run, from, opts(), S.press, S.travel, S.tail, hereNow(), dipCup()]);
+  if (HRUNS.has(key)) return HRUNS.get(key);
+  const runs = runsOf(lines), R = idleRowsOf(lines.map(L => ({ pencil: L.key })), lines.map(L => ({ id: L.key, name: L.name })), { cw: PIC.w, ch: PIC.h }, 0, 0, j3Runs(runs));
+  const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? `wipe the brush, put ${lines[k].name} in the cup, then Continue` : null })));
+  const rows = R.info.map((q, i) => ({ ...q, label: `${from + q.pass + 1}/${all.length} · ${lines[q.pass].name} · ${runs[i].say}` }));
+  const out = { key, ...r, blocks: wipeBlocks(r.blocks, WIPE_NEW), rows, run, from, all, lines, mm: lines.reduce((t, q) => t + q.mm, 0),
+    dabs: runs.filter(q => q.dab).length, dips: runs.filter(q => q.dip).length, strokes: runs.filter(q => !q.dab && !q.mark).length, marks: runs.filter(q => q.mark).length };
+  if (HRUNS.size > 4) HRUNS.clear();
+  HRUNS.set(key, out);
+  return out;
 }
-function askRun(run) {
+// the iPhone's rows and BACK ONE JAR's (rembrandt.py's `colours`, `rows`): a line of the list a colour, its legs its cells
+const holoRemote = R => ({ colours: R.lines.map((L, i) => ({ name: L.name, hex: L.hex, code: '', cells: L.strokes.length, n: R.from + i + 1, of: R.all.length })), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) });
+function runBad(R) {
+  if (isLive()) return 'A run is on: STOP it first.';
+  if (!R.rows.length) return 'Nothing to paint.';
+  if (R.fault) return `Not run: the plan is wrong — ${R.fault}.`;
+  if (walls(R)) return walls(R);
+  if (cupProblem(cup())) return `RUN dips in ${cupName()}: ${cupProblem(cup())}`;
+  return '';
+}
+const runRows = lines => lines.map((q, i) => `<li><span class="no">${i + 1}</span><i class="sw" style="background:${q.hex}"></i><span class="nm">${esc(q.name)}</span><span class="tg">${q.dabs} dabs</span></li>`).join('');
+function runText(run, lines, R) {
+  const d = lines.reduce((t, q) => t + q.dabs, 0), b = lines.reduce((t, q) => t + q.batches.length, 0), c = placeNow();
+  return (run === 1
+    ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm the way its stroke goes; then one stroke the leg's whole length through them, no dip, even legs from the top down, odd ones up. `
+    : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length on the same ${HOLO.mark} mm, each its own dip, then one stroke towards its far end, no dip, till it gives out. `)
+    + `${d} dabs in ${b} batches of about ${S.batch}, every batch laid, then dragged while wet; ${R.strokes} strokes, ${fmt(R.mm / 1000, 1)} m; no idle run after a stroke. `
+    + (R.marks ? `After every change of jar, before its first puddle: one dip, then its MARKS, 1 the left slip, 3 the right — ${besideNow()?.where === 'on' ? 'the paper taped over the canvas\'s margins' : 'the paper on the plates beside the canvas'} (The canvas). ` : '')
+    + `On the machine ${R.dips} dips, every run's way landing ${ELBOW_J3.early} mm earlier and lifting ${ELBOW_J3.late} mm later than on the screen (J3), the brush at ${S.speed} mm/s; ≈ ${hm(R.seconds)} (est.). `
+    + (lines.length > 1 ? `Between two jars it stops ${lines.length - 1} time${lines.length > 2 ? 's' : ''}: the brush up over the cup — wipe it, put the next jar in the cup, Continue. ` : '')
+    + `Put ${lines[0].name} in ${cupName()} now. The canvas's left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home.`;
+}
+async function askRun(run) {
+  await loadInk();
+  if (!PIC) return;
   const all = plan().filter(q => q.run === run);
   if (!all.length) return;
-  const show = from => {
+  let from = 0, R = holoRun(run, 0);
+  const bad = runBad(R);
+  if (bad) return warn(bad);
+  const show = () => {
     const lines = all.slice(from), first = lines[0];
     $('#runAskTitle').textContent = `RUN ${run} · ${run === 1 ? 'LIGHT' : 'SHADOW'} · ${PIC.title} · ${lines.length} jar${lines.length === 1 ? '' : 's'}`;
     $('#runAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">In the cup first</span><b>${esc(first.name)}</b><span>${esc(first.new ? 'new: ' + first.note : first.note)}</span></span>`;
     $('#runAskList').innerHTML = runRows(lines);
-    $('#runAskText').textContent = runText(run, lines);
+    $('#runAskText').textContent = runText(run, lines, R);
   };
   const sel = $('#runFrom');
   sel.innerHTML = all.map((q, i) => `<option value="${i}">${i + 1} · ${esc(q.name)}</option>`).join(''); sel.value = '0';
-  sel.onchange = () => show(+sel.value);
-  show(0);
+  sel.onchange = () => { from = +sel.value; R = holoRun(run, from); show(); };
+  show();
   const box = $('#runAsk'); box.hidden = false; $('#runNo').focus();
   const key = e => { if (e.key === 'Escape') { e.preventDefault(); end(); } };
   const end = () => { box.hidden = true; removeEventListener('keydown', key, true); };
   addEventListener('keydown', key, true);
   $('#runNo').onclick = end; box.onclick = e => { if (e.target === box) end(); };
+  $('#runGo').onclick = async () => {
+    end();
+    const bad = runBad(R);
+    if (bad) return warn(bad);
+    RUN_PRESS = S.press; save(); showKeys(); kick();
+    await start(`run${run}`, R.blocks, { seconds: R.seconds, rows: R.rows, from },
+      logOf({ pass: `run ${run}`, label: `HOLO · ${PIC.title} · RUN ${run} · ${run === 1 ? 'LIGHT' : 'SHADOW'}`, settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel,
+        remote: holoRemote(R), ...(from ? { from_colour: R.lines[0].name } : {}), counts: { dabs: R.dabs, strokes: R.strokes, marks: R.marks, dips: R.dips }, estimate_s: Math.round(R.seconds) }));
+  };
 }
 $('#btnRun1').onclick = () => askRun(1);
 $('#btnRun2').onclick = () => askRun(2);

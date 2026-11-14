@@ -84,8 +84,8 @@ export function workOf(pic, line, o = {}) {
   let cur = null;
   for (const it of items) {
     const n = it.puddles.reduce((t, p) => t + p.dabs, 0);
-    if (!cur || (cur.dabs + n > batch && cur.dabs > 0)) batches.push(cur = { puddles: [], strokes: [], dabs: 0 });
-    cur.puddles.push(...it.puddles); cur.strokes.push(it.stroke); cur.dabs += n;
+    if (!cur || (cur.dabs + n > batch && cur.dabs > 0)) batches.push(cur = { puddles: [], strokes: [], items: [], dabs: 0 });
+    cur.puddles.push(...it.puddles); cur.strokes.push(it.stroke); cur.items.push(it); cur.dabs += n;
   }
   const puddles = items.flatMap(q => q.puddles), strokes = items.map(q => q.stroke);
   return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), puddles, strokes, batches, mm: strokes.reduce((t, s) => t + Math.abs(s.pts[1][1] - s.pts[0][1]), 0) };
@@ -150,6 +150,33 @@ export function movesOf(lines, o = {}) {
   });
   return out;
 }
+// ---------- RUN 1 · RUN 2 on the machine ----------
+// The owner, 2026-11-14, the night, of the question's "Not wired to the machine yet …": "it does not let me make a run" — his word for the dab
+// (HOLO.md, "Ask the owner before"), before LAB-H's numbers. A line of the list as ▶ Play shows it: after a change of jar its MARKS, one dip
+// for them all (FORM-G's, withMarks); then a batch at a time its puddles, every dab MARKS' mark — a dip of its own, the brush down there, a
+// leg of HOLO.mark mm along X centred on the puddle, the way its stroke will go, pressed to its end (beyond) — a puddle of several dabs on
+// the same mm; then that batch's strokes, no dip, each its leg's or its band's as planned. No idle run after a stroke (HOLO.md asked; the
+// sheets have none). The machine's way of every run with the J3 compensation, as FORM-G's (holo.js). Every number est.
+// lines: planOf's, from Start from on → [{ pass: the line's index in `lines`, num: its leg (a cell, BACK ONE JAR's and the remote's), pts,
+//   say, dip, idle: false, beyond, mark?, dab? }], the picture's mm
+export function runsOf(lines, o = {}) {
+  const leg = o.mark ?? HOLO.mark, out = [];
+  lines.forEach((L, k) => {
+    (L.marks ?? []).forEach((m, i) => out.push({ pass: k, num: 0, pts: m.pts, say: `mark ${m.no}, the ${m.side} slip`, dip: i === 0, idle: false, beyond: true, mark: m.no }));
+    let num = 0;
+    L.batches.forEach((B, bi) => {
+      const tag = `batch ${bi + 1}/${L.batches.length}`, nums = B.items.map(() => ++num);
+      B.items.forEach((it, i) => {
+        const [[, a], [, b]] = it.stroke.pts, way = b < a ? -1 : 1;
+        it.puddles.forEach(p => { for (let d = 0; d < p.dabs; d++) out.push({ pass: k, num: nums[i], pts: [[p.x, p.y - way * leg / 2], [p.x, p.y + way * leg / 2]],
+          say: `${tag} · leg ${nums[i]} · a dab${p.dabs > 1 ? ` ${d + 1}/${p.dabs}` : ''}`, dip: true, idle: false, beyond: true, dab: true }); });
+      });
+      B.items.forEach((it, i) => out.push({ pass: k, num: nums[i], pts: it.stroke.pts, say: `${tag} · leg ${nums[i]} · the stroke, no dip`, dip: false, idle: false, beyond: true }));
+    });
+  });
+  return out;
+}
+
 // how much paint a run-2 stroke leaves at a point, 0 … 1, by its share of the way from its start (est., the study's: thick where it
 // starts, gone where the band ends; on TIERS laid full over `full` of it, then giving out)
 export const shadeAt = (u, full = 0) => u < 0 || u > 1 ? 0 : full ? (u <= full ? 1 : Math.max(0, 1 - (u - full) / (1 - full)) ** 1.3) : (1 - u) ** 1.5;
