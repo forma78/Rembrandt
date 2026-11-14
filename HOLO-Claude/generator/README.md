@@ -23,3 +23,16 @@ To run: a venv with numpy, pillow and scipy, the working directory this one; abo
 python holo_jars.py                  # all three: app/holo/<id>.json, <id>.jpg (the picture), <id>-run1.jpg (run 1 dry)
 python holo_jars.py holo-60-blue     # one
 ```
+
+## v.2, ragged edges (2026-11-14)
+
+The owner, of `../opm-n-screen.png`, `../opm-w-screen.png` and his sketch `../IMG_2907.jpg`: "the graphics live in a banal square, which still has
+to be laid evenly on the canvas … 'ragged' edges, with no clear frame, will help us technically, and the work itself will not look shut in a frame";
+"you decide, I do not insist … keep the first ones too! The new ones then v.2." `holo_v2.py`: the same compositions and jars, every leg its own
+ends — blocks stepped slat to slat, a wave along them, a staircase in at one to three corners; run 2's shadows within what a slat's legs share;
+the 60 × 60s 520 mm across, so MARKS fit on the canvas by the field. Writes `app/holo/<id>-v2.json` and its two renders, v.1 untouched.
+
+```
+python holo_v2.py                    # all three v.2s
+python holo_v2.py holo-60-blue       # one; --out=<dir> elsewhere
+```

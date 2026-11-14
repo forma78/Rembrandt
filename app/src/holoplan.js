@@ -16,16 +16,22 @@
 
 import { contourOf } from './formgplan.js';
 
-export const HOLO_LIB = ['holo-40-warm', 'holo-60-blue', 'holo-60-tiers'];   // the library: its json and jpgs in app/holo/
+// the library: its json and jpgs in app/holo/; every v.2 after its v.1, the same composition and jars, its edges ragged (the owner,
+// 2026-11-14: "'ragged' edges, with no clear frame, will help us technically … keep the first ones too! The new ones then v.2";
+// HOLO-Claude/generator/holo_v2.py)
+export const HOLO_LIB = ['holo-40-warm', 'holo-40-warm-v2', 'holo-60-blue', 'holo-60-blue-v2', 'holo-60-tiers', 'holo-60-tiers-v2'];
 // est.: a dab MARKS' mark, a leg of 8 mm on a dip of its own; a batch of puddles laid, then dragged while wet (≈ 100 dabs, ≈ 15 min);
 // 9 s a dab (the run journal's hand dip of ≈ 6 s, the way to the place and the mark); the brush along a drag, mm/s
 export const HOLO = { gap: 40, mark: 8, batch: 100, sDab: 9, speed: 25, inset: 4, maxDabs: { fan: 3, tiers: 4 } };
 
-// every leg of the picture: its x, its number across the field, its slat
-export const legsOf = pic => pic.slats.flatMap(s => Array.from({ length: s.legs }, (_, j) => ({ x: s.x0 + (j + 0.5) * pic.pitch, n: Math.round((s.x0 - pic.field.x0) / pic.pitch) + j, slat: s })));
+// every leg of the picture: its x, its number across the field, its slat, its ends y0 … y1 — the field's, or a v.2's own (slat.ends)
+export const legsOf = pic => pic.slats.flatMap(s => Array.from({ length: s.legs }, (_, j) => ({ x: s.x0 + (j + 0.5) * pic.pitch, n: Math.round((s.x0 - pic.field.x0) / pic.pitch) + j, slat: s,
+  y0: s.ends?.[j]?.[0] ?? pic.field.y0, y1: s.ends?.[j]?.[1] ?? pic.field.y1 })));
 // run 1's puddles along a leg: evenly from `inset` in from the field's bottom to as far in from its top, `gap` apart at most (the study's)
-export function puddlesY(pic, gap = HOLO.gap, inset = HOLO.inset) {
-  const a = pic.field.y0 + inset, b = pic.field.y1 - inset, m = Math.ceil((pic.field.y1 - pic.field.y0 - 2 * inset) / gap) + 1;
+export const puddlesY = (pic, gap = HOLO.gap, inset = HOLO.inset) => puddlesAlong(pic.field.y0, pic.field.y1, gap, inset);
+// the same along a leg's own ends (a v.2's)
+export function puddlesAlong(y0, y1, gap = HOLO.gap, inset = HOLO.inset) {
+  const a = y0 + inset, b = y1 - inset, m = Math.ceil((y1 - y0 - 2 * inset) / gap) + 1;
   return Array.from({ length: m }, (_, i) => Math.round((b - (b - a) * i / (m - 1)) * 10) / 10);
 }
 // a shadow's dabs by its band's length: one every `lasts` mm of band, 1 … the composition's most (the study's: 55 mm a dab on FAN, 45 on TIERS)
@@ -44,12 +50,12 @@ export function seqOf(pic) {
 // from the top down, odd ones up (the study's), from the field's edge to the other. Run 2: every band of this jar on every leg of its
 // slat: one puddle at its start, `dabs` dabs, then one stroke from it towards its end, no dip (the band's own way).
 export function workOf(pic, line, o = {}) {
-  const gap = o.gap ?? HOLO.gap, batch = o.batch ?? HOLO.batch, lasts = o.lasts ?? null, ys = puddlesY(pic, gap);
+  const gap = o.gap ?? HOLO.gap, batch = o.batch ?? HOLO.batch, lasts = o.lasts ?? null;
   const legs = legsOf(pic), items = [];
   if (line.run === 1) {
     for (const g of legs) {
       if (g.slat.ground !== line.jar) continue;
-      const down = g.n % 2 === 0, a = down ? pic.field.y1 : pic.field.y0, b = down ? pic.field.y0 : pic.field.y1;
+      const down = g.n % 2 === 0, a = down ? g.y1 : g.y0, b = down ? g.y0 : g.y1, ys = puddlesAlong(g.y0, g.y1, gap);
       items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), stroke: { x: g.x, pts: [[g.x, a], [g.x, b]], fade: null } });
     }
   } else {

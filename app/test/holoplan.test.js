@@ -32,7 +32,7 @@ test('the plan counts what the study counted: run 1\'s dabs, run 2\'s puddles an
     assert.equal(r(1).reduce((t, q) => t + q.dabs, 0), p.count.run1_dabs, id);
     assert.equal(r(2).reduce((t, q) => t + q.puddles.length, 0), p.count.run2_puddles, id);
     assert.equal(r(2).reduce((t, q) => t + q.dabs, 0), p.count.run2_dabs, id);
-    assert.deepEqual(puddlesY(p), p.slats[0].puddles_y, `${id}: the puddles where the study laid them`);
+    if (p.version !== 2) assert.deepEqual(puddlesY(p), p.slats[0].puddles_y, `${id}: the puddles where the study laid them`);   // a v.2's every leg its own
     // every jar's dabs, run by run, as the json's
     for (const j of p.jars) for (const run of [1, 2]) assert.equal(P.find(q => q.jar === j.id && q.run === run)?.dabs ?? 0, j[`run${run}_dabs`], `${id} ${j.name} run ${run}`);
   }
@@ -154,4 +154,35 @@ test('DRAW BW: the outline where the paint meets the bare canvas, every border o
   // the tiers: bare slats, so the outline goes in round them too
   const T = load('holo-60-tiers'), OT = contourHolo(T, { outline: true });
   assert.ok(OT.mm > 2 * ((T.field.x1 - T.field.x0) + (T.field.y1 - T.field.y0)) + 1, `tiers outline ${OT.mm} mm`);
+});
+
+test('v.2, ragged edges (the owner, 2026-11-14): every v.1 kept, its v.2 after it; every leg its own ends within the field\'s box, run 1 along them, run 2 within them', () => {
+  for (const id of ['holo-40-warm', 'holo-60-blue', 'holo-60-tiers']) {
+    const i = HOLO_LIB.indexOf(id), v2 = load(id + '-v2'), v1 = load(id);
+    assert.ok(i >= 0 && HOLO_LIB[i + 1] === id + '-v2', `${id}: its v.2 right after it`);
+    assert.equal(v2.version, 2); assert.equal(v2.of, id); assert.equal(v2.w, v1.w);
+    assert.deepEqual(new Set(v2.jars.map(j => j.id)).size <= new Set(v1.jars.map(j => j.id)).size + 0, true, 'no jar v.1 has not');
+    for (const j of v2.jars) assert.ok(v1.jars.some(q => q.id === j.id), `${id}-v2: ${j.name} a v.1 jar`);
+    const L = legsOf(v2), f = v2.field;
+    assert.ok(L.every(g => g.y0 >= f.y0 - 1e-6 && g.y1 <= f.y1 + 1e-6 && g.y1 - g.y0 > 100), 'within the box, no stub');
+    assert.ok(new Set(L.map(g => g.y1)).size > 10 && new Set(L.map(g => g.y0)).size > 10, 'ragged: no even edge');
+    assert.ok(Math.abs(Math.min(...L.map(g => g.y0)) - f.y0) < 0.05 && Math.abs(Math.max(...L.map(g => g.y1)) - f.y1) < 0.05, 'the box the legs\' own');
+    const at = x => L.find(g => Math.abs(g.x - x) < 1e-6);
+    for (const line of seqOf(v2)) {
+      const w = workOf(v2, line);
+      for (const q of w.strokes) {
+        const g = at(q.x), [a, b] = [q.pts[0][1], q.pts[1][1]];
+        assert.ok(Math.min(a, b) >= g.y0 - 1e-6 && Math.max(a, b) <= g.y1 + 1e-6, `${id}-v2 run ${line.run}: a stroke ${a} … ${b} past its leg ${g.y0} … ${g.y1}`);
+        if (line.run === 1) assert.ok(Math.abs(Math.abs(b - a) - (g.y1 - g.y0)) < 1e-6, 'run 1 its leg end to end');
+      }
+      for (const p of w.puddles) { const g = at(p.x); assert.ok(p.y >= g.y0 && p.y <= g.y1, 'a puddle on its leg'); }
+    }
+    // MARKS: the 40 × 40 beside the canvas, the 60 × 60s on it — the v.2's 520 mm leave the blue room too
+    assert.equal(placeRange(v2, WALLS).marks, id === 'holo-40-warm' ? 'off' : 'on', `${id}-v2 MARKS`);
+    // DRAW BW's outline round the ragged edge: every point of it on a leg's end or side
+    const O = contourHolo(v2, { outline: true });
+    assert.ok(O.lines.length >= 1 && O.mm > 2 * ((f.x1 - f.x0) + (f.y1 - f.y0)), `${id}-v2: the outline longer than the box's, ${O.mm}`);
+  }
+  // v.1 as it was: every leg the field's whole height
+  const v1 = load('holo-40-warm'); assert.ok(legsOf(v1).every(g => g.y0 === v1.field.y0 && g.y1 === v1.field.y1));
 });

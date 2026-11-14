@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO v.2: ragged edges, every picture's v.2 after its v.1** (2026-11-14; the owner, `HOLO-Claude/opm-n-screen.png`, `opm-w-screen.png`,
+  his sketch `IMG_2907.jpg`: "the graphics live in a banal square, which still has to be laid evenly on the canvas, debugged as if it were a
+  print on a T-shirt … my works have no four even edges … if we do not hit the centre to the millimetre, nothing terrible: it will be the
+  artist's intent. 'Ragged' edges … will help us technically, and the work itself will not look shut in a frame"; "you decide, I do not insist
+  … keep the first ones too! The new ones then v.2"). The same compositions and jars, every leg its own ends: blocks stepped slat to slat, a
+  wave along them, a staircase in at one to three corners. Run 1 every leg's puddles along its own length, end to end; run 2's shadows within
+  what a slat's legs share. The 60 × 60s 520 mm across (v.1 560, 540): MARKS on the canvas for both, the blue's too. 40 × 40 v.2 340 × 362 mm,
+  ≈ 3 h 06 min; blue v.2 520 × 529, ≈ 6 h 34 min; tiers v.2 520 × 549 (est.). `HOLO-Claude/generator/holo_v2.py`; `holoplan.js` (`legsOf`
+  with every leg's ends, `puddlesAlong`, `HOLO_LIB`). Tests; checked in headless Chrome.
 - **HOLO: MARKS on the canvas where it is wider than the reach; the mark the brush's 5 mm, the slips 3 cm** (2026-11-14; the owner,
   `HOLO-Claude/IMG_2904.jpg`, the red classic's strips laid on a 60 × 60: "we will put them right on the canvas, as with 70 × 100";
   "3 cm left and 3 cm right is enough"; "IMPORTANT — the brush is 5 mm"). Off the canvas where the reach has room for both slips' marks
