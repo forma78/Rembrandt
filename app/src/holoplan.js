@@ -19,7 +19,9 @@ import { contourOf } from './formgplan.js';
 // the library: its json and jpgs in app/holo/; every v.2 after its v.1, the same composition and jars, its edges ragged (the owner,
 // 2026-11-14: "'ragged' edges, with no clear frame, will help us technically … keep the first ones too! The new ones then v.2";
 // HOLO-Claude/generator/holo_v2.py)
-export const HOLO_LIB = ['holo-40-warm', 'holo-40-warm-v2', 'holo-60-blue', 'holo-60-blue-v2', 'holo-60-tiers', 'holo-60-tiers-v2'];
+// the tiers' v.3 (the owner, 2026-11-14, the night, of the blue redrawn on v.1's row: "the new one is better. Maybe you will make a v.3 for the
+// tiers?"): v.1's row and colours, every slat, the v.2's ragged edges; its v.2 kept ("I really like the tiers v.2")
+export const HOLO_LIB = ['holo-40-warm', 'holo-40-warm-v2', 'holo-60-blue', 'holo-60-blue-v2', 'holo-60-tiers', 'holo-60-tiers-v2', 'holo-60-tiers-v3'];
 // est.: a dab MARKS' mark, a leg of 8 mm on a dip of its own; a batch of puddles laid, then dragged while wet (≈ 100 dabs, ≈ 15 min);
 // 9 s a dab (the run journal's hand dip of ≈ 6 s, the way to the place and the mark); the brush along a drag, mm/s
 export const HOLO = { gap: 40, mark: 8, batch: 100, sDab: 9, speed: 25, inset: 4, maxDabs: { fan: 3, tiers: 4 } };

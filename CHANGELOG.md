@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: the tiers' v.3** (2026-11-14, the night; the owner, of the blue redrawn on v.1's row: "the new one is better. Maybe you will make a
+  v.3 for the tiers?"). v.1's row and colours, all 33 slats, pressed to 520 mm (one leg off each of its four widest), the v.2's ragged edges
+  carried onto it (`holo_v2.py`, `MADE`); in HOLO's library after the tiers' v.2, which stays as it is. 1609 dabs, ≈ 4 h 46 min (est.). The
+  panel's "every leg its own ends" for any version from 2 on. Checked in headless Chrome, nothing sent.
 - **HOLO v.2: every slat of v.1's back; the tiers kept** (2026-11-14, the night; the owner, `HOLO-Claude/Screenshot 2026-11-14 at 7.27.03
   PM.png`: "did you leave out the last column on purpose, as in v.1? … I would bring the lost column back. But these are your pictures — you
   decide"; then: "I really like the tiers v.2 — I say it as a professional who has seen a great deal, it came out very well. I cannot wait to

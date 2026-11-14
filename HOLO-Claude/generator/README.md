@@ -35,6 +35,8 @@ the 60 × 60s 520 mm across, so MARKS fit on the canvas by the field. Writes `ap
 Every slat of v.1's (2026-11-14, the night; the owner, of the 40 × 40's last slat gone: "I would bring the lost column back. But these are your
 pictures — you decide"): the warm 40 × 40 and the blue are v.1's own row, the blue pressed to 520 mm by one leg off its widest slats; their ragged
 edges the first v.2's, carried slat for slat. The tiers' v.2 is kept as it was, its own row and colours ("I really like the tiers v.2").
+Then the tiers' **v.3** (the owner, of the blue redrawn so: "the new one is better. Maybe you will make a v.3 for the tiers?"): v.1's row and
+colours, every slat, at 520 mm, the v.2's ragged edges carried onto it — `app/holo/holo-60-tiers-v3.*`; `python holo_v2.py holo-60-tiers-v3`.
 
 ```
 python holo_v2.py                    # all three v.2s

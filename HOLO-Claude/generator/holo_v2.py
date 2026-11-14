@@ -27,7 +27,8 @@ a slat it never had, one more step of the walk past its neighbour and its stairc
 The tiers' v.2 stays as it was, its own row (`own`): the owner, the same evening, as the work was under way: "I really like the tiers v.2 —
 I say it as a professional who has seen a great deal, it came out very well. I cannot wait to paint it"
 
-python holo_v2.py [id …]     (a venv with numpy, pillow and scipy; the working directory this one; ids the v.1 ones: holo-40-warm …)
+python holo_v2.py [id …]     (a venv with numpy, pillow and scipy; the working directory this one; ids the v.1 ones: holo-40-warm … for their
+                              v.2, or a made one's own: holo-60-tiers-v3)
 """
 import sys, json, os, importlib.util
 import numpy as np
@@ -53,6 +54,11 @@ V2 = {
     'holo-60-tiers': dict(make=lambda m: H.Tiers(600, margin=m), margin=40, out=14, step=9, deep=46, wave=(4.5, 95), stair=(3, 34), seed=8, own=True),
 }
 SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-60-tiers': 'the tiers'}
+# every picture made here: its id → (its v.1, how, its version). The tiers' v.3 (the owner, 2026-11-14, the night, of the blue redrawn on v.1's
+# row: "the new one is better. Maybe you will make a v.3 for the tiers?"): v.1's row and colours, every slat, at 520 mm, the v.2's ragged edges
+# carried onto it; its v.2 stays as it is.
+MADE = {**{pid + '-v2': (pid, c, 2) for pid, c in V2.items()},
+        'holo-60-tiers-v3': ('holo-60-tiers', dict(V2['holo-60-tiers'], own=False, legs=104), 3)}
 
 
 def rhythm(st, c):
@@ -243,8 +249,8 @@ def plan(st, pid, title):
     return p
 
 
-def make(pid, out=OUT, renders=True):
-    c = V2[pid]; byhex = J.recolour(pid)
+def make(vid, out=OUT, renders=True):
+    pid, c, ver = MADE[vid]; byhex = J.recolour(pid)
     old = c['make'](c['margin'])                                        # the first v.2's row, for its rhythm
     if c.get('own'):
         st = old; ragged(st, c)
@@ -253,7 +259,6 @@ def make(pid, out=OUT, renders=True):
         if c.get('legs'): narrow(st, c['legs'])
         ragged(st, c, *carry(old, st, rhythm(old, c), c))
     cut(st)
-    vid = pid + '-v2'
     p = plan(st, vid, '')
     warp_dark(st, p)
     for s in p['slats']:
@@ -266,8 +271,8 @@ def make(pid, out=OUT, renders=True):
         j = J.JAR[byhex[q['hex']]]
         jars.append(dict(id=j[0], name=j[1], number=j[2], hex=j[3], L=round(J.lab(j[3])[0]), seen=j[4], new=j[4] == 'tube', note=j[5],
                          study=src[j[0]], run1_dabs=q['run1_dabs'], run2_dabs=q['run2_dabs']))
-    p.update(title=f'HOLO · {p["w"] // 10} × {p["h"] // 10}, {SUB[pid]} · v.2', sub=f'{SUB[pid]}, v.2, ragged edges', jars=jars, of=pid, version=2,
-             note='HOLO v.2, its edges ragged (the owner, 2026-11-14): every number est., nothing run on the machine',
+    p.update(title=f'HOLO · {p["w"] // 10} × {p["h"] // 10}, {SUB[pid]} · v.{ver}', sub=f'{SUB[pid]}, v.{ver}, ragged edges' + (', every slat of v.1' if ver > 2 else ''),
+             jars=jars, of=pid, version=ver, note=f'HOLO v.{ver}, its edges ragged (the owner, 2026-11-14): every number est., nothing run on the machine',
              image=f'holo/{vid}.jpg', after1=f'holo/{vid}-run1.jpg')
     os.makedirs(out, exist_ok=True)
     json.dump(p, open(os.path.join(out, vid + '.json'), 'w'), separators=(',', ':'))
@@ -280,7 +285,7 @@ def make(pid, out=OUT, renders=True):
 if __name__ == '__main__':
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     out = next((a[6:] for a in sys.argv[1:] if a.startswith('--out=')), OUT)
-    for pid in args or list(V2):
-        p = make(pid, out)
+    for vid in [a if a in MADE else a + '-v2' for a in args] or list(MADE):    # a v.1's id: its v.2
+        p = make(vid, out)
         f = p['field']
-        print(pid + '-v2', p['count'], f'field {f["x1"] - f["x0"]:.0f} × {f["y1"] - f["y0"]:.0f}', [(j['name'], j['run1_dabs'], j['run2_dabs']) for j in p['jars']])
+        print(vid, p['count'], f'field {f["x1"] - f["x0"]:.0f} × {f["y1"] - f["y0"]:.0f}', [(j['name'], j['run1_dabs'], j['run2_dabs']) for j in p['jars']])
