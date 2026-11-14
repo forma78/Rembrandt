@@ -296,6 +296,22 @@ future: Jar 6 always at the start of Layer 2."
    (`FORM-G/generator/export_formg.py`). On the red classic, v.2 and v.1, and the white since the
    same day.
 
+## MARKS beside the canvas — paper on the plates (canon)
+
+The owner, 2026-11-14, of `HOLO-Claude/IMG_2903.jpg` (two places circled in green) and `HOLO-Claude/color_marks.png`
+(FORM-G's MARKS on the red classic, strips 1 and 3): "There I circled in green the places where the papers will lie, so that
+the machine dips as in color_marks.png — this is the new canon. All the new pictures come with such tables."
+
+1. **Every new picture has its MARKS**, FORM-G's (`formgplan.js`, `MARKS`): after every change of jar one dip, then the
+   jar's mark, a leg of 8 mm along X, in its own cell of every strip; then its first cell on a dip of its own.
+2. **The strips lie off the canvas**: paper slips on the two metal plates beside it, one by the middle of the canvas's left
+   edge, one by its right, against the edge. FORM-G's were taped over the canvas, 15 mm in from its edge.
+3. Off the photo, est.: a slip ≈ 40 mm across Y, ≈ 150 mm along X — FORM-G's cells 14 mm apart, about 10 jars a strip.
+4. The canvas and both slips within the Y reach, 568.5 mm: a canvas up to ≈ 470 mm across Y (est.). The 40 × 40 has 168 mm
+   to spare, 84 a side; a 60 × 60 is itself 31.5 mm wider than the reach — open, asked.
+
+Not built yet.
+
 ## Working rules
 
 - **The artist decides what to paint. The brush determines how it can be

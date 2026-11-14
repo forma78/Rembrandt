@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **README: MARKS beside the canvas, the canon** (2026-11-14; the owner, `HOLO-Claude/IMG_2903.jpg`, two places circled in green, and
+  `color_marks.png`: "the places where the papers will lie, so that the machine dips as in color_marks.png — this is the new canon. All the
+  new pictures come with such tables"). Every new picture its MARKS, FORM-G's, on paper slips on the two metal plates by the middles of
+  the canvas's left and right edges, off the canvas; ≈ 40 × 150 mm off the photo (est.). The 40 × 40 has room in Y for both; a 60 × 60
+  canvas is wider than the reach by itself — asked. Not built yet.
 - **HOLO: the canvas's place by the field's edges, no hair past the Y walls** (2026-11-14; the owner, TEST on the 60 × 60 blue: "The brush
   would go 0 mm past the walls: move the canvas"). The place's range went by the outer legs' middles right to the Y wall, with none of
   plotRun's 0.1 mm inside: at the blue's place, left −9, TEST's dots at TR and BR stood on the wall, 0.28 mm of their way past it, shown as
