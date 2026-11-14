@@ -17,6 +17,16 @@ they are even … keep the dance in the second layer"; README): run 2's bands ar
 laid on every leg between its own ends, the stroke's end never past it, a dab by its length there — holoplan.js's bandOn and dabsOn, the same
 numbers. The 60 × 60s 520 mm across (v.1 560 and 540), so that MARKS fit on the canvas by the field (README's canon).
 
+Every slat of v.1's, none lost (the owner, 2026-11-14, `../Screenshot 2026-11-14 at 7.27.03 PM.png`, the 40 × 40's last slat gone in v.2: "did
+you leave out the last column on purpose? … I would bring the lost column back. But these are your pictures — you decide"). The first v.2s
+were drawn on a study with a wider margin all round, so its row of slats was cut shorter: the 40 × 40 lost its outermost slat on the right
+(Jar 1, 6 legs; Jar 6 9 legs wide for 6), the blue its two outermost, the tiers its last two in one and its colours in another order. Now a v.2
+is its v.1's own row: the 40 × 40 360 mm across as v.1; the blue pressed to 520 mm by one leg off each of its widest slats, every slat kept.
+The ragged edges as the owner saw them that day: the first v.2's rhythm (the old row, seeded as before) carried slat for slat onto v.1's row;
+a slat it never had, one more step of the walk past its neighbour and its staircase a step deeper.
+The tiers' v.2 stays as it was, its own row (`own`): the owner, the same evening, as the work was under way: "I really like the tiers v.2 —
+I say it as a professional who has seen a great deal, it came out very well. I cannot wait to paint it"
+
 python holo_v2.py [id …]     (a venv with numpy, pillow and scipy; the working directory this one; ids the v.1 ones: holo-40-warm …)
 """
 import sys, json, os, importlib.util
@@ -31,21 +41,23 @@ H = J.H
 OUT = J.OUT
 PPM = H.PPM
 
-# every picture's v.2: its v.1's study with a wider margin (room for the ends to stand out), and how ragged; mm, est.
-#   margin: the base of the ends; out: as far as an end stands out past it; step: a block's step; deep: the walk's deepest in;
-#   wave: (amplitude, wavelength); stair: (slats a side, mm a step) for the sides
+# every picture's v.2: v.1's own row of slats (holo_study's PICTURES), `legs` across if fewer than v.1's; and how ragged, mm, est.:
+#   make, margin: the first v.2's study, its rhythm drawn on its row (carried onto v.1's, `carry`; `own`: that row itself, the tiers' as
+#   the owner liked it); margin: the base of the ends;
+#   out: as far as an end stands out past it; step: a block's step; deep: the walk's deepest in; wave: (amplitude, wavelength);
+#   stair: (slats a side, mm a step) for the sides
 V2 = {
     'holo-40-warm': dict(make=lambda m: H.Study(400, 'warm', margin=m), margin=30, out=12, step=7, deep=34, wave=(3.5, 70), stair=(3, 26), seed=11),
     'holo-60-blue': dict(make=lambda m: H.Study(600, 'blue', margin=m, slope=0.36, xf=0.58, yf=0.44, acc=((4, 8), (3, 7))), margin=40, out=14, step=9,
-                         deep=46, wave=(4.5, 95), stair=(3, 34), seed=5),
-    'holo-60-tiers': dict(make=lambda m: H.Tiers(600, margin=m), margin=40, out=14, step=9, deep=46, wave=(4.5, 95), stair=(3, 34), seed=8),
+                         deep=46, wave=(4.5, 95), stair=(3, 34), seed=5, legs=104),
+    'holo-60-tiers': dict(make=lambda m: H.Tiers(600, margin=m), margin=40, out=14, step=9, deep=46, wave=(4.5, 95), stair=(3, 34), seed=8, own=True),
 }
 SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-60-tiers': 'the tiers'}
 
 
-def ragged(st, c):
-    """every leg its ends (study's mm, y down): [top, bottom]"""
-    rng = np.random.default_rng(c['seed']); n = len(st.slats); m, out, step, deep = c['margin'], c['out'], c['step'], c['deep']
+def rhythm(st, c):
+    """the ragged ends' rhythm on a row of slats: every slat its walk in from the top and from the bottom and its staircases, mm; the wave's phase"""
+    rng = np.random.default_rng(c['seed']); n = len(st.slats); out, step, deep = c['out'], c['step'], c['deep']
 
     def walk():
         v, vs = rng.uniform(-out * 0.3, deep * 0.3), []
@@ -64,20 +76,63 @@ def ragged(st, c):
         for q in range(k):                                              # the outermost slat the deepest
             a[q if side == 0 else n - 1 - q] += (k - q) * s
 
-    amp, lam = c['wave']
     tops, bots, phase = walk(), walk(), rng.uniform(0, 2 * np.pi, 2)
+    return dict(top=list(tops), bot=list(bots), st_top=list(st_top), st_bot=list(st_bot), phase=phase)
+
+
+def carry(old, st, R, c):
+    """the old row's rhythm onto st's row: slat for slat in order, where their middles lie nearest; the wave at the old slat's own place, so a
+    slat's legs end where they did; a slat the old row never had, outward from the last that had: one more step of the walk (its own seed) and
+    its staircase one step deeper, if its neighbour stood on one → (rhythm a slat of st, the wave's x at every slat's left edge)"""
+    edge = lambda S, sl: S.x0 + sl['i0'] * S.pitch
+    mid = lambda S, sl: edge(S, sl) + sl['w'] * S.pitch / 2
+    no, nn = len(old.slats), len(st.slats)
+    pairs = lambda o: [(i, i - o) for i in range(nn) if 0 <= i - o < no]
+    o = min(range(-3, 4), key=lambda o: np.mean([abs(mid(st, st.slats[i]) - mid(old, old.slats[j])) for i, j in pairs(o)]))
+    P = dict(pairs(o)); lo, hi = min(P), max(P)
+    T = {k: [None] * nn for k in ('top', 'bot', 'st_top', 'st_bot')}; xs = [None] * nn
+    for i, j in P.items():
+        for k in T: T[k][i] = R[k][j]
+        xs[i] = edge(old, old.slats[j])
+    rng = np.random.default_rng(c['seed'] + 1000)
+    for i, a, b in [(i, i - 1, i - 2) for i in range(hi + 1, nn)] + [(i, i + 1, i + 2) for i in range(lo - 1, -1, -1)]:
+        for k in ('top', 'bot'):
+            T[k][i] = float(np.clip(T[k][a] + c['step'] * rng.choice([-1, 0, 0, 1]), -c['out'], c['deep']))
+        for k in ('st_top', 'st_bot'):
+            u, v = T[k][a], T[k][b] if 0 <= b < nn and T[k][b] is not None else 0.0
+            T[k][i] = u + (u - v) if u > v else 0.0
+        xs[i] = edge(st, st.slats[i]) + xs[a] - edge(st, st.slats[a])
+    return dict(T, phase=R['phase']), xs
+
+
+def ragged(st, c, R=None, xs=None):
+    """every leg its ends (study's mm, y down): [top, bottom], by a rhythm a slat (its own row's, or carried) and the wave at xs, a slat's left edge"""
+    R = R or rhythm(st, c); m = c['margin']; amp, lam = c['wave']; phase = R['phase']
     for si, sl in enumerate(st.slats):
-        ends = []
+        x0 = xs[si] if xs else st.x0 + sl['i0'] * st.pitch; ends = []
         for j in range(sl['w']):
-            x = st.x0 + (sl['i0'] + j + 0.5) * st.pitch
-            t = m + tops[si] + st_top[si] + amp * np.sin(2 * np.pi * x / lam + phase[0])
-            b = st.H - m - bots[si] - st_bot[si] - amp * np.sin(2 * np.pi * x / (lam * 1.37) + phase[1])
+            x = x0 + (j + 0.5) * st.pitch
+            t = m + R['top'][si] + R['st_top'][si] + amp * np.sin(2 * np.pi * x / lam + phase[0])
+            b = st.H - m - R['bot'][si] - R['st_bot'][si] - amp * np.sin(2 * np.pi * x / (lam * 1.37) + phase[1])
             if b - t < 0.4 * (st.H - 2 * m):                            # never a stub: at least 0.4 of the base's height
                 mid = (t + b) / 2; t, b = mid - 0.2 * (st.H - 2 * m), mid + 0.2 * (st.H - 2 * m)
             ends.append((round(float(t), 1), round(float(b), 1)))
         sl['ends'] = ends
     for leg in st.legs:
         sl = leg['slat']; leg['ends'] = sl['ends'][leg['n'] - sl['i0']]
+
+
+def narrow(st, legs):
+    """v.1's row pressed to `legs` legs across: one leg off each of its widest slats, of two alike the nearer the horizon, so the fan still
+    widens outward; every slat kept, its bands and its jars as v.1's; the horizon between the same two slats"""
+    cut_ = sorted(range(len(st.slats)), key=lambda i: (-st.slats[i]['w'], abs(st.slats[i]['cx'] - st.xc)))[:st.N - legs]
+    nl = round((st.xc - st.x0) / st.pitch) - sum(1 for i in cut_ if st.slats[i]['cx'] < st.xc)
+    for i in cut_: st.slats[i]['w'] -= 1
+    st.N = legs; st.x0 = (st.W - legs * st.pitch) / 2; st.xc = st.x0 + nl * st.pitch; st.legs, i = [], 0
+    for sl in st.slats:
+        sl['i0'] = i; sl['cx'] = st.x0 + (i + sl['w'] / 2) * st.pitch
+        for j in range(sl['w']): st.legs.append(dict(x=st.x0 + (i + j + 0.5) * st.pitch, slat=sl, n=i + j))
+        i += sl['w']
 
 
 def cut(st):
@@ -190,8 +245,14 @@ def plan(st, pid, title):
 
 def make(pid, out=OUT, renders=True):
     c = V2[pid]; byhex = J.recolour(pid)
-    st = c['make'](c['margin'])
-    ragged(st, c); cut(st)
+    old = c['make'](c['margin'])                                        # the first v.2's row, for its rhythm
+    if c.get('own'):
+        st = old; ragged(st, c)
+    else:
+        st = H.PICTURES[pid][0]()                                       # v.1's own row
+        if c.get('legs'): narrow(st, c['legs'])
+        ragged(st, c, *carry(old, st, rhythm(old, c), c))
+    cut(st)
     vid = pid + '-v2'
     p = plan(st, vid, '')
     warp_dark(st, p)

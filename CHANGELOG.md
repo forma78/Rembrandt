@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO v.2: every slat of v.1's back; the tiers kept** (2026-11-14, the night; the owner, `HOLO-Claude/Screenshot 2026-11-14 at 7.27.03
+  PM.png`: "did you leave out the last column on purpose, as in v.1? … I would bring the lost column back. But these are your pictures — you
+  decide"; then: "I really like the tiers v.2 — I say it as a professional who has seen a great deal, it came out very well. I cannot wait to
+  paint it"). The first v.2s were drawn with a wider margin all round, so the study's row of slats was cut short: the warm 40 × 40 lost its
+  outermost slat (Jar 1, 6 legs, Jar 6 9 legs wide for 6), the blue its two outermost. Now both are v.1's own row (`holo_v2.py`: `narrow`,
+  `carry`): the 40 × 40 72 legs, 360 mm across as v.1; the blue 26 slats at 520 mm, one leg off each of its widest; their ragged edges the
+  first v.2's, slat for slat, a slat they never had one more step of the walk. Run 1 on the 40 × 40: Jar 1 312 dabs (was 246), 1132 dabs in
+  all, ≈ 3 h 20 min (est.). The tiers' v.2 not touched, byte for byte. Checked in headless Chrome, nothing sent.
 - **HOLO: ▶ Play ten times faster** (2026-11-14, the night; the owner: "for PLAY raise the speed ×10, it crawls like a turtle now"). The
   whole run in 18 s (was three minutes, FORM-G's), the clock still squared, slow at first (`PLAY_MS`, `holo.js`). A view: nothing sent.
 - **HOLO: TEST at the canvas's own corners; Preferences' margin may be 0** (2026-11-14, the evening; the owner: "why 32.5 mm? The cross

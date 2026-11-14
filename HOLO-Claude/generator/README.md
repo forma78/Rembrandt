@@ -32,6 +32,10 @@ to be laid evenly on the canvas … 'ragged' edges, with no clear frame, will he
 ends — blocks stepped slat to slat, a wave along them, a staircase in at one to three corners; run 2's shadows within what a slat's legs share;
 the 60 × 60s 520 mm across, so MARKS fit on the canvas by the field. Writes `app/holo/<id>-v2.json` and its two renders, v.1 untouched.
 
+Every slat of v.1's (2026-11-14, the night; the owner, of the 40 × 40's last slat gone: "I would bring the lost column back. But these are your
+pictures — you decide"): the warm 40 × 40 and the blue are v.1's own row, the blue pressed to 520 mm by one leg off its widest slats; their ragged
+edges the first v.2's, carried slat for slat. The tiers' v.2 is kept as it was, its own row and colours ("I really like the tiers v.2").
+
 ```
 python holo_v2.py                    # all three v.2s
 python holo_v2.py holo-60-blue       # one; --out=<dir> elsewhere
