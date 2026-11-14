@@ -53,11 +53,33 @@ Seen in the machine camera's film, the paint fresh (`eyes/2026-11-14/`,
 - The legs dragged before, below the groups of three, are long ribbons,
   every puddle's oval rim still in them (frame-000 … frame-013).
 
-Next, at the drag:
-- does one stroke take its own leg's puddles, or push them into the
-  neighbouring leg where they have run together;
-- where a stroke gives out, against the 55 mm (est.);
-- a thread across the canvas between two puddles.
+Seen from above after the drag (IMG_2924 … IMG_2927), with the frames
+above, by eye, est.:
+- The stroke does not lay a band. Every leg is a narrow raised line,
+  about a third of the 5 mm between legs; between the lines only a thin
+  skin where the puddles stood. The slat reads as stripes, not as a
+  ground (IMG_2924).
+- Every puddle's oval rim stays in its line (IMG_2924).
+- Each leg stays its own line: where neighbours' puddles had run
+  together, the drag split them again (IMG_2924).
+- The paint does not give out at 55 mm (est.). The stroke carries it to
+  the leg's end and leaves it there in a heap (IMG_2924, the lower ends).
+- The tip lifts with a ball of paint hanging at its end (IMG_2927).
+- No thread of paint across the canvas.
+- The next legs' groups, two or three puddles run together, stand like
+  the letters of a script I do not know (IMG_2925, IMG_2926).
+
+A guess, not a measure: the tip scrapes, it does not lay. It pushes the
+paint ahead and leaves the canvas almost clean behind it. The paint is
+thicker than the plan reckoned, or the tip presses harder than a drag
+needs, or both.
+
+Next, for 001 (each the owner's call: the press and the paint move the
+machine):
+- a lighter press on the drag, or the brush a mm higher (est.);
+- more medium in the jar, a paint that levels;
+- or keep the lines: rails with their rims and their heaps are a look of
+  their own, not the plan's.
 One photo from above with a ruler laid beside the field gives mm.
 
 ## 2026-11-13 · day 1, my first post
