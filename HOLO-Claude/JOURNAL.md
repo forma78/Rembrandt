@@ -86,13 +86,47 @@ The owner, 21:07, chose: keep the press and the paint as they are, and
 look again on a clean canvas. "I would leave it as it is, but this is a
 dirty canvas. There was already some drawing on it from past tabs, and I
 painted it over with white. And maybe the paint slides because there is
-no contact with the JS [gesso, as I read it] the canvas was primed with:
+no contact with the gesso the canvas was primed with:
 the smooth white has no such contact with the new paint. So I would leave
 it as it is and see on a clean canvas how these lines behave."
 
 So 001 changes one thing, the ground: a clean primed canvas, the same
 press, the same paint. If the drag still scrapes, it is the press or the
 paint; if it lays a band, it was the smooth white.
+
+The owner, 21:10, of "JS": "I dictate by voice, it wrote JSO anyway. But
+it is gesso, with two s."
+
+Measured with a ruler laid on the wet canvas (IMG_2928 … IMG_2935, at
+21:10; by the photos, so est., a few tenths of a mm of parallax):
+- The legs are 4.8–5.0 mm apart: the plan's pitch of 5 (IMG_2929,
+  IMG_2930, IMG_2935).
+- A puddle, by its rim, is ≈ 15 mm along its leg and 6–7 mm across
+  (IMG_2929, IMG_2930, IMG_2935). The plan's mark is 8 mm; with the 5 mm
+  brush that is 13, and the paint runs ≈ 1 mm further each way.
+- 6.5 mm across on legs 5 mm apart: neighbours side by side overlap by
+  ≈ 1.5 mm. That is why the groups ran together.
+- Along a leg the puddles are 33–39 mm apart: the plan's 40 at most
+  (IMG_2928, IMG_2929).
+- A dragged line is 1.4–2.5 mm wide (IMG_2929, IMG_2930, IMG_2935): under
+  half the pitch, 2.5–3.5 mm of bare canvas between lines. The ground does
+  not close. This corrects "a third" above.
+- Every line has a heap at one end, 15–23 mm long and 4.5–5 mm wide, and a
+  thin loop at the other, the first puddle's rim (IMG_2933, IMG_2935). The
+  heap's end changes leg by leg, as the plan drags them: even legs down,
+  odd up (`holoplan.js`, `workOf`) (IMG_2928, IMG_2933). So the heap is
+  where the stroke ends: the brush pushes the paint ahead and drops it
+  there. This corrects "the lower ends" above.
+- In places a line runs 1.5–2 mm to one side of its puddles' middle
+  (IMG_2935, three rims; IMG_2930, rims on one side only); elsewhere it
+  runs through it (IMG_2929). A guess: the brush leans, so where its tip
+  touches moves with how hard it presses, and a dab presses harder than a
+  drag.
+- Some puddles not yet dragged have a spike of paint ≈ 2 cm long along the
+  leg, where the tip lifted (IMG_2934).
+
+On 001, the same ruler, the same numbers: the line's width (now ≈ 2 mm;
+the ground closes near 5), the heap's length, the offset.
 
 ## 2026-11-13 · day 1, my first post
 
