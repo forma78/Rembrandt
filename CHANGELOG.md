@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO V4: run 2 Air again, its dots on one side, legs + 1 tracks** (2026-11-15, the evening; the owner, of the test canvas: "an old
+  canvas, no gesso to hold the paint, a smooth pouring medium that strips fresh acrylic as from glass … a clean canvas cures it"; then,
+  `HOLO-Claude/Screenshot 2026-11-15 at 5.23.19 PM.png`: "at first you had pleasant gradients, when the drops stood on one side only. I propose
+  to keep n+1 as the second run, the snake only for the first run, the main one. But the second run, when the saturated colours come — blue,
+  Jar 39, orange — make them Air. Important: take the lower drops off the second run … keep the drops on one side only, then the gradient
+  comes back"). `drag: { snake, idle: 1, run2: 'air' }`, `far` off (`holo-40-warm-v4.json`); `airOf` (`src/holoplan.js`): run 2 a slat's band
+  at a time — its dots at the band's edge alone, v.2's 455 dabs, then the legs + 1 tracks evenly between its outer legs' middles, every one
+  from the dots towards the band's end, a run each, the brush up between them; 388 tracks. Run 1 as before, LAB's + idle 6.0. RUN 2's
+  question ≈ 2 h 15 min on the machine (est.). Older pictures' plans and moves unchanged (compared). Checked in headless Chrome; RUN 2's
+  question opened on rembrandt.py and cancelled. Not run.
 - **HOLO V4: LAB's + idle 6.0 a group at a time, run 2's dots on both sides** (2026-11-15, the afternoon; the owner, of the snake's
   down-and-up pairs making one 5 mm groove each, `HOLO-Claude/eyes/2026-11-15/16.19/`: "then let us do as in LAB, + IDLE 6.0 … if the run
   gives 6 tracks (6 drops at the bottom, 6 at the top), once by the snake over the six rows, and then inside, say, 7 tracks, an idle run by the

@@ -79,8 +79,14 @@ export function seqOf(pic) {
 // `idle` more tracks than legs, evenly between its outer legs' middles, no dip, IDLE.over mm past the ends at its start and its turns, 0 at
 // its very end. `far`: run 2's dots on both sides (the owner, the same afternoon: "the dots need to go on both sides; there is not enough
 // paint"): a dab at the band's far end too, HOLO.inset mm in from where its stroke ends, on a band at least `far` mm long (est.)
+// `run2: 'air'`: run 2 by Air again, run 1 by the snake and its idle snake — the owner, the evening (`HOLO-Claude/Screenshot 2026-11-15 at
+// 5.23.19 PM.png`, the shadows' gradients on the screen): "at first you had pleasant gradients, when the drops stood on one side only. I propose
+// to keep n+1 as the second run, the snake only for the first run, the main one. But the second run, when the saturated colours come — blue,
+// Jar 39, orange — make them Air. Important: take the lower drops off the second run … keep the drops on one side only, then the gradient comes
+// back": a group's dots at the band's edge alone, then legs + `idle` tracks evenly between its outer legs' middles, every one from the dots'
+// side towards the band's end, the brush up back between them, no dip
 export const dragOf = pic => ({ per_leg: pic.drag?.per_leg ?? 1, step: pic.drag?.step ?? 0, snake: !!pic.drag?.snake, idle: pic.drag?.idle ?? 0, far: pic.drag?.far ?? 0,
-  over: pic.drag?.over ?? IDLE.over });
+  over: pic.drag?.over ?? IDLE.over, run2: pic.drag?.run2 ?? null });
 // a leg's i-th stroke across it, mm: its middle for one, else `step` apart about it
 const strokeX = (D, x, i) => D.per_leg > 1 ? Math.round((x + (i - (D.per_leg - 1) / 2) * D.step) * 1000) / 1000 : x;
 
@@ -140,7 +146,8 @@ export function workOf(pic, line, o = {}) {
       const first = g.flatMap(it => it.strokes).sort((p, q) => p.x - q.x);
       // run 2's dots on both sides: the near ones along the slat, then the far ones, row by row
       const puddles = line.run === 2 ? [0, 1].flatMap(r => g.flatMap(it => it.puddles[r] ? [it.puddles[r]] : [])) : g.flatMap(it => it.puddles);
-      batches.push({ puddles, strokes: [...first, ...idleOf(g, first[0], D, pic.pitch)], items: g, dabs: g.reduce((t, it) => t + dabsOfIt(it), 0), rows: line.run === 2 });
+      const strokes = line.run === 2 && D.run2 === 'air' ? airOf(g, D, pic) : [...first, ...idleOf(g, first[0], D, pic.pitch)];
+      batches.push({ puddles, strokes, items: g, dabs: g.reduce((t, it) => t + dabsOfIt(it), 0), rows: line.run === 2 });
     }
   } else {
     let cur = null;
@@ -153,6 +160,18 @@ export function workOf(pic, line, o = {}) {
   const puddles = items.flatMap(q => q.puddles), strokes = batches.flatMap(B => B.strokes), len = s => Math.abs(s.pts[1][1] - s.pts[0][1]);
   return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), cells: items.length, puddles, strokes, batches, items, mm: strokes.reduce((t, s) => t + len(s), 0),
     idleMm: strokes.filter(s => s.idle).reduce((t, s) => t + len(s), 0) };
+}
+// run 2's Air (`run2: 'air'`): a group's legs + idle tracks evenly between its outer legs' middles, every one from the band's start (its
+// dots' side) to its end, the band's own two ends between the legs, as wide as the group shared out; no key, so a run each, the brush up
+// between them → strokes { x, leg, pts, fade: { full, band: { start, end } }, lane, cell, nth, of, key: null }
+function airOf(g, D, pic) {
+  const xs = g.map(it => it.span[0]), n = g.length, m = n + D.idle, full = pic.est.shadow_full ?? 0;
+  const at = (x, k) => { if (n === 1) return g[0].ends[k]; let i = 0; while (i < n - 2 && x > xs[i + 1]) i++; const u = Math.min(1, Math.max(0, (x - xs[i]) / (xs[i + 1] - xs[i]))); return g[i].ends[k] + (g[i + 1].ends[k] - g[i].ends[k]) * u; };
+  return Array.from({ length: m }, (_, k) => {
+    const x = Math.round((n === 1 ? xs[0] : xs[0] + (xs[n - 1] - xs[0]) * k / (m - 1)) * 1000) / 1000, a = Math.round(at(x, 0) * 100) / 100, b = Math.round(at(x, 1) * 100) / 100;
+    const near = xs.reduce((j, v, i) => Math.abs(v - x) < Math.abs(xs[j] - x) ? i : j, 0);
+    return { x, leg: xs[near], pts: [[x, a], [x, b]], fade: { full, band: { start: a, end: b } }, lane: n * pic.pitch / m, cell: g[near].cell, nth: k, of: m, key: null };
+  });
 }
 // a group's idle run (`idle`, LAB's + idle 6.0): legs + idle tracks evenly between its outer legs' middles, the first the way the group's first
 // stroke goes, every next back; its ends the legs' own between them (a ragged edge, a band warped on every leg), IDLE.over mm past them at its

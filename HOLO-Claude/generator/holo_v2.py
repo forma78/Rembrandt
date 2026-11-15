@@ -66,10 +66,11 @@ SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-6
 # there and back, then 2, then 3"): every slat's, every slat's band's strokes one run there and back, its puddles laid just before it. Then
 # LAB's + idle 6.0 (the owner, of the down-and-up pairs making 5 mm grooves: "then let us do as in LAB, + IDLE 6.0"; "yes, n+1"): the group's
 # snake one stroke a leg on its middle, at once an idle snake of legs + 1 tracks (`idle`), and run 2's dots on both sides (`far`: a dab at a
-# band's far end too, on a band at least 30 mm long, est.) — counted here as holoplan.js counts them.
+# band's far end too, on a band at least 30 mm long, est.) — counted here as holoplan.js counts them. The evening (Screenshot 5.23.19 PM, the
+# gradients): run 2 Air again, its dots on one side only, legs + 1 tracks a group (`run2: 'air'`); `far` off.
 MADE = {**{pid + '-v2': (pid, c, 2) for pid, c in V2.items()},
         'holo-60-tiers-v3': ('holo-60-tiers', dict(V2['holo-60-tiers'], own=False, legs=104), 3),
-        'holo-40-warm-v4': ('holo-40-warm', dict(V2['holo-40-warm'], drag=dict(snake=True, idle=1, far=30), say='the drag a module at a time, LAB\'s + idle 6.0'), 4)}
+        'holo-40-warm-v4': ('holo-40-warm', dict(V2['holo-40-warm'], drag=dict(snake=True, idle=1, run2='air'), say='run 1 LAB\'s + idle 6.0, run 2 Air, n+1'), 4)}
 
 
 def rhythm(st, c):
@@ -293,7 +294,9 @@ def make(vid, out=OUT, renders=True):
         p['count'].update(run1_strokes=d.get('per_leg', 1) * legs1, run2_strokes=d.get('per_leg', 1) * sum(bands))   # the snakes' strokes, a leg each
         if d.get('idle'):                                                            # the idle snakes' tracks: a group's legs + idle
             p['count'].update(run1_idle=legs1 + d['idle'] * slats1, run2_idle=sum(bands) + d['idle'] * groups2)
-        p['note'] = ('HOLO v.4, v.2 and the drag a module at a time, LAB\'s + idle 6.0, run 2\'s dots on both sides (the owner, 2026-11-15): every number '
+        if d.get('run2') == 'air':                                                   # run 2 Air: a group's legs + idle tracks, no idle snake
+            p['count']['run2_strokes'] = p['count'].pop('run2_idle', sum(bands))
+        p['note'] = ('HOLO v.4, v.2 and the drag a group at a time: run 1 LAB\'s + idle 6.0, run 2 Air, legs + 1 tracks, its dots on one side (the owner, 2026-11-15): every number '
                      'est., the renders v.2\'s model, no channels drawn; nothing run on the machine')
     os.makedirs(out, exist_ok=True)
     json.dump(p, open(os.path.join(out, vid + '.json'), 'w'), separators=(',', ':'))

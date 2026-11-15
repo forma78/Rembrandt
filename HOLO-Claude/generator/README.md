@@ -47,7 +47,9 @@ absolutely all the passes 0.25 instead of 0.5") — run 1 the left down, the rig
 renders are v.2's model (no channels drawn, est.). `snake: true`: FORM-G's Drag Snake, a slat's (run 1) or a slat's band's (run 2) puddles,
 then at once its strokes there and back ("in groups … put the drops of 1, paint them there and back, then 2"). Since the same afternoon
 `drag: { snake: true, idle: 1, far: 30 }`: LAB's + idle 6.0 a group at a time, a stroke a leg, then an idle snake of legs + 1 tracks, run 2's
-dots on both ends of a band of 30 mm or more; the counts here as holoplan.js's. `python holo_v2.py holo-40-warm-v4`.
+dots on both ends of a band of 30 mm or more; the counts here as holoplan.js's. The evening, `drag: { snake: true, idle: 1, run2: 'air' }`:
+run 2 Air again, its dots on one side, legs + 1 tracks from them (the owner: "keep the drops on one side only, then the gradient comes back").
+`python holo_v2.py holo-40-warm-v4`.
 
 ```
 python holo_v2.py                    # all three v.2s, the tiers' v.3 and the warm's V4
