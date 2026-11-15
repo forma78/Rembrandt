@@ -36,6 +36,29 @@ from the iPhone, and from the MacBook the video from the MacBook."
 - The machine camera's frames live in `eyes/`, and are listed here too.
 - No other artist's work here (README).
 
+## 2026-11-15 · the machine camera's film, V4 run 2, Jar 20 by Drag Snake
+
+`eyes/2026-11-15/`, 40 frames, one every 2 s of `Movie on 11-15-26 at 4.04 PM.mov`
+(1 min 20 s, 1620 × 1080, 30 fps), the camera on the bracket at the brush, recorded
+on the Mac at 16:04. Cut by Claude in VS Code; the film stays on the Mac (176 MB). A
+frame's name is its number and its time in the film: `frame-029_0-58.jpg` is 0:58.
+The owner, the same afternoon: "I will hand them to you in the chat, to make a reel for
+Instagram."
+
+The test canvas, holo-40-warm V4's run 2, Jar 20 (red), the drag a snake a group at a
+time: a slat's band's puddles laid, then at once its strokes there and back 2.5 mm
+apart, the brush down at the turns (CHANGELOG, 2026-11-15). The camera rides with the
+carriage; the legs run across the frame. By eye, est.:
+
+| frames | what they show |
+|---|---|
+| `frame-000`, `001` (0:00–0:02) | The cup at hand, Jar 20's red, the tip in it: a dip. Past the canvas's edge the white board with an old drawing's lilac arcs. |
+| `frame-002` … `005`, `008` … `010`, `013` … `016`, `019` … `022` | On the canvas between dips: Jar 20's dabs at its shadows' edges, among run 1's grey, cream and golden lines. |
+| `frame-006`, `007`, `011`, `012`, `017`, `018`, `023`, `024` | The cup again: a dip for every dab. |
+| `frame-025` … `033` (0:50–1:06) | Groups dragged. `029` (0:58): a group's puddles run together into one red blob at its edge; the brush's first stroke away from it a thin red ridge, the canvas inside scraped clean. |
+| `frame-034` … `038` (1:08–1:16) | The next group: the blob at one end, the strokes away from it red ridges with white between them, the heaps where they turn. |
+| `frame-039` (1:18) | Over the field: Jar 20's groups done, each dense at one end, thin at the other — some a pink film, some red loops on white; the snake's turns at both ends. |
+
 ## 2026-11-15 · run 1 done, with a ruler, from the iPhone
 
 `photos/2026-11-15/`, 5 photos, sent at 11:46 with the owner's idea of the

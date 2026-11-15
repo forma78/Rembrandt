@@ -6,6 +6,29 @@ form of an entry, and the folders: `artist/ARTIST.md`.
 
 The first run: 2026-11-14, holo-40-warm v.2 on an old canvas, as LAB.
 
+## 2026-11-15 · V4 run 2 by Drag Snake: one end starved
+
+The machine camera's film at 16:04, Jar 20 on the test canvas (`eyes/2026-11-15/`,
+`PHOTOS.md`); by Claude in VS Code. That afternoon V4 went from every stroke from its
+puddle, the brush flying back (the owner: "Drag Air … not good in life nor on the
+camera"), to FORM-G's Drag Snake a group at a time ("put the drops of 1, paint them
+there and back, then 2"). The owner: "much better".
+
+Seen, by eye, est.:
+- A group's puddles, 1 … 3 dabs a leg 5 mm apart, run together into one red blob
+  at the band's edge (`frame-029`).
+- The rubber tip carries the paint, as on 2026-11-14: behind it a ridge at each side
+  and the canvas scraped clean; at 2.5 mm every mm of the band is scraped twice.
+- So the paint stays near the blob and in the heaps at the turns. Every finished group
+  is dense at one end and thin at the other: a pink film, or red loops on white
+  (`frame-039`).
+
+The owner, the same afternoon: "it seems to me the dots need to go on both sides; there is not enough
+paint." I agree: the snake turns at both ends of a band, and only one end has paint. A
+dab at the far end too, 1 a leg, the near edge keeping its 1 … 3, so the shadow still
+weighs at its edge. Not on a band under 30 mm (49 of V4's 298), where one puddle reaches.
++249 dabs, ≈ +37 min at 9 s a dab (est.). Offered; nothing changed yet.
+
 ## 2026-11-15 · 001 becomes V4: the drag every 2.5 mm
 
 The owner's 5 photos of the test canvas at 11:46, run 1 done, a ruler in
