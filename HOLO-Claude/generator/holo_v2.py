@@ -63,10 +63,13 @@ SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-6
 # two strokes a leg 2.5 mm apart (`drag`, read by holoplan.js's workOf); both runs (the same afternoon: "you did not touch layer 2? it needs the
 # same, from 6 legs 12 strokes"; "in V.4 make absolutely all the passes 0.25 instead of 0.5"). The 40 × 40 has no v.3; his name, V4. The renders
 # v.2's model: they draw no channels (est.). `snake` (the same afternoon: "as in FORM-G, Drag Snake"; "in groups … put the drops of 1, paint them
-# there and back, then 2, then 3"): every slat's, every slat's band's strokes one run there and back, its puddles laid just before it.
+# there and back, then 2, then 3"): every slat's, every slat's band's strokes one run there and back, its puddles laid just before it. Then
+# LAB's + idle 6.0 (the owner, of the down-and-up pairs making 5 mm grooves: "then let us do as in LAB, + IDLE 6.0"; "yes, n+1"): the group's
+# snake one stroke a leg on its middle, at once an idle snake of legs + 1 tracks (`idle`), and run 2's dots on both sides (`far`: a dab at a
+# band's far end too, on a band at least 30 mm long, est.) — counted here as holoplan.js counts them.
 MADE = {**{pid + '-v2': (pid, c, 2) for pid, c in V2.items()},
         'holo-60-tiers-v3': ('holo-60-tiers', dict(V2['holo-60-tiers'], own=False, legs=104), 3),
-        'holo-40-warm-v4': ('holo-40-warm', dict(V2['holo-40-warm'], drag=dict(per_leg=2, step=2.5, snake=True), say='the drag every 2.5 mm, snake'), 4)}
+        'holo-40-warm-v4': ('holo-40-warm', dict(V2['holo-40-warm'], drag=dict(snake=True, idle=1, far=30), say='the drag a module at a time, LAB\'s + idle 6.0'), 4)}
 
 
 def rhythm(st, c):
@@ -229,7 +232,7 @@ def render(st, stage, seed=7):
     return pil
 
 
-def plan(st, pid, title):
+def plan(st, pid, title, far=0):
     """the study's plan, its bands in the base frame (the v.1 field's height, `base`), every slat its legs' ends, the field the box round
     them all; the counts by every leg's own puddles and its warped bands"""
     up = lambda y: round(st.H - y, 1)
@@ -247,7 +250,8 @@ def plan(st, pid, title):
     for s, sl in zip(p['slats'], st.slats):
         for e in s['ends']:
             for band in s['bands']:
-                _, d = band_on(p, e, band); jars.setdefault(band['jar'], [0, 0])[1] += d; run2_puddles += 1; run2_dabs += d
+                q, d = band_on(p, e, band); f = 1 if far and abs(q['end'] - q['start']) >= far else 0
+                jars.setdefault(band['jar'], [0, 0])[1] += d + f; run2_puddles += 1 + f; run2_dabs += d + f
     for q in p['jars']: q['run1_dabs'], q['run2_dabs'] = jars.get(q['hex'], [0, 0])
     p['jars'] = [q for q in p['jars'] if q['run1_dabs'] or q['run2_dabs']]
     top = min(l['ends'][0] for l in st.legs); bot = max(l['ends'][1] for l in st.legs)
@@ -267,7 +271,7 @@ def make(vid, out=OUT, renders=True):
         if c.get('legs'): narrow(st, c['legs'])
         ragged(st, c, *carry(old, st, rhythm(old, c), c))
     cut(st)
-    p = plan(st, vid, '')
+    p = plan(st, vid, '', far=c.get('drag', {}).get('far', 0))
     warp_dark(st, p)
     for s in p['slats']:
         s['ground'] = byhex[s['ground']] if s['ground'] else None
@@ -284,9 +288,12 @@ def make(vid, out=OUT, renders=True):
              image=f'holo/{vid}.jpg', after1=f'holo/{vid}-run1.jpg')
     if c.get('drag'):                                                   # V4: the drag of both runs, its strokes counted; the render v.2's, no channels
         d = c['drag']; p['drag'] = dict(d)
-        p['count']['run1_strokes'] = d['per_leg'] * sum(1 for l in st.legs if l['light'])
-        p['count']['run2_strokes'] = d['per_leg'] * p['count']['run2_puddles']
-        p['note'] = (f'HOLO v.{ver}, v.2 and the drag of both runs {d["per_leg"]} strokes a leg {d["step"]} mm apart (the owner, 2026-11-15): every number '
+        legs1 = sum(1 for l in st.legs if l['light']); slats1 = sum(1 for sl in st.slats if sl['light'])
+        bands = [len(s['bands']) * s['legs'] for s in p['slats']]; groups2 = sum(len(s['bands']) for s in p['slats'])
+        p['count'].update(run1_strokes=d.get('per_leg', 1) * legs1, run2_strokes=d.get('per_leg', 1) * sum(bands))   # the snakes' strokes, a leg each
+        if d.get('idle'):                                                            # the idle snakes' tracks: a group's legs + idle
+            p['count'].update(run1_idle=legs1 + d['idle'] * slats1, run2_idle=sum(bands) + d['idle'] * groups2)
+        p['note'] = ('HOLO v.4, v.2 and the drag a module at a time, LAB\'s + idle 6.0, run 2\'s dots on both sides (the owner, 2026-11-15): every number '
                      'est., the renders v.2\'s model, no channels drawn; nothing run on the machine')
     os.makedirs(out, exist_ok=True)
     json.dump(p, open(os.path.join(out, vid + '.json'), 'w'), separators=(',', ':'))

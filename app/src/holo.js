@@ -346,19 +346,27 @@ function wayHead(g, q) {
   if (h < 1.5 || !s) return;
   g.beginPath(); g.moveTo(x - h, e - s * h * 2.2); g.lineTo(x + h, e - s * h * 2.2); g.lineTo(x, e - s * h * 0.3); g.closePath(); g.fill();
 }
+// the picked jar's idle tracks (LAB's + idle 6.0): no paint of their own — thin dark lines over its strokes, their way by the arrowheads
+function idleTracks(g, L) {
+  const I = L.strokes.filter(q => q.idle);
+  if (!I.length) return;
+  g.save(); g.globalAlpha = 1; g.strokeStyle = 'rgba(36,34,31,.75)'; g.lineWidth = Math.max(1, 0.35 * K); g.setLineDash([4, 3]);
+  for (const q of I) { g.beginPath(); g.moveTo(sx(q.x), sy(q.pts[0][1])); g.lineTo(sx(q.x), sy(q.pts[1][1])); g.stroke(); }
+  g.restore();
+}
 function drawStrokes(g) {
   for (const L of plan()) {
     if (L.run === 1) {
       g.strokeStyle = L.hex; g.lineCap = 'butt'; g.globalAlpha = dim(L.key);
-      for (const q of L.strokes) { g.lineWidth = laneW(q, K); g.beginPath(); g.moveTo(sx(q.x), sy(q.pts[0][1])); g.lineTo(sx(q.x), sy(q.pts[1][1])); g.stroke(); }
-      if (only === L.key) { g.fillStyle = 'rgba(36,34,31,.7)'; for (const q of L.strokes) wayHead(g, q); }
+      for (const q of L.strokes) { if (q.idle) continue; g.lineWidth = laneW(q, K); g.beginPath(); g.moveTo(sx(q.x), sy(q.pts[0][1])); g.lineTo(sx(q.x), sy(q.pts[1][1])); g.stroke(); }
+      if (only === L.key) { g.fillStyle = 'rgba(36,34,31,.7)'; for (const q of L.strokes) if (!q.idle) wayHead(g, q); idleTracks(g, L); }
     }
   }
   g.globalAlpha = 1;                                                                  // run 1's last dimmed jar must not veil run 2's picked one
   for (const L of plan()) if (L.run === 2) {
     if (only && only !== L.key) continue;
-    for (const q of L.strokes) shadow(g, q, L.hex, sx, sy, laneW(q, K));
-    if (only === L.key) { g.fillStyle = 'rgba(36,34,31,.7)'; for (const q of L.strokes) wayHead(g, q); }
+    for (const q of L.strokes) if (!q.idle) shadow(g, q, L.hex, sx, sy, laneW(q, K));
+    if (only === L.key) { g.fillStyle = 'rgba(36,34,31,.7)'; for (const q of L.strokes) if (!q.idle) wayHead(g, q); idleTracks(g, L); }
   }
   g.globalAlpha = 1;
 }
@@ -460,7 +468,8 @@ $('#btnPlay').onclick = () => {
       else if (m.kind === 'dab') { if (f >= 1) puddle(c, X(m.at[0]), Y(m.at[1]), m.dabs, L.hex, s); Q.tip = { kind: 'dab', at: m.at, hex: L.hex }; }
       else {
         const [a, b] = [m.pts[0][1], m.pts[1][1]], y = a + (b - a) * f, y0 = a + (b - a) * Q.at;
-        if (L.run === 1) { c.strokeStyle = L.hex; c.lineWidth = laneW(m, s); c.lineCap = 'butt'; c.beginPath(); c.moveTo(X(m.pts[0][0]), Y(y0)); c.lineTo(X(m.pts[0][0]), Y(y)); c.stroke(); }
+        if (m.idle) { /* an idle track: the tip moves, no paint of its own */ }
+        else if (L.run === 1) { c.strokeStyle = L.hex; c.lineWidth = laneW(m, s); c.lineCap = 'butt'; c.beginPath(); c.moveTo(X(m.pts[0][0]), Y(y0)); c.lineTo(X(m.pts[0][0]), Y(y)); c.stroke(); }
         else if (f >= 1) shadow(c, { x: m.pts[0][0], pts: m.pts, fade: m.fade }, L.hex, X, Y, laneW(m, s));
         Q.tip = { kind: 'drag', at: [m.pts[0][0], y], hex: L.hex };
       }
@@ -561,10 +570,11 @@ function runText(run, lines, R) {
   const d = lines.reduce((t, q) => t + q.dabs, 0), b = lines.reduce((t, q) => t + q.batches.length, 0), c = placeNow();
   return (run === 1
     ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm ${dragOf(PIC).per_leg > 1 ? 'along the leg as v.2 laid it, even legs down, odd up' : 'the way its stroke goes'}; `
-      + (dragOf(PIC).snake ? `a slat at a time: its puddles, then at once its snake, no dip — ${dragOf(PIC).per_leg} strokes a leg the leg's whole length, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle, down, across, up, across, down … the brush down at its turns, a stroke every ${fmt(dragOf(PIC).step, 1)} mm (v.${PIC.version}, FORM-G's Drag Snake, the owner's of 2026-11-15). `
+      + (dragOf(PIC).idle ? `a slat at a time, LAB's + idle 6.0: its puddles, then at once its snake, a stroke a leg on its middle, the brush down at the turns, then at once its idle snake, no dip, the legs + ${dragOf(PIC).idle} tracks between its outer legs, ${dragOf(PIC).over} mm past the ends at its start and turns, 0 at its very end (v.${PIC.version}, the owner's of 2026-11-15). `
+        : dragOf(PIC).snake ? `a slat at a time: its puddles, then at once its snake, no dip — ${dragOf(PIC).per_leg} strokes a leg the leg's whole length, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle, down, across, up, across, down … the brush down at its turns, a stroke every ${fmt(dragOf(PIC).step, 1)} mm (v.${PIC.version}, FORM-G's Drag Snake, the owner's of 2026-11-15). `
         : dragOf(PIC).per_leg > 1 ? `then ${dragOf(PIC).per_leg} strokes the leg's whole length through them, no dip, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle — the left from the top down, the right from the bottom up — a stroke every ${fmt(dragOf(PIC).step, 1)} mm across the field (v.${PIC.version}, the owner's of 2026-11-15). `
         : `then one stroke the leg's whole length through them, no dip, even legs from the top down, odd ones up. `)
-    : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length on the same ${HOLO.mark} mm, each its own dip, then ${dragOf(PIC).snake ? `— a shadow at a time, a slat's band: its puddles, then at once its snake, ${dragOf(PIC).per_leg} strokes a leg ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle, from the puddles towards the band's end, across, back, across, away … the brush down at its turns, a stroke every ${fmt(dragOf(PIC).step, 1)} mm (v.${PIC.version}, FORM-G's Drag Snake, the owner's of 2026-11-15)` : dragOf(PIC).per_leg > 1 ? `${dragOf(PIC).per_leg} strokes from it towards its far end, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle, the left first, the brush up back to the puddle between them — a stroke every ${fmt(dragOf(PIC).step, 1)} mm across the field (v.${PIC.version}, the owner's of 2026-11-15)` : 'one stroke towards its far end'}, no dip, till it gives out. `)
+    : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length on the same ${HOLO.mark} mm, each its own dip${dragOf(PIC).far ? `, and on a band of ${dragOf(PIC).far} mm or more one more dab at its far end, the dots on both sides` : ''}, then ${dragOf(PIC).idle ? `— a shadow at a time, a slat's band, LAB's + idle 6.0: its dots, then at once its snake, a stroke a leg on its middle, from the edge to the far end and back, the brush down at the turns, then at once its idle snake, no dip, the legs + ${dragOf(PIC).idle} tracks (v.${PIC.version}, the owner's of 2026-11-15)` : dragOf(PIC).snake ? `— a shadow at a time, a slat's band: its puddles, then at once its snake, ${dragOf(PIC).per_leg} strokes a leg ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle, from the puddles towards the band's end, across, back, across, away … the brush down at its turns, a stroke every ${fmt(dragOf(PIC).step, 1)} mm (v.${PIC.version}, FORM-G's Drag Snake, the owner's of 2026-11-15)` : dragOf(PIC).per_leg > 1 ? `${dragOf(PIC).per_leg} strokes from it towards its far end, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle, the left first, the brush up back to the puddle between them — a stroke every ${fmt(dragOf(PIC).step, 1)} mm across the field (v.${PIC.version}, the owner's of 2026-11-15)` : 'one stroke towards its far end'}, no dip, till it gives out. `)
     + `${d} dabs in ${b} ${dragOf(PIC).snake ? 'snakes, every one laid, then dragged at once' : `batches of about ${S.batch}, every batch laid, then dragged while wet`}; ${R.strokes} strokes, ${fmt(R.mm / 1000, 1)} m; no idle run after a stroke. `
     + (R.marks ? `After every change of jar, before its first puddle: one dip, then its MARKS, 1 the left slip, 3 the right — ${besideNow()?.where === 'on' ? 'the paper taped over the canvas\'s margins' : 'the paper on the plates beside the canvas'} (The canvas). ` : '')
     + `On the machine ${R.dips} dips, every run's way landing ${ELBOW_J3.early} mm earlier and lifting ${ELBOW_J3.late} mm later than on the screen (J3), the brush at ${S.speed} mm/s; ≈ ${hm(R.seconds)} (est.). `
@@ -641,6 +651,13 @@ function showPanel() {
 // for one on the middle
 function dragSay(P) {
   const D = dragOf(PIC);
+  if (D.idle) {
+    const say = run => { const R = P.filter(q => q.run === run), B = R.reduce((t, q) => t + q.batches.length, 0), mm = R.reduce((t, q) => t + q.mm, 0), im = R.reduce((t, q) => t + (q.idleMm ?? 0), 0);
+      return `${B} groups, ${R.reduce((t, q) => t + q.strokes.filter(s => !s.idle).length, 0)} strokes and ${R.reduce((t, q) => t + q.strokes.filter(s => s.idle).length, 0)} idle tracks, ${fmt(mm / 1000, 1)} m (${fmt(im / 1000, 1)} m idle), ≈ ${hm(mm / S.speed)} of dragging, the run in all ≈ ${hm(total(R))}`; };
+    return `<br><b>The drag, v.${PIC.version}: LAB's + idle 6.0</b>, a group at a time — run 1 a slat, run 2 a slat's band, the slats left to right, a slat's bands from its top down: its dots, then at once its snake, a stroke a leg on its middle, the brush down at the turns, then at once its idle snake, no dip, the legs + ${D.idle} tracks evenly between its outer legs' middles, ${D.over} mm past the ends at its start and turns, 0 at its very end. `
+      + `Run 2's dots on both sides: the near edge 1 … ${HOLO.maxDabs[PIC.composition]} dabs, the far end 1 on a band of ${D.far} mm or more. Run 1: ${say(1)}. Run 2: ${say(2)} (est., at ${S.speed} mm/s). `
+      + `Click a jar in the list: its strokes, their way, its idle tracks dashed. The picture is v.2's model (est.).`;
+  }
   if (D.per_leg < 2) return '';
   const say = run => { const R = P.filter(q => q.run === run), mm = R.reduce((t, q) => t + q.mm, 0);
     return `${R.reduce((t, q) => t + q.strokes.length, 0)} strokes on ${R.reduce((t, q) => t + q.cells, 0)} ${run === 1 ? 'legs' : 'bands'}, ${fmt(mm / 1000, 1)} m, ≈ ${hm(mm / S.speed)} of dragging, the run in all ≈ ${hm(total(R))}`; };

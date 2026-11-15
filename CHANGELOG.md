@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO V4: LAB's + idle 6.0 a group at a time, run 2's dots on both sides** (2026-11-15, the afternoon; the owner, of the snake's
+  down-and-up pairs making one 5 mm groove each, `HOLO-Claude/eyes/2026-11-15/16.19/`: "then let us do as in LAB, + IDLE 6.0 … if the run
+  gives 6 tracks (6 drops at the bottom, 6 at the top), once by the snake over the six rows, and then inside, say, 7 tracks, an idle run by the
+  snake"; "yes, n+1"; and before it: "the dots need to go on both sides; there is not enough paint"). README's canon "How to lay a module"
+  in HOLO: `drag: { snake, idle: 1, far: 30 }` (`holo-40-warm-v4.json`), `workOf`, `idleOf`, `runsOf` (`src/holoplan.js`): a group — run 1 a
+  slat, run 2 a slat's band — its dots, then its snake one stroke a leg on its middle (5 mm), the brush down at the turns, then at once its
+  idle snake, no dip, legs + 1 tracks evenly between its outer legs' middles, 2 mm past the ends at its start and turns, 0 at its very end
+  (`IDLE.over`); run 2 a dab at the band's far end too, 4 mm in, on a band of 30 mm or more (est.), laid after the near row. Run 1: 677 dabs,
+  72 strokes, 92 idle tracks; run 2: 704 dabs (+249), 298 strokes, 388 idle tracks; ≈ 2 h 18 min and ≈ 2 h 16 min (est.). The idle tracks
+  dashed on the screen for a picked jar, no paint in ▶ Play. Older pictures' plans and moves unchanged (compared). Checked in headless
+  Chrome on a static copy. Not run.
 - **HOLO V4: Drag Snake, a group at a time** (2026-11-15, the afternoon; the owner, of V4's run 2 on the test canvas, every stroke from its
   puddle, the brush flying back: "you made Drag Air, the brush goes one way. It needs to be as in FORM-G, Drag Snake. It does not come out
   well, in life nor on the camera"; then, `HOLO-Claude/Screenshot 2026-11-15 at 3.45.04 PM.png`, Jar 20's shadows numbered 1, 2, 3, 4, 5:

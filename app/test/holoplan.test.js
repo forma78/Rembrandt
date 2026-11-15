@@ -202,77 +202,71 @@ test('v.2, ragged edges (the owner, 2026-11-14): every v.1 kept, its v.2 after i
   const v1 = load('holo-40-warm'); assert.ok(legsOf(v1).every(g => g.y0 === v1.field.y0 && g.y1 === v1.field.y1));
 });
 
-test('V4 (the owner, 2026-11-15, "load V4"; "absolutely all the passes 0.25"; "as in FORM-G, Drag Snake"; "in groups"): the warm 40 × 40\'s v.2, two strokes a leg 2.5 mm apart in both runs, a slat\'s or a band\'s puddles, then at once its snake', async () => {
-  const { runsOf, dragOf, workOf, seqOf } = await import('../src/holoplan.js');
+test('V4 (the owner, 2026-11-15: "load V4"; "as in FORM-G, Drag Snake"; "in groups"; "as in LAB, + IDLE 6.0", "yes, n+1"; "the dots on both sides"): the warm 40 × 40\'s v.2, a group at a time — its dots, its snake, its idle snake', async () => {
+  const { runsOf, dragOf } = await import('../src/holoplan.js');
   const v4 = load('holo-40-warm-v4'), v2 = load('holo-40-warm-v2'), i = HOLO_LIB.indexOf('holo-40-warm-v4');
   assert.ok(i > 0 && HOLO_LIB[i - 1] === 'holo-40-warm-v2' && !HOLO_HIDDEN.has('holo-40-warm-v4'), 'after its v.2, on the cards');
   assert.equal(v4.version, 4); assert.equal(v4.of, 'holo-40-warm'); assert.equal(v4.title, 'HOLO · 40 × 40, the fan, warm · v.4');
-  assert.deepEqual(v4.drag, { per_leg: 2, step: 2.5, snake: true }); assert.deepEqual(dragOf(v2), { per_leg: 1, step: 0, snake: false });
-  // the picture v.2's, key for key, but its name, its drag and its renders
-  const same = k => !['id', 'title', 'sub', 'note', 'version', 'drag', 'image', 'after1', 'count'].includes(k);
+  assert.deepEqual(v4.drag, { snake: true, idle: 1, far: 30 });
+  assert.deepEqual(dragOf(v2), { per_leg: 1, step: 0, snake: false, idle: 0, far: 0, over: 2 });
+  // the picture v.2's, key for key, but its name, its drag, its renders and its counts
+  const same = k => !['id', 'title', 'sub', 'note', 'version', 'drag', 'image', 'after1', 'count', 'jars'].includes(k);
   for (const k of Object.keys(v2).filter(same)) assert.deepEqual(v4[k], v2[k], k);
-  assert.deepEqual({ ...v4.count, run1_strokes: undefined, run2_strokes: undefined }, { ...v2.count, run1_strokes: undefined, run2_strokes: undefined });
+  assert.deepEqual(v4.jars.map(j => ({ ...j, run2_dabs: 0 })), v2.jars.map(j => ({ ...j, run2_dabs: 0 })), 'the jars v.2\'s, run 2 more dabs');
   const P4 = planOf(v4, { marks: true }), P2 = planOf(v2, { marks: true }), key = p => `${p.x},${p.y},${p.dabs}`;
   assert.deepEqual(P4.map(q => q.key), P2.map(q => q.key), 'the same list');
+  let far = 0;
   for (const [a, b] of P4.map((q, k) => [q, P2[k]])) {
-    assert.deepEqual(a.puddles, b.puddles, `${a.name}: the puddles where they were`); assert.deepEqual(a.marks, b.marks);
-    assert.equal(a.cells, b.cells); assert.equal(a.dabs, b.dabs);
-    assert.equal(a.strokes.length, 2 * b.strokes.length); assert.ok(Math.abs(a.mm - 2 * b.mm) < 1e-6);
-    assert.deepEqual(a.batches.flatMap(B => B.puddles).map(key).sort(), b.puddles.map(key).sort(), 'every puddle once, in its snake\'s batch');
-    // every batch a snake: one slat (run 1) or one slat's band (run 2), its every leg's two strokes, left to right, a lane apart, there and back
-    const slats = [];
-    for (const B of a.batches) {
-      const ks = new Set(B.strokes.map(q => q.key)), si = parseInt(B.strokes[0].key);
-      assert.equal(ks.size, 1, `${a.name}: one snake a batch`); slats.push(si);
-      assert.equal(B.strokes.length, 2 * B.items.length);
-      assert.equal(B.items.length, v4.slats[si].legs, `${a.name}: the slat's every leg`);
-      B.strokes.forEach((q, k) => { if (k) {
-        const p = B.strokes[k - 1];
-        assert.ok(Math.abs(q.x - p.x - 2.5) < 1e-9, 'a lane apart');
-        assert.ok((p.pts[1][1] < p.pts[0][1]) !== (q.pts[1][1] < q.pts[0][1]), 'there and back');
-        assert.ok(Math.abs(q.pts[0][1] - p.pts[1][1]) < 3, `a turn short along the leg, ${Math.abs(q.pts[0][1] - p.pts[1][1])} mm`);
-      } });
-    }
-    slats.slice(1).forEach((si, k) => assert.ok(si >= slats[k], 'the slats left to right'));
-    if (a.run === 2) {
-      // a slat's bands from its top down (the owner's 1, 2: the upper, then the lower)
-      a.batches.forEach((B, k) => { const P = a.batches[k - 1]; if (P && parseInt(P.strokes[0].key) === parseInt(B.strokes[0].key)) assert.ok(Math.max(...P.strokes[0].pts.map(q => q[1])) > Math.max(...B.strokes[0].pts.map(q => q[1])), 'top first'); });
-      // every band on a leg two strokes, its middle ∓ 1.25 mm, between the puddle and the band's end; the left away from the puddle, v.2's fade
-      for (const B of a.batches) for (const it of B.items) {
-        const [l, r] = it.strokes, [x, s0, s1] = it.span;
-        assert.deepEqual([l.x, r.x, l.lane], [x - 1.25, x + 1.25, 2.5]);
-        assert.deepEqual(l.pts, [[x - 1.25, s0], [x - 1.25, s1]], `${a.name}: the left away from the puddle`);
-        assert.deepEqual(r.pts, [[x + 1.25, s1], [x + 1.25, s0]], `${a.name}: the right back to it`);
-        assert.equal(l.fade.band.start, s0);
+    assert.equal(a.cells, b.cells); assert.deepEqual(a.marks, b.marks);
+    if (a.run === 1) assert.deepEqual(a.puddles, b.puddles, `${a.name}: run 1's puddles where they were`);
+    else {
+      // run 2: v.2's every puddle, and on a band of 30 mm or more one dab at its far end, 4 mm in from where its stroke ends
+      const own = new Set(a.puddles.map(key));
+      for (const p of b.puddles) assert.ok(own.has(key(p)), `${a.name}: ${key(p)} kept`);
+      for (const it of a.items) {
+        const [x, s0, s1] = it.span, len = Math.abs(s1 - s0);
+        assert.equal(it.puddles.length, len >= 30 ? 2 : 1, `${a.name}: a band of ${len.toFixed(1)} mm`);
+        if (len >= 30) { assert.deepEqual([it.puddles[1].x, it.puddles[1].dabs], [x, 1]); assert.ok(Math.abs(it.puddles[1].y - (s1 - Math.sign(s1 - s0) * 4)) < 0.01); far++; }
       }
-    } else for (const B of a.batches) for (const it of B.items) {
-      // run 1: the left down from the leg's top, the right up from its bottom, its own ends
-      const [l, r] = it.strokes, x = it.span[0], top = Math.max(it.span[1], it.span[2]), bot = Math.min(it.span[1], it.span[2]);
-      assert.deepEqual([l.pts, r.pts], [[[x - 1.25, top], [x - 1.25, bot]], [[x + 1.25, bot], [x + 1.25, top]]], `${a.name}: down, then up`);
+    }
+    // every batch a group: one slat (run 1) or one slat's band (run 2), the slats left to right, a slat's bands from the top down
+    let prev = null;
+    for (const B of a.batches) {
+      const first = B.strokes.filter(q => !q.idle), idle = B.strokes.filter(q => q.idle), si = parseInt(first[0].key), xs = B.items.map(it => it.span[0]), n = B.items.length;
+      assert.equal(new Set(first.map(q => q.key)).size, 1); assert.equal(n, v4.slats[si].legs, `${a.name}: the slat's every leg`);
+      if (prev) assert.ok(si > prev.si || (si === prev.si && a.run === 2 && Math.max(...first[0].pts.map(q => q[1])) < prev.top), 'left to right, top down');
+      prev = { si, top: Math.max(...first[0].pts.map(q => q[1])) };
+      // the snake: a stroke a leg on its middle, there and back, the turns short
+      assert.deepEqual(first.map(q => q.x), xs); assert.ok(first.every(q => q.lane === 5));
+      first.forEach((q, k) => { if (k) { const p = first[k - 1]; assert.ok((p.pts[1][1] < p.pts[0][1]) !== (q.pts[1][1] < q.pts[0][1])); assert.ok(Math.abs(q.pts[0][1] - p.pts[1][1]) < 3); } });
+      if (a.run === 2) assert.equal(first[0].pts[0][1], B.items[0].span[1], 'run 2 its first stroke from the edge');
+      // the idle snake: n + 1 tracks evenly from the first leg's middle to the last's, its first the first stroke's way, 2 mm past at its start
+      // and turns, 0 at its very end
+      assert.equal(idle.length, n + 1, `${a.name}: n + 1`);
+      idle.forEach((q, k) => {
+        assert.ok(Math.abs(q.x - (xs[0] + (xs[n - 1] - xs[0]) * k / n)) < 1e-3, `track ${k} at ${q.x}`);
+        assert.equal(q.pts[1][1] < q.pts[0][1], k % 2 === 0 ? first[0].pts[1][1] < first[0].pts[0][1] : !(first[0].pts[1][1] < first[0].pts[0][1]), 'there and back');
+      });
+      const s0 = first[0].pts[0][1], e0 = first[0].pts[1][1], dir = Math.sign(e0 - s0);
+      assert.ok(Math.abs(idle[0].pts[0][1] - (s0 - dir * 2)) < 0.01 && Math.abs(idle[0].pts[1][1] - (e0 + dir * 2)) < 0.01, 'the first track 2 mm past both ends');
+      const L = first.at(-1), lastEnd = idle.length % 2 ? first[0].pts[1][1] : first[0].pts[0][1];
+      if (Math.abs(xs[n - 1] - L.x) < 1e-6) assert.ok(Math.abs(idle.at(-1).pts[1][1] - (n % 2 ? L.pts[0][1] : L.pts[1][1])) < 0.01 || Math.abs(idle.at(-1).pts[1][1] - L.pts[1][1]) < 0.01 || Math.abs(idle.at(-1).pts[1][1] - L.pts[0][1]) < 0.01, `its very end on the last leg's end, ${lastEnd}`);
     }
   }
-  const r1 = P4.filter(q => q.run === 1), strokes = r1.flatMap(q => q.strokes);
-  assert.equal(strokes.length, 144); assert.equal(v4.count.run1_strokes, 144);
-  const xs = strokes.map(q => q.x).sort((p, q) => p - q);
-  xs.slice(1).forEach((x, k) => assert.ok(Math.abs(x - xs[k] - 2.5) < 1e-9, `${xs[k]} → ${x}`));
-  // the orange slat of six legs: twelve strokes, six down, six up (the owner's twelve), one snake
-  const slat = v4.slats.find(s => s.ground === 'j6' && s.legs === 6), x0 = slat.x0, x1 = slat.x0 + slat.legs * v4.pitch;
-  const own = r1.find(q => q.jar === 'j6').strokes.filter(q => q.x > x0 && q.x < x1);
-  assert.equal(own.length, 12); assert.equal(own.filter(q => q.pts[1][1] < q.pts[0][1]).length, 6);
-  // the machine's runs: a snake's dabs, then its one run, the brush down at its turns (FORM-G's DRAG SNAKE), no dip; the dabs v.2's moves
-  const R4 = runsOf(P4), R2 = runsOf(P2), st4 = R4.filter(q => !q.dab && !q.mark), bat = P4.reduce((t, q) => t + q.batches.length, 0);
-  const pin = q => JSON.stringify([q.pass, q.pts]);
-  assert.deepEqual(R4.filter(q => q.dab || q.mark).map(pin).sort(), R2.filter(q => q.dab || q.mark).map(pin).sort(), 'the dabs and the marks v.2\'s, in their snakes\' order');
-  assert.equal(st4.length, bat, 'a snake a run'); assert.equal(bat, 20 + 90);
-  assert.equal(st4.reduce((t, q) => t + q.pts.length / 2, 0), 144 + 596); assert.equal(v4.count.run2_strokes, 596);
-  assert.ok(st4.every(q => !q.dip && q.beyond), 'no dip in a snake');
-  assert.match(st4[0].say, /batch 1\/9 · legs 1–5 · the snake, 10 strokes, no dip$/);
-  // every snake's dabs right before it: no dab of another snake between
-  for (let k = 0, at = 0; k < R4.length; k++) if (!R4[k].dab && !R4[k].mark) { const dabs = R4.slice(at, k).filter(q => q.dab); assert.ok(dabs.length > 0 && dabs.length <= 60, `a snake's own dabs, ${dabs.length}`); at = k + 1; }
-  // DRAW BW and the canvas's place as v.2's: a leg its pitch, whatever its strokes
+  assert.equal(far, 249); assert.equal(v4.count.run2_puddles, v2.count.run2_puddles + far); assert.equal(v4.count.run2_dabs, v2.count.run2_dabs + far);
+  // the orange slat of six legs: six strokes, then seven idle tracks
+  const slat = v4.slats.find(s => s.ground === 'j6' && s.legs === 6), B6 = P4.find(q => q.jar === 'j6' && q.run === 1).batches.find(B => parseInt(B.strokes[0].key) === v4.slats.indexOf(slat));
+  assert.deepEqual([B6.strokes.filter(q => !q.idle).length, B6.strokes.filter(q => q.idle).length], [6, 7]);
+  // the machine's runs, a group at a time: its dabs (run 2's near row, then the far), its snake one run, its idle snake one run, idle, no dip
+  const R4 = runsOf(P4), groups = P4.reduce((t, q) => t + q.batches.length, 0), st = R4.filter(q => !q.dab && !q.mark);
+  assert.equal(groups, 20 + 90); assert.equal(st.length, 2 * groups);
+  st.forEach((q, k) => { assert.equal(q.idle, k % 2 === 1, `run ${k}`); assert.ok(!q.dip && q.beyond); });
+  assert.equal(st.filter(q => !q.idle).reduce((t, q) => t + q.pts.length / 2, 0), 72 + 298); assert.equal(st.filter(q => q.idle).reduce((t, q) => t + q.pts.length / 2, 0), 92 + 388);
+  assert.deepEqual([v4.count.run1_strokes, v4.count.run2_strokes, v4.count.run1_idle, v4.count.run2_idle], [72, 298, 92, 388]);
+  assert.match(st[0].say, /batch 1\/9 · legs 1–5 · the snake, 5 strokes, no dip$/); assert.match(st[1].say, /the idle snake, 6 tracks, no dip$/);
+  // a group's dabs right before its snake, run 2's near ones first
+  for (let k = 0, at = 0; k < R4.length; k++) if (!R4[k].dab && !R4[k].mark) { if (R4[k].idle) { at = k + 1; continue; } const d = R4.slice(at, k).filter(q => q.dab); assert.ok(d.length > 0, 'its own dabs'); at = k + 1; }
+  // DRAW BW and the canvas's place as v.2's: a leg its pitch, whatever the drag
   assert.deepEqual(contourHolo(v4), contourHolo(v2)); assert.deepEqual(contourHolo(v4, { outline: true }), contourHolo(v2, { outline: true }));
   assert.deepEqual(placeRange(v4, WALLS), placeRange(v2, WALLS));
-  // est.: run 1 ≈ 46.8 m, its drags at 25 mm/s ≈ 31 min, run 1 in all with its marks ≈ 2 h 15 min
-  const mm = r1.reduce((t, q) => t + q.mm, 0), s1 = r1.reduce((t, q) => t + q.seconds, 0);
-  assert.ok(Math.abs(mm / 1000 - 46.8) < 0.1 && Math.abs(mm / HOLO.speed / 60 - 31) < 1 && Math.abs(s1 / 60 - 135) < 3, `${mm} mm, ${s1} s`);
 });

@@ -45,7 +45,9 @@ twelve" (`../HOLO/001-40x40-v4.md`). `holo-40-warm-v4` is the warm 40 × 40's v.
 read by `app/src/holoplan.js`'s `workOf`: two strokes a leg, 1.25 mm either side of its middle, both runs (the same afternoon: "in V.4 make
 absolutely all the passes 0.25 instead of 0.5") — run 1 the left down, the right up; run 2 both from the puddle towards the band's end. Its
 renders are v.2's model (no channels drawn, est.). `snake: true`: FORM-G's Drag Snake, a slat's (run 1) or a slat's band's (run 2) puddles,
-then at once its strokes there and back ("in groups … put the drops of 1, paint them there and back, then 2"). `python holo_v2.py holo-40-warm-v4`.
+then at once its strokes there and back ("in groups … put the drops of 1, paint them there and back, then 2"). Since the same afternoon
+`drag: { snake: true, idle: 1, far: 30 }`: LAB's + idle 6.0 a group at a time, a stroke a leg, then an idle snake of legs + 1 tracks, run 2's
+dots on both ends of a band of 30 mm or more; the counts here as holoplan.js's. `python holo_v2.py holo-40-warm-v4`.
 
 ```
 python holo_v2.py                    # all three v.2s, the tiers' v.3 and the warm's V4

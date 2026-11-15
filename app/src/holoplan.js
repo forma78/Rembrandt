@@ -15,6 +15,7 @@
 // it — and is wired on the owner's word (HOLO.md, "Ask the owner before"). Every number est.
 
 import { contourOf } from './formgplan.js';
+import { IDLE } from './idleplan.js';
 
 // the library: its json and jpgs in app/holo/; every v.2 after its v.1, the same composition and jars, its edges ragged (the owner,
 // 2026-11-14: "'ragged' edges, with no clear frame, will help us technically … keep the first ones too! The new ones then v.2";
@@ -70,8 +71,16 @@ export function seqOf(pic) {
 // of V4's run 2 still one stroke a leg: "you did not touch layer 2? it needs the same, from 6 legs 12 strokes"). `snake`: FORM-G's DRAG SNAKE —
 // the owner, the same afternoon, of V4's run 2 laid so, every stroke from its puddle, the brush flying back: "you made Drag Air, the brush goes
 // one way. It needs to be as in FORM-G, Drag Snake. It does not come out well, in life nor on the camera"; "let us redo all of it for Drag
-// Snake" — a slat's strokes one run, down, across, up, across, down …, the brush down at its turns; no `snake`, a stroke a run, as before
-export const dragOf = pic => ({ per_leg: pic.drag?.per_leg ?? 1, step: pic.drag?.step ?? 0, snake: !!pic.drag?.snake });
+// Snake" — a slat's strokes one run, down, across, up, across, down …, the brush down at its turns; no `snake`, a stroke a run, as before.
+// `idle`: LAB's + idle 6.0, the canon "How to lay a module" (README) — the owner, the same afternoon, of the snake's down-and-up pairs making one
+// 5 mm groove each (`HOLO-Claude/eyes/2026-11-15/16.19/`): "then let us do as in LAB, + IDLE 6.0 … if the run gives 6 tracks (6 drops at the
+// bottom, 6 at the top), once by the snake over the six rows, and then inside, say, 7 tracks, an idle run by the snake. If 4 drops at the top
+// and 4 at the bottom, first a snake over the four, and again 5 idle passes": a group's snake one stroke a leg on its middle, then at once
+// `idle` more tracks than legs, evenly between its outer legs' middles, no dip, IDLE.over mm past the ends at its start and its turns, 0 at
+// its very end. `far`: run 2's dots on both sides (the owner, the same afternoon: "the dots need to go on both sides; there is not enough
+// paint"): a dab at the band's far end too, HOLO.inset mm in from where its stroke ends, on a band at least `far` mm long (est.)
+export const dragOf = pic => ({ per_leg: pic.drag?.per_leg ?? 1, step: pic.drag?.step ?? 0, snake: !!pic.drag?.snake, idle: pic.drag?.idle ?? 0, far: pic.drag?.far ?? 0,
+  over: pic.drag?.over ?? IDLE.over });
 // a leg's i-th stroke across it, mm: its middle for one, else `step` apart about it
 const strokeX = (D, x, i) => D.per_leg > 1 ? Math.round((x + (i - (D.per_leg - 1) / 2) * D.step) * 1000) / 1000 : x;
 
@@ -105,7 +114,7 @@ export function workOf(pic, line, o = {}) {
       });
       // a dab's mark the way v.2's one stroke went, even legs down, odd up, whatever the drag: V4 changes the drag alone, its puddles laid as v.2's
       const way = g.n % 2 === 0 ? -1 : 1, a = way < 0 ? g.y1 : g.y0, b = way < 0 ? g.y0 : g.y1;
-      items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), strokes, span: [g.x, a, b], way, cell });
+      items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), strokes, span: [g.x, a, b], way, cell, ends: [g.y1, g.y0] });
     }
   } else {
     for (const g of legs) g.slat.bands.forEach((band0, bi) => {
@@ -117,7 +126,8 @@ export function workOf(pic, line, o = {}) {
         const x = strokeX(D, g.x, i), away = !D.snake || (j0 + i) % 2 === 0, a = away ? band.start : band.end, b = away ? band.end : band.start;
         return { x, leg: g.x, pts: [[x, a], [x, b]], fade, lane: pic.pitch / D.per_leg, cell, nth: i, of: D.per_leg, key };
       });
-      items.push({ puddles: [{ x: g.x, y: band.start, dabs: d }], strokes, span: [g.x, band.start, band.end], way: band.end < band.start ? -1 : 1, cell });
+      const way = band.end < band.start ? -1 : 1, far = D.far && Math.abs(band.end - band.start) >= D.far ? [{ x: g.x, y: Math.round((band.end - way * HOLO.inset) * 100) / 100, dabs: 1 }] : [];
+      items.push({ puddles: [{ x: g.x, y: band.start, dabs: d }, ...far], strokes, span: [g.x, band.start, band.end], way, cell, ends: [band.start, band.end] });
     });
   }
   // batches: whole items, about `batch` dabs each; a run-1 leg never split, both of V4's strokes with its puddles; with `snake` a snake a batch
@@ -126,8 +136,12 @@ export function workOf(pic, line, o = {}) {
     const by = new Map();
     for (const it of items) { const k = it.strokes[0].key; if (!by.has(k)) by.set(k, []); by.get(k).push(it); }
     const top = g => Math.max(...g[0].strokes[0].pts.map(p => p[1]));
-    for (const g of [...by.values()].sort((a, b) => parseInt(a[0].strokes[0].key) - parseInt(b[0].strokes[0].key) || top(b) - top(a)))
-      batches.push({ puddles: g.flatMap(it => it.puddles), strokes: g.flatMap(it => it.strokes).sort((p, q) => p.x - q.x), items: g, dabs: g.reduce((t, it) => t + dabsOfIt(it), 0) });
+    for (const g of [...by.values()].sort((a, b) => parseInt(a[0].strokes[0].key) - parseInt(b[0].strokes[0].key) || top(b) - top(a))) {
+      const first = g.flatMap(it => it.strokes).sort((p, q) => p.x - q.x);
+      // run 2's dots on both sides: the near ones along the slat, then the far ones, row by row
+      const puddles = line.run === 2 ? [0, 1].flatMap(r => g.flatMap(it => it.puddles[r] ? [it.puddles[r]] : [])) : g.flatMap(it => it.puddles);
+      batches.push({ puddles, strokes: [...first, ...idleOf(g, first[0], D, pic.pitch)], items: g, dabs: g.reduce((t, it) => t + dabsOfIt(it), 0), rows: line.run === 2 });
+    }
   } else {
     let cur = null;
     for (const it of items) {
@@ -136,8 +150,31 @@ export function workOf(pic, line, o = {}) {
       cur.puddles.push(...it.puddles); cur.strokes.push(...it.strokes); cur.items.push(it); cur.dabs += n;
     }
   }
-  const puddles = items.flatMap(q => q.puddles), strokes = batches.flatMap(B => B.strokes);
-  return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), cells: items.length, puddles, strokes, batches, items, mm: strokes.reduce((t, s) => t + Math.abs(s.pts[1][1] - s.pts[0][1]), 0) };
+  const puddles = items.flatMap(q => q.puddles), strokes = batches.flatMap(B => B.strokes), len = s => Math.abs(s.pts[1][1] - s.pts[0][1]);
+  return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), cells: items.length, puddles, strokes, batches, items, mm: strokes.reduce((t, s) => t + len(s), 0),
+    idleMm: strokes.filter(s => s.idle).reduce((t, s) => t + len(s), 0) };
+}
+// a group's idle run (`idle`, LAB's + idle 6.0): legs + idle tracks evenly between its outer legs' middles, the first the way the group's first
+// stroke goes, every next back; its ends the legs' own between them (a ragged edge, a band warped on every leg), IDLE.over mm past them at its
+// start and its turns, 0 at its very end → strokes { x, pts, idle: true, key: its group's + ':idle', lane, cell: the nearest leg's }
+function idleOf(g, first, D, pitch) {
+  if (!D.idle || !first) return [];
+  const xs = g.map(it => it.span[0]), n = g.length, m = n + D.idle, ways = first.pts[1][1] < first.pts[0][1];
+  // every leg's two ends, the side the first stroke starts on first: run 1 its top or bottom, run 2 its puddle or the band's end
+  const g0 = g.find(it => it.cell === first.cell) ?? g[0], s0 = first.pts[0][1], flip = Math.abs(s0 - g0.ends[0]) > Math.abs(s0 - g0.ends[1]);
+  const sides = g.map(it => flip ? [it.ends[1], it.ends[0]] : it.ends);
+  const at = (x, k) => { if (n === 1) return sides[0][k]; let i = 0; while (i < n - 2 && x > xs[i + 1]) i++; const u = (x - xs[i]) / (xs[i + 1] - xs[i]); return sides[i][k] + (sides[i + 1][k] - sides[i][k]) * Math.min(1, Math.max(0, u)); };
+  const key = `${first.key}:idle`, out = [];
+  for (let k = 0; k < m; k++) {
+    const x = Math.round((n === 1 ? xs[0] : xs[0] + (xs[n - 1] - xs[0]) * k / (m - 1)) * 1000) / 1000;
+    let a = at(x, 0), b = at(x, 1);
+    if (k % 2) [a, b] = [b, a];
+    const dir = Math.sign(b - a) || (ways ? -1 : 1), last = k === m - 1;
+    a -= dir * D.over; b += dir * (last ? 0 : D.over);
+    const near = xs.reduce((j, v, i) => Math.abs(v - x) < Math.abs(xs[j] - x) ? i : j, 0);
+    out.push({ x, leg: xs[near], pts: [[x, Math.round(a * 100) / 100], [x, Math.round(b * 100) / 100]], fade: null, lane: pitch, cell: g[near].cell, nth: k, of: m, key, idle: true });
+  }
+  return out;
 }
 // ---------- MARKS beside the canvas (README's canon, 2026-11-14) ----------
 // The owner, 2026-11-14 (HOLO-Claude/IMG_2903.jpg, two places circled in green; color_marks.png, FORM-G's strips 1 and 3): "the places where the
@@ -194,7 +231,7 @@ export function movesOf(lines, o = {}) {
     (L.marks ?? []).forEach((m, i) => out.push({ kind: 'mark', line: li, batch: 0, no: m.no, side: m.side, at: m.at, pts: m.pts, from: t, to: (t += i ? MARKS_BESIDE.sMark : sDab) }));
     L.batches.forEach((B, bi) => {
       for (const p of B.puddles) { const s = p.dabs * sDab; out.push({ kind: 'dab', line: li, batch: bi, at: [p.x, p.y], dabs: p.dabs, from: t, to: (t += s) }); }
-      for (const q of B.strokes) { const s = Math.abs(q.pts[1][1] - q.pts[0][1]) / speed; out.push({ kind: 'drag', line: li, batch: bi, pts: q.pts, fade: q.fade, lane: q.lane, from: t, to: (t += s) }); }
+      for (const q of B.strokes) { const s = Math.abs(q.pts[1][1] - q.pts[0][1]) / speed; out.push({ kind: 'drag', line: li, batch: bi, pts: q.pts, fade: q.fade, lane: q.lane, ...(q.idle ? { idle: true } : {}), from: t, to: (t += s) }); }
     });
   });
   return out;
@@ -215,22 +252,21 @@ export function runsOf(lines, o = {}) {
     let num = 0;
     L.batches.forEach((B, bi) => {
       const tag = `batch ${bi + 1}/${L.batches.length}`, nums = B.items.map(() => ++num);
-      B.items.forEach((it, i) => {
-        const way = it.way;                                                              // a dab's mark the way its leg goes (workOf's)
-        it.puddles.forEach(p => { for (let d = 0; d < p.dabs; d++) out.push({ pass: k, num: nums[i], pts: [[p.x, p.y - way * leg / 2], [p.x, p.y + way * leg / 2]],
-          say: `${tag} · leg ${nums[i]} · a dab${p.dabs > 1 ? ` ${d + 1}/${p.dabs}` : ''}`, dip: true, idle: false, beyond: true, dab: true }); });
-      });
+      // a dab's mark the way its leg goes (workOf's); run 2's dots on both sides row by row, the near ones along the slat, then the far
+      const dabRows = B.rows ? [0, 1].flatMap(r => B.items.map((it, i) => [it, i, it.puddles[r]]).filter(q => q[2])) : B.items.flatMap((it, i) => it.puddles.map(p => [it, i, p]));
+      for (const [it, i, p] of dabRows) for (let d = 0; d < p.dabs; d++) out.push({ pass: k, num: nums[i], pts: [[p.x, p.y - it.way * leg / 2], [p.x, p.y + it.way * leg / 2]],
+        say: `${tag} · leg ${nums[i]} · a dab${p.dabs > 1 ? ` ${d + 1}/${p.dabs}` : ''}`, dip: true, idle: false, beyond: true, dab: true });
       // the strokes in the batch's order; a snake's that follow one another a lane apart one run, the brush down at its turns (FORM-G's DRAG SNAKE)
       const byCell = new Map(B.items.map((it, i) => [it.cell, nums[i]])), runs = [];
       for (const q of B.strokes) {
         const r = runs.at(-1), p = r?.at(-1);
-        if (p && q.key != null && q.key === p.key && Math.abs(q.x - p.x) <= q.lane + 1e-6) r.push(q); else runs.push([q]);
+        if (p && q.key != null && q.key === p.key && Math.abs(q.x - p.x) <= q.lane + 1e-6 + (q.idle ? 1e-3 : 0)) r.push(q); else runs.push([q]);
       }
       for (const r of runs) {
         const q = r[0], n0 = byCell.get(q.cell) ?? q.cell + 1, n1 = byCell.get(r.at(-1).cell) ?? r.at(-1).cell + 1;
         out.push({ pass: k, num: n0, pts: r.flatMap(s => s.pts),
-          say: r.length > 1 ? `${tag} · legs ${n0}–${n1} · the snake, ${r.length} strokes, no dip`
-            : `${tag} · leg ${n0} · ${q.of > 1 ? `stroke ${q.nth + 1}/${q.of} ${q.pts[1][1] < q.pts[0][1] ? 'down' : 'up'}` : 'the stroke'}, no dip`, dip: false, idle: false, beyond: true });
+          say: q.idle ? `${tag} · legs ${Math.min(n0, n1)}–${Math.max(n0, n1)} · the idle snake, ${r.length} tracks, no dip` : r.length > 1 ? `${tag} · legs ${n0}–${n1} · the snake, ${r.length} strokes, no dip`
+            : `${tag} · leg ${n0} · ${q.of > 1 ? `stroke ${q.nth + 1}/${q.of} ${q.pts[1][1] < q.pts[0][1] ? 'down' : 'up'}` : 'the stroke'}, no dip`, dip: false, idle: !!q.idle, beyond: true });
       }
     });
   });
