@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO: V4, the warm 40 × 40 with the drag every 2.5 mm** (2026-11-15; the owner, 11:46, of the test canvas's run 1, every stroke a
+  clean channel between two ridges: "I propose the second pass, the one that clears the paint, at 2.5 mm … six from the bottom up and
+  six from the top down. That gives not six grooves but twelve"; "read GitHub, 001, 40 × 40, load V4"; the task,
+  `HOLO-Claude/HOLO/001-40x40-v4.md`). `app/holo/holo-40-warm-v4.json` by `HOLO-Claude/generator/holo_v2.py`: v.2 key for key — the
+  composition, the jars, the ragged ends, the puddles, MARKS, run 2 — and `drag: { per_leg: 2, step: 2.5 }`; its renders v.2's model, no
+  channels drawn (est.). `workOf` (`src/holoplan.js`): run 1 two strokes a leg, its middle − 1.25 mm down from its top, + 1.25 mm up from
+  its bottom, both in the leg's batch after its puddles, no dip; the dabs, their marks' way, DRAW BW's lines and the canvas's place as
+  v.2's; no `drag`, one stroke on the middle, every older picture's plan and moves byte for byte as before. Run 1: 677 dabs, 144 strokes
+  (the orange slat's twelve, six down, six up), 46.8 m, ≈ 31 min of dragging, ≈ 2 h 14 min in all; RUN 1's question ≈ 2 h 50 min on the
+  machine, v.2's ≈ 2 h 29 (est.). The card after v.2's; the panel says the drag; a jar picked, its strokes their way (arrowheads); the
+  strokes on the screen 2.5 mm wide. Checked in headless Chrome (a static copy; RUN 1's question on rembrandt.py opened and cancelled).
+  Not run on the machine.
 - **HOLO: the v.1s hidden from the library** (2026-11-15; the owner: "let's hide all the v.1s, so as not to get confused"). The fan
   warm, the fan blue and the tiers v.1 off the cards (`HOLO_HIDDEN`, `src/holoplan.js`); their json, renders and tests kept; a page
   left on a v.1 opens its v.2, a live run of one still keeps the page on it. Four cards: warm v.2, blue v.2, tiers v.2, tiers v.3.

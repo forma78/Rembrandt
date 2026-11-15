@@ -21,7 +21,9 @@ import { contourOf } from './formgplan.js';
 // HOLO-Claude/generator/holo_v2.py)
 // the tiers' v.3 (the owner, 2026-11-14, the night, of the blue redrawn on v.1's row: "the new one is better. Maybe you will make a v.3 for the
 // tiers?"): v.1's row and colours, every slat, the v.2's ragged edges; its v.2 kept ("I really like the tiers v.2")
-export const HOLO_LIB = ['holo-40-warm', 'holo-40-warm-v2', 'holo-60-blue', 'holo-60-blue-v2', 'holo-60-tiers', 'holo-60-tiers-v2', 'holo-60-tiers-v3'];
+// the warm 40 × 40's V4 (the owner, 2026-11-15, "load V4"; HOLO-Claude/HOLO/001-40x40-v4.md): its v.2 and run 1's drag two strokes a leg,
+// 2.5 mm apart (`drag`, workOf); after its v.2
+export const HOLO_LIB = ['holo-40-warm', 'holo-40-warm-v2', 'holo-40-warm-v4', 'holo-60-blue', 'holo-60-blue-v2', 'holo-60-tiers', 'holo-60-tiers-v2', 'holo-60-tiers-v3'];
 // every v.1 off the library's cards (the owner, 2026-11-15: "let's hide all the v.1s, so as not to get confused"); kept, their files and
 // tests, a page left on one goes to its v.2
 export const HOLO_HIDDEN = new Set(['holo-40-warm', 'holo-60-blue', 'holo-60-tiers']);
@@ -61,37 +63,55 @@ export function seqOf(pic) {
     ...pic.jars.filter(j => j.run2_dabs > 0).sort(by).map(j => ({ ...j, key: `${j.id}:2`, jar: j.id, run: 2 }))];
 }
 
+// run 1's drag, a picture's own (its json's `drag`): `per_leg` strokes a leg, `step` mm apart across it, about its middle; none, one on the
+// middle, as v.1 … v.3. V4 (the owner, 2026-11-15, of the test canvas's run 1, every stroke a clean channel between two ridges: "I propose the
+// second pass, the one that clears the paint, at 2.5 mm … six from the bottom up and six from the top down. That gives not six grooves but
+// twelve"; HOLO-Claude/HOLO/001-40x40-v4.md): two a leg, 1.25 mm either side of its middle
+export const dragOf = pic => ({ per_leg: pic.drag?.per_leg ?? 1, step: pic.drag?.step ?? 0 });
+
 // a line of the list into its work: puddles laid a batch at a time, then that batch's strokes, the same jar in the cup throughout.
-// → { dabs, puddles: [{ x, y, dabs }], strokes: [{ x, pts: [[x, a], [x, b]], fade }], batches: [{ puddles, strokes }], mm }
-// Run 1: along every leg of a slat of this ground, its puddles; one stroke the leg's whole field through them, no dip — even legs
-// from the top down, odd ones up (the study's), from the field's edge to the other. Run 2: every band of this jar on every leg of its
-// slat: one puddle at its start, `dabs` dabs, then one stroke from it towards its end, no dip (the band's own way).
+// → { dabs, cells, puddles: [{ x, y, dabs }], strokes: [{ x, leg, pts: [[x, a], [x, b]], fade, lane }], batches: [{ puddles, strokes, items }], mm };
+// an item a leg (run 1) or a band on a leg (run 2), BACK ONE JAR's and the remote's cell: { puddles, strokes, span: [x, a, b], its leg's middle
+// and the stretch its paint covers, as v.2's one stroke laid it; way, −1 down or 1 up, its dabs' marks' }
+// Run 1: along every leg of a slat of this ground, its puddles; then its strokes the leg's whole length through them, no dip — numbered
+// across the field, even ones from the top down, odd ones up (the study's), from the leg's end to the other: one a leg, so even legs down,
+// odd up; V4's two, the left down from the top, the right up from the bottom, a snake 2.5 mm a stroke. Run 2: every band of this jar on every
+// leg of its slat: one puddle at its start, `dabs` dabs, then one stroke from it towards its end, no dip (the band's own way), on the leg's
+// middle whatever run 1's drag (V4: "run 2 as v.2", the owner decides after 001's run 1 is dry).
 export function workOf(pic, line, o = {}) {
   const gap = o.gap ?? HOLO.gap, batch = o.batch ?? HOLO.batch, lasts = o.lasts ?? null;
-  const legs = legsOf(pic), items = [];
+  const legs = legsOf(pic), items = [], D = dragOf(pic);
   if (line.run === 1) {
     for (const g of legs) {
       if (g.slat.ground !== line.jar) continue;
-      const down = g.n % 2 === 0, a = down ? g.y1 : g.y0, b = down ? g.y0 : g.y1, ys = puddlesAlong(g.y0, g.y1, gap);
-      items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), stroke: { x: g.x, pts: [[g.x, a], [g.x, b]], fade: null } });
+      const ys = puddlesAlong(g.y0, g.y1, gap);
+      const strokes = Array.from({ length: D.per_leg }, (_, i) => {
+        const down = (g.n * D.per_leg + i) % 2 === 0, a = down ? g.y1 : g.y0, b = down ? g.y0 : g.y1;
+        const x = D.per_leg > 1 ? Math.round((g.x + (i - (D.per_leg - 1) / 2) * D.step) * 1000) / 1000 : g.x;
+        return { x, leg: g.x, pts: [[x, a], [x, b]], fade: null, lane: pic.pitch / D.per_leg };
+      });
+      // a dab's mark the way v.2's one stroke went, even legs down, odd up, whatever the drag: V4 changes the drag alone, its puddles laid as v.2's
+      const way = g.n % 2 === 0 ? -1 : 1, a = way < 0 ? g.y1 : g.y0, b = way < 0 ? g.y0 : g.y1;
+      items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), strokes, span: [g.x, a, b], way });
     }
   } else {
     for (const g of legs) for (const band0 of g.slat.bands) {
       if (band0.jar !== line.jar) continue;
       const band = bandOn(pic, g, band0), d = pic.base && !lasts ? dabsOn(pic, band) : dabsOf(pic, band, lasts);
-      items.push({ puddles: [{ x: g.x, y: band.start, dabs: d }], stroke: { x: g.x, pts: [[g.x, band.start], [g.x, band.end]], fade: { full: pic.est.shadow_full ?? 0, band } } });
+      items.push({ puddles: [{ x: g.x, y: band.start, dabs: d }], strokes: [{ x: g.x, leg: g.x, pts: [[g.x, band.start], [g.x, band.end]], fade: { full: pic.est.shadow_full ?? 0, band }, lane: pic.pitch }],
+        span: [g.x, band.start, band.end], way: band.end < band.start ? -1 : 1 });
     }
   }
-  // batches: whole items, about `batch` dabs each; a run-1 leg never split
+  // batches: whole items, about `batch` dabs each; a run-1 leg never split, both of V4's strokes with its puddles
   const batches = [];
   let cur = null;
   for (const it of items) {
     const n = it.puddles.reduce((t, p) => t + p.dabs, 0);
     if (!cur || (cur.dabs + n > batch && cur.dabs > 0)) batches.push(cur = { puddles: [], strokes: [], items: [], dabs: 0 });
-    cur.puddles.push(...it.puddles); cur.strokes.push(it.stroke); cur.items.push(it); cur.dabs += n;
+    cur.puddles.push(...it.puddles); cur.strokes.push(...it.strokes); cur.items.push(it); cur.dabs += n;
   }
-  const puddles = items.flatMap(q => q.puddles), strokes = items.map(q => q.stroke);
-  return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), puddles, strokes, batches, mm: strokes.reduce((t, s) => t + Math.abs(s.pts[1][1] - s.pts[0][1]), 0) };
+  const puddles = items.flatMap(q => q.puddles), strokes = items.flatMap(q => q.strokes);
+  return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), cells: items.length, puddles, strokes, batches, mm: strokes.reduce((t, s) => t + Math.abs(s.pts[1][1] - s.pts[0][1]), 0) };
 }
 // ---------- MARKS beside the canvas (README's canon, 2026-11-14) ----------
 // The owner, 2026-11-14 (HOLO-Claude/IMG_2903.jpg, two places circled in green; color_marks.png, FORM-G's strips 1 and 3): "the places where the
@@ -148,7 +168,7 @@ export function movesOf(lines, o = {}) {
     (L.marks ?? []).forEach((m, i) => out.push({ kind: 'mark', line: li, batch: 0, no: m.no, side: m.side, at: m.at, pts: m.pts, from: t, to: (t += i ? MARKS_BESIDE.sMark : sDab) }));
     L.batches.forEach((B, bi) => {
       for (const p of B.puddles) { const s = p.dabs * sDab; out.push({ kind: 'dab', line: li, batch: bi, at: [p.x, p.y], dabs: p.dabs, from: t, to: (t += s) }); }
-      for (const q of B.strokes) { const s = Math.abs(q.pts[1][1] - q.pts[0][1]) / speed; out.push({ kind: 'drag', line: li, batch: bi, pts: q.pts, fade: q.fade, from: t, to: (t += s) }); }
+      for (const q of B.strokes) { const s = Math.abs(q.pts[1][1] - q.pts[0][1]) / speed; out.push({ kind: 'drag', line: li, batch: bi, pts: q.pts, fade: q.fade, lane: q.lane, from: t, to: (t += s) }); }
     });
   });
   return out;
@@ -170,11 +190,12 @@ export function runsOf(lines, o = {}) {
     L.batches.forEach((B, bi) => {
       const tag = `batch ${bi + 1}/${L.batches.length}`, nums = B.items.map(() => ++num);
       B.items.forEach((it, i) => {
-        const [[, a], [, b]] = it.stroke.pts, way = b < a ? -1 : 1;
+        const way = it.way;                                                              // a dab's mark the way its leg goes (workOf's)
         it.puddles.forEach(p => { for (let d = 0; d < p.dabs; d++) out.push({ pass: k, num: nums[i], pts: [[p.x, p.y - way * leg / 2], [p.x, p.y + way * leg / 2]],
           say: `${tag} · leg ${nums[i]} · a dab${p.dabs > 1 ? ` ${d + 1}/${p.dabs}` : ''}`, dip: true, idle: false, beyond: true, dab: true }); });
       });
-      B.items.forEach((it, i) => out.push({ pass: k, num: nums[i], pts: it.stroke.pts, say: `${tag} · leg ${nums[i]} · the stroke, no dip`, dip: false, idle: false, beyond: true }));
+      B.items.forEach((it, i) => it.strokes.forEach((q, j, all) => out.push({ pass: k, num: nums[i], pts: q.pts,
+        say: `${tag} · leg ${nums[i]} · ${all.length > 1 ? `stroke ${j + 1}/${all.length} ${q.pts[1][1] < q.pts[0][1] ? 'down' : 'up'}` : 'the stroke'}, no dip`, dip: false, idle: false, beyond: true })));
     });
   });
   return out;
@@ -187,9 +208,10 @@ export const shadeAt = (u, full = 0) => u < 0 || u > 1 ? 0 : full ? (u <= full ?
 // DRAW BW's lines (FORM-G's, the owner, 2026-11-14: HOLO "has no STOP and HOME", and DRAW BW and ⏮ BACK ONE JAR as FORM-G's): formgplan.js's
 // contourOf over the strokes as the brush lays them, every line of the list in its order — run 1's grounds the field's height, run 2's shadows
 // from their puddle to where they end, over them; a jar in both runs one colour. o.outline: where the paint meets the bare canvas alone.
+// A leg its own pitch wide, its middle, whatever run 1's drag: V4's two strokes the same leg's borders as v.2's one.
 // → { lines: [[[x, y], …]], mm, pieces }, the picture's mm
 export function contourHolo(pic, o = {}) {
-  const jars = seqOf(pic).map(line => ({ id: line.jar, cells: [{ legs: workOf(pic, line).strokes.map(q => [q.x, q.pts[0][1], q.pts[1][1]]) }] }));
+  const jars = seqOf(pic).map(line => ({ id: line.jar, cells: [{ legs: workOf(pic, line).batches.flatMap(B => B.items).map(it => it.span) }] }));
   return contourOf({ pitch: pic.pitch, jars }, { outline: !!o.outline, key: j => j.id });
 }
 

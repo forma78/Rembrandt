@@ -4,7 +4,7 @@
 // "add DRAW BW and ⏮ BACK ONE JAR"): TEST, PAUSE, DRAW BW, BACK ONE JAR, STOP, HOME, the iPhone's remote and ELBOW LIVE, formg.js's as they are,
 // copied so that FORM-G stays as it was. RUN 1 · RUN 2 on the machine since the owner's word, the same night ("it does not let me make a run"),
 // FORM-G's DRAG with holoplan.js's runsOf: the marks, a batch's dabs, its strokes.
-import { HOLO, HOLO_LIB, HOLO_HIDDEN, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesAlong, WALL, contourHolo, besideOf, MARKS_BESIDE, runsOf } from './holoplan.js';
+import { HOLO, HOLO_LIB, HOLO_HIDDEN, dragOf, planOf, movesOf, shadeAt, placeRange, legsOf, puddlesAlong, WALL, contourHolo, besideOf, MARKS_BESIDE, runsOf } from './holoplan.js';
 import { PEN, j3Runs } from './formgplan.js';
 import { ELBOW_J3 } from './canon.js';
 import { idleRowsOf } from './idleplan.js';
@@ -338,10 +338,22 @@ function drawPuddles(g, run) {
   for (const L of plan()) if (L.run === run) { g.globalAlpha = dim(L.key); for (const p of L.puddles) puddle(g, sx(p.x), sy(p.y), p.dabs, L.hex, K); }
   g.globalAlpha = 1;
 }
+// a run-1 stroke as wide as its lane on the screen: a leg's pitch, V4's two strokes half of it each (the brush is 5 mm all the same; a model)
+const laneW = (q, k) => Math.max(0.5, (q.lane ?? PIC.pitch) * k * 0.92);
+// the picked jar's strokes their way: a dark arrowhead inside a stroke's end, when its lane is wide enough on the screen to show it
+function wayHead(g, q) {
+  const x = sx(q.x), e = sy(q.pts[1][1]), s = Math.sign(e - sy(q.pts[0][1])), h = (q.lane ?? PIC.pitch) * K * 0.4;
+  if (h < 1.5 || !s) return;
+  g.beginPath(); g.moveTo(x - h, e - s * h * 2.2); g.lineTo(x + h, e - s * h * 2.2); g.lineTo(x, e - s * h * 0.3); g.closePath(); g.fill();
+}
 function drawStrokes(g) {
   const w = Math.max(0.5, PIC.pitch * K * 0.92);
   for (const L of plan()) {
-    if (L.run === 1) { g.strokeStyle = L.hex; g.lineWidth = w; g.lineCap = 'butt'; g.globalAlpha = dim(L.key); for (const q of L.strokes) { g.beginPath(); g.moveTo(sx(q.x), sy(q.pts[0][1])); g.lineTo(sx(q.x), sy(q.pts[1][1])); g.stroke(); } }
+    if (L.run === 1) {
+      g.strokeStyle = L.hex; g.lineCap = 'butt'; g.globalAlpha = dim(L.key);
+      for (const q of L.strokes) { g.lineWidth = laneW(q, K); g.beginPath(); g.moveTo(sx(q.x), sy(q.pts[0][1])); g.lineTo(sx(q.x), sy(q.pts[1][1])); g.stroke(); }
+      if (only === L.key) { g.fillStyle = 'rgba(36,34,31,.7)'; for (const q of L.strokes) wayHead(g, q); }
+    }
   }
   g.globalAlpha = 1;                                                                  // run 1's last dimmed jar must not veil run 2's picked one
   for (const L of plan()) if (L.run === 2) for (const q of L.strokes) { if (only && only !== L.key) continue; shadow(g, q, L.hex, sx, sy, w); }
@@ -445,7 +457,7 @@ $('#btnPlay').onclick = () => {
       else if (m.kind === 'dab') { if (f >= 1) puddle(c, X(m.at[0]), Y(m.at[1]), m.dabs, L.hex, s); Q.tip = { kind: 'dab', at: m.at, hex: L.hex }; }
       else {
         const [a, b] = [m.pts[0][1], m.pts[1][1]], y = a + (b - a) * f, y0 = a + (b - a) * Q.at;
-        if (L.run === 1) { c.strokeStyle = L.hex; c.lineWidth = w; c.lineCap = 'butt'; c.beginPath(); c.moveTo(X(m.pts[0][0]), Y(y0)); c.lineTo(X(m.pts[0][0]), Y(y)); c.stroke(); }
+        if (L.run === 1) { c.strokeStyle = L.hex; c.lineWidth = laneW(m, s); c.lineCap = 'butt'; c.beginPath(); c.moveTo(X(m.pts[0][0]), Y(y0)); c.lineTo(X(m.pts[0][0]), Y(y)); c.stroke(); }
         else if (f >= 1) shadow(c, { x: m.pts[0][0], pts: m.pts, fade: m.fade }, L.hex, X, Y, w);
         Q.tip = { kind: 'drag', at: [m.pts[0][0], y], hex: L.hex };
       }
@@ -532,7 +544,7 @@ function holoRun(run, from = 0) {
   return out;
 }
 // the iPhone's rows and BACK ONE JAR's (rembrandt.py's `colours`, `rows`): a line of the list a colour, its legs its cells
-const holoRemote = R => ({ colours: R.lines.map((L, i) => ({ name: L.name, hex: L.hex, code: '', cells: L.strokes.length, n: R.from + i + 1, of: R.all.length })), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) });
+const holoRemote = R => ({ colours: R.lines.map((L, i) => ({ name: L.name, hex: L.hex, code: '', cells: L.cells ?? L.strokes.length, n: R.from + i + 1, of: R.all.length })), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) });
 function runBad(R) {
   if (isLive()) return 'A run is on: STOP it first.';
   if (!R.rows.length) return 'Nothing to paint.';
@@ -545,7 +557,9 @@ const runRows = lines => lines.map((q, i) => `<li><span class="no">${i + 1}</spa
 function runText(run, lines, R) {
   const d = lines.reduce((t, q) => t + q.dabs, 0), b = lines.reduce((t, q) => t + q.batches.length, 0), c = placeNow();
   return (run === 1
-    ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm the way its stroke goes; then one stroke the leg's whole length through them, no dip, even legs from the top down, odd ones up. `
+    ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm ${dragOf(PIC).per_leg > 1 ? 'along the leg as v.2 laid it, even legs down, odd up' : 'the way its stroke goes'}; `
+      + (dragOf(PIC).per_leg > 1 ? `then ${dragOf(PIC).per_leg} strokes the leg's whole length through them, no dip, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle — the left from the top down, the right from the bottom up — a stroke every ${fmt(dragOf(PIC).step, 1)} mm across the field (v.${PIC.version}, the owner's of 2026-11-15). `
+        : `then one stroke the leg's whole length through them, no dip, even legs from the top down, odd ones up. `)
     : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length on the same ${HOLO.mark} mm, each its own dip, then one stroke towards its far end, no dip, till it gives out. `)
     + `${d} dabs in ${b} batches of about ${S.batch}, every batch laid, then dragged while wet; ${R.strokes} strokes, ${fmt(R.mm / 1000, 1)} m; no idle run after a stroke. `
     + (R.marks ? `After every change of jar, before its first puddle: one dip, then its MARKS, 1 the left slip, 3 the right — ${besideNow()?.where === 'on' ? 'the paper taped over the canvas\'s margins' : 'the paper on the plates beside the canvas'} (The canvas). ` : '')
@@ -610,7 +624,7 @@ function showPanel() {
   { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
   $('#fMark').value = HOLO.mark;
   const L1 = legsOf(PIC), n1 = Math.max(...L1.map(g => puddlesAlong(g.y0, g.y1, S.gap).length)), legs = L1.length;
-  $('#puddleRead').innerHTML = `${legs} legs ${fmt(PIC.pitch, 0)} mm apart in ${PIC.slats.length} slats; run 1 ${PIC.version >= 2 ? 'up to ' : ''}${n1} puddles a leg${PIC.version >= 2 ? ` (every leg its own ends, v.${PIC.version})` : ''}, ${dabsIn(P, 1)} dabs; run 2 ${P.filter(q => q.run === 2).reduce((t, q) => t + q.puddles.length, 0)} puddles, ${dabsIn(P, 2)} dabs${S.lasts ? ` (a dab every ${S.lasts} mm of band)` : ` (the plan's: ${PIC.est.a_dab_lasts} mm a dab)`}. ${dabsIn(P)} dabs in all, ${P.reduce((t, q) => t + q.batches.length, 0)} batches, ≈ ${hm(total(P))} (est.).`;
+  $('#puddleRead').innerHTML = `${legs} legs ${fmt(PIC.pitch, 0)} mm apart in ${PIC.slats.length} slats; run 1 ${PIC.version >= 2 ? 'up to ' : ''}${n1} puddles a leg${PIC.version >= 2 ? ` (every leg its own ends, v.${PIC.version})` : ''}, ${dabsIn(P, 1)} dabs; run 2 ${P.filter(q => q.run === 2).reduce((t, q) => t + q.puddles.length, 0)} puddles, ${dabsIn(P, 2)} dabs${S.lasts ? ` (a dab every ${S.lasts} mm of band)` : ` (the plan's: ${PIC.est.a_dab_lasts} mm a dab)`}. ${dabsIn(P)} dabs in all, ${P.reduce((t, q) => t + q.batches.length, 0)} batches, ≈ ${hm(total(P))} (est.).` + dragSay(P);
   $('#runList').innerHTML = P.map((q, i) => `${!i || q.run !== P[i - 1].run ? `<li class="fg-sep">${q.run === 1 ? 'Run 1 · the light' : 'Run 2 · the shadow, on the dry first'}</li>` : ''}<li data-key="${esc(q.key)}" data-i="${i}" class="${only === q.key ? 'only' : ''}" title="${esc(q.name)}${q.note ? ` — ${esc(q.note)}` : ''}: ${q.dabs} dabs in ${q.batches.length} batch${q.batches.length === 1 ? '' : 'es'}, ${q.strokes.length} strokes, ${fmt(q.mm / 1000, 1)} m, ≈ ${hm(q.seconds)} (est.). A click shows its strokes"><span class="no">${i + 1}</span><i class="sw" style="background:${q.hex}"></i><span class="nm">${esc(q.name)}${jarTag(q)}</span><span class="tg">${q.dabs} dabs</span></li>`).join('');
   $('#jarsHint').textContent = `${P.length} lines, ${PIC.jars.length} jars, light to dark`;
   const fresh = PIC.jars.filter(j => j.new), none = PIC.jars.filter(j => !j.new && j.number == null), photo = PIC.jars.filter(j => j.number != null && j.seen === 'photo');
@@ -618,6 +632,15 @@ function showPanel() {
   $('#jarNote').innerHTML = [none.length ? `${none.map(j => esc(j.name)).join(', ')}: no number on the lid yet, their colours off the photo (est.).` : '', ...photo.map(j => `${esc(j.name)}: ${esc(j.note)}.`)].filter(Boolean).join(' ');
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm · ${PIC.composition}`;
   lcd();
+}
+// run 1's drag when a picture has its own (V4, the owner, 2026-11-15): its strokes, their line and their time, est.; nothing for one on the middle
+function dragSay(P) {
+  const D = dragOf(PIC), R1 = P.filter(q => q.run === 1);
+  if (D.per_leg < 2) return '';
+  const n = R1.reduce((t, q) => t + q.strokes.length, 0), legs = R1.reduce((t, q) => t + q.cells, 0), mm = R1.reduce((t, q) => t + q.mm, 0);
+  return `<br><b>Run 1's drag, v.${PIC.version}</b>: ${D.per_leg} strokes a leg, ${fmt(D.step / 2, 2)} mm either side of its middle — the left down from its top, the right up from its bottom — so a stroke every ${fmt(D.step, 1)} mm across the field: `
+    + `${n} strokes on ${legs} legs, ${fmt(mm / 1000, 1)} m, ≈ ${hm(mm / S.speed)} of dragging at ${S.speed} mm/s; run 1 in all ≈ ${hm(total(R1))} (est.). The puddles where they were; run 2 one stroke a leg, on its middle. `
+    + `Click a jar in the list: its strokes and their way. The picture is v.2's model: it draws no channels (est.).`;
 }
 // MARKS' read: where the slips go, or why there are none (README's canon, 2026-11-14)
 function marksSay(rg) {
@@ -652,7 +675,7 @@ function readOf(id) {
   if (READS.has(id)) return READS.get(id);
   const pic = LIB[id], P = plan(pic), n1 = P.filter(q => q.run === 1), n2 = P.filter(q => q.run === 2), fresh = pic.jars.filter(j => j.new).length;
   const out = `<b>${esc(pic.title)}</b>, in our jars: ${pic.count.legs} legs ${fmt(pic.pitch, 0)} mm apart, ${pic.count.slats} slats, the field ${fmt(pic.field.x1 - pic.field.x0, 0)} mm. ${pic.jars.length} jars${fresh ? `, ${fresh} of them new` : ''}. `
-    + `<b>Run 1</b>, the light: ${n1.length} jars, ${dabsIn(P, 1)} dabs, ≈ ${hm(total(n1))}; the run to dry; <b>run 2</b>, the shadow: ${n2.length} jars, ${dabsIn(P, 2)} dabs, ≈ ${hm(total(n2))} (est.). A model, not a photo: nothing run yet.`;
+    + `<b>Run 1</b>, the light: ${n1.length} jars, ${dabsIn(P, 1)} dabs${pic.drag?.per_leg > 1 ? `, ${n1.reduce((t, q) => t + q.strokes.length, 0)} strokes, ${pic.drag.per_leg} a leg ${fmt(pic.drag.step, 1)} mm apart` : ''}, ≈ ${hm(total(n1))}; the run to dry; <b>run 2</b>, the shadow: ${n2.length} jars, ${dabsIn(P, 2)} dabs, ≈ ${hm(total(n2))} (est.). A model, not a photo: nothing run yet.`;
   READS.set(id, out);
   return out;
 }

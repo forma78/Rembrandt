@@ -38,7 +38,14 @@ edges the first v.2's, carried slat for slat. The tiers' v.2 is kept as it was, 
 Then the tiers' **v.3** (the owner, of the blue redrawn so: "the new one is better. Maybe you will make a v.3 for the tiers?"): v.1's row and
 colours, every slat, at 520 mm, the v.2's ragged edges carried onto it — `app/holo/holo-60-tiers-v3.*`; `python holo_v2.py holo-60-tiers-v3`.
 
+## V4, the drag every 2.5 mm (2026-11-15)
+
+The owner, of the test canvas's run 1: "I propose the second pass, the one that clears the paint, at 2.5 mm … That gives not six grooves but
+twelve" (`../HOLO/001-40x40-v4.md`). `holo-40-warm-v4` is the warm 40 × 40's v.2 number for number, and `drag: { per_leg: 2, step: 2.5 }`,
+read by `app/src/holoplan.js`'s `workOf`: two strokes a leg, 1.25 mm either side of its middle, the left down, the right up. Its renders are v.2's
+model (no channels drawn, est.). `python holo_v2.py holo-40-warm-v4`.
+
 ```
-python holo_v2.py                    # all three v.2s
+python holo_v2.py                    # all three v.2s, the tiers' v.3 and the warm's V4
 python holo_v2.py holo-60-blue       # one; --out=<dir> elsewhere
 ```
