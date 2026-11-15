@@ -5,6 +5,16 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO V4: Drag Snake, a group at a time** (2026-11-15, the afternoon; the owner, of V4's run 2 on the test canvas, every stroke from its
+  puddle, the brush flying back: "you made Drag Air, the brush goes one way. It needs to be as in FORM-G, Drag Snake. It does not come out
+  well, in life nor on the camera"; then, `HOLO-Claude/Screenshot 2026-11-15 at 3.45.04 PM.png`, Jar 20's shadows numbered 1, 2, 3, 4, 5:
+  "I think the paint dries. I would do it in groups, as here: put the drops of 1, paint them there and back. Then 2, then 3, 4, 5 …").
+  `drag.snake` (`holo-40-warm-v4.json`), `workOf` and `runsOf` (`src/holoplan.js`): a batch is a snake — run 1 a slat, run 2 a slat's band,
+  the slats left to right, a slat's bands from its top down; its puddles, then at once its strokes one run, there and back a lane (2.5 mm)
+  apart, the brush down at the turns, as FORM-G's DRAG SNAKE; run 2's left of every leg away from the puddle, its right back to it. The
+  puddles, their dabs and marks where they were; the batch size not used. Run 1 20 snakes, run 2 90. The shadows drawn from the puddle
+  whatever the stroke's way. Older pictures' plans and moves unchanged (compared). Checked in headless Chrome on a static copy (▶ Play,
+  the panel); rembrandt.py was restarting, so RUN 2's question not opened. Not run.
 - **HOLO V4: run 2 every 2.5 mm too, absolutely every pass** (2026-11-15, the afternoon; the owner, of V4's run 2 still one stroke a leg,
   `HOLO-Claude/Screenshot 2026-11-15 at 2.49.33 PM.png`: "you did not touch layer 2? it needs the same, from 6 legs 12 strokes"; then,
   stopping v.2's run 2 on the test canvas: "in V.4 make absolutely all the passes 0.25 instead of 0.5"). `workOf` (`src/holoplan.js`):

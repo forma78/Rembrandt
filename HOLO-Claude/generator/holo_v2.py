@@ -62,10 +62,11 @@ SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-6
 # ../HOLO/001-40x40-v4.md): its v.2 number for number — the composition, the jars, the ragged ends, the puddles — and one thing more, the drag,
 # two strokes a leg 2.5 mm apart (`drag`, read by holoplan.js's workOf); both runs (the same afternoon: "you did not touch layer 2? it needs the
 # same, from 6 legs 12 strokes"; "in V.4 make absolutely all the passes 0.25 instead of 0.5"). The 40 × 40 has no v.3; his name, V4. The renders
-# v.2's model: they draw no channels (est.).
+# v.2's model: they draw no channels (est.). `snake` (the same afternoon: "as in FORM-G, Drag Snake"; "in groups … put the drops of 1, paint them
+# there and back, then 2, then 3"): every slat's, every slat's band's strokes one run there and back, its puddles laid just before it.
 MADE = {**{pid + '-v2': (pid, c, 2) for pid, c in V2.items()},
         'holo-60-tiers-v3': ('holo-60-tiers', dict(V2['holo-60-tiers'], own=False, legs=104), 3),
-        'holo-40-warm-v4': ('holo-40-warm', dict(V2['holo-40-warm'], drag=dict(per_leg=2, step=2.5), say='the drag every 2.5 mm'), 4)}
+        'holo-40-warm-v4': ('holo-40-warm', dict(V2['holo-40-warm'], drag=dict(per_leg=2, step=2.5, snake=True), say='the drag every 2.5 mm, snake'), 4)}
 
 
 def rhythm(st, c):

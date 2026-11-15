@@ -67,8 +67,11 @@ export function seqOf(pic) {
 // middle, as v.1 … v.3. V4 (the owner, 2026-11-15, of the test canvas's run 1, every stroke a clean channel between two ridges: "I propose the
 // second pass, the one that clears the paint, at 2.5 mm … six from the bottom up and six from the top down. That gives not six grooves but
 // twelve"; HOLO-Claude/HOLO/001-40x40-v4.md): two a leg, 1.25 mm either side of its middle. Both runs since the same afternoon (the owner,
-// of V4's run 2 still one stroke a leg: "you did not touch layer 2? it needs the same, from 6 legs 12 strokes")
-export const dragOf = pic => ({ per_leg: pic.drag?.per_leg ?? 1, step: pic.drag?.step ?? 0 });
+// of V4's run 2 still one stroke a leg: "you did not touch layer 2? it needs the same, from 6 legs 12 strokes"). `snake`: FORM-G's DRAG SNAKE —
+// the owner, the same afternoon, of V4's run 2 laid so, every stroke from its puddle, the brush flying back: "you made Drag Air, the brush goes
+// one way. It needs to be as in FORM-G, Drag Snake. It does not come out well, in life nor on the camera"; "let us redo all of it for Drag
+// Snake" — a slat's strokes one run, down, across, up, across, down …, the brush down at its turns; no `snake`, a stroke a run, as before
+export const dragOf = pic => ({ per_leg: pic.drag?.per_leg ?? 1, step: pic.drag?.step ?? 0, snake: !!pic.drag?.snake });
 // a leg's i-th stroke across it, mm: its middle for one, else `step` apart about it
 const strokeX = (D, x, i) => D.per_leg > 1 ? Math.round((x + (i - (D.per_leg - 1) / 2) * D.step) * 1000) / 1000 : x;
 
@@ -79,8 +82,14 @@ const strokeX = (D, x, i) => D.per_leg > 1 ? Math.round((x + (i - (D.per_leg - 1
 // Run 1: along every leg of a slat of this ground, its puddles; then its strokes the leg's whole length through them, no dip — numbered
 // across the field, even ones from the top down, odd ones up (the study's), from the leg's end to the other: one a leg, so even legs down,
 // odd up; V4's two, the left down from the top, the right up from the bottom, a snake 2.5 mm a stroke. Run 2: every band of this jar on every
-// leg of its slat: one puddle at its start, `dabs` dabs, then one stroke from it towards its end, no dip (the band's own way); V4's two, the
-// left then the right, each from the puddle towards the band's end, the brush up back to the puddle between them — the paint is there.
+// leg of its slat: one puddle at its start, `dabs` dabs, then one stroke from it towards its end, no dip (the band's own way); two a leg, the
+// left then the right: with `snake` the band's strokes across its slat in turn from the puddles towards its end and back, the left of every
+// leg away; without, each from the puddle, the brush up back to it between them (V4's first afternoon, "Drag Air").
+// Every stroke: { x, leg, pts, fade, lane, cell: its item's index in the line, nth, of: its place among its leg's, key: its snake (a slat's
+// strokes in run 1, a slat's band's in run 2) or null }. With `snake` a batch is a snake — its puddles, then at once its strokes there and
+// back across its slat (the owner, the same afternoon, `HOLO-Claude/Screenshot 2026-11-15 at 3.45.04 PM.png`, Jar 20's shadows numbered 1, 2,
+// 3, 4, 5 …: "I think the paint dries. I would do it in groups, as here: put the drops of 1, paint them there and back. Then 2, then 3, 4,
+// 5 …"): the slats left to right, a slat's bands from its top down; the batch size not used. → also items, the line's in their legs' order.
 export function workOf(pic, line, o = {}) {
   const gap = o.gap ?? HOLO.gap, batch = o.batch ?? HOLO.batch, lasts = o.lasts ?? null;
   const legs = legsOf(pic), items = [], D = dragOf(pic);
@@ -88,34 +97,47 @@ export function workOf(pic, line, o = {}) {
     for (const g of legs) {
       if (g.slat.ground !== line.jar) continue;
       const ys = puddlesAlong(g.y0, g.y1, gap);
+      const cell = items.length, key = D.snake ? `${pic.slats.indexOf(g.slat)}` : null;
       const strokes = Array.from({ length: D.per_leg }, (_, i) => {
         const down = (g.n * D.per_leg + i) % 2 === 0, a = down ? g.y1 : g.y0, b = down ? g.y0 : g.y1;
         const x = strokeX(D, g.x, i);
-        return { x, leg: g.x, pts: [[x, a], [x, b]], fade: null, lane: pic.pitch / D.per_leg };
+        return { x, leg: g.x, pts: [[x, a], [x, b]], fade: null, lane: pic.pitch / D.per_leg, cell, nth: i, of: D.per_leg, key };
       });
       // a dab's mark the way v.2's one stroke went, even legs down, odd up, whatever the drag: V4 changes the drag alone, its puddles laid as v.2's
       const way = g.n % 2 === 0 ? -1 : 1, a = way < 0 ? g.y1 : g.y0, b = way < 0 ? g.y0 : g.y1;
-      items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), strokes, span: [g.x, a, b], way });
+      items.push({ puddles: ys.map(y => ({ x: g.x, y, dabs: 1 })), strokes, span: [g.x, a, b], way, cell });
     }
   } else {
-    for (const g of legs) for (const band0 of g.slat.bands) {
-      if (band0.jar !== line.jar) continue;
+    for (const g of legs) g.slat.bands.forEach((band0, bi) => {
+      if (band0.jar !== line.jar) return;
       const band = bandOn(pic, g, band0), d = pic.base && !lasts ? dabsOn(pic, band) : dabsOf(pic, band, lasts);
-      const fade = { full: pic.est.shadow_full ?? 0, band };
-      const strokes = Array.from({ length: D.per_leg }, (_, i) => { const x = strokeX(D, g.x, i); return { x, leg: g.x, pts: [[x, band.start], [x, band.end]], fade, lane: pic.pitch / D.per_leg }; });
-      items.push({ puddles: [{ x: g.x, y: band.start, dabs: d }], strokes, span: [g.x, band.start, band.end], way: band.end < band.start ? -1 : 1 });
+      const fade = { full: pic.est.shadow_full ?? 0, band }, cell = items.length, si = pic.slats.indexOf(g.slat), key = D.snake ? `${si}:${bi}` : null;
+      const j0 = (g.n - Math.round((g.slat.x0 - pic.field.x0) / pic.pitch)) * D.per_leg;             // the leg's first stroke's place across its slat
+      const strokes = Array.from({ length: D.per_leg }, (_, i) => {
+        const x = strokeX(D, g.x, i), away = !D.snake || (j0 + i) % 2 === 0, a = away ? band.start : band.end, b = away ? band.end : band.start;
+        return { x, leg: g.x, pts: [[x, a], [x, b]], fade, lane: pic.pitch / D.per_leg, cell, nth: i, of: D.per_leg, key };
+      });
+      items.push({ puddles: [{ x: g.x, y: band.start, dabs: d }], strokes, span: [g.x, band.start, band.end], way: band.end < band.start ? -1 : 1, cell });
+    });
+  }
+  // batches: whole items, about `batch` dabs each; a run-1 leg never split, both of V4's strokes with its puddles; with `snake` a snake a batch
+  const batches = [], dabsOfIt = it => it.puddles.reduce((t, p) => t + p.dabs, 0);
+  if (D.snake) {
+    const by = new Map();
+    for (const it of items) { const k = it.strokes[0].key; if (!by.has(k)) by.set(k, []); by.get(k).push(it); }
+    const top = g => Math.max(...g[0].strokes[0].pts.map(p => p[1]));
+    for (const g of [...by.values()].sort((a, b) => parseInt(a[0].strokes[0].key) - parseInt(b[0].strokes[0].key) || top(b) - top(a)))
+      batches.push({ puddles: g.flatMap(it => it.puddles), strokes: g.flatMap(it => it.strokes).sort((p, q) => p.x - q.x), items: g, dabs: g.reduce((t, it) => t + dabsOfIt(it), 0) });
+  } else {
+    let cur = null;
+    for (const it of items) {
+      const n = dabsOfIt(it);
+      if (!cur || (cur.dabs + n > batch && cur.dabs > 0)) batches.push(cur = { puddles: [], strokes: [], items: [], dabs: 0 });
+      cur.puddles.push(...it.puddles); cur.strokes.push(...it.strokes); cur.items.push(it); cur.dabs += n;
     }
   }
-  // batches: whole items, about `batch` dabs each; a run-1 leg never split, both of V4's strokes with its puddles
-  const batches = [];
-  let cur = null;
-  for (const it of items) {
-    const n = it.puddles.reduce((t, p) => t + p.dabs, 0);
-    if (!cur || (cur.dabs + n > batch && cur.dabs > 0)) batches.push(cur = { puddles: [], strokes: [], items: [], dabs: 0 });
-    cur.puddles.push(...it.puddles); cur.strokes.push(...it.strokes); cur.items.push(it); cur.dabs += n;
-  }
-  const puddles = items.flatMap(q => q.puddles), strokes = items.flatMap(q => q.strokes);
-  return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), cells: items.length, puddles, strokes, batches, mm: strokes.reduce((t, s) => t + Math.abs(s.pts[1][1] - s.pts[0][1]), 0) };
+  const puddles = items.flatMap(q => q.puddles), strokes = batches.flatMap(B => B.strokes);
+  return { dabs: puddles.reduce((t, p) => t + p.dabs, 0), cells: items.length, puddles, strokes, batches, items, mm: strokes.reduce((t, s) => t + Math.abs(s.pts[1][1] - s.pts[0][1]), 0) };
 }
 // ---------- MARKS beside the canvas (README's canon, 2026-11-14) ----------
 // The owner, 2026-11-14 (HOLO-Claude/IMG_2903.jpg, two places circled in green; color_marks.png, FORM-G's strips 1 and 3): "the places where the
@@ -198,8 +220,18 @@ export function runsOf(lines, o = {}) {
         it.puddles.forEach(p => { for (let d = 0; d < p.dabs; d++) out.push({ pass: k, num: nums[i], pts: [[p.x, p.y - way * leg / 2], [p.x, p.y + way * leg / 2]],
           say: `${tag} · leg ${nums[i]} · a dab${p.dabs > 1 ? ` ${d + 1}/${p.dabs}` : ''}`, dip: true, idle: false, beyond: true, dab: true }); });
       });
-      B.items.forEach((it, i) => it.strokes.forEach((q, j, all) => out.push({ pass: k, num: nums[i], pts: q.pts,
-        say: `${tag} · leg ${nums[i]} · ${all.length > 1 ? `stroke ${j + 1}/${all.length} ${q.pts[1][1] < q.pts[0][1] ? 'down' : 'up'}` : 'the stroke'}, no dip`, dip: false, idle: false, beyond: true })));
+      // the strokes in the batch's order; a snake's that follow one another a lane apart one run, the brush down at its turns (FORM-G's DRAG SNAKE)
+      const byCell = new Map(B.items.map((it, i) => [it.cell, nums[i]])), runs = [];
+      for (const q of B.strokes) {
+        const r = runs.at(-1), p = r?.at(-1);
+        if (p && q.key != null && q.key === p.key && Math.abs(q.x - p.x) <= q.lane + 1e-6) r.push(q); else runs.push([q]);
+      }
+      for (const r of runs) {
+        const q = r[0], n0 = byCell.get(q.cell) ?? q.cell + 1, n1 = byCell.get(r.at(-1).cell) ?? r.at(-1).cell + 1;
+        out.push({ pass: k, num: n0, pts: r.flatMap(s => s.pts),
+          say: r.length > 1 ? `${tag} · legs ${n0}–${n1} · the snake, ${r.length} strokes, no dip`
+            : `${tag} · leg ${n0} · ${q.of > 1 ? `stroke ${q.nth + 1}/${q.of} ${q.pts[1][1] < q.pts[0][1] ? 'down' : 'up'}` : 'the stroke'}, no dip`, dip: false, idle: false, beyond: true });
+      }
     });
   });
   return out;
@@ -215,7 +247,7 @@ export const shadeAt = (u, full = 0) => u < 0 || u > 1 ? 0 : full ? (u <= full ?
 // A leg its own pitch wide, its middle, whatever the drag: V4's two strokes the same leg's borders as v.2's one.
 // → { lines: [[[x, y], …]], mm, pieces }, the picture's mm
 export function contourHolo(pic, o = {}) {
-  const jars = seqOf(pic).map(line => ({ id: line.jar, cells: [{ legs: workOf(pic, line).batches.flatMap(B => B.items).map(it => it.span) }] }));
+  const jars = seqOf(pic).map(line => ({ id: line.jar, cells: [{ legs: workOf(pic, line).items.map(it => it.span) }] }));
   return contourOf({ pitch: pic.pitch, jars }, { outline: !!o.outline, key: j => j.id });
 }
 
