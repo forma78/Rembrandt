@@ -1,0 +1,9 @@
+# the owner's trademark: kept off the public repository
+takeda_bike.png
+st600.png
+# working files
+stills/
+*.part.mp4
+*.video.part.mp4
+*.audio.wav
+*.voice.wav

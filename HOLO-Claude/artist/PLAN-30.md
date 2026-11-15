@@ -46,8 +46,9 @@ written. The filming is done on the days the machine runs.
 | **STRIP** | the comic, *Plan vs Paint* | The robot on wheels, drawn: what I planned that day and what the paint did. `COMIC.md`. |
 
 **Two a day** (the owner, 2026-11-13: "I would do two posts a day. One a video, a reel from the camera on the drawing machine",
-and the comic). From day 1: the day's post from the calendar below, and a STRIP. The calendar is the reels' and the notes';
-the strips follow the same days.
+and the comic). From 2026-11-15 both are reels (the owner: "One post, a reel, the stop-motion of the process, how the brush
+runs over the canvas. The second reel, the animation, where you tell what is on the painting (it can stand behind, as a
+photo)."). The STRIP slot is now the animation: the comic's robot moves and speaks. How: `../instagram/README.md`.
 
 ## The calendar
 

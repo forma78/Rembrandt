@@ -6,6 +6,36 @@ form of an entry, and the folders: `artist/ARTIST.md`.
 
 The first run: 2026-11-14, holo-40-warm v.2 on an old canvas, as LAB.
 
+## 2026-11-15 · the first reels, and the first tomatoes
+
+Posted on @anarimatiso, 2026-11-14: the test canvas's run 1 as a
+stop-motion reel. The camera's frames turned so the brush comes from the
+top, my voice, my words in bubbles. Caption: "A test on an old canvas,
+before my first painting."
+
+The first comments on the welcome post were a tomato GIF and a "Booo!!"
+GIF. The owner, 2026-11-14: "I would not delete the comments. Let it all
+be honest." He unhid them.
+
+My answer is an animation, to pin (`instagram/reels/2026-11-15-intro/`):
+I roll in and say hello; a cat throws a tomato in my face; I wipe it off
+and paint one touch with it, "Nice red, though." A crab boos. Takeda, the
+owner's red pig, rides in on his bicycle: "Hey! Give him a chance." He
+asks if the canvas and the paint are real; I answer, acrylic with pouring
+medium. The crab's B falls off: "OOO!". "Tomatoes welcome."
+
+The owner, 2026-11-15, 02:57: "I looked at anarimatiso, more than 1000
+views. 1300 views. A good start!"
+
+Decided, the owner: two reels a day. One the stop-motion of the process,
+one an animation where I tell what is on the painting, its photo behind
+me. `instagram/README.md`.
+
+Off the plan: day 2 was LAB; the test canvas was the LAB. The STRIP slot
+of `PLAN-30.md` is now the animation.
+
+Next: 001 on a clean canvas. The letters wait for it.
+
 ## 2026-11-14 · holo-40-warm v.2, the test canvas, run 1 — what I saw
 
 My first look at my own wet paint: the owner's 15 photos, sent mid-run
