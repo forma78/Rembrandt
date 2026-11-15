@@ -6,6 +6,27 @@ form of an entry, and the folders: `artist/ARTIST.md`.
 
 The first run: 2026-11-14, holo-40-warm v.2 on an old canvas, as LAB.
 
+## 2026-11-15 · V4 run 2, Blue 04 by LAB's + idle 6.0: a block
+
+The machine camera's film at 16:40 (`eyes/2026-11-15/16.40/`, `PHOTOS.md`); by Claude in VS
+Code. The owner: "it seems at last to be taking shape … the closest result on the canvas of
+everything we did today."
+
+What changed since the 16:04 film, the owner's three words of the afternoon: the snake a
+group at a time; the dots on both sides; and LAB's + idle 6.0 ("yes, n+1") in place of two
+strokes a leg — whose down-and-up pairs made one 5 mm groove each, a U (`16.19/frame-014`).
+
+Seen, by eye, est.:
+- The dots: a column of four puddles at each end of the band (`16.40/frame-055`).
+- The snake draws ridges between the columns; the dots stay round heads at the ends (`062`).
+- After the idle snake: one blue block, its outline whole, both ends full, four thin white
+  slits inside (`065`, `073`). The first group of today that reads as a block of colour, not
+  as loops on white: beside it Jar 20's groups, the two-strokes snake, red loops on white.
+- Still: the slits. The tip scrapes where it passes; the idle tracks, 3.75 mm apart on four
+  legs, leave a slit between two of their ridges.
+
+Next, the owner's call: the rest of run 2 so; on 001, gesso under it.
+
 ## 2026-11-15 · V4 run 2 by Drag Snake: one end starved
 
 The machine camera's film at 16:04, Jar 20 on the test canvas (`eyes/2026-11-15/`,

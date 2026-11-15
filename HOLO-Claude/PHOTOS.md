@@ -36,6 +36,26 @@ from the iPhone, and from the MacBook the video from the MacBook."
 - The machine camera's frames live in `eyes/`, and are listed here too.
 - No other artist's work here (README).
 
+## 2026-11-15 · the machine camera's third film, Blue 04 by LAB's + idle 6.0
+
+`eyes/2026-11-15/16.40/`, 75 frames, one every 2 s of `Movie on 11-15-26 at 4.40 PM.mov`
+(2 min 29 s, 1620 × 1080, 30 fps), recorded on the Mac at 16:40. Cut by Claude in VS Code;
+the film stays on the Mac (329 MB). For the owner's Instagram reel. The owner: "the closest
+result on the canvas of everything we did today."
+
+V4's run 2, New · Blue 04, the drag LAB's + idle 6.0 a group at a time (CHANGELOG, 3ef64d7):
+a slat's band's dots at both its ends, then its snake a stroke a leg, then at once its idle
+snake of legs + 1 tracks. The camera rides with the carriage; the legs run across the frame.
+By eye, est.:
+
+| frames | what they show |
+|---|---|
+| `frame-000` … `054` (0:00–1:48) | The dab cycle: a dip at the blue cup at hand (the frames where it fills the left), then a dab on the group; Jar 20's red groups and run 1's golden lines round it, the MARKS slip below the canvas with every jar's mark so far. |
+| `frame-055` (1:50) | The dots on both sides: a column of four blue puddles at each end of the band, four legs. |
+| `frame-056` … `064` (1:52–2:08) | The snake: blue ridges drawn between the two columns, the dots still round heads at the ends (`062`). |
+| `frame-065` … `073` (2:10–2:26) | The group done after its idle snake: a blue block, its outline whole, both ends full, four thin white slits inside (`065`, `073`); beside it Jar 20's groups of the two-strokes-a-leg snake, red loops on white. |
+| `frame-074` (2:28) | Over the field. |
+
 ## 2026-11-15 · the machine camera's second film, a Jar 20 snake close, low
 
 `eyes/2026-11-15/16.19/`, 18 frames, one every 2 s of `Movie on 11-15-26 at 4.19 PM.mov`
