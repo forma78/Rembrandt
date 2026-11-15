@@ -36,6 +36,24 @@ from the iPhone, and from the MacBook the video from the MacBook."
 - The machine camera's frames live in `eyes/`, and are listed here too.
 - No other artist's work here (README).
 
+## 2026-11-15 · the machine camera's second film, a Jar 20 snake close, low
+
+`eyes/2026-11-15/16.19/`, 18 frames, one every 2 s of `Movie on 11-15-26 at 4.19 PM.mov`
+(36 s, 1620 × 1080, 30 fps), recorded on the Mac at 16:19; a folder of its own, the day's
+first film's frames beside it. Cut by Claude in VS Code; the film stays on the Mac (79 MB).
+For the owner's Instagram reel. The camera low along the canvas, the legs across the frame.
+By eye, est.:
+
+| frames | what they show |
+|---|---|
+| `frame-000` … `014` (0:00–0:28) | One group of Jar 20 dragged by the snake, two strokes a leg 2.5 mm apart: every down-and-up pair one U, a red ridge at each side and a red cap at the turn, the canvas inside it scraped near white — a groove about 5 mm (`014`). Run 1's orange lines below it, the canvas's edge and the board beyond above. |
+| `frame-015` (0:30) | The group done, close. |
+| `frame-016`, `017` (0:32–0:34) | Over the field: Jar 20's groups done among run 1's lines. |
+
+The owner, the same afternoon, of this film: "why does the snake go down-up and make a 5 mm
+groove? … the last edge may touch the new track … it is visible in the new video" — then LAB's
+`+ idle 6.0` for HOLO (CHANGELOG).
+
 ## 2026-11-15 · the machine camera's film, V4 run 2, Jar 20 by Drag Snake
 
 `eyes/2026-11-15/`, 40 frames, one every 2 s of `Movie on 11-15-26 at 4.04 PM.mov`
