@@ -347,7 +347,6 @@ function wayHead(g, q) {
   g.beginPath(); g.moveTo(x - h, e - s * h * 2.2); g.lineTo(x + h, e - s * h * 2.2); g.lineTo(x, e - s * h * 0.3); g.closePath(); g.fill();
 }
 function drawStrokes(g) {
-  const w = Math.max(0.5, PIC.pitch * K * 0.92);
   for (const L of plan()) {
     if (L.run === 1) {
       g.strokeStyle = L.hex; g.lineCap = 'butt'; g.globalAlpha = dim(L.key);
@@ -356,7 +355,11 @@ function drawStrokes(g) {
     }
   }
   g.globalAlpha = 1;                                                                  // run 1's last dimmed jar must not veil run 2's picked one
-  for (const L of plan()) if (L.run === 2) for (const q of L.strokes) { if (only && only !== L.key) continue; shadow(g, q, L.hex, sx, sy, w); }
+  for (const L of plan()) if (L.run === 2) {
+    if (only && only !== L.key) continue;
+    for (const q of L.strokes) shadow(g, q, L.hex, sx, sy, laneW(q, K));
+    if (only === L.key) { g.fillStyle = 'rgba(36,34,31,.7)'; for (const q of L.strokes) wayHead(g, q); }
+  }
   g.globalAlpha = 1;
 }
 function draw() {
@@ -444,7 +447,7 @@ $('#btnPlay').onclick = () => {
   const P = plan(), M = movesOf(P, opts()), s = 2, off = document.createElement('canvas'), c = off.getContext('2d');
   if (!M.length) return;
   off.width = PIC.w * s; off.height = PIC.h * s; c.fillStyle = GROUND; c.fillRect(0, 0, off.width, off.height);
-  const X = x => x * s, Y = y => (PIC.h - y) * s, w = PIC.pitch * s * 0.92, end = M.at(-1).to;
+  const X = x => x * s, Y = y => (PIC.h - y) * s, end = M.at(-1).to;
   const Q = PLAY = { cv: off, end, want: 0, i: 0, at: 0, tip: null, line: 0, t0: performance.now(), said: 0, P, M, marks: [] };
   $('#btnPlay').textContent = '■ Stop'; $('#btnPlay').classList.add('on');
   const step = () => {
@@ -458,7 +461,7 @@ $('#btnPlay').onclick = () => {
       else {
         const [a, b] = [m.pts[0][1], m.pts[1][1]], y = a + (b - a) * f, y0 = a + (b - a) * Q.at;
         if (L.run === 1) { c.strokeStyle = L.hex; c.lineWidth = laneW(m, s); c.lineCap = 'butt'; c.beginPath(); c.moveTo(X(m.pts[0][0]), Y(y0)); c.lineTo(X(m.pts[0][0]), Y(y)); c.stroke(); }
-        else if (f >= 1) shadow(c, { x: m.pts[0][0], pts: m.pts, fade: m.fade }, L.hex, X, Y, w);
+        else if (f >= 1) shadow(c, { x: m.pts[0][0], pts: m.pts, fade: m.fade }, L.hex, X, Y, laneW(m, s));
         Q.tip = { kind: 'drag', at: [m.pts[0][0], y], hex: L.hex };
       }
       Q.line = m.line;
@@ -560,7 +563,7 @@ function runText(run, lines, R) {
     ? `Run 1, the light: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. Along every leg of a slat of its ground a puddle every ${S.gap} mm at most, one dab each — a dip at the cup at hand, then the brush down there, a mark of ${HOLO.mark} mm ${dragOf(PIC).per_leg > 1 ? 'along the leg as v.2 laid it, even legs down, odd up' : 'the way its stroke goes'}; `
       + (dragOf(PIC).per_leg > 1 ? `then ${dragOf(PIC).per_leg} strokes the leg's whole length through them, no dip, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle — the left from the top down, the right from the bottom up — a stroke every ${fmt(dragOf(PIC).step, 1)} mm across the field (v.${PIC.version}, the owner's of 2026-11-15). `
         : `then one stroke the leg's whole length through them, no dip, even legs from the top down, odd ones up. `)
-    : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length on the same ${HOLO.mark} mm, each its own dip, then one stroke towards its far end, no dip, till it gives out. `)
+    : `Run 2, the shadow, on the dry first run: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. For every shadowed band of every leg one puddle 5 mm in from its edge, 1 … ${HOLO.maxDabs[PIC.composition]} dabs by its length on the same ${HOLO.mark} mm, each its own dip, then ${dragOf(PIC).per_leg > 1 ? `${dragOf(PIC).per_leg} strokes from it towards its far end, ${fmt(dragOf(PIC).step / 2, 2)} mm either side of its middle, the left first, the brush up back to the puddle between them — a stroke every ${fmt(dragOf(PIC).step, 1)} mm across the field (v.${PIC.version}, the owner's of 2026-11-15)` : 'one stroke towards its far end'}, no dip, till it gives out. `)
     + `${d} dabs in ${b} batches of about ${S.batch}, every batch laid, then dragged while wet; ${R.strokes} strokes, ${fmt(R.mm / 1000, 1)} m; no idle run after a stroke. `
     + (R.marks ? `After every change of jar, before its first puddle: one dip, then its MARKS, 1 the left slip, 3 the right — ${besideNow()?.where === 'on' ? 'the paper taped over the canvas\'s margins' : 'the paper on the plates beside the canvas'} (The canvas). ` : '')
     + `On the machine ${R.dips} dips, every run's way landing ${ELBOW_J3.early} mm earlier and lifting ${ELBOW_J3.late} mm later than on the screen (J3), the brush at ${S.speed} mm/s; ≈ ${hm(R.seconds)} (est.). `
@@ -633,14 +636,16 @@ function showPanel() {
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm · ${PIC.composition}`;
   lcd();
 }
-// run 1's drag when a picture has its own (V4, the owner, 2026-11-15): its strokes, their line and their time, est.; nothing for one on the middle
+// the drag when a picture has its own (V4, the owner, 2026-11-15, both runs): every run's strokes, their line and their time, est.; nothing
+// for one on the middle
 function dragSay(P) {
-  const D = dragOf(PIC), R1 = P.filter(q => q.run === 1);
+  const D = dragOf(PIC);
   if (D.per_leg < 2) return '';
-  const n = R1.reduce((t, q) => t + q.strokes.length, 0), legs = R1.reduce((t, q) => t + q.cells, 0), mm = R1.reduce((t, q) => t + q.mm, 0);
-  return `<br><b>Run 1's drag, v.${PIC.version}</b>: ${D.per_leg} strokes a leg, ${fmt(D.step / 2, 2)} mm either side of its middle — the left down from its top, the right up from its bottom — so a stroke every ${fmt(D.step, 1)} mm across the field: `
-    + `${n} strokes on ${legs} legs, ${fmt(mm / 1000, 1)} m, ≈ ${hm(mm / S.speed)} of dragging at ${S.speed} mm/s; run 1 in all ≈ ${hm(total(R1))} (est.). The puddles where they were; run 2 one stroke a leg, on its middle. `
-    + `Click a jar in the list: its strokes and their way. The picture is v.2's model: it draws no channels (est.).`;
+  const say = run => { const R = P.filter(q => q.run === run), mm = R.reduce((t, q) => t + q.mm, 0);
+    return `${R.reduce((t, q) => t + q.strokes.length, 0)} strokes on ${R.reduce((t, q) => t + q.cells, 0)} ${run === 1 ? 'legs' : 'bands'}, ${fmt(mm / 1000, 1)} m, ≈ ${hm(mm / S.speed)} of dragging, the run in all ≈ ${hm(total(R))}`; };
+  return `<br><b>The drag, v.${PIC.version}</b>: ${D.per_leg} strokes a leg, ${fmt(D.step / 2, 2)} mm either side of its middle, so a stroke every ${fmt(D.step, 1)} mm across the field, both runs. `
+    + `Run 1 the left down from the leg's top, the right up from its bottom: ${say(1)}. Run 2 both from the puddle towards the band's end, the left first: ${say(2)} (est., at ${S.speed} mm/s). `
+    + `The puddles where they were. Click a jar in the list: its strokes and their way. The picture is v.2's model: it draws no channels (est.).`;
 }
 // MARKS' read: where the slips go, or why there are none (README's canon, 2026-11-14)
 function marksSay(rg) {
@@ -675,7 +680,7 @@ function readOf(id) {
   if (READS.has(id)) return READS.get(id);
   const pic = LIB[id], P = plan(pic), n1 = P.filter(q => q.run === 1), n2 = P.filter(q => q.run === 2), fresh = pic.jars.filter(j => j.new).length;
   const out = `<b>${esc(pic.title)}</b>, in our jars: ${pic.count.legs} legs ${fmt(pic.pitch, 0)} mm apart, ${pic.count.slats} slats, the field ${fmt(pic.field.x1 - pic.field.x0, 0)} mm. ${pic.jars.length} jars${fresh ? `, ${fresh} of them new` : ''}. `
-    + `<b>Run 1</b>, the light: ${n1.length} jars, ${dabsIn(P, 1)} dabs${pic.drag?.per_leg > 1 ? `, ${n1.reduce((t, q) => t + q.strokes.length, 0)} strokes, ${pic.drag.per_leg} a leg ${fmt(pic.drag.step, 1)} mm apart` : ''}, ≈ ${hm(total(n1))}; the run to dry; <b>run 2</b>, the shadow: ${n2.length} jars, ${dabsIn(P, 2)} dabs, ≈ ${hm(total(n2))} (est.). A model, not a photo: nothing run yet.`;
+    + `<b>Run 1</b>, the light: ${n1.length} jars, ${dabsIn(P, 1)} dabs${pic.drag?.per_leg > 1 ? `, ${n1.reduce((t, q) => t + q.strokes.length, 0)} strokes, ${pic.drag.per_leg} a leg ${fmt(pic.drag.step, 1)} mm apart` : ''}, ≈ ${hm(total(n1))}; the run to dry; <b>run 2</b>, the shadow: ${n2.length} jars, ${dabsIn(P, 2)} dabs${pic.drag?.per_leg > 1 ? `, ${n2.reduce((t, q) => t + q.strokes.length, 0)} strokes, ${pic.drag.per_leg} a leg` : ''}, ≈ ${hm(total(n2))} (est.). A model, not a photo: nothing run yet.`;
   READS.set(id, out);
   return out;
 }

@@ -59,9 +59,10 @@ SUB = {'holo-40-warm': 'the fan, warm', 'holo-60-blue': 'the fan, blue', 'holo-6
 # carried onto it; its v.2 stays as it is.
 # The warm 40 × 40's V4 (the owner, 2026-11-15, of the test canvas's run 1, every stroke a clean channel between two ridges: "I propose the second
 # pass, the one that clears the paint, at 2.5 mm … six from the bottom up and six from the top down. That gives not six grooves but twelve";
-# ../HOLO/001-40x40-v4.md): its v.2 number for number — the composition, the jars, the ragged ends, the puddles, run 2 — and one thing more, run
-# 1's drag, two strokes a leg 2.5 mm apart (`drag`, read by holoplan.js's workOf). The 40 × 40 has no v.3; his name, V4. The renders v.2's model:
-# they draw no channels (est.).
+# ../HOLO/001-40x40-v4.md): its v.2 number for number — the composition, the jars, the ragged ends, the puddles — and one thing more, the drag,
+# two strokes a leg 2.5 mm apart (`drag`, read by holoplan.js's workOf); both runs (the same afternoon: "you did not touch layer 2? it needs the
+# same, from 6 legs 12 strokes"; "in V.4 make absolutely all the passes 0.25 instead of 0.5"). The 40 × 40 has no v.3; his name, V4. The renders
+# v.2's model: they draw no channels (est.).
 MADE = {**{pid + '-v2': (pid, c, 2) for pid, c in V2.items()},
         'holo-60-tiers-v3': ('holo-60-tiers', dict(V2['holo-60-tiers'], own=False, legs=104), 3),
         'holo-40-warm-v4': ('holo-40-warm', dict(V2['holo-40-warm'], drag=dict(per_leg=2, step=2.5), say='the drag every 2.5 mm'), 4)}
@@ -280,11 +281,12 @@ def make(vid, out=OUT, renders=True):
     p.update(title=f'HOLO · {p["w"] // 10} × {p["h"] // 10}, {SUB[pid]} · v.{ver}', sub=f'{SUB[pid]}, v.{ver}, ' + (c['say'] if c.get('say') else 'ragged edges' + (', every slat of v.1' if ver > 2 else '')),
              jars=jars, of=pid, version=ver, note=f'HOLO v.{ver}, its edges ragged (the owner, 2026-11-14): every number est., nothing run on the machine',
              image=f'holo/{vid}.jpg', after1=f'holo/{vid}-run1.jpg')
-    if c.get('drag'):                                                   # V4: run 1's drag, its strokes counted; the render v.2's, no channels
+    if c.get('drag'):                                                   # V4: the drag of both runs, its strokes counted; the render v.2's, no channels
         d = c['drag']; p['drag'] = dict(d)
         p['count']['run1_strokes'] = d['per_leg'] * sum(1 for l in st.legs if l['light'])
-        p['note'] = (f'HOLO v.{ver}, v.2 and run 1\'s drag {d["per_leg"]} strokes a leg {d["step"]} mm apart (the owner, 2026-11-15): every number est., '
-                     'the renders v.2\'s model, no channels drawn; nothing run on the machine')
+        p['count']['run2_strokes'] = d['per_leg'] * p['count']['run2_puddles']
+        p['note'] = (f'HOLO v.{ver}, v.2 and the drag of both runs {d["per_leg"]} strokes a leg {d["step"]} mm apart (the owner, 2026-11-15): every number '
+                     'est., the renders v.2\'s model, no channels drawn; nothing run on the machine')
     os.makedirs(out, exist_ok=True)
     json.dump(p, open(os.path.join(out, vid + '.json'), 'w'), separators=(',', ':'))
     if renders:

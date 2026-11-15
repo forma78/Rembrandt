@@ -42,8 +42,9 @@ colours, every slat, at 520 mm, the v.2's ragged edges carried onto it — `app/
 
 The owner, of the test canvas's run 1: "I propose the second pass, the one that clears the paint, at 2.5 mm … That gives not six grooves but
 twelve" (`../HOLO/001-40x40-v4.md`). `holo-40-warm-v4` is the warm 40 × 40's v.2 number for number, and `drag: { per_leg: 2, step: 2.5 }`,
-read by `app/src/holoplan.js`'s `workOf`: two strokes a leg, 1.25 mm either side of its middle, the left down, the right up. Its renders are v.2's
-model (no channels drawn, est.). `python holo_v2.py holo-40-warm-v4`.
+read by `app/src/holoplan.js`'s `workOf`: two strokes a leg, 1.25 mm either side of its middle, both runs (the same afternoon: "in V.4 make
+absolutely all the passes 0.25 instead of 0.5") — run 1 the left down, the right up; run 2 both from the puddle towards the band's end. Its
+renders are v.2's model (no channels drawn, est.). `python holo_v2.py holo-40-warm-v4`.
 
 ```
 python holo_v2.py                    # all three v.2s, the tiers' v.3 and the warm's V4

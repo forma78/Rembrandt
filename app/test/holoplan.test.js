@@ -202,7 +202,7 @@ test('v.2, ragged edges (the owner, 2026-11-14): every v.1 kept, its v.2 after i
   const v1 = load('holo-40-warm'); assert.ok(legsOf(v1).every(g => g.y0 === v1.field.y0 && g.y1 === v1.field.y1));
 });
 
-test('V4 (the owner, 2026-11-15, "load V4"): the warm 40 × 40\'s v.2 and run 1\'s drag two strokes a leg, 2.5 mm apart; nothing else moves', async () => {
+test('V4 (the owner, 2026-11-15, "load V4"; "absolutely all the passes 0.25"): the warm 40 × 40\'s v.2 and both runs\' drag two strokes a leg, 2.5 mm apart; nothing else moves', async () => {
   const { runsOf, dragOf } = await import('../src/holoplan.js');
   const v4 = load('holo-40-warm-v4'), v2 = load('holo-40-warm-v2'), i = HOLO_LIB.indexOf('holo-40-warm-v4');
   assert.ok(i > 0 && HOLO_LIB[i - 1] === 'holo-40-warm-v2' && !HOLO_HIDDEN.has('holo-40-warm-v4'), 'after its v.2, on the cards');
@@ -211,23 +211,32 @@ test('V4 (the owner, 2026-11-15, "load V4"): the warm 40 × 40\'s v.2 and run 1\
   // the picture v.2's, key for key, but its name, its drag and its renders
   const same = k => !['id', 'title', 'sub', 'note', 'version', 'drag', 'image', 'after1', 'count'].includes(k);
   for (const k of Object.keys(v2).filter(same)) assert.deepEqual(v4[k], v2[k], k);
-  assert.deepEqual({ ...v4.count, run1_strokes: undefined }, { ...v2.count, run1_strokes: undefined });
+  assert.deepEqual({ ...v4.count, run1_strokes: undefined, run2_strokes: undefined }, { ...v2.count, run1_strokes: undefined, run2_strokes: undefined });
   const P4 = planOf(v4, { marks: true }), P2 = planOf(v2, { marks: true });
   assert.deepEqual(P4.map(q => q.key), P2.map(q => q.key), 'the same list');
   for (const [a, b] of P4.map((q, k) => [q, P2[k]])) {
     assert.deepEqual(a.puddles, b.puddles, `${a.name}: the puddles where they were`); assert.deepEqual(a.marks, b.marks);
     assert.deepEqual(a.batches.map(B => B.puddles), b.batches.map(B => B.puddles), 'the batches whole legs, as v.2\'s');
     assert.equal(a.cells, b.cells);
-    if (a.run === 2) { assert.deepEqual(a.strokes.map(q => [q.x, q.pts]), b.strokes.map(q => [q.x, q.pts]), `${a.name}: run 2 as v.2`); continue; }
-    // run 1: every leg its two strokes, its middle − 1.25 down from its top, + 1.25 up from its bottom, its own ends; the mm twice v.2's
+    for (const B of a.batches) assert.equal(B.strokes.length, 2 * B.items.length, 'both strokes in their leg\'s batch');
     assert.equal(a.strokes.length, 2 * b.strokes.length); assert.ok(Math.abs(a.mm - 2 * b.mm) < 1e-6);
+    // run 2 ("from 6 legs 12 strokes"): both from the puddle towards the band's end, the left, then the right, v.2's fade
+    if (a.run === 2) {
+      b.strokes.forEach((q, k) => {
+        const [l, r] = a.strokes.slice(2 * k, 2 * k + 2), [[, s0], [, s1]] = q.pts;
+        assert.deepEqual([l.x, l.leg, l.pts, l.lane], [q.x - 1.25, q.x, [[q.x - 1.25, s0], [q.x - 1.25, s1]], 2.5], `${a.name}: the left from the puddle`);
+        assert.deepEqual([r.x, r.leg, r.pts, r.lane], [q.x + 1.25, q.x, [[q.x + 1.25, s0], [q.x + 1.25, s1]], 2.5], `${a.name}: the right from the puddle`);
+        assert.equal(l.fade.band.start, q.fade.band.start); assert.equal(l.fade.full, q.fade.full);
+      });
+      continue;
+    }
+    // run 1: every leg its two strokes, its middle − 1.25 down from its top, + 1.25 up from its bottom, its own ends
     b.strokes.forEach((q, k) => {
       const [l, r] = a.strokes.slice(2 * k, 2 * k + 2), top = Math.max(q.pts[0][1], q.pts[1][1]), bot = Math.min(q.pts[0][1], q.pts[1][1]);
       assert.deepEqual([l.x, l.leg, l.pts], [q.x - 1.25, q.x, [[q.x - 1.25, top], [q.x - 1.25, bot]]], `${a.name}: the left stroke down`);
       assert.deepEqual([r.x, r.leg, r.pts], [q.x + 1.25, q.x, [[q.x + 1.25, bot], [q.x + 1.25, top]]], `${a.name}: the right one up`);
       assert.equal(l.lane, 2.5);
     });
-    for (const B of a.batches) assert.equal(B.strokes.length, 2 * B.items.length, 'both strokes in their leg\'s batch');
   }
   const r1 = P4.filter(q => q.run === 1), strokes = r1.flatMap(q => q.strokes);
   assert.equal(strokes.length, 144); assert.equal(v4.count.run1_strokes, 144);
@@ -243,7 +252,8 @@ test('V4 (the owner, 2026-11-15, "load V4"): the warm 40 × 40\'s v.2 and run 1\
   const R4 = runsOf(P4), R2 = runsOf(P2);
   assert.deepEqual(R4.filter(q => q.dab || q.mark), R2.filter(q => q.dab || q.mark), 'the dabs and the marks v.2\'s');
   const st4 = R4.filter(q => !q.dab && !q.mark);
-  assert.equal(st4.length, 144 + R2.filter(q => !q.dab && !q.mark && P2[q.pass].run === 2).length);
+  assert.equal(st4.length, 144 + 596); assert.equal(v4.count.run2_strokes, 596);
+  assert.equal(st4.length, 2 * R2.filter(q => !q.dab && !q.mark).length, 'every stroke of v.2 two');
   assert.ok(st4.every(q => !q.dip), 'no dip on a stroke');
   assert.match(st4[0].say, /leg 1 · stroke 1\/2 down, no dip$/); assert.match(st4[1].say, /leg 1 · stroke 2\/2 up, no dip$/); assert.equal(st4[0].num, st4[1].num);
   // DRAW BW and the canvas's place as v.2's: a leg its pitch, whatever its strokes

@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **HOLO V4: run 2 every 2.5 mm too, absolutely every pass** (2026-11-15, the afternoon; the owner, of V4's run 2 still one stroke a leg,
+  `HOLO-Claude/Screenshot 2026-11-15 at 2.49.33 PM.png`: "you did not touch layer 2? it needs the same, from 6 legs 12 strokes"; then,
+  stopping v.2's run 2 on the test canvas: "in V.4 make absolutely all the passes 0.25 instead of 0.5"). `workOf` (`src/holoplan.js`):
+  `drag` holds for both runs; run 2's every band on a leg two strokes, its middle ∓ 1.25 mm, both from its puddle towards the band's end,
+  the left first, the brush up back to the puddle between them; the puddle, its dabs and their marks as v.2's. Run 2: 455 dabs, 596
+  strokes, 37.3 m; RUN 2's question ≈ 2 h 54 min on the machine, v.2's ≈ 2 h 15 (est.: the way back to the puddle). The shadows on the
+  screen 2.5 mm wide, a picked run-2 jar its arrowheads. `holo-40-warm-v4.json` again, `count.run2_strokes`; the renders as they were.
+  Every older picture's plan and moves unchanged (compared). Checked in headless Chrome; RUN 1 and RUN 2's questions opened and cancelled.
 - **HOLO: V4, the warm 40 × 40 with the drag every 2.5 mm** (2026-11-15; the owner, 11:46, of the test canvas's run 1, every stroke a
   clean channel between two ridges: "I propose the second pass, the one that clears the paint, at 2.5 mm … six from the bottom up and
   six from the top down. That gives not six grooves but twelve"; "read GitHub, 001, 40 × 40, load V4"; the task,
