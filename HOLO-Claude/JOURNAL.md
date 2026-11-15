@@ -6,6 +6,44 @@ form of an entry, and the folders: `artist/ARTIST.md`.
 
 The first run: 2026-11-14, holo-40-warm v.2 on an old canvas, as LAB.
 
+## 2026-11-15 · 001 becomes V4: the drag every 2.5 mm
+
+The owner's 5 photos of the test canvas at 11:46, run 1 done, a ruler in
+four (`PHOTOS.md`, `photos/2026-11-15/`).
+
+Seen, by eye against the ruler, est.:
+- Run 1 is on, four jars; run 2 not yet (IMG_2983).
+- Every stroke is a U: a clean channel ≈ 3–4 mm, a ridge at each side, a
+  rounded cap where it ends (IMG_2981, IMG_2982). The owner: "a ridge
+  stays at its sides, a contour, and in the middle everything is scraped
+  off."
+- So a line between two channels is two ridges, the neighbours', side by
+  side. This reads 2026-11-14's "a line 1.4–2.5 mm wide" anew: that width
+  is two ridges.
+- The orange slat, 6 legs: 3 caps at the top, the up strokes; the down
+  strokes start lower (IMG_2982).
+- The top-left corner is still bare, the old pencil web (IMG_2984).
+
+The owner, 11:46, his idea: "I propose the second pass, the one that
+clears the paint, at 2.5 mm … That gives not six grooves but twelve. They
+stand closer to each other, vertical, but denser, and the colour effect
+is richer, optically."
+
+I take it. It aims at what this canvas showed: at a 5 mm step the lines
+do not close into a ground, 2.5–3.5 mm of bare canvas between them. At
+2.5 mm the bare strips are about 1 mm or less, if the lines keep their
+width. That "if" is the test.
+
+A guess, not a measure: the paint is the same, twelve strokes share six
+puddles. Each stroke runs over the ridge the one before it left: it may
+lay it again, or carry it into the heap.
+
+Next: `HOLO/001-40x40-v4.md`, for Claude in VS Code. One change, run 1's
+drag: two strokes a leg, 1.25 mm either side of its middle, down then up.
+001 now changes two things, the ground and the step. Offered to the
+owner: one V4 slat on this canvas's bare corner first, so the step can be
+seen alone.
+
 ## 2026-11-15 · the test canvas, half done — what I saw
 
 The owner's 3 photos at 03:11 (`PHOTOS.md`, `photos/2026-11-15/`). The

@@ -36,6 +36,20 @@ from the iPhone, and from the MacBook the video from the MacBook."
 - The machine camera's frames live in `eyes/`, and are listed here too.
 - No other artist's work here (README).
 
+## 2026-11-15 · run 1 done, with a ruler, from the iPhone
+
+`photos/2026-11-15/`, 5 photos, sent at 11:46 with the owner's idea of the
+drag every 2.5 mm (`JOURNAL.md`, `HOLO/001-40x40-v4.md`). A clear ruler laid
+on the canvas, so its mm are a few tenths off the paint's (parallax, est.).
+
+| file | what it shows |
+|---|---|
+| `IMG_2980.jpg` | Low, along the lines: orange, cream and golden strokes, grey below; every stroke a clean channel inside a contour of paint, rounded caps at the ends, the relief. |
+| `IMG_2981.jpg` | The ruler 0–7 cm across the legs at the lines' lower ends: grey and golden strokes, each a U, its cap at the ruler. |
+| `IMG_2982.jpg` | The ruler 0–11 cm across the legs at the field's top edge, right part: golden, cream, orange and grey strokes' ends; the orange slat's 6 strokes, 3 caps at the top. |
+| `IMG_2983.jpg` | From above, the whole canvas: run 1 done in four jars, the v.2 ragged edges, the ruler 0–17 cm at the top right, the old pencil web round the field. |
+| `IMG_2984.jpg` | The ruler 0–10 cm upright by the field's top-left corner: grey, then cream and golden strokes stepping up; the bare corner with the pencil web. |
+
 ## 2026-11-15 · the test canvas, half done, from the iPhone
 
 `photos/2026-11-15/`, 3 photos, sent at 03:11. The owner: "The test canvas
