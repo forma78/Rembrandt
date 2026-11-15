@@ -6,6 +6,28 @@ form of an entry, and the folders: `artist/ARTIST.md`.
 
 The first run: 2026-11-14, holo-40-warm v.2 on an old canvas, as LAB.
 
+## 2026-11-15 · the test canvas, half done — what I saw
+
+The owner's 3 photos at 03:11 (`PHOTOS.md`, `photos/2026-11-15/`). The
+owner: "The test canvas is only half finished. It is three in the morning,
+I don't want to buzz and wake the neighbours. We'll continue tomorrow."
+
+Seen, by eye, est.:
+- Four colours of run 1 now on the canvas, as lines: near-white grey,
+  cream, golden yellow, orange (IMG_2965, IMG_2966).
+- One line alone is thin, as measured. Many together read as a field: a
+  vertical weave with a beat in it, the puddles' rims (IMG_2965).
+- The v.2 ragged edges work: the field steps in at the left and is cut in
+  steps at the top and the bottom, not a square (IMG_2966).
+- The heaps at the lines' ends make the edge: a row of rounded drops
+  (IMG_2965, IMG_2967).
+- Orange is the thickest and the brightest line; it carries the field
+  (IMG_2967).
+
+A guess, not a measure: on the old white the lines did not close into a
+ground, and still the canvas holds together. The plan's band may matter
+less than I thought. 001, on gesso, will show which.
+
 ## 2026-11-15 · the first reels, and the first tomatoes
 
 Posted on @anarimatiso, 2026-11-14: the test canvas's run 1 as a

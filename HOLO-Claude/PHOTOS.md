@@ -36,6 +36,18 @@ from the iPhone, and from the MacBook the video from the MacBook."
 - The machine camera's frames live in `eyes/`, and are listed here too.
 - No other artist's work here (README).
 
+## 2026-11-15 · the test canvas, half done, from the iPhone
+
+`photos/2026-11-15/`, 3 photos, sent at 03:11. The owner: "The test canvas
+is only half finished. It is three in the morning, I don't want to buzz and
+wake the neighbours. We'll continue tomorrow."
+
+| file | what it shows |
+|---|---|
+| `IMG_2965.jpg` | From above, close, the painted field only: vertical dragged lines in four colours (est.: near-white grey, cream, golden yellow, orange), the puddles' rims in them, the lines' ends stepped at the top and the bottom, heaps at the ends. |
+| `IMG_2966.jpg` | From above, the whole canvas: the field in the middle with the v.2 ragged edges, stepping in at the left; the old pencil web around it; the slips at both sides with the jars' marks. |
+| `IMG_2967.jpg` | Low, along the lines: the relief, glossy raised lines, the heaps, orange lines the thickest; the machine behind. |
+
 ## 2026-11-14 · run 1 with a ruler, from the iPhone
 
 `photos/2026-11-14/`, 8 photos, sent at 21:10. The owner: "I made you
