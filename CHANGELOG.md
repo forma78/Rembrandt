@@ -3,6 +3,17 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.2.4 — 2026-11-16
+
+- **GEN-F: the blur's opacity as OPM's raster, not a glaze** (2026-11-16, after v.1.2.4; the owner: "wait, it has to be OPM, optical pigment mixing: instead of
+  a glaze with medium, as a raster if possible — more stripes or fewer. You did it once along the way, many lines, they make a beautiful effect; but in the
+  final form your opacity is for digital print more than for our case with a brush"; "if I thin those jars with medium I no longer have the original jars;
+  they are dear, I would have to buy the same again. A raster of strokes with the same jars is simpler :)"). `blurOf` (`src/genfplan.js`): every stripe its
+  jar's full colour, the car's colours averaged and never mixed with the ground; the opacity the share of the columns that paint it — a column paints while the
+  density (the opacity where the window is half the car or more, less towards the tails) is above its own threshold, `rasterOf`, spread by the golden ratio:
+  50 % every other column, a lower opacity's stripes always among a higher one's, the tails thinning into lines of their own lengths. No jar thinned, no new
+  jar, the names the picture's. The profile at 160 mm: 100 % 141 legs, 50 % 66, 30 % 36. Checked in headless Chrome. Not run.
+
 ## v.1.2.4 — 2026-11-16 · GEN-F, the workshop
 
 - **GEN-F: Motion blur, a layer under the picture** (2026-11-16; the owner, of `Classic Red 911 Coupe Profile`, the 911 in profile lying along X on 60 × 80, its

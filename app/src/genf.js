@@ -118,7 +118,7 @@ function panel() {
     + ' A sketch: flat colours, no brush model (est.).';
   const U = SK.under, ue = SK.uest;
   $('#blurRead').innerHTML = !S.blur ? 'Motion blur off: no layer under the picture.' : !U ? 'Motion blur: nothing to blur along the columns.'
-    : `<b>Under the picture, first:</b> the motion blur ${S.blur} mm, opacity ${S.alpha} %, ${U.pic.jars.length} of its jars, one coat, ${U.legs} legs`
+    : `<b>Under the picture, first:</b> the motion blur ${S.blur} mm, opacity ${S.alpha} % as a raster, ${U.pic.jars.length} of its jars, one coat, ${U.legs} legs`
       + (ue ? (ue.fail ? ` <span class="warn">the time not counted: ${esc(ue.fail)}</span>` : `, ${fmt(ue.mm / 1000, 1)} m, ≈ ${hm(ue.seconds)}; to dry, then the picture.`) : ' …');
   $('#jarsHint').textContent = `${n}, light to dark`;
   const by = Object.fromEntries(SK.pic.jars.map(j => [j.id, j]));

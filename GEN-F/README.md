@@ -23,8 +23,9 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 - **Motion blur**, 0 … 300 mm: a layer under the picture, painted first — every column smeared
   along itself in the picture's own jars, where the picture leaves the canvas bare. FORM-G does
   not run such a layer yet: the final work starts when the owner says so.
-- **Opacity**, 10 … 100 %: the blur as a glaze — the same jars, thinned with medium, so the
-  Porsche's red stays and the picture's contour is not spoilt ("Colour 15 · glaze 50 %", est.).
+- **Opacity**, 10 … 100 %: OPM's raster — every stripe its jar's full colour, the share of the
+  columns that paint it (50 %: every other column), fewer towards the tails. No jar thinned with
+  medium, no new jar: the owner's jars stay as they are.
 
 ## What a sketch holds
 

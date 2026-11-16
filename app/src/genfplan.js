@@ -14,12 +14,16 @@ export const GEN_FORMATS = [{ id: '60x60', w: 600, h: 600 }, { id: '60x80', w: 6
 export const GEN = { pitch: 5, across: 540, along: 843, margin: 30, colours: [10, 100], minSpan: 8, crumb: 3, lam: 700, carry: 0.5, join: 45, under: 3, stepMax: 7, bareDE: 12, sample: 24000, iters: 12, twoL: 35 };
 // the motion blur's layer under the picture (blurOf): the slider's range and step, mm; its legs no nearer the canvas's top and bottom than `edge`; run on under the
 // picture's paint so far from where the picture ends, so no white seam between them (est.)
-// the stripes the car's own colour (the owner: "stripes of the Porsche's own colour"): only the car's colours averaged, then taken towards the ground by `fade` of
-// what of the window is not the car; no stripe where the car is under `least` of it (est.)
-// alpha: the layer's opacity (the owner, 2026-11-16: "the blur works superbly, but it is alpha 100 %; it needs a transparency channel too, so that it does not spoil
-// the main layer's contour with the Porsche") — a glaze: the stripe's jar, the picture's own, thinned with medium so its colour lies `alpha` of the way from the
-// canvas's to its own; the same jars as at 100 %, the Porsche's red kept, only clearer (est.: a glaze's colour by a mix, not measured)
-export const BLUR = { max: 300, step: 10, edge: 10, lap: 10, fade: 0.4, least: 0.1, alpha: 0.5 };
+// the stripes the car's own colour (the owner: "stripes of the Porsche's own colour"): only the car's colours averaged, never mixed with the ground; no stripe where
+// the car is under `least` of the window (est.)
+// alpha: the layer's opacity as OPM's raster, optical pigment mixing (the owner, 2026-11-16: "the blur works superbly, but it is alpha 100 %; it needs a
+// transparency channel too, so that it does not spoil the main layer's contour"; then, of a glaze with medium: "wait, it has to be OPM, optical pigment mixing:
+// instead of a glaze with medium, as a raster if possible — more stripes or fewer … your opacity is for digital print, not for our brush"): every stripe its
+// jar's full colour, the share of the columns that paint it the opacity — a column paints while the density, alpha (all of it where the window is `full` of the
+// car, less towards the stripes' tails), is above the column's own threshold, spread evenly over the columns by the golden ratio; so 50 % every other column,
+// and a lower one's stripes always among a higher one's (est.)
+export const BLUR = { max: 300, step: 10, edge: 10, lap: 10, least: 0.1, full: 0.5, alpha: 0.5 };
+export const rasterOf = c => ((c + 1) * 0.6180339887498949) % 1;   // a column's threshold: evenly spread for any share of the columns
 
 // ---------- colour ----------
 const lin = v => (v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
@@ -230,7 +234,7 @@ export function blurOf(B, fit, f, sk, mm, ground = '#FBFAF7', o = {}) {
   const { N, R } = B, edge = Math.max(o.edge ?? BLUR.edge, (f.h - GEN.along) / 2), lap = o.lap ?? BLUR.lap, RR = Math.round(f.h - 2 * edge), off = Math.round(fit.top - edge);
   const n = parseInt(ground.slice(1), 16), G = [LIN[n >> 16], LIN[n >> 8 & 255], LIN[n & 255]], half = Math.round(mm / 2), span = 2 * half + 1;
   const lab = new Float32Array(N * RR * 3), on = new Uint8Array(N * RR), sum = new Float64Array((RR + 1) * 3), cnt = new Float64Array(RR + 1), bare = new Int32Array(RR);
-  const fade = o.fade ?? BLUR.fade, least = o.least ?? BLUR.least, alpha = Math.min(1, Math.max(0, o.alpha ?? BLUR.alpha));
+  const least = o.least ?? BLUR.least, full = o.full ?? BLUR.full, alpha = Math.min(1, Math.max(0, o.alpha ?? BLUR.alpha));
   for (let c = 0; c < N; c++) {
     let any = false;
     for (let r = 0; r < RR; r++) {
@@ -247,8 +251,8 @@ export function blurOf(B, fit, f, sk, mm, ground = '#FBFAF7', o = {}) {
     for (let r = 0; r < RR; r++) {
       if (bare[r] > lap) continue;
       const a = Math.max(0, r - half), b = Math.min(RR, r + half + 1), k = cnt[b] - cnt[a], cover = k / span;   // past the canvas's ends, none of the car
-      if (!k || cover < least) continue;
-      const w = fade * (1 - cover), m = [0, 1, 2].map(q => (1 - w) * (sum[3 * b + q] - sum[3 * a + q]) / k + w * G[q]), [L, A, Bb] = labOfLin(...m), j = c * RR + r;
+      if (!k || cover < least || alpha * Math.min(1, cover / full) <= rasterOf(c)) continue;          // the raster: this column not here
+      const m = [0, 1, 2].map(q => (sum[3 * b + q] - sum[3 * a + q]) / k), [L, A, Bb] = labOfLin(...m), j = c * RR + r;
       on[j] = 1; lab[3 * j] = L; lab[3 * j + 1] = A; lab[3 * j + 2] = Bb;
     }
   }
@@ -257,11 +261,10 @@ export function blurOf(B, fit, f, sk, mm, ground = '#FBFAF7', o = {}) {
   const grid = columnsOf({ N, R: RR, lab, on }, pal, o).map(k => k <= 0 ? -1 : k - 1);
   const spans = spansOf(grid, N, RR, jars0.map(j => labOfHex(j.hex)[0]), o), snakes = snakesOf(spans, K, o);
   const xs = c => +(fit.left + GEN.pitch * (c + 0.5)).toFixed(2), up = r => +(f.h - edge - r).toFixed(1);
-  const glaze = h => { const v = parseInt(h.slice(1), 16), c = [LIN[v >> 16], LIN[v >> 8 & 255], LIN[v & 255]]; return hexOfLab(labOfLin(...c.map((x, q) => alpha * x + (1 - alpha) * G[q]))); };
-  const jars = jars0.map((j, k) => ({ id: `u${j.id}`, name: alpha < 1 ? `${j.name} · glaze ${Math.round(alpha * 100)} %` : j.name, code: '', hex: alpha < 1 ? glaze(j.hex) : j.hex, paint: j.hex, glaze: alpha, coats: 1, under: true,
+  const jars = jars0.map((j, k) => ({ id: `u${j.id}`, name: j.name, code: '', hex: j.hex, coats: 1, under: true,
     cells: snakes[k].map((run, i) => ({ n: i + 1, legs: run.map(([s, d]) => [xs(s.c), up(d > 0 ? s.a : s.b), up(d > 0 ? s.b : s.a)]) })) })).filter(j => j.cells.length);
   if (!jars.length) return null;
   const all = jars.flatMap(j => j.cells.flatMap(c => c.legs)), X = all.map(l => l[0]), Y = all.flatMap(l => [l[1], l[2]]);
-  return { mm, alpha, pic: { id: `${sk.pic.id}-under`, title: `${sk.pic.title} · under`, sub: `motion blur ${mm} mm, opacity ${Math.round(alpha * 100)} %, the layer under the picture (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: N,
+  return { mm, alpha, pic: { id: `${sk.pic.id}-under`, title: `${sk.pic.title} · under`, sub: `motion blur ${mm} mm, opacity ${Math.round(alpha * 100)} % as a raster, the layer under the picture (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: N,
     box: [Math.min(...X), Math.min(...Y), Math.max(...X), Math.max(...Y)], jars }, legs: all.length };
 }

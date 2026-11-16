@@ -2,7 +2,7 @@
 // the plain ground bare canvas, the same picture the same sketch.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GEN, BLUR, blurOf, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf, paletteOf, columnsOf, spansOf, sketchOf, hexOfLab, labOfHex, lineOf } from '../src/genfplan.js';
+import { GEN, BLUR, blurOf, rasterOf, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf, paletteOf, columnsOf, spansOf, sketchOf, hexOfLab, labOfHex, lineOf } from '../src/genfplan.js';
 import { passesOf, seqOf } from '../src/formgplan.js';
 
 // a picture W × H px: a white ground, a red disc with a dark band across it and a white highlight inside, the disc's left half lighter
@@ -153,18 +153,18 @@ test('the motion blur: a layer under the picture, its columns smeared along them
   assert.ok(Math.max(...ty) - Math.min(...ty) <= GEN.along + 0.1, 'along X within the reach, 843 mm, on a 70 × 100');
 });
 
-test('the motion blur\'s opacity: a glaze — the same jars, the same legs, the colour a mix with the canvas\'s, the Porsche\'s red kept', () => {
-  const s = sketch('60x80', 16), { f, fit, B } = s;
-  const full = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 1 }), half = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 0.5 }), dark = blurOf(B, fit, f, s, 160, '#161514', { alpha: 0.5 });
+test('the motion blur\'s opacity as OPM\'s raster: the share of the columns, every stripe its jar\'s full colour (2026-11-16)', () => {
+  const s = sketch('60x80', 16), { f, fit, B } = s, cols = U => new Set(U.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))));
+  const line = U => U ? U.pic.jars.reduce((a, j) => a + j.cells.reduce((u, c) => u + c.legs.reduce((v, l) => v + Math.abs(l[2] - l[1]), 0), 0), 0) : 0;
+  const full = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 1 }), half = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 0.5 }), low = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 0.2 });
   assert.equal(BLUR.alpha, 0.5);
   assert.deepEqual(blurOf(B, fit, f, s, 160).pic, half.pic, '50 % at first');
-  assert.deepEqual(half.pic.jars.map(j => j.cells), full.pic.jars.map(j => j.cells), 'the same legs');
-  half.pic.jars.forEach((j, i) => {
-    const q = full.pic.jars[i], a = labOfHex(j.hex), b = labOfHex(q.hex);
-    assert.equal(j.paint, q.hex, 'its paint the picture\'s own jar');
-    assert.equal(j.name, `${q.name} · glaze 50 %`);
-    assert.ok(a[0] >= b[0] - 0.5, `${j.name}: as light or lighter on the white`);
-    if (Math.hypot(b[1], b[2]) > 20) assert.ok(Math.sign(a[1]) === Math.sign(b[1]) && Math.hypot(a[1], a[2]) > 8, `${j.name}: its hue kept`);
-  });
-  dark?.pic.jars.forEach(j => assert.ok(labOfHex(j.hex)[0] <= labOfHex(j.paint)[0] + 0.5, `${j.name}: as dark or darker on the black`));
+  const hex = new Set(s.pic.jars.map(j => j.hex));
+  for (const U of [half, low]) for (const j of U.pic.jars) { assert.ok(hex.has(j.hex), `${j.name}: the picture's own jar, its full colour`); assert.equal(j.name, s.pic.jars.find(q => q.hex === j.hex).name, 'no new jar'); }
+  assert.ok(line(low) < line(half) && line(half) < line(full), `less paint as the opacity falls: ${line(low).toFixed(0)} < ${line(half).toFixed(0)} < ${line(full).toFixed(0)} mm`);
+  const a = cols(half), b = cols(full);
+  assert.ok(a.size < b.size && [...a].every(x => b.has(x)), 'fewer columns, all of them among 100 %\'s');
+  assert.ok(a.size >= 0.3 * b.size && a.size <= 0.7 * b.size, `about half the columns: ${a.size} of ${b.size}`);
+  const th = Array.from({ length: 100 }, (_, c) => rasterOf(c));
+  assert.ok(Math.abs(th.filter(t => t < 0.5).length - 50) <= 2 && Math.abs(th.filter(t => t < 0.3).length - 30) <= 2, 'the thresholds evenly spread');
 });
