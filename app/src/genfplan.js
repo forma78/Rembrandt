@@ -7,7 +7,8 @@
 import { cellOf } from './formgplan.js';
 import { jarsByCanvas } from './canon.js';
 
-export const GEN_FORMATS = [{ id: '60x60', w: 600, h: 600 }, { id: '60x80', w: 600, h: 800 }, { id: '70x100', w: 700, h: 1000 },   // w across (Y), h along (X): FORM-G's
+export const GEN_FORMATS = [{ id: '40x40', w: 400, h: 400 }, { id: '60x60', w: 600, h: 600 },   // 40 × 40 (the owner, 2026-11-16: "now I need a new canvas, 40 × 40 cm")
+  { id: '60x80', w: 600, h: 800 }, { id: '70x100', w: 700, h: 1000 },   // w across (Y), h along (X): FORM-G's
   // a new frame's (the owner, 2026-11-16: "for the future I want to try a canvas 90 × 120 and 100 × 150 cm … I wonder what the effect will be, probably quite
   // like a realistic photograph"): past today's reach, 540 × 855 — their field the canvas itself, 30 mm in; a sketch to look at, nothing to run yet
   { id: '90x120', w: 900, h: 1200, frame: true }, { id: '100x150', w: 1000, h: 1500, frame: true }];
@@ -220,7 +221,8 @@ export function sketchOf(B, fit, f, K, o = {}) {
     cells: snakes[k].map((run, n) => ({ n: n + 1, legs: run.map(([s, d]) => [xs(s.c), up(d > 0 ? s.a : s.b), up(d > 0 ? s.b : s.a)]) })),
   }));
   const all = jars.flatMap(j => j.cells.flatMap(c => c.legs)), X = all.map(l => l[0]), Y = all.flatMap(l => [l[1], l[2]]);
-  const raw = { id: o.id ?? 'gen-f', title: o.title ?? 'GEN-F sketch', sub: `sketch, ${f.w / 10} × ${f.h / 10}, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: B.N,
+  // idle: FORM-G's idle run n + 1 (the owner, 2026-11-16: "the idle stroke's offset as in LAB + IDLE 6.0 (n+1)"), its time counted so
+  const raw = { id: o.id ?? 'gen-f', title: o.title ?? 'GEN-F sketch', sub: `sketch, ${f.w / 10} × ${f.h / 10}, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: B.N, idle: 'n+1',
     box: all.length ? [Math.min(...X), Math.min(...Y), Math.max(...X), Math.max(...Y)] : [0, 0, 0, 0], jars };
   const C = o.canon === false ? { pic: raw, out: [], kept: [] } : jarsByCanvas(raw, Math.max(f.w, f.h), lineOf(raw));
   const pic = { ...C.pic, jars: C.pic.jars.map(({ took, ...j }, i) => ({ ...j, name: `Colour ${i + 1}` })) };   // a sketch's colours numbered again after the canon, no gaps: no jar mixed yet, no number on a lid
@@ -270,6 +272,6 @@ export function blurOf(B, fit, f, sk, mm, ground = '#FBFAF7', o = {}) {
     cells: snakes[k].map((run, i) => ({ n: i + 1, legs: run.map(([s, d]) => [xs(s.c), up(d > 0 ? s.a : s.b), up(d > 0 ? s.b : s.a)]) })) })).filter(j => j.cells.length);
   if (!jars.length) return null;
   const all = jars.flatMap(j => j.cells.flatMap(c => c.legs)), X = all.map(l => l[0]), Y = all.flatMap(l => [l[1], l[2]]);
-  return { mm, alpha, pic: { id: `${sk.pic.id}-under`, title: `${sk.pic.title} · under`, sub: `motion blur ${mm} mm, opacity ${Math.round(alpha * 100)} % as a raster, the layer under the picture (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: N,
+  return { mm, alpha, pic: { id: `${sk.pic.id}-under`, title: `${sk.pic.title} · under`, sub: `motion blur ${mm} mm, opacity ${Math.round(alpha * 100)} % as a raster, the layer under the picture (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: N, idle: sk.pic.idle,
     box: [Math.min(...X), Math.min(...Y), Math.max(...X), Math.max(...Y)], jars }, legs: all.length };
 }

@@ -5,6 +5,17 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **GEN-F 40 × 40; FORM-G's layer under and its idle run n + 1; a local library** (2026-11-16; the owner, sending `mickey 2 · GEN-F · 60x60 · 30 · blur 110 ·
+  90%.json` to FORM-G: "only now I need a new canvas, 40 × 40 cm, and the idle stroke's offset as in LAB + IDLE 6.0 (n+1)"). GEN-F: a 40 × 40 key first, its
+  field 340 × 340 (30 mm in); its sketches `idle: 'n+1'`, their time counted so. FORM-G (`formgplan.js`): `idleLegsOf(…, nplus)`, a picture's `idle: 'n+1'` —
+  n legs, n + 1 tracks evenly between the outer legs' middles, none past them, a lone leg's track twice (HOLO V4's); no flag, the pass apart as before, every
+  card's run as it was (the tests). `seqOf`: jars `under` first, layer 0, one coat, "· under"; the pause after them "the layer under is done: let it dry";
+  the list's heads "Under · the motion blur, first", "The picture · over the dry layer under"; the (i) says both. `genfpic.py`: the sketch's `under` into the
+  plan, `under`, its colours the picture's, a hint each; `idle` n + 1 by default — the Targa's and the headlight v.2's scripts `idle=None`, their cards as
+  made. Mickey is Disney's: its plan and render stay on this Mac (`.gitignore`, as others' works, README), FORM-G's own **local library**,
+  `app/formg/local.json` `{ "ids": [...] }`, its cards first. Checked: the 60 × 60 sketch through genfpic and FORM-G's run in the scratchpad — the layer under
+  first (10 lines, 22.5 m), every one of 523 cells n + 1, no fault, no wall; FORM-G and GEN-F in headless Chrome on a copy of the app. Its 40 × 40 waits for
+  the owner's sketch there.
 - **The old generator out of the way of new pictures** (2026-11-16; the owner, of the headlight's v.2: "v.2 looks great, of course … I did not notice until you
   made it. Maybe kill the old generator altogether, so that it does not get in our way?"). Kept: it made every card he has and paints (the classic's v.1 …
   v.4, the GT, the white, the watch, the headlight's v.1, the G-wagon), and they are made again or touched by it. Gone: `genfcar.py` and its

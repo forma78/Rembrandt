@@ -31,7 +31,8 @@ function sketch(fid = '60x60', K = 12, W = 300, H = 300) {
 }
 
 test('the formats: three, FORM-G\'s way round, the field within the reach and 30 mm of canvas round it', () => {
-  assert.deepEqual(GEN_FORMATS.map(f => f.id), ['60x60', '60x80', '70x100', '90x120', '100x150']);
+  assert.deepEqual(GEN_FORMATS.map(f => f.id), ['40x40', '60x60', '60x80', '70x100', '90x120', '100x150']);
+  assert.deepEqual(fieldOf(formatOf('40x40')), { w: 340, h: 340 }, '40 × 40: the canvas 30 mm in');
   for (const f of GEN_FORMATS.filter(q => q.frame)) assert.deepEqual(fieldOf(f), { w: f.w - 60, h: f.h - 60 }, `${f.id}: a new frame's, the canvas 30 mm in`);
   assert.deepEqual(GEN_FORMATS.filter(q => q.frame).map(q => q.id), ['90x120', '100x150'], 'past today\'s reach: a new frame\'s');
   assert.deepEqual(GEN.colours, [10, 100]);
@@ -43,7 +44,7 @@ test('the formats: three, FORM-G\'s way round, the field within the reach and 30
   }
   assert.deepEqual(fieldOf(formatOf('60x60')), { w: 540, h: 540 });
   assert.deepEqual(fieldOf(formatOf('70x100')), { w: 540, h: 855 });   // the owner's 540 × 855 (2026-11-16)
-  assert.equal(formatOf('nothing').id, '60x60');
+  assert.equal(formatOf('nothing').id, '40x40');
 });
 
 test('the fit: as large as the field lets it, its aspect kept, a whole number of 5 mm columns, in the middle', () => {

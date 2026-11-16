@@ -12,4 +12,4 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == '__main__':
     make(os.path.join(HERE, '..', '..', 'GEN-F', 'Graphite Seats in a Glossy Red Targa · GEN-F · 70x100 · 30.json'), 'porsche-targa', 'Porsche Targa, red',
-         'hyperrealism, 70 × 100, the red 911 Targa from above, graphite seats, 85 cm long; GEN-F\'s sketch, its colours by his jars')
+         'hyperrealism, 70 × 100, the red 911 Targa from above, graphite seats, 85 cm long; GEN-F\'s sketch, its colours by his jars', idle=None)

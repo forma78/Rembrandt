@@ -22,6 +22,7 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 
 ## Two more keys
 
+- **40 × 40** (2026-11-16), the smallest canvas, its field 340 × 340 mm. A sketch says FORM-G's idle run n + 1.
 - **GROUND**, white or black: the bare canvas's colour on the screen. Nothing is painted for it.
 - **Motion blur**, 0 … 300 mm: a layer under the picture, painted first — every column smeared
   along itself in the picture's own jars, where the picture leaves the canvas bare. FORM-G does

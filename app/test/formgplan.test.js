@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, PRESS_OK, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
 import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -473,4 +473,28 @@ test('MARKS in the run: every line\'s marks before its first cell, one dip for t
   const marks = b.R.info.filter(q => q.mark);
   assert.equal(marks.length, 62); assert.ok(marks.every(q => q.cells.length === 0 && /· mark [13], (left|right)/.test(q.label)));
   assert.ok(b.r.seconds - a.r.seconds < 30 * 60, `the marks' time: ${Math.round((b.r.seconds - a.r.seconds) / 60)} min`);
+});
+
+test('the idle run n + 1 (2026-11-16, LAB + IDLE 6.0\'s): n legs, n + 1 tracks between the outer legs\' middles, a lone leg twice; the old pass otherwise', () => {
+  const leg = x => [[x, 10], [x, 90]];
+  for (const n of [2, 3, 4, 6, 7]) {
+    const legs = Array.from({ length: n }, (_, i) => leg(10 + 5 * i)), T = idleLegsOf(legs, passOf(5), true), xs = T.map(t => t[0][0]);
+    assert.equal(T.length, n + 1, `${n} legs`);
+    assert.ok(Math.min(...xs) >= 10 - 1e-9 && Math.max(...xs) <= 10 + 5 * (n - 1) + 1e-9, 'none past the outer legs');
+    T.slice(1).forEach((t, i) => assert.ok(Math.abs(t[0][0] - T[i][0][0] - 5 * (n - 1) / n) < 1e-9, 'evenly'));
+  }
+  assert.equal(idleLegsOf([leg(10)], passOf(5), true).length, 2, 'a lone leg: there and back');
+  assert.equal(idleLegsOf(Array.from({ length: 6 }, (_, i) => leg(10 + 5 * i)), passOf(5)).length, 8, 'no flag: the pass apart, as before');
+  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20], [30, 20, 100], [35, 100, 20]] }] }] };
+  assert.notDeepEqual(passesOf({ ...pic, idle: 'n+1' })[0].byCell[0].line, passesOf(pic)[0].byCell[0].line, 'the flag changes the idle run alone');
+  assert.deepEqual(passesOf({ ...pic, idle: 'n+1' })[0].byCell[0].legs, passesOf(pic)[0].byCell[0].legs, '… not the legs');
+});
+
+test('a layer under (GEN-F\'s motion blur): its jars first, layer 0, one coat; the picture after them as before', () => {
+  const jar = (id, hex, o = {}) => ({ id, name: id, hex, coats: 1, cells: [{ n: 1, legs: [[10, 20, 100]] }], ...o });
+  const pic = { ...PIC, jars: [jar('a', '#EEEEEE'), jar('b', '#222222', { coats: 2 }), jar('ua', '#EEEEEE', { under: true, name: 'a' }), jar('ub', '#222222', { under: true, name: 'b' })] };
+  const S = seqOf(pic);
+  assert.deepEqual(S.map(j => [j.id, j.layer]), [['ua', 0], ['ub', 0], ['a', 1], ['b', 1], ['b:2', 2]]);
+  assert.equal(S[0].name, 'a · under');
+  assert.deepEqual(seqOf({ ...pic, jars: pic.jars.filter(j => !j.under) }).map(j => j.id), ['a', 'b', 'b:2'], 'none under: as before');
 });

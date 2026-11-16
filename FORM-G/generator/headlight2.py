@@ -11,4 +11,4 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == '__main__':
     make(os.path.join(HERE, '..', '..', 'GEN-F', 'Classic Red Porsche Headlight Detail · GEN-F · 60x80 · 14.json'), 'porsche-headlight-v2', 'Porsche, red · headlight · v.2',
-         'hyperrealism, 60 × 80, the classic red 911\'s headlight, a detail, 54 × 72 cm; GEN-F\'s sketch as approved, its 14 colours', crest=False)
+         'hyperrealism, 60 × 80, the classic red 911\'s headlight, a detail, 54 × 72 cm; GEN-F\'s sketch as approved, its 14 colours', crest=False, idle=None)

@@ -13,7 +13,10 @@ plan is the final, and only the canon is laid on it:
   2. CREST: the maker's crest off — the legs of a sketch colour with less than CREST_M of line near the axis go to the jar painted next to them in their column,
      and two columns about the axis over its height in the sketch's darkest colour, a cell of its own (the owner, 2026-11-10: "no Porsche logo, but a mark one
      cannot read");
-  3. nothing else: the legs, their snakes, the coats, the light-under-dark the sketch's. The render GEN-F's: the legs 5 mm wide, flat (est.).
+  3. the motion blur's layer under the picture, if the sketch has it (`under`): its jars, the picture's own colours, one coat, `under`, painted first, the
+     picture over it when dry (FORM-G's seqOf; the owner, 2026-11-16, sending mickey 2 with blur 110 · 90 % to FORM-G);
+  4. the idle run n + 1 (`idle`; the owner, the same message: "the idle stroke's offset as in LAB + IDLE 6.0 (n+1)");
+  5. nothing else: the legs, their snakes, the coats, the light-under-dark the sketch's. The render GEN-F's: the legs 5 mm wide, flat, the layer under first (est.).
 
   python genfpic.py <sketch.json> <id> "<title>" "<sub>"   → app/formg/<id>.json, <id>.jpg"""
 import sys, os, json
@@ -44,7 +47,7 @@ def line(j):
     return sum(abs(l[2] - l[1]) for c in j['cells'] for l in c['legs']) / 1000
 
 
-def make(sketch_path, pid, title, sub, crest=True, out=OUT):
+def make(sketch_path, pid, title, sub, crest=True, out=OUT, idle='n+1'):
     sk = json.load(open(sketch_path))
     pic = json.loads(json.dumps(sk['pic']))
     jars = pic['jars']
@@ -83,19 +86,30 @@ def make(sketch_path, pid, title, sub, crest=True, out=OUT):
         xs = [axis - pitch / 2, axis + pitch / 2]
         dark['cells'].append({'n': 0, 'legs': [[xs[0], mark[1], mark[0]], [xs[1], mark[0], mark[1]]]})
         say.append(f"the crest's mark: {dark['name']} {dark['hex']}, two columns at {xs[0]} and {xs[1]}, {mark[0]} … {mark[1]} mm")
+    # 3. the layer under: its jars after the picture's in the json, `under`, FORM-G runs them first
+    under = []
+    for u in (sk.get('under') or {}).get('jars', []):
+        u = json.loads(json.dumps(u))
+        main = next((j for j in jars if j['name'] == u['name']), None)
+        u.update(under=True, coats=1, code=main['code'] if main else '')
+        u.pop('paint', None); u.pop('glaze', None)
+        under.append(u)
+    if under:
+        say.append(f"the layer under, the motion blur {sk.get('blur_mm')} mm, opacity {round(100 * sk.get('blur_alpha', 1))} % as a raster: {len(under)} of its colours, {sum(len(c['legs']) for u in under for c in u['cells'])} legs, first")
+    jars += under
     for j in jars:
         for n, c in enumerate(j['cells']):
             c['n'] = n + 1
         j['code'] = j.get('code', '')
     legs = [l for j in jars for c in j['cells'] for l in c['legs']]
     xs_, ys_ = [l[0] for l in legs], [y for l in legs for y in l[1:]]
-    pic.update(id=pid, title=title, sub=sub, image=f'formg/{pid}.jpg', box=[min(xs_), min(ys_), max(xs_), max(ys_)], jars=jars)
+    pic.update(id=pid, title=title, sub=sub, image=f'formg/{pid}.jpg', box=[min(xs_), min(ys_), max(xs_), max(ys_)], jars=jars, **({'idle': idle} if idle else {}))
     json.dump(pic, open(os.path.join(out, f'{pid}.json'), 'w'), separators=(',', ':'))
     # the render: GEN-F's, the legs 5 mm wide in the list's order (light under dark), flat
     W, H = pic['w'] * PPM, pic['h'] * PPM
     im = Image.new('RGB', (W, H), (246, 243, 236))
     dr = ImageDraw.Draw(im)
-    for j in jars:
+    for j in sorted(jars, key=lambda q: not q.get('under')):                    # the layer under first
         rgb = tuple(int(j['hex'][i:i + 2], 16) for i in (1, 3, 5))
         for c in j['cells']:
             for x, a, b in c['legs']:

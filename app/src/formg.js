@@ -12,7 +12,7 @@ import { qrSvg } from './qr.js';
 import './ui.js';
 
 // OPM-G (2026-11-07): this page with its own library, app/opmg/, and its run by the canon of a long leg (canon.js); FORM-G's as it was
-const TAB = document.body.dataset.tab === 'opmg' ? 'opmg' : 'formg', CANON_RUN = TAB === 'opmg', NAME = CANON_RUN ? 'OPM-G' : 'FORM-G', LIBRARY = CANON_RUN ? OPMG_LIB : FORMG_LIB;
+const TAB = document.body.dataset.tab === 'opmg' ? 'opmg' : 'formg', CANON_RUN = TAB === 'opmg', NAME = CANON_RUN ? 'OPM-G' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
 const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01' : 'rembrandt.formg.v02', OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
 const PRESS_MIN = -4, PRESS_MAX = 8;   // as OPM-N's brush
 const TRAVEL = 100;   // the carriage's travel with the brush up, mm/s: see where S is read
@@ -104,7 +104,7 @@ function paintRun(from = 0) {
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
   const R = rowsOf(PIC, passes, S.dipEvery, S.dipLap, CANON_RUN, { ...R3RUN, marks: mk?.M }), name = id => jarOf(id)?.name ?? id;
-  const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : passes[k].layer === 2 && passes[k - 1].layer === 1 ? `the first layer is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` })));
+  const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : passes[k].layer === 2 && passes[k - 1].layer === 1 ? `the first layer is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : passes[k].layer === 1 && passes[k - 1].layer === 0 ? `the layer under is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` })));
   const n = plan().length, rows = from ? R.info.map(q => ({ ...q, label: q.label.replace(/^(\d+)\/\d+ · /, (_, k) => `${from + +k}/${n} · `) })) : R.info;   // a line's number in the whole list, a run from a later line too
   const out = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows, lifts: R.lifts, mm: passes.reduce((a, q) => a + q.mm, 0), passes };
   if (RUNS.size > 6) RUNS.clear();
@@ -580,7 +580,7 @@ function showPanel() {
     : 'No frame: the whole picture. F, or Frame, lays one round a piece to try first, at its place from home: a click a 200 × 200 there, a drag any size.';
   for (const [id, k] of [['#fSpeed', 'speed'], ['#fEvery', 'dipEvery'], ['#fLap', 'dipLap'], ['#fOver', 'over'], ['#fPen', 'penSpeed'], ['#fTravel', 'travel']]) if ($(id) && document.activeElement !== $(id)) $(id).value = S[k];
   if ($('#bwRead')) { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
-  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
+  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 0 && !i ? '<li class="fg-sep">Under · the motion blur, first</li>' : ''}${q.layer === 1 && P[i - 1]?.layer === 0 ? '<li class="fg-sep">The picture · over the dry layer under</li>' : ''}${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
 }
@@ -616,8 +616,9 @@ function readOf(id) {
   const was = [PIC, SEQ];
   PIC = LIB[id]; SEQ = seqOf(PIC);
   try {
-    const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n1 = P.filter(q => q.layer === 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
+    const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n0 = P.filter(q => q.layer === 0).length, n1 = P.filter(q => q.layer <= 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
     const out = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${all.reduce((a, q) => a + q.legs.length, 0)} legs.`
+      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + (PIC.idle === 'n+1' ? ' The idle run n + 1.' : '')
       + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${layer2Say(P)}, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
       + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
     READS.set(id, out);
@@ -725,6 +726,8 @@ async function watch() {
 // ---------- start ----------
 lampSwitch($('#lamp'));
 (async () => {
+  // the pictures on this Mac alone (others' works, out of git: README), first: formg/local.json { "ids": [...] }, gitignored
+  try { const r = await fetch(`${TAB}/local.json`, { cache: 'no-store' }); if (r.ok) LIBRARY.unshift(...((await r.json()).ids ?? []).filter(id => !LIBRARY.includes(id))); } catch { }
   for (const id of LIBRARY) {
     const pic = await (await fetch(`${TAB}/${id}.json`, { cache: 'no-store' })).json();
     LIB[id] = pic;

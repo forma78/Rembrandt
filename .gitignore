@@ -76,3 +76,8 @@ FORM-G/generator/*.pkl
 /GEN-F/*.webp
 /GEN-F/*.heic
 /GEN-F/*.HEIC
+# others' works made into plans on this Mac (README: "a new reference by another artist goes there too"): FORM-G's local library and its pictures, the sketches
+/app/formg/local.json
+/app/formg/mickey*
+/GEN-F/mickey*
+/FORM-G/mickey*

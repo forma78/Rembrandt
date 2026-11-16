@@ -33,10 +33,13 @@ const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p
 // orange to the very start of Layer 2"): out of the first layer, the first of the second, on the dry first layer — its own coat, `coat` 1, its cells as the first layer's run them
 // A jar `last` (the red classic's v.4, its shadow; the owner, 2026-11-13: "just draw me the shadow, about 10 cm to the side"): after every other line, its second coat
 // at once after its first, so Start from its first line runs it alone on a picture already painted
+// A jar `under` (GEN-F's motion blur, its layer under the picture; the owner, 2026-11-16, sending mickey 2 with blur 110 · 90 % to FORM-G): before all of them,
+// light to dark, one coat, layer 0; then, on the dry layer under, the picture as before
 export const seqOf = pic => {
   const two = js => js.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2 }));
-  const first = pic.jars.filter(j => !j.last), now = first.filter(j => !j.late), late = first.filter(j => j.late), last = pic.jars.filter(j => j.last);
-  return [...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
+  const under = pic.jars.filter(j => j.under), main = pic.jars.filter(j => !j.under);
+  const first = main.filter(j => !j.last), now = first.filter(j => !j.late), late = first.filter(j => j.late), last = main.filter(j => j.last);
+  return [...under.map(j => ({ ...j, name: `${j.name} · under`, layer: 0, coat: 1 })), ...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
 };
 // a leg's points: half the tip in from both ends of its span, as idleCellOf; too short for that, the shortest it can land on, in the middle of its span
 function legOf(x, a, b, tip) {
@@ -45,10 +48,13 @@ function legOf(x, a, b, tip) {
   const t = Math.min(tip / 2, (L - m) / 2);
   return [[x, a + d * t], [x, b - d * t]];
 }
-// the idle run's legs, as idleCellOf's: evenly over the cell's width, the pass apart, each as long as the column it lies nearest, back and forth
-export function idleLegsOf(legs, pass) {
+// the idle run's legs, as idleCellOf's: evenly over the cell's width, the pass apart, each as long as the column it lies nearest, back and forth.
+// n+1 (a picture's `idle: 'n+1'`; the owner, 2026-11-16: "the idle stroke's offset as in LAB + IDLE 6.0 (n+1)", HOLO V4's): n legs, n + 1 tracks evenly
+// between the outer legs' middles, none past them; a cell of one leg, its track twice, there and back
+export function idleLegsOf(legs, pass, nplus = false) {
+  if (nplus && legs.length === 1) return [legs[0], [legs[0][1], legs[0][0]]];
   if (legs.length < 2) return legs;
-  const xa = legs[0][0][0], xb = legs.at(-1)[0][0], gaps = Math.max(1, Math.round(Math.abs(xb - xa) / pass)), up = legs[0][1][1] >= legs[0][0][1], out = [];
+  const xa = legs[0][0][0], xb = legs.at(-1)[0][0], gaps = nplus ? legs.length : Math.max(1, Math.round(Math.abs(xb - xa) / pass)), up = legs[0][1][1] >= legs[0][0][1], out = [];
   for (let j = 0; j <= gaps; j++) {
     const x = xa + (xb - xa) * j / gaps, near = legs.reduce((p, q) => Math.abs(q[0][0] - x) < Math.abs(p[0][0] - x) ? q : p), lo = Math.min(near[0][1], near[1][1]), hi = Math.max(near[0][1], near[1][1]);
     out.push((j % 2 === 0) === up ? [[x, lo], [x, hi]] : [[x, hi], [x, lo]]);
@@ -67,7 +73,7 @@ export function airRuns(leg, cuts, lap, firstDip = FORMG.firstDip) {
 export function cellOf(c, pic, n, o = {}, layer = 1) {
   const tip = o.tip ?? FORMG.tip, over = o.over ?? FORMG.over, lap = o.lap ?? FORMG.lap;
   const legs = (layer === 2 ? c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) : c.legs).map(([x, a, b]) => legOf(x, a, b, tip));
-  const line = idleLine(idleLegsOf(legs, passOf(pic.pitch)), over, 0), xs = legs.map(l => l[0][0]);
+  const line = idleLine(idleLegsOf(legs, passOf(pic.pitch), pic.idle === 'n+1'), over, 0), xs = legs.map(l => l[0][0]);
   const first = lengthOf(legs.flat());
   return { num: n, k: legs.length, W: Math.max(...xs) - Math.min(...xs), C: first / legs.length, legs, line, over, end: 0, mm: first + lengthOf(line), ...(c.air ? { runs: airRuns(legs[0], c.cuts, lap) } : {}) };
 }
