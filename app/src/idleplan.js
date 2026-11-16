@@ -94,7 +94,7 @@ export function idleDragsOf(cells, order, o = {}) {
 // a first run cut for its dips. Short legs (LAB's nos. 4, 7, 8): whole legs, as many as go into `every`, each run pressed to its last leg's end, its lift beyond.
 // Long ones (its no. 1): `every` mm a run at most, a leg and the lap, as OPM-N's dragRowsOf and LAB's snakeRuns, the next from the lap back; the last alone with its lift beyond.
 // slack: how much longer than `every` the last run of a long leg may go on one dip, of `every` (LAB's quarter; real 3: none, 2026-11-10)
-function runsOfCell(legs, every, lap, slack = 0.25) {
+export function runsOfCell(legs, every, lap, slack = 0.25) {
   const pts = legs.flat();
   if (!every) return [{ pts, beyond: true }];
   const longest = Math.max(...legs.map(l => dist(l[0], l[1])));

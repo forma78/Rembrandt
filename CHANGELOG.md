@@ -8,6 +8,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 - **FORM-G: `DROPS-FIRST.md`, a note from cloud-Claude** (2026-11-16; the owner: "first putting all the drops, as in HOLO, and then
   dragging"; "5 mm, the brush's width. 4 drops, 4 drags in a snake at the end, without n+1"). A group of four legs, four drops, then
   a snake of four drags, no idle run; a 20 × 20 sheet against FORM-G's run as it is. Nothing in the code yet. Its photos since 2026-11-17: `FORM-G/photos/2026-11-16/`.
+- **FORM-G: a dip a leg, its idle run on the legs; n + 1 gone** (2026-11-16, the evening; the owner, of Mickey's first jar on canvas — the machine camera's film of
+  7.32 PM, `FORM-G/Screenshot 2026-11-16 at 7.34.43 PM.png` and `7.43.50 PM.png`, marked in green: "I think we must cancel n+1 for FORM-G; something silly
+  comes out when there are 6 drops and 7 runs. It must go back: 6 drops, so 6 runs"; "after the turn onto a new track the brush loses all its paint … every
+  new track — the brush dips into the jar. The lines themselves will be neater"; "it should go only to the edge, then dip at the start of the track"). The film:
+  a big drop of paint at every turn of the snake, the next leg nearly dry; where a run of 79 mm ended past a turn and the next landed 15 mm back, a blob mid-leg.
+  `formgplan.js`: `legRunsOf` — FORM-G's first run no snake, every leg its own run, a dip at its start, to its end, its lift beyond, the J3's 3 + 3 on every
+  leg; a leg over 79 mm still cut for its dips, on from 15 mm back (real 3: a dip holds ≈ 78 mm; Mickey 81 of its 708 legs, the longest 180); the dial's legs
+  each on a dip. `idleLegsOf(…, on)`, `FORMG.idle = 'legs'`: the idle run on the paint legs themselves, n legs n tracks, each its leg's way and length, +2 at its
+  start and turns, 0 at its end, as before, at once after the cell, no dip. A picture's `idle: 'n+1'` read no more; GEN-F's sketches and `genfpic.py` write none,
+  GEN-F's jar canon counts the idle run on the legs. LAB's and OPM-G's runs as they were (the pass apart, the canon). Every FORM-G card so, the red classic's
+  v.3 … v.4 too. Mickey (FORM-G's run, real 3, the cup at hand, est.): idle tracks 1521 → 933, dips 900 → 1030, 75.4 → 60.7 m of brush, ≈ 4 h 20 → 4 h 32 min;
+  the Targa dips 2154 → 2642, ≈ 11 h 05 → 12 h 19 min. Checked: the tests (635), FORM-G with Mickey and ▶ Play in headless Chrome on a copy of the app.
 - **FORM-G: the motion blur's stripes with their own jars, not a layer first** (2026-11-16; the owner, of "Under · the motion blur, first": "you probably took my
   words about GEN-F literally. There the motion blur really is a layer of its own, UNDER the main one. But in the physical world, on FORM-G, it is different:
   the jars can be merged. It is just the machine moving. Colour 4, say, all of 27 mm! and I have to change the jars for it. I can do it at once with Colour 4

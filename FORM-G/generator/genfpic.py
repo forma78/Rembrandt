@@ -15,7 +15,8 @@ plan is the final, and only the canon is laid on it:
      cannot read");
   3. the motion blur, if the sketch has it: its stripes cells of their own jars, `under`, one coat — no jar of its own, no layer first (the owner, 2026-11-16:
      "on FORM-G the jars can be merged … Colour 4, only 27 mm"); cut where a lighter jar of the picture lies, so a stripe never lies over its contour;
-  4. the idle run n + 1 (`idle`; the owner, the same message: "the idle stroke's offset as in LAB + IDLE 6.0 (n+1)");
+  4. no `idle`: FORM-G's own idle run, on the legs (the owner, the same evening, of Mickey on canvas: "6 drops, so 6 runs"; the n + 1 of the
+     afternoon gone, FORM-G reads it no more);
   5. nothing else: the legs, their snakes, the coats, the light-under-dark the sketch's. The render GEN-F's: the legs 5 mm wide, flat, the layer under first (est.).
 
   python genfpic.py <sketch.json> <id> "<title>" "<sub>"   → app/formg/<id>.json, <id>.jpg"""
@@ -47,7 +48,7 @@ def line(j):
     return sum(abs(l[2] - l[1]) for c in j['cells'] for l in c['legs']) / 1000
 
 
-def make(sketch_path, pid, title, sub, crest=True, out=OUT, idle='n+1'):
+def make(sketch_path, pid, title, sub, crest=True, out=OUT, idle=None):
     sk = json.load(open(sketch_path))
     pic = json.loads(json.dumps(sk['pic']))
     jars = pic['jars']

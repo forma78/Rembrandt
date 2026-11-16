@@ -4,7 +4,7 @@
 // picture, what it could not reach carried on to the next (hyper2.py's way), its runs into paintrun.py's spans and snakes, FORM-G's json. A sketch, est.: the jars
 // the picture's own colours (k-means in CIELAB), no brush model, no geometry by hand — the seams, the symmetry, the jars to measure stay the generator's
 // (FORM-G/generator) once the owner approves. Pure: the page (genf.js) gives the pixels, 1 px a mm.
-import { cellOf } from './formgplan.js';
+import { cellOf, FORMG } from './formgplan.js';
 import { jarsByCanvas } from './canon.js';
 
 export const GEN_FORMATS = [{ id: '40x40', w: 400, h: 400 }, { id: '60x60', w: 600, h: 600 },   // 40 × 40 (the owner, 2026-11-16: "now I need a new canvas, 40 × 40 cm")
@@ -209,7 +209,7 @@ export function snakesOf(spans, K, o = {}) {
 // ---------- the sketch ----------
 const chroma = p => Math.hypot(p[1], p[2]);
 const coatsOf = p => p[0] < GEN.twoL && (chroma(p) > 12 || p[0] < 12) ? 2 : 1;   // the deep reds and the blacks two coats, as the classic's (est.)
-export const lineOf = pic => j => j.cells.reduce((t, c) => t + cellOf(c, pic, 1).mm, 0);   // a jar's line as FORM-G's list counts it: legs and idle run (canon.js's jarsByCanvas)
+export const lineOf = pic => j => j.cells.reduce((t, c) => t + cellOf(c, pic, 1, { idle: FORMG.idle }).mm, 0);   // a jar's line as FORM-G's list counts it: legs and idle run, on the legs since 2026-11-16 (canon.js's jarsByCanvas)
 // → { pic: FORM-G's json, the jars by the canon of the canvas's long side; raw: before it; out: the jars that went; asked, made: the colours asked, those that paint }
 export function sketchOf(B, fit, f, K, o = {}) {
   const pal = paletteOf(B, K, o), grid = columnsOf(B, pal, o), lum = pal.map(p => p[0]);
@@ -221,8 +221,8 @@ export function sketchOf(B, fit, f, K, o = {}) {
     cells: snakes[k].map((run, n) => ({ n: n + 1, legs: run.map(([s, d]) => [xs(s.c), up(d > 0 ? s.a : s.b), up(d > 0 ? s.b : s.a)]) })),
   }));
   const all = jars.flatMap(j => j.cells.flatMap(c => c.legs)), X = all.map(l => l[0]), Y = all.flatMap(l => [l[1], l[2]]);
-  // idle: FORM-G's idle run n + 1 (the owner, 2026-11-16: "the idle stroke's offset as in LAB + IDLE 6.0 (n+1)"), its time counted so
-  const raw = { id: o.id ?? 'gen-f', title: o.title ?? 'GEN-F sketch', sub: `sketch, ${f.w / 10} × ${f.h / 10}, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: B.N, idle: 'n+1',
+  // no `idle`: FORM-G's own idle run, on the legs since 2026-11-16, the evening (formgplan.js, idleLegsOf; the n + 1 of the afternoon gone), its time counted so
+  const raw = { id: o.id ?? 'gen-f', title: o.title ?? 'GEN-F sketch', sub: `sketch, ${f.w / 10} × ${f.h / 10}, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: B.N,
     box: all.length ? [Math.min(...X), Math.min(...Y), Math.max(...X), Math.max(...Y)] : [0, 0, 0, 0], jars };
   const C = o.canon === false ? { pic: raw, out: [], kept: [] } : jarsByCanvas(raw, Math.max(f.w, f.h), lineOf(raw));
   const pic = { ...C.pic, jars: C.pic.jars.map(({ took, ...j }, i) => ({ ...j, name: `Colour ${i + 1}` })) };   // a sketch's colours numbered again after the canon, no gaps: no jar mixed yet, no number on a lid

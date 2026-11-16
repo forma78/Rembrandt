@@ -15,7 +15,7 @@
 // OPM-G (the owner, 2026-11-07: "start with g-wagon.JPG, on a 60 x 60 canvas, with the new data of LAB / real 2"): FORM-G's page with its own library, app/opmg/, and its run by
 // the canon of a long leg (canon.js, README "How a long leg is laid"): a dip's run lands inside its first leg and goes back to its start; short end legs off a cell on their own;
 // legs under 30 mm after a longer one, to 79 mm of plan. FORM-G's own run as it was. Both by the dose since 2026-11-09 (canon.js, real 3's): every run on a dip of its own.
-import { IDLE, idleLine, idleRowsOf, idleRunsOf } from './idleplan.js';
+import { IDLE, idleLine, idleRowsOf, idleRunsOf, runsOfCell } from './idleplan.js';
 import { CANON, startOnLong, ridersOnLong, landInside, dosed, ELBOW_J3, elbowEndsOf } from './canon.js';
 
 export const FORMG_LIB = ['porsche-targa', 'porsche-headlight-v2', 'porsche-headlight', 'porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-white', 'watch'];   // the library: a name here, its json and jpg in app/formg/; the red classic 911 and the white in its form since 2026-11-08; the red racing 911's face on 60 × 60 in the green's place since 2026-11-10 (the owner: "we make the face right now, in place of the green"; porsche.json stays, the tests' and LAB's); each 911's v.2 alone since 2026-11-11 (the owner: "remove the cards Porsche GT, red — leave only v.2 in THE LIBRARY; the same with the classic's v.2"): their v.1, porsche-race.json and porsche-red.json, stay on the disk, the tests' and v.2's names'; the classic's v.3 after its v.2 since 2026-11-11, v.2's jars halved (the owner: "13 hours and 62 jar changes are physically hard for me … if it does not work, we can always go back to v.2"); its v.4 after it since 2026-11-13, v.3 to the leg and a shadow beside it in Black, the last line, over the old lines on his 70 × 100 (FORM-G/generator/redcarv4.py); the classic red 911's headlight on 60 × 80 first since 2026-11-16, GEN-F's first approved sketch made final (FORM-G/generator/headlight.py); the red Targa from above on 70 × 100 first since the same day, GEN-F's sketch made final by genfpic.py, 853 mm, pressed (PRESS_OK); the headlight's v.2 before its v.1, true to its sketch (genfpic.py; the owner: "Oh, let's! Only v.2")
@@ -24,7 +24,7 @@ export const OPMG_LIB = ['gwagon'];
 // for the 70 × 100, bottom edge −68 (2026-11-10: "Yes"), its v.2 … v.4 the same outline; the Targa, 853 mm long, GEN-F's (the owner, 2026-11-16, asked to make
 // it 843 as the classic or press it: "keep 853 mm — it goes fine for us, there is 1 cm more in reserve"), its canvas's bottom edge −63 at most, ≈ 11.7 pressed
 export const PRESS_OK = { 'porsche-red': 8, 'porsche-red-k': 8, 'porsche-red-v3': 8, 'porsche-red-v4': 8, 'porsche-targa': 12 };                  // OPM-G's: its json and jpg in app/opmg/
-export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30 };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.)
+export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30, idle: 'legs' };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.); idle: FORM-G's idle run on its legs (idleLegsOf)
 export const passOf = pitch => pitch * IDLE.pass / IDLE.step;   // the idle run's legs apart: LAB's 4.38 to its 5.83, on this grid (est.)
 
 const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
@@ -72,13 +72,14 @@ function legOf(x, a, b, tip) {
   const t = Math.min(tip / 2, (L - m) / 2);
   return [[x, a + d * t], [x, b - d * t]];
 }
-// the idle run's legs, as idleCellOf's: evenly over the cell's width, the pass apart, each as long as the column it lies nearest, back and forth.
-// n+1 (a picture's `idle: 'n+1'`; the owner, 2026-11-16: "the idle stroke's offset as in LAB + IDLE 6.0 (n+1)", HOLO V4's): n legs, n + 1 tracks evenly
-// between the outer legs' middles, none past them; a cell of one leg, its track twice, there and back
-export function idleLegsOf(legs, pass, nplus = false) {
-  if (nplus && legs.length === 1) return [legs[0], [legs[0][1], legs[0][0]]];
-  if (legs.length < 2) return legs;
-  const xa = legs[0][0][0], xb = legs.at(-1)[0][0], gaps = nplus ? legs.length : Math.max(1, Math.round(Math.abs(xb - xa) / pass)), up = legs[0][1][1] >= legs[0][0][1], out = [];
+// the idle run's legs. `on` (FORM-G's, FORMG.idle, since 2026-11-16, the evening): the paint legs themselves — n legs, n tracks, each on its own leg, its way and
+// its length, idleLine's +over at its ends (the owner, of Mickey's first jar on canvas, FORM-G/Screenshot 2026-11-16 at 7.34.43 PM.png, a diagonal run marked in
+// green: "I think we must cancel n+1 for FORM-G; something silly comes out when there are 6 drops and 7 runs. It must go back: 6 drops, so 6 runs"). The n + 1
+// of the same afternoon gone (a picture's `idle: 'n+1'`, read no more). Otherwise idleCellOf's, LAB's and OPM-G's: evenly over the cell's width, the pass apart,
+// each as long as the column it lies nearest, back and forth.
+export function idleLegsOf(legs, pass, on = false) {
+  if (on || legs.length < 2) return legs;
+  const xa = legs[0][0][0], xb = legs.at(-1)[0][0], gaps = Math.max(1, Math.round(Math.abs(xb - xa) / pass)), up = legs[0][1][1] >= legs[0][0][1], out = [];
   for (let j = 0; j <= gaps; j++) {
     const x = xa + (xb - xa) * j / gaps, near = legs.reduce((p, q) => Math.abs(q[0][0] - x) < Math.abs(p[0][0] - x) ? q : p), lo = Math.min(near[0][1], near[1][1]), hi = Math.max(near[0][1], near[1][1]);
     out.push((j % 2 === 0) === up ? [[x, lo], [x, hi]] : [[x, hi], [x, lo]]);
@@ -97,7 +98,7 @@ export function airRuns(leg, cuts, lap, firstDip = FORMG.firstDip) {
 export function cellOf(c, pic, n, o = {}, layer = 1) {
   const tip = o.tip ?? FORMG.tip, over = o.over ?? FORMG.over, lap = o.lap ?? FORMG.lap;
   const legs = (layer === 2 ? c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) : c.legs).map(([x, a, b]) => legOf(x, a, b, tip));
-  const line = idleLine(idleLegsOf(legs, passOf(pic.pitch), pic.idle === 'n+1'), over, 0), xs = legs.map(l => l[0][0]);
+  const line = idleLine(idleLegsOf(legs, passOf(pic.pitch), o.idle === 'legs'), over, 0), xs = legs.map(l => l[0][0]);
   const first = lengthOf(legs.flat());
   return { num: n, k: legs.length, W: Math.max(...xs) - Math.min(...xs), C: first / legs.length, legs, line, over, end: 0, mm: first + lengthOf(line), ...(c.air ? { runs: airRuns(legs[0], c.cuts, lap) } : {}) };
 }
@@ -113,7 +114,7 @@ export function canonCellsOf(pic, jar, o = {}, layer = 1) {
 // the run's colours, the list's lines in their order; o.canon: OPM-G's
 export function passesOf(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => cellOf(c, pic, i + 1, o, j.coat ?? j.layer));   // a cell the other way round on its second coat, not on a late jar's one
+    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's idle run on its legs, OPM-G's the canon's
     return { pencil: j.id, layer: j.layer, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
@@ -148,7 +149,14 @@ export const canonRuns = (passes, lap = FORMG.lap, ride = CANON.ride) => idleRun
 // the brush's runs as the page sends them, both FORM-G's and OPM-G's by the dose (canon.js, the owner, 2026-11-09): every run on a dip of its own, a short leg after 60 mm
 // of line a dip at its start; OPM-G's after a dip landing inside, FORM-G's, not on the canon, at its start as its other dips
 // slack: how much longer than `every` a long leg's last run may go on one dip (idleplan.js's runsOfCell; FORM-G's none since real 3, R3)
-export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false, slack = 0.25) => canon ? dosed(canonRuns(passes, lap)) : dosed(idleRunsOf(passes, every, lap, slack), false);
+export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false, slack = 0.25) => canon ? dosed(canonRuns(passes, lap)) : dosed(idleRunsOf(legRunsOf(passes, every, lap, slack), every, lap, slack), false);
+// A dip a leg, FORM-G's (the owner, 2026-11-16, the evening, of Mickey's first jar on canvas — the machine camera's film of 7.32 PM, the paint's big drop at every
+// turn of the snake and the next leg nearly dry, and FORM-G/Screenshot 2026-11-16 at 7.43.50 PM.png, circled in green: "after the turn onto a new track the brush
+// loses all its paint"; "every new track — the brush dips into the jar. The lines themselves will be neater"; "it should go only to the edge, then dip at the
+// start of the track"): no snake in the first run, no turn with the brush down — every leg its own run, a dip at its start, to its end and its lift beyond; the
+// next leg its own dip at its own start. A leg longer than `every` still cut for its dips, on from the lap back (real 3: one dip holds ≈ 78 mm); the dial's legs
+// their own runs, every one on a dip. The idle run as it was: at once after the cell, no dip, the brush down at its turns.
+export const legRunsOf = (passes, every = FORMG.every, lap = FORMG.lap, slack = 0.25) => passes.map(P => ({ ...P, byCell: P.byCell.map(c => ({ ...c, runs: (c.runs ?? c.legs.flatMap(l => runsOfCell([l], every, lap, slack))).map(r => ({ ...r, dip: true })) })) }));
 // FORM-G's run as LAB's real 3 (the owner, 2026-11-10, before the red 911 on 70 × 100: "take the latest changes of LAB / real 3 into account"; "3 + 3, yes"): a dip every
 // 79 mm of line at most, the canon's, what one dip holds (real 3, Jar 27's 154 mm leg gave out at ≈ 78 mm), no run longer, no slack; and the J3 compensation, every paint
 // run on the machine 3 mm earlier and 3 mm later (canon.js, ELBOW_J3). The screen, ▶ Play and the idle runs as they were. est.

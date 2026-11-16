@@ -22,7 +22,7 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 
 ## Two more keys
 
-- **40 × 40** (2026-11-16), the smallest canvas, its field 340 × 340 mm. A sketch says FORM-G's idle run n + 1.
+- **40 × 40** (2026-11-16), the smallest canvas, its field 340 × 340 mm. A sketch's time by FORM-G's own run: every leg on a dip of its own, its idle run on the legs (2026-11-16, the evening; the n + 1 of the afternoon gone).
 - **GROUND**, white or black: the bare canvas's colour on the screen. Nothing is painted for it.
 - **Motion blur**, 0 … 300 mm: on the screen a layer under the picture — every column smeared
   along itself in the picture's own jars, where the picture leaves the canvas bare. On FORM-G its

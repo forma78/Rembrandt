@@ -134,20 +134,20 @@ test('every cell in the list as often as its jar has layers', () => {
   }
 });
 
-test('a cell as OPM-N\'s: legs half a tip in, then at once the idle run, no dip, +over at its start and turns, 0 at its very end', () => {
+test('a cell, FORM-G\'s since 2026-11-16, the evening: legs half a tip in, every leg its own run on a dip of its own, then at once the idle run on the same legs, no dip, +over at its start and turns, 0 at its very end', () => {
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20]] }] }] };
   const [P] = passesOf(pic), c = P.byCell[0];
   assert.deepEqual(c.legs[0], [[10, 22], [10, 98]]);
   const runs = brushRuns([P], 0, 0);
-  assert.equal(runs.length, 2, 'its snake, its idle run');
-  assert.equal(runs[0].dip, true); assert.equal(runs[1].idle, true); assert.equal(runs[1].dip, false);
-  // LAB's five passes over its four tracks
-  const n = c.line.length / 2;
-  assert.equal(n, 5);
+  assert.equal(runs.length, 5, 'its four legs, its idle run');
+  runs.slice(0, 4).forEach((r, i) => { assert.equal(r.dip, true, `leg ${i + 1} on a dip`); assert.deepEqual(r.pts, c.legs[i], `leg ${i + 1} alone, from its start to its end`); assert.equal(r.beyond, true, 'its lift beyond'); });
+  assert.equal(runs[4].idle, true); assert.equal(runs[4].dip, false);
+  // the idle run: four tracks on the four legs (the owner: "6 drops, so 6 runs"), each its leg's way
+  assert.equal(c.line.length / 2, 4);
+  c.legs.forEach((l, i) => assert.ok(c.line[2 * i][0] === l[0][0] && Math.sign(c.line[2 * i + 1][1] - c.line[2 * i][1]) === Math.sign(l[1][1] - l[0][1]), `track ${i + 1} on leg ${i + 1}, its way`));
   assert.deepEqual(c.line[0], [10, 22 - IDLE.over], '+2 at its start');
-  assert.equal(c.line.at(-1)[0], 25);
-  const lastIdle = c.line.slice(-2), span = c.legs.at(-1).map(q => q[1]);
-  assert.ok(Math.min(...span) <= Math.min(...lastIdle.map(q => q[1])) + IDLE.over + 1e-9);
+  assert.deepEqual(c.line[1], [10, 98 + IDLE.over], '+2 at a turn');
+  assert.deepEqual(c.line.at(-1), c.legs.at(-1)[1], '0 at its very end');
 });
 
 test('a one-leg cell: its idle run back over itself, nothing into the neighbours\' lanes', () => {
@@ -317,14 +317,25 @@ function doseHolds(runs, label) {
     }
   }
 }
-test('FORM-G\'s run by the dose: every run on a dip of its own, no landing inside (not on the canon), the same points in the same order, the idle runs as they were', () => {
+test('FORM-G\'s run, a dip a leg (2026-11-16, the evening): every leg its own runs, each on a dip of its own, none across to another leg, from the leg\'s start to its end in the cells\' order; no landing inside; an idle run a cell, a track a leg', () => {
   for (const id of FORMG_LIB) {
-    const P = passesOf(load(id)), a = brushRuns(P, 95, 15), b = idleRunsOf(P, 95, 15);
+    const P = passesOf(load(id)), a = brushRuns(P, 79, 15, false, 0), paint = a.filter(r => !r.idle), idle = a.filter(r => r.idle);
     doseHolds(a, id);
-    assert.deepEqual(a.filter(r => r.idle), b.filter(r => r.idle), `${id}: the idle runs`);
-    const flat = R => R.filter(r => !r.idle).flatMap(r => r.pts);
-    assert.deepEqual(flat(a), flat(b), `${id}: no point added, none moved`);
-    assert.ok(a.filter(r => r.dip).length > b.filter(r => r.dip).length, `${id}: more dips`);
+    const near = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < 1e-6, len = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
+    const dial = new Set(P.flatMap((q, k) => q.byCell.filter(c => c.runs).map(c => `${k}:${c.num}`)));   // the watch's dial: its legs cut at its bands, its own
+    for (const r of paint) {
+      assert.ok(r.pts.every(q => Math.abs(q[0] - r.pts[0][0]) < 1e-6), `${id}: a run across legs`);
+      assert.ok(dial.has(`${r.pass}:${r.num}`) || len(r.pts) <= 79 + 1e-6, `${id}: a run of ${len(r.pts).toFixed(1)} mm on one dip`);
+    }
+    let k = 0;
+    for (const l of P.flatMap(q => q.byCell.flatMap(c => c.legs))) {
+      assert.ok(near(paint[k].pts[0], l[0]), `${id}: run ${k + 1} at its leg's start`);
+      while (!near(paint[k].pts.at(-1), l[1])) k++;
+      k++;
+    }
+    assert.equal(k, paint.length, `${id}: every run a leg's`);
+    assert.equal(idle.length, P.reduce((t, q) => t + q.cells, 0), `${id}: an idle run a cell`);
+    assert.equal(idle.reduce((t, r) => t + r.pts.length / 2, 0), P.reduce((t, q) => t + q.tracks, 0), `${id}: an idle track a leg`);
   }
 });
 test('OPM-G\'s run by the dose: every run on a dip of its own, landing inside as the canon\'s, the idle runs as the canon has them', () => {
@@ -475,19 +486,19 @@ test('MARKS in the run: every line\'s marks before its first cell, one dip for t
   assert.ok(b.r.seconds - a.r.seconds < 30 * 60, `the marks' time: ${Math.round((b.r.seconds - a.r.seconds) / 60)} min`);
 });
 
-test('the idle run n + 1 (2026-11-16, LAB + IDLE 6.0\'s): n legs, n + 1 tracks between the outer legs\' middles, a lone leg twice; the old pass otherwise', () => {
-  const leg = x => [[x, 10], [x, 90]];
-  for (const n of [2, 3, 4, 6, 7]) {
-    const legs = Array.from({ length: n }, (_, i) => leg(10 + 5 * i)), T = idleLegsOf(legs, passOf(5), true), xs = T.map(t => t[0][0]);
-    assert.equal(T.length, n + 1, `${n} legs`);
-    assert.ok(Math.min(...xs) >= 10 - 1e-9 && Math.max(...xs) <= 10 + 5 * (n - 1) + 1e-9, 'none past the outer legs');
-    T.slice(1).forEach((t, i) => assert.ok(Math.abs(t[0][0] - T[i][0][0] - 5 * (n - 1) / n) < 1e-9, 'evenly'));
+test('the idle run on the legs (2026-11-16, the evening: "6 drops, so 6 runs"): n legs, n tracks, each on its own leg, its way; the n + 1 of the afternoon read no more; the pass apart otherwise (LAB\'s, OPM-G\'s)', () => {
+  const leg = (x, i) => (i % 2 ? [[x, 90], [x, 10]] : [[x, 10], [x, 90]]);
+  for (const n of [1, 2, 3, 6, 7]) {
+    const legs = Array.from({ length: n }, (_, i) => leg(10 + 5 * i, i));
+    assert.deepEqual(idleLegsOf(legs, passOf(5), true), legs, `${n} legs`);
   }
-  assert.equal(idleLegsOf([leg(10)], passOf(5), true).length, 2, 'a lone leg: there and back');
-  assert.equal(idleLegsOf(Array.from({ length: 6 }, (_, i) => leg(10 + 5 * i)), passOf(5)).length, 8, 'no flag: the pass apart, as before');
+  assert.equal(idleLegsOf(Array.from({ length: 6 }, (_, i) => leg(10 + 5 * i, i)), passOf(5)).length, 8, 'no flag: the pass apart, as before');
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20], [30, 20, 100], [35, 100, 20]] }] }] };
-  assert.notDeepEqual(passesOf({ ...pic, idle: 'n+1' })[0].byCell[0].line, passesOf(pic)[0].byCell[0].line, 'the flag changes the idle run alone');
-  assert.deepEqual(passesOf({ ...pic, idle: 'n+1' })[0].byCell[0].legs, passesOf(pic)[0].byCell[0].legs, '… not the legs');
+  const c = passesOf(pic)[0].byCell[0];
+  assert.equal(c.line.length / 2, 6, 'FORM-G: six legs, six tracks');
+  assert.deepEqual(c.line.filter((q, i) => i % 2 === 0).map(q => q[0]), c.legs.map(l => l[0][0]), '… each on its leg');
+  assert.deepEqual(passesOf({ ...pic, idle: 'n+1' })[0].byCell[0].line, c.line, 'a picture\'s idle: \'n+1\' read no more');
+  assert.equal(passesOf(pic, { canon: true })[0].byCell[0].line.length / 2, 8, 'OPM-G: the canon\'s, the pass apart');
 });
 
 test('a layer under (GEN-F\'s motion blur): its jars first, layer 0, one coat; the picture after them as before', () => {
