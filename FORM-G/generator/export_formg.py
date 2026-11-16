@@ -10,7 +10,6 @@
   python3 export_formg.py porsche-race <plan.pkl>  (racecar.py's .pkl)
   python3 export_formg.py porsche-race-k <plan.pkl>  (racecark.py's .pkl)
   python3 export_formg.py porsche-headlight <plan.pkl>  (headlight.py's .pkl)
-  python3 export_formg.py porsche-targa <plan.pkl>  (targa.py's .pkl)
   python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
 
 Run each in its own process: hyper.py and hyper2.py fill the same paint table on import. Coordinates in the JSON: mm from the canvas's bottom left corner, x right, y up."""
@@ -28,9 +27,8 @@ class Plan:
 # what the machine cannot reach is said here, not left to be pressed into a wall: the Porsche's exhaust, its tip past everything else, 9 mm shorter than the photo's, so that the
 # carriage keeps within the 865 mm (the elbow's sweep takes it about 20 mm past a leg's end at the bottom; the owner's rule: "must never silently change")
 LOWEST = {'porsche': 84.0}
-# GEN-F's sketches made final: the canvas, the card's title and its line
-GENF = {'porsche-headlight': (600, 800, 'Porsche, red · headlight', 'hyperrealism, 60 × 80, the classic red 911\'s headlight, a detail, 54 × 72 cm; GEN-F\'s sketch, its 14 colours'),
-        'porsche-targa': (700, 1000, 'Porsche Targa, red', 'hyperrealism, 70 × 100, the red 911 Targa from above, graphite seats, 85 cm long; GEN-F\'s sketch, its colours by his jars')}
+# the headlight's v.1 (headlight.py): the canvas, the card's title and its line; GEN-F's pictures are made by genfpic.py, no export
+GENF = {'porsche-headlight': (600, 800, 'Porsche, red · headlight', 'hyperrealism, 60 × 80, the classic red 911\'s headlight, a detail, 54 × 72 cm; GEN-F\'s sketch, its 14 colours')}
 pl = Plan()
 pl.grid, pl.form = d['grid'], d['form']
 pl.R, pl.N = pl.grid.shape
@@ -87,7 +85,7 @@ elif which in ('porsche-red', 'porsche-red-k', 'porsche-red-v3', 'porsche-white'
         V1 = {j['hex']: j['name'] for j in json.load(open(os.path.join(OUT, 'porsche-red.json')))['jars']}
         jarname = lambda pid, n: (V1[P[pid].hex], '')
 elif which in GENF:
-    # GEN-F's sketches made final (headlight.py, genfcar.py's pictures, 2026-11-16): their jars under their own names — the owner's numbered jars of the red
+    # the headlight's v.1 (headlight.py, 2026-11-16): its jars under their own names — the owner's numbered jars of the red
     # classic as they are, the new ones "New 1" … till he numbers them
     import hyper2
     import paintrun

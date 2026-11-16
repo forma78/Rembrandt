@@ -28,7 +28,7 @@ Rembrandt/
   CHANGELOG.md       what changed, newest first
   nolan-images/      the pictures NOLAN is made for
   RoArte/            the owner's hand tests of the brush and the paint for OPM-N (2026-11-01)
-  FORM-G/generator/  how FORM-G's paintings are made, on this Mac, at the owner's request; not part of the app
+  FORM-G/generator/  how FORM-G's paintings are made, on this Mac, at the owner's request; not part of the app; a new picture only by GEN-F → genfpic.py (2026-11-16)
   FORM-G/photos/     the owner's iPhone photos of FORM-G's runs, a folder a day, pushed by cloud-Claude; listed in FORM-G/PHOTOS.md (2026-11-16)
   FORM-G/eyes/       the machine camera's frames of FORM-G's runs, cut from its films, a folder a day; listed in FORM-G/PHOTOS.md (2026-11-16)
   GEN-F/             the sketches the owner approved on GEN-F, a json each, for the generator's final work (2026-11-16)

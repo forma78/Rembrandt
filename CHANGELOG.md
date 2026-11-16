@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **The old generator out of the way of new pictures** (2026-11-16; the owner, of the headlight's v.2: "v.2 looks great, of course … I did not notice until you
+  made it. Maybe kill the old generator altogether, so that it does not get in our way?"). Kept: it made every card he has and paints (the classic's v.1 …
+  v.4, the GT, the white, the watch, the headlight's v.1, the G-wagon), and they are made again or touched by it. Gone: `genfcar.py` and its
+  `porsche-targa.jars.json`, its way for GEN-F's sketches (the Targa's mush and mirror); `export_formg.py`'s Targa entry. The rule at the top of the
+  generator's README and in the folder layout: every new picture by GEN-F → `genfpic.py`, strictly the sketch.
 - **FORM-G: the headlight's v.2, true to its sketch** (2026-11-16; told the headlight was made the old way and would be remade as strictly when its frame comes,
   the owner: "Oh, let's! Only v.2"). `FORM-G/generator/headlight2.py` by genfpic.py: `app/formg/porsche-headlight-v2.json` and its jpg, every leg, its jar,
   colour and coats the sketch's (3054, compared), no crest on it; his own jars as hints beside 10 of the 14 colours ("≈ Jar 20" …). The card before v.1, which
