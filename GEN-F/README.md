@@ -17,6 +17,15 @@ sketch, approve it and give it to you for the final work? we would save a lot of
    by the brush model, the canon (Jar 6 in Layer 2, MARKS beside the canvas) — then FORM-G's
    card, as the generator's README says.
 
+## Two more keys
+
+- **GROUND**, white or black: the bare canvas's colour on the screen. Nothing is painted for it.
+- **Motion blur**, 0 … 300 mm: a layer under the picture, painted first — every column smeared
+  along itself in the picture's own jars, where the picture leaves the canvas bare. FORM-G does
+  not run such a layer yet: the final work starts when the owner says so.
+- **Opacity**, 10 … 100 %: the blur as a glaze — the same jars, thinned with medium, so the
+  Porsche's red stays and the picture's contour is not spoilt ("Colour 15 · glaze 50 %", est.).
+
 ## What a sketch holds
 
 - `format`, `colours` (asked), `made` (those that paint a leg), `picture_mm`, `columns`,
@@ -25,7 +34,9 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 - `jars`: name, hex, coats, line in m — after the canon of the jars; `out`: those that went,
   into which;
 - `counts`: legs, legs under 12 mm, brush m, lines of the list, dips, minutes (est.);
-- `gen`: GEN-F's numbers it was made with; `pic`: the whole plan in FORM-G's json.
+- `ground`: white or black, as GROUND showed it;
+- `blur_mm`, `under`, `under_counts`: the motion blur's layer, a plan in FORM-G's json of its own;
+- `gen`, `blur`: GEN-F's numbers it was made with; `pic`: the whole plan in FORM-G's json.
 
 A sketch's colours are named Colour 1 … n: no jar is mixed yet, no number on a lid. When the
 picture is made, its jars get the owner's physical numbers (README, the jars are physical): the
@@ -36,3 +47,4 @@ same paint his jar already has, that jar's number.
 | sketch | made into |
 |---|---|
 | `Classic Red Porsche Headlight Detail · GEN-F · 60x80 · 14.json` (2026-11-16, "I suddenly approved 60 × 80") | FORM-G's `porsche-headlight`, `FORM-G/generator/headlight.py`: 12 of its 14 colours the owner's jars of the red classic, 2 new |
+| `Classic Red 911 Coupe Profile · GEN-F · 60x80 · 38.json` (2026-11-16) | waiting: its motion blur, the layer under it, tried on GEN-F first |

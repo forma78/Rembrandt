@@ -2,7 +2,7 @@
 // the plain ground bare canvas, the same picture the same sketch.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GEN, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf, paletteOf, columnsOf, spansOf, sketchOf, hexOfLab, labOfHex, lineOf } from '../src/genfplan.js';
+import { GEN, BLUR, blurOf, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf, paletteOf, columnsOf, spansOf, sketchOf, hexOfLab, labOfHex, lineOf } from '../src/genfplan.js';
 import { passesOf, seqOf } from '../src/formgplan.js';
 
 // a picture W × H px: a white ground, a red disc with a dark band across it and a white highlight inside, the disc's left half lighter
@@ -26,7 +26,8 @@ function sketch(fid = '60x60', K = 12, W = 300, H = 300) {
     const sx = Math.min(W - 1, Math.floor(box.x + (x + 0.5) * box.w / PW)), sy = Math.min(H - 1, Math.floor(box.y + (y + 0.5) * box.h / R)), s = sy * W + sx;
     rgba.set(work.subarray(4 * s, 4 * s + 4), 4 * (y * PW + x)); m[y * PW + x] = mask[s];
   }
-  return { f, fit, ground, box, mask, ...sketchOf(binsOf(rgba, m, fit.N, R), fit, f, K) };
+  const B = binsOf(rgba, m, fit.N, R);
+  return { f, fit, ground, box, mask, B, ...sketchOf(B, fit, f, K) };
 }
 
 test('the formats: three, FORM-G\'s way round, the field within the reach and 30 mm of canvas round it', () => {
@@ -128,4 +129,42 @@ test('a sketch\'s colours numbered 1 … n after the canon, no gaps', () => {
   const s = sketch('60x60', 30);
   assert.ok(s.out.length, 'the canon took some out');
   assert.deepEqual(s.pic.jars.map(j => j.name), s.pic.jars.map((_, i) => `Colour ${i + 1}`));
+});
+
+test('the motion blur: a layer under the picture, its columns smeared along themselves, the picture\'s own jars, one coat (2026-11-16)', () => {
+  const s = sketch('60x80', 16), { f, fit, B } = s;
+  assert.equal(blurOf(B, fit, f, s, 0), null, 'off at 0');
+  const U = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 1 }), hex = new Set(s.pic.jars.map(j => j.hex)), cols = new Set(s.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))));
+  assert.ok(U && U.legs > 0);
+  assert.equal(U.pic.w, 600); assert.equal(U.pic.h, 800); assert.equal(U.pic.pitch, 5);
+  for (const j of U.pic.jars) { assert.ok(hex.has(j.hex), `${j.name}: a jar of the picture's`); assert.equal(j.coats, 1); assert.ok(j.under); assert.ok(j.id.startsWith('u')); }
+  const legs = U.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs)), ys = legs.flatMap(l => [l[1], l[2]]);
+  for (const [x] of legs) assert.ok(cols.has(x), 'only in the picture\'s own columns: the geometry across kept');
+  assert.ok(Math.min(...ys) >= BLUR.edge - 0.05 && Math.max(...ys) <= 800 - BLUR.edge + 0.05, 'off the canvas\'s top and bottom by its edge');
+  const top = 800 - fit.top, bottom = 800 - fit.top - fit.R;
+  assert.ok(Math.max(...ys) > top || Math.min(...ys) < bottom, 'beyond the picture along X');
+  // under the paint only near where it ends: never deep inside the disc
+  const at = (p, x, y) => p.jars.some(j => j.cells.some(c => c.legs.some(([lx, a, b]) => Math.abs(lx - x) < 2.6 && y >= Math.min(a, b) && y <= Math.max(a, b))));
+  assert.ok(at(s.pic, 300, 400) && !at(U.pic, 300, 400), 'the middle of the disc: the picture alone');
+  const longer = blurOf(B, fit, f, s, 300, '#FBFAF7', { alpha: 1 });
+  assert.ok(Math.max(...longer.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.flatMap(l => [l[1], l[2]])))) >= Math.max(...ys), 'longer, as far or farther');
+  assert.deepEqual(blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 1 }).pic, U.pic, 'the same, the same');
+  const tall = sketch('70x100', 16), T = blurOf(tall.B, tall.fit, tall.f, tall, 300, '#FBFAF7', { alpha: 1 }), ty = T.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.flatMap(l => [l[1], l[2]])));
+  assert.ok(Math.max(...ty) - Math.min(...ty) <= GEN.along + 0.1, 'along X within the reach, 843 mm, on a 70 × 100');
+});
+
+test('the motion blur\'s opacity: a glaze — the same jars, the same legs, the colour a mix with the canvas\'s, the Porsche\'s red kept', () => {
+  const s = sketch('60x80', 16), { f, fit, B } = s;
+  const full = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 1 }), half = blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 0.5 }), dark = blurOf(B, fit, f, s, 160, '#161514', { alpha: 0.5 });
+  assert.equal(BLUR.alpha, 0.5);
+  assert.deepEqual(blurOf(B, fit, f, s, 160).pic, half.pic, '50 % at first');
+  assert.deepEqual(half.pic.jars.map(j => j.cells), full.pic.jars.map(j => j.cells), 'the same legs');
+  half.pic.jars.forEach((j, i) => {
+    const q = full.pic.jars[i], a = labOfHex(j.hex), b = labOfHex(q.hex);
+    assert.equal(j.paint, q.hex, 'its paint the picture\'s own jar');
+    assert.equal(j.name, `${q.name} · glaze 50 %`);
+    assert.ok(a[0] >= b[0] - 0.5, `${j.name}: as light or lighter on the white`);
+    if (Math.hypot(b[1], b[2]) > 20) assert.ok(Math.sign(a[1]) === Math.sign(b[1]) && Math.hypot(a[1], a[2]) > 8, `${j.name}: its hue kept`);
+  });
+  dark?.pic.jars.forEach(j => assert.ok(labOfHex(j.hex)[0] <= labOfHex(j.paint)[0] + 0.5, `${j.name}: as dark or darker on the black`));
 });

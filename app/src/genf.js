@@ -1,7 +1,7 @@
 // GEN-F's page: a picture in, its sketch in FORM-G's legs, APPROVE (genfplan.js). The owner, 2026-11-16: "so that I see a first sketch, approve it and give it to
 // you for the final work". Two keys alone — the format, the number of colours; the rest FORM-G's own. Moves nothing on the machine: FORM-G's plotRun only counts
 // the run's time, the cup at hand, the canvas in the middle of the reach (est.).
-import { GEN, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf, sketchOf, lineOf } from './genfplan.js';
+import { GEN, BLUR, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf, sketchOf, blurOf, lineOf } from './genfplan.js';
 import { passesOf, rowsOf, R3, FORMG } from './formgplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
@@ -12,13 +12,15 @@ import './ui.js';
 const $ = s => document.querySelector(s), KEEP = 'rembrandt.genf.v01';
 const fmt = (v, d = 1) => Number(v).toFixed(d), esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
-const S = { format: GEN_FORMATS[0].id, k: 40, view: 'sketch', ground: 'white' };
+const S = { format: GEN_FORMATS[0].id, k: 40, view: 'sketch', ground: 'white', blur: 0, alpha: BLUR.alpha * 100 };
 // the ground, OPM-N's (inka.js, BG): the bare canvas's colour on the screen, not painted (the owner, 2026-11-16: "only the preview on a black ground, as an option")
 const BG = { white: '#FBFAF7', black: '#161514' };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEEP) || 'null') ?? {}); } catch { }
 if (!GEN_FORMATS.some(f => f.id === S.format)) S.format = GEN_FORMATS[0].id;
 if (!BG[S.ground]) S.ground = 'white';
 S.k = Math.min(GEN.colours[1], Math.max(GEN.colours[0], Math.round(+S.k) || 40));
+S.blur = Math.min(BLUR.max, Math.max(0, Math.round((+S.blur || 0) / BLUR.step) * BLUR.step));
+S.alpha = Math.min(100, Math.max(10, Math.round((+S.alpha || BLUR.alpha * 100) / 10) * 10));
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 
 // ---------- the picture, kept in this browser so a reload keeps it ----------
@@ -59,26 +61,39 @@ function build() {
     mask[i] = wk.mask[wy * wk.w + wx] || rgba[4 * i + 3] < 128 ? 1 : 0;
   }
   const B = binsOf(rgba, mask, fit.N, R), base = SRC.name.replace(/\.[^.]+$/, '');
-  SK = { f, fit, W, R, ...sketchOf(B, fit, f, S.k, { id: 'gen-f', title: base }), est: null };
+  SK = { f, fit, W, R, B, ...sketchOf(B, fit, f, S.k, { id: 'gen-f', title: base }), est: null };
   for (let i = 0; i < W * R; i++) if (mask[i]) rgba[4 * i + 3] = 0;           // the Picture view: the ground off
   SK.photo = canvasOf(W, R); SK.photo.getContext('2d').putImageData(img, 0, 0);
   const all = SK.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs)), line = lineOf(SK.pic);
   SK.legs = all.length; SK.short = all.filter(l => Math.abs(l[2] - l[1]) < 12).length;
   SK.lines = Object.fromEntries(SK.pic.jars.map(j => [j.id, line(j)]));
   only = null;
+  blurNow();
+}
+// the motion blur, a layer under the picture (genfplan.js, blurOf): again on its slider or the ground, the picture as it is
+function blurNow() {
+  const sk = SK; if (!sk) return;
+  sk.under = blurOf(sk.B, sk.fit, sk.f, sk, S.blur, BG[S.ground], { alpha: S.alpha / 100 });
+  if (sk.under) { const line = lineOf(sk.under.pic); sk.ulines = Object.fromEntries(sk.under.pic.jars.map(j => [j.id, line(j)])); }
+  if (only?.startsWith('u') && !sk.under?.pic.jars.some(j => j.id === only)) only = null;
+  sk.est = null; sk.uest = null;
   panel(); draw();
   setTimeout(estimate, 20);
 }
 // FORM-G's run of it, counted: its list, its rows as real 3's, plotRun — the time, the dips (est.); nothing sent
-function estimate() {
-  const sk = SK; if (!sk) return;
+function runOf(pic) {
   try {
-    const P = passesOf(sk.pic), R = rowsOf(sk.pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3 }), W = reach();
+    const P = passesOf(pic), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3 }), W = reach();
     const here = { x: (W.x.min + W.x.max) / 2, y: (W.y.min + W.y.max) / 2 };
     const r = plotRun({ ...DEFAULTS, speed: 25, travel: 100, tail: 3, lift: true, ink: true, snake: true, pause: false, cup: cupOf({ hand: { on: true } }), hover: ELBOW_HOVER, press: 0, noDipUnder: 0, rows: R.ps.length, here },
       R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next jar' : null })));
-    sk.est = { seconds: r.seconds, dips: r.dips, lines: P.length, n1: P.filter(q => q.layer === 1).length, mm: P.reduce((a, q) => a + q.mm, 0) };
-  } catch (e) { sk.est = { fail: String(e?.message || e) }; }
+    return { seconds: r.seconds, dips: r.dips, lines: P.length, n1: P.filter(q => q.layer === 1).length, mm: P.reduce((a, q) => a + q.mm, 0) };
+  } catch (e) { return { fail: String(e?.message || e) }; }
+}
+function estimate() {
+  const sk = SK; if (!sk) return;
+  sk.est = runOf(sk.pic);
+  sk.uest = sk.under ? runOf(sk.under.pic) : null;
   if (sk === SK) panel();
 }
 
@@ -90,6 +105,8 @@ function panel() {
     + (SK ? `; the picture <b>${SK.W} × ${SK.R} mm</b>, ${SK.fit.N} columns 5 mm apart, in the middle.` : '.');
   $('#kNow').textContent = S.k; $('#kSl').value = S.k;
   $('#kSay').textContent = SK ? `→ ${SK.pic.jars.length} jars` : '';
+  $('#bNow').textContent = S.blur ? `${S.blur} mm` : 'off'; $('#bSl').value = S.blur;
+  $('#aNow').textContent = `${S.alpha} %`; $('#aSl').value = S.alpha; $('#aSl').disabled = !S.blur;
   [...$('#views').children].forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
   document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', b.dataset.bg === S.ground));
   $('#btnApprove').disabled = !SK;
@@ -99,13 +116,19 @@ function panel() {
     + `${SK.kept.length ? `, ${SK.kept.length} short kept, nothing near` : ''}. ${SK.legs} legs, ${SK.short} under 12 mm; `
     + (e ? (e.fail ? `<span class="warn">the time not counted: ${esc(e.fail)}</span>` : `${fmt(e.mm / 1000, 1)} m of brush, ${e.lines} lines of the list (${e.n1} the first layer, ${two} jars two coats), ${e.dips} dips, <b>≈ ${hm(e.seconds)}</b> on the machine, the jars' changes by hand apart.`) : 'counting the time …')
     + ' A sketch: flat colours, no brush model (est.).';
+  const U = SK.under, ue = SK.uest;
+  $('#blurRead').innerHTML = !S.blur ? 'Motion blur off: no layer under the picture.' : !U ? 'Motion blur: nothing to blur along the columns.'
+    : `<b>Under the picture, first:</b> the motion blur ${S.blur} mm, opacity ${S.alpha} %, ${U.pic.jars.length} of its jars, one coat, ${U.legs} legs`
+      + (ue ? (ue.fail ? ` <span class="warn">the time not counted: ${esc(ue.fail)}</span>` : `, ${fmt(ue.mm / 1000, 1)} m, ≈ ${hm(ue.seconds)}; to dry, then the picture.`) : ' …');
   $('#jarsHint').textContent = `${n}, light to dark`;
   const by = Object.fromEntries(SK.pic.jars.map(j => [j.id, j]));
   $('#jarList').innerHTML = SK.pic.jars.map((j, i) => `<li data-id="${j.id}"${j.id === only ? ' class="only"' : ''} title="${esc(j.name)} ${j.hex}: ${j.cells.length} cells, ${j.cells.reduce((a, c) => a + c.legs.length, 0)} legs, ${fmt(SK.lines[j.id] / 1000, 2)} m${j.coats === 2 ? ', two coats' : ''}">`
     + `<span class="no">${i + 1}</span><span class="sw" style="background:${j.hex}"></span><span class="nm">${esc(j.name)} <em>${j.hex}</em></span><span class="tg">${fmt(SK.lines[j.id] / 1000, 1)} m${j.coats === 2 ? ' ×2' : ''}</span></li>`).join('')
     + (SK.out.length ? `<li class="sep">Into another jar, the canon · ${SK.out.length}</li>` + SK.out.map(q => `<li class="gone" title="${q.hex}:${fmt(q.line / 1000, 2)} m, under ${long / 10} cm — its legs to ${esc(by[q.into]?.name)}, ΔE ${fmt(q.de, 1)}">`
       + `<span class="no"></span><span class="sw" style="background:${q.hex}"></span><span class="nm">→ ${esc(by[q.into]?.name)} <em>ΔE ${fmt(q.de, 0)}</em></span><span class="tg">${fmt(q.line / 1000, 2)} m</span></li>`).join('') : '');
-  $('#stats').textContent = `${f.w / 10} × ${f.h / 10} cm · ${n} jars · ${SK.legs} legs`;
+  if (U) $('#jarList').innerHTML += `<li class="sep">Under · motion blur ${S.blur} mm, first · ${U.pic.jars.length}</li>` + U.pic.jars.map(j => `<li data-id="${j.id}"${j.id === only ? ' class="only"' : ''} title="${esc(j.name)} ${j.hex} under the picture: ${j.cells.length} cells, ${j.cells.reduce((a, c) => a + c.legs.length, 0)} legs, ${fmt(SK.ulines[j.id] / 1000, 2)} m, one coat">`
+    + `<span class="no"></span><span class="sw" style="background:${j.hex}"></span><span class="nm">${esc(j.name)} <em>under</em></span><span class="tg">${fmt(SK.ulines[j.id] / 1000, 1)} m</span></li>`).join('');
+  $('#stats').textContent = `${f.w / 10} × ${f.h / 10} cm · ${n} jars · ${SK.legs} legs${U ? ` · under ${U.legs}` : ''}`;
 }
 
 // ---------- the stage ----------
@@ -139,9 +162,9 @@ function draw() {
     g.globalAlpha = a; g.strokeStyle = j.hex; g.lineWidth = Math.max(1, 0.35 * V.s); g.lineCap = 'round'; g.lineJoin = 'round';
     for (const c of j.cells) { g.beginPath(); c.legs.forEach(([x, y1, y2], i) => { if (i) g.lineTo(X(x), Y(y1)); else g.moveTo(X(x), Y(y1)); g.lineTo(X(x), Y(y2)); }); g.stroke(); }
   };
-  const W5 = GEN.pitch * V.s + 0.4;
-  if (S.view === 'drag') { for (const j of SK.pic.jars) legs(j, W5, 0.16); for (const j of SK.pic.jars) if (!only || j.id === only) snake(j, 1); }
-  else { for (const j of SK.pic.jars) legs(j, W5, only && j.id !== only ? 0.16 : 1); if (only) legs(SK.pic.jars.find(j => j.id === only), W5, 1); }
+  const W5 = GEN.pitch * V.s + 0.4, all = [...(SK.under?.pic.jars ?? []), ...SK.pic.jars];   // the motion blur's layer under the picture, first
+  if (S.view === 'drag') { for (const j of all) legs(j, W5, 0.16); for (const j of all) if (!only || j.id === only) snake(j, 1); }
+  else { for (const j of all) legs(j, W5, only && j.id !== only ? 0.16 : 1); if (only) legs(all.find(j => j.id === only), W5, 1); }
   g.globalAlpha = 1;
 }
 let raf = 0;
@@ -164,7 +187,11 @@ cv.addEventListener('dblclick', () => { V.fit = true; kick(); });
 $('#formats').onclick = e => { const b = e.target.closest('[data-f]'); if (!b || b.dataset.f === S.format) return; S.format = b.dataset.f; save(); V.fit = true; build(); };
 $('#kSl').oninput = () => { $('#kNow').textContent = $('#kSl').value; };
 $('#kSl').onchange = () => { S.k = +$('#kSl').value; save(); build(); };
-document.querySelectorAll('[data-bg]').forEach(b => b.onclick = () => { S.ground = b.dataset.bg; save(); panel(); kick(); });
+$('#bSl').oninput = () => { const v = +$('#bSl').value; $('#bNow').textContent = v ? `${v} mm` : 'off'; };
+$('#bSl').onchange = () => { S.blur = +$('#bSl').value; save(); blurNow(); };
+$('#aSl').oninput = () => { $('#aNow').textContent = `${$('#aSl').value} %`; };
+$('#aSl').onchange = () => { S.alpha = +$('#aSl').value; save(); blurNow(); };
+document.querySelectorAll('[data-bg]').forEach(b => b.onclick = () => { S.ground = b.dataset.bg; save(); if (S.blur) blurNow(); else { panel(); kick(); } });   // the blur fades into the ground
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; S.view = b.dataset.view; save(); panel(); kick(); };
 $('#jarList').onclick = e => { const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#jarList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
 $('#file').onchange = e => { const f = e.target.files?.[0]; if (f) { keepPic(f, f.name); openPic(f, f.name); } e.target.value = ''; };
@@ -184,12 +211,13 @@ export function approvalOf(src, sk, s, when = new Date()) {
     jars: sk.pic.jars.map(j => ({ name: j.name, hex: j.hex, coats: j.coats, line_m: +(sk.lines[j.id] / 1000).toFixed(2) })),
     out: sk.out.map(q => ({ hex: q.hex, line_m: +(q.line / 1000).toFixed(2), into: by[q.into], de: +q.de.toFixed(1) })),
     counts: { legs: sk.legs, under_12mm: sk.short, ...(sk.est && !sk.est.fail ? { brush_m: +(sk.est.mm / 1000).toFixed(1), lines: sk.est.lines, dips: sk.est.dips, minutes_est: Math.round(sk.est.seconds / 60) } : {}) },
-    gen: GEN, pic: sk.pic,
+    ...(sk.under ? { blur_mm: s.blur, blur_alpha: s.alpha / 100, under: sk.under.pic, under_counts: { legs: sk.under.legs, ...(sk.uest && !sk.uest.fail ? { brush_m: +(sk.uest.mm / 1000).toFixed(1), minutes_est: Math.round(sk.uest.seconds / 60) } : {}) } } : {}),
+    gen: GEN, blur: BLUR, pic: sk.pic,
   };
 }
 $('#btnApprove').onclick = async () => {
   if (!SK) return;
-  const name = `${SRC.name.replace(/\.[^.]+$/, '')} · GEN-F · ${S.format} · ${S.k}.json`, body = JSON.stringify(approvalOf(SRC, SK, S), null, 1);
+  const name = `${SRC.name.replace(/\.[^.]+$/, '')} · GEN-F · ${S.format} · ${S.k}${SK.under ? ` · blur ${S.blur} · ${S.alpha}%` : ''}.json`, body = JSON.stringify(approvalOf(SRC, SK, S), null, 1);
   const said = t => { $('#approveRead').innerHTML = t; };
   if (window.showSaveFilePicker) {
     try {
