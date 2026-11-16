@@ -5,6 +5,20 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **GEN-F, the form's generator, a tab of its own** (2026-11-16; the owner: "can we not make the generator a tab of its own, so that I see a first sketch,
+  approve it and give it to you for the final work? we would save a lot of tokens. GEN-F, as the generator of the form :)"; "I do not need many sliders, only
+  the number of colours from 10 to 100 and the format 60 × 60, 60 × 80, 70 × 100 … three for now"). `app/genf.html`, `src/genfplan.js`, `src/genf.js`, after
+  FORM-G in the top row: a picture opened or dropped (JPG, PNG; kept in this browser), its plain ground bare canvas — the ground the border reaches, a white
+  highlight inside the picture painted — the picture as large as the field the brush reaches, 540 × 843 mm at most, 30 mm of canvas round it (est.); FORM-G's
+  grid of 5 mm columns, every column's jars by a dynamic programme (a cut's cost, no run under 8 mm), its miss carried to the next column (hyper2.py's way);
+  the colours by k-means in CIELAB from a fixed seed; paintrun.py's spans (light under dark, 3 mm under) and snakes; FORM-G's json, then the canon of the jars
+  by the canvas's long side, the jars that went listed; the time by FORM-G's own run as real 3's (plotRun, the cup at hand, est.). Views Sketch · Drag ·
+  Picture, a jar's row its legs. APPROVE saves the sketch as a json for the final work, into `GEN-F/` (its README). Moves nothing on the machine. Checked:
+  the red classic 70 × 100 at 24 colours, 23 jars, ≈ 12 h 40 min, v.3's own count ≈ 12 h 47; the racing face 60 × 60 in ≈ 0.5 s; in headless Chrome on a
+  static copy (open, formats, colours, views, a jar, APPROVE's file, a reload), no exception. Not run on the machine; nothing to run.
+- **FORM-G's generator checked** (2026-11-16, the owner: "check the generator by which we made the red Porsche v.2 60 × 60"): `racecark.py 6 2`, then
+  `export_formg.py porsche-race-k` and `jarcanon.py` with the owner's eight moves of 2026-11-10, in the scratchpad, give `app/formg/porsche-race-k.json`
+  and its render byte for byte (43 jars → 35; 1873 legs; ≈ 3 min). Nothing changed.
 - **FORM-G/PHOTOS.md: FORM-G's photos and frames, as HOLO's** (2026-11-16; the owner: "yes, I allow adding FORM-G to HOLO-Claude/PHOTOS.md.
   The README may be added to"). The iPhone's photos of FORM-G's runs → the cloud chat → `FORM-G/photos/<date>/`, pushed by cloud-Claude;
   the machine camera's frames, one every 2 s → `FORM-G/eyes/<date>/`, by Claude in VS Code; every batch at the top of `FORM-G/PHOTOS.md`.

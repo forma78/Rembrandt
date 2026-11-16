@@ -50,6 +50,8 @@ python farwagon.py gwagon.jpg gwagon_distance.jpg
 
 A new picture: its own `*geo.py` and planner, a name in `FORMG_LIB` (`app/src/formgplan.js`), its json and a 3 px/mm jpg in `app/formg/`.
 
+**GEN-F first** (2026-11-16): the owner sketches a new picture on GEN-F (`app/genf.html`) — the format, the colours — and approves it; its json in `../../GEN-F/` gives the picture's size and place on the canvas, the colours he saw and their count, and the box of the picture in his illustration. The final work starts from there (`../../GEN-F/README.md`).
+
 A picture must fit the machine's reach, 865 × 568 mm, with the carriage's own run past a leg's end: the elbow's sweep takes it about 20 mm at the bottom. `placeRange` says where the canvas may lie; FORM-G refuses what would be pressed into a wall. So the Porsche is 85 cm long, its exhaust 9 mm short (`LOWEST`).
 
 A jar with `coats: 2` comes again last in the list, over the dry first layer (the owner, 2026-11-06). The render lays its film twice; the tab's run lays every cell's snake and at once its idle run, both times. The same plan, the idle runs not rendered, the difference untested on canvas.
