@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G: the classic red 911's headlight, 60 × 80 — GEN-F's first sketch made final** (2026-11-16; the owner: "I suddenly approved 60 × 80, Classic Red
+  Porsche Headlight Detail · GEN-F · 60x80 · 14.json; the file is with you … in the GEN-F folder"). `FORM-G/generator/headlight.py`: racecark.py's RaceFaceK
+  (the brush model, Kuzya's B and C, no gloss) on no geometry by hand — the whole picture painted, 540 × 720 mm, 30 mm in, 40 down, as the sketch; the carry
+  kept within the red paint or the metal. The sketch's 14 colours, each first made to measure, then the owner's own numbered jar of the red classic whose dried
+  leg lies within 8 of it (nearest pair first, est.): Jar 1, 7, 24, 25, 27, 28, 34, 40, 43, 47, 48, Black; two new, `New 1` `#CD5559` and `New 2` `#C72E2D` ×2,
+  till he numbers them. None pruned, the canon of the jars at 80 cm takes none (the shortest 3.3 m). 2618 legs, 23 lines of the list, 9 jars two coats; FORM-G's
+  count ≈ 7 h 49 + 4 h 52 min (est.). `app/formg/porsche-headlight.json` and its jpg, the first card of THE LIBRARY. MARKS: no room on a 60 × 80 by FORM-G's
+  strips (14–25 mm round the picture, 32–34 needed). The sketch's json in `GEN-F/`; the picture stays out of git (`.gitignore`). Checked: the tests; FORM-G in
+  headless Chrome on a static copy, the card, its list, its place, its (i). Not run.
 - **GEN-F: GROUND, white or black, the preview only** (2026-11-16; the owner, of `Crimson Classic Porsche 911 in Studio Light.png`, a car on black: "add a
   switch of the ground from white to black; it need not be painted, only the preview on a black ground, as an option; not from scratch: it is called GROUND
   and lies in OPM-N, we made it already"). OPM-N's two keys and colours (`#bgTools`, inka.js's `BG`: `#FBFAF7`, `#161514`) under the picture on the left:

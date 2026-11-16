@@ -9,6 +9,7 @@
   python3 export_formg.py porsche-red-v3 <plan.pkl>  (redcarv3.py's .pkl)
   python3 export_formg.py porsche-race <plan.pkl>  (racecar.py's .pkl)
   python3 export_formg.py porsche-race-k <plan.pkl>  (racecark.py's .pkl)
+  python3 export_formg.py porsche-headlight <plan.pkl>  (headlight.py's .pkl)
   python3 export_formg.py gwagon <plan.pkl>   (gwagon.py's .pkl), OPM-G's: into app/opmg/
 
 Run each in its own process: hyper.py and hyper2.py fill the same paint table on import. Coordinates in the JSON: mm from the canvas's bottom left corner, x right, y up."""
@@ -81,6 +82,22 @@ elif which in ('porsche-red', 'porsche-red-k', 'porsche-red-v3', 'porsche-white'
         # the classic's v.2 (and v.3, v.2's jars halved) under v.1's names, paint for paint: a jar is the owner's numbered jar, not a place in a list (2026-11-11: "the orange is No. 6, the canon")
         V1 = {j['hex']: j['name'] for j in json.load(open(os.path.join(OUT, 'porsche-red.json')))['jars']}
         jarname = lambda pid, n: (V1[P[pid].hex], '')
+elif which == 'porsche-headlight':
+    # the classic red 911's headlight, a detail on 60 × 80 (headlight.py's .pkl), GEN-F's first approved sketch (2026-11-16): its jars under their own names —
+    # the owner's numbered jars of the red classic as they are, the new ones "New 1" … till he numbers them
+    import hyper2
+    import paintrun
+    from watchplan import P, PITCH, MARGIN
+    pl.W, pl.H = 600, 800
+    P.clear()
+    pl.pids = []
+    for i, (name, hexv, coats) in enumerate(d['jars']):
+        P[f'j{i}'] = hyper2.jar(hexv, coats, name)
+        P[f'j{i}'].name = name
+        pl.pids.append(f'j{i}')
+    pl.forms = [dict(name='body', idle=True, dose=1.0), dict(name='dark', idle=False, dose=1.3)]
+    title, sub = 'Porsche, red · headlight', 'hyperrealism, 60 × 80, the classic red 911\'s headlight, a detail, 54 × 72 cm; GEN-F\'s sketch, its 14 colours'
+    jarname = lambda pid, n: (P[pid].name, '')
 elif which in ('porsche-race', 'porsche-race-k'):
     # the red racing 911's face (racecar.py's .pkl), on 60 × 60: the red classic's technique, racegeo.py's geometry; the neon the owner's fluorescent lemon as it comes;
     # its v.2 Kuzya (racecark.py's .pkl), Kuzya's audit laid on it, a card of its own

@@ -30,3 +30,9 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 A sketch's colours are named Colour 1 … n: no jar is mixed yet, no number on a lid. When the
 picture is made, its jars get the owner's physical numbers (README, the jars are physical): the
 same paint his jar already has, that jar's number.
+
+## The sketches approved
+
+| sketch | made into |
+|---|---|
+| `Classic Red Porsche Headlight Detail · GEN-F · 60x80 · 14.json` (2026-11-16, "I suddenly approved 60 × 80") | FORM-G's `porsche-headlight`, `FORM-G/generator/headlight.py`: 12 of its 14 colours the owner's jars of the red classic, 2 new |

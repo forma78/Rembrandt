@@ -1,0 +1,75 @@
+{
+ "note": "Headlight: its jars made to measure, kept; the fixed ones its FIXED",
+ "jars": [
+  {
+   "name": "Jar 1",
+   "hex": "#E6E5DF",
+   "coats": 1
+  },
+  {
+   "name": "Jar 7",
+   "hex": "#9B9C9A",
+   "coats": 1
+  },
+  {
+   "name": "New 1",
+   "hex": "#CD5559",
+   "coats": 1
+  },
+  {
+   "name": "Jar 28",
+   "hex": "#4B4D4E",
+   "coats": 1
+  },
+  {
+   "name": "New 2",
+   "hex": "#C72E2D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 25",
+   "hex": "#7D3B2D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 40",
+   "hex": "#2B2B2C",
+   "coats": 1
+  },
+  {
+   "name": "Jar 24",
+   "hex": "#AE0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 27",
+   "hex": "#9D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 34",
+   "hex": "#760D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 48",
+   "hex": "#280D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 43",
+   "hex": "#510D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 47",
+   "hex": "#211A15",
+   "coats": 2
+  },
+  {
+   "name": "Black",
+   "hex": "#0C0C0C",
+   "coats": 2
+  }
+ ]
+}

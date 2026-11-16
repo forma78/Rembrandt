@@ -69,3 +69,10 @@ OPM-G/g-wagon*
 # the generator's caches
 FORM-G/generator/__pycache__/
 FORM-G/generator/*.pkl
+# GEN-F: the pictures sketched there and the screenshots stay on this Mac, as FORM-G/'s; the approved sketches' json go to git (GEN-F/README.md)
+/GEN-F/*.png
+/GEN-F/*.jpg
+/GEN-F/*.jpeg
+/GEN-F/*.webp
+/GEN-F/*.heic
+/GEN-F/*.HEIC
