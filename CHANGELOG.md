@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **GEN-F: three screens to compare, APPROVE only the one chosen** (2026-11-16; the owner, `GEN-F/Screenshot 2026-11-16 at 2.16.12 PM.png`, 1 · 2 · 3 drawn on
+  the stage and on the colours' slider: "as I move the colours' slider I want to see a table to compare, screens 1, 2 and 3; and APPROVE only when one of the
+  three is selected … I simply cannot tell: 17 colours, say, 29 or 45?"; `2.22.46 PM.png`: "three screens fit easily"). The stage three canvases side by side,
+  each its own number of colours (`S.slots`, his 17, 29, 45 at first, kept in this browser), its head the colours, the jars by the canon and the time (est.);
+  a click on a screen, or on its mark ① ② ③ under the slider, chooses it — the slider then moves that screen's colours alone, the panel and the jars its; the
+  zoom and the drag the same on all three; the Picture view one. APPROVE off till a screen is chosen, then "APPROVE 2 · 29 colours", its file that screen's
+  (`screen`); a new picture or a reload, none chosen. Checked in headless Chrome at his window's 1905 × 885.
 - **GEN-F: the field 540 × 855** (2026-11-16; the owner, of a 70 × 100 at "540 × 843 mm … the picture 395 × 843": "make me 540 × 855 mm, please … we did it
   fine before"). `GEN.along` 855, was the classic's 843. Checked by FORM-G's own place of the canvas (`placeRange` off plotRun's carriage): the red classic at
   843 has 3 mm of room at the bottom (−61.3 … −58.2); a GEN-F sketch of the top-down classic on 70 × 100 at 855 comes out 385 × 851 mm (whole columns, its

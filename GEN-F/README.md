@@ -7,7 +7,8 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 
 ## The way of a new picture
 
-1. The owner opens his illustration on **GEN-F** (`app/genf.html`), picks the format (90 × 120
+1. The owner opens his illustration on **GEN-F** (`app/genf.html`): three screens side by side,
+   each its own number of colours (17, 29, 45 at first); he chooses one by a click. He picks the format (90 × 120
    and 100 × 150 are for a new frame: a sketch to look at, nothing to run yet) and the
    colours, and looks at the sketch: Sketch, Drag, Picture; the jars; the time (est.).
 2. **APPROVE** saves a json: `<picture> · GEN-F · <format> · <colours>.json`. It goes here.

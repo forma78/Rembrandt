@@ -36,6 +36,10 @@
   .gf-count span{font:10px var(--mono);color:var(--mute)}
   .gf-blur{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
   .gf-blur b{font:600 13px var(--mono);letter-spacing:0;text-transform:none;color:var(--ink)}
+  .gf-marks{position:relative;height:20px;margin-top:2px}   /* the three screens' marks, 1 2 3 (the owner's drawing, 2026-11-16) */
+  .gf-marks b{position:absolute;top:0;transform:translateX(-50%);width:18px;height:18px;box-sizing:border-box;border-radius:50%;border:1.5px solid var(--mute);color:var(--mute);font:600 10px/15px var(--mono);text-align:center;cursor:pointer;background:var(--card)}
+  .gf-marks b.on{border-color:var(--ink);color:var(--ink)}
+  .gf-marks b.pick{border-color:var(--orange);background:var(--orange);color:#fff}
   .looks{display:flex;margin:12px 0 0}
   .looks .tog{flex:1}
   #jarList{margin:6px 0 0;padding:0;list-style:none}
@@ -105,6 +109,7 @@
       <h3>Colours <span class="hint">jars asked, 10 … 100</span> <span id="lamp"></span></h3>
       <div class="gf-count"><b id="kNow">40</b><span id="kSay"></span></div>
       <input class="slider" type="range" id="kSl" min="10" max="100" step="1" value="40" aria-label="Colours">
+      <div class="gf-marks" id="kMarks" aria-label="The three screens"></div>
       <!-- the motion blur (the owner, 2026-11-16, of the red 911 in profile along X: "a second, BOTTOM layer … and a slider in GEN-F, motion blur. It adds stripes
            of the Porsche's own colour but does not break the geometry, as it lies UNDER the picture"): every column smeared along itself, painted first -->
       <div class="gf-blur" title="Motion blur: every column of the picture smeared along itself, so many mm, in the picture's own jars — a layer painted first, UNDER the picture, where it leaves the canvas bare; the picture over it as it is. Off at 0"><span>Motion blur</span><b id="bNow">off</b></div>
@@ -118,7 +123,7 @@
       </div>
       <p class="read" id="sketchRead"></p>
       <p class="read" id="blurRead"></p>
-      <button class="btn" id="btnApprove" disabled title="APPROVE: the sketch saved as a file — the format, the colours, the jars and every leg — for Claude's final work in FORM-G/generator; put it in Rembrandt/GEN-F/">APPROVE</button>
+      <button class="btn" id="btnApprove" disabled title="APPROVE the screen chosen (a click on it, or on its mark under the slider): the sketch saved as a file — the format, the colours, the jars and every leg — for Claude's final work in FORM-G/generator; put it in Rembrandt/GEN-F/">APPROVE</button>
       <p class="read" id="approveRead"></p>
     </section>
     <section class="sec">
@@ -129,7 +134,7 @@
 </main>
 
 <footer class="status">
-  <span id="hint">GEN-F — a picture into FORM-G's legs, a sketch to approve. The wheel zooms, a drag moves, a double click fits; a jar's row shows its legs. Moves nothing on the machine.</span>
+  <span id="hint">GEN-F — a picture into FORM-G's legs on three screens, each its own colours: a click on one chooses it, the slider moves it, APPROVE takes it. The wheel zooms, a drag moves, a double click fits. Moves nothing on the machine.</span>
   <span id="stats"></span>
 </footer>
 <script type="module" src="src/genf.js"></script>
