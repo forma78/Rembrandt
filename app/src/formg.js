@@ -1,6 +1,6 @@
 // FORM-G's page: the library, the picture, OPM-N's DRAG SNAKE (formgplan.js). inka.js's run as it is on OPM-N, its question with Start from, its LCD, BACK ONE CELL, the remote and ELBOW LIVE,
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
-import { FORMG, FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks } from './formgplan.js';
+import { FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -57,7 +57,8 @@ function rangeOf() {
 }
 const nearZero = ([lo, hi]) => lo > hi ? Math.round((lo + hi) / 2) : Math.round(Math.min(hi - Math.min(1, (hi - lo) / 2), Math.max(lo + Math.min(1, (hi - lo) / 2), 0)));
 function placeNow() {
-  if (!S.place[PIC.id]) { const r = rangeOf(); S.place[PIC.id] = { edgeLeft: nearZero(r.left), edgeBottom: nearZero(r.bottom) }; save(); }
+  // a picture with no room but its PRESS_OK: at first the canvas as high as the top wall lets it, so only the bottom is pressed (2026-11-16, the Targa)
+  if (!S.place[PIC.id]) { const r = rangeOf(), low = r.bottom[0] > r.bottom[1] && PRESS_OK[PIC.id]; S.place[PIC.id] = { edgeLeft: nearZero(r.left), edgeBottom: low ? Math.floor(r.bottom[1]) : nearZero(r.bottom) }; save(); }
   return S.place[PIC.id];
 }
 const hereNow = () => { const R = reach(), c = placeNow(); return { x: R.x.min + c.edgeBottom + PIC.h / 2, y: R.y.min + c.edgeLeft + PIC.w / 2 }; };
@@ -117,7 +118,7 @@ function paintRun(from = 0) {
 // wall — "Yes", the last. There the carriage would go about 6 mm past the bottom wall, the stop 9.45 mm past it: the lift-outs of the rear bumper's tips and
 // the diffuser pressed — the tip mostly off the canvas by then, the lift's last few mm of slide in the white under the car; a landing from below may lose ~2 mm
 // of its touch (est.); no leg gone. (plotRun has pressed every path since 2026-10-03, the owner: "remove this restriction".)
-const PRESS_OK = { 'porsche-red': 8, 'porsche-red-k': 8, 'porsche-red-v3': 8, 'porsche-red-v4': 8 };   // its v.2 Kuzya the same form at the same place (2026-11-11), its v.3 too, the same outline to the mm; v.4 v.3 and its shadow, no lower
+// PRESS_OK: formgplan.js's, the tests' too (2026-11-16)
 function pressOk() {
   const lim = PRESS_OK[PIC?.id];
   if (!lim || PIC.frame) return 0;
@@ -571,7 +572,7 @@ function showPanel() {
   if (document.activeElement !== L) L.value = c.edgeLeft;
   if (document.activeElement !== B) B.value = c.edgeBottom;
   $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}Within the walls for this picture: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line on the screen).`;
-  if (pressOk()) $('#placeRead').insertAdjacentHTML('afterbegin', `<b>The lowest legs' lift-outs pressed against the bottom wall</b>: the carriage would go ${fmt(pressOk(), 1)} mm past it (${fmt(PRESS_OK[PIC.id], 0)} at most for this picture, the stop 9.45), so it stops at the wall; no leg gone (the owner's “yes”, 2026-11-10, est.).<br>`);
+  if (pressOk()) $('#placeRead').insertAdjacentHTML('afterbegin', `<b>The lowest legs' lift-outs pressed against the bottom wall</b>: the carriage would go ${fmt(pressOk(), 1)} mm past it (${fmt(PRESS_OK[PIC.id], 0)} at most for this picture, the stop 9.45), so it stops at the wall; no leg gone (the owner's word: ${PIC.id === 'porsche-targa' ? '“keep 853 mm”, 2026-11-16' : '“yes”, 2026-11-10'}, est.).<br>`);
   showMarks();
   const F = PIC.frame, all = LIB[S.pic].jars.length, nb = $('#btnNoFrame');
   if (nb) nb.disabled = !F;

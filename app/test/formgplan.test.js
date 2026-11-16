@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, PRESS_OK, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
 import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -20,7 +20,7 @@ function runOf(pic, place) {
 const rangeOf = pic => { const R = rowsOf(pic, passesOf(pic)); return placeRange(pic, plotRun({ ...OPTS, rows: R.ps.length }, grouped(R)).carriage, reach()); };
 
 test('the library: every picture has its plan and its image, one grid, the brush 5 mm', () => {
-  assert.deepEqual(FORMG_LIB, ['porsche-headlight', 'porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk; the classic's v.3 after its v.2 (2026-11-11), its v.4 after it (2026-11-13)
+  assert.deepEqual(FORMG_LIB, ['porsche-targa', 'porsche-headlight', 'porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk; the classic's v.3 after its v.2 (2026-11-11), its v.4 after it (2026-11-13)
   for (const id of FORMG_LIB) assert.doesNotMatch(load(id).title + load(id).sub, /Kuzya/, `${id}: no "Kuzya" on its card (the owner, 2026-11-11: "it only makes noise")`);
   for (const id of FORMG_LIB) {
     const pic = load(id);
@@ -196,11 +196,14 @@ test('the Porsche 85 cm long, in the middle of its canvas, more white round it, 
 
 test('every picture through plotRun, the canvas in the middle of its range: no fault, nothing pressed into a wall, the dips of the cup at hand, a pause between lines', () => {
   for (const id of FORMG_LIB) {
-    const pic = load(id), G = rangeOf(pic), place = { left: (G.left[0] + G.left[1]) / 2, bottom: (G.bottom[0] + G.bottom[1]) / 2 };
-    assert.ok(G.left[0] <= G.left[1] && G.bottom[0] <= G.bottom[1], `${id}: no place for the canvas`);
+    const pic = load(id), G = rangeOf(pic), room = G.bottom[0] <= G.bottom[1];
+    // no room: only a picture in PRESS_OK, the canvas as high as the top wall lets it, the bottom pressed so many mm at most (the Targa, 2026-11-16)
+    const place = { left: (G.left[0] + G.left[1]) / 2, bottom: room ? (G.bottom[0] + G.bottom[1]) / 2 : Math.floor(G.bottom[1]) };
+    assert.ok(G.left[0] <= G.left[1] && (room || PRESS_OK[id] >= G.bottom[0] - place.bottom), `${id}: no place for the canvas`);
     const { P, r } = runOf(pic, place);
     assert.equal(r.fault, '', id);
-    assert.equal(r.pastWall, 0, `${id}: nothing pressed into a wall`); assert.equal(r.gone, 0, `${id}: no leg gone`);
+    if (room) assert.equal(r.pastWall, 0, `${id}: nothing pressed into a wall`);
+    assert.equal(r.gone, 0, `${id}: no leg gone`);
     assert.ok(r.dips >= P.length, `${id}: a dip at every line's start at least`);
     assert.ok(r.blocks.some(q => q.fork), 'the cup at hand: its forks');
     assert.equal(r.blocks.filter(q => q.kind === 'pause').length, P.length - 1, `${id}: a pause between lines`);

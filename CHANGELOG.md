@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: the Targa at 853 mm, its bottom pressed, the first card** (2026-11-16; asked whether to make it 843 as the classic or press it, the owner: "keep 853
+  mm — it goes fine for us, there is 1 cm more in reserve"; of "no place for the canvas", first taken for the library: "how so? :))"). `PRESS_OK` now
+  `formgplan.js`'s, the tests' too, and `'porsche-targa': 12`; a picture with no room but its PRESS_OK first laid as high as the top wall lets it (`placeNow`):
+  the Targa's canvas left edge 0, bottom edge −63 — 5 mm above his −68 for the classic — its rear's lowest lift-outs 11.7 mm past the bottom wall, the stop
+  9.45, the path stopping at the wall; no leg gone. The page's line says his word, the Targa's or the classic's. FORM-G's test: a picture with no room only
+  with its PRESS_OK, laid so, no fault, no leg gone. MARKS: the left strip alone (the others 0 … 9 mm of room, 32–34 needed). Checked in headless Chrome.
+  Not run.
 - **FORM-G's Targa from GEN-F, made, held for its size** (2026-11-16; the owner: "I put together at once Graphite Seats in a Glossy Red Targa · GEN-F · 70x100
   · 30.json for FORM-G" — screen 2, 30 colours, 25 by the canon; moved from `FORM-G/` to `GEN-F/`, where the sketches live). `FORM-G/generator/genfcar.py`,
   headlight.py's way made general for a picture on a plain ground: RaceFaceK on no geometry by hand, the ground bare (the border's colour reached from it), the
