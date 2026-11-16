@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **GEN-F: the field 540 × 855** (2026-11-16; the owner, of a 70 × 100 at "540 × 843 mm … the picture 395 × 843": "make me 540 × 855 mm, please … we did it
+  fine before"). `GEN.along` 855, was the classic's 843. Checked by FORM-G's own place of the canvas (`placeRange` off plotRun's carriage): the red classic at
+  843 has 3 mm of room at the bottom (−61.3 … −58.2); a GEN-F sketch of the top-down classic on 70 × 100 at 855 comes out 385 × 851 mm (whole columns, its
+  aspect) and leaves none, its lowest lift-outs ≈ 1 mm past the bottom wall, ≈ 5 mm at a full 855 — within the 8 mm the owner allowed the classic (`PRESS_OK`,
+  2026-11-10); a final of such a picture needs its own entry there. The new frame's keys say 540 × 855 too.
 - **GEN-F: 90 × 120 and 100 × 150, for a new frame** (2026-11-16; the owner: "for the future I want to try a canvas 90 × 120 and 100 × 150 cm. Could you add
   the keys? I wonder what the effect will be, probably quite like a realistic photograph"). Two keys after the three, "new frame" under them (`GEN_FORMATS`,
   `frame`): their field the canvas itself, 30 mm in (840 × 1140, 940 × 1440), not today's 540 × 843, and the page says so in orange; the motion blur along all

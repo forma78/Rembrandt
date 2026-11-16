@@ -38,18 +38,18 @@ test('the formats: three, FORM-G\'s way round, the field within the reach and 30
   for (const f of GEN_FORMATS.filter(q => !q.frame)) {
     const F = fieldOf(f);
     assert.ok(f.w <= f.h, `${f.id}: w across Y, the short side`);
-    assert.ok(F.w <= 568.5 - 20 && F.h <= 865 - 20, `${f.id}: in the reach, est.`);
+    assert.ok(F.w <= 568.5 - 20 && F.h <= 865 - 10, `${f.id}: in the reach, its lowest lift-outs pressed a few mm at most (est.)`);
     assert.ok(F.w <= f.w - 2 * GEN.margin && F.h <= f.h - 2 * GEN.margin, `${f.id}: 30 mm of canvas round it`);
   }
   assert.deepEqual(fieldOf(formatOf('60x60')), { w: 540, h: 540 });
-  assert.deepEqual(fieldOf(formatOf('70x100')), { w: 540, h: 843 });
+  assert.deepEqual(fieldOf(formatOf('70x100')), { w: 540, h: 855 });   // the owner's 540 × 855 (2026-11-16)
   assert.equal(formatOf('nothing').id, '60x60');
 });
 
 test('the fit: as large as the field lets it, its aspect kept, a whole number of 5 mm columns, in the middle', () => {
   const wide = fitOf(formatOf('60x60'), 2000, 1000), tall = fitOf(formatOf('70x100'), 941, 1672);
   assert.equal(wide.N, 108); assert.equal(wide.R, 270); assert.equal(wide.left, 30); assert.equal(wide.top, 165);
-  assert.ok(tall.R <= 843 && tall.N * 5 <= 540, 'the classic upright, along X');
+  assert.ok(tall.R <= 855 && tall.N * 5 <= 540, 'the classic upright, along X');
   assert.ok(Math.abs(tall.N * 5 / tall.R - 941 / 1672) < 0.02, 'its aspect');
   assert.equal(tall.left, (700 - tall.N * 5) / 2);
 });
@@ -152,7 +152,7 @@ test('the motion blur: a layer under the picture, its columns smeared along them
   assert.ok(Math.max(...longer.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.flatMap(l => [l[1], l[2]])))) >= Math.max(...ys), 'longer, as far or farther');
   assert.deepEqual(blurOf(B, fit, f, s, 160, '#FBFAF7', { alpha: 1 }).pic, U.pic, 'the same, the same');
   const tall = sketch('70x100', 16), T = blurOf(tall.B, tall.fit, tall.f, tall, 300, '#FBFAF7', { alpha: 1 }), ty = T.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.flatMap(l => [l[1], l[2]])));
-  assert.ok(Math.max(...ty) - Math.min(...ty) <= GEN.along + 0.1, 'along X within the reach, 843 mm, on a 70 × 100');
+  assert.ok(Math.max(...ty) - Math.min(...ty) <= GEN.along + 0.1, 'along X within the field, 855 mm, on a 70 × 100');
 });
 
 test('the motion blur\'s opacity as OPM\'s raster: the share of the columns, every stripe its jar\'s full colour (2026-11-16)', () => {
@@ -174,8 +174,8 @@ test('the motion blur\'s opacity as OPM\'s raster: the share of the columns, eve
 test('a new frame\'s canvas, 100 × 150: the picture as large as the canvas lets it, the blur along all of it', () => {
   const s = sketch('100x150', 16), { f, fit, B } = s;
   assert.equal(f.w, 1000); assert.equal(f.h, 1500);
-  assert.ok(fit.N * 5 > 540 || fit.R > 843, 'past today\'s field');
+  assert.ok(fit.N * 5 > 540 || fit.R > 855, 'past today\'s field');
   assert.ok(fit.N * 5 <= 940 && fit.R <= 1440);
   const U = blurOf(B, fit, f, s, 300, '#FBFAF7', { alpha: 1 }), ys = U.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.flatMap(l => [l[1], l[2]])));
-  assert.ok(Math.max(...ys) - Math.min(...ys) > 843, 'the blur past the 843 of today\'s reach');
+  assert.ok(Math.max(...ys) - Math.min(...ys) > 855, 'the blur past the 855 of today\'s field');
 });

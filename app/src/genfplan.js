@@ -9,12 +9,14 @@ import { jarsByCanvas } from './canon.js';
 
 export const GEN_FORMATS = [{ id: '60x60', w: 600, h: 600 }, { id: '60x80', w: 600, h: 800 }, { id: '70x100', w: 700, h: 1000 },   // w across (Y), h along (X): FORM-G's
   // a new frame's (the owner, 2026-11-16: "for the future I want to try a canvas 90 × 120 and 100 × 150 cm … I wonder what the effect will be, probably quite
-  // like a realistic photograph"): past today's reach, 540 × 843 — their field the canvas itself, 30 mm in; a sketch to look at, nothing to run yet
+  // like a realistic photograph"): past today's reach, 540 × 855 — their field the canvas itself, 30 mm in; a sketch to look at, nothing to run yet
   { id: '90x120', w: 900, h: 1200, frame: true }, { id: '100x150', w: 1000, h: 1500, frame: true }];
-// the field the brush reaches on a canvas, est.: across Y the race face's 540 (the reach 568.5, MARKS by the field), along X the classic's 843 (the reach 865, the
-// elbow's sweep ~20 at the bottom); 30 mm of canvas at least round it. minSpan: the Porsche's shortest leg; lam: a cut's cost, CIELAB ΔE² (est.); carry: how much
-// of a column's miss goes on to the next (est.); join, under, stepMax, crumb: paintrun.py's JOIN, UNDER, export's STEP_MAX, its crumbs
-export const GEN = { pitch: 5, across: 540, along: 843, margin: 30, colours: [10, 100], minSpan: 8, crumb: 3, lam: 700, carry: 0.5, join: 45, under: 3, stepMax: 7, bareDE: 12, sample: 24000, iters: 12, twoL: 35 };
+// the field the brush reaches on a canvas, est.: across Y the race face's 540 (the reach 568.5, MARKS by the field); along X 855 (the owner, 2026-11-16: "make me
+// 540 × 855 mm, please … we did it fine before"): FORM-G's own placeRange puts the carriage ≈ 1 mm past the bottom wall at a picture of 850, ≈ 5 at 855 — the
+// lowest legs' lift-outs pressed, within the 8 mm he allowed the classic (formg.js, PRESS_OK), a final needs its own entry there; 30 mm of canvas at least round
+// it. minSpan: the Porsche's shortest leg; lam: a cut's cost, CIELAB ΔE² (est.); carry: how much of a column's miss goes on to the next (est.); join, under,
+// stepMax, crumb: paintrun.py's JOIN, UNDER, export's STEP_MAX, its crumbs
+export const GEN = { pitch: 5, across: 540, along: 855, margin: 30, colours: [10, 100], minSpan: 8, crumb: 3, lam: 700, carry: 0.5, join: 45, under: 3, stepMax: 7, bareDE: 12, sample: 24000, iters: 12, twoL: 35 };
 // the motion blur's layer under the picture (blurOf): the slider's range and step, mm; its legs no nearer the canvas's top and bottom than `edge`; run on under the
 // picture's paint so far from where the picture ends, so no white seam between them (est.)
 // the stripes the car's own colour (the owner: "stripes of the Porsche's own colour"): only the car's colours averaged, never mixed with the ground; no stripe where

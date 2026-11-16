@@ -103,8 +103,8 @@ function estimate() {
 // ---------- the panel ----------
 function panel() {
   const f = formatOf(S.format), F = fieldOf(f);
-  $('#formats').innerHTML = GEN_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}${q.frame ? ' frame' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as FORM-G lays it${q.frame ? ' — for a new frame: today the brush reaches 540 × 843 mm; a sketch to look at, nothing to run' : ''}">${q.w / 10} × ${q.h / 10}${q.frame ? '<i>new frame</i>' : ''}</button>`).join('');
-  $('#fieldRead').innerHTML = (f.frame ? `<span class="warn">For a new frame:</span> today the brush reaches 540 × 843 mm; the field here the canvas itself, 30 mm in, ${F.w} × ${F.h} mm (est.)` : `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`)
+  $('#formats').innerHTML = GEN_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}${q.frame ? ' frame' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as FORM-G lays it${q.frame ? ' — for a new frame: today the brush reaches ${GEN.across} × ${GEN.along} mm; a sketch to look at, nothing to run' : ''}">${q.w / 10} × ${q.h / 10}${q.frame ? '<i>new frame</i>' : ''}</button>`).join('');
+  $('#fieldRead').innerHTML = (f.frame ? `<span class="warn">For a new frame:</span> today the brush reaches ${GEN.across} × ${GEN.along} mm; the field here the canvas itself, 30 mm in, ${F.w} × ${F.h} mm (est.)` : `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`)
     + (SK ? `; the picture <b>${SK.W} × ${SK.R} mm</b>, ${SK.fit.N} columns 5 mm apart, in the middle.` : '.');
   $('#kNow').textContent = S.k; $('#kSl').value = S.k;
   $('#kSay').textContent = SK ? `→ ${SK.pic.jars.length} jars` : '';
