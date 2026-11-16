@@ -18,22 +18,25 @@ this pattern is everywhere in FORM-G."
 22:02: "No need to drag at 2.5 mm. Let it be 5 mm, the brush's width.
 4 drops, 4 drags in a snake at the end, without n+1."
 
-The photos stay in the chat: another artist's picture stays off git
-(README).
+The photos: `FORM-G/photos/2026-11-16/`, `IMG_3120` … `IMG_3126`
+(`PHOTOS.md`), close-ups of the strokes alone (the owner, 2026-11-17: "put
+the ones with no outline of the mouse; everywhere here are just white
+strokes").
 
 ## What the photos show (by eye, est.)
 
 - **A teardrop where the brush lands**: a round head, a tail 20–30 mm along
-  the leg (three of the four circles). On one column the heads stand
+  the leg (three of the four circles, `IMG_3126`; `IMG_3123`). On one column the heads stand
   ≈ 70 mm apart, read off the 5 mm pitch: a dip every 79 mm, less the lap
   back. A guess: the restart after a dip, the ball of paint the tip brings
   from the jar dropped where it lands. Check it in Mickey's plan, where
   that column's dips fall; one line to the owner.
 - **A pill**: a segment ≈ 25 mm closed into a ring with a rim and a bead
-  at its end (the fourth circle). As LAB real 2's short legs, now at twice
+  at its end (the fourth circle, `IMG_3126`). As LAB real 2's short legs, now at twice
   the 12 mm floor.
 - **A cap at every turn of the snake**: solid ≈ 13–15 mm, overhanging the
-  leg's end by ≈ 5 mm (a ruler in the frame, read off the photo); between
+  leg's end by ≈ 5 mm (a ruler in the frame, read off the photo:
+  `IMG_3121`, `IMG_3122`); between
   the caps, ridges ≈ 1 mm and a pale film, the ground bare in places.
 
 So a jar paints a range, not its colour: its masstone in the heads and the
