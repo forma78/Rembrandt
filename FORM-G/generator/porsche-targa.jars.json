@@ -1,0 +1,105 @@
+{
+ "note": "Targa: its jars made to measure, kept; the fixed ones its FIXED",
+ "jars": [
+  {
+   "name": "Jar 1",
+   "hex": "#E6E5DF",
+   "coats": 1
+  },
+  {
+   "name": "New 1",
+   "hex": "#F77F86",
+   "coats": 1
+  },
+  {
+   "name": "Jar 7",
+   "hex": "#9B9C9A",
+   "coats": 1
+  },
+  {
+   "name": "Jar 10",
+   "hex": "#ED3F58",
+   "coats": 1
+  },
+  {
+   "name": "Jar 28",
+   "hex": "#4B4D4E",
+   "coats": 1
+  },
+  {
+   "name": "Jar 14",
+   "hex": "#E5281E",
+   "coats": 1
+  },
+  {
+   "name": "New 2",
+   "hex": "#EF3335",
+   "coats": 2
+  },
+  {
+   "name": "New 3",
+   "hex": "#CE3C40",
+   "coats": 2
+  },
+  {
+   "name": "New 4",
+   "hex": "#F21315",
+   "coats": 2
+  },
+  {
+   "name": "Jar 40",
+   "hex": "#2B2B2C",
+   "coats": 1
+  },
+  {
+   "name": "Jar 16",
+   "hex": "#E20D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 19",
+   "hex": "#CE0D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 42",
+   "hex": "#242737",
+   "coats": 1
+  },
+  {
+   "name": "Jar 21",
+   "hex": "#C70D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 27",
+   "hex": "#9D0D0D",
+   "coats": 2
+  },
+  {
+   "name": "New 5",
+   "hex": "#262A2E",
+   "coats": 2
+  },
+  {
+   "name": "Jar 37",
+   "hex": "#620D0D",
+   "coats": 2
+  },
+  {
+   "name": "Jar 46",
+   "hex": "#101D29",
+   "coats": 2
+  },
+  {
+   "name": "Black",
+   "hex": "#0C0C0C",
+   "coats": 2
+  },
+  {
+   "name": "Jar 47",
+   "hex": "#211A15",
+   "coats": 2
+  }
+ ]
+}

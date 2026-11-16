@@ -5,6 +5,18 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G's Targa from GEN-F, made, held for its size** (2026-11-16; the owner: "I put together at once Graphite Seats in a Glossy Red Targa · GEN-F · 70x100
+  · 30.json for FORM-G" — screen 2, 30 colours, 25 by the canon; moved from `FORM-G/` to `GEN-F/`, where the sketches live). `FORM-G/generator/genfcar.py`,
+  headlight.py's way made general for a picture on a plain ground: RaceFaceK on no geometry by hand, the ground bare (the border's colour reached from it), the
+  carry within the red paint or the rest; `MIRROR`, the right half the left's mirror, column for column, the target averaged with its mirror; `CREST`, the gold
+  crest off the bonnet, its cells the paint behind it, two Black columns about the axis there, 16 mm (the classic's canon, 2026-11-10); the sketch's colours
+  each first made to measure, then his own jar whose dried leg lies within 8, nearest pair first; then Kuzya's D, jars whose dried legs are under ΔE 2.5 one,
+  his own first — the three deepest blacks, which no paint dries as dark as the picture, are one with his Black; a sketch colour under 10 cm (the crest's
+  gold, 3 cm) no jar. `targa.py`: 20 jars, 15 his (Jar 1, 7, 10, 14, 16, 19, 21, 27, 28, 37, 40, 42, 46, 47, Black), 5 new (`New 1` … `New 5`); the canon
+  at 1 m takes none; 1358 legs, 32 lines, ≈ 12 h 43 min (est.). `app/formg/porsche-targa.json` and its jpg; `export_formg.py`'s `GENF`, the headlight's export
+  unchanged (compared). **Not in THE LIBRARY**: FORM-G's own test, "porsche-targa: no place for the canvas" — 853 mm long, its lowest lift-outs and the
+  J3's 3 mm at both ends want ≈ 11 mm more than the reach at any place (the bottom edge from −51.3 to −62.2: no room), ≈ 17 at his canvas place −68; the
+  sketch's ≈ 1 … 5 mm (the 540 × 855 entry) were read off GEN-F's sketch without the final's ends. His word: the classic's 843, or 853 pressed.
 - **GEN-F: three screens to compare, APPROVE only the one chosen** (2026-11-16; the owner, `GEN-F/Screenshot 2026-11-16 at 2.16.12 PM.png`, 1 · 2 · 3 drawn on
   the stage and on the colours' slider: "as I move the colours' slider I want to see a table to compare, screens 1, 2 and 3; and APPROVE only when one of the
   three is selected … I simply cannot tell: 17 colours, say, 29 or 45?"; `2.22.46 PM.png`: "three screens fit easily"). The stage three canvases side by side,
