@@ -41,6 +41,29 @@ export const seqOf = pic => {
   const first = main.filter(j => !j.last), now = first.filter(j => !j.late), late = first.filter(j => j.late), last = main.filter(j => j.last);
   return [...under.map(j => ({ ...j, name: `${j.name} · under`, layer: 0, coat: 1 })), ...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
 };
+// POINTS (the owner, 2026-11-16, `FORM-G/mickey-1.png`, green crosses at the figure's outermost points: "this is Jar 0, the white … so I do not soil the canvas.
+// It is like TEST, only not the corners but the outermost points … not a whole contour, just a few outermost points, so I can check with a ruler"): the
+// corners of a band stretched round the picture — the convex hull of its legs' ends, the brush's own path, the layer under left out — every corner whose
+// dropping moves the band less than `tol` mm dropped, so the few that hold it remain; clockwise from the top. → [[x, y]] mm on the canvas, x across, y up
+export const POINTS = { tol: 12 };   // est.
+export function pointsOf(pic, tol = POINTS.tol) {
+  const P = [];
+  for (const j of pic.jars) if (!j.under) for (const c of j.cells) for (const [x, a, b] of c.legs) P.push([x, a], [x, b]);
+  const pts = [...new Map(P.map(p => [p.join(','), p])).values()].sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+  if (pts.length < 3) return pts;
+  const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lower = [], upper = [];
+  for (const p of pts) { while (lower.length >= 2 && cross(lower.at(-2), lower.at(-1), p) <= 0) lower.pop(); lower.push(p); }
+  for (const p of pts.slice().reverse()) { while (upper.length >= 2 && cross(upper.at(-2), upper.at(-1), p) <= 0) upper.pop(); upper.push(p); }
+  const H = [...lower.slice(0, -1), ...upper.slice(0, -1)], off = (p, a, b) => Math.abs(cross(a, b, p)) / (Math.hypot(b[0] - a[0], b[1] - a[1]) || 1);
+  while (H.length > 3) {
+    let k = -1, best = Infinity;
+    H.forEach((p, i) => { const d = off(p, H[(i - 1 + H.length) % H.length], H[(i + 1) % H.length]); if (d < best) { best = d; k = i; } });
+    if (best >= tol) break;
+    H.splice(k, 1);
+  }
+  const cx = H.reduce((a, p) => a + p[0], 0) / H.length, cy = H.reduce((a, p) => a + p[1], 0) / H.length, ang = p => (Math.atan2(p[0] - cx, p[1] - cy) + 2 * Math.PI) % (2 * Math.PI);
+  return H.sort((p, q) => ang(p) - ang(q));   // from the top, clockwise
+}
 // a leg's points: half the tip in from both ends of its span, as idleCellOf; too short for that, the shortest it can land on, in the middle of its span
 function legOf(x, a, b, tip) {
   const d = b >= a ? 1 : -1, L = Math.abs(b - a), m = FORMG.minLeg;

@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: Points · Jar 0, a dot at each outermost point of the picture** (2026-11-16; the owner, `FORM-G/mickey-1.png`, green crosses at the figure's outermost
+  points: "I need to centre it on the canvas first … the green crosses are Jar 0, the white, so I do not soil the canvas. It is like TEST, only not the
+  corners but the outermost points … not a whole contour, just a few outermost points, so I can check with a ruler"; then "maybe do not touch TEST, a Jar 0
+  key beside it" — "yes, great"). A key of its own under MARKS in The canvas; TEST as it was. `pointsOf` (`formgplan.js`): the convex hull of the picture's
+  legs' ends, the brush's own path, the layer under left out, every corner whose dropping moves the band under 12 mm dropped (est.), clockwise from the top;
+  `pointsRun` (`formg.js`): TEST's run — one dip, a dot of `DOT_MM` towards the middle at each, home; its question lists them in mm from the canvas's left and
+  bottom edges; the pointer on the key shows them, green crosses P1 …; the journal `pass: points`. Mickey: 8, his 7 crosses and a second at the flat top of
+  the ear. Guarded for OPM-G's page, which has no such key. Checked in headless Chrome (the cup unset on a static copy: refused, as it should). Not run.
 - **FORM-G on white gesso, not cream** (2026-11-16; the owner: "why is our ground cream on FORM-G? I take a canvas, the gesso there is white. Maybe replace
   it?"). The canvas on FORM-G's (and OPM-G's) page, its veils and the cards' frames `#FBFAF7`, OPM-N's and GEN-F's white (`GESSO`, `formg.js`). The renders:
   genfpic.py's flat ones on it — the Targa's, the headlight v.2's, Mickey's (local) — their plans unchanged (compared); the old generator's, which cannot all

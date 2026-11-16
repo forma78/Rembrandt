@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, pointsOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
 import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -497,4 +497,18 @@ test('a layer under (GEN-F\'s motion blur): its jars first, layer 0, one coat; t
   assert.deepEqual(S.map(j => [j.id, j.layer]), [['ua', 0], ['ub', 0], ['a', 1], ['b', 1], ['b:2', 2]]);
   assert.equal(S[0].name, 'a · under');
   assert.deepEqual(seqOf({ ...pic, jars: pic.jars.filter(j => !j.under) }).map(j => j.id), ['a', 'b', 'b:2'], 'none under: as before');
+});
+
+test('POINTS · Jar 0 (2026-11-16): the picture\'s outermost points, the corners of a band round it, a few, clockwise from the top; the layer under left out', () => {
+  // a plus of legs: its four arms' tips the band's corners, nothing inside
+  const legs = [[50, 0, 100], [45, 40, 60], [40, 40, 60], [55, 40, 60], [60, 40, 60], [30, 45, 55], [70, 45, 55]];
+  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#111111', cells: [{ n: 1, legs }] }, { id: 'u', name: 'A', hex: '#111111', under: true, cells: [{ n: 1, legs: [[50, -40, 140]] }] }] };
+  const P = pointsOf(pic);
+  assert.ok(P.length >= 4 && P.length <= 8, `${P.length} points`);
+  const ys = P.map(p => p[1]), xs = P.map(p => p[0]);
+  assert.equal(Math.max(...ys), 100); assert.equal(Math.min(...ys), 0, 'the layer under not counted: its legs reach −40 … 140');
+  assert.equal(Math.min(...xs), 30); assert.equal(Math.max(...xs), 70);
+  assert.deepEqual(P[0], [50, 100], 'the top first');
+  for (const p of P) assert.ok(legs.some(([x, a, b]) => x === p[0] && (a === p[1] || b === p[1])), 'every point a leg\'s end');
+  assert.ok(pointsOf(pic, 1000).length === 3, 'a band of three at the coarsest');
 });

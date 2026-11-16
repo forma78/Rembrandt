@@ -1,6 +1,6 @@
 // FORM-G's page: the library, the picture, OPM-N's DRAG SNAKE (formgplan.js). inka.js's run as it is on OPM-N, its question with Start from, its LCD, BACK ONE CELL, the remote and ELBOW LIVE,
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
-import { FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks } from './formgplan.js';
+import { FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks } from './formgplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -297,6 +297,29 @@ function testRun() {
   const dots = [['TL', x1, y0], ['TR', x1, y1], ['BR', x0, y1], ['BL', x0, y0]].map(([name, x, y]) => { const d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name, at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } }; });
   return { ...plotRun(runOpts(dots.length), [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }]), dots };
 }
+// POINTS · Jar 0 (formgplan.js's pointsOf): TEST's run, a dot at each of the picture's outermost points, in the white, to lay the canvas by and check it with a ruler
+function pointsRun() {
+  const pts = pointsOf(PIC);
+  if (!pts.length) return null;
+  const dots = pts.map(([px, py], i) => { const x = py - PIC.h / 2, y = px - PIC.w / 2, d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name: `P${i + 1}`, mm: [px, py], at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } }; });
+  return { ...plotRun(runOpts(dots.length), [{ key: 'POINTS', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }]), dots };
+}
+let SHOW_PTS = false;
+if ($('#btnPoints')) {                                                               // FORM-G's alone, not OPM-G's
+$('#btnPoints').onmouseenter = () => { SHOW_PTS = true; kick(); };
+$('#btnPoints').onmouseleave = () => { SHOW_PTS = false; kick(); };
+$('#btnPoints').onclick = async () => {
+  await loadInk();
+  if (!PIC) return;
+  const here = hereNow(), T = pointsRun();
+  if (!T) return warn('Nothing to paint.');
+  if (cupProblem(cup())) return warn(`POINTS dips in ${cupName()}: ${cupProblem(cup())}`);
+  if (T.fault) return warn(`Not run: the points are wrong — ${T.fault}.`);
+  if (walls(T)) return warn(walls(T));
+  if (!confirm(`POINTS · Jar 0: put Jar 0, the white, in the cup — one dip, then a dot at each of the picture's ${T.dots.length} outermost points (mm from the canvas's left and bottom edges): ${T.dots.map(d => `${d.name} ${fmt(d.mm[0], 0)} → · ${fmt(d.mm[1], 0)} ↑`).join(', ')} — and home.`)) return;
+  await start('points', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `POINTS · ${d.name}` })) }, logOf({ pass: 'points', cup: cup(), dots: T.dots.map(d => ({ name: d.name, mm: d.mm, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
+};
+}
 $('#btnTest').onclick = async () => {
   await loadInk();
   if (!PIC) return;
@@ -416,6 +439,7 @@ function draw() {
   } else if (S.view === 'contour') drawContour(g);
   else drawLegs(g, plan());
   drawMarks(g);
+  if (SHOW_PTS) drawPoints(g);
   // F, the frame, as OPM-W's, its size by it, the picture round it veiled; the one being dragged while it is. Solid, not dashed: the walls' line here is dashed
   const F = fgrab?.f ?? S.frames[S.pic];
   if (F) {
@@ -436,6 +460,12 @@ function draw() {
   if (PLAY?.tip) { g.fillStyle = PLAY.q.hex; g.strokeStyle = PLAY.q.idle ? '#EB7A25' : '#24221F'; g.lineWidth = PLAY.q.idle ? 2.5 : 1.5; g.beginPath(); g.arc(sx(PLAY.tip[0]), sy(PLAY.tip[1]), 5, 0, 7); g.fill(); g.stroke(); }
 }
 // MARKS on the screen: every strip the paper to tape there, its cells' grid, and on Drag every line's marks in its jar's colour, as wide as the brush
+// the outermost points, green crosses, while the pointer is on POINTS (his own green crosses, mickey-1.png)
+function drawPoints(g) {
+  g.save(); g.strokeStyle = '#21C23B'; g.lineWidth = 2; g.font = '600 11px "SF Mono", ui-monospace, Menlo, monospace'; g.fillStyle = '#1C9A31';
+  pointsOf(PIC).forEach(([x, y], i) => { const X = sx(x), Y = sy(y), r = 9; g.beginPath(); g.moveTo(X - r, Y); g.lineTo(X + r, Y); g.moveTo(X, Y - r); g.lineTo(X, Y + r); g.stroke(); g.fillText(`P${i + 1}`, X + 6, Y - 6); });
+  g.restore();
+}
 function drawMarks(g) {
   const mk = marksNow();
   if (!mk?.strips.length) return;
@@ -697,7 +727,7 @@ function lcd(st) {
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
   $('#btnHome').disabled = !!live; $('#btnBack').disabled = !live || RUN_KEY === 'bw';   // DRAW BW has no cells to go back to
-  $('#btnDrag').classList.toggle('on', !!live && RUN_KEY === 'drag'); $('#btnTest').classList.toggle('on', !!live && RUN_KEY === 'test'); $('#btnBw')?.classList.toggle('on', !!live && RUN_KEY === 'bw');
+  $('#btnDrag').classList.toggle('on', !!live && RUN_KEY === 'drag'); $('#btnTest').classList.toggle('on', !!live && RUN_KEY === 'test'); $('#btnPoints')?.classList.toggle('on', !!live && RUN_KEY === 'points'); $('#btnBw')?.classList.toggle('on', !!live && RUN_KEY === 'bw');
   showElbow();
   const ids = Q ? Q.ids : (live && RUN_INFO?.passes) || P_.passes.map(q => q.pencil), pid = Q ? Q.ids[Q.n] : row?.pencil ?? (!live ? ids[0] : null), j = pid && jarOf(pid), nx = j && jarOf(ids[ids.indexOf(pid) + 1]);
   const cellNow = row?.cells?.[0]?.[0];
@@ -706,7 +736,7 @@ function lcd(st) {
   if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour(RUN_INFO?.bw).lines[st.row - 1] : null } : row?.mark ? {} : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
   const now = Q ? `${Q.q.mark ? `${Q.q.mark[0].toUpperCase()}${Q.q.mark.slice(1)}` : `Cell ${Q.q.num}${Q.q.idle ? ', idle' : ''}`} · ${fmt(pct / 100 * Q.metres / 1000, 1)} of ${fmt(Q.metres / 1000, 1)} m · est.` : waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (RUN_KEY === 'bw' ? (st.brush_on ? ' · the pen on' : ' · the pen up') : st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
   $('#lcd').innerHTML = `
-    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', home: 'HOME', drag: 'DRAG', bw: 'DRAW BW' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(pct / 100 * Q.metres / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
+    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', points: 'POINTS', home: 'HOME', drag: 'DRAG', bw: 'DRAW BW' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(pct / 100 * Q.metres / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
       <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>
