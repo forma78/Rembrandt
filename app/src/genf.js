@@ -12,9 +12,12 @@ import './ui.js';
 const $ = s => document.querySelector(s), KEEP = 'rembrandt.genf.v01';
 const fmt = (v, d = 1) => Number(v).toFixed(d), esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
-const S = { format: GEN_FORMATS[0].id, k: 40, view: 'sketch' };
+const S = { format: GEN_FORMATS[0].id, k: 40, view: 'sketch', ground: 'white' };
+// the ground, OPM-N's (inka.js, BG): the bare canvas's colour on the screen, not painted (the owner, 2026-11-16: "only the preview on a black ground, as an option")
+const BG = { white: '#FBFAF7', black: '#161514' };
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEEP) || 'null') ?? {}); } catch { }
 if (!GEN_FORMATS.some(f => f.id === S.format)) S.format = GEN_FORMATS[0].id;
+if (!BG[S.ground]) S.ground = 'white';
 S.k = Math.min(GEN.colours[1], Math.max(GEN.colours[0], Math.round(+S.k) || 40));
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 
@@ -88,6 +91,7 @@ function panel() {
   $('#kNow').textContent = S.k; $('#kSl').value = S.k;
   $('#kSay').textContent = SK ? `→ ${SK.pic.jars.length} jars` : '';
   [...$('#views').children].forEach(b => b.classList.toggle('on', b.dataset.view === S.view));
+  document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', b.dataset.bg === S.ground));
   $('#btnApprove').disabled = !SK;
   if (!SK) { $('#sketchRead').innerHTML = 'Open a picture on the left.'; $('#jarList').innerHTML = ''; $('#jarsHint').textContent = ''; $('#stats').textContent = `${f.w / 10} × ${f.h / 10} cm`; return; }
   const long = Math.max(f.w, f.h), e = SK.est, n = SK.pic.jars.length, two = SK.pic.jars.filter(j => j.coats === 2).length;
@@ -115,12 +119,13 @@ function draw() {
   g.fillStyle = themeColor('--table', '#D9D4CA'); g.fillRect(0, 0, rc.width, rc.height);
   if (V.fit) { const pad = 28; V.s = Math.min((rc.width - 2 * pad) / f.w, (rc.height - 2 * pad) / f.h); V.x = (rc.width - f.w * V.s) / 2; V.y = (rc.height - f.h * V.s) / 2; }
   const X = x => V.x + x * V.s, Y = y => V.y + (f.h - y) * V.s;
-  g.save(); g.shadowColor = 'rgba(0,0,0,.22)'; g.shadowBlur = 14; g.shadowOffsetY = 3; g.fillStyle = '#F6F3EC'; g.fillRect(X(0), Y(f.h), f.w * V.s, f.h * V.s); g.restore();
+  g.save(); g.shadowColor = 'rgba(0,0,0,.22)'; g.shadowBlur = 14; g.shadowOffsetY = 3; g.fillStyle = BG[S.ground]; g.fillRect(X(0), Y(f.h), f.w * V.s, f.h * V.s); g.restore();
+  const dark = S.ground === 'black';
   const F = fieldOf(f);
-  g.save(); g.setLineDash([5, 4]); g.strokeStyle = 'rgba(125,119,109,.55)'; g.lineWidth = 1;
+  g.save(); g.setLineDash([5, 4]); g.strokeStyle = dark ? 'rgba(236,232,225,.35)' : 'rgba(125,119,109,.55)'; g.lineWidth = 1;
   g.strokeRect(X((f.w - F.w) / 2), Y((f.h + F.h) / 2), F.w * V.s, F.h * V.s); g.restore();
   if (!SK) {
-    g.fillStyle = themeColor('--mute', '#7D776D'); g.font = '13px "Helvetica Neue", Arial, sans-serif'; g.textAlign = 'center';
+    g.fillStyle = dark ? 'rgba(236,232,225,.6)' : themeColor('--mute', '#7D776D'); g.font = '13px "Helvetica Neue", Arial, sans-serif'; g.textAlign = 'center';
     g.fillText(`${f.w / 10} × ${f.h / 10} cm — open a picture on the left`, X(f.w / 2), Y(f.h / 2)); return;
   }
   if (S.view === 'picture') { g.imageSmoothingEnabled = true; g.drawImage(SK.photo, X(SK.fit.left), Y(f.h - SK.fit.top), SK.W * V.s, SK.R * V.s); return; }
@@ -159,6 +164,7 @@ cv.addEventListener('dblclick', () => { V.fit = true; kick(); });
 $('#formats').onclick = e => { const b = e.target.closest('[data-f]'); if (!b || b.dataset.f === S.format) return; S.format = b.dataset.f; save(); V.fit = true; build(); };
 $('#kSl').oninput = () => { $('#kNow').textContent = $('#kSl').value; };
 $('#kSl').onchange = () => { S.k = +$('#kSl').value; save(); build(); };
+document.querySelectorAll('[data-bg]').forEach(b => b.onclick = () => { S.ground = b.dataset.bg; save(); panel(); kick(); });
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; S.view = b.dataset.view; save(); panel(); kick(); };
 $('#jarList').onclick = e => { const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#jarList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
 $('#file').onchange = e => { const f = e.target.files?.[0]; if (f) { keepPic(f, f.name); openPic(f, f.name); } e.target.value = ''; };
@@ -174,7 +180,7 @@ export function approvalOf(src, sk, s, when = new Date()) {
   return {
     tool: 'GEN-F', note: 'A sketch the owner approved, for the final work in FORM-G/generator: the format, the colours, the jars and every leg. Flat colours, no brush model (est.).',
     approved: when.toISOString(), image: { name: src.name, w: src.w, h: src.h, box: [src.box.x, src.box.y, src.box.w, src.box.h].map(v => Math.round(v)), ground: src.ground },
-    format: s.format, colours: s.k, made: sk.made, picture_mm: [sk.W, sk.R], columns: sk.fit.N, left: sk.fit.left, top: sk.fit.top,
+    format: s.format, colours: s.k, ground: s.ground, made: sk.made, picture_mm: [sk.W, sk.R], columns: sk.fit.N, left: sk.fit.left, top: sk.fit.top,
     jars: sk.pic.jars.map(j => ({ name: j.name, hex: j.hex, coats: j.coats, line_m: +(sk.lines[j.id] / 1000).toFixed(2) })),
     out: sk.out.map(q => ({ hex: q.hex, line_m: +(q.line / 1000).toFixed(2), into: by[q.into], de: +q.de.toFixed(1) })),
     counts: { legs: sk.legs, under_12mm: sk.short, ...(sk.est && !sk.est.fail ? { brush_m: +(sk.est.mm / 1000).toFixed(1), lines: sk.est.lines, dips: sk.est.dips, minutes_est: Math.round(sk.est.seconds / 60) } : {}) },

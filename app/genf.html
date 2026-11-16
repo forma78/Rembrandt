@@ -20,6 +20,10 @@
   .gf-drop.over{border-color:var(--orange);color:var(--ink)}
   .gf-drop img{display:block;width:100%;max-height:160px;object-fit:contain;border-radius:5px;background:#F3F0E6}
   .gf-src{margin:8px 0 0;font:10px/14px var(--mono);color:var(--mute);word-break:break-word}
+  .gf-ground{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:14px}   /* OPM-N's GROUND (opmn.html, #bgTools), its white and black */
+  .gf-ground .glab{flex-basis:100%;font:8.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+  .gk[data-bg=white]{background:#FBFAF7}
+  .gk[data-bg=black]{background:#161514}
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   #cv.drag{cursor:grabbing}
   .gf-formats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -80,6 +84,13 @@
       <input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden>
     </label>
     <p class="gf-src" id="srcRead"></p>
+    <!-- the ground (the owner, 2026-11-16, of a picture on black: "add a switch of the ground from white to black; it need not be painted, only the preview on a
+         black ground, as an option; not from scratch: it is called GROUND and lies in OPM-N, we made it already"): the bare canvas's colour on the screen -->
+    <div class="gf-ground" id="bgTools" title="The ground, the bare canvas's colour on the screen: Sketch, Drag and Picture show it. Not painted: a canvas of that colour, laid as it is">
+      <span class="glab">ground</span>
+      <button class="gk" data-bg="white" title="Ground: the white canvas" aria-label="White ground"></button>
+      <button class="gk" data-bg="black" title="Ground: a black canvas — not painted, the preview only" aria-label="Black ground"></button>
+    </div>
   </aside>
   <aside class="panel">
     <section class="sec">

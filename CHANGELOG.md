@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **GEN-F: GROUND, white or black, the preview only** (2026-11-16; the owner, of `Crimson Classic Porsche 911 in Studio Light.png`, a car on black: "add a
+  switch of the ground from white to black; it need not be painted, only the preview on a black ground, as an option; not from scratch: it is called GROUND
+  and lies in OPM-N, we made it already"). OPM-N's two keys and colours (`#bgTools`, inka.js's `BG`: `#FBFAF7`, `#161514`) under the picture on the left:
+  the bare canvas's colour in Sketch, Drag and Picture; kept in this browser; APPROVE's file says it (`ground`). Nothing painted, no count changed. Checked in
+  headless Chrome on a static copy.
 - **GEN-F, the form's generator, a tab of its own** (2026-11-16; the owner: "can we not make the generator a tab of its own, so that I see a first sketch,
   approve it and give it to you for the final work? we would save a lot of tokens. GEN-F, as the generator of the form :)"; "I do not need many sliders, only
   the number of colours from 10 to 100 and the format 60 × 60, 60 × 80, 70 × 100 … three for now"). `app/genf.html`, `src/genfplan.js`, `src/genf.js`, after
