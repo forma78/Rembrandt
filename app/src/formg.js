@@ -30,6 +30,7 @@ const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catc
 const R3RUN = CANON_RUN ? {} : { slack: R3.slack, j3: R3.j3 };
 if (!CANON_RUN && !S.r3) { if (S.dipEvery === FORMG.every) S.dipEvery = R3.every; S.r3 = 1; save(); }
 if (!Number.isFinite(S.penSpeed)) S.penSpeed = PEN.speed;
+if (S.view === 'contour' && !document.querySelector('[data-view="contour"]')) S.view = 'picture';   // DRAW BW and its Contour view gone from FORM-G (2026-11-16)
 // the carriage's travel, the brush up (the owner, 2026-11-10, the X belt slipped "with a crack" several times and the headlights came out in the canvas's middle:
 // the run's first move, home to the top of a 70 × 100, ~830 mm at the 180 mm/s FORM-G had taken from OPM-N, the jar on the carriage; "we must lower it"):
 // TRAVEL, the firmware's own default, once in place of the old 180 (OPM-G's too: the same carriage, the same jar); FORM-G's field of its own since (Travel,

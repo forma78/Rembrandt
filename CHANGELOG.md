@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: DRAW BW gone** (2026-11-16; the owner: "DRAW BW may go altogether. Once you remove it, you may push"). Its key, its pen's speed, its read under
+  The brush and the Contour view, its preview, off FORM-G's page; a page left on Contour opens on the Picture. Its code stays (`contourOf`, the tests; OPM-G's
+  and HOLO's own DRAW BW untouched). Checked in headless Chrome, FORM-G and OPM-G.
 - **FORM-G: Points · Jar 0 in DRAW BW's place** (2026-11-16; the owner, `FORM-G/Screenshot 2026-11-16 at 6.17.16 PM.png`, an arrow from the new key to DRAW BW:
   "Great! Only let us put it in DRAW BW's place"). The deck's two dark keys Points · Jar 0 (its icon, crosses at the outermost points) and DRAG SNAKE; DRAW BW,
   as it was, a plain key in The canvas under MARKS, where Points was. Nothing else moved.
