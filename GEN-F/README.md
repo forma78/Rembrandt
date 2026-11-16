@@ -14,10 +14,11 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 2. **APPROVE** saves a json: `<picture> · GEN-F · <format> · <colours>.json`. It goes here.
    The illustration itself goes into `FORM-G/`, as before (others' pictures and renders stay out
    of git there, `.gitignore`).
-3. The owner tells Claude: "GEN-F, <the file>". Claude reads it and makes the picture in
-   `FORM-G/generator/` — a `*geo.py` for its form (the seams, the symmetry), the jars to measure
-   by the brush model, the canon (Jar 6 in Layer 2, MARKS beside the canvas) — then FORM-G's
-   card, as the generator's README says.
+3. The owner tells Claude: "GEN-F, <the file>". Claude makes it FORM-G's card **true to the
+   sketch** (`FORM-G/generator/genfpic.py`): the approved screen's own jars, colours and legs, no
+   re-solve and no mirror (the owner, 2026-11-16: "it must be held to strictly"); only the canon —
+   the crest off — and his own numbered jars as hints beside the colours ("≈ Jar 16"). Then its
+   place on the machine: a picture longer than the reach lets needs his word (PRESS_OK).
 
 ## Two more keys
 
@@ -51,4 +52,4 @@ same paint his jar already has, that jar's number.
 |---|---|
 | `Classic Red Porsche Headlight Detail · GEN-F · 60x80 · 14.json` (2026-11-16, "I suddenly approved 60 × 80") | FORM-G's `porsche-headlight`, `FORM-G/generator/headlight.py`: 12 of its 14 colours the owner's jars of the red classic, 2 new |
 | `Classic Red 911 Coupe Profile · GEN-F · 60x80 · 38.json` (2026-11-16) | waiting: its motion blur, the layer under it, tried on GEN-F first |
-| `Graphite Seats in a Glossy Red Targa · GEN-F · 70x100 · 30.json` (2026-11-16, screen 2) | `FORM-G/generator/targa.py` (genfcar.py): 20 jars, 15 his; held for its size, 853 mm wants ≈ 11 mm past the reach |
+| `Graphite Seats in a Glossy Red Targa · GEN-F · 70x100 · 30.json` (2026-11-16, screen 2) | FORM-G's `porsche-targa`, true to the sketch (`targa.py`, genfpic.py): 24 colours, 13 with a jar of his near; 853 mm, its bottom pressed 11.7 mm (his "keep 853") |

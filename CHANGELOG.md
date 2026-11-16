@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G's Targa true to its sketch** (2026-11-16; the owner, of the Targa by genfcar.py, `GEN-F/Screenshot 2026-11-16 at 3.20.47 PM.png`: "Claude, we have
+  problems. You generated something wrong. Compare the Porsche on GEN-F and on FORM-G: the highlights on the glass are gone, the seats are gone, it all turned
+  into mush"; then: "we have Graphite Seats … 30.json; it must be held to strictly. I feel the generator also mirrored one side and put it on the other" — it
+  did, `MIRROR`). The cause: hyper2's re-solve takes a leg for a film with the white between legs showing, so for a grey it took a darker jar and the small
+  lights went; LAB's real 3 measured a track ≈ 8 mm on the 5 mm grid — the legs overlap, the canvas shows the jar's own colour, as GEN-F draws it.
+  `FORM-G/generator/genfpic.py`: the sketch's plan IS the final — its jars, names, colours, coats, order and legs untouched; beside a colour, as its `code`, his
+  own jar of the red classic within ΔE 8 ("≈ Jar 16", a hint; 13 of 24); the canon's crest alone — its one gold leg, 18 mm, to the red next to it, and two legs of
+  the sketch's darkest colour about the axis there; the render GEN-F's, flat. Compared with the json: 1920 legs the sketch's, 22 of 24 jars leg for leg, the
+  two others the crest's; no mirror. ≈ 11 h 05 min (est.); its box and PRESS_OK as before. `targa.py` by it; genfcar.py kept, not used for it.
 - **FORM-G: the Targa at 853 mm, its bottom pressed, the first card** (2026-11-16; asked whether to make it 843 as the classic or press it, the owner: "keep 853
   mm — it goes fine for us, there is 1 cm more in reserve"; of "no place for the canvas", first taken for the library: "how so? :))"). `PRESS_OK` now
   `formgplan.js`'s, the tests' too, and `'porsche-targa': 12`; a picture with no room but its PRESS_OK first laid as high as the top wall lets it (`placeNow`):
