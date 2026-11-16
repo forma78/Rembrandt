@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: the headlight's v.2, true to its sketch** (2026-11-16; told the headlight was made the old way and would be remade as strictly when its frame comes,
+  the owner: "Oh, let's! Only v.2"). `FORM-G/generator/headlight2.py` by genfpic.py: `app/formg/porsche-headlight-v2.json` and its jpg, every leg, its jar,
+  colour and coats the sketch's (3054, compared), no crest on it; his own jars as hints beside 10 of the 14 colours ("≈ Jar 20" …). The card before v.1, which
+  stays as it was (headlight.py, the brush model's re-solve). Still waits for a new frame (540 mm across Y).
 - **FORM-G's Targa true to its sketch** (2026-11-16; the owner, of the Targa by genfcar.py, `GEN-F/Screenshot 2026-11-16 at 3.20.47 PM.png`: "Claude, we have
   problems. You generated something wrong. Compare the Porsche on GEN-F and on FORM-G: the highlights on the glass are gone, the seats are gone, it all turned
   into mush"; then: "we have Graphite Seats … 30.json; it must be held to strictly. I feel the generator also mirrored one side and put it on the other" — it

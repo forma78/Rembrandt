@@ -20,7 +20,7 @@ function runOf(pic, place) {
 const rangeOf = pic => { const R = rowsOf(pic, passesOf(pic)); return placeRange(pic, plotRun({ ...OPTS, rows: R.ps.length }, grouped(R)).carriage, reach()); };
 
 test('the library: every picture has its plan and its image, one grid, the brush 5 mm', () => {
-  assert.deepEqual(FORMG_LIB, ['porsche-targa', 'porsche-headlight', 'porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk; the classic's v.3 after its v.2 (2026-11-11), its v.4 after it (2026-11-13)
+  assert.deepEqual(FORMG_LIB, ['porsche-targa', 'porsche-headlight-v2', 'porsche-headlight', 'porsche-race-k', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-white', 'watch']);   // the racing 911's face in the green's place since 2026-11-10; porsche.json stays for the tests below; each 911's v.2 alone since 2026-11-11, its v.1 on the disk; the classic's v.3 after its v.2 (2026-11-11), its v.4 after it (2026-11-13)
   for (const id of FORMG_LIB) assert.doesNotMatch(load(id).title + load(id).sub, /Kuzya/, `${id}: no "Kuzya" on its card (the owner, 2026-11-11: "it only makes noise")`);
   for (const id of FORMG_LIB) {
     const pic = load(id);

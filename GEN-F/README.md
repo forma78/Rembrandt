@@ -53,3 +53,4 @@ same paint his jar already has, that jar's number.
 | `Classic Red Porsche Headlight Detail · GEN-F · 60x80 · 14.json` (2026-11-16, "I suddenly approved 60 × 80") | FORM-G's `porsche-headlight`, `FORM-G/generator/headlight.py`: 12 of its 14 colours the owner's jars of the red classic, 2 new |
 | `Classic Red 911 Coupe Profile · GEN-F · 60x80 · 38.json` (2026-11-16) | waiting: its motion blur, the layer under it, tried on GEN-F first |
 | `Graphite Seats in a Glossy Red Targa · GEN-F · 70x100 · 30.json` (2026-11-16, screen 2) | FORM-G's `porsche-targa`, true to the sketch (`targa.py`, genfpic.py): 24 colours, 13 with a jar of his near; 853 mm, its bottom pressed 11.7 mm (his "keep 853") |
+| the same headlight again (2026-11-16, "only v.2") | FORM-G's `porsche-headlight-v2`, true to the sketch (`headlight2.py`, genfpic.py): every leg the sketch's, 10 of 14 colours with a jar of his near; waits for a new frame |
