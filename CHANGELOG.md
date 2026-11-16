@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: Points · Jar 0 in DRAW BW's place** (2026-11-16; the owner, `FORM-G/Screenshot 2026-11-16 at 6.17.16 PM.png`, an arrow from the new key to DRAW BW:
+  "Great! Only let us put it in DRAW BW's place"). The deck's two dark keys Points · Jar 0 (its icon, crosses at the outermost points) and DRAG SNAKE; DRAW BW,
+  as it was, a plain key in The canvas under MARKS, where Points was. Nothing else moved.
 - **FORM-G: Points · Jar 0, a dot at each outermost point of the picture** (2026-11-16; the owner, `FORM-G/mickey-1.png`, green crosses at the figure's outermost
   points: "I need to centre it on the canvas first … the green crosses are Jar 0, the white, so I do not soil the canvas. It is like TEST, only not the
   corners but the outermost points … not a whole contour, just a few outermost points, so I can check with a ruler"; then "maybe do not touch TEST, a Jar 0
