@@ -8,6 +8,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 - **FORM-G: `DROPS-FIRST.md`, a note from cloud-Claude** (2026-11-16; the owner: "first putting all the drops, as in HOLO, and then
   dragging"; "5 mm, the brush's width. 4 drops, 4 drags in a snake at the end, without n+1"). A group of four legs, four drops, then
   a snake of four drags, no idle run; a 20 × 20 sheet against FORM-G's run as it is. Nothing in the code yet. Its photos since 2026-11-17: `FORM-G/photos/2026-11-16/`.
+- **FORM-G: DRAG's question without its paragraph** (2026-11-16, the evening; the owner, of the text under DRAG's list: "it is not needed, it covers the
+  buttons"). `formg.js`: the title, the jar first, Start from and the list alone, ▶ DRAG and Cancel in sight; `dragWay` and `say` gone (they still told of the
+  snake with the brush down). OPM-G's the same page. Checked in headless Chrome on a copy of the app: Mickey's question open, Start from 4, Cancel, no error.
 - **FORM-G: a dip a leg, its idle run on the legs; n + 1 gone** (2026-11-16, the evening; the owner, of Mickey's first jar on canvas — the machine camera's film of
   7.32 PM, `FORM-G/Screenshot 2026-11-16 at 7.34.43 PM.png` and `7.43.50 PM.png`, marked in green: "I think we must cancel n+1 for FORM-G; something silly
   comes out when there are 6 drops and 7 runs. It must go back: 6 drops, so 6 runs"; "after the turn onto a new track the brush loses all its paint … every
