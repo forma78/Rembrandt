@@ -14,7 +14,7 @@ import './ui.js';
 // OPM-G (2026-11-07): this page with its own library, app/opmg/, and its run by the canon of a long leg (canon.js); FORM-G's as it was
 const TAB = document.body.dataset.tab === 'opmg' ? 'opmg' : 'formg', CANON_RUN = TAB === 'opmg', NAME = CANON_RUN ? 'OPM-G' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
 const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01' : 'rembrandt.formg.v02', OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
-const PRESS_MIN = -4, PRESS_MAX = 8;   // as OPM-N's brush
+const PRESS_MIN = -4, PRESS_MAX = 8, GESSO = '#FBFAF7';   // GESSO: the canvas, white (2026-11-16)   // as OPM-N's brush
 const TRAVEL = 100;   // the carriage's travel with the brush up, mm/s: see where S is read
 const fmt = (v, d = 1) => Number(v).toFixed(d), sgn = v => `${v >= 0 ? '+' : '−'}${fmt(Math.abs(v), 1)}°`, esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
@@ -406,12 +406,13 @@ function draw() {
   g.setTransform(d, 0, 0, d, 0, 0);
   g.clearRect(0, 0, r.width, r.height);
   if (!PIC) return;
-  g.fillStyle = '#F3F0E6'; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
+  // the canvas white, gesso (the owner, 2026-11-16: "why is our ground cream on FORM-G? I take a canvas, the gesso there is white"): OPM-N's and GEN-F's white
+  g.fillStyle = GESSO; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
   g.strokeStyle = 'rgba(36,34,31,.35)'; g.lineWidth = 1; g.strokeRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
   if (PLAY) { g.drawImage(PLAY.cv, sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); }
   else if (S.view === 'picture' && IMG[S.pic]?.complete) {
     g.imageSmoothingQuality = 'high'; g.drawImage(IMG[S.pic], sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
-    if (only) { g.fillStyle = 'rgba(243,240,230,.82)'; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); drawLegs(g, plan().filter(q => q.pencil === only)); }
+    if (only) { g.fillStyle = 'rgba(251,250,247,.82)'; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); drawLegs(g, plan().filter(q => q.pencil === only)); }
   } else if (S.view === 'contour') drawContour(g);
   else drawLegs(g, plan());
   drawMarks(g);
@@ -419,7 +420,7 @@ function draw() {
   const F = fgrab?.f ?? S.frames[S.pic];
   if (F) {
     const fx = sx(F.x0), fy = sy(F.y1), fw = (F.x1 - F.x0) * K, fh = (F.y1 - F.y0) * K;
-    g.save(); g.fillStyle = 'rgba(243,240,230,.74)'; g.beginPath(); g.rect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); g.rect(fx, fy, fw, fh); g.fill('evenodd');
+    g.save(); g.fillStyle = 'rgba(251,250,247,.74)'; g.beginPath(); g.rect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); g.rect(fx, fy, fw, fh); g.fill('evenodd');
     g.strokeStyle = '#EB7A25'; g.lineWidth = 2; g.strokeRect(fx, fy, fw, fh);
     g.fillStyle = '#B3470C'; g.font = '600 11px ui-monospace, Menlo, monospace'; g.textAlign = 'left';
     g.fillText(`frame ${fmt(F.x1 - F.x0, 0)} × ${fmt(F.y1 - F.y0, 0)} mm`, fx, fy - 6); g.restore();

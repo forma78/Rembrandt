@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G on white gesso, not cream** (2026-11-16; the owner: "why is our ground cream on FORM-G? I take a canvas, the gesso there is white. Maybe replace
+  it?"). The canvas on FORM-G's (and OPM-G's) page, its veils and the cards' frames `#FBFAF7`, OPM-N's and GEN-F's white (`GESSO`, `formg.js`). The renders:
+  genfpic.py's flat ones on it — the Targa's, the headlight v.2's, Mickey's (local) — their plans unchanged (compared); the old generator's, which cannot all
+  be made again (the classic's v.2 was touched by hand), by `FORM-G/generator/whiten.py`: a pixel of the bare cream ground alone — the ground's own proportions
+  within 1.5 %, its weave's light — to the white, the weave kept, every pixel of paint as it was (the classic's v.2 … v.4, the white, the GT, the headlight
+  v.1, the watch, OPM-G's G-wagon; 22 … 60 % of each); `brushsim.py`'s `GROUND_SRGB` white for a render made again, `leg_colour`'s cache keeping the plans.
 - **GEN-F 40 × 40; FORM-G's layer under and its idle run n + 1; a local library** (2026-11-16; the owner, sending `mickey 2 · GEN-F · 60x60 · 30 · blur 110 ·
   90%.json` to FORM-G: "only now I need a new canvas, 40 × 40 cm, and the idle stroke's offset as in LAB + IDLE 6.0 (n+1)"). GEN-F: a 40 × 40 key first, its
   field 340 × 340 (30 mm in); its sketches `idle: 'n+1'`, their time counted so. FORM-G (`formgplan.js`): `idleLegsOf(…, nplus)`, a picture's `idle: 'n+1'` —

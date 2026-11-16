@@ -107,7 +107,7 @@ def make(sketch_path, pid, title, sub, crest=True, out=OUT, idle='n+1'):
     json.dump(pic, open(os.path.join(out, f'{pid}.json'), 'w'), separators=(',', ':'))
     # the render: GEN-F's, the legs 5 mm wide in the list's order (light under dark), flat
     W, H = pic['w'] * PPM, pic['h'] * PPM
-    im = Image.new('RGB', (W, H), (246, 243, 236))
+    im = Image.new('RGB', (W, H), (251, 250, 247))                              # the canvas, white gesso (2026-11-16)
     dr = ImageDraw.Draw(im)
     for j in sorted(jars, key=lambda q: not q.get('under')):                    # the layer under first
         rgb = tuple(int(j['hex'][i:i + 2], 16) for i in (1, 3, 5))

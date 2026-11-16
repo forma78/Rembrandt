@@ -81,3 +81,5 @@ FORM-G/generator/*.pkl
 /app/formg/mickey*
 /GEN-F/mickey*
 /FORM-G/mickey*
+/FORM-G/image-1*
+/GEN-F/image-1*

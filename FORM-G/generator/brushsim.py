@@ -11,7 +11,7 @@ What the photo shows (all est., from the photo, not measured on the machine):
 import numpy as np
 from scipy.ndimage import gaussian_filter
 
-GROUND_SRGB = (243, 240, 230)
+GROUND_SRGB = (251, 250, 247)   # the canvas, white gesso (the owner, 2026-11-16: "the gesso there is white"); was (243, 240, 230), cream — leg_colour's cache keeps the plans as they were
 
 
 def srgb2lin(c):
