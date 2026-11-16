@@ -3,7 +3,25 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.2.3 — 2026-11-10
+## v.1.2.4 — 2026-11-16 · GEN-F, the workshop
+
+- **GEN-F: Motion blur, a layer under the picture** (2026-11-16; the owner, of `Classic Red 911 Coupe Profile`, the 911 in profile lying along X on 60 × 80, its
+  legs along the car "as if it were going at high speed": "a second, BOTTOM layer … and a slider in GEN-F, motion blur. It adds stripes of the Porsche's own colour
+  but does not break the geometry, as it lies UNDER the picture … the top and the bottom of a 60 × 80 canvas seem to fit"). `blurOf` (`src/genfplan.js`), `BLUR`:
+  every column is the car's own section along its length, so each is smeared along itself, the slider's mm (0 … 300, est.), both ways — the car's colours alone
+  averaged, taken towards the ground by 0.4 of what of the window is not the car, none under a tenth of it (est.), so the stripes stay the car's red and pale at
+  their ends; laid where the picture leaves the canvas bare and 10 mm on under its paint, along X to 10 mm off the canvas's top and bottom, within the reach's
+  843; its colours the picture's own jars after the canon, the ground where it fades out (first, so a black jar on a black ground leaves it bare), one coat, by
+  the same programme. On the screen under the picture; its jars a list of their own, "first"; its time by FORM-G's run; in APPROVE's file (`blur_mm`, `under`) and
+  its name. The profile at 160 mm: 7 of its 27 jars, 191 legs, ≈ 59 min, then the picture's ≈ 4 h 59 min (est.). **Opacity**, 10 … 100 %, 50 at first
+  (the owner, the same hour: "the blur works superbly, but it is alpha 100 %; it needs a transparency channel too, so that it does not spoil the main layer's
+  contour with the Porsche"): a glaze — the same jars, the same legs, each jar thinned with medium so its colour lies so far from the canvas's to its own,
+  "Colour 15 · glaze 50 %" (`paint` its jar, `glaze` the share; est.: a glaze's colour by a mix, not measured). A first try took the colours towards the
+  ground before choosing the jars: the picture has no light jars of its red, so the stripes went grey and white — dropped for the glaze. FORM-G not touched: an under layer in its run
+  waits for the owner's word (the owner: "yes … there it is the library of finished works. GEN-F is the creative workshop"). Checked in headless Chrome.
+- **v.1.2.4 on every tab and in the saved SVGs.** README: "GEN-F, the workshop · FORM-G, the library".
+- **The headlight waits for a new frame** (the owner, 2026-11-16: "I looked at our limits again — 540 mm; unfortunately we have to make something on a white
+  ground, as the Porsche GT. We will come back to the headlight when the machine has a new frame"). Its card stays; no MARKS for it now ("not yet").
 
 - **FORM-G: the classic red 911's headlight, 60 × 80 — GEN-F's first sketch made final** (2026-11-16; the owner: "I suddenly approved 60 × 80, Classic Red
   Porsche Headlight Detail · GEN-F · 60x80 · 14.json; the file is with you … in the GEN-F folder"). `FORM-G/generator/headlight.py`: racecark.py's RaceFaceK
