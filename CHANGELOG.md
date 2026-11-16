@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: `DROPS-FIRST.md`, a note from cloud-Claude** (2026-11-16; the owner: "first putting all the drops, as in HOLO, and then
+  dragging"; "5 mm, the brush's width. 4 drops, 4 drags in a snake at the end, without n+1"). A group of four legs, four drops, then
+  a snake of four drags, no idle run; a 20 × 20 sheet against FORM-G's run as it is. Nothing in the code yet.
 - **FORM-G: Points · Jar 0 with a dot at the canvas's centre** (2026-11-16; the owner, asking what TEST is on a 60 × 60 — Preferences draw its dots on a
   400 × 400 — "maybe put a dot right in the centre? It will help me"). FORM-G's TEST is not Preferences': a dot at each corner of the picture's own box (its
   legs' ends, the layer under too), one each, no margin; Preferences' TEST (margin, two dots at TL) is HOLO's and the other tabs', its board drawn as a 40 × 40
