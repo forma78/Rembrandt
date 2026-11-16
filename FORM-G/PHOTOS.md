@@ -36,4 +36,24 @@ the film, its length, what the frames show — and pushes.
   `PAINT.md`'s log (the Rembrandt project in the cloud chat), by file name.
 - No other artist's work here (README).
 
-No batch yet.
+## 2026-11-16 · Mickey 60 × 60, one beige jar's snake, from the iPhone
+
+`photos/2026-11-16/`, 7 photos: six sent at 21:37, the seventh, the
+owner's marks, a few minutes after. Close-ups of the strokes alone, no
+outline of the picture (the owner, 2026-11-17: "put the ones with no
+outline of the mouse; everywhere here are just white strokes"). One jar, a
+near-white beige (its number not given), laid by DRAG SNAKE. The owner:
+"How about the idea of first putting all the drops, as in HOLO, and then
+dragging, so that the picture comes out more even?"; then, of the marks:
+"this pattern is everywhere in FORM-G". What came of it:
+`FORM-G/DROPS-FIRST.md`. By eye, est.:
+
+| file | what it shows |
+|---|---|
+| `IMG_3120.jpg` | The ruler 0–7 cm across the legs, above them: a block of legs ≈ 5 cm wide in a snake, every track two ridges ≈ 1 mm and a pale film between, the weave through it; caps at both ends. At the right, longer legs, thinner, their ridges wandering 1–2 mm. |
+| `IMG_3121.jpg` | The same block, the ruler 0–11 cm along the legs at its left: legs ≈ 8–9 cm, a solid cap ≈ 13–15 mm at every turn, overhanging the legs' ends by ≈ 5 mm. |
+| `IMG_3122.jpg` | The ruler 0–8 cm across the legs below their ends: a field of long legs ending in caps ≈ 10 mm apart, one a turn of the snake; thin threads inside the channels; a fat dab at the top right. |
+| `IMG_3123.jpg` | No ruler, wet and glossy: a stepped block, short legs at the left, long in the middle; at the right a flat even band of the same beige, the weave through it; on the last column three teardrops, round heads, tails along the leg. |
+| `IMG_3124.jpg` | The same, the brush's holder in the frame, raking light, the arm's shadow: the tip at a teardrop of the last column, loaded up its side; a highlight along every ridge's top. |
+| `IMG_3125.jpg` | The same, the tip lifted beside the last column; raking light. |
+| `IMG_3126.jpg` | A screenshot of IMG_3123's block, the owner's four green circles: a pill ≈ 25 mm at the top of a tall column, and three teardrops. |
