@@ -2,7 +2,7 @@
 // you for the final work". Two keys alone — the format, the number of colours; the rest FORM-G's own. Moves nothing on the machine: FORM-G's plotRun only counts
 // the run's time, the cup at hand, the canvas in the middle of the reach (est.).
 import { GEN, BLUR, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf, sketchOf, blurOf, lineOf } from './genfplan.js';
-import { passesOf, rowsOf, R3, FORMG } from './formgplan.js';
+import { passesOf, rowsOf, brushRuns, R3, FORMG } from './formgplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
 import { cupOf } from './ink.js';
@@ -81,13 +81,16 @@ function blurNow() {
   setTimeout(estimate, 20);
 }
 // FORM-G's run of it, counted: its list, its rows as real 3's, plotRun — the time, the dips (est.); nothing sent
-function runOf(pic) {
+// a dip from the cup at hand, s: what a dip adds to FORM-G's own run, measured on it for the racing face, the classic's v.3 and the headlight (5.2 … 5.6, est.)
+const DIP_S = 5.5;
+function runOf(pic, frame = formatOf(S.format).frame) {   // a new frame's canvas: no Here, so nothing pressed into today's walls — and then no dip counted, so its dips added
   try {
     const P = passesOf(pic), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3 }), W = reach();
     const here = { x: (W.x.min + W.x.max) / 2, y: (W.y.min + W.y.max) / 2 };
-    const r = plotRun({ ...DEFAULTS, speed: 25, travel: 100, tail: 3, lift: true, ink: true, snake: true, pause: false, cup: cupOf({ hand: { on: true } }), hover: ELBOW_HOVER, press: 0, noDipUnder: 0, rows: R.ps.length, here },
+    const r = plotRun({ ...DEFAULTS, speed: 25, travel: 100, tail: 3, lift: true, ink: true, snake: true, pause: false, cup: cupOf({ hand: { on: true } }), hover: ELBOW_HOVER, press: 0, noDipUnder: 0, rows: R.ps.length, ...(frame ? {} : { here }) },
       R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next jar' : null })));
-    return { seconds: r.seconds, dips: r.dips, lines: P.length, n1: P.filter(q => q.layer === 1).length, mm: P.reduce((a, q) => a + q.mm, 0) };
+    const dips = frame ? brushRuns(P, R3.every, FORMG.lap, false, R3.slack).filter(q => q.dip).length : r.dips;
+    return { seconds: r.seconds + (frame ? dips * DIP_S : 0), dips, lines: P.length, n1: P.filter(q => q.layer === 1).length, mm: P.reduce((a, q) => a + q.mm, 0) };
   } catch (e) { return { fail: String(e?.message || e) }; }
 }
 function estimate() {
@@ -100,8 +103,8 @@ function estimate() {
 // ---------- the panel ----------
 function panel() {
   const f = formatOf(S.format), F = fieldOf(f);
-  $('#formats').innerHTML = GEN_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as FORM-G lays it">${q.w / 10} × ${q.h / 10}</button>`).join('');
-  $('#fieldRead').innerHTML = `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`
+  $('#formats').innerHTML = GEN_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}${q.frame ? ' frame' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as FORM-G lays it${q.frame ? ' — for a new frame: today the brush reaches 540 × 843 mm; a sketch to look at, nothing to run' : ''}">${q.w / 10} × ${q.h / 10}${q.frame ? '<i>new frame</i>' : ''}</button>`).join('');
+  $('#fieldRead').innerHTML = (f.frame ? `<span class="warn">For a new frame:</span> today the brush reaches 540 × 843 mm; the field here the canvas itself, 30 mm in, ${F.w} × ${F.h} mm (est.)` : `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`)
     + (SK ? `; the picture <b>${SK.W} × ${SK.R} mm</b>, ${SK.fit.N} columns 5 mm apart, in the middle.` : '.');
   $('#kNow').textContent = S.k; $('#kSl').value = S.k;
   $('#kSay').textContent = SK ? `→ ${SK.pic.jars.length} jars` : '';

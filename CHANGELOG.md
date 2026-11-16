@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **GEN-F: 90 × 120 and 100 × 150, for a new frame** (2026-11-16; the owner: "for the future I want to try a canvas 90 × 120 and 100 × 150 cm. Could you add
+  the keys? I wonder what the effect will be, probably quite like a realistic photograph"). Two keys after the three, "new frame" under them (`GEN_FORMATS`,
+  `frame`): their field the canvas itself, 30 mm in (840 × 1140, 940 × 1440), not today's 540 × 843, and the page says so in orange; the motion blur along all
+  of the canvas. Their time by FORM-G's run with no Here, so nothing is pressed into today's walls, and then its dips counted apart (`brushRuns`) at 5.5 s each
+  (`DIP_S`: what a dip adds to FORM-G's own run, 5.2 … 5.6 s on the racing face, the classic's v.3 and the headlight; est.). The profile at 38 colours, blur 160:
+  60 × 80 ≈ 4 h 59 + 21 min, 90 × 120 ≈ 10 h 43 + 36 min, 100 × 150 ≈ 17 h 05 + 52 min, the car 45 × 143 cm there. A sketch to look at; nothing to run.
+- **The headlight's time, corrected**: ≈ 18 h 20 min by FORM-G's run with the cup at hand (3629 dips), not the 12 h 40 the v.1.2.4 entry said — that was
+  read off FORM-G's (i) on a static copy with no rembrandt.py, where the cup's dips count 0.
 - **GEN-F: the blur's opacity as OPM's raster, not a glaze** (2026-11-16, after v.1.2.4; the owner: "wait, it has to be OPM, optical pigment mixing: instead of
   a glaze with medium, as a raster if possible — more stripes or fewer. You did it once along the way, many lines, they make a beautiful effect; but in the
   final form your opacity is for digital print more than for our case with a brush"; "if I thin those jars with medium I no longer have the original jars;
@@ -40,7 +48,7 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
   kept within the red paint or the metal. The sketch's 14 colours, each first made to measure, then the owner's own numbered jar of the red classic whose dried
   leg lies within 8 of it (nearest pair first, est.): Jar 1, 7, 24, 25, 27, 28, 34, 40, 43, 47, 48, Black; two new, `New 1` `#CD5559` and `New 2` `#C72E2D` ×2,
   till he numbers them. None pruned, the canon of the jars at 80 cm takes none (the shortest 3.3 m). 2618 legs, 23 lines of the list, 9 jars two coats; FORM-G's
-  count ≈ 7 h 49 + 4 h 52 min (est.). `app/formg/porsche-headlight.json` and its jpg, the first card of THE LIBRARY. MARKS: no room on a 60 × 80 by FORM-G's
+  count ≈ 18 h 20 min (est.; corrected after v.1.2.4, see there). `app/formg/porsche-headlight.json` and its jpg, the first card of THE LIBRARY. MARKS: no room on a 60 × 80 by FORM-G's
   strips (14–25 mm round the picture, 32–34 needed). The sketch's json in `GEN-F/`; the picture stays out of git (`.gitignore`). Checked: the tests; FORM-G in
   headless Chrome on a static copy, the card, its list, its place, its (i). Not run.
 - **GEN-F: GROUND, white or black, the preview only** (2026-11-16; the owner, of `Crimson Classic Porsche 911 in Studio Light.png`, a car on black: "add a

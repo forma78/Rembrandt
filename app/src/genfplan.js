@@ -7,7 +7,10 @@
 import { cellOf } from './formgplan.js';
 import { jarsByCanvas } from './canon.js';
 
-export const GEN_FORMATS = [{ id: '60x60', w: 600, h: 600 }, { id: '60x80', w: 600, h: 800 }, { id: '70x100', w: 700, h: 1000 }];   // w across (Y), h along (X): FORM-G's
+export const GEN_FORMATS = [{ id: '60x60', w: 600, h: 600 }, { id: '60x80', w: 600, h: 800 }, { id: '70x100', w: 700, h: 1000 },   // w across (Y), h along (X): FORM-G's
+  // a new frame's (the owner, 2026-11-16: "for the future I want to try a canvas 90 × 120 and 100 × 150 cm … I wonder what the effect will be, probably quite
+  // like a realistic photograph"): past today's reach, 540 × 843 — their field the canvas itself, 30 mm in; a sketch to look at, nothing to run yet
+  { id: '90x120', w: 900, h: 1200, frame: true }, { id: '100x150', w: 1000, h: 1500, frame: true }];
 // the field the brush reaches on a canvas, est.: across Y the race face's 540 (the reach 568.5, MARKS by the field), along X the classic's 843 (the reach 865, the
 // elbow's sweep ~20 at the bottom); 30 mm of canvas at least round it. minSpan: the Porsche's shortest leg; lam: a cut's cost, CIELAB ΔE² (est.); carry: how much
 // of a column's miss goes on to the next (est.); join, under, stepMax, crumb: paintrun.py's JOIN, UNDER, export's STEP_MAX, its crumbs
@@ -72,7 +75,7 @@ export function boxOf(mask, w, h) {
 
 // ---------- the picture on the canvas ----------
 export const formatOf = id => GEN_FORMATS.find(f => f.id === id) ?? GEN_FORMATS[0];
-export const fieldOf = f => ({ w: Math.min(f.w - 2 * GEN.margin, GEN.across), h: Math.min(f.h - 2 * GEN.margin, GEN.along) });
+export const fieldOf = f => f.frame ? { w: f.w - 2 * GEN.margin, h: f.h - 2 * GEN.margin } : { w: Math.min(f.w - 2 * GEN.margin, GEN.across), h: Math.min(f.h - 2 * GEN.margin, GEN.along) };
 // as large as the field lets it, its aspect kept: N columns 5 mm apart across, R mm along; centred on the canvas (FORM-G's columns, export_formg.py's xs)
 export function fitOf(f, iw, ih) {
   const F = fieldOf(f), N = Math.max(1, Math.floor(Math.min(F.w, F.h * iw / ih) / GEN.pitch)), R = Math.max(1, Math.min(F.h, Math.round(N * GEN.pitch * ih / iw)));
@@ -231,7 +234,7 @@ export function sketchOf(B, fit, f, K, o = {}) {
 // → { pic: FORM-G's json of that layer, its jars the picture's, one coat, `under` }, or null at nothing to blur
 export function blurOf(B, fit, f, sk, mm, ground = '#FBFAF7', o = {}) {
   if (!(mm >= GEN.pitch) || !sk?.pic?.jars?.length) return null;
-  const { N, R } = B, edge = Math.max(o.edge ?? BLUR.edge, (f.h - GEN.along) / 2), lap = o.lap ?? BLUR.lap, RR = Math.round(f.h - 2 * edge), off = Math.round(fit.top - edge);
+  const { N, R } = B, edge = f.frame ? o.edge ?? BLUR.edge : Math.max(o.edge ?? BLUR.edge, (f.h - GEN.along) / 2), lap = o.lap ?? BLUR.lap, RR = Math.round(f.h - 2 * edge), off = Math.round(fit.top - edge);
   const n = parseInt(ground.slice(1), 16), G = [LIN[n >> 16], LIN[n >> 8 & 255], LIN[n & 255]], half = Math.round(mm / 2), span = 2 * half + 1;
   const lab = new Float32Array(N * RR * 3), on = new Uint8Array(N * RR), sum = new Float64Array((RR + 1) * 3), cnt = new Float64Array(RR + 1), bare = new Int32Array(RR);
   const least = o.least ?? BLUR.least, full = o.full ?? BLUR.full, alpha = Math.min(1, Math.max(0, o.alpha ?? BLUR.alpha));

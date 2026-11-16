@@ -31,9 +31,11 @@ function sketch(fid = '60x60', K = 12, W = 300, H = 300) {
 }
 
 test('the formats: three, FORM-G\'s way round, the field within the reach and 30 mm of canvas round it', () => {
-  assert.deepEqual(GEN_FORMATS.map(f => f.id), ['60x60', '60x80', '70x100']);
+  assert.deepEqual(GEN_FORMATS.map(f => f.id), ['60x60', '60x80', '70x100', '90x120', '100x150']);
+  for (const f of GEN_FORMATS.filter(q => q.frame)) assert.deepEqual(fieldOf(f), { w: f.w - 60, h: f.h - 60 }, `${f.id}: a new frame's, the canvas 30 mm in`);
+  assert.deepEqual(GEN_FORMATS.filter(q => q.frame).map(q => q.id), ['90x120', '100x150'], 'past today\'s reach: a new frame\'s');
   assert.deepEqual(GEN.colours, [10, 100]);
-  for (const f of GEN_FORMATS) {
+  for (const f of GEN_FORMATS.filter(q => !q.frame)) {
     const F = fieldOf(f);
     assert.ok(f.w <= f.h, `${f.id}: w across Y, the short side`);
     assert.ok(F.w <= 568.5 - 20 && F.h <= 865 - 20, `${f.id}: in the reach, est.`);
@@ -167,4 +169,13 @@ test('the motion blur\'s opacity as OPM\'s raster: the share of the columns, eve
   assert.ok(a.size >= 0.3 * b.size && a.size <= 0.7 * b.size, `about half the columns: ${a.size} of ${b.size}`);
   const th = Array.from({ length: 100 }, (_, c) => rasterOf(c));
   assert.ok(Math.abs(th.filter(t => t < 0.5).length - 50) <= 2 && Math.abs(th.filter(t => t < 0.3).length - 30) <= 2, 'the thresholds evenly spread');
+});
+
+test('a new frame\'s canvas, 100 × 150: the picture as large as the canvas lets it, the blur along all of it', () => {
+  const s = sketch('100x150', 16), { f, fit, B } = s;
+  assert.equal(f.w, 1000); assert.equal(f.h, 1500);
+  assert.ok(fit.N * 5 > 540 || fit.R > 843, 'past today\'s field');
+  assert.ok(fit.N * 5 <= 940 && fit.R <= 1440);
+  const U = blurOf(B, fit, f, s, 300, '#FBFAF7', { alpha: 1 }), ys = U.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.flatMap(l => [l[1], l[2]])));
+  assert.ok(Math.max(...ys) - Math.min(...ys) > 843, 'the blur past the 843 of today\'s reach');
 });
