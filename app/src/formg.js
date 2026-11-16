@@ -299,10 +299,13 @@ function testRun() {
   return { ...plotRun(runOpts(dots.length), [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }]), dots };
 }
 // POINTS · Jar 0 (formgplan.js's pointsOf): TEST's run, a dot at each of the picture's outermost points, in the white, to lay the canvas by and check it with a ruler
+// and first a dot at the canvas's very middle, a short stroke along X across it (the owner, 2026-11-16: "maybe put a dot right in the centre? It will help me":
+// from it a ruler to every edge, half the canvas)
 function pointsRun() {
   const pts = pointsOf(PIC);
   if (!pts.length) return null;
-  const dots = pts.map(([px, py], i) => { const x = py - PIC.h / 2, y = px - PIC.w / 2, d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name: `P${i + 1}`, mm: [px, py], at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } }; });
+  const centre = { name: 'C', mm: [PIC.w / 2, PIC.h / 2], at: { x: -DOT_MM / 2, y: 0 }, to: { x: DOT_MM / 2, y: 0 } };
+  const dots = [centre, ...pts.map(([px, py], i) => { const x = py - PIC.h / 2, y = px - PIC.w / 2, d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name: `P${i + 1}`, mm: [px, py], at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } }; })];
   return { ...plotRun(runOpts(dots.length), [{ key: 'POINTS', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }]), dots };
 }
 let SHOW_PTS = false;
@@ -317,7 +320,7 @@ $('#btnPoints').onclick = async () => {
   if (cupProblem(cup())) return warn(`POINTS dips in ${cupName()}: ${cupProblem(cup())}`);
   if (T.fault) return warn(`Not run: the points are wrong — ${T.fault}.`);
   if (walls(T)) return warn(walls(T));
-  if (!confirm(`POINTS · Jar 0: put Jar 0, the white, in the cup — one dip, then a dot at each of the picture's ${T.dots.length} outermost points (mm from the canvas's left and bottom edges): ${T.dots.map(d => `${d.name} ${fmt(d.mm[0], 0)} → · ${fmt(d.mm[1], 0)} ↑`).join(', ')} — and home.`)) return;
+  if (!confirm(`POINTS · Jar 0: put Jar 0, the white, in the cup — one dip, then a dot at the canvas's centre (C) and at each of the picture's ${T.dots.length - 1} outermost points (mm from the canvas's left and bottom edges): ${T.dots.map(d => `${d.name} ${fmt(d.mm[0], 0)} → · ${fmt(d.mm[1], 0)} ↑`).join(', ')} — and home.`)) return;
   await start('points', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `POINTS · ${d.name}` })) }, logOf({ pass: 'points', cup: cup(), dots: T.dots.map(d => ({ name: d.name, mm: d.mm, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
 };
 }
@@ -464,7 +467,7 @@ function draw() {
 // the outermost points, green crosses, while the pointer is on POINTS (his own green crosses, mickey-1.png)
 function drawPoints(g) {
   g.save(); g.strokeStyle = '#21C23B'; g.lineWidth = 2; g.font = '600 11px "SF Mono", ui-monospace, Menlo, monospace'; g.fillStyle = '#1C9A31';
-  pointsOf(PIC).forEach(([x, y], i) => { const X = sx(x), Y = sy(y), r = 9; g.beginPath(); g.moveTo(X - r, Y); g.lineTo(X + r, Y); g.moveTo(X, Y - r); g.lineTo(X, Y + r); g.stroke(); g.fillText(`P${i + 1}`, X + 6, Y - 6); });
+  [[PIC.w / 2, PIC.h / 2, 'C'], ...pointsOf(PIC).map(([x, y], i) => [x, y, `P${i + 1}`])].forEach(([x, y, t]) => { const X = sx(x), Y = sy(y), r = 9; g.beginPath(); g.moveTo(X - r, Y); g.lineTo(X + r, Y); g.moveTo(X, Y - r); g.lineTo(X, Y + r); g.stroke(); g.fillText(t, X + 6, Y - 6); });   // C the canvas's centre
   g.restore();
 }
 function drawMarks(g) {

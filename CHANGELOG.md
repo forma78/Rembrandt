@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: Points · Jar 0 with a dot at the canvas's centre** (2026-11-16; the owner, asking what TEST is on a 60 × 60 — Preferences draw its dots on a
+  400 × 400 — "maybe put a dot right in the centre? It will help me"). FORM-G's TEST is not Preferences': a dot at each corner of the picture's own box (its
+  legs' ends, the layer under too), one each, no margin; Preferences' TEST (margin, two dots at TL) is HOLO's and the other tabs', its board drawn as a 40 × 40
+  for the picture. Points · Jar 0 now first a dot at the canvas's very middle, C, a 6 mm stroke along X across it, then P1 …: from C a ruler to every edge,
+  half the canvas. The crosses on the screen C too. TEST as it was.
 - **FORM-G: DRAW BW gone** (2026-11-16; the owner: "DRAW BW may go altogether. Once you remove it, you may push"). Its key, its pen's speed, its read under
   The brush and the Contour view, its preview, off FORM-G's page; a page left on Contour opens on the Picture. Its code stays (`contourOf`, the tests; HOLO's own
   DRAW BW untouched). Checked in headless Chrome, FORM-G and OPM-G.
