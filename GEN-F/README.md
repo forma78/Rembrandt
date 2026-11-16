@@ -24,9 +24,10 @@ sketch, approve it and give it to you for the final work? we would save a lot of
 
 - **40 × 40** (2026-11-16), the smallest canvas, its field 340 × 340 mm. A sketch says FORM-G's idle run n + 1.
 - **GROUND**, white or black: the bare canvas's colour on the screen. Nothing is painted for it.
-- **Motion blur**, 0 … 300 mm: a layer under the picture, painted first — every column smeared
-  along itself in the picture's own jars, where the picture leaves the canvas bare. FORM-G does
-  not run such a layer yet: the final work starts when the owner says so.
+- **Motion blur**, 0 … 300 mm: on the screen a layer under the picture — every column smeared
+  along itself in the picture's own jars, where the picture leaves the canvas bare. On FORM-G its
+  stripes go with their own jars, in the same turn as the picture's (no jar changed for a few cm),
+  cut where a lighter jar of the picture lies (the owner, 2026-11-16: "the jars can be merged").
 - **Opacity**, 10 … 100 %: OPM's raster — every stripe its jar's full colour, the share of the
   columns that paint it (50 %: every other column), fewer towards the tails. No jar thinned with
   medium, no new jar: the owner's jars stay as they are.

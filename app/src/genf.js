@@ -157,7 +157,7 @@ function panel() {
   const U = SK.under, ue = SK.uest;
   $('#blurRead').innerHTML = !S.blur ? 'Motion blur off: no layer under the picture.' : !U ? 'Motion blur: nothing to blur along the columns.'
     : `<b>Under the picture, first:</b> the motion blur ${S.blur} mm, opacity ${S.alpha} % as a raster, ${U.pic.jars.length} of its jars, one coat, ${U.legs} legs`
-      + (ue ? (ue.fail ? ` <span class="warn">the time not counted: ${esc(ue.fail)}</span>` : `, ${fmt(ue.mm / 1000, 1)} m, ≈ ${hm(ue.seconds)}; to dry, then the picture.`) : ' …');
+      + (ue ? (ue.fail ? ` <span class="warn">the time not counted: ${esc(ue.fail)}</span>` : `, ${fmt(ue.mm / 1000, 1)} m, ≈ ${hm(ue.seconds)}. On FORM-G its stripes go with their own jars, in the same turn as the picture's — no jar changed for them.`) : ' …');
   $('#jarsHint').textContent = `${n}, light to dark`;
   const by = Object.fromEntries(SK.pic.jars.map(j => [j.id, j]));
   $('#jarList').innerHTML = SK.pic.jars.map((j, i) => `<li data-id="${j.id}"${j.id === only ? ' class="only"' : ''} title="${esc(j.name)} ${j.hex}: ${j.cells.length} cells, ${j.cells.reduce((a, c) => a + c.legs.length, 0)} legs, ${fmt(SK.lines[j.id] / 1000, 2)} m${j.coats === 2 ? ', two coats' : ''}">`

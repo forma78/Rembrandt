@@ -13,8 +13,8 @@ plan is the final, and only the canon is laid on it:
   2. CREST: the maker's crest off — the legs of a sketch colour with less than CREST_M of line near the axis go to the jar painted next to them in their column,
      and two columns about the axis over its height in the sketch's darkest colour, a cell of its own (the owner, 2026-11-10: "no Porsche logo, but a mark one
      cannot read");
-  3. the motion blur's layer under the picture, if the sketch has it (`under`): its jars, the picture's own colours, one coat, `under`, painted first, the
-     picture over it when dry (FORM-G's seqOf; the owner, 2026-11-16, sending mickey 2 with blur 110 · 90 % to FORM-G);
+  3. the motion blur, if the sketch has it: its stripes cells of their own jars, `under`, one coat — no jar of its own, no layer first (the owner, 2026-11-16:
+     "on FORM-G the jars can be merged … Colour 4, only 27 mm"); cut where a lighter jar of the picture lies, so a stripe never lies over its contour;
   4. the idle run n + 1 (`idle`; the owner, the same message: "the idle stroke's offset as in LAB + IDLE 6.0 (n+1)");
   5. nothing else: the legs, their snakes, the coats, the light-under-dark the sketch's. The render GEN-F's: the legs 5 mm wide, flat, the layer under first (est.).
 
@@ -86,17 +86,53 @@ def make(sketch_path, pid, title, sub, crest=True, out=OUT, idle='n+1'):
         xs = [axis - pitch / 2, axis + pitch / 2]
         dark['cells'].append({'n': 0, 'legs': [[xs[0], mark[1], mark[0]], [xs[1], mark[0], mark[1]]]})
         say.append(f"the crest's mark: {dark['name']} {dark['hex']}, two columns at {xs[0]} and {xs[1]}, {mark[0]} … {mark[1]} mm")
-    # 3. the layer under: its jars after the picture's in the json, `under`, FORM-G runs them first
-    under = []
-    for u in (sk.get('under') or {}).get('jars', []):
-        u = json.loads(json.dumps(u))
-        main = next((j for j in jars if j['name'] == u['name']), None)
-        u.update(under=True, coats=1, code=main['code'] if main else '')
-        u.pop('paint', None); u.pop('glaze', None)
-        under.append(u)
-    if under:
-        say.append(f"the layer under, the motion blur {sk.get('blur_mm')} mm, opacity {round(100 * sk.get('blur_alpha', 1))} % as a raster: {len(under)} of its colours, {sum(len(c['legs']) for u in under for c in u['cells'])} legs, first")
-    jars += under
+    # 3. the motion blur: on GEN-F a layer under the picture, on the machine its stripes go WITH THEIR OWN JARS (the owner, 2026-11-16: "you took my words about
+    # GEN-F literally … on FORM-G it is different: the jars can be merged. It is just the machine moving. Colour 4, only 27 mm! and I have to change jars for it.
+    # I can do it at once with Colour 4 of the main layer, 3.5 m there"): every stripe a cell of its jar's own, `under`, one coat, after the jar's cells. The
+    # jars run light to dark, so a stripe is cut where it would lie over the paint of a lighter jar of the picture — laid before it, it would spoil the
+    # contour; under a darker one it runs on, as in the sketch, that one laid over it later
+    blur = (sk.get('under') or {}).get('jars', [])
+    if blur:
+        byx = {}
+        for k, jj in enumerate(jars):
+            for c in jj['cells']:
+                for x, a, b in c['legs']:
+                    byx.setdefault(round(x, 2), []).append((min(a, b), max(a, b), lab(jj['hex'])[0], jj['name']))
+        legs_in = legs_out = 0
+        for u in blur:
+            Lu, host = lab(u['hex'])[0], next((jj for jj in jars if jj['name'] == u['name']), None)
+            cells = []
+            for c in u['cells']:
+                run, last = [], None
+                for x, a, b in c['legs']:
+                    legs_in += 1
+                    d = 1 if b >= a else -1
+                    pieces = [(min(a, b), max(a, b))]
+                    for lo, hi, Lm, nm in byx.get(round(x, 2), []):
+                        if nm == u['name'] or Lm <= Lu + 0.5:
+                            continue                                     # its own jar, or a darker one laid over it later
+                        pieces = [q for p_ in pieces for q in ((p_[0], min(p_[1], lo)), (max(p_[0], hi), p_[1])) if q[1] - q[0] > 0.01]
+                    pieces = [q for q in pieces if q[1] - q[0] >= 3]
+                    if d < 0:
+                        pieces = pieces[::-1]
+                    for lo, hi in pieces:
+                        leg = [x, lo, hi] if d > 0 else [x, hi, lo]
+                        if last is not None and not (abs(x - last[0] - pitch) < 0.01 and abs(leg[1] - last[2]) <= 7.0):
+                            cells.append(run); run = []
+                        run.append(leg); last = leg; legs_out += 1
+                    if not pieces:
+                        if run:
+                            cells.append(run)
+                        run, last = [], None
+                if run:
+                    cells.append(run)
+            cells = [{'n': 0, 'legs': r, 'under': True} for r in cells if r]
+            if host is not None:
+                host['cells'] += cells
+            elif cells:
+                jars.append({'id': u['id'], 'name': u['name'], 'code': '', 'hex': u['hex'], 'coats': 1, 'cells': cells})
+        say.append(f"the motion blur {sk.get('blur_mm')} mm, opacity {round(100 * sk.get('blur_alpha', 1))} % as a raster: its stripes with their own jars, one coat, "
+                   f"{legs_in} legs of the sketch, {legs_out} after the cuts where a lighter jar of the picture lies; no jar of its own, no layer first")
     for j in jars:
         for n, c in enumerate(j['cells']):
             c['n'] = n + 1

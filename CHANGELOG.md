@@ -8,6 +8,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 - **FORM-G: `DROPS-FIRST.md`, a note from cloud-Claude** (2026-11-16; the owner: "first putting all the drops, as in HOLO, and then
   dragging"; "5 mm, the brush's width. 4 drops, 4 drags in a snake at the end, without n+1"). A group of four legs, four drops, then
   a snake of four drags, no idle run; a 20 × 20 sheet against FORM-G's run as it is. Nothing in the code yet. Its photos since 2026-11-17: `FORM-G/photos/2026-11-16/`.
+- **FORM-G: the motion blur's stripes with their own jars, not a layer first** (2026-11-16; the owner, of "Under · the motion blur, first": "you probably took my
+  words about GEN-F literally. There the motion blur really is a layer of its own, UNDER the main one. But in the physical world, on FORM-G, it is different:
+  the jars can be merged. It is just the machine moving. Colour 4, say, all of 27 mm! and I have to change the jars for it. I can do it at once with Colour 4
+  of the main layer, 3.5 m there. Will you merge the motion blur for FORM-G?"). `genfpic.py`: every stripe a cell of its own jar's, `under`, after the jar's
+  cells, one coat — no jar of its own, no layer first, no drying between; the jars run light to dark, so a stripe is cut where it would lie over the paint of
+  a lighter jar of the picture (laid before it, it would spoil the contour), and runs on under a darker one, laid over it later; pieces under 3 mm out, a
+  snake broken where its next leg is not the next column within 7 mm. `seqOf`: a second coat the picture's cells alone. Mickey (local): 31 lines → 18, 15 jars;
+  233 stripes' legs → 226, none over a lighter jar (checked); ≈ 4 h 20 min. GEN-F's line says so; its screen keeps the blur a layer under, as before.
 - **FORM-G: Points · Jar 0 with a dot at the canvas's centre** (2026-11-16; the owner, asking what TEST is on a 60 × 60 — Preferences draw its dots on a
   400 × 400 — "maybe put a dot right in the centre? It will help me"). FORM-G's TEST is not Preferences': a dot at each corner of the picture's own box (its
   legs' ends, the layer under too), one each, no margin; Preferences' TEST (margin, two dots at TL) is HOLO's and the other tabs', its board drawn as a 40 × 40

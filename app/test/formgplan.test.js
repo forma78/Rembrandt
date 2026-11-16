@@ -512,3 +512,12 @@ test('POINTS · Jar 0 (2026-11-16): the picture\'s outermost points, the corners
   for (const p of P) assert.ok(legs.some(([x, a, b]) => x === p[0] && (a === p[1] || b === p[1])), 'every point a leg\'s end');
   assert.ok(pointsOf(pic, 1000).length === 3, 'a band of three at the coarsest');
 });
+
+test('the motion blur on the machine (2026-11-16): its stripes cells of their own jars, one coat — a second coat its picture\'s cells alone', () => {
+  const pic = { ...PIC, jars: [{ id: 'b', name: 'B', hex: '#222222', coats: 2, cells: [{ n: 1, legs: [[10, 20, 100]] }, { n: 2, legs: [[15, 120, 180]], under: true }] }] };
+  const S = seqOf(pic);
+  assert.deepEqual(S.map(j => [j.id, j.layer, j.cells.length]), [['b', 1, 2], ['b:2', 2, 1]], 'one jar, its stripe in its first turn alone');
+  assert.ok(!S[1].cells.some(c => c.under));
+  const only = { ...PIC, jars: [{ id: 'c', name: 'C', hex: '#222222', coats: 2, cells: [{ n: 1, legs: [[15, 120, 180]], under: true }] }] };
+  assert.deepEqual(seqOf(only).map(j => j.id), ['c'], 'a jar of stripes alone: no second coat');
+});
