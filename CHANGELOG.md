@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.3 — 2026-11-10
 
+- **FORM-G/PHOTOS.md: FORM-G's photos and frames, as HOLO's** (2026-11-16; the owner: "yes, I allow adding FORM-G to HOLO-Claude/PHOTOS.md.
+  The README may be added to"). The iPhone's photos of FORM-G's runs → the cloud chat → `FORM-G/photos/<date>/`, pushed by cloud-Claude;
+  the machine camera's frames, one every 2 s → `FORM-G/eyes/<date>/`, by Claude in VS Code; every batch at the top of `FORM-G/PHOTOS.md`.
+  README: the folder layout, and Working rules — `git pull`, then the newest batch in both `PHOTOS.md`; "the photos" in the owner's words
+  in VS Code are that batch. No code changed.
 - **HOLO V4: run 2 Air again, its dots on one side, legs + 1 tracks** (2026-11-15, the evening; the owner, of the test canvas: "an old
   canvas, no gesso to hold the paint, a smooth pouring medium that strips fresh acrylic as from glass … a clean canvas cures it"; then,
   `HOLO-Claude/Screenshot 2026-11-15 at 5.23.19 PM.png`: "at first you had pleasant gradients, when the drops stood on one side only. I propose

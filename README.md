@@ -29,6 +29,8 @@ Rembrandt/
   nolan-images/      the pictures NOLAN is made for
   RoArte/            the owner's hand tests of the brush and the paint for OPM-N (2026-11-01)
   FORM-G/generator/  how FORM-G's paintings are made, on this Mac, at the owner's request; not part of the app
+  FORM-G/photos/     the owner's iPhone photos of FORM-G's runs, a folder a day, pushed by cloud-Claude; listed in FORM-G/PHOTOS.md (2026-11-16)
+  FORM-G/eyes/       the machine camera's frames of FORM-G's runs, cut from its films, a folder a day; listed in FORM-G/PHOTOS.md (2026-11-16)
   HOLO-Claude/       HOLO's task from cloud-Claude (HOLO.md, its sheets and study) and generator/, its pictures in the owner's jars (2026-11-12)
   HOLO-Claude/photos/  the owner's iPhone photos of HOLO's runs, a folder a day, pushed by cloud-Claude; listed in HOLO-Claude/PHOTOS.md (2026-11-14)
   HOLO-Claude/eyes/    the machine camera's frames of HOLO's runs, cut from its films, a folder a day; listed in HOLO-Claude/PHOTOS.md (2026-11-14)
@@ -345,16 +347,24 @@ their files and tests kept; a page left on one opens its v.2.
 ## Working rules
 
 - **`git pull` first. What the machine did comes in two ways**, both
-  listed in `HOLO-Claude/PHOTOS.md`, newest first:
+  listed, newest first, in the `PHOTOS.md` of the tab the run belongs to:
+  **`HOLO-Claude/PHOTOS.md`** and, since 2026-11-16, **`FORM-G/PHOTOS.md`**:
   - **photos**: the owner's iPhone → the cloud chat → cloud-Claude pushes
-    them to `HOLO-Claude/photos/<date>/`;
+    them to `HOLO-Claude/photos/<date>/` or `FORM-G/photos/<date>/`;
   - **films**: the machine's camera is wired to the MacBook, so a film
     stays on this Mac; Claude in VS Code cuts a frame every 2 s into
-    `HOLO-Claude/eyes/<date>/`, writes the batch in `PHOTOS.md` and pushes.
+    `HOLO-Claude/eyes/<date>/` or `FORM-G/eyes/<date>/`, writes the batch
+    in that tab's `PHOTOS.md` and pushes.
 
   Cloud-Claude pushes `HOLO-Claude/JOURNAL.md` too. At the start of every
   session, and before every commit: `git pull`, then read the newest batch
-  in `PHOTOS.md`. (The owner, 2026-11-14: "I post the photos of the
+  in both `PHOTOS.md`. When the owner speaks in VS Code of "the photos",
+  "the latest photos", "what I sent", he means the newest batch there.
+  (The owner, 2026-11-16: "I take the photos on the iPhone and send them to
+  you in the chat. You upload them to GitHub with a note for yourself in
+  VS Code. When I write to you in VS Code on the computer, you already know
+  which photos are meant"; "yes, I allow adding FORM-G to
+  HOLO-Claude/PHOTOS.md. The README may be added to.") (The owner, 2026-11-14: "I post the photos of the
   process here, from the iPhone. You can upload them to GitHub yourself,
   start a PHOTOS.md for you in VS Code, add an update to the README; so
   that when I open a new chat, you understand that the new photos have to
