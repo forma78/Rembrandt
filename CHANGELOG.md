@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **FORM-G: a long stroke's drops first** (2026-11-17, the evening; the owner, of the Targa's strokes by a ruler, IMG_3173, IMG_3175: a 75 … 90 mm
+  leg on one dip fat for 5 … 6 cm, then bald; "every 45, then"). A stroke leg over 45 mm: its drops, one every 45 mm at most, then the leg once its
+  own way, no dip, then again the same way; shorter ones as before. The Targa from C7 on: 163 legs, ≈ +146 dips, ≈ +26 min (est.). The journal's
+  DRAG writes `strokeDrops`; FROM THE BREAK of a run before it makes its old plan. GEN-F's time the same way. README's canon.
 - **FORM-G: a mass of one colour, one area** (2026-11-17, the evening; the owner, of the Targa's Colour 6 on canvas, IMG_3172: "the
   picture breaks because of the several runs"; "when more than 1 metre, paint it all at once"; "we need the algorithm"). A zone's touching
   cells one area — all its drops, then its chains' snakes and back — and a strokes jar's areas of 1 m or more the same; 80 drops an area at

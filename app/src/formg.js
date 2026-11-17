@@ -1,6 +1,6 @@
 // FORM-G's page: the library, the picture, OPM-N's DRAG SNAKE (formgplan.js). inka.js's run as it is on OPM-N, its question with Start from, its LCD, BACK ONE CELL, the remote and ELBOW LIVE,
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
-import { FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
+import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { reach } from './machine.js';
@@ -99,16 +99,16 @@ const EMPTY = { blocks: [], rows: [], seconds: 0, mm: 0, dips: 0, passes: [], fa
 const PLAN = new Map(), RUNS = new Map();
 // FORM-G's areas (formgplan.js, joinedCells; the owner, 2026-11-17, the evening): a zone's touching cells one area, a strokes jar's big ones too ('all', his "yes");
 // written in the journal's DRAG (`join`), so FROM THE BREAK makes a run of before it again as it ran, its cells one by one
-let JOIN_RUN = 'all';
+let JOIN_RUN = 'all', STROKE_RUN = STROKE_DROPS;   // and a long stroke's drops (formgplan.js, STROKE_DROPS, 2026-11-17's evening), the journal's `strokeDrops`
 function plan() {                                                                     // the list's colours
-  const key = JSON.stringify([S.over, S.dipLap, CANON_RUN ? S.dipEvery : 0, JOIN_RUN]);
-  if (PLAN.get(pk())?.key !== key) PLAN.set(pk(), { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : { join: JOIN_RUN }) }) });
+  const key = JSON.stringify([S.over, S.dipLap, CANON_RUN ? S.dipEvery : 0, JOIN_RUN, STROKE_RUN]);
+  if (PLAN.get(pk())?.key !== key) PLAN.set(pk(), { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : { join: JOIN_RUN, strokeDrops: STROKE_RUN }) }) });
   return PLAN.get(pk()).passes;
 }
 // the run from a line of the list on; the pause before the second layer's first says what it is
 function paintRun(from = 0) {
   if (!PIC) return EMPTY;
-  const mk = marksNow(), key = JSON.stringify([pk(), S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from, mk ? mk.strips.map(q => q.no) : 0, JOIN_RUN]);
+  const mk = marksNow(), key = JSON.stringify([pk(), S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from, mk ? mk.strips.map(q => q.no) : 0, JOIN_RUN, STROKE_RUN]);
   if (RUNS.has(key)) return RUNS.get(key);
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
@@ -181,7 +181,7 @@ async function start(key, blocks, info, log) {
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 }
 // rembrandt.py knows OPM-N's brush by its page (PENCIL_PAGES: the elbow may rest on the canvas just above its aim): FORM-G's the same brush, so the same page, its own `tab` in the journal; rembrandt.py as it was
-const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...(CANON_RUN ? {} : { join: JOIN_RUN }), ...o });
+const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...(CANON_RUN ? {} : { join: JOIN_RUN, strokeDrops: STROKE_RUN }), ...o });
 // the iPhone's rows; every colour its line in the whole list, n of `of`, and a run from a later line `whole`: the picture's mm before it, the run's, all of it, the whole's seconds —
 // so the remote's PROGRESS reads the whole picture, as the page's (rembrandt.py passes a colour on as it is)
 // A run from the break (C, cutOf): the board's per cent is of what is left after the cut, so `whole` takes the run's share before it into mm0 — linear, as the remote reads it
@@ -249,9 +249,9 @@ function cutOf(R, k) {
 }
 // the plan as the run of the journal had it: its areas (`join`) or none, a run before 2026-11-17's evening
 function breakPlan(B) {
-  const was = JOIN_RUN;
-  JOIN_RUN = CANON_RUN ? was : B.st.join ?? null;
-  try { return breakPlanAs(B); } finally { JOIN_RUN = was; }
+  const was = [JOIN_RUN, STROKE_RUN];
+  if (!CANON_RUN) { JOIN_RUN = B.st.join ?? null; STROKE_RUN = B.st.strokeDrops ?? null; }
+  try { return breakPlanAs(B); } finally { [JOIN_RUN, STROKE_RUN] = was; }
 }
 function breakPlanAs(B) {
   const st = B.st, set = st.settings ?? {}, pic = set.runPic ?? set.pic, no = t => ({ no: t });
@@ -299,7 +299,7 @@ async function fromBreak(BP) {
   S.view = 'drag'; RUN_PRESS = S.press; save(); showKeys(); kick();
   await start('drag', C.blocks, { seconds: C.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from, cut: C, full: R.blocks },
     logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R, from, C),
-      from, full: R.blocks.length, cut: C.offset, pre: C.pre, ...(CANON_RUN ? {} : { join: B.st.join ?? null }), resume: { of: B.st.at, broke: B.at, at_block: BP.at, from_block: BP.k, row: BP.row, colour: BP.jar, cell: BP.cell ?? null },
+      from, full: R.blocks.length, cut: C.offset, pre: C.pre, ...(CANON_RUN ? {} : { join: B.st.join ?? null, strokeDrops: B.st.strokeDrops ?? null }), resume: { of: B.st.at, broke: B.at, at_block: BP.at, from_block: BP.k, row: BP.row, colour: BP.jar, cell: BP.cell ?? null },
       ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(C.seconds) }));
 }
 // its checks, OPM-N's: the plan, the walls, the debug of the pen's downs (strokes.js, landingCheck): every mm of every line with the pen down → a warning, or the debug
@@ -890,7 +890,7 @@ async function watch() {
 
 // ---------- THE JARS: 🔄, a colour painted by one of the owner's jars (2026-11-17) ----------
 const FILL_WORD = { zone: 'zone', strokes: 'strokes', mixed: 'zone · strokes' };
-const FILL_SAY = { zone: 'a zone: its drops first, then one snake and back', strokes: 'strokes: a dip a leg, then the leg again the same way', mixed: 'its cells a zone or strokes, each its own colour\'s' };
+const FILL_SAY = { zone: 'a zone: its drops first, then one snake and back', strokes: 'strokes: a dip a leg, one over 45 mm its drops first, then the drag; then the leg again the same way', mixed: 'its cells a zone or strokes, each its own colour\'s' };
 async function jarsLoad() {
   const get = async u => { try { const r = await fetch(u, { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch { return null; } };
   const j = await get('/jars') ?? await get(`${TAB}/jars.json`) ?? {};

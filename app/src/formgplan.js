@@ -284,7 +284,8 @@ export function joinedCells(jar, fill, pitch, o = JOIN, all = false) {
   });
   return out.map((c, i) => ({ ...c, n: i + 1 }));
 }
-// the run's colours, the list's lines in their order; o.canon: OPM-G's; o.join: FORM-G's areas (joinedCells), 'all' a strokes jar's big ones too
+// the run's colours, the list's lines in their order; o.canon: OPM-G's; o.join: FORM-G's areas (joinedCells), 'all' a strokes jar's big ones too; o.strokeDrops: a long
+// stroke's drops first (STROKE_DROPS)
 export function passesOf(pic, o = {}) {
   return seqOf(pic).map(j => {
     const own = pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j, cells = !o.canon && o.join ? joinedCells(j, fillOf(own), pic.pitch, JOIN, o.join === 'all') : j.cells;
@@ -292,8 +293,8 @@ export function passesOf(pic, o = {}) {
     // FORM-G's fill, its jar's (a second coat's its first's): zone or strokes; OPM-G none, the canon's run
     const fill0 = o.canon ? null : fillOf(pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j), fills = new Set(byCell.map(c => c.fill ?? fill0)), fill = fills.size > 1 ? 'mixed' : o.canon ? null : [...fills][0] ?? fill0;   // 'mixed': a jar painting a zone and strokes (withJars), each cell its own
     // a stroke cell's metres (FORM-G's): its legs, each with its second run the same way, no turns between them
-    if (!o.canon && FORMG.idle === 'back' && (o.idle ?? 'back') === 'back') byCell.forEach((c, i) => { if (strokeOf(c, fill)) { const L = (c.runs ? [c.legs[0]] : c.legs).reduce((t, l) => t + lengthOf(l) + lengthOf(againOf(l, c.over)), 0); byCell[i] = { ...c, mm: L }; } });
-    return { pencil: j.id, layer: j.layer, fill, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
+    if (!o.canon && FORMG.idle === 'back' && (o.idle ?? 'back') === 'back') byCell.forEach((c, i) => { if (strokeOf(c, fill)) { const L = (c.runs ? [c.legs[0]] : c.legs).reduce((t, l) => t + lengthOf(l) + lengthOf(againOf(l, c.over)) + (longStroke(c, l, o.strokeDrops) ? lengthOf(l) + dropsOn(l, o.strokeDrops).reduce((a, d) => a + lengthOf(d), 0) : 0), 0); byCell[i] = { ...c, mm: L }; } });
+    return { pencil: j.id, layer: j.layer, fill, ...(!o.canon && o.strokeDrops ? { strokeDrops: o.strokeDrops } : {}), cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
 // F, the frame (the owner, 2026-11-08: "back to the Porsche: test a 20 × 20 cm piece, how many paints mix"; "in OPM-W's Tools, frame [ F ] cuts a piece out, it can be carried
@@ -339,6 +340,12 @@ export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = 
 // 'back' there; you would only strengthen the imbalance of the bald patch and the fat drop. It must be driven down, not from the bottom up — there is nothing to
 // smear there." A cell's own `fill` before its jar's (a jar painting two colours of a picture, the owner's 🔄 on the page)
 export const strokeOf = (c, fill) => (c.fill ?? fill) !== 'zone' || !!c.under || !!c.runs;
+// A long stroke (the owner, 2026-11-17, the evening, of the Targa's strokes measured by a ruler, FORM-G/IMG_3173.jpg, IMG_3175.jpg: a leg of 75 … 90 mm on one dip,
+// fat for 5 … 6 cm, then bald, a ring of paint round the bare canvas — "the plan does not work when a leg is over 35 mm?"; asked of 35 or 45: "every 45, then"):
+// a stroke leg longer than `strokeDrops` mm its drops first, as a zone's, one every `strokeDrops` mm at most, evenly from its start, each on a dip of its own; then
+// the leg once its own way, no dip, through them; then again the same way (againOf) as every stroke. Shorter ones and a dial's legs as before. est.
+export const STROKE_DROPS = 45;
+const longStroke = (c, l, every) => !!every && !c.runs && Math.abs(l[1][1] - l[0][1]) > every;
 // a stroke leg's second run: from `over` mm before its start (the bulb caught from behind) to its very end, 0 past it (LAB's + idle 6.0)
 export const againOf = (leg, over = FORMG.over) => { const [a, b] = leg, d = b[1] >= a[1] ? 1 : -1; return [[a[0], a[1] - d * over], [b[0], b[1]]]; };
 export function fillRunsOf(passes, every = FORMG.every, lap = FORMG.lap, slack = 0.25, o = DROPS) {
@@ -354,8 +361,15 @@ export function fillRunsOf(passes, every = FORMG.every, lap = FORMG.lap, slack =
     if (strokeOf(c, P.fill)) {
       const legs = c.runs ? [c.legs[0]] : c.legs, over = c.over ?? FORMG.over;
       legs.forEach((l, li) => {
-        const runs = c.runs ?? runsOfCell([l], every, lap, slack), n = legs.length > 1 ? ` ${li + 1}/${legs.length}` : '';
-        runs.forEach((r, j) => out.push({ pass: k, num: c.num, pts: r.pts, say: `stroke${n}${runs.length > 1 ? `, run ${j + 1}/${runs.length}` : ''}`, dip: true, idle: false, beyond: r.beyond }));
+        const n = legs.length > 1 ? ` ${li + 1}/${legs.length}` : '';
+        if (longStroke(c, l, P.strokeDrops)) {                                           // a long stroke: its drops, then the drag, no dip
+          const D = dropsOn(l, P.strokeDrops, o.mark);
+          D.forEach((pts, d) => out.push({ pass: k, num: c.num, pts, say: `stroke${n} · a drop ${d + 1}/${D.length}`, dip: true, idle: false, beyond: true, dab: true }));
+          out.push({ pass: k, num: c.num, pts: l, say: `stroke${n}, the drag over its drops, no dip`, dip: false, idle: false, beyond: true });
+        } else {
+          const runs = c.runs ?? runsOfCell([l], every, lap, slack);
+          runs.forEach((r, j) => out.push({ pass: k, num: c.num, pts: r.pts, say: `stroke${n}${runs.length > 1 ? `, run ${j + 1}/${runs.length}` : ''}`, dip: true, idle: false, beyond: r.beyond }));
+        }
         if (c.line?.length > 1) out.push({ pass: k, num: c.num, pts: againOf(l, over), say: `stroke${n}, again the same way, no dip`, dip: false, idle: true, beyond: true });
       });
       return;

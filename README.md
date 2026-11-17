@@ -406,6 +406,10 @@ for the social networks: the brush goes without a lift, the brain is hooked".
    leg, then its snakes one after another, each a chain of legs a column apart, square turns, and back over it, the brush down.
 2. **A strokes jar's area of 1 m of legs or more** (3 columns at least) **is a zone too**; the rest stay strokes.
 3. **80 drops an area at most** (≈ 10.7 s a drop by the journal, ≈ 14 min, under his 20; est.); a bigger one in parts.
+4. **A stroke longer than 45 mm: its drops first**, one every 45 mm at most, evenly from its start, each a dip; **then the leg once
+   its own way, no dip; then again the same way**, as every stroke. The owner, the same evening, of a 75 … 90 mm stroke on one dip by
+   a ruler (`FORM-G/IMG_3173.jpg`, `IMG_3175.jpg`: fat for 5 … 6 cm, then a ring round bare canvas), asked 35 (≈ +1 h on the Targa)
+   or 45 (≈ +26 min): "every 45, then". Shorter strokes as before. `STROKE_DROPS`; the journal's `strokeDrops`.
 
 `src/formgplan.js`: `JOIN`, `areasOf`, `chainsOf`, `joinedCells`; the journal's DRAG writes `join`, so FROM THE BREAK makes a run
 from before it again as it ran.

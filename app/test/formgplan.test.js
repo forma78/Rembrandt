@@ -648,3 +648,22 @@ test('areas: a zone\'s touching cells one area, its drops first, then its snakes
   assert.deepEqual(joinedCells(thin, 'strokes', 5, JOIN, true).map(c => c.legs.length), [1, 1], 'a strokes jar\'s two short legs stay strokes');
   assert.equal(passesOf(pic, { join: null })[4].byCell.length, 38, 'no join: the cells as they were (FROM THE BREAK of a run before)');
 });
+
+// a long stroke (the owner, 2026-11-17, the evening, IMG_3173, IMG_3175: a 75 … 90 mm stroke bald after 5 … 6 cm; "every 45, then"): its drops every 45 mm at most,
+// then the leg once its own way, no dip, then again the same way; the shorter strokes as before; none without strokeDrops (FROM THE BREAK of a run before)
+test('a long stroke: its drops every 45 mm, then the drag, then again the same way; the short ones as before', async () => {
+  const { STROKE_DROPS, strokeOf } = await import('../src/formgplan.js');
+  const pic = load('porsche-targa'), A = passesOf(pic, { join: 'all' }), B = passesOf(pic, { join: 'all', strokeDrops: STROKE_DROPS });
+  const ra = brushRuns(A, 79, 15, false, 0), rb = brushRuns(B, 79, 15, false, 0), len = l => Math.abs(l[1][1] - l[0][1]);
+  assert.equal(JSON.stringify(brushRuns(passesOf(pic, { join: 'all', strokeDrops: null }), 79, 15, false, 0)), JSON.stringify(ra), 'no strokeDrops: as before');
+  const P = B[1], c = P.byCell.find(q => q.legs.some(l => len(l) > 150)), l = c.legs.find(q => len(q) > 150), mine = rb.filter(r => r.pass === 1 && r.num === c.num);
+  assert.ok(strokeOf(c, P.fill));
+  const drops = mine.filter(r => r.dab), drag = mine.find(r => !r.dip && !r.idle), again = mine.find(r => r.idle);
+  assert.equal(drops.length, Math.ceil(len(l) / STROKE_DROPS), 'a drop every 45 mm at most');
+  drops.slice(1).forEach((d, i) => assert.ok(Math.abs(d.pts[0][1] - drops[i].pts[0][1]) <= STROKE_DROPS + 1e-6, 'its drops 45 mm apart at most'));
+  assert.deepEqual(drag.pts, l, 'then the leg once, its own way, no dip');
+  assert.ok(mine.indexOf(drag) > mine.findLastIndex(r => r.dab) && mine.indexOf(again) > mine.indexOf(drag), 'drops, the drag, then again');
+  assert.ok((again.pts[1][1] - again.pts[0][1]) * (l[1][1] - l[0][1]) > 0, 'again the same way');
+  const short = P.byCell.find(q => q.legs.length === 1 && len(q.legs[0]) <= STROKE_DROPS), sa = ra.filter(r => r.pass === 1 && r.num === short.num), sb = rb.filter(r => r.pass === 1 && r.num === short.num);
+  assert.equal(JSON.stringify(sb), JSON.stringify(sa), 'a short stroke as before');
+});
