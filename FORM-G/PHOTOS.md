@@ -36,6 +36,32 @@ the film, its length, what the frames show — and pushes.
   `PAINT.md`'s log (the Rembrandt project in the cloud chat), by file name.
 - No other artist's work here (README).
 
+## 2026-11-17 · Mickey 60 × 60, drops first: a yellow zone and grey strokes, the iPhone and the machine camera
+
+`photos/2026-11-17/`, 5 photos, dropped by the owner into `FORM-G/` on this Mac as HEIC, 10:57 … 11:22,
+made full-size JPG here, the GPS left out. The run of the morning's canon (drops first, then one snake; the
+strokes a dip a leg, no second run), stopped by the owner. What came of them, the same day: the snake's turns
+square, a drop every 35 mm, the second run back (CHANGELOG, f536666). By eye, est.:
+
+| file | what it shows |
+|---|---|
+| `IMG_3144.jpg` | A yellow zone cell, no ruler: legs ≈ 7 cm in a snake, a cap at every turn, the middle of the legs bald in a V, the canvas showing; spare drops beside it at the right. |
+| `IMG_3145.jpg` | The same, the ruler 0–9 cm along the legs: legs ≈ 7–7.5 cm; six spare drops in two columns at the left. |
+| `IMG_3146.jpg` | The same, the ruler 0–10 cm across the legs below them, 5 mm apart; the owner's four red crosses in the bald middle of the legs, ≈ 35 mm from either end ("not enough drops, not enough paint, the canvas stays empty"; "a drop every 35 mm"). |
+| `IMG_3147.jpg` | Grey strokes over the dry beige, the owner's three red arrows: every stroke a fat glossy drop at its start where the dip landed, then a pale, dry, scratched tail ("a giant drop and one run … bring back the second run, so that it drives the clots apart"). |
+| `IMG_3148.jpg` | Five grey strokes at the beige's edge, the same: a round head, then the tail thinning to the weave. |
+
+`eyes/2026-11-17/10.56/`, 28 frames, one every 2 s of `Movie on 11-17-26 at 10.56 AM.mov` (55 s, 1620 × 1080,
+30 fps), recorded on the Mac at 10:56; the film stays on the Mac (121 MB). The yellow cell of the photos; the
+camera rides with the carriage, the legs across the frame.
+
+| frames | what they show |
+|---|---|
+| `frame-000` … `004` (0:00–0:08) | The drops laid: two columns of yellow dabs, one at each leg's start, the snake's ends in turn; the snake begun at the bottom, dragging the first. |
+| `frame-005` … `016` (0:10–0:32) | The snake through them: legs pulled from dab to dab, each turn slanting to the next leg's start (the owner's "diagonal skew"), white gaps opening in the middle of the legs. |
+| `frame-017` … `025` (0:34–0:50) | The carriage to the cup at hand, the brush in the yellow jar (`020`, `024`), a beige cell and the grey of earlier jars passing. |
+| `frame-026` … `027` (0:52–0:54) | Back at the cell: two more drops above it for the next one. |
+
 ## 2026-11-16 · Mickey 60 × 60, one beige jar's snake, from the iPhone
 
 `photos/2026-11-16/`, 7 photos: six sent at 21:37, the seventh, the
