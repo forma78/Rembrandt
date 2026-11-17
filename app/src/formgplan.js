@@ -24,7 +24,7 @@ export const OPMG_LIB = ['gwagon'];
 // for the 70 × 100, bottom edge −68 (2026-11-10: "Yes"), its v.2 … v.4 the same outline; the Targa, 853 mm long, GEN-F's (the owner, 2026-11-16, asked to make
 // it 843 as the classic or press it: "keep 853 mm — it goes fine for us, there is 1 cm more in reserve"), its canvas's bottom edge −63 at most, ≈ 11.7 pressed
 export const PRESS_OK = { 'porsche-red': 8, 'porsche-red-k': 8, 'porsche-red-v3': 8, 'porsche-red-v4': 8, 'porsche-targa': 12 };                  // OPM-G's: its json and jpg in app/opmg/
-export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30, idle: 'none' };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.); idle: FORM-G's none since 2026-11-17 (fillRunsOf), 'legs' its idle run on its legs as 2026-11-16's (idleLegsOf)
+export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30, idle: 'back' };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.); idle: FORM-G's 'back' since 2026-11-17, noon, the second run back over the cell's legs (backLine), none that morning, 'legs' its idle run on its legs as 2026-11-16's (idleLegsOf)
 // ---------- Drops first, then the snake: FORM-G's one way (README's canon, 2026-11-17) ----------
 // The owner, 2026-11-17, of Mickey's beige (FORM-G/DROPS-FIRST.md, its photos): "we need the snake, not through the air … when the brush leaves the canvas a person
 // blinks, the brain restarts and he scrolls to another reel"; "as in HOLO — first all the drops on the grooves of one colour, the brush does not drag them at first.
@@ -36,8 +36,10 @@ export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: I
 // A jar's fill: its json's `fill`, 'zone' or 'strokes', else by its cells — a zone when `share` of its line lies in cells `wide` legs across or more and its legs
 // are `mean` mm long on average; Mickey's split so (est.)
 export const FILL = { wide: 3, share: 0.4, mean: 30 };
-// a drop: HOLO's dab, a mark of `mark` mm along its leg, the way the snake will go, on a dip of its own; one every `every` mm of a leg at most (est.)
-export const DROPS = { every: 80, mark: 8 };
+// a drop: HOLO's dab, a mark of `mark` mm along its leg, the way the snake will go, on a dip of its own; one every `every` mm of a leg at most (est.).
+// 35 since 2026-11-17, noon (the owner, of Mickey's yellow on 60 × 60 measured by a ruler, FORM-G/photos/2026-11-17/IMG_3145.jpg, IMG_3146.jpg, his red crosses
+// in the bald middle of 75 mm legs: "not enough drops, not enough paint, the canvas stays empty"; "I would put a drop every 35 mm (now probably 80 mm, a lot!)")
+export const DROPS = { every: 35, mark: 8 };
 export function fillOf(jar, o = FILL) {
   if (jar.fill === 'zone' || jar.fill === 'strokes') return jar.fill;
   const legs = jar.cells.filter(c => !c.under && !c.air).flatMap(c => c.legs.map(l => ({ L: Math.abs(l[2] - l[1]), wide: c.legs.length >= o.wide })));
@@ -50,6 +52,33 @@ export function dropsOn(leg, every = DROPS.every, mark = DROPS.mark) {
   return Array.from({ length: n }, (_, k) => { const s = Math.min(k * L / n, L - m); return [[x, r(a + d * s)], [x, r(a + d * (s + m))]]; });
 }
 export const passOf = pitch => pitch * IDLE.pass / IDLE.step;   // the idle run's legs apart: LAB's 4.38 to its 5.83, on this grid (est.)
+// The snake's turns square (the owner, 2026-11-17, FORM-G/Screenshot 2026-11-17 at 11.00.36 AM.png, ⊓ ⊓ drawn in red, and the machine camera's film of 10.56 AM:
+// "the brush's diagonal skew: it moves over to the second row on the move, not having passed the first track fully … the brush is flat, so it is exceptionally
+// important to pass the track fully and only then go over to the next"). Two legs side by side end where the cell's edge cuts them, seldom level; straight from one
+// leg's end to the next one's start, the flat brush crossed on the slant. Now every leg to its very end, then straight across, along the machine's Y, at the level
+// both legs reach: when the next is shorter there, back along this leg to its end's level first; when it is longer, on along it to its own start, then back up it.
+// The cell's own legs alone, so no paint off them. Legs that do not overlap at all (a few in a picture, est.) as before, straight to the next one's start.
+export function squareSnake(legs) {
+  const out = [], add = p => { const q = out.at(-1); if (!q || Math.abs(q[0] - p[0]) > 1e-6 || Math.abs(q[1] - p[1]) > 1e-6) out.push(p); };
+  legs.forEach(([a, b], i) => {
+    add(a); add(b);
+    const n = legs[i + 1];
+    if (!n) return;
+    const [na, nb] = n, lo = Math.max(Math.min(a[1], b[1]), Math.min(na[1], nb[1])), hi = Math.min(Math.max(a[1], b[1]), Math.max(na[1], nb[1]));
+    if (lo > hi + 1e-6) return;
+    const y = Math.min(hi, Math.max(lo, b[1] >= a[1] ? Math.min(b[1], na[1]) : Math.max(b[1], na[1])));
+    add([b[0], y]); add([na[0], y]);
+  });
+  return out;
+}
+// The second run, no dip, back (the owner, 2026-11-17, noon, of a stroke's giant drop and its one run dry, FORM-G/photos/2026-11-17/IMG_3147.jpg, IMG_3148.jpg:
+// "let us bring back the second run, so that it drives the clots apart. As it is now it cannot stay"): the cell's own legs again, the last first and each the other
+// way, `over` mm past both ends to catch a bulb from behind, 0 at its very end (LAB's + idle 6.0), its turns square. Back from where the snake ended, so the brush
+// goes on with no flight to the cell's start (README, "DRAG Snake before DRAG Air").
+export function backLine(legs, over) {
+  const n = legs.length;
+  return squareSnake(legs.slice().reverse().map(([a, b], i) => { const d = b[1] >= a[1] ? 1 : -1; return [[b[0], b[1] + d * over], [a[0], a[1] - d * (i === n - 1 ? 0 : over)]]; }));
+}
 
 const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
 // the run's list: every jar, then the jars of the second layer again
@@ -122,8 +151,8 @@ export function airRuns(leg, cuts, lap, firstDip = FORMG.firstDip) {
 export function cellOf(c, pic, n, o = {}, layer = 1) {
   const tip = o.tip ?? FORMG.tip, over = o.over ?? FORMG.over, lap = o.lap ?? FORMG.lap;
   const legs = (layer === 2 ? c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) : c.legs).map(([x, a, b]) => legOf(x, a, b, tip));
-  const line = o.idle === 'none' ? [] : idleLine(idleLegsOf(legs, passOf(pic.pitch), o.idle === 'legs'), over, 0), xs = legs.map(l => l[0][0]);
-  const first = lengthOf(legs.flat());
+  const back = o.idle === 'back', line = o.idle === 'none' ? [] : back ? backLine(legs, over) : idleLine(idleLegsOf(legs, passOf(pic.pitch), o.idle === 'legs'), over, 0), xs = legs.map(l => l[0][0]);
+  const first = lengthOf(back ? squareSnake(legs) : legs.flat());
   return { num: n, k: legs.length, W: Math.max(...xs) - Math.min(...xs), C: first / legs.length, legs, line, over, end: 0, mm: first + lengthOf(line), ...(c.air ? { runs: airRuns(legs[0], c.cuts, lap) } : {}) };
 }
 // a jar's cells by the canon (OPM-G): the second layer's every cell the other way round first, then a short end leg it cannot start on off on its own; every cell cut for its
@@ -141,6 +170,8 @@ export function passesOf(pic, o = {}) {
     const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => ({ ...cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer), ...(c.under ? { under: true } : {}) }));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's no idle run since 2026-11-17, OPM-G's the canon's
     // FORM-G's fill, its jar's (a second coat's its first's): zone or strokes; OPM-G none, the canon's run
     const fill = o.canon ? null : fillOf(pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j);
+    // a stroke cell's metres (FORM-G's): its legs, each with its second run the same way, no turns between them
+    if (!o.canon && FORMG.idle === 'back' && (o.idle ?? 'back') === 'back') byCell.forEach((c, i) => { if (strokeOf(c, fill)) { const L = (c.runs ? [c.legs[0]] : c.legs).reduce((t, l) => t + lengthOf(l) + lengthOf(againOf(l, c.over)), 0); byCell[i] = { ...c, mm: L }; } });
     return { pencil: j.id, layer: j.layer, fill, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
@@ -179,18 +210,32 @@ export const canonRuns = (passes, lap = FORMG.lap, ride = CANON.ride) => idleRun
 export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false, slack = 0.25) => canon ? dosed(canonRuns(passes, lap)) : fillRunsOf(passes, every, lap, slack);
 // FORM-G's runs (README's canon "Drops first, then the snake", 2026-11-17) → idleRunsOf's [{ pass, num, pts, say, dip, idle, beyond }], a drop's `dab: true`, a
 // zone's snake `snake: true`. A zone's cell: its drops first, leg after leg in the snake's order, each on a dip of its own at its leg's start and every DROPS.every
-// mm of it; then at once its snake, every leg from its start to its end, the brush down at its turns, no dip, the J3 on its two ends alone; no idle run. A cell
-// of a stroke jar, a motion blur's stripe (`under`) in any jar, and a dial's leg (its own runs): a dip a leg as 2026-11-16's (legRunsOf), no idle run
+// mm of it; then at once its snake, every leg from its start to its very end, the turns square (squareSnake), the brush down, no dip, and on at once, the brush
+// still down, the second run back over the same legs (c.line, backLine; since 2026-11-17, noon): one run, the J3 on its two ends alone.
+// A cell of a stroke jar, a motion blur's stripe (`under`) in any jar, and a dial's leg (its own runs): a dip a leg as 2026-11-16's (legRunsOf), and since
+// 2026-11-17, noon, at once after every leg its second run, no dip, THE SAME WAY (againOf): the brush up at the leg's end, through the air to its start, and down it
+// again to its end, so the drop the dip left at its start is driven on into the bald end. The owner: "in the strokes through the air and again. There is nothing
+// 'back' there; you would only strengthen the imbalance of the bald patch and the fat drop. It must be driven down, not from the bottom up — there is nothing to
+// smear there."
+export const strokeOf = (c, fill) => (c.fill ?? fill) !== 'zone' || !!c.under || !!c.runs;
+// a stroke leg's second run: from `over` mm before its start (the bulb caught from behind) to its very end, 0 past it (LAB's + idle 6.0)
+export const againOf = (leg, over = FORMG.over) => { const [a, b] = leg, d = b[1] >= a[1] ? 1 : -1; return [[a[0], a[1] - d * over], [b[0], b[1]]]; };
 export function fillRunsOf(passes, every = FORMG.every, lap = FORMG.lap, slack = 0.25, o = DROPS) {
-  const out = [], strokes = legRunsOf(passes, every, lap, slack);
-  passes.forEach((P, k) => P.byCell.forEach((c, ci) => {
-    if (P.fill !== 'zone' || c.under || c.runs) {
-      const runs = strokes[k].byCell[ci].runs;
-      runs.forEach((r, j) => out.push({ pass: k, num: c.num, pts: r.pts, say: runs.length > 1 ? `stroke, run ${j + 1}/${runs.length}` : 'a stroke', dip: true, idle: false, beyond: r.beyond }));
+  const out = [];
+  passes.forEach((P, k) => P.byCell.forEach(c => {
+    if (strokeOf(c, P.fill)) {
+      const legs = c.runs ? [c.legs[0]] : c.legs, over = c.over ?? FORMG.over;
+      legs.forEach((l, li) => {
+        const runs = c.runs ?? runsOfCell([l], every, lap, slack), n = legs.length > 1 ? ` ${li + 1}/${legs.length}` : '';
+        runs.forEach((r, j) => out.push({ pass: k, num: c.num, pts: r.pts, say: `stroke${n}${runs.length > 1 ? `, run ${j + 1}/${runs.length}` : ''}`, dip: true, idle: false, beyond: r.beyond }));
+        if (c.line?.length > 1) out.push({ pass: k, num: c.num, pts: againOf(l, over), say: `stroke${n}, again the same way, no dip`, dip: false, idle: true, beyond: true });
+      });
       return;
     }
+    const back = c.line?.length > 1;
     c.legs.forEach((l, li) => { const D = dropsOn(l, o.every, o.mark); D.forEach((pts, d) => out.push({ pass: k, num: c.num, pts, say: `leg ${li + 1}/${c.legs.length} · a drop${D.length > 1 ? ` ${d + 1}/${D.length}` : ''}`, dip: true, idle: false, beyond: true, dab: true })); });
-    out.push({ pass: k, num: c.num, pts: c.legs.flat(), say: c.legs.length > 1 ? `the snake, ${c.legs.length} legs, no dip` : 'the drag, no dip', dip: false, idle: false, beyond: true, snake: true });
+    const snake = squareSnake(c.legs), pts = back ? [...snake, ...c.line] : snake, n = c.legs.length;
+    out.push({ pass: k, num: c.num, pts, say: `${n > 1 ? `the snake, ${n} legs` : 'the drag'}${back ? ' and back' : ''}, no dip`, dip: false, idle: false, beyond: true, snake: true });
   }));
   return out;
 }

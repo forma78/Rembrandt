@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, pointsOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf, fillOf, DROPS } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, pointsOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf, fillOf, DROPS, squareSnake, backLine, againOf } from '../src/formgplan.js';
 import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -134,29 +134,53 @@ test('every cell in the list as often as its jar has layers', () => {
   }
 });
 
-test('FORM-G\'s cells since 2026-11-17, drops first: a zone\'s legs half a tip in, every leg its drop at its start on a dip of its own, one every 80 mm of a long leg; then at once one snake over them, no dip; a stroke jar a dip a leg; no idle run', () => {
+test('FORM-G\'s cells since 2026-11-17, drops first: a zone\'s legs half a tip in, every leg its drops on dips of their own, at its start and every 35 mm at most; then at once one snake over them and back, no dip; a stroke jar a dip a leg, then that leg again the same way, no dip', () => {
   const legs = [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20]];
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', fill: 'zone', cells: [{ n: 1, legs }, { n: 2, legs: [[40, 10, 190]] }] }, { id: 'b', name: 'B', hex: '#445566', fill: 'strokes', cells: [{ n: 1, legs }] }] };
   const [Z, St] = passesOf(pic), c = Z.byCell[0];
   assert.equal(Z.fill, 'zone'); assert.equal(St.fill, 'strokes');
   assert.deepEqual(c.legs[0], [[10, 22], [10, 98]]);
-  assert.deepEqual(c.line, [], 'no idle run');
+  assert.deepEqual(c.line, [[25, 20], [25, 100], [20, 100], [20, 20], [15, 20], [15, 100], [10, 100], [10, 22]], 'the second run: the legs again, the last first, each the other way, 2 mm past their ends, 0 at its very end');
   const runs = brushRuns([Z, St], 79, 15, false, 0), z1 = runs.filter(r => r.pass === 0 && r.num === 1);
-  assert.equal(z1.length, 5, 'four drops, one snake');
-  z1.slice(0, 4).forEach((r, i) => {
+  assert.equal(z1.length, 13, 'a 76 mm leg three drops, four legs, then one snake');
+  z1.slice(0, 12).forEach((r, i) => {
+    const leg = c.legs[Math.floor(i / 3)];
     assert.equal(r.dab, true); assert.equal(r.dip, true, `drop ${i + 1} on a dip of its own`);
-    assert.deepEqual(r.pts[0], c.legs[i][0], `drop ${i + 1} at its leg's start, the snake's way: top and bottom in turn`);
+    if (i % 3 === 0) assert.deepEqual(r.pts[0], leg[0], `drop ${i + 1} at its leg's start, the snake's way: top and bottom in turn`);
     assert.equal(Math.abs(r.pts[1][1] - r.pts[0][1]), DROPS.mark, 'a mark of 8 mm along it');
-    assert.equal(Math.sign(r.pts[1][1] - r.pts[0][1]), Math.sign(c.legs[i][1][1] - c.legs[i][0][1]), '… the way the snake goes');
+    assert.equal(Math.sign(r.pts[1][1] - r.pts[0][1]), Math.sign(leg[1][1] - leg[0][1]), '… the way the snake goes');
   });
-  assert.deepEqual(z1[4].pts, c.legs.flat(), 'the snake: every leg start to end, across at its turns'); assert.equal(z1[4].dip, false); assert.equal(z1[4].snake, true);
+  assert.deepEqual(z1.slice(0, 3).map(r => r.pts[0][1]), [22, 47.333, 72.667], 'evenly from its start, 25.3 mm apart');
+  assert.deepEqual(z1[12].pts, [...c.legs.flat(), ...c.line], 'the snake: every leg start to end, across at its turns, then on at once, back'); assert.equal(z1[12].dip, false); assert.equal(z1[12].snake, true); assert.equal(z1[12].idle, false);
   const long = runs.filter(r => r.pass === 0 && r.num === 2);
-  assert.deepEqual(long.filter(r => r.dab).map(r => r.pts[0][1]), [12, 70.667, 129.333], 'a 176 mm leg: three drops, evenly from its start');
+  assert.deepEqual(long.filter(r => r.dab).map(r => r.pts[0][1]), [12, 41.333, 70.667, 100, 129.333, 158.667], 'a 176 mm leg: six drops, evenly from its start, 29.3 mm apart');
   assert.equal(long.filter(r => !r.dab).length, 1, 'then one drag through them all, no stop');
   const st = runs.filter(r => r.pass === 1);
-  assert.equal(st.length, 4, 'strokes: a run a leg');
-  st.forEach((r, i) => { assert.equal(r.dip, true); assert.deepEqual(r.pts, St.byCell[0].legs[i], `leg ${i + 1} alone`); assert.ok(!r.dab && !r.snake); });
-  assert.equal(runs.filter(r => r.idle).length, 0, 'no idle run anywhere');
+  assert.equal(st.length, 8, 'strokes: a run a leg, each leg then again');
+  St.byCell[0].legs.forEach((l, i) => {
+    const [one, again] = st.slice(2 * i, 2 * i + 2), d = Math.sign(l[1][1] - l[0][1]);
+    assert.equal(one.dip, true); assert.deepEqual(one.pts, l, `leg ${i + 1} alone`); assert.ok(!one.dab && !one.snake);
+    assert.equal(again.dip, false); assert.equal(again.idle, true, `leg ${i + 1} again, no dip`);
+    assert.deepEqual(again.pts, [[l[0][0], l[0][1] - 2 * d], l[1]], `… the same way, from 2 mm before its start, where the dip's drop lies, to its end: never back`);
+  });
+  assert.equal(St.byCell[0].mm, 4 * (76 + 78), 'a stroke cell\'s metres: its legs and their second runs, no turns');
+  assert.equal(runs.filter(r => r.idle).length, 4, 'the strokes\' second runs alone: the zone\'s goes on in its snake');
+});
+
+test('the snake\'s turns square (the owner, 2026-11-17: "pass the track fully and only then go over to the next"): a leg to its very end, then straight across at the level both reach', () => {
+  assert.deepEqual(squareSnake([[[0, 0], [0, 40]], [[5, 40], [5, 0]]]), [[0, 0], [0, 40], [5, 40], [5, 0]], 'level: as before');
+  assert.deepEqual(squareSnake([[[0, 0], [0, 40]], [[5, 50], [5, 10]]]), [[0, 0], [0, 40], [5, 40], [5, 50], [5, 10]], 'the next longer: across at this one\'s end, on up to its own start, then down');
+  assert.deepEqual(squareSnake([[[0, 0], [0, 40]], [[5, 30], [5, 10]]]), [[0, 0], [0, 40], [0, 30], [5, 30], [5, 10]], 'the next shorter: this one to its end, back to the next one\'s level, across');
+  assert.deepEqual(squareSnake([[[0, 40], [0, 0]], [[5, 10], [5, 30]]]), [[0, 40], [0, 0], [0, 10], [5, 10], [5, 30]], 'down: the same');
+  assert.deepEqual(squareSnake([[[0, 0], [0, 40]], [[5, 60], [5, 50]]]), [[0, 0], [0, 40], [5, 60], [5, 50]], 'no overlap: straight to its start, as before');
+  assert.deepEqual(backLine([[[0, 0], [0, 40]], [[5, 50], [5, 10]]], 2), [[5, 8], [5, 52], [5, 42], [0, 42], [0, 0]], 'back: the last first, 2 mm past, 0 at its very end, square');
+  for (const id of FORMG_LIB) {
+    const runs = brushRuns(passesOf(load(id)), 79, 15, false, 0).filter(r => r.snake || r.idle);
+    let slant = 0;
+    for (const r of runs) r.pts.slice(1).forEach((b, i) => { const a = r.pts[i]; if (Math.abs(b[0] - a[0]) > 1e-6 && Math.abs(b[1] - a[1]) > 1e-6) slant++; });
+    const turns = load(id).jars.flatMap(j => j.cells).reduce((t, c) => t + c.legs.length - 1, 0);
+    assert.ok(slant <= 0.1 * turns, `${id}: ${slant} slanted steps of ${turns} turns, legs that do not overlap alone`);
+  }
 });
 
 test('a jar\'s fill by its cells, its json\'s `fill` first; a motion blur\'s stripe and a dial\'s leg strokes in any jar', () => {
@@ -167,12 +191,12 @@ test('a jar\'s fill by its cells, its json\'s `fill` first; a motion blur\'s str
   assert.equal(fillOf({ cells: [{ n: 1, legs: [[10, 0, 90]] }, { n: 2, legs: [[30, 0, 90]] }] }), 'strokes', 'long but a leg a cell');
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', fill: 'zone', cells: [wide, { ...thin, under: true }] }] };
   const runs = brushRuns(passesOf(pic), 79, 15, false, 0);
-  assert.equal(runs.filter(r => r.num === 2).length, 1); assert.ok(!runs.find(r => r.num === 2).dab, 'the stripe a stroke');
+  assert.equal(runs.filter(r => r.num === 2).length, 2); assert.ok(!runs.find(r => r.num === 2).dab, 'the stripe a stroke'); assert.ok(runs.filter(r => r.num === 2)[1].idle, '… and again, the same way');
 });
 
 test('Mickey (local): the owner\'s split, zones 1, 3, 4, 9, 15, strokes the rest', { skip: !fs.existsSync(new URL('../formg/mickey-1.json', import.meta.url)) }, () => {
-  const pic = load('mickey-1'), z = pic.jars.filter(j => fillOf(j) === 'zone').map(j => j.name);
-  assert.deepEqual(z, ['Colour 1', 'Colour 3', 'Colour 4', 'Colour 9', 'Colour 15']);
+  const pic = load('mickey-1'), z = pic.jars.filter(j => fillOf(j) === 'zone').map(j => j.id);
+  assert.deepEqual(z, ['c2', 'c1', 'c7', 'c5', 'c3'], 'Colour 1, 3, 4, 9, 15 by their ids: their names their jars\' since 2026-11-17');
 });
 
 test('a one-leg cell: its idle run back over itself, nothing into the neighbours\' lanes', () => {
@@ -342,11 +366,10 @@ function doseHolds(runs, label) {
     }
   }
 }
-test('FORM-G\'s run, drops first (2026-11-17): a zone cell its drops, each on a dip at a leg\'s start or along it, then one snake over its legs on no dip; a stroke cell a dip a leg, none across, 79 mm at most; in the cells\' order; no idle run', () => {
+test('FORM-G\'s run, drops first (2026-11-17): a zone cell its drops, each on a dip at a leg\'s start or along it, then one snake over its legs and back on no dip; a stroke cell a dip a leg, none across, 79 mm at most, then its run back; in the cells\' order', () => {
   for (const id of FORMG_LIB) {
     const P = passesOf(load(id)), a = brushRuns(P, 79, 15, false, 0);
     const near = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < 1e-6, len = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
-    assert.equal(a.filter(r => r.idle).length, 0, `${id}: no idle run`);
     let k = 0;
     P.forEach((q, pi) => q.byCell.forEach(c => {
       const mine = []; while (k < a.length && a[k].pass === pi && a[k].num === c.num) mine.push(a[k++]);
@@ -355,9 +378,13 @@ test('FORM-G\'s run, drops first (2026-11-17): a zone cell its drops, each on a 
         const drops = mine.filter(r => r.dab), snake = mine.at(-1);
         assert.equal(mine.length, drops.length + 1, `${id}: drops, then the snake`);
         assert.ok(drops.every(r => r.dip && r.pts.length === 2 && len(r.pts) <= DROPS.mark + 1e-6), `${id}: a drop a dip, a mark`);
-        assert.equal(drops.length, c.legs.reduce((t, l) => t + Math.max(1, Math.ceil(len(l) / DROPS.every - 1e-9)), 0), `${id}: a drop every 80 mm of a leg`);
-        assert.ok(snake.snake && !snake.dip, `${id}: the snake on no dip`); assert.deepEqual(snake.pts, c.legs.flat());
+        assert.equal(drops.length, c.legs.reduce((t, l) => t + Math.max(1, Math.ceil(len(l) / DROPS.every - 1e-9)), 0), `${id}: a drop every 35 mm of a leg`);
+        assert.ok(snake.snake && !snake.dip && !snake.idle, `${id}: the snake on no dip`); assert.deepEqual(snake.pts, [...squareSnake(c.legs), ...c.line]);
       } else {
+        const again = mine.filter(r => r.idle);
+        assert.equal(again.length, c.runs ? 1 : c.legs.length, `${id}: every stroke leg again`);
+        assert.ok(again.every(r => !r.dip && r.pts.length === 2 && Math.abs(r.pts[1][0] - r.pts[0][0]) < 1e-6), `${id}: … no dip, along its leg`);
+        mine.splice(0, mine.length, ...mine.filter(r => !r.idle));
         assert.ok(mine.every(r => r.dip && !r.dab && r.pts.every(p => Math.abs(p[0] - r.pts[0][0]) < 1e-6)), `${id}: a stroke, a dip a leg`);
         assert.ok(c.runs || mine.every(r => len(r.pts) <= 79 + 1e-6), `${id}: a stroke's run 79 mm at most`);
         if (!c.runs) { let m = 0; for (const l of c.legs) { assert.ok(near(mine[m].pts[0], l[0]), `${id}: at its leg's start`); while (!near(mine[m].pts.at(-1), l[1])) m++; m++; } assert.equal(m, mine.length); }
@@ -516,7 +543,7 @@ test('MARKS in the run: every line\'s marks before its first cell, one dip for t
   assert.ok(b.r.seconds - a.r.seconds < 30 * 60, `the marks' time: ${Math.round((b.r.seconds - a.r.seconds) / 60)} min`);
 });
 
-test('the idle run on the legs (2026-11-16, the evening: "6 drops, so 6 runs"), now the jar canon\'s reckoning alone: n legs, n tracks, each on its own leg, its way; the n + 1 of the afternoon read no more; the pass apart otherwise (LAB\'s, OPM-G\'s); FORM-G\'s run none since 2026-11-17', () => {
+test('the idle run on the legs (2026-11-16, the evening: "6 drops, so 6 runs"), now the jar canon\'s reckoning alone: n legs, n tracks, each on its own leg, its way; the n + 1 of the afternoon read no more; the pass apart otherwise (LAB\'s, OPM-G\'s); FORM-G\'s none on the morning of 2026-11-17, back since its noon', () => {
   const leg = (x, i) => (i % 2 ? [[x, 90], [x, 10]] : [[x, 10], [x, 90]]);
   for (const n of [1, 2, 3, 6, 7]) {
     const legs = Array.from({ length: n }, (_, i) => leg(10 + 5 * i, i));
@@ -524,7 +551,9 @@ test('the idle run on the legs (2026-11-16, the evening: "6 drops, so 6 runs"), 
   }
   assert.equal(idleLegsOf(Array.from({ length: 6 }, (_, i) => leg(10 + 5 * i, i)), passOf(5)).length, 8, 'no flag: the pass apart, as before');
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20], [30, 20, 100], [35, 100, 20]] }] }] };
-  assert.deepEqual(passesOf(pic)[0].byCell[0].line, [], 'FORM-G: no idle run');
+  const B = passesOf(pic)[0].byCell[0];
+  assert.equal(B.line.length / 2, 6, 'FORM-G since 2026-11-17, noon: the run back, six legs, six tracks');
+  assert.deepEqual(B.line.filter((q, i) => i % 2 === 0).map(q => q[0]), B.legs.map(l => l[0][0]).reverse(), '… the last first');
   const c = passesOf(pic, { idle: 'legs' })[0].byCell[0];
   assert.equal(c.line.length / 2, 6, 'on the legs: six legs, six tracks');
   assert.deepEqual(c.line.filter((q, i) => i % 2 === 0).map(q => q[0]), c.legs.map(l => l[0][0]), '… each on its leg');
@@ -563,3 +592,4 @@ test('the motion blur on the machine (2026-11-16): its stripes cells of their ow
   const only = { ...PIC, jars: [{ id: 'c', name: 'C', hex: '#222222', coats: 2, cells: [{ n: 1, legs: [[15, 120, 180]], under: true }] }] };
   assert.deepEqual(seqOf(only).map(j => j.id), ['c'], 'a jar of stripes alone: no second coat');
 });
+

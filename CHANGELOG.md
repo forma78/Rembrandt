@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: the snake's turns square, a drop every 35 mm, the second run back** (2026-11-17, noon; the owner, of the machine camera's film of
+  10.56 AM and `FORM-G/Screenshot 2026-11-17 at 11.00.36 AM.png`: "the brush is flat, so it is exceptionally important to pass the track fully and
+  only then go over to the next"; of `FORM-G/photos/2026-11-17/` measured by a ruler: "I would put a drop every 35 mm (now probably 80 mm, a lot!)";
+  of a stroke's giant drop and its one dry run: "let us bring back the second run, so that it drives the clots apart"; "in the strokes through the
+  air and again … it must be driven down, not from the bottom up"). A zone: its drops every 35 mm, the snake every leg to its end and square across,
+  then on at once back over its legs; a stroke: a dip a leg, then the leg again the same way, no dip. Mickey ≈ 5 h 43 (was 3 h 53), 1365 dips (the
+  owner: "longer, but if the quality is better, it is worth it"). README's canon.
 - **FORM-G: drops first, then the snake — zones and strokes; DRAG Snake before DRAG Air, always** (2026-11-17; the owner, of Mickey's beige,
   `FORM-G/photos/2026-11-16/`: "we need the snake, not through the air … when the brush leaves the canvas a person blinks … and scrolls to another
   reel"; "as in HOLO — first all the drops on the grooves of one colour … the second round, the brush goes once in a snake over the whole zone. This

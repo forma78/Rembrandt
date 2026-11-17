@@ -370,17 +370,29 @@ are those that go in strokes."
 
 1. **A zone, a flat fill** (Mickey's Colour 1, 3, 4, 9, 15): a cell at a time, **its drops first** —
    every leg its drop **at the start of its way**, so the snake's legs, down and up in turn, have
-   their drops top and bottom in turn; **a leg over 80 mm a drop every 80 mm of it**; every drop a
-   dip of its own, a mark of 8 mm the way the snake will go. **Then at once one snake** over the
-   cell's legs, the brush down at its turns, **no dip, no idle run**, never stopping inside a leg.
+   their drops top and bottom in turn; **then one every 35 mm of the leg at most** (2026-11-17, noon:
+   "I would put a drop every 35 mm", 80 till then); every drop a dip of its own, a mark of 8 mm the
+   way the snake will go. **Then at once one snake** over the cell's legs, the brush down, **no dip**,
+   never stopping inside a leg, **and on at once, the brush still down, back over the same legs**, the
+   last first, 2 mm past their ends (the second run, the same noon: "let us bring back the second run,
+   so that it drives the clots apart").
 2. **Strokes** (Mickey's Colour 2, 5, 6, 7, 8, 10, 11 … 14): "painted at once, there is nowhere to
-   come back to" — **a dip a leg**, from its start to its end, **no idle run**. A motion blur's
-   stripe is a stroke in any jar, and so is a dial's leg.
+   come back to" — **a dip a leg**, from its start to its end; **then the brush up, through the air to
+   the leg's start, and the leg again the same way, no dip**, from 2 mm before its start (the owner,
+   2026-11-17, noon: "in the strokes through the air and again. There is nothing 'back' there … It must
+   be driven down, not from the bottom up"). A motion blur's stripe is a stroke in any jar, and so is a
+   dial's leg.
+3. **The snake's turns square — every leg to its very end, then straight across** (the owner,
+   2026-11-17, `FORM-G/Screenshot 2026-11-17 at 11.00.36 AM.png`, ⊓ ⊓ in red: "it moves over to the
+   second row on the move, not having passed the first track fully … the brush is flat, so it is
+   exceptionally important to pass the track fully and only then go over to the next"). Two legs side
+   by side seldom end level: across at the level both reach — back along this leg to it, or on along
+   the next to its own start. Legs that do not overlap at all go straight, as before (≈ 2 % of turns).
 
 A jar's `fill` in its picture's json, `zone` or `strokes`, when the owner names it; else by its
 cells: a zone when 40 % of its line lies in cells 3 legs wide or more and its legs are 30 mm long on
 average (`FILL`, est.; it gives Mickey's split). `src/formgplan.js`: `fillOf`, `dropsOn`,
-`fillRunsOf`; the list shows every line's `zone` or `strokes`. OPM-G keeps the canon of a long leg.
+`squareSnake`, `backLine`, `againOf`, `fillRunsOf`; the list shows every line's `zone` or `strokes`. OPM-G keeps the canon of a long leg.
 
 ## GEN-F, the workshop · FORM-G, the library
 
