@@ -172,7 +172,7 @@ async function start(key, blocks, info, log) {
     if (st && !(st.hand >= 1)) { alert('The cup at hand (INK-Y): restart rembrandt.py first — the one running does not know it yet. Nothing was sent.'); return; }
   }
   try {
-    RUN = blocks; RUN_INFO = info; RUN_KEY = key; S.runPic = S.pic; S.runFrom = info.from ?? 0; S.runKey = key; save();   // the picture this run is of: the page keeps to it while it runs (runPicture); the line it started from, for PROGRESS
+    RUN = blocks; RUN_INFO = info; RUN_KEY = key; S.runPic = S.pic; S.runFrom = info.from ?? 0; S.runCut = info.cut?.k ?? null; S.runKey = key; save();   // the picture this run is of: the page keeps to it while it runs (runPicture); the line it started from, for PROGRESS
     const r = await fetch('/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks, log }) });
     $('#runState').textContent = await r.text();
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
@@ -181,8 +181,10 @@ async function start(key, blocks, info, log) {
 const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...o });
 // the iPhone's rows; every colour its line in the whole list, n of `of`, and a run from a later line `whole`: the picture's mm before it, the run's, all of it, the whole's seconds —
 // so the remote's PROGRESS reads the whole picture, as the page's (rembrandt.py passes a colour on as it is)
-const remoteRows = (R, from = 0) => {
-  const all = plan(), W = from ? { mm0: Math.round(all.slice(0, from).reduce((a, q) => a + q.mm, 0)), run: Math.round(R.mm), all: Math.round(all.reduce((a, q) => a + q.mm, 0)), s: Math.round(paintRun().seconds) } : null;
+// A run from the break (C, cutOf): the board's per cent is of what is left after the cut, so `whole` takes the run's share before it into mm0 — linear, as the remote reads it
+const remoteRows = (R, from = 0, C = null) => {
+  const all = plan(), f = C?.paint ? C.before / C.paint : 0, mm0 = all.slice(0, from).reduce((a, q) => a + q.mm, 0);
+  const W = from || C ? { mm0: Math.round(mm0 + f * R.mm), run: Math.round(R.mm * (1 - f)), all: Math.round(all.reduce((a, q) => a + q.mm, 0)), s: Math.round(paintRun().seconds) } : null;
   return { colours: R.passes.map((q, i) => { const j = jarOf(q.pencil); return { name: j?.name ?? q.pencil, hex: j?.hex ?? '#7F7F7F', code: j?.code || '', cells: q.cells, n: from + i + 1, of: all.length, ...(W ? { whole: W } : {}) }; }), rows: R.rows.map(q => ({ c: q.pass, cells: q.cells ?? [] })) };
 };
 $('#btnDrag').onclick = async () => {
@@ -194,15 +196,103 @@ $('#btnDrag').onclick = async () => {
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);
   if (walls(R)) return warn(walls(R));
   if (cupProblem(cup())) return warn(`DRAG dips in ${cupName()}: ${cupProblem(cup())}`);
-  const whole = R.passes;
+  const whole = R.passes, B = await lastBreak(), BP = B ? breakPlan(B) : null;
   // no text under the list (the owner, 2026-11-16, of its paragraph: "it is not needed, it covers the buttons"): the title, the jar first, the list, Start from
-  if (!await askDraw(R.passes, '', { from: whole.length > 1 ? { passes: whole, pick: i => { from = i; R = paintRun(i); return { passes: R.passes, text: '' }; } } : null })) return;
+  const brk = BP ? { label: BP.no ? '⤵ FROM THE BREAK · not here' : `⤵ FROM THE BREAK · ${BP.jar} · cell ${BP.cell ?? '—'} · ${fmt(BP.pct, 0)} %`, title: BP.no ? `The journal's last DRAG broke off, but not to go on with here: ${BP.no}.` : BP.say } : null;
+  const a = await askDraw(R.passes, '', { from: whole.length > 1 ? { passes: whole, pick: i => { from = i; R = paintRun(i); return { passes: R.passes, text: '' }; } } : null, brk });
+  if (!a) return;
+  if (a === 'break') return fromBreak(BP);
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);               // the run from a later jar: its own plan
   if (walls(R)) return warn(walls(R));
   S.view = 'drag'; RUN_PRESS = S.press; save(); showKeys(); kick();
   await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from },
-    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R, from), ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
+    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R, from), from, full: R.blocks.length, ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
 };
+
+// ---------- FROM THE BREAK ----------
+// The owner, 2026-11-17, Mickey at 54 %: the camera on the elbow knocked while filming, its bracket held the elbow at +29°, the cup at hand's guard stopped the run
+// over the jar, the ears not painted; "we cannot start again, the thick black paint will change the texture. We have the journal: can you find by the coordinates
+// where it stopped? … a second button, 'continue from the break'". The journal (rembrandt.py's logs/runs.jsonl): this tab's last DRAG, broken off — stopped, an
+// error, or no end written. Its plan made again here (Start from's line, the journal's `from` or `from_colour`) and checked against it: as many steps, every dip
+// the journal wrote on a dip of the plan, the canvas where it lay; else not run. On from the last flight to a row's start before the step it broke at — the
+// carriage there from home, the brush up — so the row it was in comes again from its start, its dip first (README, the gaps: the part after a cut starts back over
+// the part before it); a flight whose stretch had painted all before the break, the next one. Before it, the run's own opening (the elbow up, the shoulder at 0,
+// the wrist at 0). Nothing before the cut is painted again; the jar the break was in goes in the cup first.
+const ENDS = ['done', 'stopped', 'error'], PLAN_KEYS = ['speed', 'travel', 'tail', 'wipe', 'press', 'dipEvery', 'dipLap', 'over'];
+async function lastBreak() {
+  let text;
+  try { const r = await fetch('/logs/runs.jsonl', { cache: 'no-store' }); if (!r.ok) return null; text = await r.text(); } catch { return null; }
+  const lines = text.trimEnd().split('\n'), parse = l => { try { return JSON.parse(l); } catch { return null; } };
+  let i = lines.length - 1;
+  for (; i >= 0; i--) if (lines[i].includes('"event": "start"') && lines[i].includes('"pass": "drag"') && lines[i].includes(`"tab": "${TAB}"`)) break;
+  const st = i >= 0 ? parse(lines[i]) : null;
+  if (!st) return null;
+  const after = [];
+  for (let k = i + 1; k < lines.length; k++) { const q = parse(lines[k]); if (!q) continue; if (q.event === 'start') break; after.push(q); }
+  const end = after.find(q => ENDS.includes(q.event));
+  if (end?.event === 'done') return null;
+  const last = end ?? after.findLast(q => Number.isInteger(q.block));
+  if (!Number.isInteger(last?.block)) return null;
+  return { st, end, block: last.block, at: end?.at ?? after.findLast(q => typeof q.at === 'string')?.at ?? st.at, why: end?.message || (end ? end.event : 'no end in the journal'),
+    dips: after.filter(q => q.event === 'dip' && q.by === 'plan' && Number.isInteger(q.block)).map(q => q.block) };
+}
+const isFly = b => b?.kind === 'move' && /^T /.test(b.cmds?.[0] ?? '') && !(b.paintMM > 0) && !b.home;
+const paintTo = (blocks, k) => blocks.slice(0, k).reduce((a, b) => a + (b.kind === 'move' ? b.paintMM || 0 : 0), 0);
+// the plan R from its block k on, after its own opening (the arm blocks before its first move); a block s of the cut is the plan's s + offset
+function cutOf(R, k) {
+  const n = R.blocks.findIndex(b => b.kind === 'move'), pre = R.blocks.slice(0, Math.max(0, n)).map(b => ({ ...b }));
+  const blocks = [...pre, ...R.blocks.slice(k)], paint = paintTo(R.blocks, R.blocks.length);
+  return { k, pre: pre.length, offset: k - pre.length, blocks, before: paintTo(R.blocks, k), paint, seconds: R.seconds * (R.blocks.length - k) / Math.max(1, R.blocks.length) };
+}
+function breakPlan(B) {
+  const st = B.st, set = st.settings ?? {}, pic = set.runPic ?? set.pic, no = t => ({ no: t });
+  if (pic !== S.pic) return no(`it is of ${LIB[pic]?.title ?? pic}: choose it in the library`);
+  const fr = q => q ? [q.x0, q.y0, q.x1, q.y1].join(',') : '';
+  if (fr(st.frame) !== fr(PIC.frame)) return no(st.frame ? `it ran in the frame ${fmt(st.frame.x1 - st.frame.x0, 0)} × ${fmt(st.frame.y1 - st.frame.y0, 0)}: lay that frame again` : 'it ran the whole picture: take the frame away');
+  const all = plan(), name = q => jarOf(q.pencil)?.name ?? q.pencil;
+  const from = Number.isInteger(st.from) ? st.from : st.from_colour ? all.findIndex(q => name(q) === st.from_colour) : 0;
+  if (from < 0 || from >= all.length) return no(`it started from ${st.from_colour}, not in the list here`);
+  const here = hereNow();
+  if (st.here && Math.hypot(here.x - st.here.x, here.y - st.here.y) > 0.05) return no(`the canvas lay elsewhere then (its centre X ${fmt(st.here.x, 1)} · Y ${fmt(st.here.y, 1)}, here X ${fmt(here.x, 1)} · Y ${fmt(here.y, 1)}): set The canvas as it was, left ${set.place?.edgeLeft} · bottom ${set.place?.edgeBottom}`);
+  const R = paintRun(from), full = st.full ?? st.blocks, cut = st.cut ?? 0, pre = st.pre ?? 0;
+  if (R.fault) return no(`the plan is wrong — ${R.fault}`);
+  if (R.blocks.length !== full) return no(`the plan here is not the one that ran: ${full} steps then, ${R.blocks.length} here — the settings, THE JARS or the marks changed since`);
+  const toFull = s => s < pre ? null : s + cut;
+  const bad = B.dips.map(toFull).filter(s => s !== null && !R.blocks[s]?.dip);
+  if (bad.length) return no(`the plan here is not the one that ran: ${bad.length} of its ${B.dips.length} dips fall on no dip here, the first at step ${bad[0] + 1}`);
+  const at = B.block < pre ? cut + pre : B.block + cut;                               // the step it broke at, in the whole plan
+  let k = -1;
+  for (let s = Math.min(at, R.blocks.length - 1); s >= 0; s--) if (isFly(R.blocks[s])) { k = s; break; }
+  const nextFly = s => { for (let q = s + 1; q < R.blocks.length; q++) if (isFly(R.blocks[q])) return q; return -1; };
+  if (k >= 0) {                                                                       // the stretch from that flight painted all before the break: the next one
+    const n = nextFly(k), stop = n < 0 ? R.blocks.length : n, painted = q => R.blocks[q].kind === 'move' && R.blocks[q].paintMM > 0;
+    let before = false, rest = false;
+    for (let q = k; q < stop; q++) if (painted(q)) { if (q < at) before = true; else rest = true; }
+    if (before && !rest) k = n;
+  }
+  if (k < 0) return no('it broke off after the last row: nothing is left to paint');
+  const C = cutOf(R, k), row = R.blocks[k].row, info = R.rows[row - 1] ?? {}, line = info.pass ?? 0, jar = name(R.passes[line]);
+  const cell = info.cells?.[0]?.[0], later = R.passes.slice(line + 1).map(name);
+  const diffs = PLAN_KEYS.filter(q => set[q] !== undefined && set[q] !== S[q]).map(q => `${q} ${set[q]} then, ${S[q]} now`);
+  const pct = C.paint ? C.before / C.paint * 100 : 0;
+  const say = `The journal: ${B.at}, ${B.why} — at step ${at + 1} of ${full}, ${R.rows[(R.blocks[at]?.row || row) - 1]?.label ?? info.label ?? ''}.`
+    + `\n\nOn from step ${k + 1}: ${info.label ?? `row ${row}`}. Put ${jar} in the cup: the elbow up, the shoulder at 0, then the brush flies there from home, dips and paints on — ${jar} to its end${later.length ? `, then ${later.length} line${later.length === 1 ? '' : 's'} more: ${later.join(', ')}` : ''}. Nothing before it is painted again; ${fmt(pct, 0)} % of this run's paint lies behind it.`
+    + (diffs.length ? `\n\nSince then: ${diffs.join('; ')} — run as it is now.` : '');
+  return { B, R, C, from, at, k, row, line, jar, cell, pct, say, passes: R.passes.slice(line) };
+}
+async function fromBreak(BP) {
+  if (BP.no) return alert(`FROM THE BREAK: not possible — ${BP.no}.`);
+  if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: STOP it first.');
+  if (cupProblem(cup())) return warn(`DRAG dips in ${cupName()}: ${cupProblem(cup())}`);
+  if (walls(BP.R)) return warn(walls(BP.R));
+  if (!confirm(`FROM THE BREAK · ${PIC.title}\n\n${BP.say}`)) return;
+  const { R, C, from, B } = BP;
+  S.view = 'drag'; RUN_PRESS = S.press; save(); showKeys(); kick();
+  await start('drag', C.blocks, { seconds: C.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from, cut: C, full: R.blocks },
+    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R, from, C),
+      from, full: R.blocks.length, cut: C.offset, pre: C.pre, resume: { of: B.st.at, broke: B.at, at_block: BP.at, from_block: BP.k, row: BP.row, colour: BP.jar, cell: BP.cell ?? null },
+      ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(C.seconds) }));
+}
 // its checks, OPM-N's: the plan, the walls, the debug of the pen's downs (strokes.js, landingCheck): every mm of every line with the pen down → a warning, or the debug
 function bwCheck(R) {
   const at = penAt();
@@ -278,12 +368,15 @@ function askDraw(passes, text, o = {}) {
     sel.value = '0';
     sel.onchange = () => { const v = o.from.pick(+sel.value); show(v.passes, v.text); };
   }
+  const bk = $('#drawBreak');                                                         // FROM THE BREAK: where the journal's last DRAG broke off
+  if (bk) { bk.hidden = !o.brk; bk.style.display = o.brk ? '' : 'none'; if (o.brk) { bk.textContent = o.brk.label; bk.title = o.brk.title; } }
   box.hidden = false; $('#drawAskList').scrollTop = 0; $('#drawGo').focus();
   return new Promise(ok => {
     const key = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); end(false); } };
     const end = v => { box.hidden = true; removeEventListener('keydown', key, true); ok(v); };
     addEventListener('keydown', key, true);
     $('#drawGo').onclick = () => end(true); $('#drawNo').onclick = () => end(false);
+    if (bk) bk.onclick = () => end('break');
     box.onclick = e => { if (e.target === box) end(false); };
   });
 }
@@ -691,8 +784,8 @@ function runPicture(st) {                                                       
   if (st && LIVE.includes(st.state) && S.runPic && S.pic !== S.runPic && LIB[S.runPic]) choose(S.runPic);
   // and its run's lines, the line it started from with them (PROGRESS, the LCD's jar), when the plan here gives the very blocks the board has
   if (st && LIVE.includes(st.state) && !RUN_INFO && S.runKey === 'drag' && S.pic === S.runPic && PIC) {
-    const R = paintRun(S.runFrom ?? 0);
-    if (R.blocks.length === st.blocks) { RUN = R.blocks; RUN_KEY = 'drag'; RUN_INFO = { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from: S.runFrom ?? 0 }; }
+    const R = paintRun(S.runFrom ?? 0), C = Number.isInteger(S.runCut) ? cutOf(R, S.runCut) : null, B = C ? C.blocks : R.blocks;   // a run from the break: its own cut of the plan
+    if (B.length === st.blocks) { RUN = B; RUN_KEY = 'drag'; RUN_INFO = { seconds: C ? C.seconds : R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from: S.runFrom ?? 0, ...(C ? { cut: C, full: R.blocks } : {}) }; }
   }
 }
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; playStop(); S.view = b.dataset.view; save(); showKeys(); kick(); };
@@ -737,7 +830,10 @@ const lcdTime = t => (t || 0) < 3600 ? segments(mmss(t), 17) : `<span class="hm"
 function lcd(st) {
   const P_ = paintRun(), live = st && LIVE.includes(st.state);
   const Q = PLAY && !live ? PLAY : null;                                              // ▶ Play, nothing running: the run as it would go — how far, the time left (est.), its jar now
-  const runPct = Q ? Q.want / Q.mm * 100 : st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
+  const runPct0 = Q ? Q.want / Q.mm * 100 : st && st.state !== 'idle' ? (st.state === 'done' ? 100 : st.percent || 0) : 0;
+  // a run from the break (cutOf): the board's per cent is of what was left after the cut — the run's share before it added, so PROGRESS goes on where it broke off
+  const cut = !Q && st && st.state !== 'idle' && RUN_KEY === 'drag' ? RUN_INFO?.cut ?? null : null, off = cut ? cut.offset : 0;
+  const runPct = cut?.paint ? (cut.before + runPct0 / 100 * (cut.paint - cut.before)) / cut.paint * 100 : runPct0;
   const R_ = live && RUN_INFO ? RUN_INFO : P_;
   // a DRAG from a later line of the list (Start from, after a STOP or on another day): PROGRESS the whole picture's, the lines before it done, the run's own share after them
   // (the owner, 2026-11-11: "I take them home by Stop, Home. That puts PROGRESS back to zero, the % on the screen go off"); the time left the run's, the total the picture's
@@ -759,13 +855,13 @@ function lcd(st) {
   showElbow();
   const ids = Q ? Q.ids : (live && RUN_INFO?.passes) || P_.passes.map(q => q.pencil), pid = Q ? Q.ids[Q.n] : row?.pencil ?? (!live ? ids[0] : null), j = pid && jarOf(pid), nx = j && jarOf(ids[ids.indexOf(pid) + 1]);
   const cellNow = row?.cells?.[0]?.[0];
-  const runRows = live ? R_.rows : P_.rows, J = !j ? null : jarBar({ Q, live, st, k: Q ? Q.n : (live ? ids : P_.passes.map(q => q.pencil)).indexOf(pid), R: live ? { blocks: RUN, rows: runRows } : P_, sps: live && st.blocks ? (st.pace_s > 0 ? st.pace_s : runTotal / st.blocks) : (P_.blocks?.length ? P_.seconds / P_.blocks.length : 0) });
+  const runRows = live ? R_.rows : P_.rows, J = !j ? null : jarBar({ Q, live, st: off && st ? { ...st, block: st.block + off } : st, k: Q ? Q.n : (live ? ids : P_.passes.map(q => q.pencil)).indexOf(pid), R: live ? { blocks: RUN_INFO?.full ?? RUN, rows: runRows } : P_, sps: live && st.blocks ? (st.pace_s > 0 ? st.pace_s : runTotal / st.blocks) : (P_.blocks?.length ? P_.seconds / P_.blocks.length : 0) });
   const list = all, at = pid ? list.findIndex(q => q.pencil === pid) : -1;   // the line's place in the whole list, a run from a later line too
   if (live || Q) markRun(at);
   if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour(RUN_INFO?.bw).lines[st.row - 1] : null } : row?.mark ? {} : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
   const now = Q ? `${Q.q.mark ? `${Q.q.mark[0].toUpperCase()}${Q.q.mark.slice(1)}` : `Cell ${Q.q.num}${Q.q.idle ? ', idle' : ''}`} · ${fmt(pct / 100 * Q.metres / 1000, 1)} of ${fmt(Q.metres / 1000, 1)} m · est.` : waiting ? `❚❚ ${st.message}` : live && b?.home ? (RUN_KEY === 'home' ? 'HOME · the brush up, the carriage to home' : 'done · the carriage goes home, the brush off') : live && b?.wipe ? `${row?.label ?? ''} · the brush up to be wiped` : live && row && b?.dip ? `${row.label} · the dip in the cup` : live && row ? row.label + (RUN_KEY === 'bw' ? (st.brush_on ? ' · the pen on' : ' · the pen up') : st.brush_on ? ' · brush on' : ' · brush off') : PIC ? `${PIC.title} · ${fmt(P_.mm / 1000, 2)} m` : '';
   $('#lcd').innerHTML = `
-    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', points: 'POINTS', home: 'HOME', drag: 'DRAG', bw: 'DRAW BW' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(pct / 100 * Q.metres / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1}/${st.blocks}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
+    <div class="lcd-top"><span>${state === 'live' || Q ? '▶ ' : state === 'paused' ? '❚❚ ' : ''}${state}${live && RUN_KEY ? ` · ${{ test: 'TEST', points: 'POINTS', home: 'HOME', drag: 'DRAG', bw: 'DRAW BW' }[RUN_KEY]}${st.trim ? ` ${sgn(st.trim)}` : ''}` : ''}</span><span>${Q ? `${fmt(pct / 100 * Q.metres / 1000, 2)} m` : live && st.blocks ? `step ${st.block + 1 + off}/${st.blocks + off}` : `${fmt(P_.mm / 1000, 2)} m`}</span></div>
     <div class="lcd-mid">
       <div class="lcd-big">${segments(String(Math.min(100, Math.floor(pct))).padStart(2, ' '), 46)}<span class="u">%</span></div>
       <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>

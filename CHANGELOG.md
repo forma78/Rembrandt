@@ -3,6 +3,19 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## Unreleased
+
+- **FORM-G: ⤵ FROM THE BREAK, the DRAG question's second key** (2026-11-17; the owner, Mickey at 54 %: the camera on the elbow knocked while
+  filming, its bracket held the elbow at +29°, the cup at hand's guard stopped the run over the jar at 16:07:52, the ears not painted; "we cannot
+  start again, the thick black paint will change the texture. We have the journal: can you find by the coordinates where it stopped? … a second
+  button, 'continue from the break'"). The journal's last DRAG of the tab, stopped, an error or no end written: its plan made again here and
+  checked against it — as many steps, every dip it wrote on a dip of the plan, the canvas where it lay — else not run, the key saying why. On from
+  the last flight before the step it broke at, the run's own opening first (the elbow up, the shoulder and the wrist at 0): the row it was in again
+  from its dip, nothing before it painted again. PROGRESS, the jar's bar, the steps and the iPhone's remote go on from where it broke; the journal
+  writes `from`, `full`, and for such a run `cut`, `pre`, `resume`. Mickey's: step 8306 of 13614, C15 cell 44's drop, 5312 steps, 42.0 m of
+  paint left; the rebuilt plan matched the journal's 13614 steps, 91 999.4 mm and all 649 dips to the mm. Checked in headless Chrome, every POST
+  caught in the page; `rembrandt.py` untouched.
+
 ## v.1.2.6 — 2026-11-17 · PROGRESS, the jar's own bar
 
 - **v.1.2.6 on every tab and in the saved SVGs** (the owner: "we can push it as v.1.2.6").
