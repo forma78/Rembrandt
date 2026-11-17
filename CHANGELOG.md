@@ -3,8 +3,9 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.2.5 — 2026-11-17
+## v.1.2.6 — 2026-11-17 · PROGRESS, the jar's own bar
 
+- **v.1.2.6 on every tab and in the saved SVGs** (the owner: "we can push it as v.1.2.6").
 - **FORM-G: PROGRESS's second bar, THE JAR's own; both bars thin** (2026-11-17; the owner, `FORM-G/Screenshot 2026-11-17 at 12.39.10 PM.png`: "a second scale,
   which counts the % of the current paint and when to prepare a new jar"; "both thin: the first's sticks half as high, and the second the same, neat"). Under
   the jar's row, the line now: its paint done of its own, "79 % · 2/18" where PAINTING was, and NEXT's time to the jar change, "next · 2 min", by the steps
