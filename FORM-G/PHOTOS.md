@@ -38,7 +38,7 @@ the film, its length, what the frames show — and pushes.
 
 ## 2026-11-17 · Mickey 60 × 60, drops first: a yellow zone and grey strokes, the iPhone and the machine camera
 
-`photos/2026-11-17/`, 5 photos, dropped by the owner into `FORM-G/` on this Mac as HEIC, 10:57 … 11:22,
+`photos/2026-11-17/`, 6 photos, dropped by the owner into `FORM-G/` on this Mac as HEIC, 10:57 … 11:22, and IMG_3150 after the new run,
 made full-size JPG here, the GPS left out. The run of the morning's canon (drops first, then one snake; the
 strokes a dip a leg, no second run), stopped by the owner. What came of them, the same day: the snake's turns
 square, a drop every 35 mm, the second run back (CHANGELOG, f536666). By eye, est.:
@@ -50,6 +50,7 @@ square, a drop every 35 mm, the second run back (CHANGELOG, f536666). By eye, es
 | `IMG_3146.jpg` | The same, the ruler 0–10 cm across the legs below them, 5 mm apart; the owner's four red crosses in the bald middle of the legs, ≈ 35 mm from either end ("not enough drops, not enough paint, the canvas stays empty"; "a drop every 35 mm"). |
 | `IMG_3147.jpg` | Grey strokes over the dry beige, the owner's three red arrows: every stroke a fat glossy drop at its start where the dip landed, then a pale, dry, scratched tail ("a giant drop and one run … bring back the second run, so that it drives the clots apart"). |
 | `IMG_3148.jpg` | Five grey strokes at the beige's edge, the same: a round head, then the tail thinning to the weave. |
+| `IMG_3150.jpg` | After v.1.2.5 (the owner: "on the right, the dark yellow, is the last version"; "it comes out wonderfully"): a deep-yellow zone cell over the morning's pale yellow, wet: every leg full along its length, no bald middle, its ends a staircase of square steps, glossy ridges with the weave between; spare drops at the right. |
 
 `eyes/2026-11-17/10.56/`, 28 frames, one every 2 s of `Movie on 11-17-26 at 10.56 AM.mov` (55 s, 1620 × 1080,
 30 fps), recorded on the Mac at 10:56; the film stays on the Mac (121 MB). The yellow cell of the photos; the
