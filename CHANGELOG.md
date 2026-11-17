@@ -3,6 +3,14 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
+## After v.1.2.5 — 2026-11-17
+
+- **FORM-G: PROGRESS's second bar, THE JAR's own; both bars thin** (2026-11-17; the owner, `FORM-G/Screenshot 2026-11-17 at 12.39.10 PM.png`: "a second scale,
+  which counts the % of the current paint and when to prepare a new jar"; "both thin: the first's sticks half as high, and the second the same, neat"). Under
+  the jar's row, the line now: its paint done of its own, "79 % · 2/18" where PAINTING was, and NEXT's time to the jar change, "next · 2 min", by the steps
+  left in the line, as LEFT and the iPhone's remote count them; ▶ Play and the plan by the same steps. Nothing blinks (the owner: "can the blinking go? with
+  my ADHD it raises anxiety"). Checked in headless Chrome, a live run faked in its own profile.
+
 ## v.1.2.5 — 2026-11-17 · FORM-G, drops first — the best so far
 
 The owner, 2026-11-17, after the new run on the machine: "it comes out wonderfully. We can make the update v.1.2.5 and record the latest code as the

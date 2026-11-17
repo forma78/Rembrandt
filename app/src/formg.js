@@ -569,7 +569,8 @@ $('#btnPlay').onclick = () => {
   }
   if (!list.length) return;
   off.width = PIC.w * s; off.height = PIC.h * s; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = PIC.pitch * s * 0.92;
-  const Q = PLAY = { cv: off, mm, want: 0, n: 0, q: list[0], tip: null, at: null, i: 0, t0: performance.now(), said: 0, ids: passes.map(q => q.pencil), seconds: paintRun().seconds, metres: passes.reduce((a, q) => a + q.mm, 0) };
+  const spans = {}; for (const q of list) { const w = spans[q.n] ??= [q.from, q.to]; w[1] = q.to; }   // every line's mm, from its first piece to its last: THE JAR's bar
+  const Q = PLAY = { cv: off, mm, want: 0, n: 0, q: list[0], tip: null, at: null, i: 0, t0: performance.now(), said: 0, ids: passes.map(q => q.pencil), seconds: paintRun().seconds, metres: passes.reduce((a, q) => a + q.mm, 0), spans };
   $('#btnPlay').textContent = '■ Stop'; $('#btnPlay').classList.add('on');
   const step = () => {
     if (PLAY !== Q) return;
@@ -707,6 +708,31 @@ for (const [id, k] of [['#fLeft', 'edgeLeft'], ['#fBottom', 'edgeBottom']]) {
 
 // ---------- the LCD, OPM-N's ----------
 const mmss = t => { t = Math.max(0, Math.round(t || 0)); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+// THE JAR's bar, the second (the owner, 2026-11-17, FORM-G/Screenshot 2026-11-17 at 12.39.10 PM.png: "a second scale, which counts the % of the current paint and when
+// to prepare a new jar"; "both thin: the first's sticks half as high, and the second the same, neat"): the line now — its jar — its paint done of its own, by the
+// steps' painted mm, its % where PAINTING was, and the time to its last step, the next jar's pause, by the steps left in it, as LEFT and the iPhone's remote count
+// them (pace_s). Nothing blinks (the owner, the same hour: "can the blinking go? with my ADHD it raises anxiety"). ▶ Play by its mm, the time the plan's; no run,
+// the first line's whole time
+let SPANS = null;
+function spansOf(blocks, rows) {
+  if (SPANS?.blocks === blocks && SPANS.rows === rows) return SPANS;
+  const by = new Map(), line = new Array(blocks.length), cum = new Array(blocks.length);
+  for (let i = blocks.length - 1, k = -1; i >= 0; i--) { const r = blocks[i].row > 0 ? rows?.[blocks[i].row - 1] : null; if (r) k = r.pass; line[i] = k; }   // a jar's pause before it is its own
+  blocks.forEach((b, i) => { const k = line[i]; if (k < 0) return; const w = by.get(k) ?? { first: i, last: i, mm: 0 }; cum[i] = w.mm; w.mm += b.paintMM || 0; w.last = i; by.set(k, w); });
+  return (SPANS = { blocks, rows, by, cum });
+}
+function jarBar(o) {
+  const { Q, live, st, k, R, sps } = o;
+  if (!R?.blocks?.length || k < 0) return null;
+  const S_ = spansOf(R.blocks, R.rows), w = S_.by.get(k);
+  if (!w) return null;
+  const whole = (w.last - w.first + 1) * sps;   // the line's time by its steps, the plan's seconds a step (est.)
+  if (Q) { const m = Q.spans?.[Q.n], f = m ? Math.max(0, Math.min(1, (Q.want - m[0]) / Math.max(1e-6, m[1] - m[0]))) : 0; return { f, left: whole * (1 - f) }; }   // ▶ Play: its mm, the time the plan's
+  if (!live) return { f: 0, left: whole };
+  const b = st.block, done = b < w.first ? 0 : b > w.last ? w.mm : S_.cum[b] ?? 0;
+  return { f: w.mm > 0 ? done / w.mm : (b - w.first) / Math.max(1, w.last - w.first + 1), left: Math.max(0, w.last + 1 - Math.max(b, w.first)) * sps };
+}
+const inMin = t => t < 60 ? 'under a min' : t < 3600 ? `${Math.round(t / 60)} min` : `${Math.floor(t / 3600)} h ${String(Math.round(t % 3600 / 60)).padStart(2, '0')}`;
 const lcdTime = t => (t || 0) < 3600 ? segments(mmss(t), 17) : `<span class="hm">${segments(String(Math.floor(t / 3600)), 17)}<span class="tu">h</span>${segments(String(Math.floor(t % 3600 / 60)).padStart(2, '0'), 17)}<span class="tu">min</span></span>`;
 function lcd(st) {
   const P_ = paintRun(), live = st && LIVE.includes(st.state);
@@ -733,6 +759,7 @@ function lcd(st) {
   showElbow();
   const ids = Q ? Q.ids : (live && RUN_INFO?.passes) || P_.passes.map(q => q.pencil), pid = Q ? Q.ids[Q.n] : row?.pencil ?? (!live ? ids[0] : null), j = pid && jarOf(pid), nx = j && jarOf(ids[ids.indexOf(pid) + 1]);
   const cellNow = row?.cells?.[0]?.[0];
+  const runRows = live ? R_.rows : P_.rows, J = !j ? null : jarBar({ Q, live, st, k: Q ? Q.n : (live ? ids : P_.passes.map(q => q.pencil)).indexOf(pid), R: live ? { blocks: RUN, rows: runRows } : P_, sps: live && st.blocks ? (st.pace_s > 0 ? st.pace_s : runTotal / st.blocks) : (P_.blocks?.length ? P_.seconds / P_.blocks.length : 0) });
   const list = all, at = pid ? list.findIndex(q => q.pencil === pid) : -1;   // the line's place in the whole list, a run from a later line too
   if (live || Q) markRun(at);
   if (live) { NOW = RUN_KEY === 'bw' ? { line: st.row ? contour(RUN_INFO?.bw).lines[st.row - 1] : null } : row?.mark ? {} : { cell: list[at]?.byCell[(cellNow ?? 1) - 1] }; kick(); } else if (NOW?.cell) { NOW = null; if (!Q) markRun(-1); kick(); }
@@ -744,7 +771,7 @@ function lcd(st) {
       <div class="lcd-times"><span class="k">left</span>${lcdTime(left)}<span class="k">total</span>${lcdTime(total)}</div>
     </div>
     ${sticks(pct / 100)}
-    ${j ? `<div class="lcd-pencil"><i class="sw" style="background:${j.hex}"></i><span class="pt"><span class="pn">${esc(j.name)}</span><span class="pk">${live || Q ? 'painting' : 'first'} · ${Math.max(0, at) + 1}/${list.length}</span></span>${nx ? `<span class="nx"><span class="pk">next</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : '<span class="nx"><span class="pk">the last</span></span>'}</div>` : ''}
+    ${j ? `<div class="lcd-pencil"><i class="sw" style="background:${j.hex}"></i><span class="pt"><span class="pn">${esc(j.name)}</span><span class="pk">${J && (live || Q) ? `${Math.min(100, Math.floor(J.f * 100))} %` : live || Q ? 'painting' : 'first'} · ${Math.max(0, at) + 1}/${list.length}</span></span>${nx ? `<span class="nx"><span class="pk">${J ? `next · ${inMin(J.left)}` : 'next'}</span><span class="nn"><i style="background:${nx.hex}"></i><span>${esc(nx.name)}</span></span></span>` : `<span class="nx"><span class="pk">the last${J ? ` · ${inMin(J.left)}` : ''}</span></span>`}</div>${J ? `<div class="lcd-jar" title="${esc(j.name)}: ${Math.floor(J.f * 100)} % of its paint; ${nx ? `${esc(nx.name)} in ≈ ${inMin(J.left)} (est.)` : 'the last jar'}">${sticks(J.f)}</div>` : ''}` : ''}
     <div class="lcd-now${waiting ? ' wait' : ''}">${now}</div>`;
 }
 async function watch() {
