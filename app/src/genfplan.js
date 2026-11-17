@@ -209,7 +209,7 @@ export function snakesOf(spans, K, o = {}) {
 // ---------- the sketch ----------
 const chroma = p => Math.hypot(p[1], p[2]);
 const coatsOf = p => p[0] < GEN.twoL && (chroma(p) > 12 || p[0] < 12) ? 2 : 1;   // the deep reds and the blacks two coats, as the classic's (est.)
-export const lineOf = pic => j => j.cells.reduce((t, c) => t + cellOf(c, pic, 1, { idle: FORMG.idle }).mm, 0);   // a jar's line as FORM-G's list counts it: legs and idle run, on the legs since 2026-11-16 (canon.js's jarsByCanvas)
+export const lineOf = pic => j => j.cells.reduce((t, c) => t + cellOf(c, pic, 1, { idle: 'legs' }).mm, 0);   // a jar's line for canon.js's jarsByCanvas: legs and an idle run on them, as 2026-11-16's FORM-G counted it; FORM-G's run has none since 2026-11-17, the jar canon kept as it was
 // → { pic: FORM-G's json, the jars by the canon of the canvas's long side; raw: before it; out: the jars that went; asked, made: the colours asked, those that paint }
 export function sketchOf(B, fit, f, K, o = {}) {
   const pal = paletteOf(B, K, o), grid = columnsOf(B, pal, o), lum = pal.map(p => p[0]);

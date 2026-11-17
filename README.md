@@ -55,7 +55,7 @@ Rembrandt/
     opmp.html        OPM-P, OPM-W for paint: every block — a side, a facet of a bevel — its own rows the brush apart, ending on the blend's perspective rays, bound by its bands (12 mm = 6 + 6); every line once, the rows block after block first, then the rays; DRAG in DRAW CLR's place, a colour at a time with one brush, Rubs times, a pause between; PAINTING MACHINE with its ELBOW LIVE (new, 2026-10-29, v.1.1.3; OPM-W kept as it was)
     opmn.html        OPM-N (Numbers), OPM-P with the cells numbered: every cell of a colour its number, from the centre clockwise, painted on its own by a thin brush that takes its paint from the cup, the owner's DIP from an iPhone remote, every dip in a journal (new, 2026-11-01, v.1.1.8; OPM-N.md; so far OPM-P's page under its own name, the cells numbered, DRAG by cells in their tracks, Snake · Air; OPM-P kept as it was)
     form.html        FORM, OPM-P for figurative painting: the forms off a photo — Auto forms, the background left out — every form OPM-P's rings and rays (the straight skeleton), its cells the photo's colours; metal, glass (its rings rounded inside, a curl in the middle), rubber; V a form and its points, + · − a point in or out, P the pen, R a rectangle, L an ellipse drawn on top, E Free Transform, ⌘C ⌘V, K the knife, O Reflect, U Unite, M the sausages, Out · in; the Preview, the brush through sausages off the photo; Rotate Canvas CCW · CW by the zoom (new, 2026-10-30; src/form.js, src/formplan.js; FORM/)
-    formg.html       FORM-G (Points · Jar 0, a dot of white at each outermost point to centre the canvas by, 2026-11-16), a library of finished paintings (and on this Mac alone the pictures of others' works, formg/local.json, gitignored, 2026-11-16), no photo and no drawing tools: a picture's plan in formg/, OPM-N's DRAG SNAKE to the command — since 2026-11-16, the evening, every leg on a dip of its own, no turn with the brush down, its idle run on the legs themselves, n legs n tracks — its question with Start from, BACK ONE JAR (a jar again from its own pause, BACK ONE CELL's place since 2026-11-13) and the iPhone's remote; the brush fixed at 5 mm, the jars given; F, OPM-W's frame, a piece run alone at its place from home; DRAW BW, the contour in a pen in the brush's holder, every border between two colours once, to lay the canvas by and study the picture on paper first; its run as LAB's real 3, a dip every 79 mm and the J3 compensation (new, 2026-11-06, the frame 2026-11-08, DRAW BW and real 3's run 2026-11-10; MARKS, the printer's marks at the middles of the canvas's edges, a jar's one dip and its marks after every change of jar, 2026-11-11; src/formgplan.js, src/formg.js; FORM-G/generator)
+    formg.html       FORM-G (Points · Jar 0, a dot of white at each outermost point to centre the canvas by, 2026-11-16), a library of finished paintings (and on this Mac alone the pictures of others' works, formg/local.json, gitignored, 2026-11-16), no photo and no drawing tools: a picture's plan in formg/, OPM-N's DRAG SNAKE to the command — since 2026-11-17 drops first, then the snake: a zone's every leg its drop, then one snake over the cell on no dip; a stroke a dip a leg; no idle run (README's canon) — its question with Start from, BACK ONE JAR (a jar again from its own pause, BACK ONE CELL's place since 2026-11-13) and the iPhone's remote; the brush fixed at 5 mm, the jars given; F, OPM-W's frame, a piece run alone at its place from home; DRAW BW, the contour in a pen in the brush's holder, every border between two colours once, to lay the canvas by and study the picture on paper first; its run as LAB's real 3, a dip every 79 mm and the J3 compensation (new, 2026-11-06, the frame 2026-11-08, DRAW BW and real 3's run 2026-11-10; MARKS, the printer's marks at the middles of the canvas's edges, a jar's one dip and its marks after every change of jar, 2026-11-11; src/formgplan.js, src/formg.js; FORM-G/generator)
     genf.html        GEN-F, the creative workshop (FORM-G is the library of finished works): a picture in — its plain ground left bare — FORM-G's grid of 5 mm legs out, a sketch on three screens side by side, each its own colours, the one chosen approved; the format (40 × 40, 60 × 60, 60 × 80, 70 × 100; 90 × 120 and 100 × 150 for a new frame), the colours asked (10 … 100), the canon of the jars on them; GROUND, white or black, the bare canvas on the screen; Motion blur, a layer under the picture, every column smeared along itself in the picture's own jars, its Opacity OPM's raster of them, the share of the columns that paint; the time by FORM-G's own run, est.; APPROVE saves it to GEN-F/ for the final work in FORM-G/generator. Moves nothing on the machine (new, 2026-11-16, v.1.2.4; src/genfplan.js, src/genf.js)
     holo.html        HOLO, vertical legs alone in two runs: the brush lays even puddles of paint from the cup at hand, then drags them — run 1 the light, run 2 the shadow on the dry first; FORM-G's page, a library of cloud-Claude's pictures (40 × 40, 60 × 60) in the owner's jars, ▶ Play, every picture's v.2 after it, its edges ragged (2026-11-14, `HOLO-Claude/generator/holo_v2.py`); FORM-G's machine keys — TEST, PAUSE, DRAW BW (the pen along the strokes as the brush lays them), BACK ONE JAR, STOP, HOME, the iPhone's remote, ELBOW LIVE — since 2026-11-14; RUN 1 · RUN 2 not wired yet, after LAB's sheet; the warm 40 × 40's V4, every pass of both runs a group at a time: run 1 by LAB's + idle 6.0, its snake a stroke a leg, its idle snake legs + 1; run 2 Air, its dots on one side, legs + 1 tracks from them (2026-11-15, `HOLO-Claude/HOLO/001-40x40-v4.md`) (new, 2026-11-12; HOLO-Claude/HOLO.md; src/holoplan.js, src/holo.js; app/holo/, made by HOLO-Claude/generator)
     opmg.html        OPM-G, FORM-G's page with its own library, opmg/ — the G-wagon on 60 × 60 first, 36 jars at most, every jar 1 m of line at least — and its run by the canon of a long leg, no. 9 (new, 2026-11-07; src/formg.js with data-tab="opmg", src/canon.js; FORM-G/generator/gwagon.py)
@@ -345,6 +345,42 @@ consistent then! Keep the dance in the second layer — for now it is a 'relic' 
 `holoplan.js` (`legsOf`, `puddlesAlong`, `bandOn`, `dabsOn`), `HOLO-Claude/generator/holo_v2.py`. Every v.1 kept; a v.2 after it.
 Since 2026-11-15 the v.1s are off the library's cards (`HOLO_HIDDEN`; the owner: "let's hide all the v.1s, so as not to get confused"),
 their files and tests kept; a page left on one opens its v.2.
+
+## DRAG Snake before DRAG Air — always (canon)
+
+The owner, 2026-11-17: "we need the snake, not through the air. Otherwise it is long and not
+Instagram-worthy. When the brush leaves the canvas, a person blinks, the brain restarts and he
+scrolls to another reel. … One can say the picture's quality matters. But there are two million
+artists on Saatchi; we need content to break through and fight the competition."
+
+**Wherever a run can go on with the brush down — across to the next leg, a turn — it goes so: DRAG
+Snake. DRAG Air (the brush up, back through the air to start the next stroke) only where nothing
+else will do.** The film is part of the work: a run the camera shows is a run without blinks. A
+lift for a dip stays (the paint has to come from somewhere); a lift to come back and start again
+does not. Before a new tab's or a new picture's first run, look for its lifts as for its gaps.
+
+## FORM-G: drops first, then the snake — zones and strokes (canon)
+
+The owner, 2026-11-17, of Mickey's beige on 60 × 60 (`FORM-G/DROPS-FIRST.md`,
+`FORM-G/photos/2026-11-16/`: teardrops where the brush restarted mid-leg after a dip, a cap at every
+turn of the snake): "we do as in HOLO — first we drop all the drops on the grooves of one colour,
+the brush does not drag them at first. The second round — the brush goes once in a snake over the
+whole zone of the fill. This is the one truth for FORM-G." And: "not all colours go in zones. There
+are those that go in strokes."
+
+1. **A zone, a flat fill** (Mickey's Colour 1, 3, 4, 9, 15): a cell at a time, **its drops first** —
+   every leg its drop **at the start of its way**, so the snake's legs, down and up in turn, have
+   their drops top and bottom in turn; **a leg over 80 mm a drop every 80 mm of it**; every drop a
+   dip of its own, a mark of 8 mm the way the snake will go. **Then at once one snake** over the
+   cell's legs, the brush down at its turns, **no dip, no idle run**, never stopping inside a leg.
+2. **Strokes** (Mickey's Colour 2, 5, 6, 7, 8, 10, 11 … 14): "painted at once, there is nowhere to
+   come back to" — **a dip a leg**, from its start to its end, **no idle run**. A motion blur's
+   stripe is a stroke in any jar, and so is a dial's leg.
+
+A jar's `fill` in its picture's json, `zone` or `strokes`, when the owner names it; else by its
+cells: a zone when 40 % of its line lies in cells 3 legs wide or more and its legs are 30 mm long on
+average (`FILL`, est.; it gives Mickey's split). `src/formgplan.js`: `fillOf`, `dropsOn`,
+`fillRunsOf`; the list shows every line's `zone` or `strokes`. OPM-G keeps the canon of a long leg.
 
 ## GEN-F, the workshop · FORM-G, the library
 

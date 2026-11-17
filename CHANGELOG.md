@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: drops first, then the snake — zones and strokes; DRAG Snake before DRAG Air, always** (2026-11-17; the owner, of Mickey's beige,
+  `FORM-G/photos/2026-11-16/`: "we need the snake, not through the air … when the brush leaves the canvas a person blinks … and scrolls to another
+  reel"; "as in HOLO — first all the drops on the grooves of one colour … the second round, the brush goes once in a snake over the whole zone. This
+  is the one truth for FORM-G"; "the flat fills, Colour 3, 4, 9 — drops first, then at once the snake; strokes, Colour 5, 6, 7, 8, 10 — painted at
+  once"; asked: a drop at the start of its leg's way, Colour 1 and 15 zones, 2, 11 … 14 strokes, the strokes no idle run). Two canons in the README.
+  `formgplan.js`: `fillOf` — a jar's `fill` in its json, else a zone when 40 % of its line lies in cells 3 legs wide and its legs average 30 mm (est.;
+  Mickey's split so); `dropsOn` — a drop at a leg's start and every 80 mm of it, a mark of 8 mm the snake's way; `fillRunsOf` in `brushRuns` for
+  FORM-G — a zone's cell its drops, each on a dip of its own, then at once one snake over its legs, no dip; a stroke's a dip a leg (2026-11-16's), a
+  motion blur's stripe and a dial's leg strokes in any jar; no idle run anywhere (`FORMG.idle = 'none'`). GEN-F's jar canon counts as before (legs
+  and an idle run on them, `lineOf`). FORM-G's page: the list `zone` · `strokes`, ▶ Play draws a drop as a drop, the Idle past field gone, DRAG's
+  key and the (i) say so. OPM-G's run as it was. Mickey (local, est.): 563 drops, 184 snakes, 462 strokes, 1043 dips, ≈ 4 h 32 → 3 h 53 min.
+  Checked: the tests (637); FORM-G with Mickey, the list, the (i) and ▶ Play to the end in headless Chrome, no error. Not run on the machine.
+
 - **FORM-G: `DROPS-FIRST.md`, a note from cloud-Claude** (2026-11-16; the owner: "first putting all the drops, as in HOLO, and then
   dragging"; "5 mm, the brush's width. 4 drops, 4 drags in a snake at the end, without n+1"). A group of four legs, four drops, then
   a snake of four drags, no idle run; a 20 × 20 sheet against FORM-G's run as it is. Nothing in the code yet. Its photos since 2026-11-17: `FORM-G/photos/2026-11-16/`.

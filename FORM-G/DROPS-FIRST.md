@@ -1,5 +1,25 @@
 # DROPS FIRST — FORM-G's drops, then the drag
 
+**Answered and built, 2026-11-17** (Claude in VS Code, with the owner). B is no longer a choice
+beside DRAG SNAKE nor a sheet against it: it is FORM-G's one way, a canon in the README ("FORM-G:
+drops first, then the snake — zones and strokes"; and "DRAG Snake before DRAG Air — always"). The
+owner: "we need the snake, not through the air … when the brush leaves the canvas a person blinks
+… and scrolls to another reel"; "this is the one truth for FORM-G".
+
+- **Where a leg's drop stands**: at the start of its way. The owner first said "at the top"; asked
+  again with the snake in mind (its legs down and up in turn; HOLO's one end starved on
+  2026-11-15), he chose the start of the way: the drops top and bottom in turn.
+- **A leg longer than 80 mm**: "a dip again" — a drop every 80 mm of it, all laid before the
+  snake, the snake through them without a stop. The teardrops in his circles (`IMG_3126`) were
+  that stop: the restart after a dip mid-leg.
+- **Not every jar is a zone.** Flat fills (Mickey's Colour 1, 3, 4, 9, 15): drops, then at once
+  one snake a cell, no dip, no idle run. Strokes (Colour 2, 5 … 8, 10 … 14): a dip a leg, no idle
+  run.
+- Not the four-leg groups below: a zone's group is its whole cell. The sheet A/B is not needed
+  for the choice; the first run of it on canvas is the check (photos as below).
+
+`src/formgplan.js`: `fillOf`, `dropsOn`, `fillRunsOf`. The note as it was written follows.
+
 For Claude in VS Code. Written 2026-11-16 by Claude in the cloud chat, in
 the Rembrandt project, at the owner's word ("send a note to VS Code,
 through GitHub"). One thing: a FORM-G group laid as HOLO lays its puddles,

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, pointsOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, pointsOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf, fillOf, DROPS } from '../src/formgplan.js';
 import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -134,20 +134,45 @@ test('every cell in the list as often as its jar has layers', () => {
   }
 });
 
-test('a cell, FORM-G\'s since 2026-11-16, the evening: legs half a tip in, every leg its own run on a dip of its own, then at once the idle run on the same legs, no dip, +over at its start and turns, 0 at its very end', () => {
-  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20]] }] }] };
-  const [P] = passesOf(pic), c = P.byCell[0];
+test('FORM-G\'s cells since 2026-11-17, drops first: a zone\'s legs half a tip in, every leg its drop at its start on a dip of its own, one every 80 mm of a long leg; then at once one snake over them, no dip; a stroke jar a dip a leg; no idle run', () => {
+  const legs = [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20]];
+  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', fill: 'zone', cells: [{ n: 1, legs }, { n: 2, legs: [[40, 10, 190]] }] }, { id: 'b', name: 'B', hex: '#445566', fill: 'strokes', cells: [{ n: 1, legs }] }] };
+  const [Z, St] = passesOf(pic), c = Z.byCell[0];
+  assert.equal(Z.fill, 'zone'); assert.equal(St.fill, 'strokes');
   assert.deepEqual(c.legs[0], [[10, 22], [10, 98]]);
-  const runs = brushRuns([P], 0, 0);
-  assert.equal(runs.length, 5, 'its four legs, its idle run');
-  runs.slice(0, 4).forEach((r, i) => { assert.equal(r.dip, true, `leg ${i + 1} on a dip`); assert.deepEqual(r.pts, c.legs[i], `leg ${i + 1} alone, from its start to its end`); assert.equal(r.beyond, true, 'its lift beyond'); });
-  assert.equal(runs[4].idle, true); assert.equal(runs[4].dip, false);
-  // the idle run: four tracks on the four legs (the owner: "6 drops, so 6 runs"), each its leg's way
-  assert.equal(c.line.length / 2, 4);
-  c.legs.forEach((l, i) => assert.ok(c.line[2 * i][0] === l[0][0] && Math.sign(c.line[2 * i + 1][1] - c.line[2 * i][1]) === Math.sign(l[1][1] - l[0][1]), `track ${i + 1} on leg ${i + 1}, its way`));
-  assert.deepEqual(c.line[0], [10, 22 - IDLE.over], '+2 at its start');
-  assert.deepEqual(c.line[1], [10, 98 + IDLE.over], '+2 at a turn');
-  assert.deepEqual(c.line.at(-1), c.legs.at(-1)[1], '0 at its very end');
+  assert.deepEqual(c.line, [], 'no idle run');
+  const runs = brushRuns([Z, St], 79, 15, false, 0), z1 = runs.filter(r => r.pass === 0 && r.num === 1);
+  assert.equal(z1.length, 5, 'four drops, one snake');
+  z1.slice(0, 4).forEach((r, i) => {
+    assert.equal(r.dab, true); assert.equal(r.dip, true, `drop ${i + 1} on a dip of its own`);
+    assert.deepEqual(r.pts[0], c.legs[i][0], `drop ${i + 1} at its leg's start, the snake's way: top and bottom in turn`);
+    assert.equal(Math.abs(r.pts[1][1] - r.pts[0][1]), DROPS.mark, 'a mark of 8 mm along it');
+    assert.equal(Math.sign(r.pts[1][1] - r.pts[0][1]), Math.sign(c.legs[i][1][1] - c.legs[i][0][1]), '… the way the snake goes');
+  });
+  assert.deepEqual(z1[4].pts, c.legs.flat(), 'the snake: every leg start to end, across at its turns'); assert.equal(z1[4].dip, false); assert.equal(z1[4].snake, true);
+  const long = runs.filter(r => r.pass === 0 && r.num === 2);
+  assert.deepEqual(long.filter(r => r.dab).map(r => r.pts[0][1]), [12, 70.667, 129.333], 'a 176 mm leg: three drops, evenly from its start');
+  assert.equal(long.filter(r => !r.dab).length, 1, 'then one drag through them all, no stop');
+  const st = runs.filter(r => r.pass === 1);
+  assert.equal(st.length, 4, 'strokes: a run a leg');
+  st.forEach((r, i) => { assert.equal(r.dip, true); assert.deepEqual(r.pts, St.byCell[0].legs[i], `leg ${i + 1} alone`); assert.ok(!r.dab && !r.snake); });
+  assert.equal(runs.filter(r => r.idle).length, 0, 'no idle run anywhere');
+});
+
+test('a jar\'s fill by its cells, its json\'s `fill` first; a motion blur\'s stripe and a dial\'s leg strokes in any jar', () => {
+  const wide = { n: 1, legs: [[10, 0, 60], [15, 60, 0], [20, 0, 60]] }, thin = { n: 2, legs: [[50, 0, 12]] };
+  assert.equal(fillOf({ cells: [wide, thin] }), 'zone');
+  assert.equal(fillOf({ cells: [wide, thin], fill: 'strokes' }), 'strokes', 'its json\'s word');
+  assert.equal(fillOf({ cells: [{ n: 1, legs: [[10, 0, 20], [15, 20, 0], [20, 0, 20]] }] }), 'strokes', 'wide but short legs');
+  assert.equal(fillOf({ cells: [{ n: 1, legs: [[10, 0, 90]] }, { n: 2, legs: [[30, 0, 90]] }] }), 'strokes', 'long but a leg a cell');
+  const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', fill: 'zone', cells: [wide, { ...thin, under: true }] }] };
+  const runs = brushRuns(passesOf(pic), 79, 15, false, 0);
+  assert.equal(runs.filter(r => r.num === 2).length, 1); assert.ok(!runs.find(r => r.num === 2).dab, 'the stripe a stroke');
+});
+
+test('Mickey (local): the owner\'s split, zones 1, 3, 4, 9, 15, strokes the rest', { skip: !fs.existsSync(new URL('../formg/mickey-1.json', import.meta.url)) }, () => {
+  const pic = load('mickey-1'), z = pic.jars.filter(j => fillOf(j) === 'zone').map(j => j.name);
+  assert.deepEqual(z, ['Colour 1', 'Colour 3', 'Colour 4', 'Colour 9', 'Colour 15']);
 });
 
 test('a one-leg cell: its idle run back over itself, nothing into the neighbours\' lanes', () => {
@@ -266,7 +291,7 @@ test('OPM-G\'s library: the G-wagon on 60 × 60, 36 jars at most, every jar 1 m 
   assert.ok(fs.existsSync(new URL(`../${pic.image}`, import.meta.url)), pic.image);
   assert.ok(pic.jars.length <= 36, `${pic.jars.length} jars`);
   for (const q of passesOf(pic, { canon: true })) assert.ok(q.mm >= 1000, `${q.pencil}: ${Math.round(q.mm)} mm`);
-  for (const q of passesOf(pic)) assert.ok(q.mm >= 1000, `${q.pencil}: ${Math.round(q.mm)} mm, FORM-G's reckoning too`);
+  for (const q of passesOf(pic, { idle: 'legs' })) assert.ok(q.mm >= 1000, `${q.pencil}: ${Math.round(q.mm)} mm, the jar canon's reckoning too (genfplan.js's lineOf)`);
   const xs = new Set(pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))));
   for (const x of xs) assert.ok(Math.abs((x - 2.5) / 5 - Math.round((x - 2.5) / 5)) < 1e-6, `a leg off the grid, ${x}`);
   for (const P of passesOf(pic, { canon: true })) for (const q of P.byCell) for (const [a, b] of q.legs) assert.equal(a[0], b[0], 'a leg on the slant');
@@ -317,25 +342,30 @@ function doseHolds(runs, label) {
     }
   }
 }
-test('FORM-G\'s run, a dip a leg (2026-11-16, the evening): every leg its own runs, each on a dip of its own, none across to another leg, from the leg\'s start to its end in the cells\' order; no landing inside; an idle run a cell, a track a leg', () => {
+test('FORM-G\'s run, drops first (2026-11-17): a zone cell its drops, each on a dip at a leg\'s start or along it, then one snake over its legs on no dip; a stroke cell a dip a leg, none across, 79 mm at most; in the cells\' order; no idle run', () => {
   for (const id of FORMG_LIB) {
-    const P = passesOf(load(id)), a = brushRuns(P, 79, 15, false, 0), paint = a.filter(r => !r.idle), idle = a.filter(r => r.idle);
-    doseHolds(a, id);
+    const P = passesOf(load(id)), a = brushRuns(P, 79, 15, false, 0);
     const near = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < 1e-6, len = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
-    const dial = new Set(P.flatMap((q, k) => q.byCell.filter(c => c.runs).map(c => `${k}:${c.num}`)));   // the watch's dial: its legs cut at its bands, its own
-    for (const r of paint) {
-      assert.ok(r.pts.every(q => Math.abs(q[0] - r.pts[0][0]) < 1e-6), `${id}: a run across legs`);
-      assert.ok(dial.has(`${r.pass}:${r.num}`) || len(r.pts) <= 79 + 1e-6, `${id}: a run of ${len(r.pts).toFixed(1)} mm on one dip`);
-    }
+    assert.equal(a.filter(r => r.idle).length, 0, `${id}: no idle run`);
     let k = 0;
-    for (const l of P.flatMap(q => q.byCell.flatMap(c => c.legs))) {
-      assert.ok(near(paint[k].pts[0], l[0]), `${id}: run ${k + 1} at its leg's start`);
-      while (!near(paint[k].pts.at(-1), l[1])) k++;
-      k++;
-    }
-    assert.equal(k, paint.length, `${id}: every run a leg's`);
-    assert.equal(idle.length, P.reduce((t, q) => t + q.cells, 0), `${id}: an idle run a cell`);
-    assert.equal(idle.reduce((t, r) => t + r.pts.length / 2, 0), P.reduce((t, q) => t + q.tracks, 0), `${id}: an idle track a leg`);
+    P.forEach((q, pi) => q.byCell.forEach(c => {
+      const mine = []; while (k < a.length && a[k].pass === pi && a[k].num === c.num) mine.push(a[k++]);
+      assert.ok(mine.length, `${id}: line ${pi + 1}, cell ${c.num} runs`);
+      if (q.fill === 'zone' && !c.under && !c.runs) {
+        const drops = mine.filter(r => r.dab), snake = mine.at(-1);
+        assert.equal(mine.length, drops.length + 1, `${id}: drops, then the snake`);
+        assert.ok(drops.every(r => r.dip && r.pts.length === 2 && len(r.pts) <= DROPS.mark + 1e-6), `${id}: a drop a dip, a mark`);
+        assert.equal(drops.length, c.legs.reduce((t, l) => t + Math.max(1, Math.ceil(len(l) / DROPS.every - 1e-9)), 0), `${id}: a drop every 80 mm of a leg`);
+        assert.ok(snake.snake && !snake.dip, `${id}: the snake on no dip`); assert.deepEqual(snake.pts, c.legs.flat());
+      } else {
+        assert.ok(mine.every(r => r.dip && !r.dab && r.pts.every(p => Math.abs(p[0] - r.pts[0][0]) < 1e-6)), `${id}: a stroke, a dip a leg`);
+        assert.ok(c.runs || mine.every(r => len(r.pts) <= 79 + 1e-6), `${id}: a stroke's run 79 mm at most`);
+        if (!c.runs) { let m = 0; for (const l of c.legs) { assert.ok(near(mine[m].pts[0], l[0]), `${id}: at its leg's start`); while (!near(mine[m].pts.at(-1), l[1])) m++; m++; } assert.equal(m, mine.length); }
+      }
+    }));
+    assert.equal(k, a.length, `${id}: every run a cell's`);
+    const rows = rowsOf(load(id), P, 79, 15, false, { slack: 0 });
+    assert.equal(rows.ps.filter(p => !p[0].nodip).length, a.filter(r => r.dip).length, `${id}: a row's dip as its run's`);
   }
 });
 test('OPM-G\'s run by the dose: every run on a dip of its own, landing inside as the canon\'s, the idle runs as the canon has them', () => {
@@ -360,7 +390,7 @@ test('FORM-G\'s run as real 3: a dip every 79 mm, no slack, the J3 compensation 
   assert.deepEqual(j3Runs([{ pts: [[10, 4], [10, 30]] }], R3.j3, { floor: 2 })[0].pts, [[10, 2], [10, 33]], 'no farther than the floor');
   const pic = load('porsche-red'), P = passesOf(pic), runs = brushRuns(P, R3.every, FORMG_LAP, false, R3.slack);
   const len = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
-  for (const r of runs.filter(r => !r.idle)) assert.ok(len(r.pts) <= R3.every + 1e-6, `a run of ${len(r.pts).toFixed(1)} mm on one dip`);
+  for (const r of runs.filter(r => !r.idle && !r.snake)) assert.ok(len(r.pts) <= R3.every + 1e-6, `a run of ${len(r.pts).toFixed(1)} mm on one dip`);
   const plain = rowsOf(pic, P, R3.every, FORMG_LAP, false, { slack: 0 }), j3 = rowsOf(pic, P, R3.every, FORMG_LAP, false, { slack: 0, j3: R3.j3 });
   assert.equal(j3.ps.length, plain.ps.length);
   const rowLen = p => p.reduce((t, g) => t + Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y), 0);
@@ -486,7 +516,7 @@ test('MARKS in the run: every line\'s marks before its first cell, one dip for t
   assert.ok(b.r.seconds - a.r.seconds < 30 * 60, `the marks' time: ${Math.round((b.r.seconds - a.r.seconds) / 60)} min`);
 });
 
-test('the idle run on the legs (2026-11-16, the evening: "6 drops, so 6 runs"): n legs, n tracks, each on its own leg, its way; the n + 1 of the afternoon read no more; the pass apart otherwise (LAB\'s, OPM-G\'s)', () => {
+test('the idle run on the legs (2026-11-16, the evening: "6 drops, so 6 runs"), now the jar canon\'s reckoning alone: n legs, n tracks, each on its own leg, its way; the n + 1 of the afternoon read no more; the pass apart otherwise (LAB\'s, OPM-G\'s); FORM-G\'s run none since 2026-11-17', () => {
   const leg = (x, i) => (i % 2 ? [[x, 90], [x, 10]] : [[x, 10], [x, 90]]);
   for (const n of [1, 2, 3, 6, 7]) {
     const legs = Array.from({ length: n }, (_, i) => leg(10 + 5 * i, i));
@@ -494,10 +524,11 @@ test('the idle run on the legs (2026-11-16, the evening: "6 drops, so 6 runs"): 
   }
   assert.equal(idleLegsOf(Array.from({ length: 6 }, (_, i) => leg(10 + 5 * i, i)), passOf(5)).length, 8, 'no flag: the pass apart, as before');
   const pic = { ...PIC, jars: [{ id: 'a', name: 'A', hex: '#112233', cells: [{ n: 1, legs: [[10, 20, 100], [15, 100, 20], [20, 20, 100], [25, 100, 20], [30, 20, 100], [35, 100, 20]] }] }] };
-  const c = passesOf(pic)[0].byCell[0];
-  assert.equal(c.line.length / 2, 6, 'FORM-G: six legs, six tracks');
+  assert.deepEqual(passesOf(pic)[0].byCell[0].line, [], 'FORM-G: no idle run');
+  const c = passesOf(pic, { idle: 'legs' })[0].byCell[0];
+  assert.equal(c.line.length / 2, 6, 'on the legs: six legs, six tracks');
   assert.deepEqual(c.line.filter((q, i) => i % 2 === 0).map(q => q[0]), c.legs.map(l => l[0][0]), '… each on its leg');
-  assert.deepEqual(passesOf({ ...pic, idle: 'n+1' })[0].byCell[0].line, c.line, 'a picture\'s idle: \'n+1\' read no more');
+  assert.deepEqual(passesOf({ ...pic, idle: 'n+1' }, { idle: 'legs' })[0].byCell[0].line, c.line, 'a picture\'s idle: \'n+1\' read no more');
   assert.equal(passesOf(pic, { canon: true })[0].byCell[0].line.length / 2, 8, 'OPM-G: the canon\'s, the pass apart');
 });
 

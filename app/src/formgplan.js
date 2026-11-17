@@ -24,7 +24,31 @@ export const OPMG_LIB = ['gwagon'];
 // for the 70 × 100, bottom edge −68 (2026-11-10: "Yes"), its v.2 … v.4 the same outline; the Targa, 853 mm long, GEN-F's (the owner, 2026-11-16, asked to make
 // it 843 as the classic or press it: "keep 853 mm — it goes fine for us, there is 1 cm more in reserve"), its canvas's bottom edge −63 at most, ≈ 11.7 pressed
 export const PRESS_OK = { 'porsche-red': 8, 'porsche-red-k': 8, 'porsche-red-v3': 8, 'porsche-red-v4': 8, 'porsche-targa': 12 };                  // OPM-G's: its json and jpg in app/opmg/
-export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30, idle: 'legs' };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.); idle: FORM-G's idle run on its legs (idleLegsOf)
+export const FORMG = { tip: IDLE.tip, over: IDLE.over, every: IDLE.every, lap: IDLE.lap, minLeg: 3, firstDip: 30, idle: 'none' };   // LAB's, est.; minLeg as idleplan.js's; firstDip: a dial's leg longer than this starts on a dip of its own (est.); idle: FORM-G's none since 2026-11-17 (fillRunsOf), 'legs' its idle run on its legs as 2026-11-16's (idleLegsOf)
+// ---------- Drops first, then the snake: FORM-G's one way (README's canon, 2026-11-17) ----------
+// The owner, 2026-11-17, of Mickey's beige (FORM-G/DROPS-FIRST.md, its photos): "we need the snake, not through the air … when the brush leaves the canvas a person
+// blinks, the brain restarts and he scrolls to another reel"; "as in HOLO — first all the drops on the grooves of one colour, the brush does not drag them at first.
+// The second round — the brush goes once in a snake over the whole zone of the fill. This is the one truth for FORM-G"; "not all colours go in zones. There are
+// those that go in strokes: 1. the flat fills (in Mickey Colour 3, 4, 9) — drops first, then at once the run in a snake; 2. strokes (Colour 5, 6, 7, 8, 10) —
+// painted at once, there is nowhere to come back to". Asked, the same morning: Mickey's Colour 1 (the face) and 15 (the black, ears and body) zones, 2, 11 … 14
+// strokes; a drop at the start of its leg's way, the snake's legs taking turns down and up, so its drops top and bottom in turn (HOLO's lesson of 2026-11-15, one
+// end starved); a leg over 80 mm "a dip again", so a drop every 80 mm of it at most, the snake through them all without a stop; the strokes no idle run.
+// A jar's fill: its json's `fill`, 'zone' or 'strokes', else by its cells — a zone when `share` of its line lies in cells `wide` legs across or more and its legs
+// are `mean` mm long on average; Mickey's split so (est.)
+export const FILL = { wide: 3, share: 0.4, mean: 30 };
+// a drop: HOLO's dab, a mark of `mark` mm along its leg, the way the snake will go, on a dip of its own; one every `every` mm of a leg at most (est.)
+export const DROPS = { every: 80, mark: 8 };
+export function fillOf(jar, o = FILL) {
+  if (jar.fill === 'zone' || jar.fill === 'strokes') return jar.fill;
+  const legs = jar.cells.filter(c => !c.under && !c.air).flatMap(c => c.legs.map(l => ({ L: Math.abs(l[2] - l[1]), wide: c.legs.length >= o.wide })));
+  const all = legs.reduce((t, q) => t + q.L, 0), wide = legs.filter(q => q.wide).reduce((t, q) => t + q.L, 0);
+  return legs.length && all && wide / all >= o.share && all / legs.length >= o.mean ? 'zone' : 'strokes';
+}
+// a leg's drops, [[x, a], [x, b]] its way: n = its length / `every` rounded up, evenly from its start, each a mark of `mark` mm along it (the leg's own length at most)
+export function dropsOn(leg, every = DROPS.every, mark = DROPS.mark) {
+  const [[x, a], [, b]] = leg, d = b >= a ? 1 : -1, L = Math.abs(b - a), n = Math.max(1, Math.ceil(L / every - 1e-9)), m = Math.min(mark, L), r = v => Math.round(v * 1000) / 1000;
+  return Array.from({ length: n }, (_, k) => { const s = Math.min(k * L / n, L - m); return [[x, r(a + d * s)], [x, r(a + d * (s + m))]]; });
+}
 export const passOf = pitch => pitch * IDLE.pass / IDLE.step;   // the idle run's legs apart: LAB's 4.38 to its 5.83, on this grid (est.)
 
 const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1]), 0);
@@ -98,7 +122,7 @@ export function airRuns(leg, cuts, lap, firstDip = FORMG.firstDip) {
 export function cellOf(c, pic, n, o = {}, layer = 1) {
   const tip = o.tip ?? FORMG.tip, over = o.over ?? FORMG.over, lap = o.lap ?? FORMG.lap;
   const legs = (layer === 2 ? c.legs.slice().reverse().map(([x, a, b]) => [x, b, a]) : c.legs).map(([x, a, b]) => legOf(x, a, b, tip));
-  const line = idleLine(idleLegsOf(legs, passOf(pic.pitch), o.idle === 'legs'), over, 0), xs = legs.map(l => l[0][0]);
+  const line = o.idle === 'none' ? [] : idleLine(idleLegsOf(legs, passOf(pic.pitch), o.idle === 'legs'), over, 0), xs = legs.map(l => l[0][0]);
   const first = lengthOf(legs.flat());
   return { num: n, k: legs.length, W: Math.max(...xs) - Math.min(...xs), C: first / legs.length, legs, line, over, end: 0, mm: first + lengthOf(line), ...(c.air ? { runs: airRuns(legs[0], c.cuts, lap) } : {}) };
 }
@@ -114,8 +138,10 @@ export function canonCellsOf(pic, jar, o = {}, layer = 1) {
 // the run's colours, the list's lines in their order; o.canon: OPM-G's
 export function passesOf(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's idle run on its legs, OPM-G's the canon's
-    return { pencil: j.id, layer: j.layer, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
+    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => ({ ...cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer), ...(c.under ? { under: true } : {}) }));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's no idle run since 2026-11-17, OPM-G's the canon's
+    // FORM-G's fill, its jar's (a second coat's its first's): zone or strokes; OPM-G none, the canon's run
+    const fill = o.canon ? null : fillOf(pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j);
+    return { pencil: j.id, layer: j.layer, fill, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
 // F, the frame (the owner, 2026-11-08: "back to the Porsche: test a 20 × 20 cm piece, how many paints mix"; "in OPM-W's Tools, frame [ F ] cuts a piece out, it can be carried
@@ -149,7 +175,25 @@ export const canonRuns = (passes, lap = FORMG.lap, ride = CANON.ride) => idleRun
 // the brush's runs as the page sends them, both FORM-G's and OPM-G's by the dose (canon.js, the owner, 2026-11-09): every run on a dip of its own, a short leg after 60 mm
 // of line a dip at its start; OPM-G's after a dip landing inside, FORM-G's, not on the canon, at its start as its other dips
 // slack: how much longer than `every` a long leg's last run may go on one dip (idleplan.js's runsOfCell; FORM-G's none since real 3, R3)
-export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false, slack = 0.25) => canon ? dosed(canonRuns(passes, lap)) : dosed(idleRunsOf(legRunsOf(passes, every, lap, slack), every, lap, slack), false);
+// FORM-G's since 2026-11-17: fillRunsOf, its zones drops first then the snake, its strokes a dip a leg, no idle run; no dose, its runs are a leg's or a zone's
+export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = false, slack = 0.25) => canon ? dosed(canonRuns(passes, lap)) : fillRunsOf(passes, every, lap, slack);
+// FORM-G's runs (README's canon "Drops first, then the snake", 2026-11-17) → idleRunsOf's [{ pass, num, pts, say, dip, idle, beyond }], a drop's `dab: true`, a
+// zone's snake `snake: true`. A zone's cell: its drops first, leg after leg in the snake's order, each on a dip of its own at its leg's start and every DROPS.every
+// mm of it; then at once its snake, every leg from its start to its end, the brush down at its turns, no dip, the J3 on its two ends alone; no idle run. A cell
+// of a stroke jar, a motion blur's stripe (`under`) in any jar, and a dial's leg (its own runs): a dip a leg as 2026-11-16's (legRunsOf), no idle run
+export function fillRunsOf(passes, every = FORMG.every, lap = FORMG.lap, slack = 0.25, o = DROPS) {
+  const out = [], strokes = legRunsOf(passes, every, lap, slack);
+  passes.forEach((P, k) => P.byCell.forEach((c, ci) => {
+    if (P.fill !== 'zone' || c.under || c.runs) {
+      const runs = strokes[k].byCell[ci].runs;
+      runs.forEach((r, j) => out.push({ pass: k, num: c.num, pts: r.pts, say: runs.length > 1 ? `stroke, run ${j + 1}/${runs.length}` : 'a stroke', dip: true, idle: false, beyond: r.beyond }));
+      return;
+    }
+    c.legs.forEach((l, li) => { const D = dropsOn(l, o.every, o.mark); D.forEach((pts, d) => out.push({ pass: k, num: c.num, pts, say: `leg ${li + 1}/${c.legs.length} · a drop${D.length > 1 ? ` ${d + 1}/${D.length}` : ''}`, dip: true, idle: false, beyond: true, dab: true })); });
+    out.push({ pass: k, num: c.num, pts: c.legs.flat(), say: c.legs.length > 1 ? `the snake, ${c.legs.length} legs, no dip` : 'the drag, no dip', dip: false, idle: false, beyond: true, snake: true });
+  }));
+  return out;
+}
 // A dip a leg, FORM-G's (the owner, 2026-11-16, the evening, of Mickey's first jar on canvas — the machine camera's film of 7.32 PM, the paint's big drop at every
 // turn of the snake and the next leg nearly dry, and FORM-G/Screenshot 2026-11-16 at 7.43.50 PM.png, circled in green: "after the turn onto a new track the brush
 // loses all its paint"; "every new track — the brush dips into the jar. The lines themselves will be neater"; "it should go only to the edge, then dip at the

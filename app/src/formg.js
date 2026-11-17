@@ -239,7 +239,7 @@ function layer2Say(passes) {
   return [late.length ? `${late.join(', ')} first` : '', again || !end.length ? `${again} of the jars again` : '', end.length ? `${end.join(', ')} last, ${k} line${k === 1 ? '' : 's'}` : ''].filter(Boolean).join(', then ');
 }
 // OPM-N's question: the first jar big, the order, the time, Start from; DRAG or Cancel, Esc Cancel
-const runRows = passes => passes.map((q, i) => { const j = jarOf(q.pencil); return `<li><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
+const runRows = passes => passes.map((q, i) => { const j = jarOf(q.pencil); return `<li><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${q.fill === 'zone' ? 'zone' : 'strokes'} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
 function askDraw(passes, text, o = {}) {
   const box = $('#drawAsk');
   const show = (passes, text) => {
@@ -560,7 +560,7 @@ $('#btnPlay').onclick = () => {
   let mm = 0;
   for (const r of withMarks(brushRuns(passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN.slack), passes, SEQ, marksNow()?.M)) {
     const hex = jarOf(passes[r.pass].pencil).hex;
-    r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle, mark: r.mark ? r.say : null }); });
+    r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle, dab: !!r.dab, mark: r.mark ? r.say : null }); });
   }
   if (!list.length) return;
   off.width = PIC.w * s; off.height = PIC.h * s; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = PIC.pitch * s * 0.92;
@@ -572,7 +572,8 @@ $('#btnPlay').onclick = () => {
     Q.want = u < 1 ? mm * u * u : mm;
     while (Q.i < list.length && list[Q.i].from <= Q.want) {
       const q = list[Q.i], f = Math.min(1, (Q.want - q.from) / (q.to - q.from)), p = [q.a[0] + (q.b[0] - q.a[0]) * f, q.a[1] + (q.b[1] - q.a[1]) * f], o = Q.at ?? q.a;
-      if (!q.idle) { c.strokeStyle = q.hex; c.beginPath(); c.moveTo(o[0] * s, (PIC.h - o[1]) * s); c.lineTo(p[0] * s, (PIC.h - p[1]) * s); c.stroke(); }
+      if (q.dab) { if (f >= 1) { c.fillStyle = q.hex; c.beginPath(); c.ellipse((q.a[0] + q.b[0]) / 2 * s, (PIC.h - (q.a[1] + q.b[1]) / 2) * s, PIC.pitch * 0.6 * s, (Math.abs(q.b[1] - q.a[1]) / 2 + PIC.pitch * 0.3) * s, 0, 0, 7); c.fill(); } }   // a drop, as HOLO draws a puddle
+      else if (!q.idle) { c.strokeStyle = q.hex; c.beginPath(); c.moveTo(o[0] * s, (PIC.h - o[1]) * s); c.lineTo(p[0] * s, (PIC.h - p[1]) * s); c.stroke(); }
       Q.q = q; Q.tip = p;
       if (f < 1) { Q.at = p; break; }
       Q.at = null; Q.i++;
@@ -607,7 +608,7 @@ function showPanel() {
     : 'No frame: the whole picture. F, or Frame, lays one round a piece to try first, at its place from home: a click a 200 × 200 there, a drag any size.';
   for (const [id, k] of [['#fSpeed', 'speed'], ['#fEvery', 'dipEvery'], ['#fLap', 'dipLap'], ['#fOver', 'over'], ['#fPen', 'penSpeed'], ['#fTravel', 'travel']]) if ($(id) && document.activeElement !== $(id)) $(id).value = S[k];
   if ($('#bwRead')) { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
-  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 0 && !i ? '<li class="fg-sep">Under · the motion blur, first</li>' : ''}${q.layer === 1 && P[i - 1]?.layer === 0 ? '<li class="fg-sep">The picture · over the dry layer under</li>' : ''}${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
+  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 0 && !i ? '<li class="fg-sep">Under · the motion blur, first</li>' : ''}${q.layer === 1 && P[i - 1]?.layer === 0 ? '<li class="fg-sep">The picture · over the dry layer under</li>' : ''}${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush${q.fill ? `; ${q.fill === 'zone' ? 'a zone: its drops first, then one snake' : 'strokes: a dip a leg'}` : ''}. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${q.fill === 'zone' ? 'zone' : 'strokes'} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
 }
@@ -645,7 +646,7 @@ function readOf(id) {
   try {
     const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n0 = P.filter(q => q.layer === 0).length, n1 = P.filter(q => q.layer <= 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
     const out = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${all.reduce((a, q) => a + q.legs.length, 0)} legs.`
-      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + ' Every leg on a dip of its own, its idle run on the legs.'
+      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg; no idle run.`
       + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${layer2Say(P)}, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
       + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
     READS.set(id, out);

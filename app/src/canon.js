@@ -1,3 +1,7 @@
+// Over every canon here, README's "DRAG Snake before DRAG Air — always" (the owner, 2026-11-17: "when the brush leaves the canvas, a person blinks … and
+// scrolls to another reel"): wherever a run can go on with the brush down, it does; a lift for a dip, not to come back and start again. FORM-G's drops
+// first, then the snake: formgplan.js, fillRunsOf.
+//
 // The canon of a long leg, README's "How a long leg is laid" — no. 9 (the owner, 2026-11-06: "I would start from this and take it as the canon").
 // LAB's real strokes 2 laid it four times on canvas the night of 2026-11-06/07 (OPM-G/IMG_2435 … IMG_2486): the long legs, 48 … 174 mm, came out clean
 // and alike in all four copies. LAB's sheets 14 and 15 and OPM-G's run take it from here.
