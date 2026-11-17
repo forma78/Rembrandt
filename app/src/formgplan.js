@@ -267,10 +267,11 @@ export function joinedCells(jar, fill, pitch, o = JOIN, all = false) {
     while (pool.length) {                                                                // the chains a part at a time, the nearest next
       if (last) pool.sort((p, q) => Math.hypot(p[0][0] - last[0], p[0][1] - last[2]) - Math.hypot(q[0][0] - last[0], q[0][1] - last[2]));
       let ch = pool.shift();
-      if (sum(ch) > o.drops - n && part.length) { parts.push(part); part = []; n = 0; }
-      if (sum(ch) > o.drops) {                                                           // a chain too long for one part: cut between its legs, the rest next
+      // a chain that fits a part of its own goes whole into the next one; one too long for any part is cut anyway, so it fills this one first
+      if (sum(ch) > o.drops - n && part.length && (sum(ch) <= o.drops || dropsOf(ch[0]) > o.drops - n)) { parts.push(part); part = []; n = 0; }
+      if (sum(ch) > o.drops - n) {                                                       // too long for what is left: cut between its legs, the rest next
         let k = 0, m = 0;
-        while (k < ch.length && m + dropsOf(ch[k]) <= o.drops) m += dropsOf(ch[k++]);
+        while (k < ch.length && n + m + dropsOf(ch[k]) <= o.drops) m += dropsOf(ch[k++]);
         k = Math.max(1, k);
         if (k < ch.length) pool.unshift(ch.slice(k));
         ch = ch.slice(0, k);
