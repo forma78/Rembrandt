@@ -3,8 +3,12 @@
 Rembrandt, the successor of RUBENS, for CNCDM-001. Newest first.
 Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
-## After v.1.2.4 — 2026-11-16
+## v.1.2.5 — 2026-11-17 · FORM-G, drops first — the best so far
 
+The owner, 2026-11-17, after the new run on the machine: "it comes out wonderfully. We can make the update v.1.2.5 and record the latest code as the
+best." The tag `v.1.2.5` is that code.
+
+- **v.1.2.5 on every tab and in the saved SVGs.**
 - **FORM-G: THE JARS' 🔄 — a colour painted by one of the owner's jars; C5 for Colour 5** (2026-11-17; the owner: "Colour 1 = Jar 49 (yes, the new
   one, white-yellow now), Colour 3 = Jar 51, Colour 4 = Jar 52, Colour 10 to be replaced by the graphite grey Jar 28. Generally the palette THE JARS
   must be modifiable … an option with a button 🔄 — replace"; his jars "are here: colors.html"; "I allow changing the server"; "let us replace Colour N
