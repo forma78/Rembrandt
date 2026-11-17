@@ -201,10 +201,93 @@ export function canonCellsOf(pic, jar, o = {}, layer = 1) {
   const cut = cells.map(c => c.runs ? c : { ...c, runs: idleRunsOf([{ byCell: [c] }], every, lap, o.slack).filter(r => !r.idle).map((r, j) => ({ pts: r.pts, dip: j > 0, beyond: r.beyond })) });
   return ridersOnLong(cut, ride).map((c, i) => ({ ...c, num: i + 1 }));
 }
-// the run's colours, the list's lines in their order; o.canon: OPM-G's
+// ---------- A zone's cells that touch, one area (the owner, 2026-11-17, the evening) ----------
+// The owner, of the Targa's Colour 6 (≈ Jar 7, a zone, 4.6 m) on canvas, FORM-G/Screenshot 2026-11-17 at 9.11.51 PM.png (two places circled), 9.12.46 PM.png
+// (a cell of three legs in orange), IMG_3172.HEIC and Screenshot 9.18.16 PM.png (the screen beside the canvas): "the brush breaks the groups into small areas and
+// paints them one by one"; "the picture breaks because of the several runs … look on the left, all is beautiful"; "where we can easily put the drops and then drive
+// over … we use acrylic with medium, we timed that 20 minutes it holds easily … where there is a big mass of one colour. In Mickey it is done well."
+// The generator's cells are its snakes, 1 … 3 legs mostly; a zone's cells whose legs touch — side by side, a column apart, their spans meeting — are one area:
+// its drops first, all of them, leg after leg; then its snakes one after another, each a chain of legs a column apart (a column with two legs of the area two
+// chains), and back over it. An area's drops `drops` at most, so its first drop is still open when the snake comes (≈ 10.7 s a drop, the Targa's journal of the
+// same evening: 80 ≈ 14 min, under his 20, est.); a bigger one in parts, a chain at a time. With `all` (asked, his "yes": "we need the algorithm … there are
+// few such areas, but it is good content for the social networks: the brush goes without a lift, the brain is hooked") a strokes jar's areas too, of `line` mm of
+// legs or more across `wide` columns at least (his "when more than 1 metre, paint it all at once"; the Targa's: C13's bonnet 2.5 m, C16, C17, C22, C24), the rest strokes.
+export const JOIN = { drops: 80, wide: 3, line: 1000 };
+const spanOf = l => [Math.min(l[1], l[2]), Math.max(l[1], l[2])];
+const touch = (p, q, pitch) => Math.abs(p[0] - q[0]) <= pitch * 1.02 && Math.abs(p[0] - q[0]) > 1e-6 && Math.min(spanOf(p)[1], spanOf(q)[1]) >= Math.max(spanOf(p)[0], spanOf(q)[0]);
+const dropsOf = l => Math.max(1, Math.ceil(Math.abs(l[2] - l[1]) / DROPS.every - 1e-9));
+// json cells [{ n, legs: [[x, a, b]] }] → areas, each [cell index …] in the cells' order, by the legs that touch
+export function areasOf(cells, pitch) {
+  const up = cells.map((_, i) => i), find = i => { while (up[i] !== i) i = up[i] = up[up[i]]; return i; };
+  const legs = cells.flatMap((c, i) => c.legs.map(l => ({ l, i })));
+  for (let p = 0; p < legs.length; p++) for (let q = p + 1; q < legs.length; q++) if (legs[p].i !== legs[q].i && touch(legs[p].l, legs[q].l, pitch)) up[find(legs[p].i)] = find(legs[q].i);
+  const by = new Map();
+  cells.forEach((_, i) => { const r = find(i); if (!by.has(r)) by.set(r, []); by.get(r).push(i); });
+  return [...by.values()];
+}
+// an area's legs into chains: from the leftmost leg on, to the leg of the next column that overlaps it most, its way the other of the last one's
+export function chainsOf(legs, pitch) {
+  const left = legs.map(l => [...l]).sort((p, q) => p[0] - q[0] || spanOf(p)[0] - spanOf(q)[0]), used = new Set(), out = [];
+  const lap = (p, q) => Math.min(spanOf(p)[1], spanOf(q)[1]) - Math.max(spanOf(p)[0], spanOf(q)[0]);
+  for (let s = 0; s < left.length; s++) {
+    if (used.has(s)) continue;
+    used.add(s);
+    const chain = [left[s]];
+    for (;;) {
+      const at = chain.at(-1);
+      let best = -1;
+      left.forEach((q, k) => { if (!used.has(k) && Math.abs(q[0] - at[0] - pitch) <= pitch * 0.02 && lap(at, q) >= 0 && (best < 0 || lap(at, q) > lap(at, left[best]))) best = k; });
+      if (best < 0) break;
+      used.add(best); chain.push(left[best]);
+    }
+    const d0 = chain[0][2] >= chain[0][1];
+    out.push(chain.map(([x, a, b], k) => { const [lo, hi] = [Math.min(a, b), Math.max(a, b)]; return ((k % 2 === 0) === d0) ? [x, lo, hi] : [x, hi, lo]; }));
+  }
+  return out;
+}
+// a jar's json cells with its zone's touching cells one area: → cells [{ n, legs, area, joined }], an area's chains in a row, the nearest next, cut at `drops`;
+// the cells left out (strokes, a motion blur's, a dial's) as they were, in their place
+export function joinedCells(jar, fill, pitch, o = JOIN, all = false) {
+  const zoneOf = c => !c.under && !c.air && ((c.fill ?? fill) === 'zone' || (all && (c.fill ?? fill) === 'strokes'));
+  const idx = jar.cells.map((c, i) => zoneOf(c) ? i : -1).filter(i => i >= 0), cells = idx.map(i => jar.cells[i]);
+  if (!cells.length) return jar.cells;
+  const areas = areasOf(cells, pitch), first = new Map(), out = [];
+  areas.forEach(A => first.set(idx[A[0]], A));
+  let area = 0;
+  jar.cells.forEach((c, i) => {
+    if (!zoneOf(c)) { out.push(c); return; }
+    const A = first.get(i);
+    if (!A) return;
+    const legs = A.flatMap(k => cells[k].legs), line = legs.reduce((t, l) => t + Math.abs(l[2] - l[1]), 0);
+    const strokesHere = A.every(k => (cells[k].fill ?? fill) === 'strokes');
+    if (strokesHere && (new Set(legs.map(l => l[0])).size < o.wide || line < o.line)) { A.forEach(k => out.push(cells[k])); return; }   // a strokes jar's: big areas alone
+    const fillHere = strokesHere ? { fill: 'zone' } : {};
+    const pool = chainsOf(legs, pitch), parts = [], sum = ch => ch.reduce((t, l) => t + dropsOf(l), 0);
+    let part = [], n = 0, last = null;
+    while (pool.length) {                                                                // the chains a part at a time, the nearest next
+      if (last) pool.sort((p, q) => Math.hypot(p[0][0] - last[0], p[0][1] - last[2]) - Math.hypot(q[0][0] - last[0], q[0][1] - last[2]));
+      let ch = pool.shift();
+      if (sum(ch) > o.drops - n && part.length) { parts.push(part); part = []; n = 0; }
+      if (sum(ch) > o.drops) {                                                           // a chain too long for one part: cut between its legs, the rest next
+        let k = 0, m = 0;
+        while (k < ch.length && m + dropsOf(ch[k]) <= o.drops) m += dropsOf(ch[k++]);
+        k = Math.max(1, k);
+        if (k < ch.length) pool.unshift(ch.slice(k));
+        ch = ch.slice(0, k);
+      }
+      part.push(ch); n += sum(ch); last = ch.at(-1);
+      if (n >= o.drops) { parts.push(part); part = []; n = 0; }
+    }
+    if (part.length) parts.push(part);
+    parts.forEach(P => { area++; P.forEach(ch => out.push({ n: 0, legs: ch, area, joined: true, ...fillHere })); });
+  });
+  return out.map((c, i) => ({ ...c, n: i + 1 }));
+}
+// the run's colours, the list's lines in their order; o.canon: OPM-G's; o.join: FORM-G's areas (joinedCells), 'all' a strokes jar's big ones too
 export function passesOf(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => ({ ...cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer), ...(c.under ? { under: true } : {}), ...(c.fill ? { fill: c.fill } : {}) }));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's no idle run since 2026-11-17, OPM-G's the canon's
+    const own = pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j, cells = !o.canon && o.join ? joinedCells(j, fillOf(own), pic.pitch, JOIN, o.join === 'all') : j.cells;
+    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : cells.map((c, i) => ({ ...cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer), ...(c.under ? { under: true } : {}), ...(c.fill ? { fill: c.fill } : {}), ...(c.area ? { area: c.area } : {}) }));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's no idle run since 2026-11-17, OPM-G's the canon's
     // FORM-G's fill, its jar's (a second coat's its first's): zone or strokes; OPM-G none, the canon's run
     const fill0 = o.canon ? null : fillOf(pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j), fills = new Set(byCell.map(c => c.fill ?? fill0)), fill = fills.size > 1 ? 'mixed' : o.canon ? null : [...fills][0] ?? fill0;   // 'mixed': a jar painting a zone and strokes (withJars), each cell its own
     // a stroke cell's metres (FORM-G's): its legs, each with its second run the same way, no turns between them
@@ -258,8 +341,15 @@ export const strokeOf = (c, fill) => (c.fill ?? fill) !== 'zone' || !!c.under ||
 // a stroke leg's second run: from `over` mm before its start (the bulb caught from behind) to its very end, 0 past it (LAB's + idle 6.0)
 export const againOf = (leg, over = FORMG.over) => { const [a, b] = leg, d = b[1] >= a[1] ? 1 : -1; return [[a[0], a[1] - d * over], [b[0], b[1]]]; };
 export function fillRunsOf(passes, every = FORMG.every, lap = FORMG.lap, slack = 0.25, o = DROPS) {
-  const out = [];
+  const out = [], done = new Set();
+  // an area (joinedCells): all its cells' drops first, then each one's snake and back, one after another
+  const area = (P, k, c) => {
+    const all = P.byCell.filter(q => q.area === c.area && !strokeOf(q, P.fill));
+    all.forEach((q, qi) => q.legs.forEach((l, li) => { const D = dropsOn(l, o.every, o.mark); D.forEach((pts, d) => out.push({ pass: k, num: q.num, pts, say: `area ${c.area} · chain ${qi + 1}/${all.length} · leg ${li + 1}/${q.legs.length} · a drop${D.length > 1 ? ` ${d + 1}/${D.length}` : ''}`, dip: true, idle: false, beyond: true, dab: true })); }));
+    all.forEach((q, qi) => { const back = q.line?.length > 1, n = q.legs.length, snake = squareSnake(q.legs); out.push({ pass: k, num: q.num, pts: back ? [...snake, ...q.line] : snake, say: `area ${c.area} · chain ${qi + 1}/${all.length} · ${n > 1 ? `the snake, ${n} legs` : 'the drag'}${back ? ' and back' : ''}, no dip`, dip: false, idle: false, beyond: true, snake: true }); });
+  };
   passes.forEach((P, k) => P.byCell.forEach(c => {
+    if (c.area && !strokeOf(c, P.fill)) { if (!done.has(`${k}|${c.area}`)) { done.add(`${k}|${c.area}`); area(P, k, c); } return; }
     if (strokeOf(c, P.fill)) {
       const legs = c.runs ? [c.legs[0]] : c.legs, over = c.over ?? FORMG.over;
       legs.forEach((l, li) => {

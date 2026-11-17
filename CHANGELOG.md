@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **FORM-G: a mass of one colour, one area** (2026-11-17, the evening; the owner, of the Targa's Colour 6 on canvas, IMG_3172: "the
+  picture breaks because of the several runs"; "when more than 1 metre, paint it all at once"; "we need the algorithm"). A zone's touching
+  cells one area — all its drops, then its chains' snakes and back — and a strokes jar's areas of 1 m or more the same; 80 drops an area at
+  most (≈ 14 min, est.). The Targa: Colour 6 38 cells → 20 areas, his two circles one snake each (13 and 11 legs); C13's bonnet 2.5 m, C16,
+  C17, C22, C24 areas; C7 … C12 as before; the rest of the run ≈ +0.8 h (est.). The journal's DRAG writes `join`; FROM THE BREAK of a run
+  before it makes its old plan. GEN-F's time the same way. README's canon.
 - **FORM-G: ⤵ FROM THE BREAK, the DRAG question's second key** (2026-11-17; the owner, Mickey at 54 %: the camera on the elbow knocked while
   filming, its bracket held the elbow at +29°, the cup at hand's guard stopped the run over the jar at 16:07:52, the ears not painted; "we cannot
   start again, the thick black paint will change the texture. We have the journal: can you find by the coordinates where it stopped? … a second

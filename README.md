@@ -394,6 +394,22 @@ cells: a zone when 40 % of its line lies in cells 3 legs wide or more and its le
 average (`FILL`, est.; it gives Mickey's split). `src/formgplan.js`: `fillOf`, `dropsOn`,
 `squareSnake`, `backLine`, `againOf`, `fillRunsOf`; the list shows every line's `zone` or `strokes`. OPM-G keeps the canon of a long leg.
 
+## FORM-G: a mass of one colour, one area (canon)
+
+The owner, 2026-11-17, the evening, of the Targa's Colour 6 on canvas (`FORM-G/IMG_3172.HEIC`, `Screenshot 2026-11-17 at
+9.11.51 PM.png`, 9.12.46, 9.18.16): "the brush breaks the groups into small areas and paints them one by one … the picture breaks
+because of the several runs — look on the left, all is beautiful"; "we use acrylic with medium, we timed that 20 minutes it holds
+easily"; "when more than 1 metre, paint it all at once"; "we need the algorithm … there are few such areas, but it is good content
+for the social networks: the brush goes without a lift, the brain is hooked".
+
+1. **A zone's cells that touch** — legs a column apart, their spans meeting — **are one area**: all its drops first, leg after
+   leg, then its snakes one after another, each a chain of legs a column apart, square turns, and back over it, the brush down.
+2. **A strokes jar's area of 1 m of legs or more** (3 columns at least) **is a zone too**; the rest stay strokes.
+3. **80 drops an area at most** (≈ 10.7 s a drop by the journal, ≈ 14 min, under his 20; est.); a bigger one in parts.
+
+`src/formgplan.js`: `JOIN`, `areasOf`, `chainsOf`, `joinedCells`; the journal's DRAG writes `join`, so FROM THE BREAK makes a run
+from before it again as it ran.
+
 ## GEN-F, the workshop · FORM-G, the library
 
 The owner, 2026-11-16: "FORM-G is the library of finished works. GEN-F is the creative workshop."

@@ -109,7 +109,7 @@ function buildSlot(i) {
 const DIP_S = 5.5;
 function runOf(pic, frame = formatOf(S.format).frame) {   // a new frame's canvas: no Here, so nothing pressed into today's walls — and then no dip counted, so its dips added
   try {
-    const P = passesOf(pic), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3 }), W = reach();
+    const P = passesOf(pic, { join: 'all' }), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3 }), W = reach();
     const here = { x: (W.x.min + W.x.max) / 2, y: (W.y.min + W.y.max) / 2 };
     const r = plotRun({ ...DEFAULTS, speed: 25, travel: 100, tail: 3, lift: true, ink: true, snake: true, pause: false, cup: cupOf({ hand: { on: true } }), hover: ELBOW_HOVER, press: 0, noDipUnder: 0, rows: R.ps.length, ...(frame ? {} : { here }) },
       R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next jar' : null })));

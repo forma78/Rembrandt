@@ -619,3 +619,32 @@ test('THE JARS, the owner\'s 🔄 (2026-11-17): his jars by number, the classic\
   assert.ok(runs.filter(r => r.num === 1).some(r => r.snake), 'Colour 1\'s cell still a zone: drops, then its snake');
   assert.ok(runs.filter(r => r.num > 1).every(r => !r.dab && !r.snake), 'Colour 3\'s cells still strokes');
 });
+
+// a zone's touching cells one area (the owner, 2026-11-17, the evening, the Targa's Colour 6 on canvas: "the picture breaks because of the several runs"),
+// a strokes jar's big ones too (his "yes"): every leg kept, an area's drops first, then its chains, JOIN.drops at most an area
+test('areas: a zone\'s touching cells one area, its drops first, then its snakes; a strokes jar\'s big ones too; every leg kept', async () => {
+  const { JOIN, joinedCells, fillOf } = await import('../src/formgplan.js');
+  const key = l => `${l[0][0]}|${Math.min(l[0][1], l[1][1]).toFixed(2)}|${Math.max(l[0][1], l[1][1]).toFixed(2)}`;
+  for (const id of FORMG_LIB) {
+    const pic = load(id), A = passesOf(pic), B = passesOf(pic, { join: 'all' }), runs = brushRuns(B, 79, 15, false, 0);
+    A.forEach((P, k) => assert.equal(B[k].byCell.flatMap(c => c.legs.map(key)).sort().join(), P.byCell.flatMap(c => c.legs.map(key)).sort().join(), `${id} ${P.pencil}: every leg kept`));
+    B.forEach((P, k) => {
+      const areas = new Map();
+      for (const c of P.byCell) if (c.area) { if (!areas.has(c.area)) areas.set(c.area, []); areas.get(c.area).push(c); }
+      for (const [a, cs] of areas) {
+        const nums = new Set(cs.map(c => c.num)), mine = runs.filter(r => r.pass === k && nums.has(r.num)), drops = mine.filter(r => r.dab), snakes = mine.filter(r => r.snake);
+        if (!drops.length) continue;                                                     // a second coat of strokes
+        assert.ok(drops.length <= JOIN.drops, `${id} ${P.pencil} area ${a}: ${drops.length} drops`);
+        assert.ok(mine.findIndex(r => r.snake) > mine.findLastIndex(r => r.dab), `${id} ${P.pencil} area ${a}: its drops first, all of them`);
+        assert.equal(snakes.length, cs.length, 'a snake a chain');
+        for (const c of cs) c.legs.slice(1).forEach((l, i) => { assert.ok(Math.abs(Math.abs(l[0][0] - c.legs[i][0][0]) - pic.pitch) < 0.2, `${id} ${P.pencil}: a chain a column at a time`); assert.ok((l[1][1] - l[0][1]) * (c.legs[i][1][1] - c.legs[i][0][1]) < 0, 'its legs down and up in turn'); });
+      }
+    });
+  }
+  const pic = load('porsche-targa'), c6 = pic.jars.find(j => j.id === 'c12'), J = joinedCells(c6, fillOf(c6), pic.pitch, JOIN, true);
+  assert.ok(J.some(c => c.legs.length === 13 && c.legs[0][0] === 227.5), 'his upper circle, 9.11.51 PM: one snake of 13 legs');
+  assert.ok(J.some(c => c.legs.length === 11 && c.legs[0][0] === 257.5), 'his lower circle: one snake of 11 legs');
+  const thin = { id: 'x', cells: [{ n: 1, legs: [[10, 0, 20]] }, { n: 2, legs: [[15, 25, 5]] }] };
+  assert.deepEqual(joinedCells(thin, 'strokes', 5, JOIN, true).map(c => c.legs.length), [1, 1], 'a strokes jar\'s two short legs stay strokes');
+  assert.equal(passesOf(pic, { join: null })[4].byCell.length, 38, 'no join: the cells as they were (FROM THE BREAK of a run before)');
+});
