@@ -25,6 +25,28 @@
     "name": "Jar 18",
     "hex": "#CA1E34"
    }
+  },
+  "porsche-targa": {
+   "c17": {
+    "name": "Jar 5",
+    "hex": "#F29B8B"
+   },
+   "c12": {
+    "name": "Jar 7",
+    "hex": "#9B9C9A"
+   },
+   "c16": {
+    "name": "Jar 3",
+    "hex": "#C6C6C1"
+   },
+   "c4": {
+    "name": "Jar 9",
+    "hex": "#E66551"
+   },
+   "c21": {
+    "name": "Jar 10",
+    "hex": "#ED3F58"
+   }
   }
  },
  "mine": {
