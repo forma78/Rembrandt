@@ -1,0 +1,36 @@
+{
+ "swaps": {
+  "mickey-1": {
+   "c2": {
+    "name": "Jar 49",
+    "hex": "#FEF6E7"
+   },
+   "c1": {
+    "name": "Jar 51",
+    "hex": "#FECC25"
+   },
+   "c7": {
+    "name": "Jar 52",
+    "hex": "#F8C126"
+   },
+   "c10": {
+    "name": "Jar 28",
+    "hex": "#4B4D4E"
+   },
+   "c17": {
+    "name": "Jar 7",
+    "hex": "#9B9C9A"
+   },
+   "c8": {
+    "name": "Jar 18",
+    "hex": "#CA1E34"
+   }
+  }
+ },
+ "mine": {
+  "Jar 49": "#FEF6E7",
+  "Jar 51": "#FECC25",
+  "Jar 52": "#F8C126"
+ },
+ "note": "FORM-G's THE JARS, the owner's 🔄 (2026-11-17): swaps — a picture's colour (its jar id) painted by one of his numbered jars; mine — the jars he mixed since the red classic, their colour. Written by the page through rembrandt.py's /jars; the pictures' json untouched."
+}

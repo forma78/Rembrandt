@@ -90,11 +90,48 @@ const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p
 // light to dark, one coat, layer 0; then, on the dry layer under, the picture as before
 export const seqOf = pic => {
   // a jar's second coat its picture's cells alone, not the motion blur's stripes laid with it (`under` cells, genfpic.py, 2026-11-16): those one coat
-  const two = js => js.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2, cells: j.cells.filter(c => !c.under) })).filter(j => j.cells.length);
+  const two = js => js.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2, cells: j.cells.filter(c => !c.under && !c.one) })).filter(j => j.cells.length);   // !c.one: a colour of one coat merged into a jar of two (withJars)
   const under = pic.jars.filter(j => j.under), main = pic.jars.filter(j => !j.under);
   const first = main.filter(j => !j.last), now = first.filter(j => !j.late), late = first.filter(j => j.late), last = main.filter(j => j.last);
   return [...under.map(j => ({ ...j, name: `${j.name} · under`, layer: 0, coat: 1 })), ...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
 };
+// ---------- THE JARS: a picture's colours in the owner's own numbered jars (2026-11-17) ----------
+// The owner, 2026-11-17: "I am adding colours little by little. Into the palette: Colour 1 = Jar 49 (yes, the new one, white-yellow now), Colour 3 = Jar 51,
+// Colour 4 = Jar 52, Colour 10 to be replaced by the graphite grey Jar 28. Generally the palette THE JARS must be modifiable: Colour 5, for instance, I do not want
+// to start a jar for, Jar 3 or Jar 8 can go there. But I need an option with a button 🔄 — replace (a double click is taken)." His jars are COLORS' (the owner:
+// "they are here: colors.html"): the numbers of the red classic's plans, every version the same paint under the same number (README, "Jar numbers are physical"),
+// and the jars mixed after it, `mine` in app/formg/jars.json, the page's 🔄. A swap: a picture's colour, its jar id, painted by one of them — its name and hex
+// that jar's, its place in the list, its cells, its fill and coats its own. Two colours to one jar: one line, at the first one's place, every cell its own fill
+// (a zone stays a zone), a second coat for the cells that had one. The picture's json is never touched: { swaps: { pic: { jarId: { name, hex } } }, mine: { name: hex } }.
+export const JAR_NAME = /^(Jar \d+|Black)$/;
+export const CLASSIC = ['porsche-red', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-headlight'];
+const jarNo = name => name === 'Black' ? 1e9 : +name.slice(4);
+// the owner's jars, { name, hex, mine } by number, Black last: the classic's first (their numbers), then the ones he mixed since
+export function myJarsOf(plans, mine = {}) {
+  const by = new Map();
+  for (const p of plans) for (const j of p?.jars ?? []) if (JAR_NAME.test(j.name) && !by.has(j.name)) by.set(j.name, { name: j.name, hex: j.hex.toUpperCase(), mine: false });
+  for (const [name, hex] of Object.entries(mine)) if (JAR_NAME.test(name) && /^#[0-9A-Fa-f]{6}$/.test(hex) && !by.has(name)) by.set(name, { name, hex: hex.toUpperCase(), mine: true });
+  return [...by.values()].sort((a, b) => jarNo(a.name) - jarNo(b.name));
+}
+// a picture with its swaps; `jarsKey` the swaps', so the page's plans and runs are its own
+export function withJars(pic, swaps = {}) {
+  const key = Object.keys(swaps).length ? JSON.stringify(swaps) : '';
+  const jars = pic.jars.map(j => swaps[j.id] ? { ...j, name: swaps[j.id].name, hex: swaps[j.id].hex, was: { name: j.name, hex: j.hex } } : j);
+  const same = j => JAR_NAME.test(j.name) ? `${j.name}|${!!j.under}|${!!j.late}|${!!j.last}` : null, n = new Map();
+  for (const j of jars) { const k = same(j); if (k) n.set(k, (n.get(k) ?? 0) + 1); }
+  if (![...n.values()].some(v => v > 1)) return key ? { ...pic, jars, jarsKey: key } : pic;
+  const out = [], at = new Map();
+  for (const j of jars) {
+    const k = same(j);
+    if (!k || n.get(k) < 2) { out.push(j); continue; }
+    const f = fillOf(j), cells = j.cells.map(c => ({ ...c, fill: c.fill ?? f, ...(j.coats === 2 ? {} : { one: true }) }));
+    if (!at.has(k)) { at.set(k, out.length); out.push({ ...j, cells, coats: j.coats ?? 1, fill: undefined, also: [] }); continue; }
+    const m = out[at.get(k)];
+    m.cells = [...m.cells, ...cells].map((c, i) => ({ ...c, n: i + 1 })); m.coats = Math.max(m.coats, j.coats ?? 1); m.also = [...m.also, j.was?.name ?? j.name];
+  }
+  return { ...pic, jars: out, jarsKey: key };
+}
+
 // POINTS (the owner, 2026-11-16, `FORM-G/mickey-1.png`, green crosses at the figure's outermost points: "this is Jar 0, the white … so I do not soil the canvas.
 // It is like TEST, only not the corners but the outermost points … not a whole contour, just a few outermost points, so I can check with a ruler"): the
 // corners of a band stretched round the picture — the convex hull of its legs' ends, the brush's own path, the layer under left out — every corner whose
@@ -167,9 +204,9 @@ export function canonCellsOf(pic, jar, o = {}, layer = 1) {
 // the run's colours, the list's lines in their order; o.canon: OPM-G's
 export function passesOf(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => ({ ...cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer), ...(c.under ? { under: true } : {}) }));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's no idle run since 2026-11-17, OPM-G's the canon's
+    const byCell = o.canon ? canonCellsOf(pic, j, o, j.coat ?? j.layer) : j.cells.map((c, i) => ({ ...cellOf(c, pic, i + 1, { idle: FORMG.idle, ...o }, j.coat ?? j.layer), ...(c.under ? { under: true } : {}), ...(c.fill ? { fill: c.fill } : {}) }));   // a cell the other way round on its second coat, not on a late jar's one; FORM-G's no idle run since 2026-11-17, OPM-G's the canon's
     // FORM-G's fill, its jar's (a second coat's its first's): zone or strokes; OPM-G none, the canon's run
-    const fill = o.canon ? null : fillOf(pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j);
+    const fill0 = o.canon ? null : fillOf(pic.jars.find(q => q.id === (j.jar ?? j.id)) ?? j), fills = new Set(byCell.map(c => c.fill ?? fill0)), fill = fills.size > 1 ? 'mixed' : o.canon ? null : [...fills][0] ?? fill0;   // 'mixed': a jar painting a zone and strokes (withJars), each cell its own
     // a stroke cell's metres (FORM-G's): its legs, each with its second run the same way, no turns between them
     if (!o.canon && FORMG.idle === 'back' && (o.idle ?? 'back') === 'back') byCell.forEach((c, i) => { if (strokeOf(c, fill)) { const L = (c.runs ? [c.legs[0]] : c.legs).reduce((t, l) => t + lengthOf(l) + lengthOf(againOf(l, c.over)), 0); byCell[i] = { ...c, mm: L }; } });
     return { pencil: j.id, layer: j.layer, fill, cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: true, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
@@ -216,7 +253,7 @@ export const brushRuns = (passes, every = FORMG.every, lap = FORMG.lap, canon = 
 // 2026-11-17, noon, at once after every leg its second run, no dip, THE SAME WAY (againOf): the brush up at the leg's end, through the air to its start, and down it
 // again to its end, so the drop the dip left at its start is driven on into the bald end. The owner: "in the strokes through the air and again. There is nothing
 // 'back' there; you would only strengthen the imbalance of the bald patch and the fat drop. It must be driven down, not from the bottom up — there is nothing to
-// smear there."
+// smear there." A cell's own `fill` before its jar's (a jar painting two colours of a picture, the owner's 🔄 on the page)
 export const strokeOf = (c, fill) => (c.fill ?? fill) !== 'zone' || !!c.under || !!c.runs;
 // a stroke leg's second run: from `over` mm before its start (the bulb caught from behind) to its very end, 0 past it (LAB's + idle 6.0)
 export const againOf = (leg, over = FORMG.over) => { const [a, b] = leg, d = b[1] >= a[1] ? 1 : -1; return [[a[0], a[1] - d * over], [b[0], b[1]]]; };

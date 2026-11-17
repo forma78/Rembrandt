@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## After v.1.2.4 — 2026-11-16
 
+- **FORM-G: THE JARS' 🔄 — a colour painted by one of the owner's jars; C5 for Colour 5** (2026-11-17; the owner: "Colour 1 = Jar 49 (yes, the new
+  one, white-yellow now), Colour 3 = Jar 51, Colour 4 = Jar 52, Colour 10 to be replaced by the graphite grey Jar 28. Generally the palette THE JARS
+  must be modifiable … an option with a button 🔄 — replace"; his jars "are here: colors.html"; "I allow changing the server"; "let us replace Colour N
+  by CN, or it does not fit"). A row's 🔄: his jars by ΔE, the red classic's numbers (COLORS') and the ones mixed since; or a new jar named for the
+  colour; or back. Two colours to one jar: one line. `app/formg/jars.json` through `rembrandt.py`'s new `/jars` (restart it); the pictures untouched.
+  Mickey's four as he named them.
 - **FORM-G: the snake's turns square, a drop every 35 mm, the second run back** (2026-11-17, noon; the owner, of the machine camera's film of
   10.56 AM and `FORM-G/Screenshot 2026-11-17 at 11.00.36 AM.png`: "the brush is flat, so it is exceptionally important to pass the track fully and
   only then go over to the next"; of `FORM-G/photos/2026-11-17/` measured by a ruler: "I would put a drop every 35 mm (now probably 80 mm, a lot!)";

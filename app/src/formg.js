@@ -1,6 +1,7 @@
 // FORM-G's page: the library, the picture, OPM-N's DRAG SNAKE (formgplan.js). inka.js's run as it is on OPM-N, its question with Start from, its LCD, BACK ONE CELL, the remote and ELBOW LIVE,
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
-import { FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks } from './formgplan.js';
+import { FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
+import { deltaE } from './canon.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -41,9 +42,13 @@ S.frames = Object.fromEntries(Object.entries(S.frames ?? {}).map(([k, f]) => [k,
 // ---------- the library ----------
 const LIB = {}, IMG = {};
 let PIC = null, SEQ = [];
+// THE JARS, the owner's 🔄 (2026-11-17; formgplan.js, withJars): app/formg/jars.json, rembrandt.py's /jars — { swaps: { pic: { jarId: { name, hex } } }, mine: { 'Jar 49': hex } };
+// his jars COLORS' numbers, the red classic's plans (CLASSIC), and the ones he mixed since. FORM-G's alone
+const JARS_ON = TAB === 'formg';
+let JARS = { swaps: {}, mine: {} }, CLASSIC_PLANS = [];
 // a picture as it is run: in its frame, F, when one is laid (formgplan.js's framedPic); the plan's and the run's keys by it, so the card's (i) keeps the whole picture's numbers
-const picNow = id => framedPic(LIB[id], S.frames[id]);
-const pk = () => PIC.frame ? `${PIC.id}|${PIC.frame.x0},${PIC.frame.y0},${PIC.frame.x1},${PIC.frame.y1}` : PIC.id;
+const picNow = id => framedPic(withJars(LIB[id], JARS.swaps[id]), S.frames[id]);
+const pk = () => `${PIC.id}${PIC.jarsKey ? `|${PIC.jarsKey}` : ''}${PIC.frame ? `|${PIC.frame.x0},${PIC.frame.y0},${PIC.frame.x1},${PIC.frame.y1}` : ''}`;   // a picture's swapped jars its own plans (withJars)
 const jarOf = id => SEQ.find(j => j.id === id);
 const opts0 = () => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: true, ink: true, snake: true, pause: false, cup: dipCup(), hover: ELBOW_HOVER, press: S.press, noDipUnder: 0 });
 // where the canvas may lie: from plotRun's carriage, the path not yet pressed into a wall
@@ -608,7 +613,7 @@ function showPanel() {
     : 'No frame: the whole picture. F, or Frame, lays one round a piece to try first, at its place from home: a click a 200 × 200 there, a drag any size.';
   for (const [id, k] of [['#fSpeed', 'speed'], ['#fEvery', 'dipEvery'], ['#fLap', 'dipLap'], ['#fOver', 'over'], ['#fPen', 'penSpeed'], ['#fTravel', 'travel']]) if ($(id) && document.activeElement !== $(id)) $(id).value = S[k];
   if ($('#bwRead')) { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
-  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 0 && !i ? '<li class="fg-sep">Under · the motion blur, first</li>' : ''}${q.layer === 1 && P[i - 1]?.layer === 0 ? '<li class="fg-sep">The picture · over the dry layer under</li>' : ''}${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush${q.fill ? `; ${q.fill === 'zone' ? 'a zone: its drops first, then one snake' : 'strokes: a dip a leg'}` : ''}. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${q.fill === 'zone' ? 'zone' : 'strokes'} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
+  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 0 && !i ? '<li class="fg-sep">Under · the motion blur, first</li>' : ''}${q.layer === 1 && P[i - 1]?.layer === 0 ? '<li class="fg-sep">The picture · over the dry layer under</li>' : ''}${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}${j.was ? ` in place of ${esc(j.was.name)}` : ''}${j.also?.length ? `, and ${esc(j.also.join(', '))}` : ''}: ${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush${q.fill ? `; ${FILL_SAY[q.fill]}` : ''}. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.was ? ` <em>${esc(j.was.name)}</em>` : ''}${j.also?.length ? ` <em>+ ${esc(j.also.join(', '))}</em>` : ''}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${FILL_WORD[q.fill]} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span>${JARS_ON ? `<button class="swap" data-swap="${esc(j.jar ?? j.id)}" title="🔄 Replace: paint ${esc(j.was?.name ?? j.name)} with one of your jars, or name the new jar you mixed for it" aria-label="Replace ${esc(j.name)}">🔄</button>` : ''}</li>`; }).join('');
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
 }
@@ -642,11 +647,11 @@ const READS = new Map();
 function readOf(id) {
   if (READS.has(id)) return READS.get(id);
   const was = [PIC, SEQ];
-  PIC = LIB[id]; SEQ = seqOf(PIC);
+  PIC = withJars(LIB[id], JARS.swaps[id]); SEQ = seqOf(PIC);
   try {
     const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n0 = P.filter(q => q.layer === 0).length, n1 = P.filter(q => q.layer <= 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
     const out = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${all.reduce((a, q) => a + q.legs.length, 0)} legs.`
-      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way.`
+      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way${P.some(q => q.fill === 'mixed') ? `; ${P.filter(q => q.fill === 'mixed').length} lines of both, each cell its own colour's` : ''}.`
       + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${layer2Say(P)}, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
       + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
     READS.set(id, out);
@@ -690,7 +695,7 @@ function runPicture(st) {                                                       
   }
 }
 $('#views').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; playStop(); S.view = b.dataset.view; save(); showKeys(); kick(); };
-$('#runList').onclick = e => { const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#runList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
+$('#runList').onclick = e => { const sw = e.target.closest('[data-swap]'); if (sw) { e.stopPropagation(); return swapShow(sw); } const li = e.target.closest('li[data-id]'); if (!li) return; only = only === li.dataset.id ? null : li.dataset.id; [...$('#runList').children].forEach(q => q.classList.toggle('only', q.dataset.id === only)); kick(); };
 for (const [id, k, lo, hi] of [['#fSpeed', 'speed', 5, 120], ['#fEvery', 'dipEvery', 0, 200], ['#fLap', 'dipLap', 0, 30], ['#fOver', 'over', 0, 8], ['#fPen', 'penSpeed', 5, 120], ['#fTravel', 'travel', 20, 180]]) {
   if ($(id)) $(id).onchange = e => { const v = +e.target.value; if (Number.isFinite(v)) S[k] = Math.max(lo, Math.min(hi, v)); e.target.value = S[k]; settle(); };
 }
@@ -751,6 +756,67 @@ async function watch() {
   if (Date.now() - warnAt > WARN_S * 1000) $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${esc(st.message)}</span>` : '';
 }
 
+// ---------- THE JARS: 🔄, a colour painted by one of the owner's jars (2026-11-17) ----------
+const FILL_WORD = { zone: 'zone', strokes: 'strokes', mixed: 'zone · strokes' };
+const FILL_SAY = { zone: 'a zone: its drops first, then one snake and back', strokes: 'strokes: a dip a leg, then the leg again the same way', mixed: 'its cells a zone or strokes, each its own colour\'s' };
+async function jarsLoad() {
+  const get = async u => { try { const r = await fetch(u, { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch { return null; } };
+  const j = await get('/jars') ?? await get(`${TAB}/jars.json`) ?? {};
+  JARS = { swaps: j.swaps ?? {}, mine: j.mine ?? {}, ...(j.note ? { note: j.note } : {}) };
+  CLASSIC_PLANS = (await Promise.all(CLASSIC.map(id => LIB[id] ?? get(`${TAB}/${id}.json`)))).filter(Boolean);
+}
+async function jarsSave() {
+  try { const r = await fetch('/jars', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(JARS, null, 1) }); if (r.ok) return true; } catch { }
+  warn('THE JARS: not saved to app/formg/jars.json — restart rembrandt.py (it learnt /jars on 2026-11-17); this page keeps the change till it is reloaded.');
+  return false;
+}
+function jarsApply() { playStop(); only = null; PIC = picNow(S.pic); SEQ = seqOf(PIC); settle(); }
+const swapHide = () => { const p = $('#jarPop'); if (p) p.hidden = true; };
+function swapShow(btn) {
+  const pop = $('#jarPop'); if (!pop) return;
+  if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: THE JARS stay as they are till it ends or stops — the run\'s pauses name its jars.');
+  const id = btn.dataset.swap, own = LIB[S.pic].jars.find(q => q.id === id), now = JARS.swaps[S.pic]?.[id];
+  if (!own) return;
+  const mine = myJarsOf(CLASSIC_PLANS, JARS.mine).map(q => ({ ...q, d: deltaE(own.hex, q.hex) })).sort((a, b) => a.d - b.d);
+  const taken = new Set(Object.entries(JARS.swaps[S.pic] ?? {}).filter(([k]) => k !== id).map(([, v]) => v.name).concat(LIB[S.pic].jars.filter(q => q.id !== id && JAR_NAME.test(q.name) && !JARS.swaps[S.pic]?.[q.id]).map(q => q.name)));
+  pop.innerHTML = `<div class="jp-head"><i class="sw" style="background:${own.hex}"></i><b>${esc(own.name)}</b> <em>${own.hex}</em>${now ? ` → <b>${esc(now.name)}</b>` : ''}<button class="jp-x" data-x aria-label="Close">✕</button></div>`
+    + `<p class="jp-say">Paint it with one of your jars, the nearest in colour first (ΔE, est.). A jar already in this picture's list takes this colour's cells too: one line, one pause.</p>`
+    + `<div class="jp-grid">${mine.map(q => `<button class="jp-jar${now?.name === q.name ? ' on' : ''}" data-name="${esc(q.name)}" data-hex="${q.hex}" title="${esc(q.name)} ${q.hex}${q.mine ? ', mixed since the classic' : ''}${taken.has(q.name) ? ' — in this picture already: the two colours one line' : ''}"><i class="sw" style="background:${q.hex}"></i><span>${esc(q.name.replace('Jar ', ''))}${taken.has(q.name) ? '•' : ''}</span><em>${Math.round(q.d)}</em></button>`).join('')}</div>`
+    + `<form class="jp-new" data-new><span>A new jar, mixed to this colour: Jar</span><input type="number" min="1" max="999" step="1" placeholder="${Math.max(48, ...Object.keys(JARS.mine).map(n => +n.slice(4) || 0)) + 1}" aria-label="The new jar's number"><button type="submit">Name it</button></form>`
+    + (now ? `<button class="jp-back" data-back>↩ Back to the picture's own: ${esc(own.name)}</button>` : '');
+  pop.hidden = false;
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left - w - 8 > 8 ? r.left - w - 8 : r.right - w))}px`;
+  pop.style.top = `${Math.max(8, Math.min(innerHeight - h - 8, r.top - 12))}px`;
+  pop.dataset.id = id;
+}
+async function swapTo(id, name, hex) {
+  const sw = { ...(JARS.swaps[S.pic] ?? {}) };
+  if (name) sw[id] = { name, hex: hex.toUpperCase() }; else delete sw[id];
+  if (Object.keys(sw).length) JARS.swaps[S.pic] = sw; else delete JARS.swaps[S.pic];
+  swapHide(); jarsApply();
+  if (await jarsSave()) { warnAt = Date.now(); $('#runState').innerHTML = name ? `THE JARS: ${esc(LIB[S.pic].jars.find(q => q.id === id)?.name ?? id)} → <b>${esc(name)}</b>, saved.` : 'THE JARS: back to the picture\'s own colour, saved.'; }
+}
+if ($('#jarPop')) {
+  $('#jarPop').addEventListener('click', e => {
+    const pop = $('#jarPop'), id = pop.dataset.id;
+    if (e.target.closest('[data-x]')) return swapHide();
+    if (e.target.closest('[data-back]')) return swapTo(id, null);
+    const b = e.target.closest('.jp-jar'); if (b) return swapTo(id, b.dataset.name, b.dataset.hex);
+  });
+  $('#jarPop').addEventListener('submit', e => {
+    e.preventDefault();
+    const pop = $('#jarPop'), id = pop.dataset.id, own = LIB[S.pic].jars.find(q => q.id === id), v = Math.round(+e.target.querySelector('input').value), name = `Jar ${v}`;
+    if (!own || !(v >= 1 && v <= 999)) return warn('A new jar: its number, 1 … 999.');
+    const had = myJarsOf(CLASSIC_PLANS, JARS.mine).find(q => q.name === name);
+    if (had && had.hex !== own.hex.toUpperCase()) return warn(`${name} is your ${had.hex} already${had.mine ? '' : ' (COLORS, the classic\'s)'}: choose it in the list, or give the new jar another number.`);
+    JARS.mine = { ...JARS.mine, [name]: own.hex.toUpperCase() };
+    swapTo(id, name, own.hex);
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape') swapHide(); });
+  addEventListener('pointerdown', e => { if (!e.target.closest('#jarPop') && !e.target.closest('[data-swap]')) swapHide(); });
+}
+
 // ---------- start ----------
 lampSwitch($('#lamp'));
 (async () => {
@@ -758,6 +824,8 @@ lampSwitch($('#lamp'));
   try { const r = await fetch(`${TAB}/local.json`, { cache: 'no-store' }); if (r.ok) LIBRARY.unshift(...((await r.json()).ids ?? []).filter(id => !LIBRARY.includes(id))); } catch { }
   for (const id of LIBRARY) {
     const pic = await (await fetch(`${TAB}/${id}.json`, { cache: 'no-store' })).json();
+    // GEN-F's colours short on the page, C5 for Colour 5 (the owner, 2026-11-17, THE JARS' rows with their 🔄: "let us replace Colour N by CN, or it does not fit")
+    for (const j of pic.jars ?? []) j.name = j.name.replace(/^Colour (\d+)/, 'C$1');
     LIB[id] = pic;
     const im = new Image(); im.onload = kick; im.src = pic.image; IMG[id] = im;
   }
@@ -772,6 +840,7 @@ lampSwitch($('#lamp'));
   if (!CANON_RUN && !S.v3place) { const was = S.place['porsche-red-k'] ?? S.place['porsche-red']; if (was && !S.place['porsche-red-v3']) S.place['porsche-red-v3'] = { ...was }; S.v3place = 1; save(); }
   // its v.4 (2026-11-13), v.3 to the leg and its shadow, on the canvas v.3 painted: v.3's place once
   if (!CANON_RUN && !S.v4place) { const was = S.place['porsche-red-v3']; if (was && !S.place['porsche-red-v4']) S.place['porsche-red-v4'] = { ...was }; S.v4place = 1; save(); }
+  if (JARS_ON) await jarsLoad();
   PIC = picNow(S.pic); SEQ = seqOf(PIC);
   await loadInk();
   layout(); settle(); watch();

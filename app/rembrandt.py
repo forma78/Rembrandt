@@ -73,7 +73,10 @@ PORT = 5164   # the owner's lucky number (2026-10-01); RUBENS is on 8766
 # the brush dips into, from the Ink tab (2026-10-03), and INK-Y's cup at hand,
 # whose forks every turn of the arm is checked by while it is on (hand_guard).
 FILES = {"/calibration": os.path.join(HERE, "calibration.json"), "/job": os.path.join(HERE, "job.json"),
-         "/tubes": os.path.join(HERE, "tubes.json"), "/ink": os.path.join(HERE, "ink.json")}
+         "/tubes": os.path.join(HERE, "tubes.json"), "/ink": os.path.join(HERE, "ink.json"),
+         # FORM-G's THE JARS, the owner's 🔄 (2026-11-17: "the palette THE JARS must be modifiable … an option with a button 🔄 — replace";
+         # "I allow changing the server"): a picture's colour painted by one of his numbered jars, and the new jars he mixes
+         "/jars": os.path.join(HERE, "formg", "jars.json")}
 PARK_FILE = os.path.join(HERE, "park.json")   # class Park; written by rubens.py only
 BACK_BEGUN_MM = 0.5                 # BACK ONE CELL: more paint than this in a cell, the brush has begun it
 LOG_FILE = os.path.join(HERE, "logs", "runs.jsonl")   # run_log: the run journal, on this Mac, not in git

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, pointsOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf, fillOf, DROPS, squareSnake, backLine, againOf } from '../src/formgplan.js';
+import { FORMG_LIB, OPMG_LIB, PRESS_OK, passOf, pointsOf, seqOf, passesOf, rowsOf, brushRuns, canonRuns, cellOf, idleLegsOf, airRuns, placeRange, framedPic, cleanFrame, R3, MARKS, stripsOf, marksOf, withMarks, markCellsOf, fillOf, DROPS, squareSnake, backLine, againOf, myJarsOf, withJars, CLASSIC, JAR_NAME } from '../src/formgplan.js';
 import { landInside, DOSE, CANON } from '../src/canon.js';
 import { IDLE, idleRowsOf, idleRunsOf } from '../src/idleplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from '../src/strokes.js';
@@ -593,3 +593,29 @@ test('the motion blur on the machine (2026-11-16): its stripes cells of their ow
   assert.deepEqual(seqOf(only).map(j => j.id), ['c'], 'a jar of stripes alone: no second coat');
 });
 
+test('THE JARS, the owner\'s 🔄 (2026-11-17): his jars by number, the classic\'s first, the ones mixed since after; a colour swapped takes its jar\'s name and hex, its place and cells its own', () => {
+  const plans = CLASSIC.filter(id => fs.existsSync(new URL(`../formg/${id}.json`, import.meta.url))).map(load);
+  const mine = myJarsOf(plans, { 'Jar 49': '#fef6e7', 'Jar 3': '#000000', 'Colour 7': '#111111' });
+  assert.deepEqual(mine.find(j => j.name === 'Jar 28'), { name: 'Jar 28', hex: '#4B4D4E', mine: false }, 'Jar 28, the graphite grey, as COLORS has it');
+  assert.equal(mine.find(j => j.name === 'Jar 3').hex, '#C6C6C1', 'a number of the classic\'s is its paint: never another hex for it');
+  assert.deepEqual(mine.find(j => j.name === 'Jar 49'), { name: 'Jar 49', hex: '#FEF6E7', mine: true });
+  assert.ok(!mine.some(j => j.name === 'Colour 7'), 'a jar is a number or Black');
+  assert.equal(mine.at(-1).name, 'Black'); assert.ok(mine.every((j, i) => !i || j.name === 'Black' || +j.name.slice(4) > +mine[i - 1].name.slice(4)), 'by number');
+  for (const id of FORMG_LIB) { const p = load(id), n = p.jars.map(j => j.name).filter(n => JAR_NAME.test(n)); assert.equal(new Set(n).size, n.length, `${id}: no jar twice`); assert.equal(withJars(p), p, `${id}: no swaps, the picture itself`); }
+  const z = { n: 1, legs: [[10, 20, 100], [15, 100, 20], [20, 20, 100]] }, st = { n: 1, legs: [[40, 20, 30]] };
+  const pic = { ...PIC, id: 't', jars: [{ id: 'a', name: 'Colour 1', hex: '#FEF6E7', cells: [z] }, { id: 'b', name: 'Colour 2', hex: '#D7D4C9', coats: 2, cells: [st] }, { id: 'c', name: 'Colour 3', hex: '#DFC682', cells: [st, { ...st, n: 2, legs: [[45, 20, 30]] }] }] };
+  const one = withJars(pic, { a: { name: 'Jar 49', hex: '#FEF6E7' } });
+  assert.deepEqual(one.jars.map(j => j.name), ['Jar 49', 'Colour 2', 'Colour 3']); assert.deepEqual(one.jars[0].was, { name: 'Colour 1', hex: '#FEF6E7' }); assert.ok(one.jarsKey);
+  assert.equal(pic.jars[0].name, 'Colour 1', 'the picture itself untouched');
+  const m = withJars(pic, { b: { name: 'Jar 3', hex: '#C6C6C1' }, c: { name: 'Jar 3', hex: '#C6C6C1' } });
+  assert.deepEqual(m.jars.map(j => j.name), ['Colour 1', 'Jar 3'], 'two colours, one jar: one line, at the first one\'s place');
+  assert.equal(m.jars[1].cells.length, 3); assert.deepEqual(m.jars[1].also, ['Colour 3']); assert.equal(m.jars[1].coats, 2);
+  const S2 = seqOf(m);
+  assert.deepEqual(S2.map(j => j.name), ['Colour 1', 'Jar 3', 'Jar 3 · layer 2']);
+  assert.equal(S2[2].cells.length, 1, 'the second coat Colour 2\'s cell alone, Colour 3 had one coat');
+  const zm = withJars(pic, { a: { name: 'Jar 3', hex: '#C6C6C1' }, c: { name: 'Jar 3', hex: '#C6C6C1' } }), P = passesOf(zm);
+  assert.equal(P[0].fill, 'mixed', 'a zone and strokes in one jar'); assert.deepEqual(P[0].byCell.map(c => c.fill), ['zone', 'strokes', 'strokes']);
+  const runs = brushRuns(P, 79, 15, false, 0).filter(r => r.pass === 0);
+  assert.ok(runs.filter(r => r.num === 1).some(r => r.snake), 'Colour 1\'s cell still a zone: drops, then its snake');
+  assert.ok(runs.filter(r => r.num > 1).every(r => !r.dab && !r.snake), 'Colour 3\'s cells still strokes');
+});
