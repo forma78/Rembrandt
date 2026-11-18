@@ -90,7 +90,7 @@ const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p
 // light to dark, one coat, layer 0; then, on the dry layer under, the picture as before
 export const seqOf = pic => {
   // a jar's second coat its picture's cells alone, not the motion blur's stripes laid with it (`under` cells, genfpic.py, 2026-11-16): those one coat
-  const two = js => js.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2, cells: j.cells.filter(c => !c.under && !c.one) })).filter(j => j.cells.length);   // !c.one: a colour of one coat merged into a jar of two (withJars)
+  const two = js => js.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2, cells: j.cells.filter(c => !c.under) })).filter(j => j.cells.length);
   const under = pic.jars.filter(j => j.under), main = pic.jars.filter(j => !j.under);
   const first = main.filter(j => !j.last), now = first.filter(j => !j.late), late = first.filter(j => j.late), last = main.filter(j => j.last);
   return [...under.map(j => ({ ...j, name: `${j.name} · under`, layer: 0, coat: 1 })), ...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
@@ -101,8 +101,10 @@ export const seqOf = pic => {
 // to start a jar for, Jar 3 or Jar 8 can go there. But I need an option with a button 🔄 — replace (a double click is taken)." His jars are COLORS' (the owner:
 // "they are here: colors.html"): the numbers of the red classic's plans, every version the same paint under the same number (README, "Jar numbers are physical"),
 // and the jars mixed after it, `mine` in app/formg/jars.json, the page's 🔄. A swap: a picture's colour, its jar id, painted by one of them — its name and hex
-// that jar's, its place in the list, its cells, its fill and coats its own. Two colours to one jar: one line, at the first one's place, every cell its own fill
-// (a zone stays a zone), a second coat for the cells that had one. The picture's json is never touched: { swaps: { pic: { jarId: { name, hex } } }, mine: { name: hex } }.
+// that jar's, its place in the list, its cells, its fill and coats its own. The picture's json is never touched: { swaps: { pic: { jarId: { name, hex } } }, mine: { name: hex } }.
+// A jar already in the list never takes the colour's cells: two colours to one jar, two lines, each at its own place (the canon, README "A colour swapped keeps its own
+// line"; the owner, 2026-11-18, the Targa painted to line 9, C11 → Jar 7 merged into line 5, C6's, painted already: "the 10th colour must simply be Jar 7 again,
+// without merging with the colours already worked"). Till then (2026-11-17) the two were one line at the first one's place.
 export const JAR_NAME = /^(Jar \d+|Black)$/;
 export const CLASSIC = ['porsche-red', 'porsche-red-k', 'porsche-red-v3', 'porsche-red-v4', 'porsche-headlight'];
 const jarNo = name => name === 'Black' ? 1e9 : +name.slice(4);
@@ -116,20 +118,8 @@ export function myJarsOf(plans, mine = {}) {
 // a picture with its swaps; `jarsKey` the swaps', so the page's plans and runs are its own
 export function withJars(pic, swaps = {}) {
   const key = Object.keys(swaps).length ? JSON.stringify(swaps) : '';
-  const jars = pic.jars.map(j => swaps[j.id] ? { ...j, name: swaps[j.id].name, hex: swaps[j.id].hex, was: { name: j.name, hex: j.hex } } : j);
-  const same = j => JAR_NAME.test(j.name) ? `${j.name}|${!!j.under}|${!!j.late}|${!!j.last}` : null, n = new Map();
-  for (const j of jars) { const k = same(j); if (k) n.set(k, (n.get(k) ?? 0) + 1); }
-  if (![...n.values()].some(v => v > 1)) return key ? { ...pic, jars, jarsKey: key } : pic;
-  const out = [], at = new Map();
-  for (const j of jars) {
-    const k = same(j);
-    if (!k || n.get(k) < 2) { out.push(j); continue; }
-    const f = fillOf(j), cells = j.cells.map(c => ({ ...c, fill: c.fill ?? f, ...(j.coats === 2 ? {} : { one: true }) }));
-    if (!at.has(k)) { at.set(k, out.length); out.push({ ...j, cells, coats: j.coats ?? 1, fill: undefined, also: [] }); continue; }
-    const m = out[at.get(k)];
-    m.cells = [...m.cells, ...cells].map((c, i) => ({ ...c, n: i + 1 })); m.coats = Math.max(m.coats, j.coats ?? 1); m.also = [...m.also, j.was?.name ?? j.name];
-  }
-  return { ...pic, jars: out, jarsKey: key };
+  if (!key) return pic;
+  return { ...pic, jars: pic.jars.map(j => swaps[j.id] ? { ...j, name: swaps[j.id].name, hex: swaps[j.id].hex, was: { name: j.name, hex: j.hex } } : j), jarsKey: key };
 }
 
 // POINTS (the owner, 2026-11-16, `FORM-G/mickey-1.png`, green crosses at the figure's outermost points: "this is Jar 0, the white … so I do not soil the canvas.

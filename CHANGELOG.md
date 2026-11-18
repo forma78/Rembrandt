@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **FORM-G: THE JARS — a colour swapped keeps its own line, never merged** (2026-11-18; the owner, the Targa painted to line 9, Jar 14, then C11
+  given Jar 7 by 🔄, merged into line 5, C6's, painted already, `FORM-G/Screenshot 2026-11-18 at 11.59.26 AM.png`: "That is a mistake, I cannot go
+  back; the 10th colour must simply be Jar 7 again, without merging with the colours already worked. This must be written into the canon"). Two
+  colours to one jar: two lines, each at its own place (till now one line at the first one's place). The Targa: line 10 Jar 7 · C11 again, its 54
+  cells; lines 1 … 9 as painted. README's canon.
 - **FORM-G: a long stroke's drops first** (2026-11-17, the evening; the owner, of the Targa's strokes by a ruler, IMG_3173, IMG_3175: a 75 … 90 mm
   leg on one dip fat for 5 … 6 cm, then bald; "every 45, then"). A stroke leg over 45 mm: its drops, one every 45 mm at most, then the leg once its
   own way, no dip, then again the same way; shorter ones as before. The Targa from C7 on: 163 legs, ≈ +146 dips, ≈ +26 min (est.). The journal's

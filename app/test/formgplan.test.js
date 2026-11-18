@@ -607,17 +607,17 @@ test('THE JARS, the owner\'s 🔄 (2026-11-17): his jars by number, the classic\
   const one = withJars(pic, { a: { name: 'Jar 49', hex: '#FEF6E7' } });
   assert.deepEqual(one.jars.map(j => j.name), ['Jar 49', 'Colour 2', 'Colour 3']); assert.deepEqual(one.jars[0].was, { name: 'Colour 1', hex: '#FEF6E7' }); assert.ok(one.jarsKey);
   assert.equal(pic.jars[0].name, 'Colour 1', 'the picture itself untouched');
+  // the canon (2026-11-18, the Targa: C11 → Jar 7 had merged into line 5, C6's, painted already): never merged, each colour its own line at its own place
   const m = withJars(pic, { b: { name: 'Jar 3', hex: '#C6C6C1' }, c: { name: 'Jar 3', hex: '#C6C6C1' } });
-  assert.deepEqual(m.jars.map(j => j.name), ['Colour 1', 'Jar 3'], 'two colours, one jar: one line, at the first one\'s place');
-  assert.equal(m.jars[1].cells.length, 3); assert.deepEqual(m.jars[1].also, ['Colour 3']); assert.equal(m.jars[1].coats, 2);
+  assert.deepEqual(m.jars.map(j => j.name), ['Colour 1', 'Jar 3', 'Jar 3'], 'two colours, one jar: two lines, each at its own place');
+  assert.deepEqual(m.jars.map(j => j.cells.length), [1, 1, 2]); assert.deepEqual(m.jars.map(j => j.was?.name), [undefined, 'Colour 2', 'Colour 3']);
   const S2 = seqOf(m);
-  assert.deepEqual(S2.map(j => j.name), ['Colour 1', 'Jar 3', 'Jar 3 · layer 2']);
-  assert.equal(S2[2].cells.length, 1, 'the second coat Colour 2\'s cell alone, Colour 3 had one coat');
+  assert.deepEqual(S2.map(j => j.name), ['Colour 1', 'Jar 3', 'Jar 3', 'Jar 3 · layer 2']);
+  assert.equal(S2[3].jar, 'b', 'the second coat Colour 2\'s alone, Colour 3 had one coat');
   const zm = withJars(pic, { a: { name: 'Jar 3', hex: '#C6C6C1' }, c: { name: 'Jar 3', hex: '#C6C6C1' } }), P = passesOf(zm);
-  assert.equal(P[0].fill, 'mixed', 'a zone and strokes in one jar'); assert.deepEqual(P[0].byCell.map(c => c.fill), ['zone', 'strokes', 'strokes']);
-  const runs = brushRuns(P, 79, 15, false, 0).filter(r => r.pass === 0);
-  assert.ok(runs.filter(r => r.num === 1).some(r => r.snake), 'Colour 1\'s cell still a zone: drops, then its snake');
-  assert.ok(runs.filter(r => r.num > 1).every(r => !r.dab && !r.snake), 'Colour 3\'s cells still strokes');
+  assert.deepEqual(P.map(q => q.fill), ['zone', 'strokes', 'strokes', 'strokes'], 'each colour its own fill, as before the swap (Colour 2\'s second coat last)');
+  const plain = passesOf(pic), key = q => JSON.stringify(q.byCell.map(c => c.legs));
+  assert.deepEqual(P.map(key), plain.map(key), 'every line\'s cells and legs as without the swap: only the name and hex change');
 });
 
 // a zone's touching cells one area (the owner, 2026-11-17, the evening, the Targa's Colour 6 on canvas: "the picture breaks because of the several runs"),

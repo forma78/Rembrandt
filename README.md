@@ -414,6 +414,19 @@ for the social networks: the brush goes without a lift, the brain is hooked".
 `src/formgplan.js`: `JOIN`, `areasOf`, `chainsOf`, `joinedCells`; the journal's DRAG writes `join`, so FROM THE BREAK makes a run
 from before it again as it ran.
 
+## THE JARS: a colour swapped keeps its own line (canon)
+
+The owner, 2026-11-18, the Targa painted to line 9 (Jar 14, C10), then C11 given Jar 7 by 🔄 — it merged into line 5, C6's, painted
+already, "C6 + C11" (`FORM-G/Screenshot 2026-11-18 at 11.59.26 AM.png`, his arrows): "That is a mistake, I cannot go back; the 10th
+colour must simply be Jar 7 again, without merging with the colours already worked. This must be written into the canon."
+
+1. **A colour given one of his jars keeps its own line, at its own place in the list**, its cells, its fill and its coats its own;
+   only the name and the hex change.
+2. **Never merged with another line**, painted or not: two colours in one jar are two lines, the jar put in twice. No line before it
+   moves, so Start from holds on a picture half painted.
+
+`src/formgplan.js`, `withJars`; the 🔄 marks a jar already in the list with •.
+
 ## GEN-F, the workshop · FORM-G, the library
 
 The owner, 2026-11-16: "FORM-G is the library of finished works. GEN-F is the creative workshop."
