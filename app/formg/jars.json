@@ -46,6 +46,22 @@
    "c21": {
     "name": "Jar 10",
     "hex": "#ED3F58"
+   },
+   "c3": {
+    "name": "Jar 13",
+    "hex": "#D4462F"
+   },
+   "c13": {
+    "name": "Jar 16",
+    "hex": "#E20D0D"
+   },
+   "c11": {
+    "name": "Jar 14",
+    "hex": "#E5281E"
+   },
+   "c2": {
+    "name": "Jar 7",
+    "hex": "#9B9C9A"
    }
   }
  },
