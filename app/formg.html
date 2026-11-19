@@ -35,6 +35,8 @@
   .fg-grid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
   .fg-grid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:5px 6px;font:12px var(--mono)}
   #runList{max-height:none;margin:6px 0 0;padding:0;list-style:none}
+  .jarsio{margin:2px 0 4px}
+  .jarsread{margin:0 0 6px;font-size:10.5px;overflow-wrap:anywhere}
   #runList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px;cursor:pointer}
   #runList li:hover{background:rgba(127,127,127,.14)}
   #runList li.only{outline:1.5px solid var(--orange)}
@@ -164,6 +166,10 @@
     </section>
     <section class="sec">
       <h3>The jars <span class="hint" id="jarsHint"></span></h3>
+      <!-- 💾 SAVE · 📂 LOAD (the owner, 2026-11-19: "different versions of the colours with different sets of paints"): a picture's jars as a file; here it is painted by, so LOAD not while a run is on -->
+      <div class="grid4 keys jarsio"><button class="btn" id="btnJarsSave" title="💾 SAVE: this picture's jars as a file — every colour and the jar of yours it is painted by (THE JARS' 🔄) — a version to keep, wherever you choose">💾 SAVE</button><button class="btn" id="btnJarsLoad" title="📂 LOAD: a picture's jars saved by 💾 SAVE here or on LIBRARY-G — FORM-G paints by them from then on (jars.json); not while a run is on">📂 LOAD</button></div>
+      <input type="file" id="jarsFile" accept="application/json,.json" hidden>
+      <p class="read jarsread" id="jarsRead"></p>
       <ol id="runList"></ol>
     </section>
   </aside>

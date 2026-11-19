@@ -5,6 +5,19 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LIBRARY-G, after GEN-F: FORM-G's library to look at while it paints; 💾 SAVE · 📂 LOAD of a picture's jars** (2026-11-19; the owner, the Targa
+  running: "while a picture is being painted I cannot switch between the pictures in the library at all … let us make, right after GEN-F, a tab
+  LIBRARY-G, so that we do not confuse it with the library for OPM and I can study the files in peace"; "I can keep there different versions of the
+  colours with different sets of paints … a panel 💾 SAVE 📂 LOAD"). FORM-G keeps its lock (2026-11-11: another card open during a run read the
+  board's steps by its plan, the jar numbers shifted). `libg.html`, FORM-G's page with `data-tab="libg"`: the machine keys, the canvas and the brush
+  hidden, and `formg.js` with VIEW sends nothing — no `/run` looked at, no POST, no PUT (checked by a stand-in server's log); the brush's numbers
+  FORM-G's, its own picture and view. THE JARS' 🔄 free there, kept in this browser alone, never in jars.json; ↺ FORM-G's back. 💾 SAVE: a picture's
+  jars as a file, `<title> · jars · <date time>.json` — every colour, the jar of his it is painted by, the jars he named for it; 📂 LOAD: such a file,
+  its picture opened, nothing loaded where a jar's number has another colour on his shelf. On FORM-G too: its LOAD into jars.json, as 🔄, not while
+  a run is on. Checked in headless Chrome against the stand-in: the Targa paused, FORM-G refusing another card, LIBRARY-G opening four; Play; 🔄,
+  SAVE, a reload, ↺, LOAD from another picture, a clash; FORM-G's LOAD refused during the run, then into jars.json with the Targa's swaps kept. Tests
+  641.
+
 - **FORM-G: the crumpled cola can on 60 × 80, a card on this Mac alone** (2026-11-19; the owner: "a new picture in FORM-G, cola 60 x 80,
   cola.png"). His approved sketch was 70 × 100 (screen 2, 21 colours); GEN-F's own programme, run in headless Chrome, laid its 21 colours and its
   box as they are on 60 × 80 — a fresh k-means there would not give his colours (one pixel of the box apart from his browser's scaling moved them
