@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **FORM-G: the crumpled cola can on 60 × 80, a card on this Mac alone** (2026-11-19; the owner: "a new picture in FORM-G, cola 60 x 80,
+  cola.png"). His approved sketch was 70 × 100 (screen 2, 21 colours); GEN-F's own programme, run in headless Chrome, laid its 21 colours and its
+  box as they are on 60 × 80 — a fresh k-means there would not give his colours (one pixel of the box apart from his browser's scaling moved them
+  all). 385 × 738 mm, 77 columns, 1845 legs, every colour kept by the jar canon (80 cm), 9 with a jar of his near; ≈ 13 h 22 min, 2887 dips (est.).
+  `genfpic.py`, true to the sketch, the script left on (it is the picture, not a maker's crest). A brand's can, as Mickey: its sketches, card and
+  `cola.py` gitignored, `formg/local.json`. Checked in headless Chrome: the card first, within the walls, MARKS 1 and 3 on the margins, ▶ Play,
+  no error. Not run on the machine.
+
 - **FORM-G: THE JARS — a colour swapped keeps its own line, never merged** (2026-11-18; the owner, the Targa painted to line 9, Jar 14, then C11
   given Jar 7 by 🔄, merged into line 5, C6's, painted already, `FORM-G/Screenshot 2026-11-18 at 11.59.26 AM.png`: "That is a mistake, I cannot go
   back; the 10th colour must simply be Jar 7 again, without merging with the colours already worked. This must be written into the canon"). Two

@@ -83,3 +83,8 @@ FORM-G/generator/*.pkl
 /FORM-G/mickey*
 /FORM-G/image-1*
 /GEN-F/image-1*
+# the crumpled cola can (2026-11-19): a brand's can, as Mickey's — on this Mac alone
+/app/formg/cola*
+/GEN-F/Crumpled Coca-Cola*
+/FORM-G/Crumpled Coca-Cola*
+/FORM-G/generator/cola.py
