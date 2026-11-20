@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **HOLO2: DRAG SNAKE only, HOME, ELBOW LIVE · BRUSH, views Picture · Drag · ▶ Play** (2026-11-20; the owner, of ▶ Play showing DRAG AIR: "only
+  [the snake] is needed … I propose to put the key HOME in its place, as in FORM-G"; "there is no ELBOW LIVE · BRUSH as in FORM"; "Picture, Puddles 1,
+  Puddles 2, Drag, Contour make noise … Picture, Drag, ▶ Play — that is what we need"). The snake switch out, the snake always; HOME in its place;
+  ELBOW LIVE · brush, its press in every run, trimmed live during RUN 1 · RUN 2 · DRAW BW; ▶ Play the runs in the machine's order — a jar's zones,
+  its dabs, then its snake. ALU's keys HOLO2 does not use hidden for good (`[hidden]` over `.btn`'s display: they had stayed on the screen).
 - **HOLO2: HOLO's deck on ALU's pipes — DRAW BW, RUN 1 · LIGHT, RUN 2 · SHADOW** (2026-11-20; the owner: "you carried over the old navigation,
   MARKS, DRAG; there is no split into two layers; TRACE stands in DRAW BW's place; there are no RUN 1 · LIGHT / RUN 2 · SHADOW … pipes bottom to
   top — maybe take it out altogether?"). A pipe's marks, ALU's, every mark its paint up to the next: a run of one jar's marks a zone; a jar's zones

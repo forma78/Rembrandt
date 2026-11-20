@@ -6,6 +6,7 @@
 <title>Rembrandt · HOLO2</title>
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>[hidden]{display:none!important}   /* HOLO2: ALU's keys it does not use, hidden (their .btn display would show them) */</style>
 </head>
 <body class="adjust arm3 nolan type love alu" data-tab="holo2">
 <!-- Rembrandt · HOLO2 — ALU with the owner's jars, COLORS' palette (2026-11-20:
@@ -110,8 +111,15 @@
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
         <!-- the snake (the owner, 2026-10-10): the repeat icon 🔁, Off and On as INK's, ON by default; HARD STOP gone ("I do not use it") -->
-        <div hidden class="inline check loopsw" title="The snake, for DRAG: ON, a pipe's lanes back and forth with the brush down, a step across at each end, no flight back to the start; OFF, each lane one way, a lift after each"><svg id="snakeIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5V10a4 4 0 0 1 4-4h11.5"/><path d="M16.5 3l3 3-3 3"/><path d="M20 12.5V14a4 4 0 0 1-4 4H4.5"/><path d="M7.5 15l-3 3 3 3"/></svg><span class="side" id="snakeOff">Off</span><input id="snake" type="checkbox" aria-label="Snake"><span class="side" id="snakeOn">On</span></div>
+        <!-- HOME (FORM-G's) in the snake switch's place: HOLO2's drag is DRAG SNAKE always (the owner, 2026-11-20: "only it is needed") -->
+        <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — when nothing runs">HOME</button>
       </div>
+      <div class="elbowlive" id="elbowBrush">
+        <div class="elh"><span class="elk">Elbow live · brush</span><span class="elv" id="brushNow">0.0°</span></div>
+        <div class="elrow"><button class="btn" data-btrim="-0.1" title="The brush 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="brushSl" step="0.1"><button class="btn" data-btrim="0.1" title="The brush 0.1° higher: less pressure">▲</button></div>
+      </div>
+      <!-- ALU's snake switch, its keys only: HOLO2 is DRAG SNAKE always -->
+      <div hidden><input id="snake" type="checkbox" checked><span id="snakeOff"></span><span id="snakeOn"></span><span id="snakeIcon"></span></div>
     </section>
 
     <div class="savebar">
@@ -133,12 +141,10 @@
       <!-- the passes as they will look, and the design; a view only -->
       <div class="toggles looks" id="views">
         <button class="tog" data-view="result" title="The painting as the brush will leave it: the paint mixed as pigment, a model (est.)">Picture</button>
-        <button class="tog" data-view="p1" title="RUN 1's dabs on the bare canvas: the blues and the white, upright, one on every lane at every mark">Puddles 1</button>
-        <button class="tog" data-view="p2" title="RUN 2's dabs: the reds and the yellow, upright">Puddles 2</button>
-        <button class="tog" data-view="drag" title="Every zone's snake in its jar's colour, as wide as the brush: lane after lane, back and forth">Drag</button>
-        <button class="tog" data-view="trace" title="DRAW BW's lines: the pipes' outlines, the pen's">Contour</button>
+        <button class="tog" data-view="drag" title="Every zone's snake in its jar's colour, as wide as the brush: lane after lane, back and forth, the brush down">Drag</button>
+        <button class="tog" id="btnPlay" title="RUN 1 then RUN 2 as the machine will go: a jar at a time, its zones — the dabs, then the snake. A view: it moves nothing">▶ Play</button>
       </div>
-      <div class="grid4 keys"><button class="btn" id="btnPlay" title="Result laid again in the order the brush goes, lane after lane; pressed again, it stops. A view: it moves nothing on the machine">▶ Play the run</button></div>
+
       <div class="toggles looks" id="sessions" hidden></div>
       <h4>Composition</h4>
       <div class="grid4 keys compose">

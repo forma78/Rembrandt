@@ -22,7 +22,7 @@
 
 import { fmt } from './util.js';
 import { reach, homeCorner } from './machine.js';
-import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn } from './strokes.js';
+import { plotRun, DEFAULTS, TABLE_MM, ELBOW_HOVER, SPEED_MAX, sweepOf, tailIn, homeBlocks } from './strokes.js';
 import { cornerDots, testMargin, testSay, washOf, DIP_RUN, NO_DIP } from './band.js';
 import {
   PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, recolourSeg, lettFamily, newPipe,
@@ -57,7 +57,7 @@ const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
 // brush and its lanes, the marks, the simulation (est.); the trace's line
 // and speeds, Tail and the drag's speed as on LOVE.
 const S = {
-  pipes: [], sel: 0, seg: 0, tool: 'edit', seed: 1, cw: 500, ch: 700,
+  pipes: [], sel: 0, seg: 0, tool: 'edit', seed: 1, cw: 500, ch: 700, press: 0,
   brush: 12, lanes: 7, xstep: 8, aorder: 'snake', over: 10, drag: 60,
   spacing: 60, width: 4, speed: 150, travel: 180, tail: 3, ink: true,
   run: 70, dryTail: 180, mix: 0.7, pick: 40, overlap: 'wet', look: 'relief',
@@ -99,6 +99,7 @@ function load() {
     if (TAB === 'holo2') S.overlap = 'wet';                                            // HOLO2: its two layers in the sessions' place
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (['snake', 'one'].includes(o.aorder)) S.aorder = o.aorder;
+    if (TAB === 'holo2') { S.aorder = 'snake'; if (Number.isFinite(o.press)) S.press = Math.max(-4, Math.min(8, o.press)); if (!['result', 'drag'].includes(o.view)) o.view = 'result'; }   // HOLO2: DRAG SNAKE only (the owner: "only it is needed"); its brush's press; Picture or Drag
     if (['relief', 'flat'].includes(o.look)) S.look = o.look;
     S.ground = GROUNDS.includes(o.ground) ? o.ground : 'white';   // a save made on the brushed aluminium opens on White (ALU.md)
     if (OWN.has(o.markPaint)) S.markPaint = o.markPaint;
@@ -161,7 +162,7 @@ const dipCup = () => { const c = cup(), d = dipAt(c); return d ? { ...c, x: d.x,
 // the dips fall.
 let PLAN = null, planKey = '', busy = false;
 const EMPTY = { blocks: [], rows: [], preview: [], trace: [], outlines: 0, seconds: 0, length: 0, dips: 0, carriage: null, air: [], ink: false, fault: '' };
-const runOpts = rows => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER });
+const runOpts = rows => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.tail, lift: false, ink: S.ink, snake: true, pause: false, rows, here: hereNow(), cup: dipCup(), noDipUnder: NO_DIP, hover: ELBOW_HOVER, ...(TAB === 'holo2' ? { press: S.press } : {}) });
 function plan() {
   const here = hereNow(), P = planNow(), key = JSON.stringify([plKey, S.width, S.speed, S.travel, S.tail, S.ink, here, S.ink ? dipCup() : null]);
   if (PLAN && key === planKey) return PLAN;
@@ -287,7 +288,8 @@ function draw() {
 // 3 Drag, Result as on LOVE; while a point is dragged, the design, quick.
 function drawView() {
   if (grab) { panelDraw(c => drawDesign(c, spinesNow())); return; }
-  if (TAB === 'holo2' && ['p1', 'p2', 'drag'].includes(S.view)) { panelDraw(c => drawDesign(c, spinesNow(), 0.12)); panelDraw(holoDraw); return; }
+  if (TAB === 'holo2' && H2P) { panelDraw(c => drawDesign(c, spinesNow(), 0.10)); panelDraw(holoPlayDraw); return; }
+  if (TAB === 'holo2' && S.view === 'drag') { panelDraw(c => drawDesign(c, spinesNow(), 0.12)); panelDraw(holoDraw); return; }
   if (S.view === 'design') { panelDraw(c => drawDesign(c, spinesNow())); return; }
   if (S.view === 'result') { drawResult(); return; }
   if (S.view === 'trace') { drawTrace(1); return; }
@@ -557,7 +559,7 @@ function play() {
   requestAnimationFrame(tick);
 }
 function stopPlay() { if (!PLAY) return; PLAY = null; showPlay(); }
-function showPlay() { const b = $('#btnPlay'); b.classList.toggle('on', !!PLAY); b.textContent = PLAY ? '■ Stop playing' : '▶ Play the run'; }
+function showPlay() { const b = $('#btnPlay'); if (TAB === 'holo2') { b.classList.toggle('on', !!H2P); b.textContent = H2P ? '■ Stop' : '▶ Play'; return; } b.classList.toggle('on', !!PLAY); b.textContent = PLAY ? '■ Stop playing' : '▶ Play the run'; }
 
 // ---------- the run as it goes (LOVE's) ----------
 let trailOf = null, lastSt = null, RUN = null, RUN_INFO = null;
@@ -1311,11 +1313,70 @@ async function runHolo(k) {
   if (!confirm(`RUN ${k} · ${k === 1 ? 'LIGHT' : 'SHADOW'} ${TAB_NAME}, ${what()}: ${R.jars.length} jar${R.jars.length === 1 ? '' : 's'}, light to dark — ${R.jars.map(q => NAME[q]).join(', ')}. `
     + `A jar's zones in turn: its dabs, upright, a dip each, then at once its snake over them, no dip; ${R.dabs} dabs, ${fmt(R.mm / 1000, 1)} m of snakes, ≈ ${fmt(R.seconds / 60, 0)} min (est.). `
     + `${R.jars.length > 1 ? `It stops ${R.jars.length - 1} time${R.jars.length > 2 ? 's' : ''} for the next jar. ` : ''}${k === 2 ? 'On the dry first layer. ' : ''}Put ${NAME[R.jars[0]]} in the cup now.`)) return;
-  S.view = k === 1 ? 'p1' : 'p2'; settle();
+  S.view = 'drag'; RUN_PRESS = S.press; settle();
   await start(`run${k}`, R.blocks, { seconds: R.seconds, rows: R.rows },
     { page: TAB, pass: `run ${k}`, label: label(), settings: S, here: hereNow(), cup: cup(), counts: { dabs: R.dabs, snakes_mm: Math.round(R.mm) }, estimate_s: Math.round(R.seconds) });
 }
+// ▶ Play (FORM-G's and HOLO's, the owner: "Picture, Drag, ▶ Play — that is what we need"): the runs as the machine will go, RUN 1 then RUN 2, a jar
+// at a time, its zones in turn — its dabs, then its snake, lane after lane, the brush down — over the pipes veiled; HOLO's clock, the clock squared,
+// 18 s. A view: it moves nothing
+var H2P = null;
+const H2_DAB_S = 9;   // s a dab (HOLO's, est.)
+function holoPlay() {
+  if (H2P) { H2P = null; showPlay(); kick(); return; }
+  stopPlay();
+  const moves = []; let t = 0;
+  for (const k of [1, 2]) for (const paint of holoJars(k)) for (const z of holoZones().filter(z => z.layer === k && z.paint === paint)) {
+    for (const [x, y] of z.dabs) moves.push({ dab: [x, y], hex: HEX[paint], from: t, to: (t += H2_DAB_S) });
+    for (const P of snakesOfZone(z)) { const L = P.slice(1).reduce((u, q, i) => u + Math.hypot(q[0] - P[i][0], q[1] - P[i][1]), 0); moves.push({ P, L, hex: HEX[paint], from: t, to: (t += L / S.drag) }); }
+  }
+  if (!moves.length) return;
+  H2P = { moves, end: t, t0: performance.now(), want: 0 }; showPlay();
+  const tick = () => {
+    if (!H2P) return;
+    const u = Math.min(1, (performance.now() - H2P.t0) / 18000); H2P.want = H2P.end * u * u; draw();
+    if (u < 1) requestAnimationFrame(tick); else setTimeout(() => { H2P = null; showPlay(); kick(); }, 1500);
+  };
+  requestAnimationFrame(tick);
+}
+function holoPlayDraw(c) {
+  const Q = H2P; if (!Q) return;
+  c.lineCap = 'butt'; c.lineJoin = 'round';
+  for (const m of Q.moves) {
+    if (m.from > Q.want) break;
+    if (m.dab) { c.fillStyle = m.hex; c.beginPath(); c.ellipse(m.dab[0], m.dab[1], 2, 4, 0, 0, 7); c.fill(); continue; }
+    let want = Math.min(1, (Q.want - m.from) / (m.to - m.from || 1)) * m.L, P = [m.P[0]];
+    for (let i = 1; i < m.P.length && want > 0; i++) { const d = Math.hypot(m.P[i][0] - m.P[i - 1][0], m.P[i][1] - m.P[i - 1][1]); if (d <= want) { P.push(m.P[i]); want -= d; } else { const f = want / d; P.push([m.P[i - 1][0] + (m.P[i][0] - m.P[i - 1][0]) * f, m.P[i - 1][1] + (m.P[i][1] - m.P[i - 1][1]) * f]); want = 0; } }
+    c.strokeStyle = m.hex; c.lineWidth = Math.max(0.5, S.brush * 0.9); ln(c, P); c.stroke();
+  }
+}
+// ELBOW LIVE · BRUSH (FORM-G's): the brush pressed at so many degrees, 0° its pose, minus down; during a run of this page, from the next stroke on,
+// rembrandt.py's trim
+let RUN_PRESS = null, elbowT = null;
+const LIVE_STATES = ['running', 'stopping', 'pausing', 'paused'];
+const elbowLive = () => !!lastSt && LIVE_STATES.includes(lastSt.state) && ['run1', 'run2', 'bw'].includes(RUN_KEY);
+function showElbow() {
+  const sl = $('#brushSl'); if (!sl) return; sl.min = -4; sl.max = 8;
+  if (document.activeElement !== sl) sl.value = S.press;
+  $('#brushNow').textContent = `${S.press >= 0 ? '+' : '−'}${Math.abs(S.press).toFixed(1)}°`;
+  $('#elbowBrush').classList.toggle('live', elbowLive());
+}
+function setElbow(deg) {
+  const v = Math.max(-4, Math.min(8, Math.round(deg * 10) / 10)); if (v === S.press) return;
+  const on = elbowLive();
+  if (on && RUN_PRESS === null) RUN_PRESS = S.press - (lastSt.trim ?? 0);
+  S.press = v; save(); showElbow(); PLAN = null;
+  if (on) { clearTimeout(elbowT); elbowT = setTimeout(async () => {
+    try { const r = await fetch(`/run/trim?deg=${Math.round((S.press - RUN_PRESS) * 10) / 10}`, { method: 'POST' }); $('#runState').innerHTML = r.ok ? '' : `<span class="warn">ELBOW LIVE: ${(await r.text()).replace(/</g, '&lt;')}</span>`; } catch { $('#runState').textContent = 'start rembrandt.py'; }
+  }, 120); }
+}
 if (TAB === 'holo2') {
+  $('#btnPlay').onclick = holoPlay;
+  $('#brushSl').oninput = e => setElbow(+e.target.value);
+  document.querySelectorAll('#elbowBrush [data-btrim]').forEach(b => { b.onclick = () => setElbow(S.press + +b.dataset.btrim); });
+  setInterval(showElbow, 500); showElbow();
+  // HOME (FORM-G's): the brush up, the carriage back to home, when nothing runs — in the snake switch's place (DRAG SNAKE always)
+  $('#btnHome').onclick = () => { if (lastSt && LIVE_STATES.includes(lastSt.state)) { $('#runState').innerHTML = '<span class="warn">A run is on: STOP it first.</span>'; return; } start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, { page: TAB, label: `${TAB_NAME} · HOME`, here: hereNow() }); };
   $('#btnRun1').onclick = () => runHolo(1);
   $('#btnRun2').onclick = () => runHolo(2);
   // DRAW BW: TRACE's outlines in one pen, no dip — once, over the first line, a pause: the brush out, the pen in, its tip on the paper
@@ -1328,7 +1389,7 @@ if (TAB === 'holo2') {
     const blocks = P_.blocks.slice(), first = blocks.findIndex(b => b.kind === 'move' && b.row === 1);
     if (first >= 0) blocks.splice(first + 1, 0, { kind: 'p-pause', why: 'DRAW BW: the brush out, the pen in the holder, its tip on the paper; then Continue', row: 1 });
     if (!confirm(`DRAW BW ${TAB_NAME}, ${what()}: ${P_.outlines} outlines in one pen, no dip, ≈ ${fmt(P_.seconds / 60, 0)} min (est.). It stops once over the first line: the brush out, the pen in, then Continue.`)) return;
-    S.view = 'trace'; settle();
+    S.view = 'result'; RUN_PRESS = S.press; settle();
     await start('bw', blocks, { seconds: P_.seconds, rows: P_.rows }, { page: TAB, pass: 'draw bw', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(P_.seconds) });
   };
 }
