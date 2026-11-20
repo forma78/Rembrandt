@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **HOLO2, after HOLO: the brush along ribbons, lane by lane, in HOLO's two layers** (2026-11-20; the owner: "a new tab on the basis of HOLO …
+  Untitled-19.png on 60 × 60, no more than 10 colours"; "the brush goes back and forth without a stop … these horizontal lines are the most
+  dangerous … we draw them all the same, but on paper in the canvas's place, and test"; "the blues and the whites in one layer, the red and the yellow
+  in the other"; of the first try, strokes across the ribbons: "the stripes must run along, as the markings of a road, not as the boards of a fence or
+  sleepers"). `holo2.html`, `src/holo2plan.js`, `src/holo2.js`, HOLO's page and machine keys (LAYER 1 · LAYER 2 in RUN 1 · RUN 2's place, ⚠ Horizontal);
+  `HOLO2/generator/holo2_gen.py` → `app/holo2/holo2-19.*`: lanes 5 mm apart along the ribbons, a colour's band a snake, 9 of his jars (Sky Blue under the
+  canvas's 600 mm went to Sky, the canon of the jars), 39 m of line, 15 m of it within 30° of the horizontal, ≈ 2 h 50 min (est.). Not run.
 - **LIBRARY-G, after GEN-F: FORM-G's library to look at while it paints; 💾 SAVE · 📂 LOAD of a picture's jars** (2026-11-19; the owner, the Targa
   running: "while a picture is being painted I cannot switch between the pictures in the library at all … let us make, right after GEN-F, a tab
   LIBRARY-G, so that we do not confuse it with the library for OPM and I can study the files in peace"; "I can keep there different versions of the

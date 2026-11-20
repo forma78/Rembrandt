@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · HOLO2</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* HOLO2: HOLO's page — the library on the left, the picture, the panel on the right */
+  body.type{grid-template-columns:132px minmax(0,1fr) 340px}
+  body.type .top{grid-column:1/3}
+  body.type .stage{grid-column:2;grid-row:2/4}
+  body.type .panel{grid-column:3}
+  body.type .status{grid-column:1/4}
+  .fg-shelf{grid-column:1;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-right:1px solid var(--line);background:#ECEAE6}
+  html.night .fg-shelf{background:#26282B}
+  .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .type .runkeys.deck.passes{grid-template-columns:repeat(3,1fr)}   /* DRAW BW · LAYER 1 · LAYER 2, HOLO's DRAW BW · RUN 1 · RUN 2 */
+  .type .runkeys.deck.passes .btn{padding-left:4px;padding-right:4px;letter-spacing:.02em;white-space:nowrap}   /* three in a row, each its own width */
+  .type #views .tog,.type #views .tog[data-view]{flex:1 1 auto;min-width:0;font-size:10px;padding-left:2px;padding-right:2px}   /* six views in the panel's width, Contour with them, each its own width */
+  .type #views #btnPlay{flex:none;padding-left:5px;padding-right:5px}
+  .remotebox{margin-top:8px;padding:10px;border-radius:8px;background:#fff;color:#24221F;font-size:11px;line-height:1.4}
+  .remotebox svg{display:block;width:180px;height:180px;margin:0 auto 6px}
+  .remotebox p{margin:0 0 4px}
+  .remotebox code{display:block;word-break:break-all;font-size:10px;color:#6B665E}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #cv.drag{cursor:grabbing}
+  .fg-lib{display:flex;flex-direction:column;gap:10px}
+  .fg-item{position:relative;flex:none}
+  .fg-card{display:flex;flex-direction:column;gap:5px;width:100%;box-sizing:border-box;padding:5px 5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
+  .fg-card.on{outline:2px solid var(--orange);outline-offset:1px}
+  .fg-card img{display:block;width:100%;height:92px;object-fit:contain;background:#F3F0E6;border-radius:5px}
+  .fg-card b{font:600 11px/16px var(--mono);letter-spacing:.06em;padding-right:20px}
+  .fg-card .sz{margin-top:-4px;font:500 10px/14px var(--mono);letter-spacing:.04em;color:var(--mute);padding-right:20px}
+  .fg-item .info{position:absolute;right:6px;bottom:6px;margin:0}
+  .fg-pop{position:fixed;z-index:60;width:290px;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:var(--card,#F7F5F1);color:var(--ink);font-size:11.5px;line-height:1.42;box-shadow:0 8px 28px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.08);pointer-events:none}
+  .fg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 8px;margin-top:6px}
+  .fg-grid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .fg-grid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:5px 6px;font:12px var(--mono)}
+  #runList{max-height:none;margin:6px 0 0;padding:0;list-style:none}
+  #runList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px;cursor:pointer}
+  #runList li:hover{background:rgba(127,127,127,.14)}
+  #runList li.only{outline:1.5px solid var(--orange)}
+  #runList li.now{background:rgba(235,122,37,.2)}
+  #runList li.done{opacity:.45}
+  #runList .no{font:10px var(--mono);color:var(--mute);text-align:right}
+  #runList .sw,.newjars .sw{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  #runList .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #runList .nm em{font:normal 9.5px var(--mono);color:var(--mute)}
+  #runList .nm .new{font:600 9px var(--mono);letter-spacing:.06em;color:#B3470C}
+  #runList .tg{font:10px var(--mono);color:var(--mute)}
+  #runList li.fg-sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:default}
+  #runList li.fg-sep:first-child{margin-top:0;border-top:0}
+  #runList li.fg-sep:hover{background:none}
+  .newjars{margin:10px 0 0;padding:0;list-style:none;font-size:11px;line-height:1.38}
+  .newjars li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:6px;align-items:start;padding:3px 0}
+  .newjars li .sw{margin-top:1px}
+  .newjars b{font-weight:600}
+  .newjars span{color:var(--mute)}
+  .holo-note{margin:8px 0 0;font-size:11px;line-height:1.4;color:var(--mute)}
+  .flatkey{width:100%;margin-top:6px}
+  .askbox .wait{margin:6px 0 2px;padding:8px 10px;border-radius:8px;background:rgba(235,122,37,.14);font-size:12px;line-height:1.4}
+  @media (max-width: 760px), (max-height: 500px) {                                  /* a phone: the library a row under the picture */
+    .fg-shelf{order:3;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px}
+    .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
+    .fg-item{width:104px}
+  }
+</style>
+</head>
+<body class="adjust arm3 nolan type love alu ccd" data-tab="holo2">
+<!-- Rembrandt · HOLO2 (2026-11-20): HOLO's two layers, the brush along ribbons, lane by lane, as a road's markings. The owner: "the brush goes back and forth without a stop, now and then
+     going down on a diagonal or a short way left or right. These horizontal lines are the most dangerous: the paint may not lay there, our brush is flat. We
+     draw the horizontal lines all the same, but on paper in the canvas's place, and test"; "the principle Layer 1, Layer 2 … the blues and the whites go in
+     one layer, the red and the yellow in the other". HOLO's page and machine keys, LAYER 1 · LAYER 2 in RUN 1 · RUN 2's place. src/holo2plan.js,
+     src/holo2.js; its pictures in holo2/, made by HOLO2/generator/holo2_gen.py off the owner's drawings in HOLO2/. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.2.6</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="holo.html">HOLO</a>
+      <a href="holo2.html" class="on">HOLO2</a>
+      <a href="formg.html">FORM-G</a>
+      <a href="opmn.html">OPM-N</a>
+      <a href="lab.html">LAB</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <section class="stage" id="stage"><canvas id="cv"></canvas></section>
+  <aside class="fg-shelf" aria-label="The library">
+    <h3>The library</h3>
+    <div class="fg-lib" id="lib"></div>
+  </aside>
+  <aside class="panel">
+    <section class="sec">
+      <h3>Progress <span id="lamp"></span></h3>
+      <div class="lcd" id="lcd" aria-live="polite"></div>
+      <p class="runstate" id="runState"></p>
+      <div class="runkeys deck">
+        <button class="btn" id="btnTest" title="TEST, before the run: one dip in the cup, a dot at each corner of the field, four dots to lay the canvas by, and home"><svg viewBox="0 0 24 24"><rect x="4.5" y="4.5" width="15" height="15" rx="1" class="thin"/><circle cx="8" cy="8" r="1.7" class="dot"/><circle cx="16" cy="8" r="1.7" class="dot"/><circle cx="16" cy="16" r="1.7" class="dot"/><circle cx="8" cy="16" r="1.7" class="dot"/></svg><span>Test</span></button>
+        <button class="btn" id="btnPause" title="PAUSE: the carriage brakes on its line; CONT. goes on from there"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
+      </div>
+      <!-- DRAW BW, FORM-G's (2026-11-14); the two runs, HOLO.md: run 1 the light, run 2 the shadow on the dry first; each a jar at a time, its puddles laid a batch, then dragged -->
+      <div class="runkeys deck passes">
+        <button class="btn pass" id="btnBw" data-pass="bw" title="DRAW BW, FORM-G's: the lines in one pen, in the brush's holder — its question picks: the outline alone, where the paint meets the bare canvas, to lay the canvas by; or every border between two colours too, to study the picture: the strokes as the brush lays them, run 1's grounds and where run 2's shadows start and end. Every line once; no dip, no jar. It stops once, over the first line, the holder down: the brush out, the pen in, its tip on the paper, Continue. The pen draws at the brush's elbow (Elbow live · brush), so it goes where the brush will paint"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z" class="fill"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw BW</span></button>
+        <button class="btn pass" id="btnRun1" data-run="1" title="LAYER 1 · COOL: the blues and the white, a jar at a time, light to dark. A jar's ribbons a snake at a time: its puddles first, a dab on a leg's start every so many mm of line — a dip, then the brush down there, a mark of 8 mm along the lane — then the snake over them, no dip: along a lane, a few mm aside to the next, back along it, the brush down from end to end, whatever the way. Its question: Start from"><svg viewBox="0 0 24 24"><path d="M5 5v14M5 19h4M9 19v-14M9 5h4M13 5v14M13 19h4M17 19v-14" class="bold"/></svg><span>Layer 1 · cool</span></button>
+        <button class="btn pass" id="btnRun2" data-run="2" title="LAYER 2 · WARM, on the dry first layer: the reds and the yellow, a jar at a time, light to dark, as Layer 1 — the yellow never wet beside the blue, so no mud. Its question: Start from"><svg viewBox="0 0 24 24"><path d="M5 5v14M5 5h4M9 19v-14M9 19h4M13 5v14M13 5h4M17 19v-14" class="bold"/></svg><span>Layer 2 · warm</span></button>
+      </div>
+      <button class="btn backone" id="btnBack" disabled title="BACK ONE JAR, FORM-G's, as a player's ⏮ by jars: the jar begun — painting it, or at the pause after it — this jar again from its start; not yet, the jar before it. From its own pause: put the jar in the cup, Continue. LAYER 1 · LAYER 2; DRAW BW and TEST have no jars to go back to">⏮ BACK ONE JAR</button>
+      <div class="stops deckstops">
+        <button class="btn" id="btnStop" title="STOP: the carriage brakes on its line">STOP</button>
+        <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
+      </div>
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="picture" title="The painting as the two runs will leave it: a model, est., not a photo">Picture</button>
+        <button class="tog" data-view="p1" title="Layer 1's puddles on the bare canvas, before a stroke: the blues and the white, a dab on a leg's start, along its lane">Puddles 1</button>
+        <button class="tog" data-view="p2" title="Layer 1 dragged and dry, Layer 2's puddles laid by it: the reds and the yellow">Puddles 2</button>
+        <button class="tog" data-view="drag" title="The snakes in their jars' colours, as wide as the brush: along a lane, a few mm aside to the next, back — Layer 2 over Layer 1. A jar's row in the list shows its way">Drag</button>
+        <button class="tog" data-view="contour" title="DRAW BW's lines, the pen's, as its question last picked them — the outline alone, or every border between two colours — over the picture veiled">Contour</button>
+        <button class="tog" id="btnPlay" title="The two layers as they will go, a jar after another, a snake's puddles laid, then the snake; the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
+      </div>
+      <div class="grid4 keys"><button class="btn" id="btnRemote" title="The iPhone's remote: Pause · Continue and STOP from the iPhone — its address with the key as a QR code; the iPhone on the same Wi-Fi">iPhone remote</button></div>
+      <div class="remotebox" id="remoteBox" hidden></div>
+      <div class="elbowlive" id="elbowBrush">
+        <div class="elh"><span class="elk">Elbow live · brush</span><span class="elv" id="brushNow">0.0°</span></div>
+        <div class="elrow"><button class="btn" data-btrim="-0.1" title="The brush 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="brushSl" step="0.1"><button class="btn" data-btrim="0.1" title="The brush 0.1° higher: less pressure">▲</button></div>
+      </div>
+    </section>
+    <section class="sec">
+      <h3>The canvas <span class="hint">from home, mm · a picture its own</span> <button class="info" id="canvasInfo" title="Where the canvas may lie for this picture, the walls">i</button></h3>
+      <div class="fg-grid">
+        <label title="The canvas's left edge, mm to the right of home; minus: left of it">Left edge →<input id="fLeft" type="number" step="1"></label>
+        <label title="The canvas's bottom edge, mm above home; minus: below it">Bottom edge ↑<input id="fBottom" type="number" step="1"></label>
+      </div>
+      <p class="read" id="placeRead" hidden></p>
+    </section>
+    <section class="sec">
+      <h3>The pen · the carriage <span class="hint">FORM-G's, est.</span></h3>
+      <div class="fg-grid">
+        <label title="DRAW BW: the pen along its lines, mm/s (est.)">Pen, mm/s<input id="fPen" type="number" step="1" min="5" max="120"></label>
+        <label title="The carriage between lines, to a dip, to home, the brush up: mm/s. 180 slipped the X belt with the jar on the carriage (2026-11-10)">Travel, mm/s<input id="fTravel" type="number" step="5" min="20" max="180"></label>
+      </div>
+      <p class="read" id="bwRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The puddles · the snakes <span class="hint">est. — the paper gives them</span></h3>
+      <div class="fg-grid">
+        <label title="A dab on a leg's start every so many mm of line along the snake (HOLO's 55: how far a dab lasts, est.); a snake's first leg always">A dab every, mm<input id="fLasts" type="number" step="1" min="20" max="150"></label>
+        <label title="A snake's dabs at most: its puddles laid, then dragged while wet (FORM-G's 80 drops an area, ≈ 14 min, under the 20 min the paint holds); a longer snake in parts, each on its dab">Snake, dabs<input id="fGroup" type="number" step="5" min="10" max="200"></label>
+        <label title="A dab's time: a hand dip at the cup at hand (≈ 6 s, the run journal), the way to its place and the mark">A dab, s<input id="fSDab" type="number" step="0.5" min="2" max="30"></label>
+        <label title="The brush along a snake, mm/s">Speed, mm/s<input id="fSpeed" type="number" step="1" min="5" max="120"></label>
+        <label title="A dab: HOLO's mark, the brush down along the lane, mm">Dab leg, mm<input id="fMark" type="number" step="1" min="2" max="20" disabled></label>
+      </div>
+      <p class="read" id="puddleRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The horizontal strokes <span class="hint">the flat brush, on paper first</span></h3>
+      <button class="btn flatkey" id="btnFlat" title="Every stretch of a lane within 30° of the horizontal (the machine's Y) dashed along its middle, over the view: where the flat brush may not lay the paint — the fragments to photograph on the paper">⚠ Horizontal</button>
+      <p class="read" id="flatRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The jars <span class="hint" id="jarsHint"></span></h3>
+      <ol id="runList"></ol>
+      <ul class="newjars" id="newJars"></ul>
+      <p class="holo-note" id="jarNote"></p>
+    </section>
+  </aside>
+</main>
+
+<div class="fg-pop" id="libPop" role="tooltip" hidden></div>
+
+<div class="ask" id="drawAsk" hidden>
+  <div class="askbox drawask" role="dialog" aria-labelledby="drawAskTitle">
+    <h3 id="drawAskTitle">DRAW BW</h3>
+    <div class="firstpen" id="drawAskFirst"></div>
+    <label class="askfrom" id="drawAskFrom" title="The outline alone, or every border between two colours; this question only"><span>Draw</span><select id="drawFrom"></select></label>
+    <p id="drawAskText"></p>
+    <div class="grid4 keys"><button class="btn pass" id="drawGo">✎ DRAW BW</button><button class="btn" id="drawNo">Cancel</button></div>
+  </div>
+</div>
+
+<div class="ask" id="runAsk" hidden>
+  <div class="askbox drawask" role="dialog" aria-labelledby="runAskTitle">
+    <h3 id="runAskTitle">RUN</h3>
+    <div class="firstpen" id="runAskFirst"></div>
+    <label class="askfrom" id="runAskFrom" title="The run from this line of the list on, the ones before it not painted again; this question only"><span>Start from</span><select id="runFrom"></select></label>
+    <ol class="runlist one" id="runAskList"></ol>
+    <p id="runAskText"></p>
+    <p class="wait">Paper first, in the canvas's place (the owner, 2026-11-20): the horizontal strokes may not lay — photograph them, and the dabs' reach; every number here est.</p>
+    <div class="grid4 keys"><button class="btn pass" id="runGo">▶ RUN</button><button class="btn" id="runNo">Cancel</button></div>
+  </div>
+</div>
+
+<footer class="status">
+  <span id="hint">HOLO2 — the brush along the ribbons' lanes, two layers: the blues and the white, then the reds and the yellow. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its snakes.</span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/holo2.js"></script>
+</body>
+</html>
