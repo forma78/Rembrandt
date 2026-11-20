@@ -99,14 +99,18 @@
         <button class="btn" id="btnPause" title="PAUSE the run; pressed, CONT. goes on"><svg viewBox="0 0 24 24" class="i-pause"><path d="M9 6v12M15 6v12" class="bold"/></svg><svg viewBox="0 0 24 24" class="i-cont"><path d="M8.5 6l10 6-10 6z" class="fill"/></svg><span>Pause</span></button>
       </div>
       <div class="runkeys deck passes">
-        <button class="btn pass" id="btnTrace" data-pass="trace" title="TRACE, pass 1: the outline of every pipe in watercolour, from the cup"><svg viewBox="0 0 24 24"><path d="M2.5 9.5h12a3 3 0 0 1 3 3v9M2.5 15.5h6a3 3 0 0 1 3 3v3"/></svg><span>Trace</span></button>
-        <button class="btn pass" id="btnMarks" data-pass="marks" title="MARKS, pass 2: a mark across the pipe where each paint goes, lane 1 to lane n, from the same cup as TRACE"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" class="thin"/><path d="M8 5v14M14 5v14"/></svg><span>Marks</span></button>
-        <button class="btn pass" id="btnDrag" data-pass="drag" title="DRAG, pass 3: the dry brush through the paint, every lane the whole pipe, no dip"><svg viewBox="0 0 24 24"><path d="M3 7h13M3 12h16M3 17h13"/><path d="M16 9l3 3-3 3"/></svg><span>Drag</span></button>
+        <button class="btn pass" hidden id="btnTrace" data-pass="trace" title="TRACE, pass 1: the outline of every pipe in watercolour, from the cup"><svg viewBox="0 0 24 24"><path d="M2.5 9.5h12a3 3 0 0 1 3 3v9M2.5 15.5h6a3 3 0 0 1 3 3v3"/></svg><span>Trace</span></button>
+        <button class="btn pass" hidden id="btnMarks" data-pass="marks" title="MARKS, pass 2: a mark across the pipe where each paint goes, lane 1 to lane n, from the same cup as TRACE"><svg viewBox="0 0 24 24"><path d="M3 8h18M3 16h18" class="thin"/><path d="M8 5v14M14 5v14"/></svg><span>Marks</span></button>
+        <button class="btn pass" hidden id="btnDrag" data-pass="drag" title="DRAG, pass 3: the dry brush through the paint, every lane the whole pipe, no dip"><svg viewBox="0 0 24 24"><path d="M3 7h13M3 12h16M3 17h13"/><path d="M16 9l3 3-3 3"/></svg><span>Drag</span></button>
+        <!-- HOLO's (2026-11-20): DRAW BW, RUN 1 · LIGHT, RUN 2 · SHADOW in TRACE, MARKS and DRAG's place -->
+        <button class="btn pass" id="btnBw" title="DRAW BW: the pipes' outlines in one pen, in the brush's holder, no dip — it stops once over the first line: the brush out, the pen in, its tip on the paper, Continue"><svg viewBox="0 0 24 24"><path d="M5 19l2.5-.6L18.4 7.5a1.6 1.6 0 0 0-2.3-2.3L5.6 16.1z" class="fill"/><path d="M4 21.5h7" class="thin"/></svg><span>Draw BW</span></button>
+        <button class="btn pass" id="btnRun1" title="RUN 1 · LIGHT: the blues and the white, a jar at a time, light to dark. A jar's zones in turn — its dabs, upright, a dip each, then at once its snake over them, lane after lane, no dip"><svg viewBox="0 0 24 24"><circle cx="7" cy="6" r="1.8" class="dot"/><circle cx="7" cy="12" r="1.8" class="dot"/><circle cx="7" cy="18" r="1.8" class="dot"/><path d="M15 4v16" class="bold"/></svg><span>Run 1 · light</span></button>
+        <button class="btn pass" id="btnRun2" title="RUN 2 · SHADOW, on the dry first layer: the reds and the yellow, a jar at a time, light to dark, as RUN 1"><svg viewBox="0 0 24 24"><circle cx="8" cy="5.5" r="2.2" class="dot"/><path d="M8 8v11" class="bold"/><path d="M16 5.5v14" class="thin"/></svg><span>Run 2 · shadow</span></button>
       </div>
       <div class="stops deckstops">
         <button class="btn" id="btnStop" title="Stop the carriage and the arm, braking (Esc)">STOP</button>
         <!-- the snake (the owner, 2026-10-10): the repeat icon 🔁, Off and On as INK's, ON by default; HARD STOP gone ("I do not use it") -->
-        <div class="inline check loopsw" title="The snake, for DRAG: ON, a pipe's lanes back and forth with the brush down, a step across at each end, no flight back to the start; OFF, each lane one way, a lift after each"><svg id="snakeIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5V10a4 4 0 0 1 4-4h11.5"/><path d="M16.5 3l3 3-3 3"/><path d="M20 12.5V14a4 4 0 0 1-4 4H4.5"/><path d="M7.5 15l-3 3 3 3"/></svg><span class="side" id="snakeOff">Off</span><input id="snake" type="checkbox" aria-label="Snake"><span class="side" id="snakeOn">On</span></div>
+        <div hidden class="inline check loopsw" title="The snake, for DRAG: ON, a pipe's lanes back and forth with the brush down, a step across at each end, no flight back to the start; OFF, each lane one way, a lift after each"><svg id="snakeIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5V10a4 4 0 0 1 4-4h11.5"/><path d="M16.5 3l3 3-3 3"/><path d="M20 12.5V14a4 4 0 0 1-4 4H4.5"/><path d="M7.5 15l-3 3 3 3"/></svg><span class="side" id="snakeOff">Off</span><input id="snake" type="checkbox" aria-label="Snake"><span class="side" id="snakeOn">On</span></div>
       </div>
     </section>
 
@@ -116,8 +120,8 @@
     </div>
     <section class="sec">
       <h3>HOLO2 <span class="hint">the owner's jars</span></h3>
-      <h4 class="first">Where pipes cross</h4>
-      <div class="toggles looks" id="overlaps">
+      <h4 class="first" hidden>Where pipes cross</h4>
+      <div class="toggles looks" id="overlaps" hidden>
         <button class="tog" data-overlap="wet" title="One session: every pipe marked and dragged wet on wet; a lane passing wet paint loads it and carries it on">Wet on wet</button>
         <button class="tog" data-overlap="dry" title="A pipe that touches an earlier one waits for it to dry: a session later">Dry between pipes</button>
       </div>
@@ -128,11 +132,11 @@
       </div>
       <!-- the passes as they will look, and the design; a view only -->
       <div class="toggles looks" id="views">
-        <button class="tog" data-view="design" title="The design: each segment's paints laid flat, across the pipe or along it">Design</button>
-        <button class="tog" data-view="trace" title="TRACE: the pipes' outlines in watercolour, as they lie on the paper">1 Trace</button>
-        <button class="tog" data-view="marks" title="MARKS: a mark across the pipe where each paint goes, lane 1 to lane n, the colour the paint's">2 Marks</button>
-        <button class="tog" data-view="drag" title="DRAG: the brush's path, a colour a lane, its number at its start as on the owner's page, an orange dot where it lands">3 Drag</button>
-        <button class="tog" data-view="result" title="The painting: the paint mixed as pigment, the brush not washed between lanes, wet paint loaded into it where a lane passes over it">Result</button>
+        <button class="tog" data-view="result" title="The painting as the brush will leave it: the paint mixed as pigment, a model (est.)">Picture</button>
+        <button class="tog" data-view="p1" title="RUN 1's dabs on the bare canvas: the blues and the white, upright, one on every lane at every mark">Puddles 1</button>
+        <button class="tog" data-view="p2" title="RUN 2's dabs: the reds and the yellow, upright">Puddles 2</button>
+        <button class="tog" data-view="drag" title="Every zone's snake in its jar's colour, as wide as the brush: lane after lane, back and forth">Drag</button>
+        <button class="tog" data-view="trace" title="DRAW BW's lines: the pipes' outlines, the pen's">Contour</button>
       </div>
       <div class="grid4 keys"><button class="btn" id="btnPlay" title="Result laid again in the order the brush goes, lane after lane; pressed again, it stops. A view: it moves nothing on the machine">▶ Play the run</button></div>
       <div class="toggles looks" id="sessions" hidden></div>
@@ -142,8 +146,8 @@
         <button class="btn" id="btnRecolour" title="New colours: the families picked again, the lines kept">New colours</button>
       </div>
       <p class="read" id="seedRead"></p>
-      <h4>Pipes, bottom to top</h4>
-      <div class="toggles looks wrap" id="pipes"></div>
+      <h4 hidden>Pipes, bottom to top</h4>
+      <div class="toggles looks wrap" id="pipes" hidden></div>
       <div class="grid4 keys">
         <button class="btn" id="btnNewPipe" title="A new pipe on top, in whole lanes; the Draw tool to lay its points">New pipe</button>
         <button class="btn" id="btnUndoPt" title="Take the chosen pipe's last point away">Remove last point</button>

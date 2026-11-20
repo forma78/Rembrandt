@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **HOLO2: HOLO's deck on ALU's pipes — DRAW BW, RUN 1 · LIGHT, RUN 2 · SHADOW** (2026-11-20; the owner: "you carried over the old navigation,
+  MARKS, DRAG; there is no split into two layers; TRACE stands in DRAW BW's place; there are no RUN 1 · LIGHT / RUN 2 · SHADOW … pipes bottom to
+  top — maybe take it out altogether?"). A pipe's marks, ALU's, every mark its paint up to the next: a run of one jar's marks a zone; a jar's zones
+  in turn, its dabs upright (8 mm along X, a dip each, one on every lane at every mark), then at once its snake over them, no dip, 10 mm on (est.);
+  RUN 1 the blues and the white, RUN 2 the reds and the yellow, light to dark, a pause a jar. DRAW BW TRACE's outlines in one pen, no dip, a pause
+  to put the pen in. Views Picture, Puddles 1, Puddles 2, Drag, Contour. TRACE, MARKS, DRAG, the snake switch, Where pipes cross and Pipes,
+  bottom to top hidden on HOLO2 (New pipe and Remove last point kept); one session always. `alu.js` (`holoZones`, `holoRun`), `holo2.html`.
 - **HOLO2 is ALU with the owner's jars** (2026-11-20; the owner: "ALU is the cleanest … let us take it as the base, with all its tools for
   drawing, but with our palette COLORS"; of the generated plans: "too complicated, we will burn all the tokens"). `holo2.html` SMKN's way: ALU's page
   and plan, `data-tab="holo2"`, `aluplan.js`'s `HOLO2_TUBES` (60 jars: Jar 1 … 52, Black, HOLO's unnumbered) and `HOLO2_FAMILIES` (the two layers');

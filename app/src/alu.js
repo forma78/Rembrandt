@@ -27,7 +27,7 @@ import { cornerDots, testMargin, testSay, washOf, DIP_RUN, NO_DIP } from './band
 import {
   PALETTES, HEX, NAME, M, spineOf, frameAt, offsetRange, segsOf, isLanes, handMarks, pipesOf, compose, recolour, recolourSeg, lettFamily, newPipe,
   planOf, paintWalk, lanesOf, paintAt, groupOf, ringOf, traceOf, traceRows, marksRows, dragRows, dragPasses, rgbOf, mixRGB,
-  traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS,
+  traceSvg, marksSvg, dragSvg, paintMapSvg, planJson, slugOf, MARKS_DIP, OVERLAPS, fitRun,
 } from './aluplan.js';
 import { drawWash } from './wash.js';
 import { CANVAS_FIELDS as FIELDS, canvasNow, setCanvas, onCanvas } from './canvas.js';
@@ -68,7 +68,7 @@ const S = {
   cutMark: 2,                                                                        // ALU-CUT: mm from a cut to its part's end marks, 0 … 3 (est.)
 };
 const NUM = ['cutMark', 'sel', 'seg', 'cw', 'ch', 'brush', 'lanes', 'xstep', 'over', 'drag', 'spacing', 'width', 'speed', 'travel', 'tail', 'run', 'dryTail', 'mix', 'pick', 'session', 'boardW', 'boardH', 'edgeLeft', 'edgeBottom', 'refOpacity'];
-const VIEWS = ['design', 'trace', 'marks', 'drag', 'result'], TOOLS = ['edit', 'draw', 'seam', 'mark', ...(CUT ? ['cut'] : [])], GROUNDS = ['white', 'paper'];
+const VIEWS = ['design', 'trace', 'marks', 'drag', 'result', 'p1', 'p2'], TOOLS = ['edit', 'draw', 'seam', 'mark', ...(CUT ? ['cut'] : [])], GROUNDS = ['white', 'paper'];
 const GROUND = { white: '#FBFAF7', paper: '#F1ECE1' };
 const fin = v => Number.isFinite(v);
 // a pipe as it may be kept: whatever is wrong in it put right, or null
@@ -96,6 +96,7 @@ function load() {
     if (Array.isArray(o.pipes)) S.pipes = o.pipes.map(cleanPipe).filter(Boolean);
     if (fin(o.seed) || o.seed === 'paper') S.seed = o.seed;
     if (OVERLAPS.includes(o.overlap)) S.overlap = o.overlap;
+    if (TAB === 'holo2') S.overlap = 'wet';                                            // HOLO2: its two layers in the sessions' place
     if (typeof o.ink === 'boolean') S.ink = o.ink;
     if (['snake', 'one'].includes(o.aorder)) S.aorder = o.aorder;
     if (['relief', 'flat'].includes(o.look)) S.look = o.look;
@@ -286,6 +287,7 @@ function draw() {
 // 3 Drag, Result as on LOVE; while a point is dragged, the design, quick.
 function drawView() {
   if (grab) { panelDraw(c => drawDesign(c, spinesNow())); return; }
+  if (TAB === 'holo2' && ['p1', 'p2', 'drag'].includes(S.view)) { panelDraw(c => drawDesign(c, spinesNow(), 0.12)); panelDraw(holoDraw); return; }
   if (S.view === 'design') { panelDraw(c => drawDesign(c, spinesNow())); return; }
   if (S.view === 'result') { drawResult(); return; }
   if (S.view === 'trace') { drawTrace(1); return; }
@@ -1215,6 +1217,120 @@ async function watch() {
     S.next[RUN_KEY] = RUN_SES % nSes() + 1; save(); showDeck();
   }
   $('#runState').innerHTML = !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${st.message}</span>` : '';
+}
+
+
+// ---------- HOLO2: HOLO's two layers on ALU's pipes (the owner, 2026-11-20) ----------
+// "You carried over the old navigation, MARKS, DRAG; there is no split into two layers; TRACE stands in DRAW BW's place; there are no RUN 1 ·
+// LIGHT / RUN 2 · SHADOW we need." A pipe's marks as ALU lays them (every spacing, the segments' paints, or by hand), every mark the paint of
+// the pipe up to the next one: a run of marks of one jar along the pipe a zone. A jar's zones one after another, each: its dabs — at every
+// mark one on every lane, upright, HOLO's mark of 8 mm along X (the brush is flat: "only as in the first HOLO"), a dip each — then at once its
+// snake over them, no dip: lane after lane along the zone, back and forth, `over` mm past its end ("first the drops of one colour, the machine
+// drives over them, then another's"). RUN 1 · LIGHT the blues and the white, light to dark; RUN 2 · SHADOW the reds and the yellow on the dry
+// first ("yellow mixes with blue and gives mud"); between two jars a pause, the jar changed. DRAW BW: the pipes' outlines, TRACE's, in one pen,
+// no dip. All est.
+const H2 = { mark: 8, over: 10, lift: 15 };
+const warmOf = k => { const [r, , b] = rgbOf(HEX[k]); return r > b + 30; };
+const layerOfPaint = k => warmOf(k) ? 2 : 1;
+const lumOf = k => { const [r, g2, b] = rgbOf(HEX[k]); return 0.2126 * r + 0.7152 * g2 + 0.0722 * b; };
+let ZKEY = null, ZONES = [];
+function holoZones() {
+  const key = JSON.stringify([plKey, S.lanes, S.brush]);
+  if (key === ZKEY) return ZONES;
+  ZKEY = key; ZONES = [];
+  const P = planNow(), o = po();
+  P.pipes.forEach((st, si) => {
+    if (!st?.sp) return;
+    const sp = st.sp, L = sp.L, { d, order } = lanesOf(st, o);
+    const at = new Map();
+    for (const s of P.sessions) for (const m of s.marks) if (m.si === si && Number.isFinite(m.s) && !at.has(Math.round(m.s * 10))) at.set(Math.round(m.s * 10), { s: m.s, paint: m.paint });
+    const ms = [...at.values()].sort((a, b) => a.s - b.s);
+    ms.forEach((m, i) => {
+      const z = ZONES.at(-1), b = i + 1 < ms.length ? ms[i + 1].s : L;
+      if (z && z.si === si && z.paint === m.paint && Math.abs(z.b - m.s) < 0.5) { z.b = b; z.at.push(m.s); } else ZONES.push({ si, paint: m.paint, a: m.s, b, at: [m.s], d, order, sp });
+    });
+  });
+  for (const z of ZONES) {
+    const legs = z.order.map((i, k) => { const P = offsetRange(z.sp, z.a, Math.min(z.sp.L, z.b + H2.over), z.d(i)); return k % 2 ? P.slice().reverse() : P; }).filter(P => P.length > 1);
+    z.legs = legs;
+    z.dabs = z.at.flatMap(s => z.order.map(i => { const P = offsetRange(z.sp, s, Math.min(z.sp.L, s + 2), z.d(i)); if (P.length < 2) return null; const way = P[1][1] >= P[0][1] ? 1 : -1; return [P[0][0], P[0][1], way]; })).filter(Boolean);
+    z.layer = layerOfPaint(z.paint);
+  }
+  return ZONES;
+}
+// the run's list: a layer's jars light to dark, each its zones
+const holoJars = k => [...new Set(holoZones().filter(z => z.layer === k).map(z => z.paint))].sort((p, q) => lumOf(q) - lumOf(p));
+// a zone's snake: its legs end to end, the brush up only where a step is longer than `lift` mm
+function snakesOfZone(z) {
+  const out = [];
+  for (const P of z.legs) { const q = out.at(-1), e = q?.at(-1); if (q && Math.hypot(P[0][0] - e[0], P[0][1] - e[1]) <= H2.lift) q.push(...P); else out.push(P.slice()); }
+  return out;
+}
+function holoRun(k) {
+  const c = p => [p[0] - S.cw / 2, p[1] - S.ch / 2], passes = [], rows = [], jars = holoJars(k);
+  let row = 0, dabs = 0, mm = 0;
+  jars.forEach((paint, j) => {
+    const ps = [];
+    for (const z of holoZones().filter(z => z.layer === k && z.paint === paint)) {
+      for (const [x, y, way] of z.dabs) {
+        const pieces = fitRun([[x, y - way * H2.mark / 2], [x, y + way * H2.mark / 2]].map(c)); if (!pieces.length) continue;
+        row++; dabs++; ps.push(pieces.map(g2 => ({ ...g2, tilt: 0, row }))); rows.push({ label: `${NAME[paint]} · pipe ${z.si + 1} · a dab` });
+      }
+      for (const P of snakesOfZone(z)) {
+        const pieces = fitRun(P.map(c)); if (!pieces.length) continue;
+        row++; mm += P.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - P[i][0], q[1] - P[i][1]), 0);
+        ps.push(pieces.map(g2 => ({ ...g2, tilt: 0, row, nodip: true }))); rows.push({ label: `${NAME[paint]} · pipe ${z.si + 1} · the snake over its dabs, no dip` });
+      }
+    }
+    if (ps.length) passes.push({ key: `RUN ${k}`, ps, why: j ? `wipe the brush, put ${NAME[paint]} in the cup, then Continue` : null });
+  });
+  if (!row) return null;
+  return { ...plotRun({ ...runOpts(row), ink: true, noDipUnder: 0 }, passes), rows, jars, dabs, mm };
+}
+// Puddles 1 · 2: a layer's dabs upright in their jars, over the pipes veiled; Drag: every zone's snake in its jar, the brush wide
+function holoDraw(c) {
+  const Z = holoZones();
+  if (S.view === 'drag') {
+    c.lineCap = 'butt';
+    for (const k of [1, 2]) for (const z of Z) if (z.layer === k) { c.strokeStyle = HEX[z.paint]; c.lineWidth = Math.max(0.5, S.brush * 0.9); for (const P of snakesOfZone(z)) { ln(c, P); c.stroke(); } }
+    return;
+  }
+  const k = S.view === 'p1' ? 1 : 2;
+  for (const z of Z) if (z.layer === k) {
+    c.fillStyle = HEX[z.paint];
+    for (const [x, y] of z.dabs) { c.beginPath(); c.ellipse(x, y, 2, 4, 0, 0, 7); c.fill(); }
+  }
+}
+async function runHolo(k) {
+  await loadInk(); settle();
+  const R = holoRun(k);
+  if (!R) { $('#runState').innerHTML = `<span class="warn">Nothing to run: no ${k === 1 ? 'blue or white' : 'red or yellow'} jar on the pipes' marks.</span>`; return; }
+  if (cupProblem(cup())) { $('#runState').innerHTML = `<span class="warn">The cup: ${cupProblem(cup())}</span>`; return; }
+  if (walls(R)) { $('#runState').innerHTML = `<span class="warn">${walls(R)}</span>`; return; }
+  if (R.fault) { $('#runState').innerHTML = `<span class="warn">Not run: the plan is wrong — ${R.fault}.</span>`; return; }
+  if (!confirm(`RUN ${k} · ${k === 1 ? 'LIGHT' : 'SHADOW'} ${TAB_NAME}, ${what()}: ${R.jars.length} jar${R.jars.length === 1 ? '' : 's'}, light to dark — ${R.jars.map(q => NAME[q]).join(', ')}. `
+    + `A jar's zones in turn: its dabs, upright, a dip each, then at once its snake over them, no dip; ${R.dabs} dabs, ${fmt(R.mm / 1000, 1)} m of snakes, ≈ ${fmt(R.seconds / 60, 0)} min (est.). `
+    + `${R.jars.length > 1 ? `It stops ${R.jars.length - 1} time${R.jars.length > 2 ? 's' : ''} for the next jar. ` : ''}${k === 2 ? 'On the dry first layer. ' : ''}Put ${NAME[R.jars[0]]} in the cup now.`)) return;
+  S.view = k === 1 ? 'p1' : 'p2'; settle();
+  await start(`run${k}`, R.blocks, { seconds: R.seconds, rows: R.rows },
+    { page: TAB, pass: `run ${k}`, label: label(), settings: S, here: hereNow(), cup: cup(), counts: { dabs: R.dabs, snakes_mm: Math.round(R.mm) }, estimate_s: Math.round(R.seconds) });
+}
+if (TAB === 'holo2') {
+  $('#btnRun1').onclick = () => runHolo(1);
+  $('#btnRun2').onclick = () => runHolo(2);
+  // DRAW BW: TRACE's outlines in one pen, no dip — once, over the first line, a pause: the brush out, the pen in, its tip on the paper
+  $('#btnBw').onclick = async () => {
+    settle();
+    const was = S.ink; S.ink = false; PLAN = null;
+    const P_ = plan(); S.ink = was; PLAN = null;
+    if (!P_.rows.length) { $('#runState').innerHTML = '<span class="warn">Nothing to draw: no pipes on the canvas.</span>'; return; }
+    if (walls(P_)) { $('#runState').innerHTML = `<span class="warn">${walls(P_)}</span>`; return; }
+    const blocks = P_.blocks.slice(), first = blocks.findIndex(b => b.kind === 'move' && b.row === 1);
+    if (first >= 0) blocks.splice(first + 1, 0, { kind: 'p-pause', why: 'DRAW BW: the brush out, the pen in the holder, its tip on the paper; then Continue', row: 1 });
+    if (!confirm(`DRAW BW ${TAB_NAME}, ${what()}: ${P_.outlines} outlines in one pen, no dip, ≈ ${fmt(P_.seconds / 60, 0)} min (est.). It stops once over the first line: the brush out, the pen in, then Continue.`)) return;
+    S.view = 'trace'; settle();
+    await start('bw', blocks, { seconds: P_.seconds, rows: P_.rows }, { page: TAB, pass: 'draw bw', label: label(), settings: S, here: hereNow(), estimate_s: Math.round(P_.seconds) });
+  };
 }
 
 // ---------- start ----------
