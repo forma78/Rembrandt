@@ -84,11 +84,13 @@ def load(P):
 
 
 def maskOf(a):
-    """what is painted: off the ground (the median of the canvas's rim) by colour, the dabs' gaps closed, specks out"""
+    """what is painted: off the ground by colour, ΔE over 4.5 in CIELAB from the ground's median (its lightest px, L* over 90) — the white
+    ribbon is ΔE 5 … 9 off the cream (the owner, of a break in it, `HOLO2/Screenshot 2026-11-20 at 4.48.03 PM.png`: "there is no break here");
+    the dabs' gaps closed, specks out"""
     med = np.stack([nd.median_filter(a[..., i], size=5) for i in range(3)], -1)
-    rim = np.concatenate([med[:12].reshape(-1, 3), med[-12:].reshape(-1, 3), med[:, :12].reshape(-1, 3), med[:, -12:].reshape(-1, 3)])
-    g = np.median(rim, 0)
-    m = np.linalg.norm(med - g, axis=2) > 0.12
+    L = lab(med)
+    g = np.median(L[L[..., 0] > 90], 0)
+    m = np.linalg.norm(L - g, axis=2) > 4.5
     m = nd.binary_opening(nd.binary_closing(m, iterations=3), iterations=2)
     lab_, n = nd.label(m)
     sizes = nd.sum(m, lab_, range(1, n + 1))

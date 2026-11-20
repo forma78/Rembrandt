@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **HOLO2 as ST-JOHN: the owner's route, its lanes one line, rows of dabs, a DRAG a layer** (2026-11-20; the owner, of the plan of hundreds of
+  short snakes read off the drawing: "this is complicated and long. Let us do it as in ST-JOHN … only we taught the machine to put the drops itself";
+  his route drawn stage by stage, `HOLO2/01.png` … `05.png`, "the brush must drive without a stop", "we need even lines").
+  `HOLO2/generator/holo2_route.py`: the route traced stage after stage straight through its crossings (his greens where the blue had gone aside),
+  smoothed, pressed to 90.9 % for a 540 mm field; 8 lanes 5 mm apart; 111 colour bands off Untitled-19 in 9 of his jars; 252 rows, 2011 dabs; the
+  snake 65.6 m a layer. `holo2plan.js`: a layer's jars' rows, then its DRAG, no dip; the page's Drag, Play (the drag laying the model along its way)
+  and the run. ≈ 6 h 30 min (est.). Not run. The white ribbon's break (the owner's screenshot) gone with it.
 - **HOLO2, after HOLO: the brush along ribbons, lane by lane, in HOLO's two layers** (2026-11-20; the owner: "a new tab on the basis of HOLO …
   Untitled-19.png on 60 × 60, no more than 10 colours"; "the brush goes back and forth without a stop … these horizontal lines are the most
   dangerous … we draw them all the same, but on paper in the canvas's place, and test"; "the blues and the whites in one layer, the red and the yellow
