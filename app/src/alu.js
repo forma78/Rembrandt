@@ -39,8 +39,8 @@ import './ui.js';
 
 const $ = s => document.querySelector(s);
 // ALU; SMKN, the paints in stock; or ALU-CUT, the first tab since 2026-10-11, ALU's palette and the new things — cuts (CUT)
-const TAB = ['smkn', 'alucut'].includes(document.body.dataset.tab) ? document.body.dataset.tab : 'alu', CUT = TAB === 'alucut';
-const TAB_NAME = { alu: 'ALU', smkn: 'SMKN', alucut: 'ALU-CUT' }[TAB], PAL = PALETTES[TAB === 'smkn' ? 'smkn' : 'alu'];
+const TAB = ['smkn', 'alucut', 'holo2'].includes(document.body.dataset.tab) ? document.body.dataset.tab : 'alu', CUT = TAB === 'alucut';
+const TAB_NAME = { alu: 'ALU', smkn: 'SMKN', alucut: 'ALU-CUT', holo2: 'HOLO2' }[TAB], PAL = PALETTES[TAB === 'smkn' || TAB === 'holo2' ? TAB : 'alu'];
 const OWN = new Set(PAL.tubes.map(t => t[0]));                                     // this tab's tubes
 const KEY = `rembrandt.${TAB}.v01`, REF_KEY = `rembrandt.${TAB}.ref`;
 const add = (a, b) => [a[0] + b[0], a[1] + b[1]], sub = (a, b) => [a[0] - b[0], a[1] - b[1]], mul = (a, k) => [a[0] * k, a[1] * k];
@@ -1062,6 +1062,13 @@ $('#btnSave').onclick = async () => {
   } catch { st.textContent = 'not saved · start rembrandt.py'; }
   b.disabled = false;
 };
+// another palette's settings in this tab's tubes: every tube the nearest of OWN by colour (sRGB distance, est.) — the pipes, seams and marks as they were
+function inJars(st) {
+  const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), near = k => OWN.has(k) || !HEX[k] ? k : PAL.tubes.reduce((b, t) => {
+    const d = rgb(t[2]).reduce((u, v, i) => u + (v - rgb(HEX[k])[i]) ** 2, 0); return !b || d < b[0] ? [d, t[0]] : b; }, null)[1];
+  const pipes = (st.pipes ?? []).map(p => ({ ...p, segs: (p.segs ?? []).map(g => ({ ...g, stops: (g.stops ?? []).map(near) })), marks: (p.marks ?? []).map(m => ({ ...m, paint: near(m.paint) })) }));
+  return { ...st, pipes, markPaint: near(st.markPaint) };
+}
 async function openFromLibrary(file) {
   history.replaceState(null, '', location.pathname);
   try {
@@ -1069,6 +1076,8 @@ async function openFromLibrary(file) {
     if (!r.ok) throw new Error(r.status);
     const meta = new DOMParser().parseFromString(await r.text(), 'image/svg+xml').querySelector('metadata#rembrandt-test');
     const o = meta ? JSON.parse(meta.textContent.replace(/- -/g, '--')) : null;
+    // HOLO2 (2026-11-20, ALU's page with the owner's jars): an ALU save opens here too, its pipes as drawn, every tube the nearest of his jars
+    if (TAB === 'holo2' && !o?.holo2 && o?.alu) o.settings = inJars(o.settings), o.holo2 = true;
     if (!o?.[TAB]) { $('#saveState').textContent = `not an ${TAB_NAME} save: open it on its own tab`; return; }
     undoPush();
     localStorage.setItem(KEY, JSON.stringify(o.settings)); setCanvas(o.settings); load(); Object.assign(S, canvasNow(S)); settle();   // the save's canvas becomes the base

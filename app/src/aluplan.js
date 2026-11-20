@@ -65,11 +65,31 @@ export const SMKN_TUBES = [['sa116', '116 Titanium White · Sennelier Abstract',
 export const SMKN_FAMILIES = [['sa323', 'sa921', 'sa116'], ['sa645', 'sa640', 'sa543'], ['sa686', 'sa613', 'sa250'], ['lk4982', 'sa070', 'sa029'], ['sa645', 'sa208', 'sa250'],
   ['sa323', 'sa029', 'sa116'], ['sa686', 'pbazo', 'sa250'], ['sa921', 'pbazo', 'sa116'], ['lk4982', 'sa323', 'sa921'], ['sa070', 'sa613', 'sa640'],
   ['sa208', 'sa543', 'sa116'], ['lk4982', 'sa645', 'sa543'], ['sa323', 'sa921', 'pbazo'], ['sa070', 'sa029', 'sa250']];
+// HOLO2's: the owner's jars, COLORS' (the owner, 2026-11-20: "let us take ALU as the base, but with our palette COLORS") — every numbered
+// jar as FORM-G's red classic and his 🔄 mixes know it (formgplan.js's myJarsOf; Jar 12 the lid's lilac, the owner, 2026-11-14), Black, and
+// HOLO's jars with no number on the lid yet (HOLO-Claude/generator/holo_jars.py). Its families the two layers': the blues and the white, the
+// reds and the yellow — never a blue and a yellow in one tube ("yellow mixes with blue and gives mud").
+export const HOLO2_TUBES = [
+  ['jar1', 'Jar 1', '#E6E5DF'], ['jar2', 'Jar 2', '#F8BACE'], ['jar3', 'Jar 3', '#C6C6C1'], ['jar4', 'Jar 4', '#F596AD'], ['jar5', 'Jar 5', '#F29B8B'],
+  ['jar6', 'Jar 6', '#EE8A22'], ['jar7', 'Jar 7', '#9B9C9A'], ['jar8', 'Jar 8', '#C2798F'], ['jar9', 'Jar 9', '#E66551'], ['jar10', 'Jar 10', '#ED3F58'],
+  ['jar11', 'Jar 11', '#8F7773'], ['jar12', 'Jar 12', '#BCCBEE'], ['jar13', 'Jar 13', '#D4462F'], ['jar14', 'Jar 14', '#E5281E'], ['jar15', 'Jar 15', '#AE5C4D'],
+  ['jar16', 'Jar 16', '#E20D0D'], ['jar17', 'Jar 17', '#C83D56'], ['jar18', 'Jar 18', '#CA1E34'], ['jar19', 'Jar 19', '#CE0D0D'], ['jar20', 'Jar 20', '#C12614'],
+  ['jar21', 'Jar 21', '#C70D0D'], ['jar22', 'Jar 22', '#A13624'], ['jar23', 'Jar 23', '#B40D0D'], ['jar24', 'Jar 24', '#AE0D0D'], ['jar25', 'Jar 25', '#7D3B2D'],
+  ['jar26', 'Jar 26', '#9E0D0D'], ['jar27', 'Jar 27', '#9D0D0D'], ['jar28', 'Jar 28', '#4B4D4E'], ['jar29', 'Jar 29', '#8E0D0D'], ['jar30', 'Jar 30', '#8D0D0D'],
+  ['jar31', 'Jar 31', '#800D0D'], ['jar32', 'Jar 32', '#7E0D0D'], ['jar33', 'Jar 33', '#7D0D0D'], ['jar34', 'Jar 34', '#760D0D'], ['jar35', 'Jar 35', '#6F0D0D'],
+  ['jar36', 'Jar 36', '#6C0D0D'], ['jar37', 'Jar 37', '#620D0D'], ['jar38', 'Jar 38', '#5F0D0D'], ['jar39', 'Jar 39', '#5A0D0D'], ['jar40', 'Jar 40', '#2B2B2C'],
+  ['jar41', 'Jar 41', '#550D0D'], ['jar42', 'Jar 42', '#242737'], ['jar43', 'Jar 43', '#510D0D'], ['jar44', 'Jar 44', '#490D0D'], ['jar45', 'Jar 45', '#3C0608'],
+  ['jar46', 'Jar 46', '#101D29'], ['jar47', 'Jar 47', '#211A15'], ['jar48', 'Jar 48', '#280D0D'], ['jar49', 'Jar 49', '#FEF6E7'], ['jar51', 'Jar 51', '#FECC25'],
+  ['jar52', 'Jar 52', '#F8C126'], ['jarblack', 'Black', '#0C0C0C'], ['hcream', 'Cream', '#FCE2A0'], ['hpaleyellow', 'Pale yellow', '#FFD064'], ['hamber', 'Amber', '#FFA401'],
+  ['hsky', 'Sky', '#58BCF6'], ['hskyblue', 'Sky Blue', '#4090C0'], ['hblue04', 'Blue 04', '#1653AA'], ['hultra', 'Ultramarine', '#101F7E'], ['hdarkblue', 'Dark blue', '#33366B']];
+export const HOLO2_FAMILIES = [['hultra', 'hblue04', 'hsky'], ['hblue04', 'hsky', 'jar1'], ['hdarkblue', 'hultra', 'hskyblue'], ['hskyblue', 'hsky', 'jar49'],
+  ['jar39', 'jar20', 'jar14'], ['jar14', 'hamber', 'jar52'], ['jar20', 'jar6', 'hpaleyellow'], ['jar27', 'jar13', 'hamber'], ['jar45', 'jar23', 'jar9']];
 // A palette: its tubes, its families, the plain pipes now and then (solo),
 // its black and its white (the paper test's). ALU's the prototype's.
 export const PALETTES = {
   alu: { tubes: TUBES, families: FAMILIES, solo: [['black'], ['navy', 'black']], black: 'black', white: 'white' },
   smkn: { tubes: SMKN_TUBES, families: SMKN_FAMILIES, solo: [['lk4982'], ['sa070', 'lk4982']], black: 'lk4982', white: 'sa116' },
+  holo2: { tubes: HOLO2_TUBES, families: HOLO2_FAMILIES, solo: [['jarblack'], ['hultra'], ['jar39']], black: 'jarblack', white: 'jar49' },
 };
 // every tube of every palette by its key: their keys never meet
 export const HEX = Object.fromEntries(Object.values(PALETTES).flatMap(q => q.tubes.map(([k, , h]) => [k, h])));

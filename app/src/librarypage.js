@@ -44,6 +44,7 @@ const isLove = d => d.kind === 'test' && /^LOVE\b/.test(d.label || '');
 const isAluCut = d => d.kind === 'test' && /^ALU-CUT\b/.test(d.label || '');   // the first tab since 2026-10-11
 const isAlu = d => d.kind === 'test' && /^ALU\b/.test(d.label || '') && !isAluCut(d);
 const isSmkn = d => d.kind === 'test' && /^SMKN\b/.test(d.label || '');
+const isHolo2 = d => d.kind === 'test' && /^HOLO2\b/.test(d.label || '');
 const isCcd = d => d.kind === 'test' && /^CCD\b/.test(d.label || '');
 const isTape = d => d.kind === 'test' && /^TAPE\b/.test(d.label || '');   // the first tab since 2026-10-12
 const isBasf = d => d.kind === 'test' && /^BASF\b/.test(d.label || '');   // TAPE wound to the middle, 2026-10-12
@@ -62,7 +63,7 @@ const isOpmN = d => d.kind === 'test' && /^OPM-N\b/.test(d.label || '');      //
 const isForm = d => d.kind === 'test' && /^FORM\b/.test(d.label || '');       // OPM-P for figurative painting, the forms off a photo, 2026-10-30
 const isOpm = d => d.kind === 'test' && !isOpmB(d) && !isOpmS(d) && !isOpmW(d) && !isOpmP(d) && !isOpmN(d) && /^OPM\b/.test(d.label || '');   // the contours for the paints by hand, 2026-10-27
 const isPencils = d => d.kind === 'test' && /^PENCILS\b/.test(d.label || '');
-const kindOf = d => isForm(d) ? 'form' : isOpmN(d) ? 'opmn' : isOpmB(d) ? 'opmb' : isOpmS(d) ? 'opms' : isOpmW(d) ? 'opmw' : isOpmP(d) ? 'opmp' : isOpm(d) ? 'opm' : isPrisma(d) ? 'prisma' : isDache(d) ? 'dache' : isPencils(d) ? 'pencils' : isNolan(d) ? 'nolan' : isNewYuri(d) ? 'newyuri' : isType(d) ? 'type' : isLove(d) ? 'love' : isAluCut(d) ? 'alucut' : isAlu(d) ? 'alu' : isSmkn(d) ? 'smkn' : isCcd(d) ? 'ccd' : isTape(d) ? 'tape' : isBasf(d) ? 'basf' : isBias(d) ? 'bias' : isLoom(d) ? 'loom' : isInka(d) ? 'inka' : isStJohn(d) ? 'stjohn' : isBlend(d) ? 'blend' : d.kind || 'painting';
+const kindOf = d => isForm(d) ? 'form' : isOpmN(d) ? 'opmn' : isOpmB(d) ? 'opmb' : isOpmS(d) ? 'opms' : isOpmW(d) ? 'opmw' : isOpmP(d) ? 'opmp' : isOpm(d) ? 'opm' : isPrisma(d) ? 'prisma' : isDache(d) ? 'dache' : isPencils(d) ? 'pencils' : isNolan(d) ? 'nolan' : isNewYuri(d) ? 'newyuri' : isType(d) ? 'type' : isLove(d) ? 'love' : isAluCut(d) ? 'alucut' : isAlu(d) ? 'alu' : isSmkn(d) ? 'smkn' : isHolo2(d) ? 'holo2' : isCcd(d) ? 'ccd' : isTape(d) ? 'tape' : isBasf(d) ? 'basf' : isBias(d) ? 'bias' : isLoom(d) ? 'loom' : isInka(d) ? 'inka' : isStJohn(d) ? 'stjohn' : isBlend(d) ? 'blend' : d.kind || 'painting';
 const tabOf = d => isForm(d) ? 'FORM' : isOpmN(d) ? 'OPM-N' : isOpmB(d) ? 'OPM-B' : isOpmS(d) ? 'OPM-S' : isOpmW(d) ? 'OPM-W' : isOpmP(d) ? 'OPM-P' : isOpm(d) ? 'OPM' : isPrisma(d) ? 'PRISMA' : isDache(d) ? 'DACHE' : isPencils(d) ? 'Pencils' : isNolan(d) ? 'NOLAN' : isNewYuri(d) ? 'New Yuri' : isType(d) ? 'TYPE' : isLove(d) ? 'LOVE' : isAluCut(d) ? 'ALU-CUT' : isAlu(d) ? 'ALU' : isSmkn(d) ? 'SMKN' : isCcd(d) ? 'CCD' : isTape(d) ? 'TAPE' : isBasf(d) ? 'BASF' : isBias(d) ? 'BIAS' : isLoom(d) ? 'LOOM' : isInka(d) ? 'INKA' : isStJohn(d) ? 'ST-JOHN' : isBlend(d) ? 'BLEND' : d.kind === 'test' ? 'Test' : 'Create';
 function card(d) {
   const fmt = d.kind === 'test' ? (d.label || 'test') : FORMATS[d.format]?.label || '';
@@ -84,7 +85,7 @@ async function onCard(e) {
     if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();
   }
-  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'type.html', love: 'love.html', alucut: 'alucut.html', alu: 'alu.html', smkn: 'smkn.html', ccd: 'ccd.html', tape: 'tape.html', basf: 'basf.html', bias: 'bias.html', loom: 'loom.html', inka: 'inka.html', stjohn: 'stjohn.html', blend: 'blend.html', dache: 'dache.html', prisma: 'prisma.html', opm: 'opm.html', opmb: 'opmb.html', opms: 'opms.html', opmw: 'opmw.html', opmp: 'opmp.html', opmn: 'opmn.html', form: 'form.html', pencils: 'pencils.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
+  location.href = ({ test: 'test.html', nolan: 'nolan.html', newyuri: 'newyuri.html', type: 'type.html', love: 'love.html', alucut: 'alucut.html', alu: 'alu.html', smkn: 'smkn.html', holo2: 'holo2.html', ccd: 'ccd.html', tape: 'tape.html', basf: 'basf.html', bias: 'bias.html', loom: 'loom.html', inka: 'inka.html', stjohn: 'stjohn.html', blend: 'blend.html', dache: 'dache.html', prisma: 'prisma.html', opm: 'opm.html', opmb: 'opmb.html', opms: 'opms.html', opmw: 'opmw.html', opmp: 'opmp.html', opmn: 'opmn.html', form: 'form.html', pencils: 'pencils.html' }[el.dataset.kind] || 'create.html') + '?open=' + encodeURIComponent(file);
 }
 $('#grid').addEventListener('click', onCard);
 $('#tests').addEventListener('click', onCard);

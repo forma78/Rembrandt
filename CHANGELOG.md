@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **HOLO2 is ALU with the owner's jars** (2026-11-20; the owner: "ALU is the cleanest … let us take it as the base, with all its tools for
+  drawing, but with our palette COLORS"; of the generated plans: "too complicated, we will burn all the tokens"). `holo2.html` SMKN's way: ALU's page
+  and plan, `data-tab="holo2"`, `aluplan.js`'s `HOLO2_TUBES` (60 jars: Jar 1 … 52, Black, HOLO's unnumbered) and `HOLO2_FAMILIES` (the two layers');
+  an ALU save opens on HOLO2, its tubes the nearest jars (his pipe of 17:21); the Library opens a HOLO2 save on HOLO2. The HOLO-based HOLO2 page,
+  its plan, pictures and tests out (bea3175 keeps them).
 - **HOLO2 as ST-JOHN: the owner's route, its lanes one line, rows of dabs, a DRAG a layer** (2026-11-20; the owner, of the plan of hundreds of
   short snakes read off the drawing: "this is complicated and long. Let us do it as in ST-JOHN … only we taught the machine to put the drops itself";
   his route drawn stage by stage, `HOLO2/01.png` … `05.png`, "the brush must drive without a stop", "we need even lines").
