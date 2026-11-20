@@ -774,7 +774,10 @@ addEventListener('keydown', e => {
 const BRUSH_SL = [['brush', 'Brush width', 'mm', 0.5, 4, 24], ['lanes', 'Lanes along', '', 1, 2, 18], ['xstep', 'Step across', 'mm', 0.5, 3, 20], ['over', 'Past the panel edge', 'mm', 1, 0, 30], ['drag', 'Drag speed', 'mm/s', 5, 10, SPEED_MAX]];
 const PAINT_SL = [['spacing', 'Mark spacing', 'mm', 5, 30, 120], ...(CUT ? [['cutMark', 'Marks from a cut', 'mm', 0.5, 0, 3]] : []), ['width', 'Line width', 'mm', 0.5, 1, 12], ['speed', 'Line speed', 'mm/s', 5, 20, SPEED_MAX]];
 const SIM_SL = [['run', 'Dense run', 'mm', 5, 30, 150], ['dryTail', 'Dry tail', 'mm', 10, 0, 300], ['mix', 'A mark\'s share in the brush', '%', 0.05, 0.1, 0.9], ['pick', 'Wet paint loads the brush in', 'mm', 1, 5, 120]];
-const ALL_SL = [['#slBrush', BRUSH_SL], ['#slPaint', PAINT_SL], ['#slSim', SIM_SL]];
+// HOLO2 (the owner, 2026-11-20: "the brush width — why do we need it? there is a clear canon, it is 5 mm … but the line's own width matters"): the speed and the
+// dabs' rows alone; the brush and the step across 5 mm, the lanes the line's width over 5
+const ALL_SL = TAB === 'holo2' ? [['#slBrush', [['drag', 'Speed', 'mm/s', 5, 10, SPEED_MAX]]], ['#slPaint', [['spacing', 'Dab rows every', 'mm', 5, 15, 120]]], ['#slSim', []]]
+  : [['#slBrush', BRUSH_SL], ['#slPaint', PAINT_SL], ['#slSim', SIM_SL]];
 const valOf = key => key === 'lanes' ? `${S.lanes} · ${fmt(S.lanes > 1 ? 2 * Math.max(0, (S.pipes[S.sel]?.w || 50) / 2 - S.brush / 2) / (S.lanes - 1) : 0, 1)} mm apart` : key === 'mix' ? `${Math.round(S.mix * 100)} % (est.)`
   : key === 'pick' ? `${S.pick} mm (est.)` : key === 'run' || key === 'dryTail' ? `${S[key]} mm (est.)` : key === 'speed' || key === 'drag' ? `${S[key]} mm/s` : `${Math.round(S[key] * 100) / 100} mm`;
 const SL_TITLE = { brush: 'The dry brush of DRAG', lanes: 'How many lanes the brush runs along a pipe, edge to edge; the pitch between them follows (on the chosen pipe)', xstep: 'Segments, Alu: the step between the strokes of an Across segment, and between a fan\'s rays at the rim',
@@ -906,6 +909,7 @@ $('#btnRecolour').onclick = () => {
 $('#btnNewPipe').onclick = () => { undoPush(); S.pipes.push(newPipe(Math.round(Math.min(50, S.cw / 3)), Date.now() >>> 0, PAL)); S.sel = S.pipes.length - 1; S.seg = 0; S.tool = 'draw'; settle(); };
 $('#btnUndoPt').onclick = () => { const st = S.pipes[S.sel]; if (!st?.pts.length) return; undoPush(); st.pts.pop(); settle(); };
 function showPanel() {
+  if (TAB === 'holo2') { S.brush = 5; S.xstep = 5; S.lanes = Math.max(2, Math.round(((S.pipes[S.sel]?.w ?? 40) - 5) / 5) + 1); showJars(); }
   for (const [box, list] of ALL_SL) for (const [key] of list) {
     const inp = $(`${box} input[data-k="${key}"]`); if (document.activeElement !== inp) inp.value = S[key];
     $(`${box} [data-v="${key}"]`).textContent = valOf(key);
@@ -1370,6 +1374,44 @@ function setElbow(deg) {
     try { const r = await fetch(`/run/trim?deg=${Math.round((S.press - RUN_PRESS) * 10) / 10}`, { method: 'POST' }); $('#runState').innerHTML = r.ok ? '' : `<span class="warn">ELBOW LIVE: ${(await r.text()).replace(/</g, '&lt;')}</span>`; } catch { $('#runState').textContent = 'start rembrandt.py'; }
   }, 120); }
 }
+// THE JARS (FORM-G's, the owner, 2026-11-20: "THE JARS as in FORM-G, so that I can change the paints"): the picture's jars, Layer 1's light to dark
+// then Layer 2's, each its zones, dabs and snakes; its 🔄 every jar of his, the nearest first (CIELAB ΔE), a click paints it by that one on every pipe
+const labOf = k => { const c = rgbOf(HEX[k]).map(v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  const X = (0.4124 * c[0] + 0.3576 * c[1] + 0.1805 * c[2]) / 0.95047, Y = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2], Z = (0.0193 * c[0] + 0.1192 * c[1] + 0.9505 * c[2]) / 1.08883;
+  const f = t => t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116; return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))]; };
+const deOf = (a, b) => { const p = labOf(a), q = labOf(b); return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]); };
+function showJars() {
+  const box = $('#jarList'); if (!box) return;
+  const Z = holoZones(), rows = [];
+  let n = 0;
+  for (const k of [1, 2]) {
+    const J = holoJars(k); if (!J.length) continue;
+    rows.push(`<li class="fg-sep">${k === 1 ? 'Run 1 · light — the blues and the white' : 'Run 2 · shadow — the reds and the yellow, on the dry first'}</li>`);
+    for (const paint of J) {
+      const zs = Z.filter(z => z.paint === paint), dabs = zs.reduce((t, z) => t + z.dabs.length, 0), mm = zs.reduce((t, z) => t + snakesOfZone(z).reduce((u, P) => u + P.slice(1).reduce((w, q, i) => w + Math.hypot(q[0] - P[i][0], q[1] - P[i][1]), 0), 0), 0);
+      rows.push(`<li title="${NAME[paint]}: ${zs.length} zone${zs.length === 1 ? '' : 's'}, ${dabs} dabs, ${fmt(mm / 1000, 1)} m of snakes (est.)"><span class="no">${++n}</span><i class="sw" style="background:${HEX[paint]}"></i><span class="nm">${NAME[paint]}</span><span class="tg">${dabs} dabs · ${fmt(mm / 1000, 1)} m</span><button class="swap" data-swap="${paint}" title="🔄 Another of your jars for ${NAME[paint]}, on every pipe">🔄</button></li>`);
+    }
+  }
+  box.innerHTML = rows.join('') || '<li class="fg-sep">No jar yet: lay a pipe, its segments\' paints from the strip</li>';
+  $('#jarsHint').textContent = n ? `${n} jar${n === 1 ? '' : 's'}, light to dark` : '';
+  box.querySelectorAll('[data-swap]').forEach(b => b.onclick = e => { e.stopPropagation(); pickJar(b.dataset.swap, b); });
+}
+function pickJar(from, at) {
+  const pop = $('#jarPick'), r = at.getBoundingClientRect();
+  pop.innerHTML = `<div class="h2pick-h">${NAME[from]} → one of your jars, the nearest first</div>` + PAL.tubes.map(t => [t, deOf(from, t[0])]).sort((a, b) => a[1] - b[1])
+    .map(([[k, name, hex], d]) => `<button class="h2pick-r${k === from ? ' on' : ''}" data-to="${k}"><i class="sw" style="background:${hex}"></i><span>${name}</span><span class="de">ΔE ${fmt(d, 0)}</span></button>`).join('');
+  pop.hidden = false;
+  pop.style.top = `${Math.max(8, Math.min(innerHeight - pop.offsetHeight - 8, r.top - 20))}px`; pop.style.left = `${Math.max(8, (document.querySelector('.panel')?.getBoundingClientRect().left ?? r.left) - pop.offsetWidth - 10)}px`;   // beside the panel, over the board
+  pop.querySelectorAll('[data-to]').forEach(b => b.onclick = () => { pop.hidden = true; swapJar(from, b.dataset.to); });
+}
+function swapJar(from, to) {
+  if (from === to) return;
+  undoPush();
+  for (const st of S.pipes) { for (const g of st.segs ?? []) g.stops = g.stops.map(k => k === from ? to : k); for (const m of st.marks ?? []) if (m.paint === from) m.paint = to; }
+  if (S.markPaint === from) S.markPaint = to;
+  settle();
+}
+addEventListener('pointerdown', e => { const pop = $('#jarPick'); if (pop && !pop.hidden && !e.target.closest('#jarPick')) pop.hidden = true; });
 if (TAB === 'holo2') {
   $('#btnPlay').onclick = holoPlay;
   $('#brushSl').oninput = e => setElbow(+e.target.value);

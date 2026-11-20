@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **HOLO2: THE JARS with 🔄, the panel trimmed** (2026-11-20; the owner: "the brush width — why do we need it? there is a clear canon, it is 5 mm …
+  in general there is a lot here … but the line's own width matters"; "most important — THE JARS as in FORM-G, so that I can change the paints").
+  THE JARS: the picture's jars, Run 1's then Run 2's, light to dark, their dabs and metres; a jar's 🔄 every jar of his, the nearest first (ΔE), a click
+  paints it by that one on every pipe (⌘Z back). The brush and the step across 5 mm, the lanes the line's width over 5; the sliders Speed and Dab rows
+  every alone; the caps, the order of pipes and lanes, Along · Across, the composition, the simulation, the looks and the files hidden.
 - **HOLO2: DRAG SNAKE only, HOME, ELBOW LIVE · BRUSH, views Picture · Drag · ▶ Play** (2026-11-20; the owner, of ▶ Play showing DRAG AIR: "only
   [the snake] is needed … I propose to put the key HOME in its place, as in FORM-G"; "there is no ELBOW LIVE · BRUSH as in FORM"; "Picture, Puddles 1,
   Puddles 2, Drag, Contour make noise … Picture, Drag, ▶ Play — that is what we need"). The snake switch out, the snake always; HOME in its place;

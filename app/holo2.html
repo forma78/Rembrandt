@@ -6,7 +6,28 @@
 <title>Rembrandt · HOLO2</title>
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
-<style>[hidden]{display:none!important}   /* HOLO2: ALU's keys it does not use, hidden (their .btn display would show them) */</style>
+<style>
+  /* HOLO2 (2026-11-20): ALU's keys it does not use, hidden — the brush 5 mm by the canon, the step across too; no caps, no order of pipes or lanes, no
+     Along · Across, no simulation, no composition, no files ("the brush width — why do we need it? … in general there is a lot here") */
+  #pA,#pB,#pUp,#pDown{display:none!important}
+  .toggles:has([data-pbrush]),.toggles:has([data-first]),.toggles:has([data-mode]){display:none!important}
+  /* THE JARS (FORM-G's) */
+  #jarList{margin:6px 0 0;padding:0;list-style:none}
+  #jarList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto 26px;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px}
+  #jarList li:hover{background:rgba(127,127,127,.14)}
+  #jarList .no{font:10px var(--mono);color:var(--mute);text-align:right}
+  #jarList .sw,.h2pick .sw{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  #jarList .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #jarList .tg{font:10px var(--mono);color:var(--mute)}
+  #jarList .swap{border:0;background:none;cursor:pointer;font-size:13px;padding:0}
+  #jarList li.fg-sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+  #jarList li.fg-sep:first-child{margin-top:0;border-top:0}
+  .h2pick{position:fixed;z-index:70;width:250px;max-height:340px;overflow-y:auto;padding:6px;border-radius:10px;background:var(--card,#F7F5F1);color:var(--ink);box-shadow:0 8px 28px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.08)}
+  .h2pick-h{font:600 9.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute);padding:4px 6px 6px}
+  .h2pick-r{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:6px;align-items:center;width:100%;padding:4px 6px;border:0;border-radius:5px;background:none;color:inherit;font:11.5px inherit;text-align:left;cursor:pointer}
+  .h2pick-r:hover{background:rgba(127,127,127,.16)} .h2pick-r.on{outline:1.5px solid var(--orange)}
+  .h2pick-r .de{font:10px var(--mono);color:var(--mute)}
+  [hidden]{display:none!important}   /* HOLO2: ALU's keys it does not use, hidden (their .btn display would show them) */</style>
 </head>
 <body class="adjust arm3 nolan type love alu" data-tab="holo2">
 <!-- Rembrandt · HOLO2 — ALU with the owner's jars, COLORS' palette (2026-11-20:
@@ -146,12 +167,14 @@
       </div>
 
       <div class="toggles looks" id="sessions" hidden></div>
-      <h4>Composition</h4>
-      <div class="grid4 keys compose">
+      <h4>The jars <span class="hint" id="jarsHint"></span></h4>
+      <ol id="jarList"></ol>
+      <h4 hidden>Composition</h4>
+      <div class="grid4 keys compose" hidden>
         <button class="btn" id="btnCompose" title="New composition (the owner, 2026-10-08: &quot;just stripes in parallel&quot;): pipes in whole lanes from a new seed, a tube's paints along each — a proposal to start from">New composition</button>
         <button class="btn" id="btnRecolour" title="New colours: the families picked again, the lines kept">New colours</button>
       </div>
-      <p class="read" id="seedRead"></p>
+      <p class="read" id="seedRead" hidden></p>
       <h4 hidden>Pipes, bottom to top</h4>
       <div class="toggles looks wrap" id="pipes" hidden></div>
       <div class="grid4 keys">
@@ -160,13 +183,13 @@
       </div>
       <div class="edit" id="pipeEdit"></div>
       <div class="edit" id="segEdit"></div>
-      <h4>Brush, pass 3</h4>
+      <h4>The brush · 5 mm <span class="hint">the canon</span></h4>
       <div class="sliders" id="slBrush"></div>
-      <h4>Marks, pass 2</h4>
+      <h4>The dabs <span class="hint">a row on every mark, est.</span></h4>
       <div class="sliders" id="slPaint"></div>
-      <h4>Simulation</h4>
+      <h4 hidden>Simulation</h4>
       <div class="sliders" id="slSim"></div>
-      <div class="toggles looks" id="looks">
+      <div class="toggles looks" id="looks" hidden>
         <button class="tog" data-look="relief" title="Beads (the owner, 2026-10-08: &quot;the sausages, as Florian's&quot;): every lane a rounded bead of paint, a light ridge towards the light">Beads</button>
         <button class="tog" data-look="flat" title="Plain strips">Flat</button>
       </div>
@@ -174,9 +197,9 @@
       <div class="grid4" id="fields"></div>
       <p class="read" id="planRead" hidden></p>
       <p class="read" id="planWarn" hidden></p>
-      <h4>Files for the machine</h4>
-      <div class="filekeys" id="files"></div>
-      <p class="read" id="fileRead"></p>
+      <h4 hidden>Files for the machine</h4>
+      <div class="filekeys" id="files" hidden></div>
+      <p class="read" id="fileRead" hidden></p>
     </section>
 
     <section class="sec">
@@ -193,6 +216,8 @@
     </section>
   </aside>
 </main>
+
+<div class="h2pick" id="jarPick" hidden></div>
 
 <footer class="status">
   <span id="hint"></span>
