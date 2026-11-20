@@ -51,7 +51,7 @@ function plan(pic = PIC) {
 }
 const total = P => P.reduce((t, q) => t + q.seconds, 0);
 const dabsIn = (P, run) => P.filter(q => !run || q.run === run).reduce((t, q) => t + q.dabs, 0);
-const jarTag = j => j.kind === 'drag' ? ' <em>no jar</em>' : j.number == null ? ' <em>no number</em>' : '';
+const jarTag = j => j.number == null ? ' <em>no number</em>' : '';
 
 // ---------- where the canvas lies ----------
 const rangeOf = () => placeRange(PIC, reach());
@@ -334,21 +334,15 @@ function wayHeads(g, L) {
     g.beginPath(); g.moveTo(e[0] - ux * h * 2.2 - uy * h, e[1] - uy * h * 2.2 + ux * h); g.lineTo(e[0] - ux * h * 2.2 + uy * h, e[1] - uy * h * 2.2 - ux * h); g.lineTo(e[0] - ux * h * 0.3, e[1] - uy * h * 0.3); g.closePath(); g.fill();
   }
 }
-// Drag: the model veiled, the brush's way over it — every lane its middle, the step from one to the next — and the rows of dabs in their jars;
-// the DRAG picked in the list, its lanes' way by arrowheads; a jar picked, its rows
+// Drag: every group's snake in its jar's colour, the brush wide, Layer 2 over Layer 1 — a lane along the band, a step aside, back …; a jar picked
+// in the list, its snakes' way by arrowheads, its dabs upright
 function drawStrokes(g) {
-  img(IMG[S.pic], 0.35, g);
-  const P = plan(), drag = P.find(q => q.kind === 'drag');
-  if (drag) {
-    g.save(); g.lineJoin = 'round'; g.lineCap = 'round'; g.strokeStyle = 'rgba(36,34,31,.55)'; g.lineWidth = Math.max(0.6, 0.35 * K);
-    g.globalAlpha = only && !only.startsWith('drag:') ? 0.3 : 1;
-    snakePath(g, snakeOf(PIC), sx, sy); g.stroke(); g.restore();
-    if (only?.startsWith('drag:')) wayHeads(g, drag);
-  }
-  g.lineCap = 'butt';
-  for (const L of P) if (L.kind === 'dabs') {
-    g.globalAlpha = dim(L.key); g.strokeStyle = L.hex; g.lineWidth = Math.max(1, PIC.pitch * K * 0.85);
-    for (const p of L.puddles) { const h = HOLO2.mark / 2; g.beginPath(); g.moveTo(sx(p.x - p.u[0] * h), sy(p.y - p.u[1] * h)); g.lineTo(sx(p.x + p.u[0] * h), sy(p.y + p.u[1] * h)); g.stroke(); }
+  g.lineCap = 'butt'; g.lineJoin = 'round';
+  for (const run of [1, 2]) for (const L of plan()) {
+    if (L.run !== run) continue;
+    g.globalAlpha = dim(L.key); g.strokeStyle = L.hex; g.lineWidth = Math.max(0.5, PIC.pitch * K * 0.92);
+    for (const q of L.strokes) { snakePath(g, q.pts, sx, sy); g.stroke(); }
+    if (only === L.key) { g.globalAlpha = 1; wayHeads(g, L); for (const p of L.puddles) puddle(g, sx(p.x), sy(p.y), p.dabs, '#24221F', K * 0.6, p.u); }
   }
   g.globalAlpha = 1;
 }
@@ -514,7 +508,7 @@ function lcd(st = lastSt) {
   const ended = !Q && st && st.state !== 'idle', pct = Q ? Q.want / Q.end * 100 : ended ? (st.state === 'done' ? 100 : st.percent || 0) : 0, at = Q ? Q.line : 0, j = P[at], nx = P[at + 1];
   if (Q) markRun(at);
   const m = Q?.M[Math.min(Q.i, Q.M.length - 1)], B = j?.batches.length ?? 0;
-  const now = Q && m ? `Layer ${j.run} · ${m.kind === 'mark' ? `a new jar: one dip, its marks · ${m.no}, the ${m.side} slip` : m.kind === 'dab' ? `${j.name}: laying its rows of dabs` : 'the DRAG: the whole snake, lane after lane'} · est.` : `${PIC.title} · ${dabsIn(P)} dabs · ${fmt(P.reduce((t, q) => t + q.mm, 0) / 1000, 1)} m of strokes`;
+  const now = Q && m ? `Layer ${j.run} · ${m.kind === 'mark' ? `a new jar: one dip, its marks · ${m.no}, the ${m.side} slip` : `group ${m.batch + 1} of ${B} · ${m.kind === 'dab' ? 'its dabs, upright' : 'its snake over them'}`} · est.` : `${PIC.title} · ${dabsIn(P)} dabs · ${fmt(P.reduce((t, q) => t + q.mm, 0) / 1000, 1)} m of strokes`;
   $('#lcd').innerHTML = `
     <div class="lcd-top"><span>${Q ? '▶ play' : !st ? 'no server' : ended ? st.state : 'plan'}</span><span>${Q ? `line ${at + 1}/${P.length}` : `${P.length} lines`}</span></div>
     <div class="lcd-mid">
@@ -539,10 +533,10 @@ function layerRun(run, from = 0) {
   const key = JSON.stringify([PIC.id, run, from, opts(), S.press, S.travel, S.tail, hereNow(), dipCup()]);
   if (HRUNS.has(key)) return HRUNS.get(key);
   const runs = runsOf(lines), R = idleRowsOf(lines.map(L => ({ pencil: L.key })), lines.map(L => ({ id: L.key, name: L.name })), { cw: PIC.w, ch: PIC.h }, 0, 0, j3Runs(runs));
-  const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : lines[k].kind === 'drag' ? 'wipe the brush clean: the DRAG next, no jar — then Continue' : `wipe the brush, put ${lines[k].name} in the cup, then Continue` })));
+  const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? `wipe the brush, put ${lines[k].name} in the cup, then Continue` : null })));
   const rows = R.info.map((q, i) => ({ ...q, label: `${from + q.pass + 1}/${all.length} · ${lines[q.pass].name} · ${runs[i].say}` }));
   const out = { key, ...r, blocks: wipeBlocks(r.blocks, WIPE_NEW), rows, run, from, all, lines, mm: lines.reduce((t, q) => t + q.mm, 0),
-    dabs: runs.filter(q => q.dab).length, dips: runs.filter(q => q.dip).length, strokes: runs.filter(q => !q.dab && !q.mark).length, marks: runs.filter(q => q.mark).length, dragMm: lines.filter(q => q.kind === 'drag').reduce((t, q) => t + q.mm, 0),
+    dabs: runs.filter(q => q.dab).length, dips: runs.filter(q => q.dip).length, strokes: runs.filter(q => !q.dab && !q.mark).length, marks: runs.filter(q => q.mark).length, dragMm: lines.reduce((t, q) => t + q.mm, 0),
     flats: lines.reduce((t, q) => t + (q.flats ?? 0), 0), flatMm: lines.reduce((t, q) => t + q.flatMm, 0) };
   if (HRUNS.size > 4) HRUNS.clear();
   HRUNS.set(key, out);
@@ -559,14 +553,14 @@ function runBad(R) {
 }
 const runRows = lines => lines.map((q, i) => `<li><span class="no">${i + 1}</span><i class="sw" style="background:${q.hex}"></i><span class="nm">${esc(q.name)}</span><span class="tg">${q.dabs} dabs</span></li>`).join('');
 function runText(run, lines, R) {
-  const J = lines.filter(q => q.kind === 'dabs'), d = J.reduce((t, q) => t + q.dabs, 0), rows = J.reduce((t, q) => t + q.cells, 0), drag = lines.find(q => q.kind === 'drag'), c = placeNow();
-  return `${run === 1 ? 'Layer 1, the blues and the white' : 'Layer 2, the reds and the yellow, on the dry first layer'}: ${J.length} jar${J.length === 1 ? '' : 's'}, light to dark, each its rows of dabs across the ribbon — ${rows} rows, ${d} dabs, every dab a dip at the cup at hand, then the brush down there, a mark of ${HOLO2.mark} mm along its lane, the way the drag will go. `
-    + (drag ? `Then the DRAG, as ST-JOHN's loops: no jar, no dip — lane 1 the whole route forward, a step aside, lane 2 back … ${drag.items.length} lanes, ${fmt(drag.mm / 1000, 1)} m, the brush down from start to end, through every puddle, whatever the way. ` : '')
-    + `${fmt(R.flatMm / 1000, 1)} m of the drag lies within ${HOLO2.flat}° of the horizontal, along the machine's Y: the flat brush may not lay it — on paper first, the owner's test (⚠ Horizontal shows it). `
+  const d = lines.reduce((t, q) => t + q.dabs, 0), groups = lines.reduce((t, q) => t + q.batches.length, 0), c = placeNow();
+  return `${run === 1 ? 'Layer 1, the blues and the white' : 'Layer 2, the reds and the yellow, on the dry first layer'}: ${lines.length} jar${lines.length === 1 ? '' : 's'}, light to dark. `
+    + `A jar's colour bands along the route, a group at a time: its rows of dabs — every dab a dip at the cup at hand, then the brush down there, upright, a mark of ${HOLO2.mark} mm along X, the way its lane goes (the flat brush, as HOLO's puddles) — `
+    + `then at once its snake over them, no dip: lane 1 along the band, a step aside, lane 2 back …, ${PIC.est.over} mm into the neighbouring bands, the brush down from end to end, whatever the way; then the jar's next band. `
+    + `${d} dabs in ${groups} groups, ${fmt(R.dragMm / 1000, 1)} m of snakes; ${fmt(R.flatMm / 1000, 1)} m of them within ${HOLO2.flat}° of the horizontal, along the machine's Y — the flat brush may not lay it: on paper first, the owner's test (⚠ Horizontal shows it). `
     + (R.marks ? `After every change of jar, before its first dab: one dip, then its MARKS, 1 the left slip, 3 the right — ${besideNow()?.where === 'on' ? 'the paper taped over the canvas\'s margins' : 'the paper on the plates beside the canvas'} (The canvas). ` : '')
     + `On the machine ${R.dips} dips, every run's way landing ${ELBOW_J3.early} mm earlier and lifting ${ELBOW_J3.late} mm later than on the screen (J3), the brush at ${S.speed} mm/s; ≈ ${hm(R.seconds)} (est.). `
-    + (lines.length > 1 ? `It stops ${lines.length - 1} time${lines.length > 2 ? 's' : ''}: the brush up over the cup — wipe it, the next jar in the cup or, before the DRAG, none. ` : '')
-    + `The first dab waits ≈ ${hm(J.reduce((t, q) => t + q.seconds, 0))} for the drag (est.; the paint holds ≈ 20 min, the owner's): watch the first rows on the paper. `
+    + (lines.length > 1 ? `Between two jars it stops ${lines.length - 1} time${lines.length > 2 ? 's' : ''}: the brush up over the cup — wipe it, put the next jar in the cup, Continue. ` : '')
     + `Put ${lines[0].name} in ${cupName()} now. The canvas's (or the paper's) left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home.`;
 }
 async function askRun(run) {
@@ -580,7 +574,7 @@ async function askRun(run) {
   const show = () => {
     const lines = all.slice(from), first = lines[0];
     $('#runAskTitle').textContent = `LAYER ${run} · ${run === 1 ? 'COOL' : 'WARM'} · ${PIC.title} · ${lines.length} jar${lines.length === 1 ? '' : 's'}`;
-    $('#runAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">${first.kind === 'drag' ? 'No jar: the DRAG' : 'In the cup first'}</span><b>${esc(first.name)}</b><span>${esc(first.note)}</span></span>`;
+    $('#runAskFirst').innerHTML = `<i class="sw" style="background:${first.hex}"></i><span class="pt"><span class="k">In the cup first</span><b>${esc(first.name)}</b><span>${esc(first.note)}</span></span>`;
     $('#runAskList').innerHTML = runRows(lines);
     $('#runAskText').textContent = runText(run, lines, R);
   };
@@ -625,17 +619,17 @@ function showPanel() {
   for (const [id, k] of [['#fPen', 'penSpeed'], ['#fTravel', 'travel']]) if (document.activeElement !== $(id)) $(id).value = S[k];
   { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${O.lines} lines, ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
   $('#fMark').value = HOLO2.mark;
-  const run = r => P.filter(q => q.run === r), sum = (A, k) => A.reduce((t, q) => t + q[k], 0), C = PIC.count;
-  const say = r => { const A = run(r), J = A.filter(q => q.kind === 'dabs'); return `<b>Layer ${r}</b> ${J.length} jars, ${sum(J, 'cells')} rows, ${sum(J, 'dabs')} dabs, then the DRAG, ${fmt(sum(A, 'mm') / 1000, 1)} m, ≈ ${hm(total(A))}`; };
-  $('#puddleRead').innerHTML = `The route ${fmt(C.route_m, 1)} m, the owner's, ${C.lanes} lanes ${fmt(PIC.pitch, 0)} mm apart, a ribbon ${fmt(C.lanes * PIC.pitch, 0)} mm wide; ${C.bands} colour bands, a row of dabs across it every ${PIC.est.spoke} mm of a band at most. ${say(1)}; the layer to dry; ${say(2)} (est.). The DRAG as ST-JOHN's loops: lane 1 the whole route forward, a step aside, lane 2 back …, the brush down from start to end, no dip.`;
-  const dr = P.filter(q => q.kind === 'drag'), flm = dr.reduce((t, q) => t + q.flatMm, 0), all = dr.reduce((t, q) => t + q.mm, 0);
-  $('#flatRead').innerHTML = `<b>${fmt(flm / 1000, 1)} m</b> of the drags' ${fmt(all / 1000, 1)} m lie within ${HOLO2.flat}° of the horizontal — along the machine's Y, where the flat brush may break into dashes (README, "How to lay a module"). Drawn all the same, on paper first: photograph them, then we correct the ones that fail.`;
-  $('#runList').innerHTML = P.map((q, i) => `${!i || q.run !== P[i - 1].run ? `<li class="fg-sep">${LAYER[q.run]}</li>` : ''}<li data-key="${esc(q.key)}" data-i="${i}" class="${only === q.key ? 'only' : ''}" title="${esc(q.name)}${q.note ? ` — ${esc(q.note)}` : ''}: ${q.kind === 'drag' ? `${q.cells} lanes, ${fmt(q.mm / 1000, 1)} m, no dip` : `${q.dabs} dabs in ${q.cells} rows`}, ≈ ${hm(q.seconds)} (est.). A click shows ${q.kind === 'drag' ? 'its way' : 'its rows'}"><span class="no">${i + 1}</span><i class="sw" style="background:${q.hex}"></i><span class="nm">${esc(q.name)}${jarTag(q)}</span><span class="tg">${q.kind === 'drag' ? `${fmt(q.mm / 1000, 0)} m` : `${q.dabs} dabs`}</span></li>`).join('');
-  $('#jarsHint').textContent = `${PIC.jars.length} jars, light to dark, a DRAG a layer`;
+  const run = r => P.filter(q => q.run === r), sum = (A, k) => A.reduce((t, q) => t + q[k], 0), C = PIC.count, grp = A => A.reduce((t, q) => t + q.batches.length, 0);
+  const say = r => { const A = run(r); return `<b>Layer ${r}</b> ${A.length} jars, ${sum(A, 'dabs')} dabs in ${grp(A)} groups, ${fmt(sum(A, 'mm') / 1000, 1)} m of snakes, ≈ ${hm(total(A))}`; };
+  $('#puddleRead').innerHTML = `The route ${fmt(C.route_m, 1)} m, the owner's, ${C.lanes} lanes ${fmt(PIC.pitch, 0)} mm apart, a ribbon ${fmt(C.lanes * PIC.pitch, 0)} mm wide; a colour band a group: its rows of dabs, upright, every ${PIC.est.spoke} mm of the band at most, one on every lane, then at once its snake over them, lane after lane, ${PIC.est.over} mm into its neighbours. ${say(1)}; the layer to dry; ${say(2)} (est.).`;
+  const flm = P.reduce((t, q) => t + q.flatMm, 0), all = P.reduce((t, q) => t + q.items.reduce((u, it) => u + it.len, 0), 0);
+  $('#flatRead').innerHTML = `<b>${fmt(flm / 1000, 1)} m</b> of the snakes' ${fmt(all / 1000, 1)} m lie within ${HOLO2.flat}° of the horizontal — along the machine's Y, where the flat brush may break into dashes (README, "How to lay a module"). Drawn all the same, on paper first: photograph them, then we correct the ones that fail.`;
+  $('#runList').innerHTML = P.map((q, i) => `${!i || q.run !== P[i - 1].run ? `<li class="fg-sep">${LAYER[q.run]}</li>` : ''}<li data-key="${esc(q.key)}" data-i="${i}" class="${only === q.key ? 'only' : ''}" title="${esc(q.name)}${q.note ? ` — ${esc(q.note)}` : ''}: ${q.dabs} dabs in ${q.batches.length} group${q.batches.length === 1 ? '' : 's'}, ${fmt(q.mm / 1000, 1)} m of snakes (${fmt(q.flatMm / 1000, 1)} m horizontal), ≈ ${hm(q.seconds)} (est.). A click shows its snakes, their way and its dabs"><span class="no">${i + 1}</span><i class="sw" style="background:${q.hex}"></i><span class="nm">${esc(q.name)}${jarTag(q)}</span><span class="tg">${q.dabs} dabs</span></li>`).join('');
+  $('#jarsHint').textContent = `${PIC.jars.length} jars, light to dark, a band a group`;
   const gone = PIC.gone ?? [];
   $('#jarNote').innerHTML = `Every jar one of his: the numbered ones as FORM-G knows them, the others HOLO's (est.) — no new jar to mix.`
     + (gone.length ? ` The canon of the jars: ${gone.map(g => `${esc(g.name)} had ${g.mm} mm of line, under the canvas's 600, so its lanes went to ${esc(g.to)}`).join('; ')}.` : '');
-  $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm · the route ${fmt(PIC.count.route_m, 1)} m · ${PIC.count.lanes} lanes · ${PIC.count.dabs} dabs`;
+  $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm · the route ${fmt(PIC.count.route_m, 1)} m · ${PIC.count.lanes} lanes · ${PIC.count.groups} groups · ${PIC.count.dabs} dabs`;
   lcd();
 }
 function marksSay(rg) {
@@ -669,10 +663,10 @@ const READS = new Map();
 function readOf(id) {
   if (READS.has(id)) return READS.get(id);
   const pic = LIB[id], P = plan(pic), n1 = P.filter(q => q.run === 1), n2 = P.filter(q => q.run === 2);
-  const C = pic.count, dr = q => P.filter(x => x.run === q && x.kind === 'drag')[0];
-  const out = `<b>${esc(pic.title)}</b>: the owner's route, ${fmt(C.route_m, 1)} m, drawn stage by stage, its colours off ${esc(pic.source.split('/').pop())} in his jars; ${C.lanes} lanes, ${fmt(C.line_m, 0)} m a drag, ${C.spokes} rows, ${C.dabs} dabs. `
-    + `<b>Layer 1</b>, the blues and the white: ${n1.length - 1} jars, ${dabsIn(P, 1)} dabs, the DRAG, ≈ ${hm(total(n1))}; the layer to dry; <b>Layer 2</b>, the reds and the yellow: ${n2.length - 1} jars, ${dabsIn(P, 2)} dabs, the DRAG, ≈ ${hm(total(n2))} (est.). `
-    + `${fmt(C.horizontal_m, 1)} m of a drag within ${HOLO2.flat}° of the horizontal. A model, not a photo: nothing run yet.`;
+  const C = pic.count;
+  const out = `<b>${esc(pic.title)}</b>: the owner's route, ${fmt(C.route_m, 1)} m, drawn stage by stage, its colours off ${esc(pic.source.split('/').pop())} in his jars; ${C.lanes} lanes, ${C.groups} groups, ${C.dabs} dabs, ${fmt(C.line_m, 0)} m of snakes. `
+    + `<b>Layer 1</b>, the blues and the white: ${n1.length} jars, ${dabsIn(P, 1)} dabs, ≈ ${hm(total(n1))}; the layer to dry; <b>Layer 2</b>, the reds and the yellow: ${n2.length} jars, ${dabsIn(P, 2)} dabs, ≈ ${hm(total(n2))} (est.). `
+    + `${fmt(C.horizontal_m, 1)} m of the snakes within ${HOLO2.flat}° of the horizontal. A model, not a photo: nothing run yet.`;
   READS.set(id, out);
   return out;
 }

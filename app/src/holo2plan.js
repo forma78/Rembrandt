@@ -5,79 +5,80 @@
 // short snakes read off the drawing: "this is complicated and long. Let us do it as in ST-JOHN … only we taught the machine to put the
 // drops itself"; "the brush must drive without a stop"; "we need even lines".
 //
+// The brush is flat: a dab only upright, HOLO's mark along X, whatever the lane's way (the owner, the same day: "it can put the drops only as in
+// the first HOLO"); and the dabs of one colour, then the machine drives over them, then another's ("there are a great many and they dry before
+// the brush comes"): a colour's band of the route a group — its rows of dabs, then at once its snake over them, lane after lane.
+//
 // A picture, app/holo2/<id>.json, made by HOLO2/generator/holo2_route.py off his route (HOLO2/01.png … 05.png, drawn stage by stage) and the
 // colours of his drawing (HOLO2/Untitled-19.png):
 //   { id, title, sub, version, composition: 'route', w, h, pitch, field, image, after1, est, count,
-//     jars: [{ id, name, number, hex, L, layer, seen, note, run1_dabs, run2_dabs, spokes, band_mm }],   // run1_dabs: Layer 1's (HOLO's words)
-//     route: [[x, y]],                       // the route's middle, smoothed
-//     lanes: [[[x, y], …], …],               // the brush's way: lane 1 forward, lane 2 back … each the route moved a pitch aside, in that order
-//     bands: [{ jar, s0, s1 }],              // the colours along the route, mm from its start
-//     spokes: [{ s, jar, dabs: [[x, y, ux, uy], …] }],   // a row of dabs across the ribbon, one a lane, the lane's way at it
+//     jars: [{ id, name, number, hex, L, layer, seen, note, run1_dabs, run2_dabs, groups, band_mm, drag_mm }],   // run1_dabs: Layer 1's (HOLO's words)
+//     route: [[x, y]], lanes: [[[x, y], …], …],            // the route's middle, smoothed; its lanes, the brush apart
+//     groups: [{ jar, s0, s1,                             // a colour's band, mm along the route
+//                legs: [[x0, y0, x1, y1, …], …],          // its lanes over it in the brush's order, a step aside from one to the next
+//                dabs: [[x, y, way], …] }],               // its rows of dabs, upright, the mark up (1) or down (−1) the way its lane goes there
 //     contour: { outline, all } }
 // mm from the canvas's bottom left corner, x right (the machine's Y), y up (its X), as HOLO's.
 //
-// The list: Layer 1's jars light to dark, each its spokes' dabs (a dip and HOLO's mark a dab), then Layer 1's DRAG — the whole snake, no dip,
-// the brush down from its start to its end; Layer 2 the same on the dry first. HOLO's MARKS and place (holoplan.js). Every number est.
+// The list: Layer 1's jars light to dark, then Layer 2's on the dry first (holoplan.js's seqOf); a jar's groups along the route. HOLO's MARKS
+// and place (holoplan.js). Every number est.
 
 import { seqOf as jarSeqOf, besideOf, MARKS_BESIDE, placeRange, WALL } from './holoplan.js';
 export { besideOf, MARKS_BESIDE, placeRange, WALL };
 
 export const HOLO2_LIB = ['holo2-19'];
 // est.: HOLO's mark of 8 mm a dab; 9 s a dab; the brush along the drag, mm/s; `flat`, the horizontal stretches within so many degrees of the
-// canvas's horizontal (the machine's Y), the flat brush's danger
-export const HOLO2 = { mark: 8, sDab: 9, speed: 25, flat: 30 };
+// canvas's horizontal (the machine's Y), the flat brush's danger; `lift`, a step from a lane to the next longer than this, mm, the brush up
+export const HOLO2 = { mark: 8, sDab: 9, speed: 25, flat: 30, lift: 15 };
 
 const len = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 export const lineLen = pts => pts.slice(1).reduce((t, p, i) => t + len(pts[i], p), 0);
 // a stretch of line within `flat` degrees of the horizontal: along the machine's Y, where the flat brush may not lay the paint (the owner)
 export const isFlat = (a, b, flat = HOLO2.flat) => Math.abs(b[1] - a[1]) < Math.sin(flat * Math.PI / 180) * (len(a, b) || 1);
 const flatMmOf = (pts, flat) => pts.slice(1).reduce((t, q, i) => t + (isFlat(pts[i], q, flat) ? len(pts[i], q) : 0), 0);
-// the lanes end to end, the brush down from one's end to the next's start
+// the lanes end to end (the whole route's, for the Drag view)
 export const snakeOf = pic => pic.lanes.flat();
+const pairs = flat => Array.from({ length: flat.length / 2 }, (_, i) => [flat[2 * i], flat[2 * i + 1]]);
 
-// the list: a layer's jars light to dark (holoplan.js's seqOf, a jar a line, its key `${id}:${layer}`), then its DRAG
-export function seqOf(pic) {
-  const out = [];
-  for (const run of [1, 2]) {
-    const J = jarSeqOf(pic).filter(q => q.run === run);
-    if (!J.length) continue;
-    out.push(...J.map(q => ({ ...q, kind: 'dabs' })), { kind: 'drag', key: `drag:${run}`, jar: null, run, name: `Layer ${run} · DRAG`, hex: '#24221F', L: 0,
-      note: 'the whole snake, no dip: lane after lane through the puddles, the brush down from start to end' });
-  }
-  return out;
-}
+// the list: Layer 1's jars light to dark, then Layer 2's (holoplan.js's seqOf, a jar a line, its key `${id}:${layer}`)
+export const seqOf = pic => jarSeqOf(pic);
 
-// a line of the list into its work. A jar's: its spokes in the route's order, a spoke's dabs across the ribbon in turn this way and that,
-// every dab a puddle — one batch, no stroke. A DRAG: one stroke, the snake; its lanes the items (BACK ONE JAR's and the remote's cells).
-// → { dabs, cells, puddles: [{ x, y, dabs, u }], strokes: [{ pts, lane }], batches: [{ puddles, strokes, items, dabs }], items, mm, flatMm }
+// a line of the list into its work: its groups along the route, each its dabs (upright puddles, u the mark's way along X), then its snake.
+// → { dabs, cells, puddles: [{ x, y, dabs, u }], strokes: [{ pts, lane, cell, key }], batches: [{ puddles, strokes, items, dabs }],
+//   items: [{ cell, pts, len, flatMm }], mm, flatMm, flats }
 export function workOf(pic, line, o = {}) {
-  const flat = o.flat ?? HOLO2.flat;
-  if (line.kind === 'drag') {
-    const items = pic.lanes.map((pts, cell) => ({ cell, pts, len: lineLen(pts), flatMm: flatMmOf(pts, flat), puddles: [] }));
-    const stroke = { pts: snakeOf(pic), lane: pic.pitch, cell: 0, key: line.key };
-    return { dabs: 0, cells: items.length, puddles: [], strokes: [stroke], batches: [{ puddles: [], strokes: [stroke], items, dabs: 0 }], items,
-      mm: lineLen(stroke.pts), flatMm: items.reduce((t, it) => t + it.flatMm, 0), flats: items.filter(it => it.flatMm > it.len / 2).length };
-  }
-  const items = pic.spokes.filter(sp => sp.jar === line.jar).sort((a, b) => a.s - b.s).map((sp, cell) => {
-    const ds = cell % 2 ? sp.dabs.slice().reverse() : sp.dabs;
-    return { cell, s: sp.s, pts: ds.map(d => [d[0], d[1]]), len: 0, flatMm: 0, puddles: ds.map(([x, y, ux, uy]) => ({ x, y, dabs: 1, u: [ux, uy] })) };
+  const flat = o.flat ?? HOLO2.flat, items = [], batches = [];
+  pic.groups.filter(g => g.jar === line.jar).sort((a, b) => a.s0 - b.s0).forEach((g, k) => {
+    const its = g.legs.map(f => { const pts = pairs(f); return { cell: items.length, pts, len: lineLen(pts), flatMm: flatMmOf(pts, flat) }; });
+    items.push(...its);
+    const puddles = g.dabs.map(([x, y, way]) => ({ x, y, dabs: 1, u: [0, way] }));
+    // its snake one run, the brush down from a lane's end to the next's start — but where that step is longer than `lift` (a lane cut at a tight
+    // turn), the brush up there, a new run: no stroke across the band
+    const strokes = [];
+    for (const it of its) {
+      const q = strokes.at(-1), e = q?.pts.at(-1);
+      if (q && Math.hypot(it.pts[0][0] - e[0], it.pts[0][1] - e[1]) <= HOLO2.lift) q.pts.push(...it.pts);
+      else strokes.push({ pts: it.pts.slice(), lane: pic.pitch, cell: it.cell, key: `${line.key}:${k}` });
+    }
+    batches.push({ puddles, items: its, dabs: puddles.length, strokes });
   });
-  const puddles = items.flatMap(it => it.puddles);
-  return { dabs: puddles.length, cells: items.length, puddles, strokes: [], batches: [{ puddles, strokes: [], items, dabs: puddles.length }], items, mm: 0, flatMm: 0, flats: 0 };
+  const puddles = batches.flatMap(B => B.puddles), strokes = batches.flatMap(B => B.strokes);
+  return { dabs: puddles.length, cells: items.length, puddles, strokes, batches, items, mm: strokes.reduce((t, q) => t + lineLen(q.pts), 0),
+    flatMm: items.reduce((t, it) => t + it.flatMm, 0), flats: items.filter(it => it.flatMm > it.len / 2).length };
 }
 
 // the whole list's work, every line its numbers and its time (est.: a dab sDab s, the drag at `speed`); o.marks: every jar's line its MARKS
 // first (besideOf's, 'off' or 'on' the canvas), a dip and its marks, sDab s the first, MARKS_BESIDE.sMark every next — HOLO's
 export function planOf(pic, o = {}) {
   const sDab = o.sDab ?? HOLO2.sDab, speed = o.speed ?? HOLO2.speed;
-  const M = o.marks ? besideOf(pic, o.marks === true ? 'off' : o.marks).marks : null, byKey = new Map(jarSeqOf(pic).map((q, i) => [q.key, M?.[i] ?? []]));
-  return seqOf(pic).map(line => {
-    const w = workOf(pic, line, o), marks = line.kind === 'dabs' ? byKey.get(line.key) ?? [] : [], sm = marks.length ? sDab + (marks.length - 1) * MARKS_BESIDE.sMark : 0;
+  const M = o.marks ? besideOf(pic, o.marks === true ? 'off' : o.marks).marks : null;
+  return seqOf(pic).map((line, i) => {
+    const w = workOf(pic, line, o), marks = M?.[i] ?? [], sm = marks.length ? sDab + (marks.length - 1) * MARKS_BESIDE.sMark : 0;
     return { ...line, ...w, marks, seconds: w.dabs * sDab + w.mm / speed + sm };
   });
 }
 
-// the moves in their order, for ▶ Play and the LCD: a jar's marks, then its dabs; a DRAG its snake; every move its time, s (est.)
+// the moves in their order, for ▶ Play and the LCD: a jar's marks, then a group's dabs, then its snake; every move its time, s (est.)
 export function movesOf(lines, o = {}) {
   const sDab = o.sDab ?? HOLO2.sDab, speed = o.speed ?? HOLO2.speed, out = [];
   let t = 0;
@@ -102,21 +103,22 @@ export function along(pts, s) {
 }
 
 // ---------- LAYER 1 · LAYER 2 on the machine, as HOLO's RUN 1 · RUN 2 (holoplan.js's runsOf) ----------
-// A jar's line: after the change of jar its MARKS, one dip for them all; then every dab a dip of its own and HOLO's mark — the brush down
-// there, HOLO2.mark mm along its lane, centred on the puddle, the way the drag will go. The DRAG's line: the snake, one run, no dip, the brush
-// down from end to end, whatever the way (the owner's horizontal strokes on paper first). The J3 compensation and the moves are the page's.
+// A line: after the change of jar its MARKS, one dip for them all; then a group at a time: its dabs, every one a dip of its own and HOLO's mark —
+// the brush down there, HOLO2.mark mm along X, upright, centred on the puddle, the way its lane goes there — then its snake, no dip, one run,
+// the brush down from end to end, whatever the way (the owner's horizontal strokes on paper first). The J3 compensation and the moves the page's.
 // lines: planOf's, from Start from on → [{ pass, num, pts, say, dip, idle: false, beyond, mark?, dab? }]
 export function runsOf(lines, o = {}) {
   const leg = o.mark ?? HOLO2.mark, out = [];
   lines.forEach((L, k) => {
     (L.marks ?? []).forEach((m, i) => out.push({ pass: k, num: 0, pts: m.pts, say: `mark ${m.no}, the ${m.side} slip`, dip: i === 0, idle: false, beyond: true, mark: m.no }));
-    if (L.kind === 'drag') {
-      const n = L.items.length;
-      out.push({ pass: k, num: 1, pts: L.strokes[0].pts, say: `the snake, ${n} lanes, ${(L.mm / 1000).toFixed(1)} m, no dip`, dip: false, idle: false, beyond: true });
-      return;
-    }
-    L.items.forEach((it, i) => it.puddles.forEach((p, j) => out.push({ pass: k, num: i + 1, pts: [[p.x - p.u[0] * leg / 2, p.y - p.u[1] * leg / 2], [p.x + p.u[0] * leg / 2, p.y + p.u[1] * leg / 2]],
-      say: `row ${i + 1}/${L.items.length} · a dab ${j + 1}/${it.puddles.length}`, dip: true, idle: false, beyond: true, dab: true })));
+    let num = 0;
+    L.batches.forEach((B, bi) => {
+      const tag = `group ${bi + 1}/${L.batches.length}`, first = num + 1;
+      B.puddles.forEach((p, j) => out.push({ pass: k, num: first, pts: [[p.x, p.y - p.u[1] * leg / 2], [p.x, p.y + p.u[1] * leg / 2]], say: `${tag} · a dab ${j + 1}/${B.puddles.length}`, dip: true, idle: false, beyond: true, dab: true }));
+      num += B.items.length;
+      const flats = B.items.filter(it => it.flatMm > it.len / 2).length;
+      B.strokes.forEach((q, j) => out.push({ pass: k, num: first, pts: q.pts, say: `${tag} · the snake${B.strokes.length > 1 ? ` ${j + 1}/${B.strokes.length}` : ''}, ${B.items.length} lanes${flats ? `, ${flats} mostly horizontal` : ''}, no dip`, dip: false, idle: false, beyond: true }));
+    });
   });
   return out;
 }

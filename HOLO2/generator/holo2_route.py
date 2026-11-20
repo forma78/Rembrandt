@@ -13,8 +13,10 @@ So:
   - the snake: lane 1 the whole route forward, a step aside at its end, lane 2 the whole route back … the brush down from start to end;
   - the colours: Untitled-19 read across the ribbon all along the route, the nearest of his jars, bands at least `band` mm long; the canon
     of the jars;
-  - the spokes: in every band rows of dabs across the ribbon, one on every lane, `spoke` mm apart along it — ST-JOHN's spokes, laid by the
-    machine; Layer 1 the blues and the white, Layer 2 the reds and the yellow, each then dragged by the whole snake;
+  - a band a group, as HOLO's: its rows of dabs, one on every lane, `spoke` mm apart, every dab upright (the owner: "the brush is flat: it can
+    put the drops only as in the first HOLO"), then at once its snake over them, lane after lane, no dip; a jar's groups along the route, then
+    the next jar ("first the drops of one colour, the machine drives over them, then the drops of another colour"); Layer 1 the blues and the
+    white, Layer 2 the reds and the yellow;
   - the model: the brush taking up a dab and laying it thinner and thinner on, est.
 
 python holo2_route.py [id …]        (holo2_gen.py's venv: numpy, pillow, scipy, scikit-image)
@@ -35,9 +37,9 @@ PICS = {
                      stages=['01.png', ('01 update 2.png', 'green'), '02.png', '03.png', '04.png', '05.png']),
 }
 # est.: pitch, the lanes apart (the brush); lanes, how many (a ribbon 40 mm); smooth, the route's smoothing along it, mm; band, a colour along the
-# route at least, mm; spoke, the rows of dabs apart along a band at most, mm; mark, a dab's leg; inset, a band's first row from its start, mm;
+# route at least, mm; spoke, the rows of dabs apart along a band at most, mm; over, a band's drag past its ends into its neighbours, mm; mark, a dab's leg;
 # the model: a dab's paint gives out over `fade` mm of lane (HOLO's 55 a dab, est.)
-EST = dict(pitch=5.0, lanes=8, smooth=6.0, band=30.0, spoke=40.0, mark=8.0, fade=30.0, track=7.0)
+EST = dict(pitch=5.0, lanes=8, smooth=6.0, band=30.0, spoke=40.0, over=10.0, mark=8.0, fade=30.0, track=7.0)
 
 
 def stageMasks(f, kind='line'):
@@ -54,14 +56,14 @@ def endsOf(sk):
     return np.argwhere(sk & (nb == 1))[:, ::-1]
 
 
-def traceSk(sk, start, d):
-    """along a skeleton from `start` the way `d`, straight on through crossings, over gaps up to 40 px, a hairpin onto new line only"""
+def traceSk(sk, start, d, gap=40):
+    """along a skeleton from `start` the way `d`, straight on through crossings, over gaps up to `gap` px, a hairpin onto new line only"""
     ys, xs = np.nonzero(sk); P = np.stack([xs, ys], 1); vis = np.zeros_like(sk, int)
     cur = np.array(start, int); pts = [cur.astype(float)]; along = 0
     for _ in range(20000):
         vis[cur[1], cur[0]] += 1
         best = None
-        for Rr, cone in ((3, 75), (12, 60), (40, 45), (14, 150)):
+        for Rr, cone in ((3, 75), (12, 60), (gap, 45), (14, 150)):
             m = (np.abs(P[:, 0] - cur[0]) <= Rr) & (np.abs(P[:, 1] - cur[1]) <= Rr)
             for q in P[m]:
                 v = q - cur; L = np.linalg.norm(v)
@@ -72,6 +74,26 @@ def traceSk(sk, start, d):
                 score = (1 - c) * 4 + vis[q[1], q[0]] * 3 + (L / Rr) * 0.5
                 if best is None or score < best[0]: best = (score, q)
             if best: break
+        if best is None and len(pts) > 30:                                              # stuck: the way over the last 30 steps (an arrowhead bends the last few)
+            dl = cur - pts[-30]; dl = dl / (np.linalg.norm(dl) or 1)
+            m = (np.abs(P[:, 0] - cur[0]) <= gap) & (np.abs(P[:, 1] - cur[1]) <= gap)
+            for q in P[m]:
+                v = q - cur; L = np.linalg.norm(v)
+                if L < 4 or L > gap or vis[q[1], q[0]] or min(np.linalg.norm(np.array(pts[-80:]) - q, axis=1)) < 6: continue
+                c = (v / L) @ dl
+                if c < math.cos(math.radians(55)): continue
+                score = (1 - c) * 4 + (L / gap)
+                if best is None or score < best[0]: best = (score, q)
+            if best is not None: d = dl
+        if best is None and len(pts) > 30:                                              # a sharp turn where the line meets one already run (his arrow into
+            allp = np.array(pts)                                                        # a junction, the way on up another): the nearest new line, 8 px clear
+            g2 = gap * 1.6
+            m = (np.abs(P[:, 0] - cur[0]) <= g2) & (np.abs(P[:, 1] - cur[1]) <= g2)     # of every point run so far, within 110° of the way
+            for q in P[m]:
+                v = q - cur; L = np.linalg.norm(v)
+                if L < 4 or L > g2 or vis[q[1], q[0]] or (v / L) @ dl < math.cos(math.radians(110)) or np.min(np.linalg.norm(allp - q, axis=1)) < 8: continue
+                if best is None or L < best[0]: best = (L, q)
+            if best is not None: d = (best[1] - cur) / (np.linalg.norm(best[1] - cur) or 1)
         if best is None: break
         cur = best[1]; pts.append(cur.astype(float))
         # back along its own way, the other way round, longer than a crossing (10 steps): the stage's line has ended there, the steps back cut off
@@ -212,60 +234,64 @@ def run(pid):
         live.remove(drop[0])
         if drop[2]: gone[jars[drop[0]][1]] = (jars[drop[1]][1], round(drop[2]))
     for g, (k, v) in gone.items(): print(f'  the canon of the jars: {g} ({v} mm of line) → {k}')
-    # the spokes: in every band rows across the ribbon, `spoke` mm apart at most, evenly; a dab on every lane at the route's same place
-    spokes = []
+    # a band a group, as HOLO's (the owner, the same day: "the brush is flat: it can put the drops only as in the first HOLO"; "first we put
+    # the drops of one colour, the machine drives over them, then the drops of another colour" — so they do not dry before the brush comes):
+    # its rows of dabs, every dab upright, HOLO's mark along X whatever the lane's way, `spoke` mm apart at most along the band, one on every
+    # lane; then at once its snake, no dip — lane 1 along the band, a step aside, lane 2 back … — `over` mm into its neighbours either end
+    groups = []
     for b in bands:
+        a0, a1 = max(0, b['s0'] - E['over']), min(len(C) - 1, b['s1'] + E['over'])
+        legs = []
+        for k, (Lp, idx) in enumerate(lanes):
+            sel = np.flatnonzero((idx >= a0) & (idx <= a1))
+            if len(sel) < 3: continue
+            runs = np.split(sel, np.flatnonzero(np.diff(idx[sel]) > 3) + 1); r = max(runs, key=len)    # a lane cut at a tight turn: its longest piece
+            if len(r) >= 3: legs.append((k, Lp[r], idx[r]))
+        out = []                                                                            # lane 1 along the route, every next from its end nearer the last's
+        for j, (k, P_, I_) in enumerate(legs):
+            if out and np.linalg.norm(P_[-1] - out[-1][1][-1]) < np.linalg.norm(P_[0] - out[-1][1][-1]): P_, I_ = P_[::-1], I_[::-1]
+            out.append((k, P_, I_))
+        legs = out
         Lb = b['s1'] - b['s0']; n = max(1, int(math.ceil(Lb / E['spoke'])))
+        dabs = []
         for q in range(n):
-            si = int(round(b['s0'] + (q + 0.5) * Lb / n)); si = min(len(C) - 1, si)
-            dabs = []
-            for (Lp, idx) in lanes:
-                k = int(np.searchsorted(idx, si)); k = min(len(idx) - 1, k)
-                if abs(int(idx[k]) - si) > 3: continue                                      # the lane cut there (a tight turn): no dab
-                p = Lp[k]; q2 = Lp[min(len(Lp) - 1, k + 1)] - Lp[max(0, k - 1)]; u = q2 / (np.linalg.norm(q2) or 1)
-                dabs.append([round(float(p[0]), 2), round(float(p[1]), 2), round(float(u[0]), 3), round(float(u[1]), 3)])
-            spokes.append(dict(s=si, jar=jars[b['jar']][0], dabs=dabs))
-    # the snake: lane 1 forward, lane 2 back … one line; every lane its points, the route's index kept for the model
-    snake, order = [], []
-    for k, (Lp, idx) in enumerate(lanes):
-        fw = k % 2 == 0
-        snake.append(Lp if fw else Lp[::-1]); order.append(idx if fw else idx[::-1])
-    full = np.concatenate(snake)
-    # the model: Layer 1 then Layer 2 over it; the brush along the snake takes up a dab where it passes one of its layer on its lane, lays it
-    # thinner and thinner on (est.)
+            si = b['s0'] + (q + 0.5) * Lb / n
+            for (k, P_, I_) in legs:
+                m = int(np.argmin(np.abs(I_ - si)))
+                if abs(I_[m] - si) > 3: continue
+                dy = P_[min(len(P_) - 1, m + 2)][1] - P_[max(0, m - 2)][1]
+                dabs.append((k, int(I_[m]), P_[m], 1 if dy >= 0 else -1))                         # the mark up or down, the way the lane goes there
+        groups.append(dict(jar=b['jar'], s0=b['s0'], s1=b['s1'], legs=legs, dabs=dabs))
+    full = np.concatenate([P_ for g in groups for (_, P_, _) in g['legs']])
+    # the model: the list's jars in turn, a group at a time; the brush along a leg takes up a dab of its group on its lane where it passes it,
+    # lays it thinner and thinner on (est.); Layer 2 over Layer 1
     k_ = 3
-    canvas = Image.new('RGBA', (P['w'] * k_, P['h'] * k_), (*G.GROUND, 255))
-    layer1 = None
-    byLane = {}
-    for sp in spokes:
-        lay = next(j[4] for j in jars if j[0] == sp['jar']); col = np.array(G.hexrgb(next(j[3] for j in jars if j[0] == sp['jar'])))
-        for (x, y, ux, uy) in sp['dabs']:
-            li = int(np.argmin([np.min(np.linalg.norm(Lp - [x, y], axis=1)) for Lp, _ in lanes]))
-            byLane.setdefault((lay, li), []).append((sp['s'], col))
-    for lay in (1, 2):
-        for li, (Lp, idx) in enumerate(lanes):
-            pts, ix = snake[li], order[li]
-            dmap = {}
-            for sIdx, col in byLane.get((lay, li), []): dmap.setdefault(sIdx, []).append(col)
-            im = Image.new('RGBA', canvas.size, (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-            A, Cc, w = 0.0, np.zeros(3), int(round(E['pitch'] * 0.95 * k_))
-            for i in range(1, len(pts)):
-                for sIdx in range(min(ix[i - 1], ix[i]), max(ix[i - 1], ix[i]) + 1):
-                    for col in dmap.pop(sIdx, []): Cc = (Cc * A + col) / (A + 1); A = min(2.0, A + 1.0)
-                if A < 0.03: continue
-                al = min(1.0, A) ** 0.6
-                a_, b_ = pts[i - 1], pts[i]
-                d.line([(a_[0] * k_, (P['h'] - a_[1]) * k_), (b_[0] * k_, (P['h'] - b_[1]) * k_)], fill=(*[int(v * 255) for v in Cc], int(al * 235)), width=w)
-                A *= math.exp(-np.linalg.norm(b_ - a_) / E['fade'])
-            canvas = Image.alpha_composite(canvas, im)
-        if lay == 1: layer1 = canvas.copy()
+    canvas = Image.new('RGBA', (P['w'] * k_, P['h'] * k_), (*G.GROUND, 255)); layer1 = canvas.copy()
+    Ls = {i: float(JL[i][0]) for i in range(len(jars))}
+    order = sorted(live, key=lambda i: (jars[i][4], -Ls[i]))
+    for li_, i in enumerate(order):
+        col = np.array(G.hexrgb(jars[i][3]))
+        im = Image.new('RGBA', canvas.size, (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+        for g in (g for g in groups if g['jar'] == i):
+            at = {}
+            for (k, sI, p, w) in g['dabs']: at.setdefault((k, sI), 0); at[(k, sI)] += 1
+            for (k, P_, I_) in g['legs']:
+                A, w = 0.0, int(round(E['pitch'] * 0.95 * k_))
+                for t in range(1, len(P_)):
+                    for sI in range(min(I_[t - 1], I_[t]), max(I_[t - 1], I_[t]) + 1): A = min(2.0, A + at.pop((k, sI), 0))
+                    if A < 0.03: continue
+                    a_, b_ = P_[t - 1], P_[t]
+                    d.line([(a_[0] * k_, (P['h'] - a_[1]) * k_), (b_[0] * k_, (P['h'] - b_[1]) * k_)], fill=(*[int(v * 255) for v in col], int(min(1.0, A) ** 0.6 * 235)), width=w)
+                    A *= math.exp(-np.linalg.norm(b_ - a_) / E['fade'])
+        canvas = Image.alpha_composite(canvas, im)
+        if jars[i][4] == 1: layer1 = canvas.copy()
     os.makedirs(G.OUT, exist_ok=True)
     canvas.convert('RGB').save(os.path.join(G.OUT, f'{pid}.jpg'), quality=88)
     layer1.convert('RGB').save(os.path.join(G.OUT, f'{pid}-layer1.jpg'), quality=88)
     # DRAW BW's lines: the ribbon's outline as the track lays it; every border too: the bands' ends across it
     Wp, Hp = P['w'] * R, P['h'] * R
     cov = Image.new('L', (Wp, Hp), 0); dc = ImageDraw.Draw(cov)
-    for Lp in snake: dc.line([(x * R, (P['h'] - y) * R) for x, y in Lp], fill=255, width=int(round(E['track'] * R)), joint='curve')
+    for Lp, _ in lanes: dc.line([(x * R, (P['h'] - y) * R) for x, y in Lp], fill=255, width=int(round(E['track'] * R)), joint='curve')
     cov = nd.binary_closing(np.asarray(cov) > 0, iterations=3)
     outline = G.contoursOf(cov, P['h'])
     cross = [np.array([C[b['s0']] + nrm[b['s0']] * (W / 2 + 1), C[b['s0']] - nrm[b['s0']] * (W / 2 + 1)]) for b in bands[1:]]
@@ -280,33 +306,31 @@ def run(pid):
     r1 = lambda v: round(float(v), 1)
     lenOf = lambda Q: float(np.linalg.norm(np.diff(Q, axis=0), axis=1).sum())
     sin30 = math.sin(math.radians(30))
-    seg = np.diff(full, axis=0); sl = np.linalg.norm(seg, axis=1)
+    def flatOf(Q): d = np.diff(Q, axis=0); L = np.linalg.norm(d, axis=1); return float(L[np.abs(d[:, 1]) < sin30 * np.maximum(L, 1e-9)].sum())
     J = []
-    Ls = {i: float(JL[i][0]) for i in range(len(jars))}
-    for i in sorted(live, key=lambda i: (jars[i][4], -Ls[i])):
+    for i in order:
         jid, name, num, hx, layer, seen, note = jars[i]
-        dn = sum(len(sp['dabs']) for sp in spokes if sp['jar'] == jid)
+        G_ = [g for g in groups if g['jar'] == i]; dn = sum(len(g['dabs']) for g in G_)
         if not dn: continue
         J.append(dict(id=jid, name=name, number=num, hex=hx, L=round(Ls[i], 1), layer=layer, seen=seen, note=note, run1_dabs=dn if layer == 1 else 0, run2_dabs=dn if layer == 2 else 0,
-                      spokes=sum(1 for sp in spokes if sp['jar'] == jid), band_mm=int(sum(b['s1'] - b['s0'] for b in bands if b['jar'] == i))))
-    simple = [G.rdp(Lp, 0.15) for Lp in snake]
-    plan = dict(id=pid, title=P['title'], sub=P['sub'], version=2, composition='route', w=P['w'], h=P['h'], pitch=E['pitch'],
+                      groups=len(G_), band_mm=int(sum(g['s1'] - g['s0'] for g in G_)), drag_mm=round(sum(lenOf(P_) for g in G_ for (_, P_, _) in g['legs']))))
+    legs_all = [P_ for g in groups for (_, P_, _) in g['legs']]
+    plan = dict(id=pid, title=P['title'], sub=P['sub'], version=3, composition='route', w=P['w'], h=P['h'], pitch=E['pitch'],
                 field=dict(x0=r1(full[:, 0].min() - E['pitch'] / 2), x1=r1(full[:, 0].max() + E['pitch'] / 2), y0=r1(full[:, 1].min() - E['pitch'] / 2), y1=r1(full[:, 1].max() + E['pitch'] / 2)),
                 source=P['src'], stages=[f'HOLO2/{f if isinstance(f, str) else f[0]}' for f in P['stages']], route_scale=round(route_scale, 4), image=f'holo2/{pid}.jpg', after1=f'holo2/{pid}-layer1.jpg',
-                est=dict(a_dab_lasts=E['fade'], mark_leg=E['mark'], s_per_dab=9, lanes=N, smooth=E['smooth'], band=E['band'], spoke=E['spoke']),
-                count=dict(route_m=round(lenOf(C) / 1000, 2), lanes=N, line_m=round(lenOf(full) / 1000, 1), bands=len(bands), spokes=len(spokes),
-                           dabs=sum(len(sp['dabs']) for sp in spokes), horizontal_m=round(float(sl[np.abs(seg[:, 1]) < sin30 * np.maximum(sl, 1e-9)].sum()) / 1000, 1)),
+                est=dict(a_dab_lasts=E['fade'], mark_leg=E['mark'], s_per_dab=9, lanes=N, smooth=E['smooth'], band=E['band'], spoke=E['spoke'], over=E['over']),
+                count=dict(route_m=round(lenOf(C) / 1000, 2), lanes=N, line_m=round(sum(lenOf(Q) for Q in legs_all) / 1000, 1), bands=len(bands), groups=len(groups),
+                           dabs=sum(len(g['dabs']) for g in groups), horizontal_m=round(sum(flatOf(Q) for Q in legs_all) / 1000, 1)),
                 jars=J, gone=[dict(name=g, to=k, mm=v) for g, (k, v) in gone.items()],
                 route=[[r1(x), r1(y)] for x, y in G.rdp(C, 0.08)],
-                lanes=[[[r1(x), r1(y)] for x, y in Lp] for Lp in simple],
-                bands=[dict(jar=jars[b['jar']][0], s0=b['s0'], s1=b['s1']) for b in bands],
-                spokes=spokes,
+                lanes=[[[r1(x), r1(y)] for x, y in G.rdp(Lp, 0.15)] for Lp, _ in lanes],
+                groups=[dict(jar=jars[g['jar']][0], s0=g['s0'], s1=g['s1'], legs=[[r1(v) for p in G.rdp(P_, 0.15) for v in p] for (_, P_, _) in g['legs']],
+                             dabs=[[r1(p[0]), r1(p[1]), w] for (_, _, p, w) in g['dabs']]) for g in groups],
                 contour=dict(outline=order_lines(outline), all=order_lines(list(outline) + cross)))
     with open(os.path.join(G.OUT, f'{pid}.json'), 'w') as f: json.dump(plan, f, separators=(',', ':'))
     c = plan['count']
-    print(f"  route {c['route_m']} m, {N} lanes, {c['line_m']} m of line, {c['bands']} bands, {c['spokes']} spokes, {c['dabs']} dabs, horizontal {c['horizontal_m']} m")
-    for j in J: print(f"  L{j['layer']} {j['name']:12s} {j['hex']}  {j['band_mm']:5d} mm of route  {j['spokes']:3d} spokes  {j['run1_dabs'] + j['run2_dabs']:4d} dabs")
-
+    print(f"  route {c['route_m']} m, {N} lanes, {c['line_m']} m of drag, {c['bands']} bands = groups, {c['dabs']} dabs, horizontal {c['horizontal_m']} m")
+    for j in J: print(f"  L{j['layer']} {j['name']:12s} {j['hex']}  {j['groups']:3d} groups  {j['run1_dabs'] + j['run2_dabs']:4d} dabs  {j['drag_mm'] / 1000:5.1f} m")
 
 if __name__ == '__main__':
     for pid in (sys.argv[1:] or list(PICS)): run(pid)
