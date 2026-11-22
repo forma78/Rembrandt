@@ -2336,6 +2336,69 @@ def library_save(folder, svg, png, now=None):
     return base
 
 
+# GEN-V's APPROVE 🐾 (the owner, 2026-11-22, the evening: "why do I download to the desktop at all … the same APPROVE key — it can be made on the
+# principle of library.html, without extra moves: I press APPROVE … and the picture appears in Library-V"; asked about this file: "yes, add it"). The page
+# sends the sketch as approved, its card for GOGH made already (goghplan.js's cardOfSketch: the plan as it is, the ≈ Jar hints, the look) and the card's
+# jpg; here only the files: the sketch into GOGH/ by its own name, the card into app/gogh/<id>.json and .jpg, its id first in app/gogh/local.json (this
+# Mac's, out of git until Claude puts it in GOGH_LIB) — GOGH's and LIBRARY-V's library. Nothing on the machine: a run on is not touched.
+GOGH_SKETCHES = os.path.normpath(os.path.join(HERE, "..", "GOGH"))
+GOGH_CARDS = os.path.join(HERE, "gogh")
+GENV_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,79}$")
+JPG_DATA = "data:image/jpeg;base64,"
+
+
+def _write(path, data):
+    """A file whole or not at all: a .tmp, then moved into place."""
+    tmp = path + ".tmp"
+    with open(tmp, "wb") as f:
+        f.write(data)
+    os.replace(tmp, path)
+
+
+def genv_approve(body, sketches=GOGH_SKETCHES, cards=GOGH_CARDS):
+    """{sketch, name, card, jpg} → {ok, id, sketch, title}; ValueError when it is not a GEN-V sketch and its card.
+    The id the card's own, made free with -2, -3 … where one is taken; the sketch's name the same with (2), (3)."""
+    sk, name, card, jpg = body.get("sketch"), body.get("name"), body.get("card"), body.get("jpg")
+    if not isinstance(sk, dict) or sk.get("tool") != "GEN-V" or not isinstance(sk.get("pic"), dict):
+        raise ValueError("not a GEN-V sketch")
+    if not isinstance(card, dict) or card.get("kind") != "dabs" or not isinstance(card.get("jars"), list) or not card["jars"]:
+        raise ValueError("no card in dabs")
+    if not isinstance(name, str) or not name.endswith(".json") or name != os.path.basename(name) or name.startswith(".") or "\\" in name or len(name) > 200:
+        raise ValueError("not a sketch's file name")
+    if not isinstance(jpg, str) or not jpg.startswith(JPG_DATA):
+        raise ValueError("no jpg")
+    image = base64.b64decode(jpg[len(JPG_DATA):], validate=True)
+    want = str(card.get("id") or "")
+    if not GENV_ID.match(want):
+        raise ValueError("not a card's id: " + want[:40])
+    os.makedirs(sketches, exist_ok=True)
+    os.makedirs(cards, exist_ok=True)
+    lp = os.path.join(cards, "local.json")
+    try:
+        with open(lp, encoding="utf-8") as f:
+            local = json.load(f)
+    except (OSError, ValueError):
+        local = {}
+    ids = [i for i in local.get("ids", []) if isinstance(i, str)]
+    pid, n = want, 1
+    while os.path.exists(os.path.join(cards, pid + ".json")) or pid in ids:
+        n += 1
+        pid = f"{want[:76]}-{n}"
+    stem, n = name[:-5], 1
+    file = name
+    while os.path.exists(os.path.join(sketches, file)):
+        n += 1
+        file = f"{stem} ({n}).json"
+    card = {**card, "id": pid, "image": f"gogh/{pid}.jpg"}
+    _write(os.path.join(sketches, file), json.dumps(sk, ensure_ascii=False, indent=1).encode("utf-8"))
+    _write(os.path.join(cards, pid + ".jpg"), image)
+    _write(os.path.join(cards, pid + ".json"), json.dumps(card, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    local = {"note": "GOGH's pictures on this Mac alone: approved on GEN-V (🐾), and others' works or a brand — out of git till Claude puts one in GOGH_LIB",
+             "ids": [pid] + [i for i in ids if i != pid]}
+    _write(lp, json.dumps(local, ensure_ascii=False, indent=1).encode("utf-8"))   # the list last: it is what puts the card in the library
+    return {"ok": True, "id": pid, "sketch": file, "title": card.get("title", pid)}
+
+
 def library_delete(folder, base):
     """Move a drawing into .deleted/. False if there is no such drawing."""
     if not LIBRARY_NAME.match(base or "") or not os.path.exists(os.path.join(folder, base + ".svg")):
@@ -2557,6 +2620,14 @@ class Handler(SimpleHTTPRequestHandler):
             return self.remote(urlparse(self.path), True)
         if not self.local():
             return self.reply(403, "this Mac only")
+        if path == "/genv/approve":
+            # GEN-V's APPROVE 🐾: the sketch into GOGH/, its card into GOGH's library (genv_approve); nothing on the machine
+            try:
+                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0)))
+                out = genv_approve(body)
+            except (ValueError, TypeError, AttributeError, OSError) as e:
+                return self.reply(400, json.dumps({"ok": False, "message": str(e) or "not a GEN-V sketch"}), "application/json")
+            return self.reply(200, json.dumps(out), "application/json")
         if path == "/library":
             # 💾 SAVE on the Create tab: {"svg": the drawing, "png": its preview as a data URL}
             try:

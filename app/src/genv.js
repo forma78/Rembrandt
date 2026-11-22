@@ -3,7 +3,7 @@
 // side, the ground, APPROVE — its sketch GOGH's: every column cut into dabs of ≈ 20 mm, one jar each, upright, as bricks. No motion blur: a dab is a dab.
 // Moves nothing on the machine: GOGH's plotRun only counts the run's time, the cup at hand, the canvas in the middle of the reach (est.).
 import { GEN, bareMask, boxOf, binsOf } from './genfplan.js';
-import { DAB_UI, GENV_FORMATS, formatV as formatOf, fieldV, wholeV, reachV, acrossV, marginOf, dabOf, sketchV, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabWideOf, brushOf } from './goghplan.js';
+import { DAB_UI, GENV_FORMATS, formatV as formatOf, fieldV, wholeV, reachV, acrossV, marginOf, dabOf, cardOfSketch, idOfSketch, sketchV, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabWideOf, brushOf } from './goghplan.js';
 import { rowsOf, R3, FORMG } from './formgplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
@@ -132,7 +132,7 @@ function panel() {
   document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('on', b.dataset.bg === S.ground));
   const ok = pick !== null && !!SL[pick];
   $('#btnApprove').disabled = !ok;
-  $('#btnApprove').textContent = ok ? `APPROVE ${pick + 1} · ${SL[pick].k} colours` : 'APPROVE';
+  $('#btnApprove').textContent = ok ? `🐾 APPROVE ${pick + 1} · ${SL[pick].k} colours` : '🐾 APPROVE';
   if (BASE && !ok && !/Approved/.test($('#approveRead').textContent)) $('#approveRead').innerHTML = 'Choose a screen first — 1, 2 or 3: a click on it, or on its mark under the slider.';
   if (!SK) { $('#sketchRead').innerHTML = 'Open a picture on the left.'; $('#jarList').innerHTML = ''; $('#jarsHint').textContent = ''; $('#stats').textContent = `${f.w / 10} × ${f.h / 10} cm`; return; }
   const long = Math.max(f.w, f.h), e = SK.est, n = SK.pic.jars.length;
@@ -270,20 +270,53 @@ export function approvalOf(src, sk, s, when = new Date()) {
     gen: GEN, dab: dabOf(sk.fit.pitch), pic: sk.pic,
   };
 }
+// APPROVE 🐾 (the owner, 2026-11-22, the evening: "why do I download to the desktop at all … on the principle of library.html, without extra moves: I press
+// APPROVE (add a paw 🐾, by the way) and the picture appears in Library-V"): the card made here (goghplan.js's cardOfSketch, its jpg as genvpic.py renders
+// it), rembrandt.py's /genv/approve writes the sketch into GOGH/ and the card into GOGH's library, first; LIBRARY-V told at once. A rembrandt.py of before
+// (no /genv/approve: 404 to a probe of two bytes) — the file as before, to Downloads
+const BC = typeof BroadcastChannel === 'function' ? new BroadcastChannel('rembrandt.genv') : null;
+const CARD_PPM = 3, GESSO_CARD = '#FBFAF7';   // genvpic.py's PPM and GESSO
+function cardJpg(pic, gap, wide) {
+  const W = pic.w, H = pic.h, c = canvasOf(Math.round(W * CARD_PPM), Math.round(H * CARD_PPM)), g = c.getContext('2d'), r = (wide || 0.96 * pic.pitch) / 2, P = CARD_PPM;
+  g.fillStyle = GESSO_CARD; g.fillRect(0, 0, c.width, c.height);
+  for (const j of pic.jars) {
+    g.fillStyle = j.hex;
+    for (const cl of j.cells) for (const [x, a, b] of cl.legs) {
+      const top = Math.max(a, b) - gap / 2, bot = Math.min(a, b) + gap / 2;
+      g.beginPath();
+      if (top - bot < 2 * r) g.arc(x * P, (H - (top + bot) / 2) * P, r * P, 0, 7); else g.roundRect((x - r) * P, (H - top) * P, 2 * r * P, (top - bot) * P, r * P);
+      g.fill();
+    }
+  }
+  return c.toDataURL('image/jpeg', 0.92);
+}
+async function approveServer() {   // true: rembrandt.py has /genv/approve
+  try { const r = await fetch('/genv/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }); return r.status === 400; } catch { return false; }
+}
 $('#btnApprove').onclick = async () => {
   const SK = pick !== null ? SL[pick] : null;
   if (!SK) return;
-  const name = `${SRC.name.replace(/\.[^.]+$/, '')} · GEN-V · ${S.format} · ${SK.fit.pitch} mm · ${SK.k}.json`, body = JSON.stringify(approvalOf(SRC, SK, { ...S, screen: pick + 1, wideNow: wideNow(), gapNow: gapNow(), marginNow: marginNow(), field: [fieldV(formatOf(S.format), S.brush, marginNow()).w, fieldV(formatOf(S.format), S.brush, marginNow()).h] }), null, 1);
-  const said = t => { $('#approveRead').innerHTML = t; };
-  if (window.showSaveFilePicker) {
-    try {
-      const h = await showSaveFilePicker({ id: 'genv', suggestedName: name, types: [{ description: 'GEN-V sketch', accept: { 'application/json': ['.json'] } }] }), w = await h.createWritable();
-      await w.write(body); await w.close();
-      return said(`Approved: <b>${esc(h.name)}</b>. Tell Claude: "GEN-V, ${esc(h.name)}" — and the picture itself in GOGH/.`);
-    } catch (e) { if (e?.name === 'AbortError') return; }
-  }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([body], { type: 'application/json' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  said(`Approved: <b>${esc(name)}</b> in Downloads — put it in Rembrandt/GOGH/ and tell Claude.`);
+  const base = SRC.name.replace(/\.[^.]+$/, ''), f = formatOf(S.format), F = fieldV(f, S.brush, marginNow());
+  const name = `${base} · GEN-V · ${S.format} · ${SK.fit.pitch} mm · ${SK.k}.json`, sk = approvalOf(SRC, SK, { ...S, screen: pick + 1, wideNow: wideNow(), gapNow: gapNow(), marginNow: marginNow(), field: [F.w, F.h] });
+  const said = t => { $('#approveRead').innerHTML = t; }, btn = $('#btnApprove');
+  btn.disabled = true; said('🐾 …');
+  try {
+    if (await approveServer()) {
+      const shelf = (await (await fetch('formg/porsche-red-k.json', { cache: 'no-store' })).json()).jars ?? [], d = dabOf(SK.fit.pitch);
+      const card = cardOfSketch(sk, shelf, { id: idOfSketch(base, S.format, SK.fit.pitch, SK.k), title: `${base} · dabs`,
+        sub: `${f.w / 10} × ${f.h / 10}, the ${SK.fit.pitch} mm brush: ${SK.dabs} dabs of ${d.min} … ${d.max} mm, ≈ ${d.aim}; GEN-V's screen ${pick + 1}, ${SK.k} colours, as approved (est.)` });
+      const r = await fetch('/genv/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sketch: sk, name, card, jpg: cardJpg(card, sk.gap, sk.wide) }) });
+      const o = await r.json().catch(() => ({}));
+      if (!r.ok || !o.ok) return said(`<span class="warn">Not approved: ${esc(o.message || r.status)}</span>`);
+      BC?.postMessage({ approved: o.id });
+      return said(`🐾 Approved: <b>${esc(o.title)}</b> — in <a href="libv.html">LIBRARY-V</a> now, and first in GOGH's library (a reload of GOGH shows it — not during a run). The sketch: GOGH/${esc(o.sketch)}.`);
+    }
+    // a rembrandt.py of before: the file, as till now
+    const body = JSON.stringify(sk, null, 1), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([body], { type: 'application/json' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    said(`Approved: <b>${esc(name)}</b> in Downloads — rembrandt.py is the one before 🐾: restart it (not during a run), and APPROVE puts a picture straight in LIBRARY-V.`);
+  } catch (e) { said(`<span class="warn">Not approved: ${esc(e?.message || e)}</span>`); }
+  finally { btn.disabled = pick === null || !SL[pick]; }
 };
 
 lampSwitch($('#lamp'));

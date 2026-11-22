@@ -208,3 +208,22 @@ test('GEN-V\'s formats: a 20 × 20 for tests in front of GEN-F\'s; the 20 × 20 
   assert.ok(Math.max(x1 - x0, y1 - y0) > 190, `edge to edge on its long side: ${T.pic.box}`);
   assert.ok(T.dabs > 100, `${T.dabs} dabs`);
 });
+
+// APPROVE 🐾 (2026-11-22, the evening: "I press APPROVE … and the picture appears in Library-V"): the page makes the card as genvpic.py makes it
+test('APPROVE 🐾: the card off the sketch as genvpic.py makes it — the plan untouched, the same ≈ Jar hints, the look', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { cardOfSketch, idOfSketch } = await import('../src/goghplan.js');
+  const shelf = JSON.parse(fs.readFileSync(path.join(root, 'app/formg/porsche-red-k.json'), 'utf8')).jars;
+  for (const [file, id] of [['GOGH/orange-bear-details 2 · GEN-V · 20x20 · 2 mm · 14.json', 'orange-bear-20'], ['GOGH/Glossy Red-Orange Gummy Bear · GEN-V · 40x40 · 2 mm · 10.json', 'orange-bear']]) {
+    const sk = JSON.parse(fs.readFileSync(path.join(root, file), 'utf8')), py = JSON.parse(fs.readFileSync(path.join(root, `app/gogh/${id}.json`), 'utf8'));
+    const js = cardOfSketch(sk, shelf, { id, title: py.title, sub: py.sub });
+    assert.deepEqual(js, py, `${id}: the same card as genvpic.py's`);
+    assert.deepEqual(sk.pic.jars.map(j => j.code), sk.pic.jars.map(() => ''), 'the sketch itself untouched');
+  }
+  assert.equal(idOfSketch('orange-bear-details 2', '20x20', 2, 14), 'orange-bear-details-2-20x20-2mm-14');
+  assert.equal(idOfSketch('Glossy Red-Orange Gummy Bear', '40x40', 2, 10), 'glossy-red-orange-gummy-bear-40x40-2mm-10');
+  assert.equal(idOfSketch('Café · №5!', '60x60', 5, 20), 'cafe-no5-60x60-5mm-20');
+  assert.equal(idOfSketch('', '20x20', 2, 12), 'gen-v-20x20-2mm-12');
+  assert.match(idOfSketch('x'.repeat(200), '100x150', 3, 100), /^[a-z0-9][a-z0-9-]{0,79}$/, 'rembrandt.py\'s GENV_ID');
+});

@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GEN-V's 🐾 APPROVE straight into LIBRARY-V and GOGH's library; LIBRARY-V** (2026-11-22, the evening; the owner: "why do I download to the
+  desktop at all … on the principle of library.html, without extra moves: I press APPROVE (add a paw 🐾, by the way) and the picture appears in
+  Library-V"; of `rembrandt.py`: "yes, add it"; "a LIBRARY-V tab, and GOGH"). GEN-V makes the card (`cardOfSketch`, the same as `genvpic.py`'s for
+  both bears, a test; its jpg the same render); `rembrandt.py`'s POST `/genv/approve` (`genv_approve`, this Mac only, nothing on the machine, never
+  over a file: `-2`, `(2)`) writes the sketch into `GOGH/`, the card into `app/gogh/`, its id first in `gogh/local.json`. LIBRARY-V (`libv.html`):
+  GOGH's page to look at, as LIBRARY-G; told by a BroadcastChannel, it opens the new picture at once. A `rembrandt.py` of before: the file to
+  Downloads as till then. Needs `rembrandt.py` restarted (not during a run). Tested end to end on a server of the test's own, port 5199.
+
 - **GOGH: the bear's head on 20 × 20, the 2 mm brush's first test** (2026-11-22, the evening; the owner: "add 20 × 20 cm to GOGH and we make the
   first test"). `app/gogh/orange-bear-20`, from GEN-V's sketch as approved: 13 jars (seven ≈ his Jar 5, 9, 13, 16, 19, 21, 24 as hints), 1285 dabs,
   ≈ 3 h 44 by GOGH's PROGRESS (est.), its look +0.1 · 2.9. First in the library. MARKS: no room on the canvas, 6 mm round the picture.

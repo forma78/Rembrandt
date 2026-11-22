@@ -11,7 +11,7 @@
 // A picture is FORM-G's json, every leg a dab: { …, kind: 'dabs', jars: [{ id, name, code, hex, coats: 1, cells: [{ n, legs: [[x, top, bottom]] }] }] },
 // a cell a stack of a jar's dabs end to end in one column, the cells in the order the brush goes to them (the nearest next). Made by GEN-V (genv.js) and
 // GOGH/generator/genvpic.py; run by FORM-G's page with data-tab="gogh" (formg.js).
-import { GEN, GEN_FORMATS, paletteOf, hexOfLab, fieldOf } from './genfplan.js';
+import { GEN, GEN_FORMATS, paletteOf, hexOfLab, labOfHex, fieldOf } from './genfplan.js';
 import { jarsByCanvas } from './canon.js';
 import { seqOf, FORMG } from './formgplan.js';
 
@@ -191,3 +191,27 @@ export function passesV(pic, o = {}) {
 }
 // the brush's runs: every dab a run of its own, on a dip of its own at its top, down to its bottom and the lift beyond — nothing after it
 export const dabRunsOf = passes => passes.flatMap((P, k) => P.byCell.flatMap(c => c.legs.map((l, i) => ({ pass: k, num: c.num, pts: l, say: `dab${c.legs.length > 1 ? ` ${i + 1}/${c.legs.length}` : ''}`, dip: true, idle: false, beyond: true, dab: true }))));
+
+// ---------- APPROVE 🐾: the card, GEN-V's page making it (2026-11-22, the evening) ----------
+// The owner: "why do I download to the desktop at all … I press APPROVE (add a paw 🐾, by the way) and the picture appears in Library-V". GOGH/generator/
+// genvpic.py's make, here: the plan as it is — its jars, names, colours, dabs and their order untouched — its id, title, sub and image set; beside a colour
+// with no jar of his yet, as its code, his own numbered jar of the red classic's shelf (app/formg/porsche-red-k.json) within NEAR_JAR of it, "≈ Jar 16", a
+// hint, nothing changed; its look, the gap and the width GEN-V's sliders had (GOGH's to start from). rembrandt.py's /genv/approve writes the files.
+export const NEAR_JAR = 8;   // CIELAB ΔE76, genvpic.py's NEAR (est.)
+const dE76 = (p, q) => { const a = labOfHex(p), b = labOfHex(q); return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); };
+export function cardOfSketch(sk, shelf = [], o = {}) {
+  const pic = JSON.parse(JSON.stringify(sk.pic));
+  if (pic.kind !== 'dabs') throw new Error('not a GEN-V sketch');
+  const pairs = [];
+  pic.jars.forEach((j, i) => { if (!j.name.startsWith('Jar ') && !j.code) shelf.forEach((q, k) => pairs.push([dE76(j.hex, q.hex), i, k])); });
+  pairs.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const got = new Map(), taken = new Set();
+  for (const [d, i, k] of pairs) if (d <= NEAR_JAR && !got.has(i) && !taken.has(k)) { got.set(i, k); taken.add(k); }
+  for (const [i, k] of got) pic.jars[i].code = `≈ ${shelf[k].name}`;
+  Object.assign(pic, { id: o.id, title: o.title, sub: o.sub, image: `gogh/${o.id}.jpg` });
+  const look = Object.fromEntries(['gap', 'wide'].filter(k => typeof sk[k] === 'number').map(k => [k, sk[k]]));
+  if (Object.keys(look).length) pic.look = look;
+  return pic;
+}
+// a card's id off the picture's name: "orange-bear-details 2" on 20 × 20, the 2 mm, 14 colours → orange-bear-details-2-20x20-2mm-14 (rembrandt.py makes it free)
+export const idOfSketch = (name, format, pitch, k) => `${String(name).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'gen-v'}-${format}-${pitch}mm-${k}`.replace(/--+/g, '-');
