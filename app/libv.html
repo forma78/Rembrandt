@@ -9,6 +9,11 @@
 <style>
   .card .badge{position:absolute;left:8px;top:8px;padding:1px 6px;border-radius:4px;background:var(--panel);color:var(--mute);font:600 9px var(--mono);letter-spacing:.1em;text-transform:uppercase}
   .card{position:relative}
+  /* 💎, a canvas finished each (2026-11-22): a row of its own, +💎 at its end */
+  .card .gems{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-top:6px;font-size:14px;line-height:18px}
+  .card .gems b{font-weight:normal;cursor:pointer}
+  .card .gem-add{margin-left:4px;padding:0 6px;border:1px solid var(--line);border-radius:9px;background:none;color:var(--mute);font:500 10px/16px var(--mono);cursor:pointer}
+  .card .gem-add:hover{color:var(--ink);border-color:var(--ink)}
 </style>
 </head>
 <body>

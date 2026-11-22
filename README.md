@@ -527,6 +527,13 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     by `/ink`, every tab's dips alike; 40°/s est. and 1 s till then) — not while a run is on; all from the next DRAG. The elbow's three turns of a dip
     stay the firmware's own, ≈ 53°/s. Their words behind the section's (i).
 
+12. **💎, a canvas finished** (the owner, the same night: "by every picture a place as an NFT, with such an icon 💎. If a picture was painted two or
+    three times, they are simply added: 💎💎💎"; `GOGH/Screenshot 2026-11-22 at 10.49.38 PM.png`: "only a separate row in the block"; of a passport
+    from the journal: "a good idea, as a certificate … I will ask for it later"). LIB-V's **+💎** on a picture marks a canvas of it finished; its row of 💎
+    on LIB-V's card and GOGH's, a row of its own under the title; a 💎 clicked on LIB-V taken away (by mistake). Every 💎 keeps its passport to be, read
+    from the journal: the picture's DRAG runs on GOGH since the last 💎 — from, to, runs, dabs, jars in the order dipped, the runs' seconds
+    (`rembrandt.py`'s `gogh_passport`, `gogh_diamond_add`; `app/gogh/diamonds.json`, in git, the canvases' record).
+
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 

@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **💎 on GOGH's pictures, a canvas finished each, its passport from the journal** (2026-11-22, the night; the owner: "by every picture a place as an
+  NFT, with such an icon 💎. If a picture was painted two or three times, they are simply added: 💎💎💎"; "only a separate row in the block").
+  LIB-V's +💎 and a 💎 taken away; the row on LIB-V's cards and GOGH's; `rembrandt.py`: `gogh_passport` (the picture's DRAG runs on GOGH since the
+  last 💎: from, to, runs, dabs, jars, seconds), `gogh_diamond_add`, `gogh_diamond_delete`, POST `/gogh/diamond`, DELETE `/gogh/diamond/<pic>/<n>`,
+  `/gogh/library`'s `diamonds`. The bear's head would read: 19:04 → 22:53, 15 runs, 984 dabs, 11 jars, 2 h 16 min.
+
 - **LIBRARY-G is LIB-G** (2026-11-22, the night; asked "LIBRARY-G to LIB-G too, for uniformity?" — the owner: "yes"): the tab, its page and every
   word naming it, as LIB-V.
 

@@ -2379,7 +2379,7 @@ def library_save(folder, svg, png, now=None):
 # principle of library.html, without extra moves: I press APPROVE … and the picture appears in Library-V"; asked about this file: "yes, add it"). The page
 # sends the sketch as approved, its card for GOGH made already (goghplan.js's cardOfSketch: the plan as it is, the ≈ Jar hints, the look) and the card's
 # jpg; here only the files: the sketch into GOGH/ by its own name, the card into app/gogh/<id>.json and .jpg, its id first in app/gogh/local.json (this
-# Mac's, out of git until Claude puts it in GOGH_LIB) — GOGH's and LIBRARY-V's library. Nothing on the machine: a run on is not touched.
+# Mac's, out of git until Claude puts it in GOGH_LIB) — GOGH's and LIB-V's library. Nothing on the machine: a run on is not touched.
 GOGH_SKETCHES = os.path.normpath(os.path.join(HERE, "..", "GOGH"))
 GOGH_CARDS = os.path.join(HERE, "gogh")
 GENV_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,79}$")
@@ -2438,7 +2438,7 @@ def genv_approve(body, sketches=GOGH_SKETCHES, cards=GOGH_CARDS):
     return {"ok": True, "id": pid, "sketch": file, "title": card.get("title", pid)}
 
 
-# LIBRARY-V (the owner, 2026-11-22, the evening, of Library's page: "make Library-V as here"; of THE JARS' 💾 SAVE, a file in Downloads: "what do
+# LIB-V (the owner, 2026-11-22, the evening, of Library's page: "make Library-V as here"; of THE JARS' 💾 SAVE, a file in Downloads: "what do
 # I do with it? I need it in the library"): GOGH's pictures — this Mac's in app/gogh/local.json, GEN-V's 🐾 APPROVE's — and every 💾 SAVE of a
 # picture's jars, app/gogh/jars/, out of git as the drawings of library/; × moves one into app/gogh/.deleted/
 JARS_KIND = "FORM-G jars"
@@ -2469,7 +2469,7 @@ def gogh_library(cards=GOGH_CARDS):
             out.append({"file": n, "pic": j["pic"], "title": j.get("title"), "saved": j.get("saved"), "swaps": len(j.get("swaps") or {}),
                         "colours": len(j.get("colours") or [])})
     out.sort(key=lambda q: str(q["saved"] or ""), reverse=True)
-    return {"local": _local_ids(cards), "jars": out}
+    return {"local": _local_ids(cards), "jars": out, "diamonds": gogh_diamonds(os.path.join(cards, "diamonds.json"))}
 
 
 def gogh_jars_save(body, cards=GOGH_CARDS, now=None):
@@ -2491,7 +2491,7 @@ def gogh_jars_save(body, cards=GOGH_CARDS, now=None):
 
 
 def gogh_delete(kind, key, cards=GOGH_CARDS):
-    """× on LIBRARY-V: a saved jars file, or a picture of this Mac's (local.json) — into app/gogh/.deleted/; False if there is none"""
+    """× on LIB-V: a saved jars file, or a picture of this Mac's (local.json) — into app/gogh/.deleted/; False if there is none"""
     bin_ = os.path.join(cards, ".deleted")
     stamp = time.strftime("%Y%m%d-%H%M%S")
     if kind == "jars":
@@ -2519,6 +2519,97 @@ def gogh_delete(kind, key, cards=GOGH_CARDS):
         _write(lp, json.dumps(local, ensure_ascii=False, indent=1).encode("utf-8"))
         return True
     return False
+
+
+# 💎 (the owner, 2026-11-22, the night: "by every picture a place as an NFT, with such an icon 💎. If a picture was painted two or three times, they
+# are simply added: 💎💎💎"; of a passport from the journal: "a good idea, as a certificate … I will ask for it later"): every 💎 a canvas finished,
+# marked by the owner; the journal's runs of that picture since the last 💎 its passport to be — from, to, runs, dabs, jars, the run's seconds.
+# app/gogh/diamonds.json { pic: [ { n, at, from, to, runs, dabs, jars, seconds } ] }, in git: the canvases' record kept
+DIAMONDS = os.path.join(GOGH_CARDS, "diamonds.json")
+
+
+def gogh_diamonds(path=DIAMONDS):
+    try:
+        with open(path, encoding="utf-8") as f:
+            d = json.load(f)
+        return {k: v for k, v in d.items() if isinstance(v, list)} if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def gogh_passport(pic, since=None, log=LOG_FILE):
+    """the journal's DRAG runs of a picture on GOGH after `since` ("YYYY-MM-DD HH:MM:SS"): {from, to, runs, dabs, jars (in the order first dipped),
+    seconds (the runs' own, from their start to their end, pauses in them counted)}"""
+    out = {"from": None, "to": None, "runs": 0, "dabs": 0, "jars": [], "seconds": 0}
+    cur = t0 = None
+    stamp = lambda a: time.mktime(time.strptime(a, "%Y-%m-%d %H:%M:%S"))   # noqa: E731
+    try:
+        f = open(log, encoding="utf-8")
+    except OSError:
+        return out
+    with f:
+        for line in f:
+            try:
+                e = json.loads(line)
+            except ValueError:
+                continue
+            at = e.get("at") if isinstance(e, dict) else None
+            if not isinstance(at, str) or (since and at <= since):
+                continue
+            ev = e.get("event")
+            if ev == "start":
+                st = e.get("settings") or {}
+                cur = pic if e.get("tab") == "gogh" and e.get("pass") == "drag" and isinstance(st, dict) and st.get("pic") == pic else None
+                t0 = at if cur else None
+                if cur:
+                    out["runs"] += 1
+                    out["from"] = out["from"] or at
+            elif ev == "dip" and cur:
+                out["dabs"] += 1
+                out["to"] = at
+                c = e.get("colour")
+                if isinstance(c, str) and c not in out["jars"]:
+                    out["jars"].append(c)
+            elif ev in ("done", "stopped", "error") and cur:
+                try:
+                    out["seconds"] += max(0, round(stamp(at) - stamp(t0)))
+                except (ValueError, OverflowError):
+                    pass
+                out["to"] = at
+                cur = t0 = None
+    return out
+
+
+def gogh_diamond_add(pic, cards=GOGH_CARDS, path=None, log=LOG_FILE, now=None):
+    """a finished canvas of `pic`: its 💎, the journal's runs since the last 💎 its passport; → the 💎"""
+    path = path or os.path.join(cards, "diamonds.json")
+    if not GENV_ID.match(str(pic or "")) or not os.path.exists(os.path.join(cards, f"{pic}.json")):
+        raise ValueError(f"no such picture: {pic}")
+    d = gogh_diamonds(path)
+    had = d.get(pic, [])
+    at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(now))
+    gem = {"n": len(had) + 1, "at": at, **gogh_passport(pic, since=had[-1]["at"] if had else None, log=log)}
+    d[pic] = had + [gem]
+    _write(path, json.dumps(d, ensure_ascii=False, indent=1).encode("utf-8"))
+    return gem
+
+
+def gogh_diamond_delete(pic, n, cards=GOGH_CARDS, path=None):
+    """a 💎 marked by mistake taken away, the rest numbered again; False if there is none"""
+    path = path or os.path.join(cards, "diamonds.json")
+    d = gogh_diamonds(path)
+    had = d.get(pic, [])
+    if not isinstance(n, int) or not 1 <= n <= len(had):
+        return False
+    rest = had[:n - 1] + had[n:]
+    for i, g in enumerate(rest):
+        g["n"] = i + 1
+    if rest:
+        d[pic] = rest
+    else:
+        d.pop(pic, None)
+    _write(path, json.dumps(d, ensure_ascii=False, indent=1).encode("utf-8"))
+    return True
 
 
 def library_delete(folder, base):
@@ -2744,8 +2835,15 @@ class Handler(SimpleHTTPRequestHandler):
             return self.remote(urlparse(self.path), True)
         if not self.local():
             return self.reply(403, "this Mac only")
+        if path == "/gogh/diamond":
+            # 💎, a canvas finished (gogh_diamond_add): the journal read, nothing on the machine
+            try:
+                gem = gogh_diamond_add((json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0))) or {}).get("pic"))
+            except (ValueError, TypeError, AttributeError, OSError) as e:
+                return self.reply(400, json.dumps({"ok": False, "message": str(e) or "no picture"}), "application/json")
+            return self.reply(200, json.dumps({"ok": True, "gem": gem}), "application/json")
         if path == "/gogh/jars":
-            # THE JARS' 💾 SAVE on GOGH: a picture's jars into LIBRARY-V (gogh_jars_save); nothing on the machine
+            # THE JARS' 💾 SAVE on GOGH: a picture's jars into LIB-V (gogh_jars_save); nothing on the machine
             try:
                 name = gogh_jars_save(json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0))))
             except (ValueError, TypeError, AttributeError, OSError) as e:
@@ -2854,7 +2952,11 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.local():
             return self.reply(403, "this Mac only")
         path = unquote(urlparse(self.path).path)
-        if path.startswith("/gogh/jars/") or path.startswith("/gogh/pic/"):     # LIBRARY-V's ×
+        if path.startswith("/gogh/diamond/"):                                   # a 💎 by mistake: /gogh/diamond/<pic>/<n>
+            pic, _, n = path[len("/gogh/diamond/"):].rpartition("/")
+            ok = n.isdigit() and gogh_diamond_delete(pic, int(n))
+            return self.reply(200 if ok else 404, "taken away" if ok else "no such 💎")
+        if path.startswith("/gogh/jars/") or path.startswith("/gogh/pic/"):     # LIB-V's ×
             kind = "jars" if path.startswith("/gogh/jars/") else "pic"
             ok = gogh_delete(kind, path[len(f"/gogh/{kind}/"):])
             return self.reply(200 if ok else 404, "moved to app/gogh/.deleted" if ok else "no such one of this Mac's")

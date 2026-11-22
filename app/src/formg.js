@@ -1191,9 +1191,19 @@ if ($('#jarPop')) {
   addEventListener('pointerdown', e => { if (!e.target.closest('#jarPop') && !e.target.closest('[data-swap]')) swapHide(); });
 }
 
+const LIBV_BC = DABS && typeof BroadcastChannel === 'function' ? new BroadcastChannel('rembrandt.genv') : null;
+// ---------- 💎 (the owner, 2026-11-22, the night: "by every picture a place as an NFT, with such an icon 💎 … painted two or three times, they are simply
+// added: 💎💎💎"; GOGH/Screenshot 2026-11-22 at 10.49.38 PM.png: "only a separate row in the block"): every canvas finished, marked on LIB-V, a 💎 in its own
+// row on the picture's card; its tooltip the passport to be, from the journal (rembrandt.py's /gogh/library) ----------
+let GEMS = {};
+async function gemsLoad() { try { const r = await fetch('/gogh/library', { cache: 'no-store' }); if (r.ok) GEMS = (await r.json()).diamonds ?? {}; } catch { } }
+const gemSay = g => `💎 №${g.n} · ${g.at} · ${g.dabs} dabs · ${g.jars?.length ?? 0} jars · ${Math.floor(g.seconds / 3600)} h ${String(Math.round(g.seconds / 60) % 60).padStart(2, '0')} min`;
+function gemsOf(id) { const g = GEMS[id] ?? []; return g.map(q => `<i title="${esc(gemSay(q))}">💎</i>`).join(''); }
+function gemsShow() { document.querySelectorAll('[data-gems]').forEach(el => { el.innerHTML = gemsOf(el.dataset.gems); }); }
+if (LIBV_BC) LIBV_BC.addEventListener('message', async e => { if (e.data?.gem) { await gemsLoad(); gemsShow(); } });
+
 // ---------- LIB-V's links (2026-11-22, the evening): gogh.html#pic=<id>, a picture; &jars=<file>, its jars saved by 💾 SAVE, 📂 LOAD's way ----------
 let HASH = DABS && !VIEW && location.hash.length > 1 ? new URLSearchParams(location.hash.slice(1)) : null;
-const LIBV_BC = DABS && typeof BroadcastChannel === 'function' ? new BroadcastChannel('rembrandt.genv') : null;
 async function openHash(h, st) {
   history.replaceState(null, '', location.pathname);
   const id = h.get('pic'), file = h.get('jars');
@@ -1226,7 +1236,8 @@ lampSwitch($('#lamp'));
     const im = new Image(); im.onload = kick; im.src = pic.image; IMG[id] = im;
   }
   // every card its canvas (the owner, 2026-11-10: "better to sign them: I thought our red Porsche was 60 × 80, and it is 70 × 100"; a picture is planned for its own size, never scaled)
-  $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b><span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
+  if (DABS) await gemsLoad();
+  $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b>${DABS ? `<span class="gems" data-gems="${id}">${gemsOf(id)}</span>` : ''}<span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
   // each 911's v.1 off the library (the owner, 2026-11-11: "leave only v.2"): a page left on a v.1 opens its v.2; the classic's place on the canvas, the owner's canon for
   // the 70 × 100 (left −60, bottom −68), carried to its v.2 once — the same outline to the mm, the same pen outline and PRESS_OK
   const GONE = { 'porsche-red': 'porsche-red-k', 'porsche-race': 'porsche-race-k' };
