@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **README: GOGH's canon, "a dab, a dip, nothing after it"; the glossary's GOGH, dab · stack, GEN-V** (2026-11-22): the owner's words of the
+  cola's rings and of the short legs, the dab ≈ 2 cm upright as bricks, the J3 on it; the folder layout and the modules.
 - **GOGH and GEN-V, painting in dabs and its generator** (2026-11-22; the owner: "in GOGH we copy FORM-G's functionality fully … the one
   difference: no long strokes! All of them drops of 2 cm"; "a new picture generator as GEN-F, with the same functionality … GEN-V (as Vincent :)";
   of GEN-V's first sketch: "WOW! Things are heating up :)) a good start :)"). `gogh.html`: FORM-G's page with `data-tab="gogh"` — its library
