@@ -5,6 +5,15 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's four sliders; the gap and the run live through rembrandt.py's /run/swap** (2026-11-22; the owner: "three sliders on the principle
+  of ELBOW LIVE · BRUSH … Oh, I need a fourth"; of making them live: "I allow changing it"; of the 3 mm brush's ≈ 15 h: "if they buy the one made
+  in 15 hours, so much the better for us"). GEN-V: the brush, 3 or 5 mm, the picture's columns its width apart (`fitV`), the brush in its file's
+  name. GOGH, under ELBOW LIVE: Gap · dab to dab −0.6 … +0.6 (0.6 at first; the plan's and the screen's), Width · screen 2 … 8 (the screen's
+  alone, a brush's own), Run +0 … +4 mm at both ends (the machine's alone: a 20 mm dab runs 20, 22, 24, 26, 28); its Picture drawn from the
+  dabs with them, the card's jpg on the card alone; the journal's DRAG writes them (`dabs`). `rembrandt.py`: POST `/run/swap`, the page's plan
+  made again with the slider put in place of the run's own steps while it runs, where only L, M and A's numbers differ, `SWAP_MM` (5) at most
+  (`swap_refuses`, `Runner.swap`); GOGH sends it 0.3 s after a slider stops, the dab painting then as it was sent. Tests: node (the five runs, the
+  gap, the 3 mm brush, the same steps under every slider) and the runner's (`SwapTest`).
 - **README: GOGH's canon, "a dab, a dip, nothing after it"; the glossary's GOGH, dab · stack, GEN-V** (2026-11-22): the owner's words of the
   cola's rings and of the short legs, the dab ≈ 2 cm upright as bricks, the J3 on it; the folder layout and the modules.
 - **GOGH and GEN-V, painting in dabs and its generator** (2026-11-22; the owner: "in GOGH we copy FORM-G's functionality fully … the one

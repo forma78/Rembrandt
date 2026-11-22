@@ -29,6 +29,9 @@ bridge.py of the old machine repo held it on port 8765.
   pencil's pause (DACHE, 2026-10-27): the same, the pencil left on the paper.
   POST /run/trim?deg=<d>: the elbow's live trim, added to every W 2 of the
   run as it goes to the board (PRISMA and OPM's ELBOW LIVE, 2026-10-28).
+  POST /run/swap {"blocks", "log"}: the run's steps put in place of its own while it
+  runs — GOGH's live gap and run (2026-11-22, the owner: "I allow changing it"):
+  only where the brush goes may differ, SWAP_MM at most (swap_refuses).
   POST /run/dip: the brush to the cup the run was started with and back to
   the same point (OPM-N's DIP, 2026-11-02); into the cup at hand where the
   carriage stands, the elbow up before the shoulder turns (INK-Y, 2026-11-03).
@@ -411,6 +414,8 @@ BRUSH_UP_DEG = 25
 # strokes, never the poses a J goes to (a pencil goes in where it always
 # does). Within the elbow's reach; this far either way at most; 0 at a start.
 TRIM_MAX = 6
+# GOGH's live sliders (2026-11-22): a step's L, M or A may move so many mm at most in a swap — a dab's run +4 at its ends and its gap ±0.3
+SWAP_MM = 5.0
 # A pencil's elbow resting on the paper (2026-10-28, OPM: "J 2 5: the elbow
 # does not get to 5.0°", it stood at +6.1° — a pencil in the holder already
 # on the paper above the pose a pencil goes in at; the owner, of the check:
@@ -666,6 +671,37 @@ class Arm:
 # shoulder turns only with the elbow up in its fork; with the shoulder off 0
 # the elbow goes no lower than the paint's +14° and the wrist stays.
 GUARD_SLACK = 0.2      # the servo's read a tick or two either side of where it was let off
+
+
+def swap_refuses(a, b):
+    # One step of a live swap (Runner.swap): why it may not take the place of
+    # the run's own, or None. The same step but for where the brush goes: its
+    # kind; an arm, a joint, a wait, a pause as it was; a move its every key
+    # but its lengths, its commands as many and of the same letters, its F, T,
+    # W, G as they were, its L, M and A's numbers SWAP_MM apart at most.
+    if not isinstance(a, dict) or not isinstance(b, dict) or a.get("kind") != b.get("kind"):
+        return "another kind of step"
+    if a.get("kind") != "move":
+        return None if a == b else "an arm, a joint, a wait or a pause is not the same"
+    keep = lambda q: {k: v for k, v in q.items() if k not in ("cmds", "paintMM", "painted", "lengthMM")}
+    if keep(a) != keep(b):
+        return "its row, its dip or its landing is not the same"
+    ca, cb = a.get("cmds") or [], b.get("cmds") or []
+    if len(ca) != len(cb) or not all(isinstance(c, str) and c for c in cb):
+        return "other commands"
+    if not isinstance(b.get("paintMM", 0), (int, float)) or isinstance(b.get("paintMM", 0), bool):
+        return "its paint mm not a number"
+    for p, q in zip(ca, cb):
+        if p[0] != q[0] or (p[0] not in "LMA" and p != q):
+            return f"{p} → {q}: only where the brush goes may change"
+        if p[0] in "LMA":
+            try:
+                x, y = [float(v) for v in p.split()[1:]], [float(v) for v in q.split()[1:]]
+            except ValueError:
+                return f"{q}: not numbers"
+            if len(x) != len(y) or not all(math.isfinite(v) for v in y) or any(abs(u - v) > SWAP_MM + 1e-9 for u, v in zip(x, y)):
+                return f"{p} → {q}: more than {SWAP_MM:g} mm"
+    return None
 
 
 def hand_refuses(joint, at, to, ang, g):
@@ -1177,6 +1213,31 @@ class Runner:
             self.trim = t
         self.log({"event": "trim", "deg": t, "block": self.block})
         return t
+
+    def swap(self, blocks, note=None):
+        # GOGH's live gap and run (the owner, 2026-11-22: the sliders "on the
+        # principle of ELBOW LIVE"; "I allow changing rembrandt.py"): the page's
+        # plan made again with them, every step in place of the run's own — so
+        # BACK ONE JAR runs the new too — where swap_refuses has nothing against
+        # it; the step running now goes on as it was sent. → (ok, message, from)
+        if not isinstance(blocks, list):
+            return False, "no steps", None
+        with self.lock:
+            if self.state not in LIVE:
+                return False, f"not now: the runner is {self.state}", None
+            old = self.blocks
+            if len(blocks) != len(old):
+                return False, f"{len(blocks)} steps, the run has {len(old)}: not the plan that runs", None
+            for i, (a, b) in enumerate(zip(old, blocks)):
+                why = swap_refuses(a, b)
+                if why:
+                    return False, f"step {i + 1}: {why}", None
+            self.blocks = [dict(b) for b in blocks]
+            self.paint_total = sum(b.get("paintMM") or 0 for b in self.blocks if b.get("kind") == "move")
+            self._picture = None
+            at = self.block + 1
+        self.log({"event": "swap", "from": at, **(note if isinstance(note, dict) else {})})
+        return True, "swapped", at
 
     def _trimmed(self, c):
         # a W 2 as _arm_steps made it (the firmware's degrees from where the
@@ -2544,6 +2605,13 @@ class Handler(SimpleHTTPRequestHandler):
             except (KeyError, IndexError, ValueError):
                 return self.reply(400, "trim: /run/trim?deg=<degrees>")
             return self.reply(200, json.dumps({"ok": True, "trim": t}), "application/json")
+        if path == "/run/swap":
+            try:
+                sent = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0)))
+                ok, why, at = RUNNER.swap(sent["blocks"], sent.get("log"))
+            except (ValueError, KeyError, TypeError):
+                return self.reply(400, "swap: {\"blocks\": [...], \"log\": {...}}")
+            return self.reply(200 if ok else 409, json.dumps({"ok": ok, "message": why, "from": at}), "application/json")
         if path in ("/run/back", "/run/backjar"):
             ok, why, ask = (RUNNER.back_jar if path == "/run/backjar" else RUNNER.back_one)(sure="sure" in parse_qs(urlparse(self.path).query))
             return self.reply(200 if ok else 409, json.dumps({"ok": ok, "message": why, "state": RUNNER.state, **({"ask": ask} if ask else {})}), "application/json")

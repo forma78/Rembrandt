@@ -1642,6 +1642,66 @@ class TrimTest(unittest.TestCase):
         self.assertEqual(r.trim, 0.0)
 
 
+class SwapTest(unittest.TestCase):
+    """GOGH's live gap and run (the owner, 2026-11-22: "I allow changing it"):
+    the page's plan made again with the sliders, its steps in place of the
+    run's own while it runs — only where the brush goes, SWAP_MM at most."""
+
+    def dab(self, x0, x1, y=50.0):
+        return {"kind": "move", "cmds": ["F 25", "W 2 0 37", f"L {x0 + 7:.2f} {y:.2f}", f"L {x0:.2f} {y:.2f}", "W 2 10 12", f"L {x1:.2f} {y:.2f}", "G"],
+                "paintMM": x0 - x1, "painted": [0, 1, 1], "lengthMM": x0 - x1 + 14, "row": 1}
+
+    def blocks(self, shift=0.0):
+        return [arm(True), travel(204.5 + shift, 50), arm(False), self.dab(204.5 + shift, 184.5 - shift), arm(True),
+                travel(164.5 + shift, 50), arm(False), self.dab(164.5 + shift, 144.5 - shift), arm(True)]
+
+    def test_only_where_the_brush_goes(self):
+        ok = rubens.swap_refuses
+        a = self.dab(204.5, 184.5)
+        self.assertIsNone(ok(a, self.dab(208.5, 180.5)), "a dab 4 mm on at each end")
+        self.assertIsNone(ok(arm(True), arm(True)))
+        self.assertIn("5 mm", ok(a, self.dab(210.0, 184.5)), "more than SWAP_MM")
+        self.assertIn("not the same", ok(arm(True), arm(False)), "an arm step")
+        w = self.dab(204.5, 184.5); w["cmds"][1] = "W 2 1 37"
+        self.assertIn("only where the brush goes", ok(a, w), "the elbow's W")
+        d = self.dab(204.5, 184.5); d["dip"] = True
+        self.assertIn("row, its dip", ok(a, d))
+        self.assertEqual(ok(a, {**travel(1, 2), "row": 1}), "other commands")
+        self.assertEqual(ok(a, arm(True)), "another kind of step")
+
+    def test_a_swap_runs_the_new_steps_from_the_next_on(self):
+        b = FakeBoard()
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2)
+        said = []
+        def once():
+            if not said and r.block >= 1:
+                said.append(r.swap(self.blocks(shift=2.0), {"dabs": {"run": 2}}))
+        b.on_sleep = once
+        self.assertTrue(r.start(self.blocks())[0])
+        r.thread.join(10)
+        self.assertEqual(r.state, "done", r.message)
+        self.assertTrue(said and said[0][0], said)
+        self.assertIn("L 142.50 50.00", b.log, "the second dab 2 mm longer at its end")
+        self.assertIn("M 166.5 50", b.log, "and its start 2 mm back")
+        self.assertNotIn("M 206.5 50", b.log, "the step run before the swap as it was")
+
+    def test_not_the_plan_that_runs_or_not_running(self):
+        b = FakeBoard()
+        r = Runner(b.send, sleep=b.sleep, swing_s=0.2)
+        self.assertEqual(r.swap(self.blocks())[:2], (False, "not now: the runner is idle"))
+        said = []
+        def once():
+            if not said and r.block >= 1:
+                said.append(r.swap(self.blocks()[:-1]))
+                said.append(r.swap(self.blocks(shift=6.0)))
+        b.on_sleep = once
+        r.start(self.blocks())
+        r.thread.join(10)
+        self.assertFalse(said[0][0]); self.assertIn("not the plan that runs", said[0][1])
+        self.assertFalse(said[1][0]); self.assertIn("more than 5 mm", said[1][1])
+        self.assertNotIn("L 138.50 50.00", b.log)
+
+
 class RestTest(unittest.TestCase):
     """A pencil's elbow resting on the paper above the pose it was sent to
     (2026-10-28, OPM): the run goes on — a pencil's run only, going down, so

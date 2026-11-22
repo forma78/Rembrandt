@@ -39,6 +39,8 @@
   .gf-marks b.on{border-color:var(--ink);color:var(--ink)}
   .gf-marks b.pick{border-color:var(--orange);background:var(--orange);color:#fff}
   .looks{display:flex;margin:12px 0 0}
+  .gv-h{margin:14px 0 8px}
+  #brushes{grid-template-columns:repeat(2,1fr)}
   .looks .tog{flex:1}
   #jarList{margin:6px 0 0;padding:0;list-style:none}
   #jarList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px;cursor:pointer}
@@ -102,6 +104,9 @@
       <h3>Format <span class="hint">the canvas, cm</span></h3>
       <div class="gf-formats" id="formats"></div>
       <p class="read" id="fieldRead"></p>
+      <!-- the brush (the owner, 2026-11-22: "now always 5 mm, but I ordered new brushes, there is a 3 mm"): the picture's columns its width apart -->
+      <h3 class="gv-h">Brush <span class="hint">the columns, mm</span></h3>
+      <div class="gf-formats" id="brushes"></div>
     </section>
     <section class="sec">
       <h3>Colours <span class="hint">jars asked, 10 … 100</span> <span id="lamp"></span></h3>
@@ -112,6 +117,15 @@
         <button class="tog" data-view="sketch" title="The sketch: every dab 5 mm wide in its jar's colour, its ends round, as GOGH lays them (flat, no brush model: est.)">Sketch</button>
         <button class="tog" data-view="drag" title="The dabs as lines in their jars' colours, the brush's way from a stack to the next dotted">Drag</button>
         <button class="tog" data-view="picture" title="The illustration on the canvas, where the sketch takes it from; its ground off">Picture</button>
+      </div>
+      <!-- the dabs on the screen, GOGH's sliders (2026-11-22): the gap as GOGH runs it, the width the screen's alone -->
+      <div class="elbowlive dabsl" title="Gap · dab to dab in a column: every dab half of it shorter at both ends, minus longer — GOGH's own slider, here the sketch's look; 0.6 at first">
+        <div class="elh"><span class="elk">Gap · dab to dab</span><span class="elv" id="gapNow">+0.6 mm</span></div>
+        <div class="elrow"><button class="btn" data-dab="gap" data-step="-0.1">▼</button><input class="slider" type="range" id="gapSl" data-dab="gap" min="-0.6" max="0.6" step="0.1"><button class="btn" data-dab="gap" data-step="0.1">▲</button></div>
+      </div>
+      <div class="elbowlive dabsl" title="Width · on the screen alone: how wide a dab will lie — the paint decides it on the canvas, not this (est.)">
+        <div class="elh"><span class="elk">Width · screen</span><span class="elv" id="wideNow">4.8 mm</span></div>
+        <div class="elrow"><button class="btn" data-dab="wide" data-step="-0.1">▼</button><input class="slider" type="range" id="wideSl" data-dab="wide" min="2" max="8" step="0.1"><button class="btn" data-dab="wide" data-step="0.1">▲</button></div>
       </div>
       <p class="read" id="sketchRead"></p>
             <button class="btn" id="btnApprove" disabled title="APPROVE the screen chosen (a click on it, or on its mark under the slider): the sketch saved as a file — the format, the colours, the jars and every dab — for GOGH's library (GOGH/generator/genvpic.py); put it in Rembrandt/GOGH/">APPROVE</button>

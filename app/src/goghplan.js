@@ -11,7 +11,7 @@
 // A picture is FORM-G's json, every leg a dab: { …, kind: 'dabs', jars: [{ id, name, code, hex, coats: 1, cells: [{ n, legs: [[x, top, bottom]] }] }] },
 // a cell a stack of a jar's dabs end to end in one column, the cells in the order the brush goes to them (the nearest next). Made by GEN-V (genv.js) and
 // GOGH/generator/genvpic.py; run by FORM-G's page with data-tab="gogh" (formg.js).
-import { GEN, paletteOf, hexOfLab } from './genfplan.js';
+import { GEN, paletteOf, hexOfLab, fieldOf } from './genfplan.js';
 import { jarsByCanvas } from './canon.js';
 import { seqOf, FORMG } from './formgplan.js';
 
@@ -21,7 +21,26 @@ export const GOGH_LIB = [];   // the library: a name here, its json and jpg in a
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,
 // not in rows; trim: the leg on the machine so many mm in from the dab's ends — the brush lands on the move, the J3 lands it 3 mm earlier and lifts it
 // 3 mm later (canon.js, ELBOW_J3), the paint runs on past the leg (IMG_3377: 8 mm marks, J3's 14 mm on the machine, dabs of 13 … 17)
-export const DAB = { aim: 20, min: 12, max: 24, crumb: 6, len: 3, stagger: 300, near: 2, trim: 3 };
+export const DAB = { aim: 20, min: 12, max: 24, crumb: 6, len: 3, stagger: 300, near: 2, trim: 3, gap: 0.6, run: 0, wide: 0.96 };
+// The owner's four sliders (2026-11-22: "three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"), mm, [min, max, step]:
+//   brush: the brush's width, GEN-V's — a picture's columns are its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3 mm");
+//   gap: dab to dab in a column, the plan's and the screen's — every dab gap / 2 shorter at both ends, minus longer ("from −0.6 to +0.6 mm, so your
+//        default hair can be squeezed in tests"); 0.6 the hair GEN-V drew;
+//   wide: a dab's width on the screen alone, of the brush at first ("we cannot simply widen the dab, it depends on how thick the paint is and how much of it
+//        hangs on the brush … this slider will just show approximately what we will see on the canvas"), est.;
+//   run: mm the brush runs on past a dab at both ends, the machine's alone — it lands earlier and lifts later, the picture as it is ("+1 mm at the top and
+//        +1 mm at the bottom … a standard dab 20 mm … 22, 24, 26 and 28 mm, four options")
+export const DAB_UI = { brush: [3, 5], gap: [-0.6, 0.6, 0.1], wide: [2, 8, 0.1], run: [0, 4, 1] };
+const inRange = (v, [lo, hi, st]) => { const q = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st; return +q.toFixed(2) || 0; };
+export const dabGapOf = v => inRange(v ?? DAB.gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? DAB.wide * pitch, DAB_UI.wide);
+export const brushOf = v => DAB_UI.brush.includes(+v) ? +v : GEN.pitch;
+// genfplan.js's fitOf on a brush's columns: as large as the field lets it, its aspect kept, N columns `pitch` apart, R mm along, centred on the canvas
+export function fitV(f, iw, ih, pitch = GEN.pitch) {
+  const F = fieldOf(f), N = Math.max(1, Math.floor(Math.min(F.w, F.h * iw / ih) / pitch)), R = Math.max(1, Math.min(F.h, Math.round(N * pitch * ih / iw)));
+  return { N, R, pitch, left: (f.w - N * pitch) / 2, top: Math.round((f.h - R) / 2), field: F };
+}
+// a dab on the screen, GEN-V's Sketch and GOGH's Picture: its painted span `gap` shorter, a round-ended line `wide` mm across → the line's ends, top and bottom
+export function dabOnScreen(top, bot, gap = DAB.gap, wide = DAB.wide * GEN.pitch) { const L = Math.max(0, top - bot - gap), r = Math.min(wide, L) / 2, m = (top + bot) / 2; return [m + L / 2 - r, m - L / 2 + r]; }
 
 // ---------- the dabs: every column cut into dabs of one jar each ----------
 // B: genfplan.js's binsOf (N columns, R mm along from the picture's top), pal: the jars in CIELAB. Every stretch of a column the picture paints cut by a
@@ -105,15 +124,15 @@ export const dabLine = j => j.cells.reduce((t, c) => t + c.legs.reduce((a, l) =>
 // → { pic: the picture's json, the jars by the canon of the canvas's long side (canon.js); raw: before it; out, kept: the canon's; asked, made; dabs; pal }
 // o.pal: the jars given (CIELAB) in place of k-means; o.names, o.hexes: their names and colours, by the palette's index
 export function sketchV(B, fit, f, K, o = {}) {
-  const pal = o.pal ?? paletteOf(B, K, o), dabs = dabsOf(B, pal, o), lum = pal.map(p => p[0]);
-  const xs = c => +(fit.left + GEN.pitch * (c + 0.5)).toFixed(2), up = mm => +(f.h - fit.top - mm).toFixed(1);
+  const pal = o.pal ?? paletteOf(B, K, o), dabs = dabsOf(B, pal, o), lum = pal.map(p => p[0]), pitch = fit.pitch ?? GEN.pitch;
+  const xs = c => +(fit.left + pitch * (c + 0.5)).toFixed(2), up = mm => +(f.h - fit.top - mm).toFixed(1);
   const by = pal.map(() => []);
   for (const q of dabs) by[q.k].push([xs(q.c), up(q.a), up(q.b)]);
   const order = pal.map((_, k) => k).filter(k => by[k].length).sort((p, q) => lum[q] - lum[p]);
   const jars = order.map((k, i) => ({ id: `c${k}`, name: o.names?.[k] ?? `Colour ${i + 1}`, code: '', hex: o.hexes?.[k] ?? hexOfLab(pal[k]), coats: 1, cells: stacksOf(by[k]).map((s, n) => ({ n: n + 1, legs: s })) }));
   const all = dabs.map(q => [xs(q.c), up(q.a), up(q.b)]), X = all.map(l => l[0]), Y = all.flatMap(l => [l[1], l[2]]);
-  const raw = { id: o.id ?? 'gen-v', title: o.title ?? 'GEN-V sketch', sub: `sketch in dabs, ${f.w / 10} × ${f.h / 10}, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch: GEN.pitch, columns: B.N, kind: 'dabs',
-    dab: { aim: DAB.aim, min: DAB.min, max: DAB.max }, box: all.length ? [Math.min(...X) - GEN.pitch / 2, Math.min(...Y), Math.max(...X) + GEN.pitch / 2, Math.max(...Y)] : [0, 0, 0, 0], jars };
+  const raw = { id: o.id ?? 'gen-v', title: o.title ?? 'GEN-V sketch', sub: `sketch in dabs, ${f.w / 10} × ${f.h / 10}, the brush ${pitch} mm, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch, columns: B.N, kind: 'dabs',
+    dab: { aim: DAB.aim, min: DAB.min, max: DAB.max, brush: pitch }, box: all.length ? [Math.min(...X) - pitch / 2, Math.min(...Y), Math.max(...X) + pitch / 2, Math.max(...Y)] : [0, 0, 0, 0], jars };
   const C = o.canon === false ? { pic: raw, out: [], kept: [] } : jarsByCanvas(raw, Math.max(f.w, f.h), dabLine);
   let n = 0;   // a jar that took another's dabs: its cells laid again, so its stacks and its order are its own
   const pic = { ...C.pic, jars: C.pic.jars.map(({ took, ...j }) => ({ ...j, name: o.names ? j.name : `Colour ${++n}`, cells: stacksOf(j.cells.flatMap(c => c.legs)).map((s, i) => ({ n: i + 1, legs: s })) })) };
@@ -121,18 +140,20 @@ export function sketchV(B, fit, f, K, o = {}) {
 }
 
 // ---------- the run, GOGH's ----------
-// a dab's leg on the machine: painted top to bottom, `trim` in from both its ends (DAB.trim); a dab too short for that, the shortest the brush lands on, about its middle
-export function dabLeg(x, a, b, trim = DAB.trim) {
-  const top = Math.max(a, b), bot = Math.min(a, b), L = top - bot, m = FORMG.minLeg;
-  if (L < m + 2 * 1e-9) { const c = (top + bot) / 2; return [[x, c + m / 2], [x, c - m / 2]]; }
-  const t = Math.max(0, Math.min(trim, (L - m) / 2));
-  return [[x, top - t], [x, bot + t]];
+// a dab's leg on the machine: painted top to bottom; `gap` / 2 off both its ends (the slider, the plan's), then `trim` in from them (DAB.trim, the J3 gives
+// them back), then `run` on past them (the slider, the machine's alone: the brush lands earlier and lifts later); a dab too short for the trim, the shortest
+// the brush lands on, about its middle, the run on past it the same
+export function dabLeg(x, a, b, o = {}) {
+  const trim = o.trim ?? DAB.trim, gap = dabGapOf(o.gap), run = dabRunOf(o.run), m = FORMG.minLeg, r3 = v => Math.round(v * 1000) / 1000;
+  const top = Math.max(a, b) - gap / 2, bot = Math.min(a, b) + gap / 2, L = top - bot, c = (top + bot) / 2;
+  const half = L < m + 2e-9 ? m / 2 : L / 2 - Math.max(0, Math.min(trim, (L - m) / 2));
+  return [[x, r3(c + half + run)], [x, r3(c - half - run)]];
 }
 // the list: FORM-G's (formgplan.js, seqOf) — every jar once, light to dark; a pass a jar, its cells as the picture has them, every leg a dab
+// o: { gap, run, trim } — the sliders'
 export function passesV(pic, o = {}) {
-  const trim = o.trim ?? DAB.trim;
   return seqOf(pic).map(j => {
-    const byCell = j.cells.map((c, i) => { const legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, trim)); return { num: i + 1, k: legs.length, legs, line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
+    const byCell = j.cells.map((c, i) => { const legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, o)); return { num: i + 1, k: legs.length, legs, line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
     return { pencil: j.id, layer: j.layer, fill: 'dabs', cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: false, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }

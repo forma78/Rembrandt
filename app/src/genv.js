@@ -2,8 +2,8 @@
 // GEN-F, with the same functionality … let us call it GEN-V (as Vincent :)". GEN-F's page (genf.js) as it is — the format, the colours, three screens side by
 // side, the ground, APPROVE — its sketch GOGH's: every column cut into dabs of ≈ 20 mm, one jar each, upright, as bricks. No motion blur: a dab is a dab.
 // Moves nothing on the machine: GOGH's plotRun only counts the run's time, the cup at hand, the canvas in the middle of the reach (est.).
-import { GEN, GEN_FORMATS, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf } from './genfplan.js';
-import { DAB, sketchV, passesV, dabRunsOf, dabLine } from './goghplan.js';
+import { GEN, GEN_FORMATS, formatOf, fieldOf, bareMask, boxOf, binsOf } from './genfplan.js';
+import { DAB, DAB_UI, sketchV, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabWideOf, brushOf } from './goghplan.js';
 import { rowsOf, R3, FORMG } from './formgplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
@@ -15,7 +15,7 @@ const $ = s => document.querySelector(s), KEEP = 'rembrandt.genv.v01';
 const fmt = (v, d = 1) => Number(v).toFixed(d), esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 const SLOTS = [12, 20, 30];   // fewer than GEN-F's: a dab is a whole dip of one jar, the eye mixes them (est.)
-const S = { format: GEN_FORMATS[0].id, slots: SLOTS, focus: 1, view: 'sketch', ground: 'white' };
+const S = { format: GEN_FORMATS[0].id, slots: SLOTS, focus: 1, view: 'sketch', ground: 'white', brush: GEN.pitch, gap: DAB.gap, wide: {} };   // the brush, mm; the gap; the width on the screen, a brush's own
 const BG = { white: '#FBFAF7', black: '#161514' };   // OPM-N's ground, GEN-F's: the bare canvas on the screen, not painted
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEEP) || 'null') ?? {}); } catch { }
 if (!GEN_FORMATS.some(f => f.id === S.format)) S.format = GEN_FORMATS[0].id;
@@ -23,6 +23,8 @@ if (!BG[S.ground]) S.ground = 'white';
 const kOf = v => Math.min(GEN.colours[1], Math.max(GEN.colours[0], Math.round(+v) || 20));
 S.slots = [0, 1, 2].map(i => kOf(Array.isArray(S.slots) ? S.slots[i] : SLOTS[i]));
 S.focus = [0, 1, 2].includes(S.focus) ? S.focus : 1;
+S.brush = brushOf(S.brush); S.gap = dabGapOf(S.gap); S.wide = S.wide && typeof S.wide === 'object' ? S.wide : {};
+const wideNow = () => dabWideOf(S.wide[S.brush], S.brush);
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 
 // ---------- the picture, kept in this browser so a reload keeps it (GEN-F's its own) ----------
@@ -54,7 +56,7 @@ async function openPic(blob, name) {
 // ---------- the sketches ----------
 function build() {
   if (!SRC) { BASE = null; SL = [null, null, null]; panel(); draw(); return; }
-  const f = formatOf(S.format), fit = fitOf(f, SRC.box.w, SRC.box.h), W = fit.N * GEN.pitch, R = fit.R;
+  const f = formatOf(S.format), fit = fitV(f, SRC.box.w, SRC.box.h, S.brush), W = fit.N * S.brush, R = fit.R;
   const g = canvasOf(W, R).getContext('2d', { willReadFrequently: true });
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(SRC.img, SRC.box.x, SRC.box.y, SRC.box.w, SRC.box.h, 0, 0, W, R);
@@ -63,7 +65,7 @@ function build() {
     const wx = Math.min(wk.w - 1, Math.floor(wb.x + (x + 0.5) * wb.w / W)), wy = Math.min(wk.h - 1, Math.floor(wb.y + (y + 0.5) * wb.h / R)), i = y * W + x;
     mask[i] = wk.mask[wy * wk.w + wx] || rgba[4 * i + 3] < 128 ? 1 : 0;
   }
-  BASE = { f, fit, W, R, B: binsOf(rgba, mask, fit.N, R), title: SRC.name.replace(/\.[^.]+$/, '') };
+  BASE = { f, fit, W, R, B: binsOf(rgba, mask, fit.N, R, S.brush), title: SRC.name.replace(/\.[^.]+$/, '') };
   for (let i = 0; i < W * R; i++) if (mask[i]) rgba[4 * i + 3] = 0;
   BASE.photo = canvasOf(W, R); BASE.photo.getContext('2d').putImageData(img, 0, 0);
   only = null;
@@ -87,7 +89,7 @@ function buildSlot(i) {
 const DIP_S = 5.5;   // a dip from the cup at hand, s (GEN-F's, est.): a new frame's canvas has no Here, its dips added
 function runOf(pic, frame = formatOf(S.format).frame) {
   try {
-    const P = passesV(pic), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf }), W = reach();
+    const P = passesV(pic, { gap: S.gap }), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf }), W = reach();
     const here = { x: (W.x.min + W.x.max) / 2, y: (W.y.min + W.y.max) / 2 };
     const r = plotRun({ ...DEFAULTS, speed: 25, travel: 100, tail: 3, lift: true, ink: true, snake: true, pause: false, cup: cupOf({ hand: { on: true } }), hover: ELBOW_HOVER, press: 0, noDipUnder: 0, rows: R.ps.length, ...(frame ? {} : { here }) },
       R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next jar' : null })));
@@ -112,7 +114,9 @@ function panel() {
   const f = formatOf(S.format), F = fieldOf(f), SK = cur();
   $('#formats').innerHTML = GEN_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}${q.frame ? ' frame' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as GOGH lays it${q.frame ? ` — for a new frame: today the brush reaches ${GEN.across} × ${GEN.along} mm; a sketch to look at, nothing to run` : ''}">${q.w / 10} × ${q.h / 10}${q.frame ? '<i>new frame</i>' : ''}</button>`).join('');
   $('#fieldRead').innerHTML = (f.frame ? `<span class="warn">For a new frame:</span> today the brush reaches ${GEN.across} × ${GEN.along} mm; the field here the canvas itself, 30 mm in, ${F.w} × ${F.h} mm (est.)` : `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`)
-    + (SK ? `; the picture <b>${SK.W} × ${SK.R} mm</b>, ${SK.fit.N} columns 5 mm apart, in the middle.` : '.');
+    + (SK ? `; the picture <b>${SK.W} × ${SK.R} mm</b>, ${SK.fit.N} columns ${SK.fit.pitch} mm apart, in the middle.` : '.');
+  $('#brushes').innerHTML = DAB_UI.brush.map(b => `<button class="btn${b === S.brush ? ' on' : ''}" data-b="${b}" title="The brush ${b} mm: the picture's columns ${b} mm apart, every dab ${b} mm wide — ${b === 5 ? 'FORM-G\'s, the brush on the machine now' : 'the new brushes, finer, more dabs and more time'}">${b} mm</button>`).join('');
+  for (const [k, v, say] of [['gap', S.gap, x => `${x > 0 ? '+' : x < 0 ? '−' : ''}${fmt(Math.abs(x), 1)} mm`], ['wide', wideNow(), x => `${fmt(x, 1)} mm`]]) { const sl = $(`#${k}Sl`); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = say(v); }
   $('#kNow').textContent = S.slots[S.focus]; $('#kSl').value = S.slots[S.focus];
   $('#kSay').textContent = `screen ${S.focus + 1}${SK ? ` → ${SK.pic.jars.length} jars` : ''}`;
   const lo = GEN.colours[0], hi = GEN.colours[1];
@@ -126,7 +130,7 @@ function panel() {
   if (!SK) { $('#sketchRead').innerHTML = 'Open a picture on the left.'; $('#jarList').innerHTML = ''; $('#jarsHint').textContent = ''; $('#stats').textContent = `${f.w / 10} × ${f.h / 10} cm`; return; }
   const long = Math.max(f.w, f.h), e = SK.est, n = SK.pic.jars.length;
   $('#sketchRead').innerHTML = `<b>Screen ${S.focus + 1}:</b> <b>${SK.asked}</b> colours asked, ${SK.made} paint a dab; <b>${n} jars</b> by the canon of the jars (a jar with less line than the canvas's long side, ${long / 10} cm, into its nearest; ΔE 25 at most)`
-    + `${SK.kept.length ? `, ${SK.kept.length} short kept, nothing near` : ''}. <b>${SK.dabs} dabs</b>, ${DAB.min} … ${DAB.max} mm, ≈ ${DAB.aim}, a dip each; `
+    + `${SK.kept.length ? `, ${SK.kept.length} short kept, nothing near` : ''}. <b>${SK.dabs} dabs</b> of the ${SK.fit.pitch} mm brush, ${DAB.min} … ${DAB.max} mm, ≈ ${DAB.aim}, a dip each; `
     + (e ? (e.fail ? `<span class="warn">the time not counted: ${esc(e.fail)}</span>` : `${fmt(e.mm / 1000, 1)} m of brush, ${e.lines} lines of the list, ${e.dips} dips, <b>≈ ${hm(e.seconds)}</b> on the machine, the jars' changes by hand apart.`) : 'counting the time …')
     + ' A sketch: every dab flat in its jar\'s colour, no brush model (est.).';
   $('#jarsHint').textContent = `${n}, light to dark`;
@@ -142,13 +146,9 @@ function panel() {
 const V = { s: 1, x: 0, y: 0, fit: true }, HEAD = 22;
 const cellsOf = rc => { const n = BASE && S.view !== 'picture' ? 3 : 1, w = rc.width / n; return Array.from({ length: n }, (_, i) => ({ i, x: i * w, w, h: rc.height })); };
 // a dab as GOGH lays it, flat: the brush's width, its ends round, a hair of the canvas between two in a column (est.)
-const GAP = 0.6;
 function dabsPath(g, j, X, Y, w) {
   g.beginPath();
-  for (const c of j.cells) for (const [x, top, bot] of c.legs) {
-    const L = top - bot - GAP, r = Math.min(w, L) / 2, m = (top + bot) / 2, a = Y(m + L / 2 - r), b = Y(m - L / 2 + r);
-    g.moveTo(X(x), a); g.lineTo(X(x), b);
-  }
+  for (const c of j.cells) for (const [x, top, bot] of c.legs) { const [a, b] = dabOnScreen(top, bot, S.gap, w); g.moveTo(X(x), Y(a)); g.lineTo(X(x), Y(b)); }
 }
 function draw() {
   const cv = $('#cv'), dpr = devicePixelRatio || 1, rc = cv.getBoundingClientRect();
@@ -170,10 +170,10 @@ function draw() {
     }
     if (S.view === 'picture') { g.imageSmoothingEnabled = true; g.drawImage(BASE.photo, X(BASE.fit.left), Y(f.h - BASE.fit.top), BASE.W * V.s, BASE.R * V.s); g.restore(); continue; }
     if (sk) {
-      const here = c.i === S.focus, o = here ? only : null, w = GEN.pitch * 0.96 * V.s;
+      const here = c.i === S.focus, o = here ? only : null, wm = wideNow(), w = wm * V.s;
       g.lineCap = 'round';
       if (S.view === 'drag') {                                     // the dabs thin, in their order: the brush's way through a jar's stacks, the air between them dotted
-        for (const j of sk.pic.jars) { g.globalAlpha = 0.16; g.strokeStyle = j.hex; g.lineWidth = w; dabsPath(g, j, X, Y, GEN.pitch * 0.96); g.stroke(); }
+        for (const j of sk.pic.jars) { g.globalAlpha = 0.16; g.strokeStyle = j.hex; g.lineWidth = w; dabsPath(g, j, X, Y, wm); g.stroke(); }
         for (const j of sk.pic.jars) {
           if (o && j.id !== o) continue;
           g.globalAlpha = 1; g.strokeStyle = j.hex; g.lineWidth = Math.max(1, 0.5 * V.s); g.setLineDash([]); dabsPath(g, j, X, Y, 0); g.stroke();
@@ -181,7 +181,7 @@ function draw() {
           j.cells.forEach((q, i) => { const l = q.legs[0], p = j.cells[i - 1]?.legs.at(-1); if (p) { g.moveTo(X(p[0]), Y(p[2])); g.lineTo(X(l[0]), Y(l[1])); } });
           g.stroke(); g.setLineDash([]);
         }
-      } else for (const j of sk.pic.jars) { g.globalAlpha = o && j.id !== o ? 0.16 : 1; g.strokeStyle = j.hex; g.lineWidth = w; dabsPath(g, j, X, Y, GEN.pitch * 0.96); g.stroke(); }
+      } else for (const j of sk.pic.jars) { g.globalAlpha = o && j.id !== o ? 0.16 : 1; g.strokeStyle = j.hex; g.lineWidth = w; dabsPath(g, j, X, Y, wm); g.stroke(); }
       g.globalAlpha = 1;
     }
     g.restore();
@@ -223,6 +223,14 @@ cv.addEventListener('dblclick', () => { V.fit = true; kick(); });
 
 // ---------- the keys ----------
 $('#formats').onclick = e => { const b = e.target.closest('[data-f]'); if (!b || b.dataset.f === S.format) return; S.format = b.dataset.f; save(); V.fit = true; build(); };
+$('#brushes').onclick = e => { const b = e.target.closest('[data-b]'); if (!b || +b.dataset.b === S.brush) return; S.brush = brushOf(b.dataset.b); save(); V.fit = true; pick = null; build(); };
+function setDab(k, v) {
+  const now = k === 'gap' ? dabGapOf(v) : dabWideOf(v, S.brush);
+  if (k === 'gap') { if (now === S.gap) return panel(); S.gap = now; SL.forEach(sk => { if (sk) sk.est = null; }); save(); panel(); kick(); estimateAll(); }
+  else { if (now === wideNow()) return panel(); S.wide = { ...S.wide, [S.brush]: now }; save(); panel(); kick(); }
+}
+document.querySelectorAll('.dabsl input[data-dab]').forEach(sl => { sl.oninput = () => setDab(sl.dataset.dab, +sl.value); });
+document.querySelectorAll('.dabsl button[data-dab]').forEach(b => { b.onclick = () => setDab(b.dataset.dab, (b.dataset.dab === 'gap' ? S.gap : wideNow()) + +b.dataset.step); });
 $('#kSl').oninput = () => { $('#kNow').textContent = $('#kSl').value; };
 $('#kSl').onchange = () => { S.slots[S.focus] = kOf($('#kSl').value); save(); buildSlot(S.focus); };
 $('#kMarks').onclick = e => { const b = e.target.closest('[data-slot]'); if (b) choose(+b.dataset.slot); };
@@ -242,7 +250,7 @@ export function approvalOf(src, sk, s, when = new Date()) {
   return {
     tool: 'GEN-V', note: 'A sketch in dabs the owner approved, for GOGH: the format, the colours, the jars and every dab. Flat colours, no brush model (est.). GOGH/generator/genvpic.py makes it a card of GOGH\'s library.',
     approved: when.toISOString(), image: { name: src.name, w: src.w, h: src.h, box: [src.box.x, src.box.y, src.box.w, src.box.h].map(v => Math.round(v)), ground: src.ground },
-    format: s.format, colours: sk.k, screen: s.screen, ground: s.ground, made: sk.made, picture_mm: [sk.W, sk.R], columns: sk.fit.N, left: sk.fit.left, top: sk.fit.top,
+    format: s.format, colours: sk.k, screen: s.screen, ground: s.ground, brush: sk.fit.pitch, gap: s.gap, wide: s.wideNow, made: sk.made, picture_mm: [sk.W, sk.R], columns: sk.fit.N, left: sk.fit.left, top: sk.fit.top,
     jars: sk.pic.jars.map(j => ({ name: j.name, hex: j.hex, dabs: j.cells.reduce((a, c) => a + c.legs.length, 0), line_m: +(sk.lines[j.id] / 1000).toFixed(2) })),
     out: sk.out.map(q => ({ hex: q.hex, line_m: +(q.line / 1000).toFixed(2), into: by[q.into], de: +q.de.toFixed(1) })),
     counts: { dabs: sk.dabs, stacks: sk.cells, ...(sk.est && !sk.est.fail ? { brush_m: +(sk.est.mm / 1000).toFixed(1), lines: sk.est.lines, dips: sk.est.dips, minutes_est: Math.round(sk.est.seconds / 60) } : {}) },
@@ -252,7 +260,7 @@ export function approvalOf(src, sk, s, when = new Date()) {
 $('#btnApprove').onclick = async () => {
   const SK = pick !== null ? SL[pick] : null;
   if (!SK) return;
-  const name = `${SRC.name.replace(/\.[^.]+$/, '')} · GEN-V · ${S.format} · ${SK.k}.json`, body = JSON.stringify(approvalOf(SRC, SK, { ...S, screen: pick + 1 }), null, 1);
+  const name = `${SRC.name.replace(/\.[^.]+$/, '')} · GEN-V · ${S.format} · ${SK.fit.pitch} mm · ${SK.k}.json`, body = JSON.stringify(approvalOf(SRC, SK, { ...S, screen: pick + 1, wideNow: wideNow() }), null, 1);
   const said = t => { $('#approveRead').innerHTML = t; };
   if (window.showSaveFilePicker) {
     try {

@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GEN, formatOf, fitOf, bareMask, boxOf, binsOf } from '../src/genfplan.js';
-import { DAB, dabsOf, stacksOf, sketchV, dabLeg, passesV, dabRunsOf, dabLine } from '../src/goghplan.js';
+import { DAB, DAB_UI, dabsOf, stacksOf, sketchV, dabLeg, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabRunOf, dabWideOf, brushOf } from '../src/goghplan.js';
 import { rowsOf, R3, FORMG } from '../src/formgplan.js';
 
 // a picture W × H px: a white ground, a red disc with a dark band across it, its left half lighter (genfplan.test.js's)
@@ -19,14 +19,14 @@ function disc(W, H) {
   }
   return px;
 }
-function sketch(fid = '40x40', K = 12, W = 300, H = 300) {
-  const f = formatOf(fid), work = disc(W, H), { mask } = bareMask(work, W, H), box = boxOf(mask, W, H), fit = fitOf(f, box.w, box.h);
-  const PW = fit.N * GEN.pitch, R = fit.R, rgba = new Uint8ClampedArray(PW * R * 4), m = new Uint8Array(PW * R);
+function sketch(fid = '40x40', K = 12, W = 300, H = 300, pitch = GEN.pitch) {
+  const f = formatOf(fid), work = disc(W, H), { mask } = bareMask(work, W, H), box = boxOf(mask, W, H), fit = pitch === GEN.pitch ? fitOf(f, box.w, box.h) : fitV(f, box.w, box.h, pitch);
+  const PW = fit.N * pitch, R = fit.R, rgba = new Uint8ClampedArray(PW * R * 4), m = new Uint8Array(PW * R);
   for (let y = 0; y < R; y++) for (let x = 0; x < PW; x++) {
     const sx = Math.min(W - 1, Math.floor(box.x + (x + 0.5) * box.w / PW)), sy = Math.min(H - 1, Math.floor(box.y + (y + 0.5) * box.h / R)), s = sy * W + sx;
     rgba.set(work.subarray(4 * s, 4 * s + 4), 4 * (y * PW + x)); m[y * PW + x] = mask[s];
   }
-  const B = binsOf(rgba, m, fit.N, R);
+  const B = binsOf(rgba, m, fit.N, R, pitch);
   return { f, fit, B, ...sketchV(B, fit, f, K) };
 }
 const SK = sketch();
@@ -74,10 +74,50 @@ test('stacks: a column\'s dabs end to end one cell, the nearest next', () => {
   assert.deepEqual(S, [[[5, 90, 70]], [[15, 70, 50]], [[10, 40, 20]], [[10, 100, 80], [10, 80, 60]]]);
 });
 
-test('a dab on the machine: 3 mm in from its ends, top to bottom; the J3 gives them back', () => {
-  assert.deepEqual(dabLeg(7.5, 300, 280), [[7.5, 297], [7.5, 283]]);
-  assert.deepEqual(dabLeg(7.5, 280, 300), [[7.5, 297], [7.5, 283]], 'always down');
-  assert.deepEqual(dabLeg(7.5, 300, 294), [[7.5, 298.5], [7.5, 295.5]], 'short: the shortest leg, in its middle');
+test('a dab on the machine: 3 mm in from its ends, top to bottom; the J3 gives them back; the gap off its ends, 0.6 at first', () => {
+  assert.deepEqual(dabLeg(7.5, 300, 280, { gap: 0 }), [[7.5, 297], [7.5, 283]]);
+  assert.deepEqual(dabLeg(7.5, 280, 300, { gap: 0 }), [[7.5, 297], [7.5, 283]], 'always down');
+  assert.deepEqual(dabLeg(7.5, 300, 294, { gap: 0 }), [[7.5, 298.5], [7.5, 295.5]], 'short: the shortest leg, in its middle');
+  assert.deepEqual(dabLeg(7.5, 300, 280), [[7.5, 296.7], [7.5, 283.3]], 'the hair GEN-V drew, 0.3 off each end');
+  assert.deepEqual(dabLeg(7.5, 300, 280, { gap: -0.6 }), [[7.5, 297.3], [7.5, 282.7]], 'squeezed: 0.3 longer at each end');
+});
+
+test('the sliders: gap −0.6 … +0.6 by 0.1, run 0 … 4 by 1, the width on the screen 2 … 8 by 0.1, the brush 3 or 5', () => {
+  assert.deepEqual(DAB_UI, { brush: [3, 5], gap: [-0.6, 0.6, 0.1], wide: [2, 8, 0.1], run: [0, 4, 1] });
+  assert.equal(dabGapOf(undefined), 0.6); assert.equal(dabGapOf(-2), -0.6); assert.equal(dabGapOf(0.44), 0.4); assert.equal(dabGapOf(-0.05), 0);
+  assert.equal(dabRunOf(undefined), 0); assert.equal(dabRunOf(9), 4); assert.equal(dabRunOf(2.4), 2); assert.equal(dabRunOf(-1), 0);
+  assert.equal(dabWideOf(undefined), 4.8, '0.96 of the 5 mm brush'); assert.equal(dabWideOf(undefined, 3), 2.9); assert.equal(dabWideOf(5.63), 5.6); assert.equal(dabWideOf(12), 8);
+  assert.equal(brushOf(3), 3); assert.equal(brushOf('5'), 5); assert.equal(brushOf(4), GEN.pitch);
+});
+
+test('the run: a 20 mm dab runs 20, 22, 24, 26, 28 mm on the machine — 1 mm earlier at its top and 1 later at its bottom a step; the picture as it is', () => {
+  const pic = { id: 't', w: 400, h: 400, pitch: 5, columns: 1, kind: 'dabs', box: [0, 0, 400, 400], jars: [{ id: 'c0', name: 'C1', hex: '#CC2222', coats: 1, cells: [{ n: 1, legs: [[7.5, 300, 280], [7.5, 280, 260]] }] }] };
+  const was = JSON.stringify(pic), J = { slack: R3.slack, j3: R3.j3, brush: dabRunsOf };
+  const run = (o, k = 0) => { const R = rowsOf(pic, passesV(pic, o), R3.every, FORMG.lap, false, J), m = R.ps[k][0]; return { L: +Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y).toFixed(3), a: m.a, b: m.b }; };
+  assert.deepEqual([0, 1, 2, 3, 4].map(r => run({ gap: 0, run: r }).L), [20, 22, 24, 26, 28]);
+  for (const r of [1, 2, 3, 4]) {                                  // the same middle: as much on at the top as at the bottom
+    const q = run({ gap: 0, run: r }), z = run({ gap: 0, run: 0 });
+    assert.ok(Math.abs((q.a.x + q.b.x) / 2 - (z.a.x + z.b.x) / 2) < 1e-6 && Math.abs(q.a.y - q.b.y) < 1e-6, `run ${r}: about the dab's middle, along X`);
+  }
+  assert.deepEqual([-0.6, 0, 0.6].map(g => run({ gap: g }).L), [20.6, 20, 19.4], 'the gap: the dab shorter by it');
+  assert.equal(run({ gap: 0.6, run: 4 }).L, 27.4);
+  assert.equal(JSON.stringify(pic), was, 'the picture untouched');
+  assert.equal(rowsOf(pic, passesV(pic, { run: 4 }), R3.every, FORMG.lap, false, J).ps.length, 2, 'a dab a run still');
+});
+
+test('the brush 3 mm: GEN-V\'s columns 3 mm apart, more dabs, the same 12 … 24 mm', () => {
+  const S3 = sketch('40x40', 12, 300, 300, 3), legs = S3.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs));
+  assert.equal(S3.pic.pitch, 3); assert.equal(S3.pic.dab.brush, 3);
+  const xs = [...new Set(legs.map(l => l[0]))].sort((a, b) => a - b);
+  xs.slice(1).forEach((x, i) => assert.ok(Math.abs((x - xs[i]) % 3) < 1e-6 || Math.abs((x - xs[i]) % 3 - 3) < 1e-6, 'on the 3 mm grid'));
+  assert.ok(S3.dabs > SK.dabs * 1.4, `${S3.dabs} dabs against ${SK.dabs}`);
+  assert.ok(legs.every(([, a, b]) => a - b <= DAB.max + 0.11));
+});
+
+test('a dab on the screen: the gap off its ends, round ends the width across', () => {
+  assert.deepEqual(dabOnScreen(300, 280, 0.6, 4.8), [297.3, 282.7]);
+  assert.deepEqual(dabOnScreen(300, 280, -0.6, 4.8).map(v => +v.toFixed(3)), [297.9, 282.1]);
+  const [a, b] = dabOnScreen(300, 296, 0, 4.8); assert.equal(a, b, 'shorter than wide: a round dot');
 });
 
 test('the run: every dab a run of its own on a dip of its own, nothing after it — no snake, no second run, no idle run', () => {
@@ -91,4 +131,36 @@ test('the run: every dab a run of its own on a dip of its own, nothing after it 
   // the J3: the leg 14 mm of a 20 mm dab, 20 on the machine
   const one = P[0].byCell[0].legs[0], L = Math.abs(one[1][1] - one[0][1]), m = R.ps[0][0], Lm = Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y);
   assert.ok(Math.abs(Lm - L - 6) < 0.01, `${L} → ${Lm}`);
+});
+
+// GOGH's live sliders (2026-11-22, the owner: "I allow changing rembrandt.py"): rembrandt.py's /run/swap takes the plan made again only where nothing but where
+// the brush goes changed (swap_refuses, SWAP_MM 5) — so every gap and run must give the same steps, the elbow's, the dips', the pauses' as they were
+test('the sliders change only where the brush goes: the same steps, every L and M 4.6 mm at most apart — what /run/swap takes live', async () => {
+  const { plotRun, DEFAULTS, ELBOW_HOVER } = await import('../src/strokes.js'), { cupOf } = await import('../src/ink.js'), { reach } = await import('../src/machine.js');
+  const pic = { ...SK.pic, jars: SK.pic.jars.slice(0, 3) }, W = reach(), here = { x: (W.x.min + W.x.max) / 2, y: (W.y.min + W.y.max) / 2 };
+  const steps = (gap, run) => {
+    const R = rowsOf(pic, passesV(pic, { gap, run }), R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf });
+    return plotRun({ ...DEFAULTS, speed: 25, travel: 100, tail: 3, lift: true, ink: true, snake: true, pause: false, cup: cupOf({ hand: { on: true } }), hover: ELBOW_HOVER, press: 0, noDipUnder: 0, rows: R.ps.length, here },
+      R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next jar' : null }))).blocks;
+  };
+  const a = steps(0.6, 0), rest = q => JSON.stringify({ ...q, cmds: 0, paintMM: 0, painted: 0, lengthMM: 0 });
+  for (const [gap, run] of [[0.6, 4], [-0.6, 0], [-0.6, 4], [0, 2], [0.6, 1]]) {
+    const b = steps(gap, run);
+    assert.equal(b.length, a.length, `${gap} · ${run}: as many steps`);
+    let most = 0;
+    a.forEach((p, i) => {
+      const q = b[i];
+      assert.equal(q.kind, p.kind);
+      if (p.kind !== 'move') return assert.deepEqual(q, p, 'an arm, a joint, a wait, a pause the same');
+      assert.equal(rest(q), rest(p)); assert.equal(q.cmds.length, p.cmds.length);
+      p.cmds.forEach((c, j) => {
+        const d = q.cmds[j];
+        assert.equal(d[0], c[0]);
+        if (!'LMA'.includes(c[0])) return assert.equal(d, c, 'F, T, W, G the same');
+        const x = c.split(' ').slice(1).map(Number), y = d.split(' ').slice(1).map(Number);
+        x.forEach((v, k) => { most = Math.max(most, Math.abs(v - y[k])); });
+      });
+    });
+    assert.ok(most <= 4.6 + 1e-6 && most <= 5, `${gap} · ${run}: ${most} mm`);
+  }
 });

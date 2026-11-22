@@ -141,6 +141,21 @@
         <div class="elh"><span class="elk">Elbow live · brush</span><span class="elv" id="brushNow">0.0°</span></div>
         <div class="elrow"><button class="btn" data-btrim="-0.1" title="The brush 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="brushSl" step="0.1"><button class="btn" data-btrim="0.1" title="The brush 0.1° higher: less pressure">▲</button></div>
       </div>
+      <!-- the owner's sliders, 2026-11-22 ("three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"): the brush GEN-V's, a picture's columns;
+           here the gap and the run, live during a DRAG (rembrandt.py's /run/swap); the width the screen's alone (goghplan.js, DAB_UI) -->
+      <div class="elbowlive dabsl" id="dabGap" title="Gap · dab to dab in a column: every dab half of it shorter at both ends, minus longer — the plan and the screen; live during a DRAG, from the next dab (rembrandt.py's /run/swap). 0.6 the hair GEN-V draws">
+        <div class="elh"><span class="elk">Gap · dab to dab</span><span class="elv" id="gapNow">+0.6 mm</span></div>
+        <div class="elrow"><button class="btn" data-dab="gap" data-step="-0.1" title="0.1 mm less: the dabs closer, then over each other">▼</button><input class="slider" type="range" id="gapSl" data-dab="gap" min="-0.6" max="0.6" step="0.1"><button class="btn" data-dab="gap" data-step="0.1" title="0.1 mm more between two dabs">▲</button></div>
+      </div>
+      <div class="elbowlive dabsl" id="dabWide" title="Width · on the screen alone: how wide a dab will lie — the thickness of the paint and how much hangs on the brush decide it on the canvas, not this; Picture shows it (est.)">
+        <div class="elh"><span class="elk">Width · screen</span><span class="elv" id="wideNow">4.8 mm</span></div>
+        <div class="elrow"><button class="btn" data-dab="wide" data-step="-0.1" title="0.1 mm narrower on the screen">▼</button><input class="slider" type="range" id="wideSl" data-dab="wide" min="2" max="8" step="0.1"><button class="btn" data-dab="wide" data-step="0.1" title="0.1 mm wider on the screen">▲</button></div>
+      </div>
+      <div class="elbowlive dabsl" id="dabRun" title="Run · the machine alone: the brush lands 1 mm earlier at a dab's top and lifts 1 mm later at its bottom a step — a 20 mm dab runs 20, 22, 24, 26, 28; the picture as it is; live during a DRAG, from the next dab">
+        <div class="elh"><span class="elk">Run · a 20 mm dab</span><span class="elv" id="runNow">20 mm</span></div>
+        <div class="elrow"><button class="btn" data-dab="run" data-step="-1" title="1 mm less at both ends">▼</button><input class="slider" type="range" id="runSl" data-dab="run" min="0" max="4" step="1"><button class="btn" data-dab="run" data-step="1" title="1 mm more at both ends: lands earlier, lifts later">▲</button></div>
+      </div>
+      <p class="read" id="dabRead"></p>
     </section>
     <section class="sec">
       <h3>The canvas <span class="hint">from home, mm · a picture its own</span> <button class="info" id="canvasInfo" title="Where the canvas may lie for this picture, the walls; MARKS: where to tape the paper strips">i</button></h3>
