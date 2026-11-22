@@ -1032,6 +1032,7 @@ async function watch() {
   if (!VIEW) try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }   // LIBRARY-G never looks at the run: its library free while FORM-G paints
   lastSt = st;
   if (!VIEW) runPicture(st);
+  if (HASH) { const h = HASH; HASH = null; openHash(h, st); }   // LIBRARY-V's link, once the run is known
   lcd(st);
   if (Date.now() - warnAt > WARN_S * 1000) $('#runState').innerHTML = VIEW ? '' : !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${esc(st.message)}</span>` : '';
 }
@@ -1112,6 +1113,15 @@ async function jarsFileSave() {
   if (!PIC) return;
   const name = `${LIB[S.pic].title} · jars · ${stamp()}.json`, body = JSON.stringify(jarsFileOf(S.pic), null, 1);
   const said = n => { warnAt = Date.now(); $('#runState').innerHTML = `💾 <b>${esc(n)}</b>: ${Object.keys(JARS.swaps[S.pic] ?? {}).length} of ${LIB[S.pic].jars.length} colours by your jars.`; if (VIEW) { VER.label[S.pic] = n; verKeep(); } jarsRead(n); };
+  // GOGH's into LIBRARY-V (the owner, 2026-11-22, the evening, of the file in Downloads: "what do I do with it? I need it in the library"): rembrandt.py's
+  // /gogh/jars keeps it in app/gogh/jars/; a rembrandt.py of before (404) — the file as till then
+  if (DABS && !VIEW) {
+    try {
+      const r = await fetch('/gogh/jars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+      if (r.ok) { const o = await r.json(); warnAt = Date.now(); $('#runState').innerHTML = `💾 → <a href="libv.html">LIBRARY-V</a>`; jarsRead(o.file); LIBV_BC?.postMessage({ saved: o.file }); return; }
+      if (r.status !== 404) return warn(`💾 not saved: ${esc((await r.json().catch(() => ({}))).message ?? r.status)}`);
+    } catch { }
+  }
   if (window.showSaveFilePicker) {
     try {
       const h = await showSaveFilePicker({ id: 'formg-jars', suggestedName: name, types: [{ description: 'FORM-G jars', accept: { 'application/json': ['.json'] } }] }), w = await h.createWritable();
@@ -1179,6 +1189,20 @@ if ($('#jarPop')) {
   });
   addEventListener('keydown', e => { if (e.key === 'Escape') swapHide(); });
   addEventListener('pointerdown', e => { if (!e.target.closest('#jarPop') && !e.target.closest('[data-swap]')) swapHide(); });
+}
+
+// ---------- LIBRARY-V's links (2026-11-22, the evening): gogh.html#pic=<id>, a picture; &jars=<file>, its jars saved by 💾 SAVE, 📂 LOAD's way ----------
+let HASH = DABS && !VIEW && location.hash.length > 1 ? new URLSearchParams(location.hash.slice(1)) : null;
+const LIBV_BC = DABS && typeof BroadcastChannel === 'function' ? new BroadcastChannel('rembrandt.genv') : null;
+async function openHash(h, st) {
+  history.replaceState(null, '', location.pathname);
+  const id = h.get('pic'), file = h.get('jars');
+  if (!id || !LIB[id]) return id && warn(`LIBRARY-V: ${esc(id)} is not in GOGH's library.`);
+  if (st && LIVE.includes(st.state) && S.runPic && id !== S.runPic) return warn(`A run of ${esc(LIB[S.runPic]?.title ?? S.runPic)} is on: GOGH stays on it till the run ends or stops — LIBRARY-V shows the others.`);
+  if (id !== S.pic) choose(id);
+  if (!file) return;
+  try { const r = await fetch(`gogh/jars/${encodeURIComponent(file)}`, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); jarsFileLoad(new File([await r.text()], file)); }
+  catch (e) { warn(`LIBRARY-V: ${esc(file)} not read (${esc(e?.message ?? e)}).`); }
 }
 
 // ---------- start ----------

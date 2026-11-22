@@ -2428,7 +2428,7 @@ def genv_approve(body, sketches=GOGH_SKETCHES, cards=GOGH_CARDS):
     while os.path.exists(os.path.join(sketches, file)):
         n += 1
         file = f"{stem} ({n}).json"
-    card = {**card, "id": pid, "image": f"gogh/{pid}.jpg"}
+    card = {**card, "id": pid, "image": f"gogh/{pid}.jpg", **({"approved": sk["approved"]} if isinstance(sk.get("approved"), str) else {})}
     _write(os.path.join(sketches, file), json.dumps(sk, ensure_ascii=False, indent=1).encode("utf-8"))
     _write(os.path.join(cards, pid + ".jpg"), image)
     _write(os.path.join(cards, pid + ".json"), json.dumps(card, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
@@ -2436,6 +2436,89 @@ def genv_approve(body, sketches=GOGH_SKETCHES, cards=GOGH_CARDS):
              "ids": [pid] + [i for i in ids if i != pid]}
     _write(lp, json.dumps(local, ensure_ascii=False, indent=1).encode("utf-8"))   # the list last: it is what puts the card in the library
     return {"ok": True, "id": pid, "sketch": file, "title": card.get("title", pid)}
+
+
+# LIBRARY-V (the owner, 2026-11-22, the evening, of Library's page: "make Library-V as here"; of THE JARS' 💾 SAVE, a file in Downloads: "what do
+# I do with it? I need it in the library"): GOGH's pictures — this Mac's in app/gogh/local.json, GEN-V's 🐾 APPROVE's — and every 💾 SAVE of a
+# picture's jars, app/gogh/jars/, out of git as the drawings of library/; × moves one into app/gogh/.deleted/
+JARS_KIND = "FORM-G jars"
+
+
+def _local_ids(cards):
+    try:
+        with open(os.path.join(cards, "local.json"), encoding="utf-8") as f:
+            return [i for i in (json.load(f) or {}).get("ids", []) if isinstance(i, str)]
+    except (OSError, ValueError, AttributeError):
+        return []
+
+
+def gogh_library(cards=GOGH_CARDS):
+    """{local: this Mac's picture ids, newest first; jars: the saved jars, newest first — file, pic, title, saved, swaps}"""
+    out, folder = [], os.path.join(cards, "jars")
+    try:
+        names = [n for n in os.listdir(folder) if n.endswith(".json") and not n.startswith(".")]
+    except OSError:
+        names = []
+    for n in names:
+        try:
+            with open(os.path.join(folder, n), encoding="utf-8") as f:
+                j = json.load(f)
+        except (OSError, ValueError):
+            continue
+        if isinstance(j, dict) and j.get("kind") == JARS_KIND and isinstance(j.get("pic"), str):
+            out.append({"file": n, "pic": j["pic"], "title": j.get("title"), "saved": j.get("saved"), "swaps": len(j.get("swaps") or {}),
+                        "colours": len(j.get("colours") or [])})
+    out.sort(key=lambda q: str(q["saved"] or ""), reverse=True)
+    return {"local": _local_ids(cards), "jars": out}
+
+
+def gogh_jars_save(body, cards=GOGH_CARDS, now=None):
+    """a picture's jars as THE JARS' 💾 SAVE makes them → app/gogh/jars/<title> · jars · <date time>.json, never over another; → its name"""
+    if not isinstance(body, dict) or body.get("kind") != JARS_KIND or not GENV_ID.match(str(body.get("pic") or "")):
+        raise ValueError("not a picture's jars")
+    if not os.path.exists(os.path.join(cards, body["pic"] + ".json")):
+        raise ValueError("no such picture: " + body["pic"])
+    title = re.sub(r"[/\\:\x00-\x1f]+", " ", str(body.get("title") or body["pic"]))[:80].strip(" .") or body["pic"]
+    folder = os.path.join(cards, "jars")
+    os.makedirs(folder, exist_ok=True)
+    stem = f"{title} · jars · {time.strftime('%Y-%m-%d %H.%M', time.localtime(now))}"
+    name, n = stem + ".json", 1
+    while os.path.exists(os.path.join(folder, name)):
+        n += 1
+        name = f"{stem} ({n}).json"
+    _write(os.path.join(folder, name), json.dumps(body, ensure_ascii=False, indent=1).encode("utf-8"))
+    return name
+
+
+def gogh_delete(kind, key, cards=GOGH_CARDS):
+    """× on LIBRARY-V: a saved jars file, or a picture of this Mac's (local.json) — into app/gogh/.deleted/; False if there is none"""
+    bin_ = os.path.join(cards, ".deleted")
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    if kind == "jars":
+        if not key or key != os.path.basename(key) or key.startswith(".") or not key.endswith(".json") or not os.path.exists(os.path.join(cards, "jars", key)):
+            return False
+        os.makedirs(bin_, exist_ok=True)
+        os.replace(os.path.join(cards, "jars", key), os.path.join(bin_, f"{stamp} {key}"))
+        return True
+    if kind == "pic":
+        ids = _local_ids(cards)
+        if not GENV_ID.match(key or "") or key not in ids:
+            return False
+        os.makedirs(bin_, exist_ok=True)
+        for ext in (".json", ".jpg"):
+            f = os.path.join(cards, key + ext)
+            if os.path.exists(f):
+                os.replace(f, os.path.join(bin_, f"{stamp} {key}{ext}"))
+        lp = os.path.join(cards, "local.json")
+        try:
+            with open(lp, encoding="utf-8") as f:
+                local = json.load(f) or {}
+        except (OSError, ValueError):
+            local = {}
+        local["ids"] = [i for i in ids if i != key]
+        _write(lp, json.dumps(local, ensure_ascii=False, indent=1).encode("utf-8"))
+        return True
+    return False
 
 
 def library_delete(folder, base):
@@ -2620,6 +2703,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(200, json.dumps(RUNNER.status()), "application/json")
         if u.path == "/park":
             return self.reply(200, json.dumps(PARK.read() or {}), "application/json")
+        if u.path == "/gogh/library":
+            return self.reply(200, json.dumps(gogh_library()), "application/json")
         if u.path == "/library":
             return self.reply(200, json.dumps(library_list(LIBRARY_DIR)), "application/json")
         if u.path.startswith("/library/"):
@@ -2659,6 +2744,13 @@ class Handler(SimpleHTTPRequestHandler):
             return self.remote(urlparse(self.path), True)
         if not self.local():
             return self.reply(403, "this Mac only")
+        if path == "/gogh/jars":
+            # THE JARS' 💾 SAVE on GOGH: a picture's jars into LIBRARY-V (gogh_jars_save); nothing on the machine
+            try:
+                name = gogh_jars_save(json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0))))
+            except (ValueError, TypeError, AttributeError, OSError) as e:
+                return self.reply(400, json.dumps({"ok": False, "message": str(e) or "not a picture's jars"}), "application/json")
+            return self.reply(200, json.dumps({"ok": True, "file": name}), "application/json")
         if path == "/genv/approve":
             # GEN-V's APPROVE 🐾: the sketch into GOGH/, its card into GOGH's library (genv_approve); nothing on the machine
             try:
@@ -2762,6 +2854,10 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.local():
             return self.reply(403, "this Mac only")
         path = unquote(urlparse(self.path).path)
+        if path.startswith("/gogh/jars/") or path.startswith("/gogh/pic/"):     # LIBRARY-V's ×
+            kind = "jars" if path.startswith("/gogh/jars/") else "pic"
+            ok = gogh_delete(kind, path[len(f"/gogh/{kind}/"):])
+            return self.reply(200 if ok else 404, "moved to app/gogh/.deleted" if ok else "no such one of this Mac's")
         if not path.startswith("/library/"):
             return self.reply(404, "")
         ok = library_delete(LIBRARY_DIR, path[len("/library/"):])

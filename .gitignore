@@ -98,3 +98,6 @@ FORM-G/generator/*.pkl
 /app/gogh/cola*
 /GOGH/Crumpled Coca-Cola*
 /GOGH/generator/__pycache__/
+# LIBRARY-V (2026-11-22): every 💾 SAVE of a GOGH picture's jars, and what × took away — on this Mac alone, as library/
+/app/gogh/jars/
+/app/gogh/.deleted/

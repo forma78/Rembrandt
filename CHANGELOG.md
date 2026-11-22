@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LIBRARY-V as Library's page; GOGH's 💾 SAVE into it** (2026-11-22, the evening; the owner: "make Library-V as here", Library's page,
+  `GOGH/Screenshot 2026-11-22 at 9.19.58 PM.png`; of THE JARS' 💾 SAVE, a file in Downloads: "what do I do with it? I need it in the library").
+  Cards: GOGH's pictures, this Mac's first (🐾 APPROVE, its date), then GOGH_LIB's; below the line the jars saved, newest first; a click opens it on
+  GOGH (`gogh.html#pic=…&jars=…`, the jars as 📂 LOAD, never on another picture while a run is on); × into `app/gogh/.deleted/`. `rembrandt.py`:
+  `gogh_library`, `gogh_jars_save`, `gogh_delete` and their routes; a card approved carries its date. The file of 21:19 moved there. Measured the
+  same evening: a dab 7.0 s after the steps settled sooner (9.0 before, 11.0 at the start).
+
 - **The arm's steps settle sooner; their times in the journal** (2026-11-22, the evening; the board flashed at 21:05, the dab still 8.9 s; the owner:
   "it turns to the jar briskly, but there is more than a second of stop between the turn and the tilt … then it stops to think"; "I allow the
   change"). `Arm._settle`: a turn of 10°/s or more looked at every 0.05 s, standing still in its fork is there, standing still at all after 0.25 s;
