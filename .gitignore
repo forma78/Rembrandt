@@ -101,3 +101,6 @@ FORM-G/generator/*.pkl
 # LIBRARY-V (2026-11-22): every 💾 SAVE of a GOGH picture's jars, and what × took away — on this Mac alone, as library/
 /app/gogh/jars/
 /app/gogh/.deleted/
+# GOGH's robot (2026-11-22): Mickey's ears, Daft Punk's helmet, Nike's sneakers — others' marks, on this Mac alone as the cola and Mickey
+/GOGH/recreate-this-exact-robot*
+/app/gogh/recreate-this-exact-robot*

@@ -1,4 +1,4 @@
-// LIBRARY-V (the owner, 2026-11-22, the evening: "make Library-V as here", Library's page; of THE JARS' 💾 SAVE in Downloads: "I need it in the library"):
+// LIB-V (the owner, 2026-11-22, the evening: "make Library-V as here", Library's page; of THE JARS' 💾 SAVE in Downloads: "I need it in the library"):
 // Library's look (librarypage.js), GOGH's pictures — this Mac's first, newest first (app/gogh/local.json: GEN-V's 🐾 APPROVE), then GOGH_LIB's — and
 // below the line every picture's jars saved by 💾 SAVE on GOGH (app/gogh/jars/). A click opens it on GOGH (gogh.html#pic=…, &jars=… as 📂 LOAD); × moves
 // one of this Mac's into app/gogh/.deleted/ after asking. Told by GEN-V and GOGH (BroadcastChannel rembrandt.genv) when one comes; nothing on the machine.
@@ -49,7 +49,7 @@ async function onCard(e) {
   const name = el.querySelector('.name').textContent, del = e.target.closest('[data-del]');
   if (del) {
     const kind = del.dataset.del, key = kind === 'pic' ? el.dataset.pic : el.dataset.jars;
-    if (!confirm(`Delete «${name}» from LIBRARY-V?\n\nIt goes to app/gogh/.deleted/ on this Mac.`)) return;
+    if (!confirm(`Delete «${name}» from LIB-V?\n\nIt goes to app/gogh/.deleted/ on this Mac.`)) return;
     const r = await fetch(`/gogh/${kind}/${encodeURIComponent(key)}`, { method: 'DELETE' }).catch(() => null);
     if (!r || !r.ok) alert(r ? await r.text() : 'No server: start rembrandt.py.');
     return load();

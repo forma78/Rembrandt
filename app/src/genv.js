@@ -272,7 +272,7 @@ export function approvalOf(src, sk, s, when = new Date()) {
 }
 // APPROVE 🐾 (the owner, 2026-11-22, the evening: "why do I download to the desktop at all … on the principle of library.html, without extra moves: I press
 // APPROVE (add a paw 🐾, by the way) and the picture appears in Library-V"): the card made here (goghplan.js's cardOfSketch, its jpg as genvpic.py renders
-// it), rembrandt.py's /genv/approve writes the sketch into GOGH/ and the card into GOGH's library, first; LIBRARY-V told at once. A rembrandt.py of before
+// it), rembrandt.py's /genv/approve writes the sketch into GOGH/ and the card into GOGH's library, first; LIB-V told at once. A rembrandt.py of before
 // (no /genv/approve: 404 to a probe of two bytes) — the file as before, to Downloads
 const BC = typeof BroadcastChannel === 'function' ? new BroadcastChannel('rembrandt.genv') : null;
 const CARD_PPM = 3, GESSO_CARD = '#FBFAF7';   // genvpic.py's PPM and GESSO
@@ -309,12 +309,12 @@ $('#btnApprove').onclick = async () => {
       const o = await r.json().catch(() => ({}));
       if (!r.ok || !o.ok) return said(`<span class="warn">Not approved: ${esc(o.message || r.status)}</span>`);
       BC?.postMessage({ approved: o.id });
-      return said(`<span title="First in GOGH's library too (a reload of GOGH shows it, not during a run). The sketch: GOGH/${esc(o.sketch)}">🐾 Approved: <b>${esc(o.title)}</b> → <a href="libv.html">LIBRARY-V</a></span>`);
+      return said(`<span title="First in GOGH's library too (a reload of GOGH shows it, not during a run). The sketch: GOGH/${esc(o.sketch)}">🐾 Approved: <b>${esc(o.title)}</b> → <a href="libv.html">LIB-V</a></span>`);
     }
     // a rembrandt.py of before: the file, as till now
     const body = JSON.stringify(sk, null, 1), a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([body], { type: 'application/json' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    said(`<span title="rembrandt.py is the one before 🐾: restart it (not during a run), and APPROVE puts a picture straight in LIBRARY-V">Approved: <b>${esc(name)}</b> → Downloads · <span class="warn">restart rembrandt.py</span></span>`);
+    said(`<span title="rembrandt.py is the one before 🐾: restart it (not during a run), and APPROVE puts a picture straight in LIB-V">Approved: <b>${esc(name)}</b> → Downloads · <span class="warn">restart rembrandt.py</span></span>`);
   } catch (e) { said(`<span class="warn">Not approved: ${esc(e?.message || e)}</span>`); }
   finally { btn.disabled = pick === null || !SL[pick]; }
 };

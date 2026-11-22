@@ -20,11 +20,11 @@ import './ui.js';
 // run nor sends it a thing (VIEW), so its library is free while FORM-G paints; its jars FORM-G's to start from, its own changes kept in this browser alone
 // GOGH (2026-11-22, data-tab="gogh"; the owner: "in GOGH we copy FORM-G's functionality fully … the one difference: no long strokes, all of them drops of 2 cm"):
 // this page with its own library, app/gogh/, made by GEN-V; every leg a dab, a run of its own on a dip of its own, nothing after it (goghplan.js, DABS)
-// LIBRARY-V (2026-11-22, the evening, data-tab="libv"; the owner: "I press APPROVE … and the picture appears in Library-V"): LIBRARY-G's for GOGH — GOGH's
+// LIB-V (2026-11-22, the evening, data-tab="libv"; the owner: "I press APPROVE … and the picture appears in Library-V"): LIBRARY-G's for GOGH — GOGH's
 // pictures to look at, while it paints or not, nothing sent (VIEW); a picture GEN-V's APPROVE 🐾 put in shown at once (BroadcastChannel rembrandt.genv)
 const PAGE = document.body.dataset.tab, LIBV = PAGE === 'libv', TAB = PAGE === 'opmg' ? 'opmg' : PAGE === 'gogh' || LIBV ? 'gogh' : 'formg', CANON_RUN = TAB === 'opmg', VIEW = PAGE === 'libg' || LIBV, DABS = TAB === 'gogh';
 const HOME = DABS ? 'GOGH' : 'FORM-G';   // the page a library to look at is of: its jars and its settings to start from
-const NAME = CANON_RUN ? 'OPM-G' : VIEW ? (LIBV ? 'LIBRARY-V' : 'LIBRARY-G') : DABS ? 'GOGH' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : DABS ? GOGH_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
+const NAME = CANON_RUN ? 'OPM-G' : VIEW ? (LIBV ? 'LIB-V' : 'LIBRARY-G') : DABS ? 'GOGH' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : DABS ? GOGH_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
 const FORMG_KEEP = 'rembrandt.formg.v02';
 const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01' : VIEW ? (LIBV ? 'rembrandt.libv.v01' : 'rembrandt.libg.v01') : DABS ? 'rembrandt.gogh.v01' : FORMG_KEEP, OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
 const PRESS_MIN = -4, PRESS_MAX = 8, GESSO = '#FBFAF7';   // GESSO: the canvas, white (2026-11-16)   // as OPM-N's brush
@@ -1032,7 +1032,7 @@ async function watch() {
   if (!VIEW) try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }   // LIBRARY-G never looks at the run: its library free while FORM-G paints
   lastSt = st;
   if (!VIEW) runPicture(st);
-  if (HASH) { const h = HASH; HASH = null; openHash(h, st); }   // LIBRARY-V's link, once the run is known
+  if (HASH) { const h = HASH; HASH = null; openHash(h, st); }   // LIB-V's link, once the run is known
   lcd(st);
   if (Date.now() - warnAt > WARN_S * 1000) $('#runState').innerHTML = VIEW ? '' : !st ? 'no server: start rembrandt.py' : st.message ? `<span class="${st.state === 'error' ? 'warn' : ''}">${esc(st.message)}</span>` : '';
 }
@@ -1113,12 +1113,12 @@ async function jarsFileSave() {
   if (!PIC) return;
   const name = `${LIB[S.pic].title} · jars · ${stamp()}.json`, body = JSON.stringify(jarsFileOf(S.pic), null, 1);
   const said = n => { warnAt = Date.now(); $('#runState').innerHTML = `💾 <b>${esc(n)}</b>: ${Object.keys(JARS.swaps[S.pic] ?? {}).length} of ${LIB[S.pic].jars.length} colours by your jars.`; if (VIEW) { VER.label[S.pic] = n; verKeep(); } jarsRead(n); };
-  // GOGH's into LIBRARY-V (the owner, 2026-11-22, the evening, of the file in Downloads: "what do I do with it? I need it in the library"): rembrandt.py's
+  // GOGH's into LIB-V (the owner, 2026-11-22, the evening, of the file in Downloads: "what do I do with it? I need it in the library"): rembrandt.py's
   // /gogh/jars keeps it in app/gogh/jars/; a rembrandt.py of before (404) — the file as till then
   if (DABS && !VIEW) {
     try {
       const r = await fetch('/gogh/jars', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-      if (r.ok) { const o = await r.json(); warnAt = Date.now(); $('#runState').innerHTML = `💾 → <a href="libv.html">LIBRARY-V</a>`; jarsRead(o.file); LIBV_BC?.postMessage({ saved: o.file }); return; }
+      if (r.ok) { const o = await r.json(); warnAt = Date.now(); $('#runState').innerHTML = `💾 → <a href="libv.html">LIB-V</a>`; jarsRead(o.file); LIBV_BC?.postMessage({ saved: o.file }); return; }
       if (r.status !== 404) return warn(`💾 not saved: ${esc((await r.json().catch(() => ({}))).message ?? r.status)}`);
     } catch { }
   }
@@ -1137,7 +1137,7 @@ async function jarsFileLoad(file) {
   try { f = JSON.parse(await file.text()); } catch { }
   if (!f || f.kind !== FILE_KIND || !f.pic) return warn(`📂 ${esc(file.name)}: not a picture's jars (💾 SAVE makes them).`);
   if (!LIB[f.pic]) return warn(`📂 ${esc(file.name)}: its picture, ${esc(f.title ?? f.pic)}, is not in this library.`);
-  if (!VIEW && lastSt && LIVE.includes(lastSt.state)) return warn(`A run is on: THE JARS stay as they are till it ends or stops — the run's pauses name its jars. ${DABS ? 'LIBRARY-V' : 'LIBRARY-G'} loads it to look at.`);
+  if (!VIEW && lastSt && LIVE.includes(lastSt.state)) return warn(`A run is on: THE JARS stay as they are till it ends or stops — the run's pauses name its jars. ${DABS ? 'LIB-V' : 'LIBRARY-G'} loads it to look at.`);
   // the jars are physical (README): a number the file gives another colour than his jar of that number has — nothing loaded
   const have = myJarsOf(CLASSIC_PLANS, JARS.mine), named = [...Object.entries(f.mine ?? {}), ...Object.values(f.swaps ?? {}).map(v => [v?.name, v?.hex])];
   const clash = [...new Map(named.filter(([n, h]) => { const q = have.find(o => o.name === n); return q && q.hex.toUpperCase() !== String(h).toUpperCase(); })).entries()];
@@ -1191,18 +1191,18 @@ if ($('#jarPop')) {
   addEventListener('pointerdown', e => { if (!e.target.closest('#jarPop') && !e.target.closest('[data-swap]')) swapHide(); });
 }
 
-// ---------- LIBRARY-V's links (2026-11-22, the evening): gogh.html#pic=<id>, a picture; &jars=<file>, its jars saved by 💾 SAVE, 📂 LOAD's way ----------
+// ---------- LIB-V's links (2026-11-22, the evening): gogh.html#pic=<id>, a picture; &jars=<file>, its jars saved by 💾 SAVE, 📂 LOAD's way ----------
 let HASH = DABS && !VIEW && location.hash.length > 1 ? new URLSearchParams(location.hash.slice(1)) : null;
 const LIBV_BC = DABS && typeof BroadcastChannel === 'function' ? new BroadcastChannel('rembrandt.genv') : null;
 async function openHash(h, st) {
   history.replaceState(null, '', location.pathname);
   const id = h.get('pic'), file = h.get('jars');
-  if (!id || !LIB[id]) return id && warn(`LIBRARY-V: ${esc(id)} is not in GOGH's library.`);
-  if (st && LIVE.includes(st.state) && S.runPic && id !== S.runPic) return warn(`A run of ${esc(LIB[S.runPic]?.title ?? S.runPic)} is on: GOGH stays on it till the run ends or stops — LIBRARY-V shows the others.`);
+  if (!id || !LIB[id]) return id && warn(`LIB-V: ${esc(id)} is not in GOGH's library.`);
+  if (st && LIVE.includes(st.state) && S.runPic && id !== S.runPic) return warn(`A run of ${esc(LIB[S.runPic]?.title ?? S.runPic)} is on: GOGH stays on it till the run ends or stops — LIB-V shows the others.`);
   if (id !== S.pic) choose(id);
   if (!file) return;
   try { const r = await fetch(`gogh/jars/${encodeURIComponent(file)}`, { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); jarsFileLoad(new File([await r.text()], file)); }
-  catch (e) { warn(`LIBRARY-V: ${esc(file)} not read (${esc(e?.message ?? e)}).`); }
+  catch (e) { warn(`LIB-V: ${esc(file)} not read (${esc(e?.message ?? e)}).`); }
 }
 
 // ---------- start ----------
@@ -1210,7 +1210,7 @@ lampSwitch($('#lamp'));
 (async () => {
   // the pictures on this Mac alone (others' works, out of git: README), first: formg/local.json { "ids": [...] }, gitignored
   try { const r = await fetch(`${TAB}/local.json`, { cache: 'no-store' }); if (r.ok) LIBRARY.unshift(...((await r.json()).ids ?? []).filter(id => !LIBRARY.includes(id))); } catch { }
-  // LIBRARY-V: a picture GEN-V's APPROVE 🐾 just put in, shown at once — the page made again on it (it sends nothing, so nothing is cut off)
+  // LIB-V: a picture GEN-V's APPROVE 🐾 just put in, shown at once — the page made again on it (it sends nothing, so nothing is cut off)
   if (LIBV && typeof BroadcastChannel === 'function') new BroadcastChannel('rembrandt.genv').onmessage = e => { const id = e.data?.approved; if (typeof id === 'string') { S.pic = id; save(); location.reload(); } };
   // GOGH's library empty — its pictures come from GEN-V, the cards of this Mac in gogh/local.json: the page says so and waits
   if (!LIBRARY.length) {
