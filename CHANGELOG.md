@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 2, lengths** (2026-11-23, the night; the owner: "just redraw the Press test from zero, with legs of different lengths, so we check the
+  length too"). `app/gogh/press-lengths-20` in `press-test-20`'s place: six blocks, a line a block; each its lone dabs 4 · 6 · 8 · 10 · 12 · 15 mm 6 mm
+  apart and a patch of 10 × 2 dabs of 12 mm side by side; 156 dabs. The first test's block 1 (`GOGH/IMG_3426.jpg`): ≈ 48 mm wide for 50, a stack of
+  three 12 mm dabs ≈ 56 mm long with the RUN at 18.
+
 - **GOGH's TEST a tap at each corner itself** (2026-11-23, the night; the owner, BL to BR 19 cm: "but there should be 20, no?"; offered a tap: "of
   course!"). The carriage at the corner, the elbow down to the press and up, no stroke toward the centre (`tapRun`); its blocks caught in headless Chrome:
   the corners 199.9 mm apart (0.1 inside a wall). The owner, at once: "now exactly 20 cm" — Y too, where the strokes had read 190.

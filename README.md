@@ -542,8 +542,9 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     during a DRAG `rembrandt.py`'s POST `/run/jar` from the next dip on (`Runner.set_jar`, `_jar_block`: the plan's `paint` block and the server's own dips,
     the fork a degree either side), by half degrees within +14 … +20° (his +14 … +16° of 2026-11-03, the top raised the same night: "not deeper, but a little
     higher"), the servo landing anywhere in its 1° fork. GOGH's panel: Progress; Elbow live (the brush, the jar); The dabs (gap, width, run); The canvas; The brush.
-    **The press test**, `app/gogh/press-test-20`: Jar 19's thickest cluster of the bear's head, the flood's, six times, a line a block, the pause before
-    each its own press and jar (est. ≈ 34 min).
+    **The press test**, `app/gogh/press-lengths-20` (the first, Jar 19's cluster six times, made again the same night: "from zero, with legs of
+    different lengths"): six blocks, a line a block, the pause before each its own press and jar; each its lone dabs 4 · 6 · 8 · 10 · 12 · 15 mm 6 mm
+    apart, to measure a dab's length and width, and a patch of 10 × 2 dabs of 12 mm side by side, to see the flood begin (156 dabs, ≈ 18 min).
 
 14. **TEST BRUSH · TEST JAR, and a scale under ELBOW LIVE** (the owner, 2026-11-23, the night: "two buttons — TEST BRUSH and TEST JAR — they work
     only at a stop, as TEST or POINTS. TEST BRUSH: it goes down at the centre of the 20 × 20 and drives its 15 mm, then stands there. I can bring it

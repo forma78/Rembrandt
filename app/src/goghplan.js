@@ -21,7 +21,9 @@ import { seqOf, FORMG } from './formgplan.js';
 // first test"), GEN-V's screen 2, 14 colours → 13 jars, margins 6, 1285 dabs
 // press-test-20: Jar 19's thickest cluster of the bear's head, its flood (2026-11-22, the night), six times on a 20 × 20 — the owner: "draw right in GOGH a test
 // screen 20 × 20 and for one paint repeat the cluster … in different variations … the press. Such a block fits on the canvas six times"; a line a block
-export const GOGH_LIB = ['press-test-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
+// press-lengths-20, the press test made again (the owner, 2026-11-23, the night: "just redraw the Press test from zero, with legs of different lengths, so we
+// check the length too"): six blocks, each its lone dabs 4 … 15 mm and a patch of dabs side by side; press-test-20 (Jar 19's cluster six times) its place before
+export const GOGH_LIB = ['press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,

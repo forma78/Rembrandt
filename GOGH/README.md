@@ -63,6 +63,17 @@ six times, "in different variations … the press".
 | `IMG_3294.jpg` | The same jar lower: the brush's white tip just touching the paint. |
 | `Screenshot 2026-11-22 at 11.22.13 PM.png` | GOGH's plan, Jar 19's dabs on the forehead circled: the cluster the press test repeats, 48 dabs, 50 × 45 mm. |
 
+## Press test 2, lengths (2026-11-23, the night)
+
+The first press test (`press-test-20`, Jar 19's cluster six times) broke off at its 28th dab — the owner switched the machine off, alarmed — and flooded:
+the RUN at 18 mm on 12 mm dabs, every dab of a stack over its neighbour by ≈ 6 mm, the jar at +14. The owner: "just redraw the Press test from zero, with
+legs of different lengths, so we check the length too"; of `IMG_3426`: "what is good in this picture — one can already see which legs it paints".
+`app/gogh/press-lengths-20`: six blocks, each its lone dabs 4 · 6 · 8 · 10 · 12 · 15 mm 6 mm apart and a patch of 10 columns × 2 dabs of 12 mm side by side.
+
+| file | what it shows |
+|---|---|
+| `IMG_3426.jpg` | The first press test's block 1, 28 dabs, a ruler (cm, upside down) on top: the block ≈ 48 mm wide (50 planned), its right stack of three 12 mm dabs ≈ 56 mm from head to tail, a stack of two ≈ 33 mm — longer by the RUN and the paint's tail. |
+
 ## The flood (2026-11-22, the night)
 
 The owner: "too much paint pours, maybe from the higher speed. I circled it here — it is simply a flood"; "the canvas is 20 × 20 cm, easy to lay a grid
