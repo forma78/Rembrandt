@@ -2,8 +2,8 @@
 // GEN-F, with the same functionality … let us call it GEN-V (as Vincent :)". GEN-F's page (genf.js) as it is — the format, the colours, three screens side by
 // side, the ground, APPROVE — its sketch GOGH's: every column cut into dabs of ≈ 20 mm, one jar each, upright, as bricks. No motion blur: a dab is a dab.
 // Moves nothing on the machine: GOGH's plotRun only counts the run's time, the cup at hand, the canvas in the middle of the reach (est.).
-import { GEN, fieldOf, bareMask, boxOf, binsOf } from './genfplan.js';
-import { DAB_UI, GENV_FORMATS, formatV as formatOf, dabOf, sketchV, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabWideOf, brushOf } from './goghplan.js';
+import { GEN, bareMask, boxOf, binsOf } from './genfplan.js';
+import { DAB_UI, GENV_FORMATS, formatV as formatOf, fieldV, wholeV, dabOf, sketchV, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabWideOf, brushOf } from './goghplan.js';
 import { rowsOf, R3, FORMG } from './formgplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
@@ -114,9 +114,9 @@ function estimateAll() {
 
 // ---------- the panel ----------
 function panel() {
-  const f = formatOf(S.format), F = fieldOf(f), SK = cur();
+  const f = formatOf(S.format), F = fieldV(f), SK = cur();
   $('#formats').innerHTML = GENV_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}${q.frame ? ' frame' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as GOGH lays it${q.frame ? ` — for a new frame: today the brush reaches ${GEN.across} × ${GEN.along} mm; a sketch to look at, nothing to run` : ''}${q.test ? ' — for tests, LAB\'s canvas' : ''}">${q.w / 10} × ${q.h / 10}${q.frame ? '<i>new frame</i>' : q.test ? '<i>tests</i>' : ''}</button>`).join('');
-  $('#fieldRead').innerHTML = (f.frame ? `<span class="warn">For a new frame:</span> today the brush reaches ${GEN.across} × ${GEN.along} mm; the field here the canvas itself, 30 mm in, ${F.w} × ${F.h} mm (est.)` : `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`)
+  $('#fieldRead').innerHTML = (f.frame ? `<span class="warn">For a new frame:</span> today the brush reaches ${GEN.across} × ${GEN.along} mm; the field here the canvas itself, 30 mm in, ${F.w} × ${F.h} mm (est.)` : wholeV(f) ? `The whole canvas, ${F.w} × ${F.h} mm, edge to edge: within the reach, ${GEN.across} × ${GEN.along}, no margin` : `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`)
     + (SK ? `; the picture <b>${SK.W} × ${SK.R} mm</b>, ${SK.fit.N} columns ${SK.fit.pitch} mm apart, in the middle.` : '.');
   $('#brushes').innerHTML = DAB_UI.brush.map(b => `<button class="btn${b === S.brush ? ' on' : ''}" data-b="${b}" title="The brush ${b} mm: the picture's columns ${b} mm apart, every dab ${b} mm wide, ${dabOf(b).min} … ${dabOf(b).max} mm long, ≈ ${dabOf(b).aim} — ${b === 5 ? 'FORM-G\'s, the brush on the machine now' : b === 2 ? 'the sharpest of the new brushes (GOGH/IMG_3395): it holds little paint, its longest stroke 15 mm (IMG_3390)' : 'the new brushes, finer, more dabs and more time'}">${b} mm</button>`).join('');
   for (const [k, v, say] of [['gap', gapNow(), x => `${x > 0 ? '+' : x < 0 ? '−' : ''}${fmt(Math.abs(x), 1)} mm`], ['wide', wideNow(), x => `${fmt(x, 1)} mm`]]) { const sl = $(`#${k}Sl`); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = say(v); }
@@ -157,7 +157,7 @@ function draw() {
   const cv = $('#cv'), dpr = devicePixelRatio || 1, rc = cv.getBoundingClientRect();
   if (!rc.width || !rc.height) return;
   cv.width = Math.round(rc.width * dpr); cv.height = Math.round(rc.height * dpr);
-  const g = cv.getContext('2d'), f = formatOf(S.format), cells = cellsOf(rc), dark = S.ground === 'black', F = fieldOf(f);
+  const g = cv.getContext('2d'), f = formatOf(S.format), cells = cellsOf(rc), dark = S.ground === 'black', F = fieldV(f);
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.fillStyle = themeColor('--table', '#D9D4CA'); g.fillRect(0, 0, rc.width, rc.height);
   if (V.fit) { const pad = 18, c = cells[0]; V.s = Math.min((c.w - 2 * pad) / f.w, (c.h - 2 * pad - HEAD) / f.h); V.x = (c.w - f.w * V.s) / 2; V.y = HEAD + (c.h - HEAD - f.h * V.s) / 2; }
@@ -165,8 +165,10 @@ function draw() {
     const sk = cells.length === 3 ? SL[c.i] : cur(), X = x => c.x + V.x + x * V.s, Y = y => V.y + (f.h - y) * V.s;
     g.save(); g.beginPath(); g.rect(c.x, 0, c.w, c.h); g.clip();
     g.save(); g.shadowColor = 'rgba(0,0,0,.22)'; g.shadowBlur = 14; g.shadowOffsetY = 3; g.fillStyle = BG[S.ground]; g.fillRect(X(0), Y(f.h), f.w * V.s, f.h * V.s); g.restore();
-    g.save(); g.setLineDash([5, 4]); g.strokeStyle = dark ? 'rgba(236,232,225,.35)' : 'rgba(125,119,109,.55)'; g.lineWidth = 1;
-    g.strokeRect(X((f.w - F.w) / 2), Y((f.h + F.h) / 2), F.w * V.s, F.h * V.s); g.restore();
+    if (!wholeV(f)) {                                                // the field's contour where it is not the canvas itself: 60 × 60 and up
+      g.save(); g.setLineDash([5, 4]); g.strokeStyle = dark ? 'rgba(236,232,225,.35)' : 'rgba(125,119,109,.55)'; g.lineWidth = 1;
+      g.strokeRect(X((f.w - F.w) / 2), Y((f.h + F.h) / 2), F.w * V.s, F.h * V.s); g.restore();
+    }
     if (!BASE) {
       g.fillStyle = dark ? 'rgba(236,232,225,.6)' : themeColor('--mute', '#7D776D'); g.font = '13px "Helvetica Neue", Arial, sans-serif'; g.textAlign = 'center';
       g.fillText(`${f.w / 10} × ${f.h / 10} cm — open a picture on the left`, X(f.w / 2), Y(f.h / 2)); g.restore(); continue;

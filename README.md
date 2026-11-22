@@ -487,10 +487,14 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
    steps, the elbow's, the dips' and the pauses' as they were, every L and M `SWAP_MM` (5) at most apart (`swap_refuses`); the dab painting
    then as it was sent, the next one on the new.
 
-6. **A 20 × 20 for tests on GEN-V** (the owner, the same evening: "a 20 × 20 cm format for tests"), LAB's canvas, its field 140 × 140 (30 mm in,
-   est.), in front of GEN-F's formats; GEN-F's own list unchanged (`GENV_FORMATS`, `formatV`).
+6. **A 20 × 20 for tests on GEN-V** (the owner, the same evening: "a 20 × 20 cm format for tests"), LAB's canvas, in front of GEN-F's formats;
+   GEN-F's own list unchanged (`GENV_FORMATS`, `formatV`).
+7. **No margin where the canvas lies within the reach** (the owner, the same evening, of the 20 × 20's first sketch in a field of 140 × 140,
+   `GOGH/bear-20-20.png`: "there must be none. Margins only for 60 × 60 and up, our limit is physical, 550 mm. But 200 × 200 mm we print without
+   trouble … 40 × 40 too, without the limiting contour"): on GEN-V the 20 × 20 and the 40 × 40 painted edge to edge, no dashed field on the screen;
+   60 × 60 and up GEN-F's field, 540 across, 30 mm in (`wholeV`, `fieldV`).
 
-`src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`); GOGH's
+`src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 
 ## Working rules

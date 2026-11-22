@@ -43,6 +43,8 @@ The owner: "the bear can be made as orange_bear.png — for the GOGH tab"; "it i
 | `Glossy Red-Orange Gummy Bear · GEN-V · 40x40 · 2 mm · 10.json` | GEN-V's sketch he approved: 40 × 40, the 2 mm brush, screen 1, 10 colours, the gap −0.2, the width 2.3; 2683 dabs, ≈ 7 h 48 by GEN-V (est.). |
 | `orange_bear.png` | His screenshot of that screen on GEN-V: the card is to look so. |
 
+| `bear-20-20.png` | His screenshot of a 20 × 20 sketch on GEN-V, the bear's head in the 140 × 140 field 30 mm in, its dashed contour: "there must be none … 200 × 200 mm we print without trouble". GEN-V edge to edge since. |
+
 The card: `app/gogh/orange-bear.json`, `.jpg` (genvpic.py, true to the sketch; its `look` the gap and the width as approved). The picture it was
 made from is not here.
 

@@ -33,6 +33,11 @@ export const dabOf = (pitch = GEN.pitch) => ({ ...DAB, ...(DAB_BRUSH[pitch] ?? {
 // GEN-V's formats: GEN-F's, and a 20 × 20 for tests in front (the owner, 2026-11-22: "a 20 × 20 cm format for tests"), LAB's canvas; its field 30 mm in
 export const GENV_FORMATS = [{ id: '20x20', w: 200, h: 200, test: true }, ...GEN_FORMATS];
 export const formatV = id => GENV_FORMATS.find(f => f.id === id) ?? GENV_FORMATS.find(f => f.id === '40x40');
+// GEN-V's field: the whole canvas where the canvas lies within the reach (the owner, the same evening, of a 20 × 20 test, "the field 140 × 140": "you
+// made margins … there must be none. Margins only for 60 × 60 and up, our limit is physical, 550 mm. But 200 × 200 mm we print without trouble … 40 × 40
+// too, without the limiting contour"): the 20 × 20 and the 40 × 40 edge to edge; a canvas past the reach (GEN.across × GEN.along) GEN-F's field, 30 mm in
+export const wholeV = f => !f.frame && f.w <= GEN.across && f.h <= GEN.along;
+export const fieldV = f => wholeV(f) ? { w: f.w, h: f.h } : fieldOf(f);
 // The owner's four sliders (2026-11-22: "three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"), mm, [min, max, step]:
 //   brush: the brush's width, GEN-V's — a picture's columns are its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3 mm"); the 2 mm
 //        since the evening ("add a 2 mm button to GEN-V");
@@ -46,9 +51,10 @@ export const DAB_UI = { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.
 const inRange = (v, [lo, hi, st]) => { const q = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st; return +q.toFixed(2) || 0; };
 export const dabGapOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? DAB.wide * pitch, DAB_UI.wide);
 export const brushOf = v => DAB_UI.brush.includes(+v) ? +v : GEN.pitch;
-// genfplan.js's fitOf on a brush's columns: as large as the field lets it, its aspect kept, N columns `pitch` apart, R mm along, centred on the canvas
+// genfplan.js's fitOf on a brush's columns: as large as the field lets it (GEN-V's, fieldV), its aspect kept, N columns `pitch` apart, R mm along, centred on
+// the canvas
 export function fitV(f, iw, ih, pitch = GEN.pitch) {
-  const F = fieldOf(f), N = Math.max(1, Math.floor(Math.min(F.w, F.h * iw / ih) / pitch)), R = Math.max(1, Math.min(F.h, Math.round(N * pitch * ih / iw)));
+  const F = fieldV(f), N = Math.max(1, Math.floor(Math.min(F.w, F.h * iw / ih) / pitch)), R = Math.max(1, Math.min(F.h, Math.round(N * pitch * ih / iw)));
   return { N, R, pitch, left: (f.w - N * pitch) / 2, top: Math.round((f.h - R) / 2), field: F };
 }
 // a dab on the screen, GEN-V's Sketch and GOGH's Picture: its painted span `gap` shorter, a round-ended line `wide` mm across → the line's ends, top and bottom

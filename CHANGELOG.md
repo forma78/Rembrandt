@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GEN-V: the 20 × 20 and the 40 × 40 edge to edge** (2026-11-22, the evening; the owner, of a 20 × 20 sketch in a field of 140 × 140,
+  `GOGH/bear-20-20.png`: "there must be none. Margins only for 60 × 60 and up, our limit is physical, 550 mm. But 200 × 200 mm we print without
+  trouble … 40 × 40 too, without the limiting contour"). A canvas within the reach (540 × 855) its whole self the field, no dashed contour on the
+  screen; 60 × 60 and up as before (`wholeV`, `fieldV`). GEN-F unchanged.
+
 - **GOGH's first card of the 2 mm brush: the gummy bear, a 40 × 40 test** (2026-11-22, the evening; the owner: "the bear can be made as
   orange_bear.png — for the GOGH tab"; "it is a 40 × 40 test"). `app/gogh/orange-bear`, from GEN-V's sketch as approved: 10 jars (four ≈ his
   Jar 9, 16, 19, 21 as hints), 2683 dabs, ≈ 7 h 51 by GOGH's PROGRESS (est.). GOGH: a card's `look` — GEN-V's gap and width as approved —
