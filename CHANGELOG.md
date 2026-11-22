@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+## v.1.2.7 — 2026-11-22 · GOGH, painting in dabs; the arm faster
+
+- **v.1.2.7 on every tab and in the saved SVGs** (the owner, 2026-11-22: "you can push, v.1.2.7").
 - **LIBRARY-V as Library's page; GOGH's 💾 SAVE into it** (2026-11-22, the evening; the owner: "make Library-V as here", Library's page,
   `GOGH/Screenshot 2026-11-22 at 9.19.58 PM.png`; of THE JARS' 💾 SAVE, a file in Downloads: "what do I do with it? I need it in the library").
   Cards: GOGH's pictures, this Mac's first (🐾 APPROVE, its date), then GOGH_LIB's; below the line the jars saved, newest first; a click opens it on
