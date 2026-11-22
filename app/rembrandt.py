@@ -469,6 +469,9 @@ BUS_TRIES, BUS_GAP = 5, 0.2   # a read or a reply lost: asked again, about a sec
 # the move (W on the path) untouched, it is the stroke's own. SILENT_WAIT: a joint silent at a move is waited for so long, asked every second, before it
 # counts — at 00:34 all three were silent about 80 s, then answered by themselves (est.).
 ELBOW_UP_SPEED, SILENT_WAIT, SILENT_GAP = 28.0, 90.0, 1.0
+# a joint's move settled (Arm._settle, 2026-11-22): a turn of SETTLE_FAST_MIN °/s or more looked at every SETTLE_DT s, standing still after
+# SETTLE_STILL s; in its fork, still within SETTLE_FORK_TICKS between two looks (≈ 0.26°), there. A slower stroke as before: 0.15 s, 0.6 s
+SETTLE_FAST_MIN, SETTLE_DT, SETTLE_STILL, SETTLE_FORK_TICKS = 10.0, 0.05, 0.25, 3
 
 
 class Arm:
@@ -498,6 +501,12 @@ class Arm:
         self.lock = threading.Lock()
         self.stopped = threading.Event()   # set by stop(): a move under way gives up
         self.power, self.power_t = {}, None   # the servos' own volts and °C at the last look that read them, and when (time.time())
+        self.times = []   # every move's [joint, s in all, s settling] since the journal last took them (took_times; 2026-11-22)
+
+    def took_times(self):
+        # the moves' times since the last call, for the journal's dip (the owner, 2026-11-22: where the arm waits)
+        t, self.times = self.times, []
+        return t
 
     def stop(self):
         """STOP for the arm (2026-10-02): a slow stroke stays where it is.
@@ -588,7 +597,7 @@ class Arm:
         lo, hi = REACH[joint]
         within = ARM_WITHIN if within is None else within
         near_fork = lambda a: fork[0] - FORK_WITHIN <= a <= fork[1] + FORK_WITHIN   # noqa: E731  (after a step aimed into it: FORK_WITHIN)
-        sent = False
+        sent, t_in, t_settle = False, self.clock(), 0.0
         if not lo <= deg <= hi:
             raise ArmError(f"the {joint} may go {lo}…+{hi}° only, not {deg:+g}°"
                            + (f": the camera is in the way past +{hi}°" if joint == "wrist" and deg > hi else ""))
@@ -614,6 +623,7 @@ class Arm:
                 if (fork[0] <= a <= fork[1] or (sent and near_fork(a)) if fork else abs(d) <= within) or step == 0:
                     if fork and not near_fork(a):
                         raise ArmError(f"the {joint} stands at {a:+.1f}°, not in {fork[0]:+g}…{fork[1]:+g}°")
+                    self.times.append([joint, round(self.clock() - t_in, 2), round(t_settle, 2)])
                     return a
                 why = g and hand_refuses(joint, a, a + step, ang, g)
                 if why:
@@ -626,11 +636,19 @@ class Arm:
                     self.note(f"{joint}: no answer to J, looking where it stands")
                 elif not r.startswith("ok J"):
                     raise ArmError(f"{joint}: {in_english(r)}")
-                self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / v + 2 if v else 4.0)
+                # the fork in the servo's own ticks, from where it stood: there as soon as it stands still in it (2026-11-22)
+                in_fork = None
+                if fork:
+                    k = sign * TURN[joint] / TICKS_PER_DEG
+                    in_fork = lambda p, a=a, r0=raw[jid], k=k: fork[0] <= a + (p - r0) * k <= fork[1]   # noqa: E731
+                t0s = self.clock()
+                self._settle(jid, raw[jid] + sign * fw * TICKS_PER_DEG, abs(fw) / v + 2 if v else 4.0, in_fork=in_fork, fast=v is None or v >= SETTLE_FAST_MIN)
+                t_settle += self.clock() - t0s
                 sent = True
             # the last step's landing, looked at too: it may have got there
             a = self.angles(need=(joint,))[0].get(joint)
             if a is not None and (near_fork(a) if fork else abs(deg - a) <= within):
+                self.times.append([joint, round(self.clock() - t_in, 2), round(t_settle, 2)])
                 return a
             raise ArmError(f"the {joint} does not get to {deg}°" + (f" (it stands at {a:+.1f}°)" if a is not None else ""))
 
@@ -649,17 +667,23 @@ class Arm:
                 self.sleep(BUS_GAP)
             raise ArmError(f"wrist: {in_english(r)}")
 
-    def _settle(self, jid, target, longest=4.0):
+    def _settle(self, jid, target, longest=4.0, in_fork=None, fast=False):
         # until the servo is there, or stands still (held back by something),
-        # or STOP; a slow stroke may take longer than 4 s
+        # or STOP; a slow stroke may take longer than 4 s. fast (a turn at 10°/s or more, 2026-11-22, the owner: "it turns to the jar
+        # briskly, but there is more than a second of stop between the turn and the tilt"; "I allow the change"): looked at every 0.05 s,
+        # not 0.15; standing still after 0.25 s, not 0.6; and in_fork(p): standing still in its fork is there — the servo stops ~1° short of
+        # the fork's middle, and waited out the 0.6 s every time. Every step still finished before the next (README, How to dip)
+        dt, still = (SETTLE_DT, SETTLE_STILL) if fast else (0.15, 0.6)
         last, t = None, 0.0
         while t < longest and not self.stopped.is_set():
-            self.sleep(0.15)
-            t += 0.15
+            self.sleep(dt)
+            t += dt
             p = parse_look(self.send("/look")).get(jid)
             if p is None:                                  # a read lost: the servo is no less on its way
                 continue
-            if abs(p - target) <= 6 or (last is not None and abs(p - last) <= 1 and t > 0.6):
+            if abs(p - target) <= 6 or (last is not None and abs(p - last) <= 1 and t > still):
+                return
+            if in_fork and last is not None and abs(p - last) <= SETTLE_FORK_TICKS and in_fork(p):
                 return
             last = p
 
@@ -2139,7 +2163,8 @@ class Runner:
         return {"block": self.block, "row": w["row"], "in_row": w["in_row"], "painted_mm": w["painted_mm"],
                 **({"colour": w["colour"].get("name")} if isinstance(w["colour"], dict) else {}),
                 **({"cell": w["cell"]} if w["cell"] is not None else {}),
-                **(self.arm.power_note() if self.arm else {})}     # the servos' volts and °C at the last look (2026-11-11)
+                **(self.arm.power_note() if self.arm else {}),     # the servos' volts and °C at the last look (2026-11-11)
+                **({"moves": self.arm.took_times()} if self.arm else {})}   # every move since the last dip: joint, s, s settling (2026-11-22)
 
     def _dip_now(self):
         # the brush over the cup's rim, to the cup, into its paint for its

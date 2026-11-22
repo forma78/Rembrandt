@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The arm's steps settle sooner; their times in the journal** (2026-11-22, the evening; the board flashed at 21:05, the dab still 8.9 s; the owner:
+  "it turns to the jar briskly, but there is more than a second of stop between the turn and the tilt … then it stops to think"; "I allow the
+  change"). `Arm._settle`: a turn of 10°/s or more looked at every 0.05 s, standing still in its fork is there, standing still at all after 0.25 s;
+  slower strokes as before. Every step still finished before the next. The dip's journal line: `moves`, every move since the last dip.
+
 - **The arm faster: a J at its own speed to 220°/s, the elbow's in a dip a slider** (2026-11-22, the evening; the owner, GOGH's Speed · brush at 120
   "I see no difference … only the NEMA17 go faster"; "220 is the ceiling … test 70, then step by step to 220"; "SHOULDER too"; "I give permission to
   flash"). The journal: a dab 10.6 s, the brush on the canvas under 0.5 s of it (a 12 mm dab never passes ≈ 55 mm/s at 250 mm/s²). Firmware:

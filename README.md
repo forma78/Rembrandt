@@ -202,7 +202,11 @@ A dip, in this order, every step finished before the next begins:
 permission to flash"): the shoulder's at INK-Y's `swing`, the elbow's three turns at INK-Y's `elbow` — none at first, the firmware's own 53°/s down
 and `rembrandt.py`'s ELBOW_UP_SPEED, 28°/s, up (a cure of 2026-11-11's silent arm that was not: a splice under tape) — both up to 220°/s, the
 firmware's J as fast as that since the same evening, its acceleration by its speed (`joint.h`, `accFor`: 30 at 53°/s as ever, 125 at 220); GOGH's
-sliders Dip · shoulder and Dip · elbow. A dab took 10.6 s at 28 / 40 / 1 s in the paint, the arm's turns most of it (the journal, 2026-11-22).
+sliders Dip · shoulder and Dip · elbow. A dab took 10.6 s at 28 / 40 / 1 s in the paint, the arm's turns most of it (the journal, 2026-11-22). The same
+evening a step counts as finished sooner, never before it is (the owner: "more than a second of stop between the turn and the tilt"; "I allow
+the change"): looked at every 0.05 s, not 0.15; standing still in its fork is there (the servo stops ~1° short of the middle, and waited 0.6 s every
+time); standing still at all after 0.25 s, not 0.6; a slow stroke under 10°/s as before (`Arm._settle`, SETTLE_*). The journal's dip carries every
+move since the last, `moves`: joint, s, s settling.
 
 **The shoulder never turns unless the elbow is up (+30° … +35°).** The
 owner: "if the shoulder turns instead of the elbow lifting, we can break
