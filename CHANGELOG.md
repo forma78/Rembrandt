@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **TEST BRUSH · TEST JAR; ELBOW LIVE's scale** (2026-11-23, the night; the owner: "two buttons — TEST BRUSH and TEST JAR — they work only at a stop,
+  as TEST or POINTS"; "there are no divisions below. I do not understand the step"). TEST BRUSH: no dip, the canvas's centre, the press as set, 15 mm,
+  up, it stays (HOME back); TEST JAR: one dip at hand at the jar's angle, nothing painted. Off while a run is on. A scale under each ELBOW LIVE slider.
+
 - **GOGH's softer walls; the jar's top +20°** (2026-11-22, the night; the owner, of "The brush would go 0.6 mm past the walls": "cancel it, please —
   Rembrandt cannot know this. A softer mode can be :) A test after all"; of ELBOW LIVE · JAR: "we need not to go deeper, but the other way, a little
   higher"). On GOGH a path up to 5 mm past the walls is pressed into them, as FORM-G's PRESS_OK, no refusal, its note behind the canvas's (i); TEST's

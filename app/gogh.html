@@ -33,6 +33,11 @@
   .fg-card .gems{display:block;min-height:0;margin-top:-3px;font-size:12px;line-height:15px;letter-spacing:1px}   /* 💎, a canvas finished each: a row of its own (2026-11-22) */
   .fg-card .gems:empty{display:none}
   .fg-card .gems i{font-style:normal}
+  /* ELBOW LIVE's scale under a slider, and its two tests (2026-11-23, the night: "there are no divisions below; I do not understand the step") */
+  .elticks{display:grid;grid-template-columns:22px 1fr 22px;gap:8px;margin-top:2px}
+  .elticks span{display:flex;justify-content:space-between;padding:0 4px;font:500 9px/12px var(--mono);color:var(--mute)}
+  .elticks b{font-weight:500;min-width:0;text-align:center}
+  .eltests{grid-template-columns:1fr 1fr;margin-top:12px}
   .fg-pop{position:fixed;z-index:60;width:290px;box-sizing:border-box;padding:10px 12px;border-radius:10px;background:var(--card,#F7F5F1);color:var(--ink);font-size:11.5px;line-height:1.42;box-shadow:0 8px 28px rgba(0,0,0,.28),0 0 0 1px rgba(0,0,0,.08);pointer-events:none}
   .fg-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 8px;margin-top:6px}
   .fg-grid label{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
@@ -148,11 +153,15 @@
       <div class="elbowlive" id="elbowBrush">
         <div class="elh"><span class="elk">Elbow live · brush</span><span class="elv" id="brushNow">0.0°</span></div>
         <div class="elrow"><button class="btn" data-btrim="-0.1" title="The brush 0.1° lower: more pressure">▼</button><input class="slider" type="range" id="brushSl" step="0.1"><button class="btn" data-btrim="0.1" title="The brush 0.1° higher: less pressure">▲</button></div>
+        <div class="elticks"><i></i><span><b>−4</b><b>−2</b><b>0</b><b>+2</b><b>+4</b><b>+6</b><b>+8</b></span><i></i></div>
       </div>
       <div class="elbowlive" id="elbowJar" title="Elbow live · jar: the elbow's angle in the paint — lower, deeper; INK-Y's, every tab's, and live during a DRAG from the next dip (rembrandt.py's /run/jar). His fork +14 … +20° (+16 till 2026-11-22: "not deeper, but a little higher")">
         <div class="elh"><span class="elk">Elbow live · jar</span><span class="elv" id="jarNow"></span></div>
         <div class="elrow"><button class="btn" data-jar="-0.5" title="0.5° lower: deeper into the paint">▼</button><input class="slider" type="range" id="jarSl" step="0.5"><button class="btn" data-jar="0.5" title="0.5° higher: less deep">▲</button></div>
+        <div class="elticks"><i></i><span><b>14</b><b>15</b><b>16</b><b>17</b><b>18</b><b>19</b><b>20</b></span><i></i></div>
       </div>
+      <!-- TEST BRUSH · TEST JAR (the owner, 2026-11-23, the night: "two buttons … they work only at a stop, as TEST or POINTS"): the press and the jar, each tried alone -->
+      <div class="grid4 keys eltests"><button class="btn" id="btnTestBrush" title="TEST BRUSH, at a stop: no dip — the brush down at the canvas's centre at ELBOW LIVE · BRUSH, 15 mm down the picture, up, and it stays there; HOME brings it back">TEST BRUSH</button><button class="btn" id="btnTestJar" title="TEST JAR, at a stop: one dip at hand at ELBOW LIVE · JAR, nothing painted — to watch how deep the brush goes; the carriage where it stands">TEST JAR</button></div>
     </section>
     <!-- the dabs, another module (the same night: "and all these, another module") -->
     <section class="sec">

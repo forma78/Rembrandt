@@ -554,6 +554,33 @@ function setJar(v) {
     }
   }, 150);
 }
+// TEST BRUSH · TEST JAR (the owner, 2026-11-23, the night: "two buttons — TEST BRUSH and TEST JAR — they work only at a stop, as TEST or POINTS. TEST BRUSH:
+// it goes down at the centre of the 20 × 20 and drives its 15 mm, then stands there. I can bring it back by pressing HOME. TEST JAR: the brush just dips in the
+// jar, but drives nowhere to paint. I simply watch how deep it dips into the jar")
+const TEST_BRUSH_MM = 15;
+async function testBrush() {
+  await loadInk();
+  if (!PIC) return;
+  if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: TEST BRUSH at a stop.');
+  const R = plotRun({ ...runOpts(1), ink: false, cup: null }, [{ key: 'TEST BRUSH', ps: [[{ t: 'L', a: { x: 0, y: 0 }, b: { x: -TEST_BRUSH_MM, y: 0 }, tilt: 0, row: 1 }]], why: null }]);
+  if (R.fault) return warn(`Not run: ${R.fault}.`);
+  if (walls(R)) return warn(walls(R));
+  const c = dipCup(), open = c.hand && c.on ? handDip(c, 0) : null;              // the cup at hand: the elbow up into its fork and the shoulder to 0 first, as every run's opening
+  const blocks = [...(open ? [{ ...open[0], dip: false }, { ...open[5], dip: false }] : []), ...R.blocks.filter(b => !b.home)];   // it stays there: HOME brings it back
+  if (!confirm(`TEST BRUSH: no dip — the brush down at the canvas's centre at ELBOW LIVE · BRUSH ${sgn(S.press)}, ${TEST_BRUSH_MM} mm down the picture, up, and it stays there (HOME brings it back).`)) return;
+  await start('testbrush', blocks, { seconds: R.seconds, rows: [{ label: 'TEST BRUSH' }] }, logOf({ pass: 'test brush', press: S.press }));
+}
+async function testJar() {
+  await loadInk();
+  if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: TEST JAR at a stop.');
+  const c = dipCup();
+  if (!c.hand || !c.on) return warn('TEST JAR: the cup at hand is off (INK-Y).');
+  if (cupProblem(cup())) return warn(`TEST JAR: ${cupProblem(cup())}`);
+  if (!confirm(`TEST JAR: one dip at hand — the elbow ${sgn(c.dip)} in the paint, ${c.dwell} s — nothing painted, the carriage where it stands.`)) return;
+  await start('testjar', handDip(c, 0), { seconds: handDipS(c), rows: [{ label: 'TEST JAR' }] }, logOf({ pass: 'test jar', cup: c }));
+}
+if ($('#btnTestBrush')) $('#btnTestBrush').onclick = testBrush;
+if ($('#btnTestJar')) $('#btnTestJar').onclick = testJar;
 if ($('#jarSl')) {
   $('#jarSl').oninput = e => { $('#jarNow').textContent = sgn(+e.target.value); };
   $('#jarSl').onchange = e => setJar(+e.target.value);
@@ -1042,6 +1069,7 @@ function lcd(st) {
   paused = ['paused', 'pausing'].includes(st?.state);
   const keyEl = $('#btnPause');
   keyEl.querySelector('span').textContent = paused ? 'Cont.' : 'Pause'; keyEl.classList.toggle('call', paused); keyEl.disabled = !live;
+  for (const id of ['#btnTestBrush', '#btnTestJar']) if ($(id)) $(id).disabled = !!live;   // at a stop alone, as TEST
   $('#btnHome').disabled = !!live; $('#btnBack').disabled = !live || RUN_KEY === 'bw';   // DRAW BW has no cells to go back to
   $('#btnDrag').classList.toggle('on', !!live && RUN_KEY === 'drag'); $('#btnTest').classList.toggle('on', !!live && RUN_KEY === 'test'); $('#btnPoints')?.classList.toggle('on', !!live && RUN_KEY === 'points'); $('#btnBw')?.classList.toggle('on', !!live && RUN_KEY === 'bw');
   showElbow();

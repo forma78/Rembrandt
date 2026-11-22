@@ -545,6 +545,13 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     **The press test**, `app/gogh/press-test-20`: Jar 19's thickest cluster of the bear's head, the flood's, six times, a line a block, the pause before
     each its own press and jar (est. ≈ 34 min).
 
+14. **TEST BRUSH · TEST JAR, and a scale under ELBOW LIVE** (the owner, 2026-11-23, the night: "two buttons — TEST BRUSH and TEST JAR — they work
+    only at a stop, as TEST or POINTS. TEST BRUSH: it goes down at the centre of the 20 × 20 and drives its 15 mm, then stands there. I can bring it
+    back by pressing HOME. TEST JAR: the brush just dips in the jar … I simply watch how deep it dips"; "there are no divisions below. I do not
+    understand the step"). TEST BRUSH: no dip, the canvas's centre, ELBOW LIVE · BRUSH's press, 15 mm down the picture, up, no home (the cup at hand's
+    opening first: the elbow up into its fork, the shoulder to 0). TEST JAR: one dip at hand at ELBOW LIVE · JAR, nothing painted. Both at a stop
+    alone, asked first. Under BRUSH −4 … +8°, under JAR 14 … 20°.
+
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 
