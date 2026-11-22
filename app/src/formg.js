@@ -53,7 +53,8 @@ if (DABS) {
   S.dabRun = dabRunOf(S.dabRun); S.dabWide = S.dabWide && typeof S.dabWide === 'object' ? S.dabWide : {}; S.dabGaps = S.dabGaps && typeof S.dabGaps === 'object' ? S.dabGaps : {};
   if (typeof S.dabGap === 'number') { S.dabGaps = { 3: S.dabGap, 5: S.dabGap, ...S.dabGaps }; delete S.dabGap; }
 }
-const dabWide = () => dabWideOf(S.dabWide?.[PIC?.pitch], PIC?.pitch), dabGap = () => dabGapOf(S.dabGaps?.[PIC?.pitch], PIC?.pitch);
+// a brush's own in this browser first, else the picture's look as GEN-V approved it (genvpic.py's `look`, 2026-11-22: the bear's width 2.3), else the brush's
+const dabWide = () => dabWideOf(S.dabWide?.[PIC?.pitch] ?? PIC?.look?.wide, PIC?.pitch), dabGap = () => dabGapOf(S.dabGaps?.[PIC?.pitch] ?? PIC?.look?.gap, PIC?.pitch);
 S.frames = Object.fromEntries(Object.entries(S.frames ?? {}).map(([k, f]) => [k, cleanFrame(f)]).filter(([, f]) => f));
 
 // ---------- the library ----------
@@ -515,6 +516,7 @@ function showDabs() {
   if (!DABS || !$('#gapSl')) return;
   const v = { gap: dabGap(), wide: dabWide(), run: S.dabRun };
   for (const k of ['gap', 'wide', 'run']) { const sl = $(`#${k}Sl`); if (document.activeElement !== sl) sl.value = v[k]; $(`#${k}Now`).textContent = DAB_SAY[k](v[k]); }
+  if ($('#runSay')) $('#runSay').textContent = `Run · a ${dabOf(PIC?.pitch).aim} mm dab`;   // the picture's brush's standard dab: 20, the 2 mm's 12
   $('#dabRead').innerHTML = PIC ? `The brush <b>${fmt(PIC.pitch, 0)} mm</b>, the picture's (GEN-V cuts it for one). Gap ${DAB_SAY.gap(dabGap())} and run +${S.dabRun} · +${S.dabRun} mm: live during a DRAG, from the next dab; the width is the screen's alone (est.).` : '';
 }
 function setDab(k, v) {

@@ -5,7 +5,8 @@ The owner, 2026-11-22: "in GOGH we copy FORM-G's functionality fully … the one
 generator as GEN-F … GEN-V (as Vincent :)". GEN-V's APPROVE saves the sketch, a json whose `pic` is GOGH's plan already — every leg a dab, a cell a stack of
 a jar's dabs in one column, the cells in the brush's order (app/src/goghplan.js). So here only:
 
-  1. the plan as it is: its jars, names, colours, dabs and their order untouched; its id, title, sub and image set;
+  1. the plan as it is: its jars, names, colours, dabs and their order untouched; its id, title, sub and image set, and its look, the gap and the
+     width GEN-V's sliders had when approved (GOGH's to start from, 2026-11-22);
   2. beside a colour with no jar of his yet, as its code, his own numbered jar of the red classic's shelf (app/formg/porsche-red-k.json) within NEAR of it —
      "≈ Jar 16", a hint, nothing changed (genfpic.py's);
   3. the render: every dab flat in its jar's colour, the brush's width, its ends round, a hair of canvas between two in a column — GEN-V's Sketch (est.).
@@ -73,6 +74,9 @@ def make(sketch_path, pid, title, sub, local=False, out=OUT):
     for i, k in got.items():
         pic['jars'][i]['code'] = f"≈ {shelf[k]['name']}"
     pic.update(id=pid, title=title, sub=sub, image=f'gogh/{pid}.jpg')
+    look = {k: sk[k] for k in ('gap', 'wide') if isinstance(sk.get(k), (int, float))}   # GEN-V's gap and width as approved: GOGH's own until its sliders move
+    if look:
+        pic['look'] = look
     os.makedirs(out, exist_ok=True)
     json.dump(pic, open(os.path.join(out, f'{pid}.json'), 'w'), separators=(',', ':'))
     render(pic, os.path.join(out, f'{pid}.jpg'), sk.get('gap', GAP), sk.get('wide'))
