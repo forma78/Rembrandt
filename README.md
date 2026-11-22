@@ -512,6 +512,11 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     (after a reload of GOGH, never during a run). On this Mac, out of git, till Claude puts a card in `GOGH_LIB`. A `rembrandt.py` of before (404 to
     the probe): the file to Downloads, as till then. `genvpic.py` stays for a card by hand.
 
+11. **THE BRUSH as sliders** (the owner, the same evening, a run on: "can this block be made as sliders … I want to try a faster dip"): Speed · brush
+    5 … 120 mm/s and Travel · air 20 … 180 mm/s, GOGH's own; **Dip · shoulder** 5 … 100°/s and **Dip · in the paint** 0 … 3 s, INK-Y's own (`ink.json`
+    by `/ink`, every tab's dips alike; 40°/s est. and 1 s till then) — not while a run is on; all from the next DRAG. The elbow's three turns of a dip
+    stay the firmware's own, ≈ 53°/s. Their words behind the section's (i).
+
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 

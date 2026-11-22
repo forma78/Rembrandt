@@ -3,10 +3,10 @@
 import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
 import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen } from './goghplan.js';
-import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
+import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
-import { cupOf, cupProblem, dipAt } from './ink.js';
+import { cupOf, cupProblem, dipAt, SWING_MIN, SWING_MAX } from './ink.js';
 import { DOT_MM, NO_DIP, cornerDots, testSay } from './band.js';
 import { testPrefs } from './prefs.js';
 import { segments, sticks } from './lcd.js';
@@ -831,6 +831,7 @@ function showPanel() {
   $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
   jarsRead();
+  showBrush();
 }
 // MARKS: where to tape the paper, mm from the canvas's own edges; what has no room, and why
 function showMarks() {
@@ -919,6 +920,34 @@ $('#runList').onclick = e => { const sw = e.target.closest('[data-swap]'); if (s
 for (const [id, k, lo, hi] of [['#fSpeed', 'speed', 5, 120], ['#fEvery', 'dipEvery', 0, 200], ['#fLap', 'dipLap', 0, 30], ['#fOver', 'over', 0, 8], ['#fPen', 'penSpeed', 5, 120], ['#fTravel', 'travel', 20, 180]]) {
   if ($(id)) $(id).onchange = e => { const v = +e.target.value; if (Number.isFinite(v)) S[k] = Math.max(lo, Math.min(hi, v)); e.target.value = S[k]; settle(); };
 }
+// GOGH's THE BRUSH as sliders (the owner, 2026-11-22, the evening: "can this block be made as sliders … I want to try a faster dip"): the brush's speed and the
+// carriage's travel the page's own (S), from the next DRAG; the dip's shoulder (swing, °/s) and its time in the paint (dwell, s) INK-Y's own, ink.json by
+// /ink as INK-Y writes it, so every tab dips alike — not while a run is on (rembrandt.py's own dips read it). The elbow turns at the firmware's own, ≈ 53°/s
+const BRUSH_SL = { speed: [5, 120, 1, 'mm/s'], travel: [20, 180, 5, 'mm/s'], swing: [SWING_MIN, SWING_MAX, 5, '°/s'], dwell: [0, 3, 0.1, 's'] };
+const brushNow = k => k === 'swing' || k === 'dwell' ? cup()[k] : S[k];
+function showBrush() {
+  if (!$('#speedSl')) return;
+  for (const [k, [, , st, u]] of Object.entries(BRUSH_SL)) { const sl = $(`#${k}Sl`), v = brushNow(k); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = `${fmt(v, st < 1 ? 1 : 0)} ${u}`; }
+  const c = cup(), d = handDipS(c);
+  $('#brushRead').innerHTML = `Speed: the brush along a dab. Travel: the carriage with the brush up — 180 slipped the X belt with the jar on the carriage (2026-11-10). The dip, INK-Y's, every tab's: `
+    + `the shoulder to ${fmt(Math.abs((c.to[0] + c.to[1]) / 2), 1)}° and back at ${fmt(c.swing, 0)}°/s${c.est?.swing ? ' (est.)' : ''}, the brush ${fmt(c.dwell, 1)} s in the paint, the elbow's three turns at the firmware's own (≈ 53°/s): ≈ ${fmt(d, 1)} s a dip (est.). `
+    + `From the next DRAG; the dip's two not while a run is on.`;
+}
+let inkT = null;
+async function setBrush(k, v) {
+  const [lo, hi, st] = BRUSH_SL[k], now = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st, q = +now.toFixed(2);
+  if (k === 'swing' || k === 'dwell') {
+    if (lastSt && LIVE.includes(lastSt.state)) { warn('A run is on: the dip stays as it is till it ends or stops — INK-Y\'s, rembrandt.py dips by it.'); return showBrush(); }
+    INK = { ...INK, hand: { ...(INK.hand ?? {}), [k]: q } }; showBrush(); settle();
+    clearTimeout(inkT); inkT = setTimeout(async () => {
+      try { const r = await fetch('/ink', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(INK, null, 2) }); if (!r.ok) warn(`The dip not saved: ${await r.text()}`); } catch { warn('The dip not saved: start rembrandt.py'); }
+    }, 400);
+    return;
+  }
+  S[k] = q; save(); showBrush(); settle();
+}
+document.querySelectorAll('.brushsl input[data-bk]').forEach(sl => { sl.oninput = () => { const k = sl.dataset.bk, [, , st, u] = BRUSH_SL[k]; $(`#${k}Now`).textContent = `${fmt(+sl.value, st < 1 ? 1 : 0)} ${u}`; }; sl.onchange = () => setBrush(sl.dataset.bk, +sl.value); });
+document.querySelectorAll('.brushsl button[data-bk]').forEach(b => { b.onclick = () => setBrush(b.dataset.bk, brushNow(b.dataset.bk) + +b.dataset.step); });
 if ($('#btnFrame')) $('#btnFrame').onclick = () => frameTool(!frameOn);
 if ($('#btnNoFrame')) $('#btnNoFrame').onclick = () => { frameTool(false); if (S.frames[S.pic]) setFrame(null, 'Frame taken away: the whole picture. F lays another.'); };
 for (const [id, k] of [['#fLeft', 'edgeLeft'], ['#fBottom', 'edgeBottom']]) {

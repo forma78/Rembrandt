@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's THE BRUSH as sliders, the dip's speed among them** (2026-11-22, the evening; the owner, his first 20 × 20 painting: "can this block be
+  made as sliders … I want to try a faster dip"). Speed · brush and Travel · air, GOGH's; Dip · shoulder (°/s) and Dip · in the paint (s), INK-Y's,
+  written to `ink.json` by `/ink` as INK-Y writes it, refused while a run is on; from the next DRAG. Their words behind an (i). E.g. 80°/s and
+  0.5 s: ≈ 4.3 s a dip against ≈ 5.6 (est.).
+
 - **The panel: no notes on it, everything under (i) (canon); GOGH's TEST at the canvas's own corners** (2026-11-22, the evening; the owner:
   "it is forbidden to make noise and mush in the control panel … all of it is needed, but under the pop-up info button (i)"; of TEST's "TL X 195 ·
   Y 7 …": "strange coordinates. It must be TL X 200 Y 0 … TR 200, as in the picture", Preferences' TEST, margin 0). The canvas's reads — the walls,

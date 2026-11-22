@@ -171,12 +171,27 @@
       <div class="grid4 keys"><button class="btn" id="btnMarks" aria-pressed="true" title="MARKS, the printer's marks at the middles of the canvas's edges, on paper strips taped there: after every change of jar, before its first cell, one dip, then a mark in its cell on every strip — 1 the left, 2 the top, 3 the right, 4 the bottom, where the brush reaches beside the picture. A jar's first coat in the row at the edge's side, its second coat next to it. A click turns them off or on">▦ Marks</button></div>
       <p class="read" id="marksRead" hidden></p>
     </section>
+    <!-- THE BRUSH as sliders (the owner, 2026-11-22, the evening: "can this block be made as sliders … I want to try a faster dip"): the brush's speed and the
+         carriage's travel, GOGH's own; the dip's shoulder and its time in the paint INK-Y's (ink.json), the same on every tab — from the next DRAG -->
     <section class="sec">
-      <h3>The brush <span class="hint">OPM-N's, est.</span></h3>
-      <div class="fg-grid">
-        <label title="The brush along a leg, mm/s">Speed, mm/s<input id="fSpeed" type="number" step="1" min="5" max="120"></label>
-                <label title="The carriage between legs, to a dip, to home, the brush up: mm/s. 180 slipped the X belt with the jar on the carriage (2026-11-10)">Travel, mm/s<input id="fTravel" type="number" step="5" min="20" max="180"></label>
+      <h3>The brush <span class="hint">and the dip, est.</span> <button class="info" data-for="#brushRead" title="Speed, travel and the dip: what they do">i</button></h3>
+      <div class="elbowlive brushsl" title="The brush along a dab, mm/s">
+        <div class="elh"><span class="elk">Speed · brush</span><span class="elv" id="speedNow"></span></div>
+        <div class="elrow"><button class="btn" data-bk="speed" data-step="-1">▼</button><input class="slider" type="range" id="speedSl" data-bk="speed" min="5" max="120" step="1"><button class="btn" data-bk="speed" data-step="1">▲</button></div>
       </div>
+      <div class="elbowlive brushsl" title="The carriage with the brush up, between dabs, to the dip, home, mm/s">
+        <div class="elh"><span class="elk">Travel · air</span><span class="elv" id="travelNow"></span></div>
+        <div class="elrow"><button class="btn" data-bk="travel" data-step="-5">▼</button><input class="slider" type="range" id="travelSl" data-bk="travel" min="20" max="180" step="5"><button class="btn" data-bk="travel" data-step="5">▲</button></div>
+      </div>
+      <div class="elbowlive brushsl" title="The shoulder to the jar and back, °/s: INK-Y's, every tab's">
+        <div class="elh"><span class="elk">Dip · shoulder</span><span class="elv" id="swingNow"></span></div>
+        <div class="elrow"><button class="btn" data-bk="swing" data-step="-5">▼</button><input class="slider" type="range" id="swingSl" data-bk="swing" min="5" max="100" step="5"><button class="btn" data-bk="swing" data-step="5">▲</button></div>
+      </div>
+      <div class="elbowlive brushsl" title="The brush in the paint, s: INK-Y's, every tab's">
+        <div class="elh"><span class="elk">Dip · in the paint</span><span class="elv" id="dwellNow"></span></div>
+        <div class="elrow"><button class="btn" data-bk="dwell" data-step="-0.1">▼</button><input class="slider" type="range" id="dwellSl" data-bk="dwell" min="0" max="3" step="0.1"><button class="btn" data-bk="dwell" data-step="0.1">▲</button></div>
+      </div>
+      <p class="read" id="brushRead" hidden></p>
     </section>
     <section class="sec">
       <h3>The jars <span class="hint" id="jarsHint"></span></h3>
