@@ -198,6 +198,12 @@ A dip, in this order, every step finished before the next begins:
 4. The paint taken: **ELBOW up first**, to +30°.
 5. **SHOULDER back to 0°.** Painting goes on.
 
+**Their speeds** (2026-11-22, the evening; the owner: "220 is the ceiling … test 70, then step by step to 220"; "SHOULDER too"; "I give
+permission to flash"): the shoulder's at INK-Y's `swing`, the elbow's three turns at INK-Y's `elbow` — none at first, the firmware's own 53°/s down
+and `rembrandt.py`'s ELBOW_UP_SPEED, 28°/s, up (a cure of 2026-11-11's silent arm that was not: a splice under tape) — both up to 220°/s, the
+firmware's J as fast as that since the same evening, its acceleration by its speed (`joint.h`, `accFor`: 30 at 53°/s as ever, 125 at 220); GOGH's
+sliders Dip · shoulder and Dip · elbow. A dab took 10.6 s at 28 / 40 / 1 s in the paint, the arm's turns most of it (the journal, 2026-11-22).
+
 **The shoulder never turns unless the elbow is up (+30° … +35°).** The
 owner: "if the shoulder turns instead of the elbow lifting, we can break
 the brush or knock the jar over, and then the paint spills onto the

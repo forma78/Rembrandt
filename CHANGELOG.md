@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The arm faster: a J at its own speed to 220°/s, the elbow's in a dip a slider** (2026-11-22, the evening; the owner, GOGH's Speed · brush at 120
+  "I see no difference … only the NEMA17 go faster"; "220 is the ceiling … test 70, then step by step to 220"; "SHOULDER too"; "I give permission to
+  flash"). The journal: a dab 10.6 s, the brush on the canvas under 0.5 s of it (a 12 mm dab never passes ≈ 55 mm/s at 250 mm/s²). Firmware:
+  `joint.h` SPEED_MAX 1200 → 2500 ticks/s (≈ 220°/s), a J's acceleration by its speed (`accFor`, 30 at the speed of always); host tests; built.
+  `rembrandt.py`: a run's J may carry its speed (`arm_check`, `_arm`, ARM_SPEED_MAX 220), the shoulder's and `/servo`'s to 220, the cup's `elbow`,
+  its own dips by it. INK-Y's `elbow` (none: as before), GOGH's Dip · elbow, Dip · shoulder to 220.
+
 - **GOGH's THE BRUSH as sliders, the dip's speed among them** (2026-11-22, the evening; the owner, his first 20 × 20 painting: "can this block be
   made as sliders … I want to try a faster dip"). Speed · brush and Travel · air, GOGH's; Dip · shoulder (°/s) and Dip · in the paint (s), INK-Y's,
   written to `ink.json` by `/ink` as INK-Y writes it, refused while a run is on; from the next DRAG. Their words behind an (i). E.g. 80°/s and

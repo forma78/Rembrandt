@@ -100,6 +100,12 @@ not drop at a smooth joint and drops to zero at a kink over 10° and at a
 travel. A piece past a wall is refused ("край"). Without an axis zero the
 ping says `?` and the walls are off.
 
+## J's speed and acceleration (2026-11-22)
+
+`J <j> <deg> [<deg/s>]`: as fast as 2500 ticks/s, about 220°/s (was 1200, about 105°/s); the servo's acceleration register by the speed,
+a twentieth of it in ticks/s, 30 … 150 (`joint::accFor`): 30 at the speed of always (600 ticks/s, 53°/s), as every J till then; 125 at 220°/s.
+The owner: "220 is the ceiling … test 70, then step by step to 220"; "I give permission to flash".
+
 ## Build and flash
 
 PlatformIO: `espressif32@7.1.2`, board `esp32dev`, framework `arduino`;

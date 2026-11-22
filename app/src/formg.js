@@ -6,7 +6,7 @@ import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWid
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
-import { cupOf, cupProblem, dipAt, SWING_MIN, SWING_MAX } from './ink.js';
+import { cupOf, cupProblem, dipAt, SWING_MIN, SWING_MAX, ELBOW_V_MIN, ELBOW_V_MAX, ELBOW_V_NONE } from './ink.js';
 import { DOT_MM, NO_DIP, cornerDots, testSay } from './band.js';
 import { testPrefs } from './prefs.js';
 import { segments, sticks } from './lcd.js';
@@ -923,20 +923,22 @@ for (const [id, k, lo, hi] of [['#fSpeed', 'speed', 5, 120], ['#fEvery', 'dipEve
 // GOGH's THE BRUSH as sliders (the owner, 2026-11-22, the evening: "can this block be made as sliders … I want to try a faster dip"): the brush's speed and the
 // carriage's travel the page's own (S), from the next DRAG; the dip's shoulder (swing, °/s) and its time in the paint (dwell, s) INK-Y's own, ink.json by
 // /ink as INK-Y writes it, so every tab dips alike — not while a run is on (rembrandt.py's own dips read it). The elbow turns at the firmware's own, ≈ 53°/s
-const BRUSH_SL = { speed: [5, 120, 1, 'mm/s'], travel: [20, 180, 5, 'mm/s'], swing: [SWING_MIN, SWING_MAX, 5, '°/s'], dwell: [0, 3, 0.1, 's'] };
-const brushNow = k => k === 'swing' || k === 'dwell' ? cup()[k] : S[k];
+// the elbow's in a dip (2026-11-22: "220 is the ceiling … test 70, then step by step"): none at first, the firmware's own down and ELBOW_UP_SPEED, 28, up — shown 28
+const BRUSH_SL = { speed: [5, 120, 1, 'mm/s'], travel: [20, 180, 5, 'mm/s'], swing: [SWING_MIN, SWING_MAX, 5, '°/s'], elbow: [ELBOW_V_MIN, ELBOW_V_MAX, 5, '°/s'], dwell: [0, 3, 0.1, 's'] };
+const INK_KEYS = ['swing', 'elbow', 'dwell'];
+const brushNow = k => k === 'elbow' ? cup().elbow ?? ELBOW_V_NONE : INK_KEYS.includes(k) ? cup()[k] : S[k];
 function showBrush() {
   if (!$('#speedSl')) return;
   for (const [k, [, , st, u]] of Object.entries(BRUSH_SL)) { const sl = $(`#${k}Sl`), v = brushNow(k); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = `${fmt(v, st < 1 ? 1 : 0)} ${u}`; }
   const c = cup(), d = handDipS(c);
   $('#brushRead').innerHTML = `Speed: the brush along a dab. Travel: the carriage with the brush up — 180 slipped the X belt with the jar on the carriage (2026-11-10). The dip, INK-Y's, every tab's: `
-    + `the shoulder to ${fmt(Math.abs((c.to[0] + c.to[1]) / 2), 1)}° and back at ${fmt(c.swing, 0)}°/s${c.est?.swing ? ' (est.)' : ''}, the brush ${fmt(c.dwell, 1)} s in the paint, the elbow's three turns at the firmware's own (≈ 53°/s): ≈ ${fmt(d, 1)} s a dip (est.). `
+    + `the shoulder to ${fmt(Math.abs((c.to[0] + c.to[1]) / 2), 1)}° and back at ${fmt(c.swing, 0)}°/s${c.est?.swing ? ' (est.)' : ''}, the brush ${fmt(c.dwell, 1)} s in the paint, the elbow's three turns ${c.elbow ? `at ${fmt(c.elbow, 0)}°/s` : 'at 28°/s up, the firmware\'s 53 down'}: ≈ ${fmt(d, 1)} s a dip (est.). The firmware's J since 2026-11-22 as fast as 220°/s, its acceleration by its speed; a board not flashed since stops at 105. `
     + `From the next DRAG; the dip's two not while a run is on.`;
 }
 let inkT = null;
 async function setBrush(k, v) {
   const [lo, hi, st] = BRUSH_SL[k], now = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st, q = +now.toFixed(2);
-  if (k === 'swing' || k === 'dwell') {
+  if (INK_KEYS.includes(k)) {
     if (lastSt && LIVE.includes(lastSt.state)) { warn('A run is on: the dip stays as it is till it ends or stops — INK-Y\'s, rembrandt.py dips by it.'); return showBrush(); }
     INK = { ...INK, hand: { ...(INK.hand ?? {}), [k]: q } }; showBrush(); settle();
     clearTimeout(inkT); inkT = setTimeout(async () => {

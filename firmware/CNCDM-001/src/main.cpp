@@ -433,7 +433,7 @@ static void handleJoint(const char *line) {
 
   targetDeg[j - 1]  = deg;
   jointSpeed[j - 1] = c.speed;
-  jointAcc[j - 1]   = MOVE_ACC;
+  jointAcc[j - 1]   = joint::accFor(c.speed);    // MOVE_ACC at the speed of always; faster, sooner at it (2026-11-22)
   moveArm();
   Serial.printf("ok J %d %.1f\n", j, deg);
 }

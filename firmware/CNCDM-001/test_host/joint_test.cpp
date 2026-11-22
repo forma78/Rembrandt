@@ -25,9 +25,17 @@ int main() {
   CHECK(joint::parseOnPath(" 3 -54 105", c) && c.j == 3 && c.deg == -54.0f && c.speed == 1195, "W 3 -54 105: the wrist at 105 deg/s");
   CHECK(!joint::parseOnPath(" 1 10", c), "W never turns the shoulder");
   CHECK(!joint::parseOnPath("", c) && !joint::parseOnPath(" 2", c) && !joint::parseOnPath(" x", c), "W without a joint or an angle: refused");
-  CHECK(joint::parseOnPath(" 2 10 180", c) && c.speed == 2048, "W goes faster than J: 180 deg/s");
+  CHECK(joint::parseOnPath(" 2 10 180", c) && c.speed == 2048, "W at 180 deg/s");
   CHECK(joint::parseOnPath(" 2 10 900", c) && c.speed == joint::ON_PATH_SPEED_MAX && joint::parse(" 2 10 900", c) && c.speed == joint::SPEED_MAX,
         "each its own fastest");
+  // 2026-11-22: a J as fast as about 220 deg/s, its acceleration by its speed; the speed of always as it was
+  CHECK(joint::parse(" 2 30 220", c) && c.speed == joint::SPEED_MAX && joint::SPEED_MAX == 2500, "J 2 30 220: 2500 ticks/s, the fastest");
+  CHECK(joint::parse(" 2 30 70", c) && c.speed == 796, "J 2 30 70: 796 ticks/s");
+  CHECK(joint::parse(" 2 30 105", c) && c.speed == 1195, "105 deg/s as before");
+  CHECK(joint::accFor(joint::SPEED_DEFAULT) == 30, "the speed of always: acceleration 30, as every J till now");
+  CHECK(joint::accFor(57) == 30 && joint::accFor(joint::SPEED_MIN) == 30, "slower: 30 all the same");
+  CHECK(joint::accFor(796) == 40 && joint::accFor(1195) == 60 && joint::accFor(2500) == 125, "70, 105, 220 deg/s: 40, 60, 125");
+  CHECK(joint::accFor(65535) == joint::ON_PATH_ACC, "never past W's");
   int f = -1, t = -1;
   CHECK(joint::parseIds(" 1 3", f, t) && f == 1 && t == 3, "I 1 3");
   CHECK(!joint::parseIds(" 1 1", f, t) && !joint::parseIds(" 1 254", f, t) && !joint::parseIds(" 1", f, t) && !joint::parseIds(" -1 2", f, t),

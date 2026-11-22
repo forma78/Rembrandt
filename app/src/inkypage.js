@@ -12,7 +12,7 @@
 
 import { fmt } from './util.js';
 import { mountJog } from './jog.js';
-import { HAND, PAINT_LO, PAINT_HI, DWELL_MAX, SHOULDER_MIN, SHOULDER_MAX, SWING_MIN, SWING_MAX, ELBOW_MIN, ELBOW_MAX, handOf, cupProblem, mid } from './ink.js';
+import { HAND, PAINT_LO, PAINT_HI, DWELL_MAX, SHOULDER_MIN, SHOULDER_MAX, SWING_MIN, SWING_MAX, ELBOW_V_MIN, ELBOW_V_MAX, ELBOW_MIN, ELBOW_MAX, handOf, cupProblem, mid } from './ink.js';
 import { handDip, SHOULDER_WITHIN } from './strokes.js';
 import { CANVAS_FIELDS, canvasNow, setCanvas, hereOf, onCanvas } from './canvas.js';
 import { isNight, themeColor } from './lamp.js';
@@ -49,7 +49,7 @@ $('#onOff').querySelectorAll('button').forEach(b => b.onclick = () => {
 // ---------- the five steps, README's How to dip ----------
 // [key, i (a fork's end) or null, label, unit, step, min, max]; empty: his number (ink.js, HAND)
 const F = {
-  up: [['up', 0, 'from', '°', 0.5, PAINT_HI + 5, ELBOW_MAX], ['up', 1, 'to', '°', 0.5, PAINT_HI + 5, ELBOW_MAX]],
+  up: [['up', 0, 'from', '°', 0.5, PAINT_HI + 5, ELBOW_MAX], ['up', 1, 'to', '°', 0.5, PAINT_HI + 5, ELBOW_MAX], ['elbow', null, 'at', '°/s', 5, ELBOW_V_MIN, ELBOW_V_MAX]],
   to: [['to', 0, 'from', '°', 0.5, SHOULDER_MIN, SHOULDER_MAX], ['to', 1, 'to', '°', 0.5, SHOULDER_MIN, SHOULDER_MAX], ['swing', null, 'at', '°/s', 5, SWING_MIN, SWING_MAX]],
   dip: [['dip', null, 'down to', '°', 0.5, PAINT_LO, PAINT_HI], ['dwell', null, 'there', 's', 0.1, 0, DWELL_MAX]],
 };
@@ -62,7 +62,7 @@ for (const [id, list] of Object.entries(F)) {
     const h = { ...S.ink.hand }, v = inp.value === '' ? null : Math.max(min, Math.min(max, +inp.value));
     if (i === null) { if (v === null) delete h[k]; else h[k] = v; }
     else { const f = [...cup()[k]]; f[i] = v ?? HAND[k][i]; if (f[0] === HAND[k][0] && f[1] === HAND[k][1]) delete h[k]; else h[k] = f; }   // whole: rembrandt.py's guard reads the same fork
-    setHand(h, `${{ up: 'ELBOW up', to: 'SHOULDER to the jar', swing: 'the shoulder', dip: 'ELBOW in the paint', dwell: 'in the paint' }[k]} ${label} ${v ?? '(his)'} ${unit}`);
+    setHand(h, `${{ up: 'ELBOW up', to: 'SHOULDER to the jar', swing: 'the shoulder', elbow: 'the elbow', dip: 'ELBOW in the paint', dwell: 'in the paint' }[k]} ${label} ${v ?? '(his)'} ${unit}`);
   });
 }
 // The elbow in the paint taken where it stands: the paint in the jar goes down, the brush with it

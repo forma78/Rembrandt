@@ -6,7 +6,8 @@
 // j: 1 shoulder, 2 elbow, 3 wrist. deg: from the joint's zero, tenths of a
 // degree count (the servo turns in 0.088° ticks). deg/s: how fast — new on
 // 2026-10-02 for Rembrandt's arm strokes, a slow arc of the brush; without
-// it the joint goes as it always went, 600 ticks/s (about 53°/s).
+// it the joint goes as it always went, 600 ticks/s (about 53°/s). Since
+// 2026-11-22 as fast as about 220°/s, its acceleration by its speed (accFor).
 #pragma once
 #include <stdlib.h>
 #include <math.h>
@@ -16,11 +17,20 @@ namespace joint {
 static const float    TICKS_PER_DEG = 4096.0f / 360.0f;   // 11.378 ticks a degree
 static const uint16_t SPEED_DEFAULT = 600;                 // ticks/s, about 53°/s
 static const uint16_t SPEED_MIN     = 6;                   // ticks/s, about 0.5°/s
-static const uint16_t SPEED_MAX     = 1200;                // ticks/s, about 105°/s
+// 2026-11-22, the evening (the owner: "220 is the ceiling … test 70, then step by step to 220"; "I give permission to flash"): a J as fast
+// as 2500 ticks/s, about 220°/s, the elbow and the shoulder of a dip; the ST3235 makes about 250°/s at 12 V (est.). Till then 1200, about 105°/s
+static const uint16_t SPEED_MAX     = 2500;                // ticks/s, about 220°/s
 // W, a joint on the move (2026-10-02): it must keep up with the carriage
 // along a tail, so faster — the ST3235 makes about 250°/s at 12 V (est.)
 static const uint16_t ON_PATH_SPEED_MAX = 2400;            // ticks/s, about 211°/s
-static const uint8_t  ON_PATH_ACC       = 150;             // the servo's acceleration register for W (est.; 30 for J)
+static const uint8_t  ON_PATH_ACC       = 150;             // the servo's acceleration register for W (est.)
+// A J's acceleration by its speed (2026-11-22): the register a twentieth of the speed in ticks/s, so a joint is at its speed in about 0.2 s
+// whatever it is — 30 at the speed of always (600 ticks/s, 53°/s: as every J was turned till then), 125 at 220°/s; ON_PATH_ACC at most
+static const uint8_t  MOVE_ACC_MIN      = 30;
+static inline uint8_t accFor(uint16_t speed) {
+  const long a = lroundf(speed / 20.0f);
+  return (uint8_t)(a < MOVE_ACC_MIN ? MOVE_ACC_MIN : a > ON_PATH_ACC ? ON_PATH_ACC : a);
+}
 
 struct Cmd { int j; float deg; uint16_t speed; };
 

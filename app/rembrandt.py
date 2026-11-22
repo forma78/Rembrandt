@@ -233,8 +233,8 @@ def board_line(path):
                 v = float(q["v"][0])
             except ValueError:
                 raise ValueError("? v")
-            if not 0.5 <= v <= 100:
-                raise ValueError("? v: 0.5 to 100 degrees a second")
+            if not 0.5 <= v <= ARM_SPEED_MAX:
+                raise ValueError(f"? v: 0.5 to {ARM_SPEED_MAX:g} degrees a second")
             speed = f" {v:g}"
         return f"J {jid} {deg:g}{speed}", 1.0     # 0.25 until 2026-11-04: the run of 21:50 stopped on a reply later than that
     raise ValueError(f"? {p}")
@@ -982,14 +982,24 @@ def arm_at_piece(cmds, j, joint=2):
     return deg
 
 
+# A run's J its own speed (2026-11-22, the evening, the owner, of the dip: "we can raise it", ELBOW_UP_SPEED's 28°/s a cure of the arm's silence that
+# was not — a splice under tape, 2026-11-11): J <2|3> <deg> [<deg/s>]; the elbow's and the shoulder's at most ARM_SPEED_MAX, the firmware's J since the
+# same evening 2500 ticks/s (joint.h, SPEED_MAX), ≈ 220°/s (the owner: "220 is the ceiling … test 70, then step by step to 220"; "SHOULDER too"); a
+# firmware of before stops at its own 105
+ARM_SPEED_MAX = 220.0
+
+
 def arm_check(cmd):
     """Why a run's J or W is refused, or None: a joint a run does not turn,
-    an angle past REACH."""
+    an angle past REACH, a J's speed past the firmware's."""
     p = cmd.split()
     try:
         name, deg = ARM_JOINT.get(int(p[1])), float(p[2])
+        v = float(p[3]) if p[0] == "J" and len(p) > 3 else None
     except (IndexError, ValueError):
         return f"{cmd}: J or W <2|3> <degrees>"
+    if v is not None and not (math.isfinite(v) and 0.5 <= v <= ARM_SPEED_MAX):
+        return f"{cmd}: a J's speed 0.5…{ARM_SPEED_MAX:g}°/s"
     if name is None:
         return f"{cmd}: a run turns the elbow (2) or the wrist (3), nothing else"
     lo, hi = REACH[name]
@@ -1067,12 +1077,15 @@ def cup_of(c):
         if c.get("hand") is True:
             up, to = fork_of(c.get("up"), "elbow"), fork_of(c.get("to"), "shoulder")
             dip, dwell, swing = float(c["dip"]), float(c.get("dwell", 1)), float(c.get("swing", SWING_DIP))
-            if not (up and to and math.isfinite(dip + dwell + swing)) or not 0 <= dwell <= WAIT_MAX_S or not 0.5 <= swing <= 100:
+            elbow = float(c["elbow"]) if c.get("elbow") is not None else None
+            if not (up and to and math.isfinite(dip + dwell + swing)) or not 0 <= dwell <= WAIT_MAX_S or not 0.5 <= swing <= ARM_SPEED_MAX:
+                return None
+            if elbow is not None and not (math.isfinite(elbow) and 0.5 <= elbow <= ARM_SPEED_MAX):
                 return None
             if not PAINT_FLOOR <= dip <= PAINT_TOP or up[0] < PAINT_TOP + 5 or (to[0] <= DIP_WITHIN and to[1] >= -DIP_WITHIN):
                 return None
             return {"hand": True, "up": up, "to": to, "dip": dip, "paint": (max(PAINT_FLOOR, dip - 1), min(PAINT_TOP, dip + 1)),
-                    "dwell": dwell, "swing": swing, "rim": (up[0] + up[1]) / 2}
+                    "dwell": dwell, "swing": swing, "rim": (up[0] + up[1]) / 2, **({"elbow": elbow} if elbow is not None else {})}
         y, rim, dip = (float(c[k]) for k in ("y", "rim", "dip"))
         x = float(c["x"])
         dwell = float(c.get("dwell", 1))
@@ -1333,8 +1346,8 @@ class Runner:
                 j, d, v = b.get("joint"), b.get("deg"), b.get("speed")
                 if j not in ("shoulder", "elbow") or not isinstance(d, (int, float)) or not REACH[j][0] <= d <= REACH[j][1]:
                     return False, f"a joint block out of reach: {j} {d}° (the shoulder and the elbow go {REACH['shoulder'][0]}…+{REACH['shoulder'][1]}°)"
-                if not isinstance(v, (int, float)) or not 0.5 <= v <= 100:
-                    return False, f"a joint block's speed must be 0.5…100°/s, not {v}"
+                if not isinstance(v, (int, float)) or not 0.5 <= v <= ARM_SPEED_MAX:
+                    return False, f"a joint block's speed must be 0.5…{ARM_SPEED_MAX:g}°/s, not {v}"
                 w = b.get("within", 0.6)
                 if isinstance(w, bool) or not isinstance(w, (int, float)) or not 0.6 <= w <= 2:
                     return False, f"a joint block's within must be 0.6…2°, not {w}"
@@ -1784,13 +1797,14 @@ class Runner:
             raise Abort(why)
         p = cmd.split()
         name, deg = ARM_JOINT[int(p[1])], float(p[2])
+        speed = float(p[3]) if len(p) > 3 else None                   # its own °/s, else the firmware's (up: ELBOW_UP_SPEED)
         if self.arm:
             # in RUBENS's degrees, from where the joint really is (class Arm)
             was = self.arm.angles(need=(name,))[0].get(name) if name == "elbow" and self.page in PENCIL_PAGES and not fork else None
             try:
                 while True:
                     try:
-                        at = self.arm.move_to(name, deg, fork=fork)
+                        at = self.arm.move_to(name, deg, speed=speed, fork=fork)
                         if not fork and isinstance(at, (int, float)) and abs(at - deg) >= ARM_NEAR:
                             self.log({"event": "near", "joint": name, "deg": deg, "at": at, "block": self.block})
                         elif fork and isinstance(at, (int, float)) and not fork[0] <= at <= fork[1]:   # a fork reached past its edge (FORK_WITHIN)
@@ -2157,9 +2171,9 @@ class Runner:
 
     def _hand_dip(self, c, over=False):
         # the cup at hand, every step there before the next (the plan's handDip, strokes.js)
-        rim = c["rim"]
+        rim, v = c["rim"], f" {c['elbow']:g}" if c.get("elbow") else ""   # the elbow's own speed, as the plan's (INK-Y's elbow)
         if not over:
-            self._arm(f"J 2 {rim:g}", c["up"])
+            self._arm(f"J 2 {rim:g}{v}", c["up"])
             if self._stop:
                 return
             b = {"joint": "shoulder", "deg": (c["to"][0] + c["to"][1]) / 2, "speed": c["swing"], "fork": c["to"], "rim": rim, "up": c["up"], "dip": True}
@@ -2167,11 +2181,11 @@ class Runner:
             self._joint(b)
         if self._stop:
             return
-        self._arm(f"J 2 {c['dip']:g}", c["paint"])
+        self._arm(f"J 2 {c['dip']:g}{v}", c["paint"])
         self._wait(c["dwell"])
         if self._stop:
             return
-        self._arm(f"J 2 {rim:g}", c["up"])
+        self._arm(f"J 2 {rim:g}{v}", c["up"])
         if not over:
             self._unswing()
 

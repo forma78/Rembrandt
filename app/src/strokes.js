@@ -558,14 +558,18 @@ export function landingCheck(blocks, press, glide, least = 0.2) {
 // counts as there, aimed at its middle (ink.js, HAND). The shoulder's turn to
 // the jar carries `rim` and `up`: rembrandt.py lifts the elbow there before it
 // turns the shoulder back by itself — a jump, a run after a stop over the jar.
+// c.elbow (INK-Y's, since 2026-11-22, the evening): the elbow's J its own °/s, up and down — none, the firmware's down and rembrandt.py's ELBOW_UP_SPEED up
 export function handDip(c, row) {
-  const mid = f => (f[0] + f[1]) / 2, d = { row, dip: true }, up = { kind: 'arm', cmd: `J 2 ${mid(c.up)}`, fork: c.up, ...d };
+  const mid = f => (f[0] + f[1]) / 2, d = { row, dip: true }, v = elbowV(c), up = { kind: 'arm', cmd: `J 2 ${mid(c.up)}${v}`, fork: c.up, ...d };
   return [up, { kind: 'joint', joint: 'shoulder', deg: mid(c.to), speed: c.swing, fork: c.to, rim: mid(c.up), up: c.up, ...d },
-    { kind: 'arm', cmd: `J 2 ${c.dip}`, fork: c.paint, ...d }, { kind: 'wait', s: c.dwell, ...d },
+    { kind: 'arm', cmd: `J 2 ${c.dip}${v}`, fork: c.paint, ...d }, { kind: 'wait', s: c.dwell, ...d },
     { ...up }, { kind: 'joint', joint: 'shoulder', deg: 0, speed: c.swing, within: SHOULDER_WITHIN, ...d }];
 }
+const elbowV = c => c?.hand && c.elbow ? ` ${c.elbow}` : '';
+// a J of the elbow, s (est.): ARM_S at the firmware's own; at its own speed a fifth of a second to it and back, ≈ 25° a turn
+const armS = c => c?.hand && c.elbow ? 0.35 + 25 / c.elbow : ARM_S;
 // its seconds: the elbow's three as any J, the shoulder's two at its speed, the paint's
-export const handDipS = c => 3 * ARM_S + 2 * Math.abs((c.to[0] + c.to[1]) / 2) / c.swing + c.dwell;
+export const handDipS = c => 3 * armS(c) + 2 * Math.abs((c.to[0] + c.to[1]) / 2) / c.swing + c.dwell;
 export function plotRun(o, passes) {
   const f = v => (Math.round(v * 100) / 100).toFixed(2);
   const X0 = o.here?.x ?? 0, Y0 = o.here?.y ?? 0, M = q => `${f(X0 + q.x)} ${f(Y0 + q.y)}`;
@@ -630,7 +634,7 @@ export function plotRun(o, passes) {
       // o.hover (NOLAN): just over the canvas, the carriage waiting — from +25° the elbow was still on its way down
       // when the carriage set off, and the line began 5–10 mm late (2026-10-04, machine/2026-10-04 Nolan-v3-both.png)
       const over = o.hover ?? ELBOW_UP;
-      if (up !== over || (dipped && hand)) { blocks.push({ kind: 'arm', cmd: `J 2 ${over}`, row }); seconds += ARM_S; }
+      if (up !== over || (dipped && hand)) { blocks.push({ kind: 'arm', cmd: `J 2 ${over}${dipped && hand ? elbowV(cup) : ''}`, row }); seconds += dipped && hand ? armS(cup) : ARM_S; }
       // one move, the brush landing at its start, lifting at its end and at every turn, on the way —
       // cut where p[0].stopsAt says, mm along the row, the next block going on from there with the
       // brush down (ALU's snake at its lanes' ends, 2026-10-10: a pause falls there); o.pauseAtEnds

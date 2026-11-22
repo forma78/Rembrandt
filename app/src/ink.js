@@ -38,7 +38,9 @@ export const CUP_AIM = { x: 400, y: 0 };
 // `hand`; `on`, every dip goes there. The shoulder's speed est.
 export const HAND = { up: [30, 35], to: [30, 35], dip: 15, dwell: 1, swing: 40, diameter: 57 };
 export const PAINT_LO = 14, PAINT_HI = 16;
-export const SHOULDER_MIN = -45, SHOULDER_MAX = 45, SWING_MIN = 5, SWING_MAX = 100;
+// the shoulder's speed, and the elbow's in a dip, °/s: as fast as the firmware's J since 2026-11-22, the evening, ≈ 220 (joint.h, SPEED_MAX; the owner: "220 is
+// the ceiling … test 70, then step by step"; "SHOULDER too"); the elbow's none at first: the firmware's own down, rembrandt.py's ELBOW_UP_SPEED, 28, up
+export const SHOULDER_MIN = -45, SHOULDER_MAX = 45, SWING_MIN = 5, SWING_MAX = 220, ELBOW_V_MIN = 10, ELBOW_V_MAX = 220, ELBOW_V_NONE = 28;
 export const mid = f => (f[0] + f[1]) / 2;
 const SCOPE = '#E2321B';   // the owner's red scope
 
@@ -82,7 +84,7 @@ export function handOf(ink) {
   const h = ink?.hand || {}, fork = k => [0, 1].map(i => num(Array.isArray(h[k]) ? h[k][i] : null) ?? HAND[k][i]);
   const out = { hand: true, on: h.on === true, x: null, y: null, est: {},
     up: fork('up'), to: fork('to'), dip: num(h.dip) ?? HAND.dip,
-    dwell: num(h.dwell) ?? HAND.dwell, swing: num(h.swing) ?? HAND.swing, diameter: HAND.diameter };
+    dwell: num(h.dwell) ?? HAND.dwell, swing: num(h.swing) ?? HAND.swing, diameter: HAND.diameter, ...(num(h.elbow) !== null ? { elbow: num(h.elbow) } : {}) };
   out.paint = [Math.max(PAINT_LO, out.dip - 1), Math.min(PAINT_HI, out.dip + 1)];
   if (num(h.swing) === null) out.est.swing = true;
   return out;
@@ -138,5 +140,6 @@ function handProblem(c) {
   if (!(c.dip >= PAINT_LO && c.dip <= PAINT_HI)) return `ELBOW in the paint +${c.dip}°: +${PAINT_LO}…+${PAINT_HI}° (the jar stands over the canvas).`;
   if (!(c.dwell >= 0 && c.dwell <= DWELL_MAX)) return `In the paint ${c.dwell} s: 0…${DWELL_MAX} s.`;
   if (!(c.swing >= SWING_MIN && c.swing <= SWING_MAX)) return `The shoulder at ${c.swing}°/s: ${SWING_MIN}…${SWING_MAX}°/s.`;
+  if (c.elbow !== undefined && !(c.elbow >= ELBOW_V_MIN && c.elbow <= ELBOW_V_MAX)) return `The elbow at ${c.elbow}°/s: ${ELBOW_V_MIN}…${ELBOW_V_MAX}°/s.`;
   return '';
 }

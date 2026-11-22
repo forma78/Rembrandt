@@ -407,3 +407,13 @@ test('HOME: the brush up first, then the carriage to home at the travel speed (2
   assert.equal(move.kind, 'move'); assert.equal(move.home, true); assert.equal(move.paintMM, 0);
   assert.deepEqual(move.cmds, ['T 180', `M ${h.x.toFixed(2)} ${h.y.toFixed(2)}`, 'G']);
 });
+
+// the elbow's own speed in a dip, and the shoulder's past 100 (2026-11-22, the evening: "220 is the ceiling … test 70, then step by step"; "SHOULDER too"):
+// INK-Y's elbow, none at first — the J's as they were, the firmware's own down, rembrandt.py's ELBOW_UP_SPEED up
+test('a dip at the elbow\'s own speed: every J of it carries it, the shoulder at its own up to 220; none — as before', () => {
+  const plain = handDip(HANDCUP, 1), fast = handDip({ ...HANDCUP, elbow: 70, swing: 220 }, 1);
+  assert.deepEqual(plain.filter(b => b.kind === 'arm').map(b => b.cmd), ['J 2 32.5', 'J 2 15', 'J 2 32.5'], 'none: as before');
+  assert.deepEqual(fast.filter(b => b.kind === 'arm').map(b => b.cmd), ['J 2 32.5 70', 'J 2 15 70', 'J 2 32.5 70']);
+  assert.deepEqual(fast.filter(b => b.kind === 'joint').map(b => b.speed), [220, 220]);
+  assert.deepEqual(fast.map(b => b.fork ?? null), plain.map(b => b.fork ?? null), 'the forks as they were');
+});
