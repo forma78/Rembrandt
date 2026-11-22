@@ -36,8 +36,19 @@ export const formatV = id => GENV_FORMATS.find(f => f.id === id) ?? GENV_FORMATS
 // GEN-V's field: the whole canvas where the canvas lies within the reach (the owner, the same evening, of a 20 × 20 test, "the field 140 × 140": "you
 // made margins … there must be none. Margins only for 60 × 60 and up, our limit is physical, 550 mm. But 200 × 200 mm we print without trouble … 40 × 40
 // too, without the limiting contour"): the 20 × 20 and the 40 × 40 edge to edge; a canvas past the reach (GEN.across × GEN.along) GEN-F's field, 30 mm in
-export const wholeV = f => !f.frame && f.w <= GEN.across && f.h <= GEN.along;
-export const fieldV = f => wholeV(f) ? { w: f.w, h: f.h } : fieldOf(f);
+// Across Y a brush's own (the owner, the same evening: "540 — there we are being careful. Yes, it held while the brush was 5 mm. But for the 2 mm brush it is far
+// too big a reserve. Why? We can easily make 556 mm — add 16 mm, 8 mm a side"; "only for GEN-V"): the 2 mm 556, the others GEN.across, 540. Along X GEN.along.
+export const ACROSS_V = { 2: 556 };
+export const acrossV = (pitch = GEN.pitch) => ACROSS_V[pitch] ?? GEN.across;
+// Margins · zoom (the owner, the same evening: "I would like to place the picture on 20 × 20 and 40 × 40 myself … a margins slider on all the formats, on
+// 60 × 60 and 70 × 100 too! Make such a zoom for the picture, from 0 to 20 mm"; "Scale, or call it as you like"; of "Margins · zoom": "yes, great"): mm off the field's every side, the picture
+// as large as the rest lets it, in the middle; a format's own
+export const MARGIN_UI = [0, 20, 1];
+export const marginOf = v => inRange(v ?? 0, MARGIN_UI);
+export const wholeV = (f, pitch = GEN.pitch) => !f.frame && f.w <= acrossV(pitch) && f.h <= GEN.along;
+// the field before the margins: the canvas as far as the brush reaches it, across Y its brush's; a new frame's GEN-F's, 30 mm in
+export const reachV = (f, pitch = GEN.pitch) => f.frame ? fieldOf(f) : { w: Math.min(f.w, acrossV(pitch)), h: Math.min(f.h, GEN.along) };
+export const fieldV = (f, pitch = GEN.pitch, margin = 0) => { const F = reachV(f, pitch), m = marginOf(margin); return { w: F.w - 2 * m, h: F.h - 2 * m }; };
 // The owner's four sliders (2026-11-22: "three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"), mm, [min, max, step]:
 //   brush: the brush's width, GEN-V's — a picture's columns are its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3 mm"); the 2 mm
 //        since the evening ("add a 2 mm button to GEN-V");
@@ -53,8 +64,8 @@ export const dabGapOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).gap,
 export const brushOf = v => DAB_UI.brush.includes(+v) ? +v : GEN.pitch;
 // genfplan.js's fitOf on a brush's columns: as large as the field lets it (GEN-V's, fieldV), its aspect kept, N columns `pitch` apart, R mm along, centred on
 // the canvas
-export function fitV(f, iw, ih, pitch = GEN.pitch) {
-  const F = fieldV(f), N = Math.max(1, Math.floor(Math.min(F.w, F.h * iw / ih) / pitch)), R = Math.max(1, Math.min(F.h, Math.round(N * pitch * ih / iw)));
+export function fitV(f, iw, ih, pitch = GEN.pitch, margin = 0) {
+  const F = fieldV(f, pitch, margin), N = Math.max(1, Math.floor(Math.min(F.w, F.h * iw / ih) / pitch)), R = Math.max(1, Math.min(F.h, Math.round(N * pitch * ih / iw)));
   return { N, R, pitch, left: (f.w - N * pitch) / 2, top: Math.round((f.h - R) / 2), field: F };
 }
 // a dab on the screen, GEN-V's Sketch and GOGH's Picture: its painted span `gap` shorter, a round-ended line `wide` mm across → the line's ends, top and bottom

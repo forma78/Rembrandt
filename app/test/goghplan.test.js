@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GEN, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf } from '../src/genfplan.js';
-import { DAB, DAB_UI, DAB_BRUSH, dabOf, GENV_FORMATS, formatV, fieldV, wholeV, dabsOf, stacksOf, sketchV, dabLeg, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabRunOf, dabWideOf, brushOf } from '../src/goghplan.js';
+import { DAB, DAB_UI, DAB_BRUSH, dabOf, GENV_FORMATS, formatV, fieldV, wholeV, acrossV, MARGIN_UI, marginOf, dabsOf, stacksOf, sketchV, dabLeg, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabRunOf, dabWideOf, brushOf } from '../src/goghplan.js';
 import { rowsOf, R3, FORMG } from '../src/formgplan.js';
 
 // a picture W × H px: a white ground, a red disc with a dark band across it, its left half lighter (genfplan.test.js's)
@@ -190,7 +190,16 @@ test('GEN-V\'s formats: a 20 × 20 for tests in front of GEN-F\'s; the 20 × 20 
   // trouble … 40 × 40 too, without the limiting contour"); 60 × 60 and up GEN-F's, 30 mm in
   assert.deepEqual(fieldV(formatV('20x20')), { w: 200, h: 200 }); assert.deepEqual(fieldV(formatV('40x40')), { w: 400, h: 400 });
   assert.deepEqual(['20x20', '40x40', '60x60', '60x80', '70x100', '90x120'].map(id => wholeV(formatV(id))), [true, true, false, false, false, false]);
-  for (const id of ['60x60', '60x80', '70x100', '90x120', '100x150']) assert.deepEqual(fieldV(formatV(id)), fieldOf(formatOf(id)), `${id}: GEN-F's field`);
+  for (const id of ['90x120', '100x150']) assert.deepEqual(fieldV(formatV(id)), fieldOf(formatOf(id)), `${id}: a new frame's, GEN-F's field`);
+  // past the reach the canvas as far as the brush reaches it, across Y its brush's: 540, the 2 mm's 556 ("add 16 mm, 8 mm a side"; "only for GEN-V")
+  assert.deepEqual(fieldV(formatV('60x60')), { w: 540, h: 600 }); assert.deepEqual(fieldV(formatV('60x60'), 2), { w: 556, h: 600 }); assert.deepEqual(fieldV(formatV('70x100'), 2), { w: 556, h: 855 });
+  assert.equal(acrossV(2), 556); assert.equal(acrossV(3), 540); assert.equal(acrossV(5), 540); assert.equal(GEN.across, 540, 'GEN-F\'s own as it was');
+  // Margins · zoom, 0 … 20 mm off the field's every side ("a zoom for the picture, from 0 to 20 mm")
+  assert.deepEqual(MARGIN_UI, [0, 20, 1]); assert.equal(marginOf(25), 20); assert.equal(marginOf(-3), 0); assert.equal(marginOf(7.4), 7); assert.equal(marginOf(undefined), 0);
+  assert.deepEqual(fieldV(formatV('20x20'), 2, 10), { w: 180, h: 180 }); assert.deepEqual(fieldV(formatV('60x60'), 2, 8), { w: 540, h: 584 });
+  const Z = sketch('20x20', 12, 300, 300, 2), Zm = (() => { const f = formatV('20x20'), F = fitV(f, 300, 300, 2, 20); return F; })();
+  assert.ok(Zm.N * 2 <= 160 && Zm.R <= 160 && Zm.left >= 20 - 1e-6 && Zm.top >= 20, `20 mm in: ${Zm.N * 2} × ${Zm.R}, left ${Zm.left}, top ${Zm.top}`);
+  assert.ok(Z.fit.N > Zm.N, 'smaller with the margins');
   assert.ok(!formatOf('20x20').test, 'GEN-F has no 20 × 20');
   const T = sketch('20x20', 12, 300, 300, 2);
   assert.equal(T.pic.w, 200); assert.equal(T.pic.h, 200);

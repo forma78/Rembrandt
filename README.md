@@ -492,7 +492,15 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
 7. **No margin where the canvas lies within the reach** (the owner, the same evening, of the 20 × 20's first sketch in a field of 140 × 140,
    `GOGH/bear-20-20.png`: "there must be none. Margins only for 60 × 60 and up, our limit is physical, 550 mm. But 200 × 200 mm we print without
    trouble … 40 × 40 too, without the limiting contour"): on GEN-V the 20 × 20 and the 40 × 40 painted edge to edge, no dashed field on the screen;
-   60 × 60 and up GEN-F's field, 540 across, 30 mm in (`wholeV`, `fieldV`).
+   60 × 60 and up the canvas as far as the brush reaches it (`wholeV`, `reachV`, `fieldV`).
+8. **Across Y a brush's own: the 2 mm's 556** (the owner, the same evening: "540 — there we are being careful. Yes, it held while the brush was 5 mm.
+   But for the 2 mm brush it is far too big a reserve. Why? We can easily make 556 mm — add 16 mm, 8 mm a side"; "only for GEN-V"); the 3 and the 5
+   540, GEN-F's own as it was (`ACROSS_V`). Counted on GOGH's carriage: a 556 picture of the 2 mm runs the carriage 554 mm across Y of the walls'
+   568.5, the canvas's left edge 8.7 … 22.8 mm before home on a 60 × 60 (est.).
+9. **Margins · zoom, 0 … 20 mm** (the owner, the same evening: "I would like to place the picture on 20 × 20 and 40 × 40 myself … a margins slider
+   on all the formats, on 60 × 60 and 70 × 100 too! Make such a zoom for the picture, from 0 to 20 mm"; of its name: "yes, great"): GEN-V's field so
+   many mm in on every side, the picture as large as the rest lets it, in the middle; a format's own, 0 at first (`MARGIN_UI`, `marginOf`); the
+   sketches made again on letting the slider go; the sketch's file keeps it.
 
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.

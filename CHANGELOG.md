@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GEN-V: the 2 mm's field 556 across Y; Margins · zoom, 0 … 20 mm** (2026-11-22, the evening; the owner: "540 — there we are being careful …
+  for the 2 mm brush it is far too big a reserve … We can easily make 556 mm — add 16 mm, 8 mm a side"; "a margins slider on all the formats … a zoom
+  for the picture, from 0 to 20 mm"; "only for GEN-V"; "Margins · zoom — yes, great"). Past the reach the field the canvas as far as the brush
+  reaches it, across Y the brush's (`ACROSS_V`, the 2 mm 556, else 540), along X 855 — no 30 mm off the canvas there any more; the slider's margin
+  off every side, a format's own, the sketch's file keeps it. GOGH's carriage counted for a 556 picture: 554 mm of the walls' 568.5. GEN-F unchanged.
+
 - **GOGH's ▶ Play 20 times faster: 9 s** (2026-11-22, the evening; the owner: "▶ Play — please make the drawing speed 20 times faster :) In
   GOGH it goes very slowly"). The same clock, slow at first; FORM-G's and the others' 3 min as before.
 
