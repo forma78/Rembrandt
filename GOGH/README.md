@@ -34,6 +34,21 @@ for GOGH"; "I could not stretch [its stroke] to 20 mm. All as you warned: a brus
 | `IMG_3392.jpg` | The sheet by the ruler (cm): grey and burgundy dabs of a flat brush, 10 … 11 mm, then blue strokes of the 2 mm. |
 | `IMG_3390.jpg` | The 2 mm's blue strokes by the ruler, the ones he measured in green: 11 … 14 mm — "the longest stroke is 15 mm"; flat-brush grey legs above them, a blue patch below. |
 
+## The brushes tried, and the bear's head on (2026-11-22, the night)
+
+The owner: "I tested three or four kinds of brushes, made a real disaster, then put everything back. Now as at the start, neat thin lines. I chose an
+old canvas on purpose, so as not to mind experimenting." The arm by then at 125 … 145°/s, a dab ≈ 7 s.
+
+| file | what it shows |
+|---|---|
+| `IMG_3405.jpg` | A flat brush loaded with a raspberry red at its tip, by the canvas's corner: a mauve band laid flat by it, pinks and reds as drops below. |
+| `IMG_3406.jpg` | The 2 mm cone back in the holder, a drop of red hanging from its tip, over the jar's bracket; on the canvas the drops of every jar so far, a yellow band and an orange-red comb at the left. |
+| `IMG_3407.jpg` | Close, the canvas turned (the dabs lie across): heads and long tails; neighbours of one jar a comb, a ridge with fringes; a later jar's dab laid on a wet earlier one drags it. |
+| `IMG_3408.jpg` | Close: the yellow, one continuous band where its dabs met, orange and dark red drops over it, their tails thin and long. |
+| `IMG_3409.jpg` | Close: wet on wet — pinks pulled over mauves and greys, the coral and the orange combs at the left. |
+| `IMG_3410.jpg` | The arm at the canvas, the red jar at hand on its bracket: the head's dabs, big glossy red blobs where the brushes were tried. |
+| `IMG_3411.jpg` | The whole 20 × 20: the bear's ears and face readable from a step back; neat drops and combs, and the tried brushes' heavy red blobs at the top. |
+
 ## The gummy bear, the 2 mm brush's test (2026-11-22, the evening)
 
 The owner: "the bear can be made as orange_bear.png — for the GOGH tab"; "it is a 40 × 40 test".
