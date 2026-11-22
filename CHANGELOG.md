@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's softer walls by the most one row went past, not the sum** (2026-11-23, the night; the owner, still: "The brush would go 0.6 mm past the
+  walls"). `plotRun` returns `pastMax` beside `pastWall` (the way pressed into a wall summed over every row): a picture of a thousand dabs a little
+  past each read metres and stayed refused; GOGH's 5 mm now by the row that went furthest. Checked: the press test at 0 / 0 within the walls, the bear's
+  head at 0 / 0 refused at 8 mm (its lowest dabs want the canvas ≥ 8 mm up).
+
 - **TEST BRUSH · TEST JAR; ELBOW LIVE's scale** (2026-11-23, the night; the owner: "two buttons — TEST BRUSH and TEST JAR — they work only at a stop,
   as TEST or POINTS"; "there are no divisions below. I do not understand the step"). TEST BRUSH: no dip, the canvas's centre, the press as set, 15 mm,
   up, it stays (HOME back); TEST JAR: one dip at hand at the jar's angle, nothing painted. Off while a run is on. A scale under each ELBOW LIVE slider.

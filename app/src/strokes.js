@@ -582,7 +582,7 @@ export function plotRun(o, passes) {
   const home = homeCorner(), homeAt = pt(home.x - X0, home.y - Y0);
   // the walls, from Here: the path is pressed into them (pressed, above); without Here nothing is
   const R = reach(), B = o.here ? { x0: R.x.min + EDGE_IN - X0, x1: R.x.max - EDGE_IN - X0, y0: R.y.min + EDGE_IN - Y0, y1: R.y.max - EDGE_IN - Y0 } : null;
-  let pastWall = 0, gone = 0;
+  let pastWall = 0, pastMax = 0, gone = 0;   // pastMax: the most a row went past (2026-11-23: GOGH's softer walls by it, not by the sum)
   // the brush up (the elbow), then the wrist to the active pose, in the air; at hand the elbow up into its
   // fork and the shoulder to 0 before the wrist — the arm straight, a run stopped over the jar left it turned
   const handUp = cup && hand ? handDip(cup, 0) : null;
@@ -606,7 +606,7 @@ export function plotRun(o, passes) {
       // The tails cut the row, they never add to it: the same length, or no run.
       const drawn = drawnOf(p), cut = real(m.pieces).reduce((s, q) => s + pieceLen(q.g), 0);
       if (!fault && !swept && Math.abs(cut - drawn) > FAULT_MM) fault = `row ${row}: ${round1(drawn)} mm drawn, ${round1(cut)} mm after its tails`;
-      if (B) { const pr = pressed(m.pieces, B); m.pieces = pr.pieces; pastWall += pr.past; }
+      if (B) { const pr = pressed(m.pieces, B); m.pieces = pr.pieces; pastWall += pr.past; pastMax = Math.max(pastMax, pr.past); }
       if (!m.pieces.length) { gone++; return; }        // the whole row past a wall, pressed into a point: nothing to paint
       const first = m.pieces[0].g.a;
       turns += m.turns; lifts += m.lifts; need = Math.max(need, m.need);
@@ -691,5 +691,5 @@ export function plotRun(o, passes) {
   // where the carriage goes, from Here: the paint's box aside by the tails (the walls check)
   const cp = car.flatMap(g => { const q = [g.a]; points(g, q); return q; }).concat(cupAt ? [cupAt] : cups);
   const carriage = boxOf(cp);
-  return { blocks, preview, carriage, length, seconds, turns, lifts, need, cupAt, air, homeAt, dips, pastWall, gone, fault };
+  return { blocks, preview, carriage, length, seconds, turns, lifts, need, cupAt, air, homeAt, dips, pastWall, pastMax, gone, fault };
 }

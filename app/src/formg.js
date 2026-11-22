@@ -161,11 +161,14 @@ function pressOk() {
 // softer mode can be :) A test after all"): a path past the walls by PRESS_SOFT mm at most is pressed into them, as FORM-G's PRESS_OK — the walls est., the
 // carriage stops at them, a lift's last mm shortened; no refusal, its note behind the canvas's (i). More than that: the canvas is not where it should be
 const PRESS_SOFT = 5;
-const softWall = P_ => DABS && P_ && !P_.gone && P_.pastWall > 0.05 && P_.pastWall <= PRESS_SOFT;
+// by the most one row went past, not the sum of them all — a picture of a thousand dabs a millimetre past each summed to metres (2026-11-23)
+const pastMost = P_ => P_.pastMax ?? P_.pastWall;
+const softWall = P_ => DABS && P_ && !P_.gone && P_.pastWall > 0.05 && pastMost(P_) <= PRESS_SOFT;
 function walls(P_) {
   if (!P_) return '';
   if (P_.gone) return `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls, ${P_.gone} legs gone: move the canvas (The canvas, its i).`;
-  return P_.pastWall > 0.05 && !pressOk() && !softWall(P_) ? `The brush would go ${fmt(P_.pastWall, P_.pastWall < 1 ? 1 : 0)} mm past the walls: move the canvas (The canvas, its i).` : '';
+  const m = DABS ? pastMost(P_) : P_.pastWall;
+  return P_.pastWall > 0.05 && !pressOk() && !softWall(P_) ? `The brush would go ${fmt(m, m < 1 ? 1 : 0)} mm past the walls: move the canvas (The canvas, its i).` : '';
 }
 // DRAW BW (the owner, 2026-11-10: "before working with the paints, a DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace on paper, the contour,
 // to centre the canvas and study all the details"): formgplan.js's contourOf, every border between two colours once, in one pen, as OPM-N's DRAW BW: the pen pressed on
@@ -880,7 +883,7 @@ function showPanel() {
   if (document.activeElement !== L) L.value = c.edgeLeft;
   if (document.activeElement !== B) B.value = c.edgeBottom;
   $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}Within the walls for this picture: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line on the screen).`;
-  if (softWall(R)) $('#placeRead').insertAdjacentHTML('afterbegin', `Pressed at the wall by ${fmt(R.pastWall, 1)} mm, ${PRESS_SOFT} at most on GOGH: the carriage stops there, the path's last mm shortened (est.).<br>`);
+  if (softWall(R)) $('#placeRead').insertAdjacentHTML('afterbegin', `Pressed at the wall by ${fmt(pastMost(R), 1)} mm at most, ${PRESS_SOFT} at most on GOGH: the carriage stops there, the path's last mm shortened (est.).<br>`);
   if (pressOk()) $('#placeRead').insertAdjacentHTML('afterbegin', `<b>The lowest legs' lift-outs pressed against the bottom wall</b>: the carriage would go ${fmt(pressOk(), 1)} mm past it (${fmt(PRESS_OK[PIC.id], 0)} at most for this picture, the stop 9.45), so it stops at the wall; no leg gone (the owner's word: ${PIC.id === 'porsche-targa' ? '“keep 853 mm”, 2026-11-16' : '“yes”, 2026-11-10'}, est.).<br>`);
   showMarks();
   const F = PIC.frame, all = LIB[S.pic].jars.length, nb = $('#btnNoFrame');
