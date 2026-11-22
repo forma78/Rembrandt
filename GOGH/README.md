@@ -52,6 +52,18 @@ The owner: "the bear can be made as orange_bear.png — for the GOGH tab"; "it i
 The card: `app/gogh/orange-bear.json`, `.jpg` (genvpic.py, true to the sketch; its `look` the gap and the width as approved). The picture it was
 made from is not here.
 
+## The first run of the 2 mm brush: the bear's head, 20 × 20 (2026-11-22, the evening)
+
+`orange-bear-20` on the machine, its first jars (the pale ones, light to dark), the 2 mm brush, Speed · brush 120, the dip as it was (the elbow up 28°/s,
+the shoulder 40°/s, 1 s in the paint); the canvas an old one, its ground's swirls and an orange test row along its bottom from before.
+
+| file | what it shows |
+|---|---|
+| `IMG_3396.jpg` | The canvas from the front, the arm at its right: the first pale pinks and mauves as dabs, each a drop with a round head and a short tail down, ≈ 6 … 8 mm across (est., off the canvas's 200 mm) — wider than the 2 mm columns, so a column's dabs lie over its neighbours'. |
+| `IMG_3397.jpg` | Close: the dabs glossy and thick, heads like hearts (two lobes), tails where the brush lifted; the palest jar nearly the ground's colour. |
+| `IMG_3398.jpg` | From the side, the brush over the canvas, the jar at hand (the pink) on its bracket at the right; orange dabs among the pinks. |
+| `IMG_3399.jpg` | The same from nearer: the brush loaded, the orange drops and the mauve. |
+
 ## On this Mac alone (`.gitignore`)
 
 - `van gogh.jpg` (The Starry Night), `Paul Signac.jpg` (The Pine Tree at Saint-Tropez), `Camille Pissarro.webp` (by its
