@@ -20,11 +20,11 @@ class JarLiveTest(unittest.TestCase):
     def test_set_within_his_fork_by_half_degrees(self):
         r = self.runner()
         r.log = r.logged.append
-        self.assertEqual((PAINT_FLOOR, PAINT_TOP), (14, 16))
+        self.assertEqual((PAINT_FLOOR, PAINT_TOP), (14, 20), "his fork, +20 on top since 2026-11-22: 'a little higher'")
         self.assertEqual(Runner.set_jar(r, "15.3"), 15.5)
         self.assertEqual(Runner.set_jar(r, 9), 14, "never lower than his floor")
-        self.assertEqual(Runner.set_jar(r, 30), 16)
-        self.assertEqual(r.logged[-1], {"event": "jar", "deg": 16, "block": 7})
+        self.assertEqual(Runner.set_jar(r, 30), 20)
+        self.assertEqual(r.logged[-1], {"event": "jar", "deg": 20, "block": 7})
         with self.assertRaises(ValueError):
             Runner.set_jar(r, "nan")
 
@@ -33,7 +33,8 @@ class JarLiveTest(unittest.TestCase):
         up = {"kind": "arm", "cmd": "J 2 32.5 70", "fork": [30, 35]}
         self.assertEqual(Runner._jar_block(self.runner(), dip), ("J 2 15 70", [14, 16]), "none set: the plan's")
         self.assertEqual(Runner._jar_block(self.runner(14.5), dip), ("J 2 14.5 70", (14, 15.5)))
-        self.assertEqual(Runner._jar_block(self.runner(16), {**dip, "cmd": "J 2 15"}), ("J 2 16", (15, 16)))
+        self.assertEqual(Runner._jar_block(self.runner(16), {**dip, "cmd": "J 2 15"}), ("J 2 16", (15, 17)))
+        self.assertEqual(Runner._jar_block(self.runner(20), dip), ("J 2 20 70", (19, 20)))
         self.assertEqual(Runner._jar_block(self.runner(14), up), ("J 2 32.5 70", [30, 35]), "the elbow up: its own")
 
 

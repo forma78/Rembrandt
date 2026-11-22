@@ -748,7 +748,7 @@ class HandDipTest(unittest.TestCase):
         self.assertEqual(c, {"hand": True, "up": (30.0, 35.0), "to": (30.0, 35.0), "dip": 15.0, "paint": (14.0, 16.0), "dwell": 1.0, "swing": 40.0, "rim": 32.5})
         self.assertEqual(rubens.cup_of({**self.CUP, "dip": 14})["paint"], (14.0, 15.0), "never below +14")
         for bad in ({**self.CUP, "up": [30, 30.5]}, {**self.CUP, "up": [10, 15]}, {**self.CUP, "to": [-1, 3]}, {**self.CUP, "to": [30, 60]},
-                    {**self.CUP, "dip": 13}, {**self.CUP, "dip": 17}, {**self.CUP, "swing": 500}, {k: v for k, v in self.CUP.items() if k != "to"}):
+                    {**self.CUP, "dip": 13}, {**self.CUP, "dip": 21}, {**self.CUP, "swing": 500}, {k: v for k, v in self.CUP.items() if k != "to"}):
             self.assertIsNone(rubens.cup_of(bad), bad)
         self.assertGreaterEqual(Runner(FakeBoard().send).status()["hand"], 1, "the pages ask before a run at hand")
 

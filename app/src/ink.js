@@ -37,7 +37,7 @@ export const CUP_AIM = { x: 400, y: 0 };
 // in the jar, there within 1° of it, never below +14. Kept in ink.json's
 // `hand`; `on`, every dip goes there. The shoulder's speed est.
 export const HAND = { up: [30, 35], to: [30, 35], dip: 15, dwell: 1, swing: 40, diameter: 57 };
-export const PAINT_LO = 14, PAINT_HI = 16;
+export const PAINT_LO = 14, PAINT_HI = 20;   // +20 since 2026-11-22, the night (the owner: "not deeper, but a little higher"), rembrandt.py's PAINT_TOP
 // the shoulder's speed, and the elbow's in a dip, °/s: as fast as the firmware's J since 2026-11-22, the evening, ≈ 220 (joint.h, SPEED_MAX; the owner: "220 is
 // the ceiling … test 70, then step by step"; "SHOULDER too"); the elbow's none at first: the firmware's own down, rembrandt.py's ELBOW_UP_SPEED, 28, up
 export const SHOULDER_MIN = -45, SHOULDER_MAX = 45, SWING_MIN = 5, SWING_MAX = 220, ELBOW_V_MIN = 10, ELBOW_V_MAX = 220, ELBOW_V_NONE = 28;

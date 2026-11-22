@@ -194,7 +194,9 @@ A dip, in this order, every step finished before the next begins:
 2. Only then **SHOULDER** from 0° to **+35°** (the fork +30° … +35°).
 3. **ELBOW down into the jar**, to **+15°** at the lowest: the jar stands
    above the canvas (the fork +14° … +16°, set by how much paint is in
-   the jar).
+   the jar; **+20° on top since 2026-11-22**, the owner: "not deeper, but a
+   little higher" — a full jar drowns the brush; ELBOW LIVE · JAR sets it
+   live, by half degrees, the floor +14° as it was).
 4. The paint taken: **ELBOW up first**, to +30°.
 5. **SHOULDER back to 0°.** Painting goes on.
 
@@ -538,8 +540,8 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     `IMG_3294.jpg` a low one: "not only the press on the canvas, but the moment the brush dips in the jar … ELBOW LIVE · BRUSH plus the jar, one module;
     and all these [gap, width, run] another"). The elbow's angle in the paint, INK-Y's `dip`, a slider by ELBOW LIVE · BRUSH: written to `ink.json`, and
     during a DRAG `rembrandt.py`'s POST `/run/jar` from the next dip on (`Runner.set_jar`, `_jar_block`: the plan's `paint` block and the server's own dips,
-    the fork a degree either side), by half degrees within his +14 … +16° (2026-11-03) — so far a 2° span, the servo landing anywhere in its 1° fork:
-    wider only on his word. GOGH's panel: Progress; Elbow live (the brush, the jar); The dabs (gap, width, run); The canvas; The brush.
+    the fork a degree either side), by half degrees within +14 … +20° (his +14 … +16° of 2026-11-03, the top raised the same night: "not deeper, but a little
+    higher"), the servo landing anywhere in its 1° fork. GOGH's panel: Progress; Elbow live (the brush, the jar); The dabs (gap, width, run); The canvas; The brush.
     **The press test**, `app/gogh/press-test-20`: Jar 19's thickest cluster of the bear's head, the flood's, six times, a line a block, the pause before
     each its own press and jar (est. ≈ 34 min).
 

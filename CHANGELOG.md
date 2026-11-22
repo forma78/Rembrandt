@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's softer walls; the jar's top +20°** (2026-11-22, the night; the owner, of "The brush would go 0.6 mm past the walls": "cancel it, please —
+  Rembrandt cannot know this. A softer mode can be :) A test after all"; of ELBOW LIVE · JAR: "we need not to go deeper, but the other way, a little
+  higher"). On GOGH a path up to 5 mm past the walls is pressed into them, as FORM-G's PRESS_OK, no refusal, its note behind the canvas's (i); TEST's
+  corners the same. `PAINT_TOP` / `PAINT_HI` 16 → 20, the floor +14 as it was; the tests with it.
+
 - **ELBOW LIVE · JAR; GOGH's panel in modules; the press test** (2026-11-22, the night; the owner: "this is acrylic, not watercolour" — no slower
   lift; of `GOGH/IMG_3280`, `IMG_3294`: "the jar's fill tells on the drops … not only the press on the canvas, but the moment the brush dips in the
   jar"; "ELBOW LIVE · BRUSH plus the jar, one module"; "draw right in GOGH a test screen 20 × 20 … repeat the cluster … the press … six times").

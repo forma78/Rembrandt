@@ -157,10 +157,15 @@ function pressOk() {
   const rg = rangeOf(), c = placeNow(), low = rg.bottom[0] - c.edgeBottom;
   return c.edgeLeft >= rg.left[0] && c.edgeLeft <= rg.left[1] && c.edgeBottom <= rg.bottom[1] && low > 0 && low <= lim ? low : 0;
 }
+// GOGH's softer walls (the owner, 2026-11-22, the night, of "The brush would go 0.6 mm past the walls": "cancel it, please — Rembrandt cannot know this. A
+// softer mode can be :) A test after all"): a path past the walls by PRESS_SOFT mm at most is pressed into them, as FORM-G's PRESS_OK — the walls est., the
+// carriage stops at them, a lift's last mm shortened; no refusal, its note behind the canvas's (i). More than that: the canvas is not where it should be
+const PRESS_SOFT = 5;
+const softWall = P_ => DABS && P_ && !P_.gone && P_.pastWall > 0.05 && P_.pastWall <= PRESS_SOFT;
 function walls(P_) {
   if (!P_) return '';
   if (P_.gone) return `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls, ${P_.gone} legs gone: move the canvas (The canvas, its i).`;
-  return P_.pastWall > 0.05 && !pressOk() ? `The brush would go ${fmt(P_.pastWall, P_.pastWall < 1 ? 1 : 0)} mm past the walls: move the canvas (The canvas, its i).` : '';
+  return P_.pastWall > 0.05 && !pressOk() && !softWall(P_) ? `The brush would go ${fmt(P_.pastWall, P_.pastWall < 1 ? 1 : 0)} mm past the walls: move the canvas (The canvas, its i).` : '';
 }
 // DRAW BW (the owner, 2026-11-10: "before working with the paints, a DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace on paper, the contour,
 // to centre the canvas and study all the details"): formgplan.js's contourOf, every border between two colours once, in one pen, as OPM-N's DRAW BW: the pen pressed on
@@ -472,7 +477,8 @@ $('#btnTest').onclick = async () => {
   const here = hereNow(), T = testRun();
   if (!T) return warn('Nothing to paint.');
   if (cupProblem(cup())) return warn(`TEST dips in ${cupName()}: ${cupProblem(cup())}`);
-  if (T.off.length) return warn(`TEST: ${T.off.map(d => `${d.name} ${fmt(d.mm, 1)} mm`).join(', ')} past the walls — the canvas's corners out of the brush's reach: move the canvas (The canvas) by as much.`);
+  const offHard = T.off.filter(d => !DABS || d.mm > PRESS_SOFT);   // GOGH's softer walls: a corner a few mm past one, its dot at the wall (2026-11-22)
+  if (offHard.length) return warn(`TEST: ${offHard.map(d => `${d.name} ${fmt(d.mm, 1)} mm`).join(', ')} past the walls — the canvas's corners out of the brush's reach: move the canvas (The canvas) by as much.`);
   if (T.fault) return warn(`Not run: the test is wrong — ${T.fault}.`);
   if (walls(T)) return warn(walls(T));
   const P = testPrefs(), c = placeNow(), onCanvas = d => `${d.name} X ${fmt(d.mm[1], 0)} · Y ${fmt(d.mm[0], 0)}`;
@@ -847,6 +853,7 @@ function showPanel() {
   if (document.activeElement !== L) L.value = c.edgeLeft;
   if (document.activeElement !== B) B.value = c.edgeBottom;
   $('#placeRead').innerHTML = `${bad ? `<span class="warn">${esc(bad)}</span><br>` : ''}Within the walls for this picture: left edge ${fmt(rg.left[0], 0)} … ${fmt(rg.left[1], 0)}, bottom edge ${fmt(rg.bottom[0], 0)} … ${fmt(rg.bottom[1], 0)} mm (the dashed line on the screen).`;
+  if (softWall(R)) $('#placeRead').insertAdjacentHTML('afterbegin', `Pressed at the wall by ${fmt(R.pastWall, 1)} mm, ${PRESS_SOFT} at most on GOGH: the carriage stops there, the path's last mm shortened (est.).<br>`);
   if (pressOk()) $('#placeRead').insertAdjacentHTML('afterbegin', `<b>The lowest legs' lift-outs pressed against the bottom wall</b>: the carriage would go ${fmt(pressOk(), 1)} mm past it (${fmt(PRESS_OK[PIC.id], 0)} at most for this picture, the stop 9.45), so it stops at the wall; no leg gone (the owner's word: ${PIC.id === 'porsche-targa' ? '“keep 853 mm”, 2026-11-16' : '“yes”, 2026-11-10'}, est.).<br>`);
   showMarks();
   const F = PIC.frame, all = LIB[S.pic].jars.length, nb = $('#btnNoFrame');

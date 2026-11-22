@@ -1057,7 +1057,9 @@ TRAVEL_DIP = 180
 SWING_DIP = 40
 # The elbow in the cup at hand: never lower (the owner, 2026-11-03: "the jar stands over the canvas, so the
 # ELBOW can go down to +15° at most … the fork set by the paint in the jar, but at most +14° +16°")
-PAINT_FLOOR, PAINT_TOP = 14, 16
+# the top +20° since 2026-11-22, the night (the owner, of ELBOW LIVE · JAR: "we need not to go deeper, but the other way, a little higher"): a full jar
+# drowns the brush (GOGH/IMG_3280); higher is clear of the jar's bottom, the floor as it was
+PAINT_FLOOR, PAINT_TOP = 14, 20
 HAND_UP = (30.0, 35.0)   # the elbow up, before the shoulder turns: his fork (the pages' HAND.up)
 # How near the shoulder back from a dip counts as at 0°, degrees (the pages' SHOULDER_WITHIN, est.). The owner,
 # 2026-11-03, the first run with INK-Y: back from the cup it stood at −0.6°, a 1° nudge did not move it, and

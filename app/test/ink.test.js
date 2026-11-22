@@ -59,14 +59,15 @@ test('INK-Y: once on, every dip goes to the cup at hand — his forks till typed
   assert.deepEqual([own.up, own.to, own.dip, own.paint, own.swing, own.est], [[31, 34], [32, 35], 14, [14, 15], 30, {}], 'in the paint within 1° of it, never below +14');
 });
 
-test('INK-Y: the forks checked — the elbow up over the paint, the shoulder clear of 0, in the paint +14…+16', () => {
+test('INK-Y: the forks checked — the elbow up over the paint, the shoulder clear of 0, in the paint +14…+20', () => {
   const p = h => cupProblem(handOf({ hand: { on: true, ...h } }));
   assert.match(p({ up: [30, 30.5] }), /ELBOW up/, 'a whole step must land in it');
   assert.match(p({ up: [18, 35] }), /ELBOW up/);
   assert.match(p({ to: [-1, 3] }), /SHOULDER/);
   assert.match(p({ to: [30, 50] }), /SHOULDER/);
   assert.match(p({ dip: 13 }), /in the paint/);
-  assert.match(p({ dip: 17 }), /in the paint/);
+  assert.match(p({ dip: 21 }), /in the paint/);   // +20 the top since 2026-11-22: "a little higher"
+  assert.equal(p({ dip: 18 }), '', 'higher in the jar: allowed');
   assert.match(p({ swing: 500 }), /°\/s/);
   assert.equal(p({ to: [-35, -30] }), '', 'the other side would do too');
 });
