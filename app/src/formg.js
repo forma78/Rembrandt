@@ -15,16 +15,16 @@ import { qrSvg } from './qr.js';
 import './ui.js';
 
 // OPM-G (2026-11-07): this page with its own library, app/opmg/, and its run by the canon of a long leg (canon.js); FORM-G's as it was
-// LIBRARY-G (2026-11-19, data-tab="libg"; the owner: "while a picture is being painted I cannot switch between the pictures in the library at all … let us make,
-// right after GEN-F, a tab LIBRARY-G, so that I can study the files in peace"): this page with FORM-G's pictures and no machine — it never asks rembrandt.py of a
+// LIB-G (2026-11-19, data-tab="libg"; the owner: "while a picture is being painted I cannot switch between the pictures in the library at all … let us make,
+// right after GEN-F, a tab LIB-G, so that I can study the files in peace"): this page with FORM-G's pictures and no machine — it never asks rembrandt.py of a
 // run nor sends it a thing (VIEW), so its library is free while FORM-G paints; its jars FORM-G's to start from, its own changes kept in this browser alone
 // GOGH (2026-11-22, data-tab="gogh"; the owner: "in GOGH we copy FORM-G's functionality fully … the one difference: no long strokes, all of them drops of 2 cm"):
 // this page with its own library, app/gogh/, made by GEN-V; every leg a dab, a run of its own on a dip of its own, nothing after it (goghplan.js, DABS)
-// LIB-V (2026-11-22, the evening, data-tab="libv"; the owner: "I press APPROVE … and the picture appears in Library-V"): LIBRARY-G's for GOGH — GOGH's
+// LIB-V (2026-11-22, the evening, data-tab="libv"; the owner: "I press APPROVE … and the picture appears in Library-V"): LIB-G's for GOGH — GOGH's
 // pictures to look at, while it paints or not, nothing sent (VIEW); a picture GEN-V's APPROVE 🐾 put in shown at once (BroadcastChannel rembrandt.genv)
 const PAGE = document.body.dataset.tab, LIBV = PAGE === 'libv', TAB = PAGE === 'opmg' ? 'opmg' : PAGE === 'gogh' || LIBV ? 'gogh' : 'formg', CANON_RUN = TAB === 'opmg', VIEW = PAGE === 'libg' || LIBV, DABS = TAB === 'gogh';
 const HOME = DABS ? 'GOGH' : 'FORM-G';   // the page a library to look at is of: its jars and its settings to start from
-const NAME = CANON_RUN ? 'OPM-G' : VIEW ? (LIBV ? 'LIB-V' : 'LIBRARY-G') : DABS ? 'GOGH' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : DABS ? GOGH_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
+const NAME = CANON_RUN ? 'OPM-G' : VIEW ? (LIBV ? 'LIB-V' : 'LIB-G') : DABS ? 'GOGH' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : DABS ? GOGH_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
 const FORMG_KEEP = 'rembrandt.formg.v02';
 const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01' : VIEW ? (LIBV ? 'rembrandt.libv.v01' : 'rembrandt.libg.v01') : DABS ? 'rembrandt.gogh.v01' : FORMG_KEEP, OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
 const PRESS_MIN = -4, PRESS_MAX = 8, GESSO = '#FBFAF7';   // GESSO: the canvas, white (2026-11-16)   // as OPM-N's brush
@@ -34,7 +34,7 @@ const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min
 const S = { pic: LIBRARY[0], view: 'picture', speed: 25, penSpeed: PEN.speed, dipEvery: CANON_RUN ? FORMG.every : R3.every, dipLap: FORMG.lap, over: FORMG.over, wipe: WIPE_NEW, press: 0, travel: TRAVEL, tail: 3, place: {}, frames: {} };
 const nums = o => ({ ...(Number.isFinite(o.pspeed) ? { speed: o.pspeed } : {}), ...(Number.isFinite(o.dipEvery) ? { dipEvery: o.dipEvery } : {}), ...(Number.isFinite(o.dipLap) ? { dipLap: o.dipLap } : {}), ...(Number.isFinite(o.idleOver) ? { over: o.idleOver } : {}), ...(Number.isFinite(o.wipe) ? { wipe: o.wipe } : {}), ...(Number.isFinite(o.brushPress) ? { press: o.brushPress } : {}), ...(Number.isFinite(o.travel) ? { travel: o.travel } : {}), ...(Number.isFinite(o.tail) ? { tail: o.tail } : {}) });
 try {                                                                                 // a first visit: the brush as it is tuned on OPM-N
-  // LIBRARY-G: the brush, the canvas's place and the frames FORM-G's as they are now, so its numbers are FORM-G's; only the picture and the view its own
+  // LIB-G: the brush, the canvas's place and the frames FORM-G's as they are now, so its numbers are FORM-G's; only the picture and the view its own
   const mine = JSON.parse(localStorage.getItem(KEEP) || 'null'), base = VIEW ? JSON.parse(localStorage.getItem(LIBV ? 'rembrandt.gogh.v01' : FORMG_KEEP) || 'null') : mine;
   const opmn = base ? null : JSON.parse(localStorage.getItem(OPMN_KEEP) || 'null');
   Object.assign(S, base ?? nums(opmn ?? {}), VIEW && mine ? { ...(mine.pic ? { pic: mine.pic } : {}), ...(mine.view ? { view: mine.view } : {}) } : {});
@@ -192,7 +192,7 @@ let warnAt = 0;   // a warning stays WARN_S before the next look at the run writ
 const WARN_S = 5, warn = t => { warnAt = Date.now(); $('#runState').innerHTML = `<span class="warn">${t}</span>`; };
 let RUN = null, RUN_INFO = null, RUN_KEY = null, lastSt = null;
 async function start(key, blocks, info, log) {
-  if (VIEW) return;                                                                   // LIBRARY-G sends the machine nothing
+  if (VIEW) return;                                                                   // LIB-G sends the machine nothing
   playStop();
   if (blocks.some(b => b.fork)) {                                                     // only a rembrandt.py that knows the cup at hand takes its forks (inka.js's start)
     let st = null; try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }
@@ -1029,7 +1029,7 @@ function lcd(st) {
 }
 async function watch() {
   let st = null;
-  if (!VIEW) try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }   // LIBRARY-G never looks at the run: its library free while FORM-G paints
+  if (!VIEW) try { st = await (await fetch('/run', { cache: 'no-store' })).json(); } catch { }   // LIB-G never looks at the run: its library free while FORM-G paints
   lastSt = st;
   if (!VIEW) runPicture(st);
   if (HASH) { const h = HASH; HASH = null; openHash(h, st); }   // LIB-V's link, once the run is known
@@ -1047,7 +1047,7 @@ async function jarsLoad() {
   CLASSIC_PLANS = (await Promise.all(CLASSIC.map(id => (DABS ? null : LIB[id]) ?? get(`formg/${id}.json`)))).filter(Boolean);
   if (VIEW) { FG_JARS = JSON.parse(JSON.stringify(JARS)); try { VER = { swaps: {}, mine: {}, label: {}, ...JSON.parse(localStorage.getItem(VER_KEY) || '{}') }; } catch { } JARS = viewJars(); }
 }
-// LIBRARY-G's jars: FORM-G's (jars.json) as they are; a picture changed here — by 🔄 or 📂 LOAD — its own swaps in this browser alone (VER), never written to
+// LIB-G's jars: FORM-G's (jars.json) as they are; a picture changed here — by 🔄 or 📂 LOAD — its own swaps in this browser alone (VER), never written to
 // jars.json: FORM-G's run and its pauses name FORM-G's jars. A picture in VER with no swaps: its own colours here, whatever FORM-G has
 const VER_KEY = LIBV ? 'rembrandt.libv.jars.v01' : 'rembrandt.libg.jars.v01';
 let FG_JARS = { swaps: {}, mine: {} }, VER = { swaps: {}, mine: {}, label: {} };
@@ -1099,13 +1099,13 @@ async function swapTo(id, name, hex) {
 
 // ---------- 💾 SAVE · 📂 LOAD: a picture's jars as a file (2026-11-19) ----------
 // The owner: "what else the library is good for — I can keep there different versions of the colours with different sets of paints … then it needs a panel 💾 SAVE
-// 📂 LOAD". A version: a picture's colours by his numbered jars, THE JARS' swaps, and the jars he named for it; a file of its own, wherever he keeps it. LIBRARY-G
+// 📂 LOAD". A version: a picture's colours by his numbered jars, THE JARS' swaps, and the jars he named for it; a file of its own, wherever he keeps it. LIB-G
 // loads it to look at and change; FORM-G loads it to paint by — into jars.json, as 🔄 does, so not while a run is on
 const FILE_KIND = 'FORM-G jars';
 const stamp = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')}`;
 function jarsFileOf(id) {
   const own = LIB[id], sw = JARS.swaps[id] ?? {}, used = new Set(Object.values(sw).map(v => v.name));
-  return { tool: NAME, kind: FILE_KIND, note: 'A version of a FORM-G picture\'s jars: every colour of the picture and the owner\'s numbered jar it is painted by (THE JARS). 📂 LOAD on LIBRARY-G or FORM-G.',
+  return { tool: NAME, kind: FILE_KIND, note: 'A version of a FORM-G picture\'s jars: every colour of the picture and the owner\'s numbered jar it is painted by (THE JARS). 📂 LOAD on LIB-G or FORM-G.',
     pic: id, title: own.title, saved: new Date().toISOString(), swaps: sw, mine: Object.fromEntries(Object.entries(JARS.mine).filter(([k]) => used.has(k))),
     colours: own.jars.map(j => ({ id: j.id, colour: j.name, hex: j.hex, ...(sw[j.id] ? { jar: sw[j.id].name, jar_hex: sw[j.id].hex } : {}) })) };
 }
@@ -1137,7 +1137,7 @@ async function jarsFileLoad(file) {
   try { f = JSON.parse(await file.text()); } catch { }
   if (!f || f.kind !== FILE_KIND || !f.pic) return warn(`📂 ${esc(file.name)}: not a picture's jars (💾 SAVE makes them).`);
   if (!LIB[f.pic]) return warn(`📂 ${esc(file.name)}: its picture, ${esc(f.title ?? f.pic)}, is not in this library.`);
-  if (!VIEW && lastSt && LIVE.includes(lastSt.state)) return warn(`A run is on: THE JARS stay as they are till it ends or stops — the run's pauses name its jars. ${DABS ? 'LIB-V' : 'LIBRARY-G'} loads it to look at.`);
+  if (!VIEW && lastSt && LIVE.includes(lastSt.state)) return warn(`A run is on: THE JARS stay as they are till it ends or stops — the run's pauses name its jars. ${DABS ? 'LIB-V' : 'LIB-G'} loads it to look at.`);
   // the jars are physical (README): a number the file gives another colour than his jar of that number has — nothing loaded
   const have = myJarsOf(CLASSIC_PLANS, JARS.mine), named = [...Object.entries(f.mine ?? {}), ...Object.values(f.swaps ?? {}).map(v => [v?.name, v?.hex])];
   const clash = [...new Map(named.filter(([n, h]) => { const q = have.find(o => o.name === n); return q && q.hex.toUpperCase() !== String(h).toUpperCase(); })).entries()];
@@ -1149,9 +1149,9 @@ async function jarsFileLoad(file) {
   if (Object.keys(sw).length) JARS.swaps[f.pic] = sw; else delete JARS.swaps[f.pic];
   JARS.mine = { ...JARS.mine, ...Object.fromEntries(Object.entries(f.mine ?? {}).map(([n, h]) => [n, String(h).toUpperCase()])) };
   jarsApply();
-  if (await jarsSave(file.name)) { warnAt = Date.now(); $('#runState').innerHTML = `📂 <b>${esc(file.name)}</b>: ${Object.keys(sw).length} of ${ids.size} colours by your jars${all.length > Object.keys(sw).length ? ` (${all.length - Object.keys(sw).length} not of this picture, left out)` : ''}${VIEW ? ', here in LIBRARY-G alone' : ', FORM-G paints by it'}.`; jarsRead(file.name); }
+  if (await jarsSave(file.name)) { warnAt = Date.now(); $('#runState').innerHTML = `📂 <b>${esc(file.name)}</b>: ${Object.keys(sw).length} of ${ids.size} colours by your jars${all.length > Object.keys(sw).length ? ` (${all.length - Object.keys(sw).length} not of this picture, left out)` : ''}${VIEW ? ', here in LIB-G alone' : ', FORM-G paints by it'}.`; jarsRead(file.name); }
 }
-// the version on the page: LIBRARY-G's own or FORM-G's; FORM-G's last file
+// the version on the page: LIB-G's own or FORM-G's; FORM-G's last file
 const JARS_FILE = {}, cols = n => `${n} colour${n === 1 ? '' : 's'}`;
 function jarsRead(name) {
   const r = $('#jarsRead'); if (!r || !PIC) return;
@@ -1164,7 +1164,7 @@ function jarsRead(name) {
 if ($('#btnJarsSave')) $('#btnJarsSave').onclick = jarsFileSave;
 if ($('#btnJarsLoad')) $('#btnJarsLoad').onclick = () => $('#jarsFile').click();
 if ($('#jarsFile')) $('#jarsFile').onchange = e => { const f = e.target.files?.[0]; if (f) jarsFileLoad(f); e.target.value = ''; };
-// LIBRARY-G: back to FORM-G's jars for this picture, its own changes here dropped
+// LIB-G: back to FORM-G's jars for this picture, its own changes here dropped
 if ($('#btnJarsBack')) $('#btnJarsBack').onclick = () => {
   if (!VIEW || VER.swaps[S.pic] === undefined) return;
   delete VER.swaps[S.pic]; delete VER.label[S.pic]; verKeep();

@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **LIBRARY-G is LIB-G** (2026-11-22, the night; asked "LIBRARY-G to LIB-G too, for uniformity?" — the owner: "yes"): the tab, its page and every
+  word naming it, as LIB-V.
+
 - **LIBRARY-V is LIB-V** (2026-11-22, the night; the owner: "LIB-V, I propose to shorten it"): the tab, its page and every word naming it. GEN-V's
   🐾 APPROVE's first picture through `/genv/approve`, the robot on 60 × 60 (5182 dabs, 37 jars), stays on this Mac (`.gitignore`): Disney's ears,
   Daft Punk's helmet and Nike's sneakers on it, as the cola and Mickey.
