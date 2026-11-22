@@ -63,6 +63,7 @@ the shoulder 40°/s, 1 s in the paint); the canvas an old one, its ground's swir
 | `IMG_3397.jpg` | Close: the dabs glossy and thick, heads like hearts (two lobes), tails where the brush lifted; the palest jar nearly the ground's colour. |
 | `IMG_3398.jpg` | From the side, the brush over the canvas, the jar at hand (the pink) on its bracket at the right; orange dabs among the pinks. |
 | `IMG_3399.jpg` | The same from nearer: the brush loaded, the orange drops and the mauve. |
+| `IMG_3401.jpg` | After `rembrandt.py`'s restart (20:01), the run from line 4 with the shoulder and the elbow at 120°/s asked (the board not flashed yet: its J at most ≈ 105), 0.6 s in the paint: a coral jar's dabs, a row of nine side by side a comb — the heads one band, a tail each, the teeth 2 mm apart (the columns), so a lone dab ≈ 3 mm across and 10 … 13 mm long (est., by the comb); the journal 9.0 s a dab against 11.0. |
 
 ## On this Mac alone (`.gitignore`)
 
