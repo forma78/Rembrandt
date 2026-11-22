@@ -3,7 +3,7 @@
 import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
 import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen } from './goghplan.js';
-import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
+import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, ELBOW_UP, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
 import { cupOf, cupProblem, dipAt, SWING_MIN, SWING_MAX, ELBOW_V_MIN, ELBOW_V_MAX, ELBOW_V_NONE, PAINT_LO, PAINT_HI } from './ink.js';
@@ -437,7 +437,7 @@ function testRun() {
     const c = fits ? cornerDots(PIC.w, PIC.h).dots : [];
     if (c.length) {
       dots = c.map(d => ({ ...d, mm: [PIC.w / 2 + d.at.y, PIC.h / 2 + d.at.x] })); by = 'canvas';
-      off = dots.filter(d => past(d.at) > 0 || past(d.to) > 0).map(d => ({ name: d.name, mm: Math.max(past(d.at), past(d.to)) }));
+      off = dots.filter(d => past(d.at) > 0).map(d => ({ name: d.name, mm: past(d.at) }));   // a tap at the corner itself: the corner alone (2026-11-23)
     }
   }
   if (!dots) {
@@ -446,7 +446,30 @@ function testRun() {
     const x0 = Math.min(...ys) - PIC.h / 2, x1 = Math.max(...ys) - PIC.h / 2, y0 = Math.min(...xs) - PIC.w / 2, y1 = Math.max(...xs) - PIC.w / 2;
     dots = [['TL', x1, y0], ['TR', x1, y1], ['BR', x0, y1], ['BL', x0, y0]].map(([name, x, y]) => { const d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name, at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l }, mm: [PIC.w / 2 + y, PIC.h / 2 + x] }; });
   }
+  if (by === 'canvas') return { ...tapRun(dots), dots, by, off };
   return { ...plotRun(runOpts(dots.length), [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1, ...(d.wait !== undefined ? { wait: d.wait } : {}) }]), why: null }]), dots, by, off };
+}
+// GOGH's TEST a tap at each corner itself (the owner, 2026-11-23, the night: BL to BR 19 cm, "but there should be 20, no?" — every dot a 6 mm stroke toward the
+// centre, the brush touching its middle ≈ 3 mm in; offered "a tap right in the corner … the brush down and at once up, without moving": "of course!"): the
+// carriage at the corner, the elbow down to the press (ELBOW LIVE · BRUSH) and up again, nothing along the canvas; the cup at hand's opening first, one dip at the
+// first corner, TL twice with its wait, home at the end. Machine mm from home; a corner on a wall 0.1 inside it, as plotRun's (EDGE_IN)
+function tapRun(dots) {
+  const R = reach(), h = hereNow(), f = v => (Math.round(v * 100) / 100).toFixed(2), c = dipCup(), hand = !!(c.hand && c.on);
+  const inX = x => Math.min(R.x.max - 0.1, Math.max(R.x.min + 0.1, x)), inY = y => Math.min(R.y.max - 0.1, Math.max(R.y.min + 0.1, y));
+  const op = hand ? handDip(c, 0) : null;
+  const blocks = op ? [{ ...op[0], dip: false }, { ...op[5], dip: false }, { kind: 'arm', cmd: 'J 3 0', row: 0 }] : [{ kind: 'arm', cmd: `J 2 ${ELBOW_UP}`, row: 0 }, { kind: 'arm', cmd: 'J 3 0', row: 0 }];
+  let seconds = 1, at = { x: R.x.min, y: R.y.min };
+  dots.forEach((d, i) => {
+    const row = i + 1, p = { x: inX(h.x + d.at.x), y: inY(h.y + d.at.y) };
+    if (d.wait) { blocks.push({ kind: 'wait', s: d.wait, row }); seconds += d.wait; }
+    blocks.push({ kind: 'move', cmds: [`T ${S.travel}`, `M ${f(p.x)} ${f(p.y)}`, 'G'], lengthMM: null, paintMM: 0, row });
+    seconds += Math.hypot(p.x - at.x, p.y - at.y) / S.travel + 0.3; at = p;
+    if (i === 0 && hand) { blocks.push(...handDip(c, row)); seconds += handDipS(c); }
+    blocks.push({ kind: 'arm', cmd: `J 2 ${ELBOW_HOVER}`, row }, { kind: 'arm', cmd: `J 2 ${S.press}`, row }, { kind: 'arm', cmd: `J 2 ${ELBOW_HOVER}`, row });
+    seconds += 3;
+  });
+  blocks.push(...homeBlocks(S.travel));
+  return { blocks, seconds: seconds + 5, pastWall: 0, pastMax: 0, gone: 0, fault: '' };
 }
 // POINTS · Jar 0 (formgplan.js's pointsOf): TEST's run, a dot at each of the picture's outermost points, in the white, to lay the canvas by and check it with a ruler
 // and first a dot at the canvas's very middle, a short stroke along X across it (the owner, 2026-11-16: "maybe put a dot right in the centre? It will help me":

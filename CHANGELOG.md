@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's TEST a tap at each corner itself** (2026-11-23, the night; the owner, BL to BR 19 cm: "but there should be 20, no?"; offered a tap: "of
+  course!"). The carriage at the corner, the elbow down to the press and up, no stroke toward the centre (`tapRun`); its blocks caught in headless Chrome:
+  the corners 199.9 mm apart (0.1 inside a wall). Y measured 190 against X 200: a TEST at Travel 40 to tell lost steps from a slipping pulley.
+
 - **GOGH's softer walls by the most one row went past, not the sum** (2026-11-23, the night; the owner, still: "The brush would go 0.6 mm past the
   walls"). `plotRun` returns `pastMax` beside `pastWall` (the way pressed into a wall summed over every row): a picture of a thousand dabs a little
   past each read metres and stayed refused; GOGH's 5 mm now by the row that went furthest. Checked: the press test at 0 / 0 within the walls, the bear's
