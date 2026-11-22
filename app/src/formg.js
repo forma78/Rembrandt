@@ -2,6 +2,7 @@
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
 import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
+import { GOGH_LIB, passesV, dabRunsOf } from './goghplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -16,10 +17,12 @@ import './ui.js';
 // LIBRARY-G (2026-11-19, data-tab="libg"; the owner: "while a picture is being painted I cannot switch between the pictures in the library at all … let us make,
 // right after GEN-F, a tab LIBRARY-G, so that I can study the files in peace"): this page with FORM-G's pictures and no machine — it never asks rembrandt.py of a
 // run nor sends it a thing (VIEW), so its library is free while FORM-G paints; its jars FORM-G's to start from, its own changes kept in this browser alone
-const PAGE = document.body.dataset.tab, TAB = PAGE === 'opmg' ? 'opmg' : 'formg', CANON_RUN = TAB === 'opmg', VIEW = PAGE === 'libg';
-const NAME = CANON_RUN ? 'OPM-G' : VIEW ? 'LIBRARY-G' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
+// GOGH (2026-11-22, data-tab="gogh"; the owner: "in GOGH we copy FORM-G's functionality fully … the one difference: no long strokes, all of them drops of 2 cm"):
+// this page with its own library, app/gogh/, made by GEN-V; every leg a dab, a run of its own on a dip of its own, nothing after it (goghplan.js, DABS)
+const PAGE = document.body.dataset.tab, TAB = PAGE === 'opmg' ? 'opmg' : PAGE === 'gogh' ? 'gogh' : 'formg', CANON_RUN = TAB === 'opmg', VIEW = PAGE === 'libg', DABS = TAB === 'gogh';
+const NAME = CANON_RUN ? 'OPM-G' : VIEW ? 'LIBRARY-G' : DABS ? 'GOGH' : 'FORM-G', LIBRARY = [...(CANON_RUN ? OPMG_LIB : DABS ? GOGH_LIB : FORMG_LIB)];   // a copy: the local pictures go in front of it
 const FORMG_KEEP = 'rembrandt.formg.v02';
-const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01' : VIEW ? 'rembrandt.libg.v01' : FORMG_KEEP, OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
+const $ = s => document.querySelector(s), KEEP = CANON_RUN ? 'rembrandt.opmg.v01' : VIEW ? 'rembrandt.libg.v01' : DABS ? 'rembrandt.gogh.v01' : FORMG_KEEP, OPMN_KEEP = 'rembrandt.opmn.v01', LIVE = ['running', 'stopping', 'pausing', 'paused'];
 const PRESS_MIN = -4, PRESS_MAX = 8, GESSO = '#FBFAF7';   // GESSO: the canvas, white (2026-11-16)   // as OPM-N's brush
 const TRAVEL = 100;   // the carriage's travel with the brush up, mm/s: see where S is read
 const fmt = (v, d = 1) => Number(v).toFixed(d), sgn = v => `${v >= 0 ? '+' : '−'}${fmt(Math.abs(v), 1)}°`, esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -35,7 +38,7 @@ try {                                                                           
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 // FORM-G's run as LAB's real 3 (formgplan.js, R3; the owner, 2026-11-10): a dip every 79 mm, not 95, once, where Dip every was still the old 95; the J3 compensation and no
 // slack on the machine's path. OPM-G's run as it was, by the canon
-const R3RUN = CANON_RUN ? {} : { slack: R3.slack, j3: R3.j3 };
+const R3RUN = CANON_RUN ? {} : { slack: R3.slack, j3: R3.j3, ...(DABS ? { brush: dabRunsOf } : {}) };   // GOGH's: its dabs in brushRuns' place, the J3 on them
 if (!CANON_RUN && !S.r3) { if (S.dipEvery === FORMG.every) S.dipEvery = R3.every; S.r3 = 1; save(); }
 if (!Number.isFinite(S.penSpeed)) S.penSpeed = PEN.speed;
 if (S.view === 'contour' && !document.querySelector('[data-view="contour"]')) S.view = 'picture';   // DRAW BW and its Contour view gone from FORM-G (2026-11-16)
@@ -50,8 +53,9 @@ S.frames = Object.fromEntries(Object.entries(S.frames ?? {}).map(([k, f]) => [k,
 const LIB = {}, IMG = {};
 let PIC = null, SEQ = [];
 // THE JARS, the owner's 🔄 (2026-11-17; formgplan.js, withJars): app/formg/jars.json, rembrandt.py's /jars — { swaps: { pic: { jarId: { name, hex } } }, mine: { 'Jar 49': hex } };
-// his jars COLORS' numbers, the red classic's plans (CLASSIC), and the ones he mixed since. FORM-G's alone
-const JARS_ON = TAB === 'formg';
+// his jars COLORS' numbers, the red classic's plans (CLASSIC), and the ones he mixed since. FORM-G's and GOGH's (the same jars on the same shelf, every
+// picture its own swaps in the one file)
+const JARS_ON = TAB === 'formg' || DABS;
 let JARS = { swaps: {}, mine: {} }, CLASSIC_PLANS = [];
 // a picture as it is run: in its frame, F, when one is laid (formgplan.js's framedPic); the plan's and the run's keys by it, so the card's (i) keeps the whole picture's numbers
 const picNow = id => framedPic(withJars(LIB[id], JARS.swaps[id]), S.frames[id]);
@@ -109,7 +113,7 @@ const PLAN = new Map(), RUNS = new Map();
 let JOIN_RUN = 'all', STROKE_RUN = STROKE_DROPS;   // and a long stroke's drops (formgplan.js, STROKE_DROPS, 2026-11-17's evening), the journal's `strokeDrops`
 function plan() {                                                                     // the list's colours
   const key = JSON.stringify([S.over, S.dipLap, CANON_RUN ? S.dipEvery : 0, JOIN_RUN, STROKE_RUN]);
-  if (PLAN.get(pk())?.key !== key) PLAN.set(pk(), { key, passes: passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : { join: JOIN_RUN, strokeDrops: STROKE_RUN }) }) });
+  if (PLAN.get(pk())?.key !== key) PLAN.set(pk(), { key, passes: DABS ? passesV(PIC) : passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : { join: JOIN_RUN, strokeDrops: STROKE_RUN }) }) });
   return PLAN.get(pk()).passes;
 }
 // the run from a line of the list on; the pause before the second layer's first says what it is
@@ -351,7 +355,7 @@ function layer2Say(passes) {
   return [late.length ? `${late.join(', ')} first` : '', again || !end.length ? `${again} of the jars again` : '', end.length ? `${end.join(', ')} last, ${k} line${k === 1 ? '' : 's'}` : ''].filter(Boolean).join(', then ');
 }
 // OPM-N's question: the first jar big, the order, the time, Start from; DRAG or Cancel, Esc Cancel
-const runRows = passes => passes.map((q, i) => { const j = jarOf(q.pencil); return `<li><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${q.fill === 'zone' ? 'zone' : 'strokes'} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
+const runRows = passes => passes.map((q, i) => { const j = jarOf(q.pencil); return `<li><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${q.fill === 'dabs' ? 'dabs' : q.fill === 'zone' ? 'zone' : 'strokes'} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span></li>`; }).join('');
 function askDraw(passes, text, o = {}) {
   const box = $('#drawAsk');
   const show = (passes, text) => {
@@ -518,7 +522,7 @@ let drawT = 0;
 function kick() { if (!drawT) drawT = requestAnimationFrame(() => { drawT = 0; draw(); }); }
 function legsPath(c, q) {                                                             // a cell's first run, its steps between legs on the paper
   c.beginPath();
-  q.legs.forEach((l, i) => { const a = [sx(l[0][0]), sy(l[0][1])], b = [sx(l[1][0]), sy(l[1][1])]; if (i) c.lineTo(a[0], a[1]); else c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); });
+  q.legs.forEach((l, i) => { const a = [sx(l[0][0]), sy(l[0][1])], b = [sx(l[1][0]), sy(l[1][1])]; if (i && !DABS) c.lineTo(a[0], a[1]); else c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); });   // GOGH's dabs each its own, the brush up between them
 }
 function drawLegs(c, passes, dim = 1) {
   c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = Math.max(0.5, PIC.pitch * K * 0.92);
@@ -675,7 +679,7 @@ $('#btnPlay').onclick = () => {
   if (!PIC) return;
   const passes = plan(), list = [], s = 2, off = document.createElement('canvas'), c = off.getContext('2d');
   let mm = 0;
-  for (const r of withMarks(brushRuns(passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN.slack), passes, SEQ, marksNow()?.M)) {
+  for (const r of withMarks(DABS ? dabRunsOf(passes) : brushRuns(passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN.slack), passes, SEQ, marksNow()?.M)) {
     const hex = jarOf(passes[r.pass].pencil).hex;
     r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle, dab: !!r.dab, mark: r.mark ? r.say : null }); });
   }
@@ -765,7 +769,7 @@ function readOf(id) {
   try {
     const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n0 = P.filter(q => q.layer === 0).length, n1 = P.filter(q => q.layer <= 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
     const out = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${all.reduce((a, q) => a + q.legs.length, 0)} legs.`
-      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way${P.some(q => q.fill === 'mixed') ? `; ${P.filter(q => q.fill === 'mixed').length} lines of both, each cell its own colour's` : ''}.`
+      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + (DABS ? ` Dabs: every leg a dab of its own, ≈ ${PIC.dab?.aim ?? 20} mm, a dip each, one stroke down, nothing after it.` : '') + (DABS ? '' : ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way${P.some(q => q.fill === 'mixed') ? `; ${P.filter(q => q.fill === 'mixed').length} lines of both, each cell its own colour's` : ''}.`)
       + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${layer2Say(P)}, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
       + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
     READS.set(id, out);
@@ -900,13 +904,13 @@ async function watch() {
 }
 
 // ---------- THE JARS: 🔄, a colour painted by one of the owner's jars (2026-11-17) ----------
-const FILL_WORD = { zone: 'zone', strokes: 'strokes', mixed: 'zone · strokes' };
-const FILL_SAY = { zone: 'a zone: its drops first, then one snake and back', strokes: 'strokes: a dip a leg, one over 45 mm its drops first, then the drag; then the leg again the same way', mixed: 'its cells a zone or strokes, each its own colour\'s' };
+const FILL_WORD = { zone: 'zone', strokes: 'strokes', mixed: 'zone · strokes', dabs: 'dabs' };
+const FILL_SAY = { zone: 'a zone: its drops first, then one snake and back', strokes: 'strokes: a dip a leg, one over 45 mm its drops first, then the drag; then the leg again the same way', mixed: 'its cells a zone or strokes, each its own colour\'s', dabs: 'dabs: a dip a dab, one stroke ≈ 2 cm down, nothing after it' };
 async function jarsLoad() {
   const get = async u => { try { const r = await fetch(u, { cache: 'no-store' }); return r.ok ? await r.json() : null; } catch { return null; } };
-  const j = await get('/jars') ?? await get(`${TAB}/jars.json`) ?? {};
+  const j = await get('/jars') ?? await get('formg/jars.json') ?? {};   // GOGH's too: the one file, rembrandt.py's /jars
   JARS = { swaps: j.swaps ?? {}, mine: j.mine ?? {}, ...(j.note ? { note: j.note } : {}) };
-  CLASSIC_PLANS = (await Promise.all(CLASSIC.map(id => LIB[id] ?? get(`${TAB}/${id}.json`)))).filter(Boolean);
+  CLASSIC_PLANS = (await Promise.all(CLASSIC.map(id => (DABS ? null : LIB[id]) ?? get(`formg/${id}.json`)))).filter(Boolean);
   if (VIEW) { FG_JARS = JSON.parse(JSON.stringify(JARS)); try { VER = { swaps: {}, mine: {}, label: {}, ...JSON.parse(localStorage.getItem(VER_KEY) || '{}') }; } catch { } JARS = viewJars(); }
 }
 // LIBRARY-G's jars: FORM-G's (jars.json) as they are; a picture changed here — by 🔄 or 📂 LOAD — its own swaps in this browser alone (VER), never written to
@@ -1049,6 +1053,12 @@ lampSwitch($('#lamp'));
 (async () => {
   // the pictures on this Mac alone (others' works, out of git: README), first: formg/local.json { "ids": [...] }, gitignored
   try { const r = await fetch(`${TAB}/local.json`, { cache: 'no-store' }); if (r.ok) LIBRARY.unshift(...((await r.json()).ids ?? []).filter(id => !LIBRARY.includes(id))); } catch { }
+  // GOGH's library empty — its pictures come from GEN-V, the cards of this Mac in gogh/local.json: the page says so and waits
+  if (!LIBRARY.length) {
+    $('#lib').innerHTML = `<p class="read">No picture yet. A picture in: GEN-V, APPROVE, then "GEN-V, &lt;the file&gt;" to Claude.</p>`;
+    $('#hint').textContent = `${NAME} — the library is empty: GEN-V makes its pictures.`;
+    return;                                                                           // no picture, no plan: PROGRESS waits for one
+  }
   for (const id of LIBRARY) {
     const pic = await (await fetch(`${TAB}/${id}.json`, { cache: 'no-store' })).json();
     // GEN-F's colours short on the page, C5 for Colour 5 (the owner, 2026-11-17, THE JARS' rows with their 🔄: "let us replace Colour N by CN, or it does not fit")

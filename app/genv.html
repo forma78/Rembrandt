@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rembrandt · GEN-V</title>
+<link rel="stylesheet" href="style.css">
+<script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<style>
+  /* GEN-V: GEN-F's page (genf.html), its sketch in GOGH's dabs */
+  body.type{grid-template-columns:132px minmax(0,1fr) 340px}
+  body.type .top{grid-column:1/3}
+  body.type .stage{grid-column:2;grid-row:2/4}
+  body.type .panel{grid-column:3}
+  body.type .status{grid-column:1/4}
+  .gf-shelf{grid-column:1;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-right:1px solid var(--line);background:#ECEAE6}
+  html.night .gf-shelf{background:#26282B}
+  .gf-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  .gf-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;min-height:92px;padding:8px 6px;border:1.5px dashed var(--line);border-radius:8px;background:var(--key);color:var(--mute);font-size:11px;line-height:1.3;text-align:center;cursor:pointer}
+  .gf-drop.over{border-color:var(--orange);color:var(--ink)}
+  .gf-drop img{display:block;width:100%;max-height:160px;object-fit:contain;border-radius:5px;background:#F3F0E6}
+  .gf-src{margin:8px 0 0;font:10px/14px var(--mono);color:var(--mute);word-break:break-word}
+  .gf-ground{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin-top:14px}   /* OPM-N's GROUND (opmn.html, #bgTools), its white and black */
+  .gf-ground .glab{flex-basis:100%;font:8.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+  .gk[data-bg=white]{background:#FBFAF7}
+  .gk[data-bg=black]{background:#161514}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+  #cv.drag{cursor:grabbing}
+  .gf-formats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .gf-formats .btn{padding:9px 0 8px;font:600 12px var(--mono);letter-spacing:.02em}
+  .gf-formats .btn.on{background:var(--key-on);box-shadow:var(--press)}
+  .gf-formats .btn i{display:block;margin-top:2px;font:normal 8.5px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}   /* 90 × 120, 100 × 150: a new frame's */
+  .gf-formats .btn.on::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;vertical-align:1px;background:var(--dot) center/6px 6px no-repeat}
+  .gf-count{display:flex;align-items:baseline;justify-content:space-between;margin-top:2px}
+  .gf-count b{font:600 26px/1 var(--mono)}
+  .gf-count span{font:10px var(--mono);color:var(--mute)}
+  .gf-marks{position:relative;height:20px;margin-top:2px}   /* the three screens' marks, 1 2 3 (the owner's drawing, 2026-11-16) */
+  .gf-marks b{position:absolute;top:0;transform:translateX(-50%);width:18px;height:18px;box-sizing:border-box;border-radius:50%;border:1.5px solid var(--mute);color:var(--mute);font:600 10px/15px var(--mono);text-align:center;cursor:pointer;background:var(--card)}
+  .gf-marks b.on{border-color:var(--ink);color:var(--ink)}
+  .gf-marks b.pick{border-color:var(--orange);background:var(--orange);color:#fff}
+  .looks{display:flex;margin:12px 0 0}
+  .looks .tog{flex:1}
+  #jarList{margin:6px 0 0;padding:0;list-style:none}
+  #jarList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px;cursor:pointer}
+  #jarList li:hover{background:rgba(127,127,127,.14)}
+  #jarList li.only{outline:1.5px solid var(--orange)}
+  #jarList li.gone{cursor:default;opacity:.6}
+  #jarList li.sep{display:block;margin:8px 0 3px;padding:3px 4px;border-top:1px solid var(--line);border-radius:0;font:600 9.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:default}
+  #jarList li.sep:hover{background:none}
+  #jarList .no{font:10px var(--mono);color:var(--mute);text-align:right}
+  #jarList .sw{width:14px;height:14px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+  #jarList .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #jarList .nm em{font:normal 9.5px var(--mono);color:var(--mute)}
+  #jarList .tg{font:10px var(--mono);color:var(--mute)}
+  #btnApprove{width:100%;margin-top:10px;padding:11px 0;font-weight:600;letter-spacing:.12em}
+  #btnApprove:disabled{opacity:.45;cursor:default}
+  @media (max-width: 760px), (max-height: 500px) {                                  /* a phone: the picture a row under the sketch */
+    .gf-shelf{order:3;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px}
+  }
+</style>
+</head>
+<body class="adjust arm3 nolan type love alu ccd" data-tab="genv">
+<!-- Rembrandt · GEN-V, GOGH's generator (the owner, 2026-11-22: "we will also need a new picture generator as GEN-F, with the same functionality … let us call it
+     GEN-V (as Vincent :)"). GEN-F's page: a picture in, the format, the colours on three screens, the ground; its sketch GOGH's dabs — every column cut into dabs of
+     ≈ 20 mm, one jar each, upright, as bricks; APPROVE saves it for GOGH (GOGH/generator/genvpic.py). No motion blur. Moves nothing on the machine.
+     src/goghplan.js, src/genv.js. -->
+<header class="top">
+  <div class="brand">
+    <span class="logo">REMBRANDT</span>
+    <span class="ver">v.1.2.6</span>
+    <nav class="tabs" aria-label="Pages">
+      <a href="gogh.html">GOGH</a>
+      <a href="genv.html" class="on">GEN-V</a>
+      <a href="calibration.html">Calibration</a>
+      <a href="library.html">Library</a>
+      <a href="prefs.html" class="gear" title="Preferences" aria-label="Preferences"></a>
+    </nav>
+    <script src="src/tabs.js"></script>   <!-- the row as Preferences have it (src/tabs.js) -->
+  </div>
+  <div class="top-mid"></div>
+</header>
+
+<main>
+  <section class="stage" id="stage"><canvas id="cv"></canvas></section>
+  <aside class="gf-shelf" aria-label="The picture">
+    <h3>The picture</h3>
+    <label class="gf-drop" id="drop" title="The illustration to sketch: a click opens it, or drop it here — JPG or PNG; its plain ground, if it has one, stays bare canvas">
+      <span id="dropText">📂 Open or drop<br>JPG · PNG</span>
+      <input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden>
+    </label>
+    <p class="gf-src" id="srcRead"></p>
+    <!-- the ground (the owner, 2026-11-16, of a picture on black: "add a switch of the ground from white to black; it need not be painted, only the preview on a
+         black ground, as an option; not from scratch: it is called GROUND and lies in OPM-N, we made it already"): the bare canvas's colour on the screen -->
+    <div class="gf-ground" id="bgTools" title="The ground, the bare canvas's colour on the screen: Sketch, Drag and Picture show it. Not painted: a canvas of that colour, laid as it is">
+      <span class="glab">ground</span>
+      <button class="gk" data-bg="white" title="Ground: the white canvas" aria-label="White ground"></button>
+      <button class="gk" data-bg="black" title="Ground: a black canvas — not painted, the preview only" aria-label="Black ground"></button>
+    </div>
+  </aside>
+  <aside class="panel">
+    <section class="sec">
+      <h3>Format <span class="hint">the canvas, cm</span></h3>
+      <div class="gf-formats" id="formats"></div>
+      <p class="read" id="fieldRead"></p>
+    </section>
+    <section class="sec">
+      <h3>Colours <span class="hint">jars asked, 10 … 100</span> <span id="lamp"></span></h3>
+      <div class="gf-count"><b id="kNow">20</b><span id="kSay"></span></div>
+      <input class="slider" type="range" id="kSl" min="10" max="100" step="1" value="20" aria-label="Colours">
+      <div class="gf-marks" id="kMarks" aria-label="The three screens"></div>
+      <div class="toggles looks" id="views">
+        <button class="tog" data-view="sketch" title="The sketch: every dab 5 mm wide in its jar's colour, its ends round, as GOGH lays them (flat, no brush model: est.)">Sketch</button>
+        <button class="tog" data-view="drag" title="The dabs as lines in their jars' colours, the brush's way from a stack to the next dotted">Drag</button>
+        <button class="tog" data-view="picture" title="The illustration on the canvas, where the sketch takes it from; its ground off">Picture</button>
+      </div>
+      <p class="read" id="sketchRead"></p>
+            <button class="btn" id="btnApprove" disabled title="APPROVE the screen chosen (a click on it, or on its mark under the slider): the sketch saved as a file — the format, the colours, the jars and every dab — for GOGH's library (GOGH/generator/genvpic.py); put it in Rembrandt/GOGH/">APPROVE</button>
+      <p class="read" id="approveRead"></p>
+    </section>
+    <section class="sec">
+      <h3>The jars <span class="hint" id="jarsHint"></span></h3>
+      <ol id="jarList"></ol>
+    </section>
+  </aside>
+</main>
+
+<footer class="status">
+  <span id="hint">GEN-V — a picture into GOGH's dabs on three screens, each its own colours: a click on one chooses it, the slider moves it, APPROVE takes it. The wheel zooms, a drag moves, a double click fits. Moves nothing on the machine.</span>
+  <span id="stats"></span>
+</footer>
+<script type="module" src="src/genv.js"></script>
+</body>
+</html>

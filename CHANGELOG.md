@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH and GEN-V, painting in dabs and its generator** (2026-11-22; the owner: "in GOGH we copy FORM-G's functionality fully … the one
+  difference: no long strokes! All of them drops of 2 cm"; "a new picture generator as GEN-F, with the same functionality … GEN-V (as Vincent :)";
+  of GEN-V's first sketch: "WOW! Things are heating up :)) a good start :)"). `gogh.html`: FORM-G's page with `data-tab="gogh"` — its library
+  `app/gogh/`, DRAG DABS in DRAG SNAKE's place, every leg a dab (`goghplan.js`), the Drag view's dabs each its own, THE JARS' 🔄 in FORM-G's
+  `jars.json`, the rest FORM-G's; an empty library says so. `genv.html`, `genv.js`: GEN-F's page, its sketch in dabs on three screens, no motion
+  blur, APPROVE into `GOGH/`; `GOGH/generator/genvpic.py` makes it a card. Both after GEN-F in the top row. The first card, on this Mac alone (a
+  brand, as FORM-G's): the cola on 60 × 80 in 2958 dabs, the jars on the table now — FORM-G's cola's colours with his 🔄 — 17 jars, ≈ 9 h (est.).
 - **GOGH's plan: a picture in dabs** (2026-11-22; the owner: FORM-G's second run "takes the painted layer off completely"; the short legs "did
   not spread, because they are short"). `goghplan.js`: every column's stretches of paint cut into dabs of 12 … 24 mm, ≈ 20, by a dynamic programme —
   each the jar nearest its mean, an end near one in the column to its left dearer, so they lie as bricks; the miss carried on (`dabsOf`); a jar's
