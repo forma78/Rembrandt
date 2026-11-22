@@ -2,7 +2,7 @@
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
 import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
-import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabGapOf, dabRunOf, dabWideOf, dabOnScreen } from './goghplan.js';
+import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen } from './goghplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -48,8 +48,12 @@ if (S.view === 'contour' && !document.querySelector('[data-view="contour"]')) S.
 // mm/s), the legs' Speed untouched (est.)
 if (!S.travelV) { if (!(S.travel < 180)) S.travel = TRAVEL; S.travelV = 1; save(); }
 // GOGH's sliders (goghplan.js, DAB_UI; the owner, 2026-11-22): the gap and the run its plan's, the width its screen's, a brush's own (est.)
-if (DABS) { S.dabGap = dabGapOf(S.dabGap); S.dabRun = dabRunOf(S.dabRun); S.dabWide = S.dabWide && typeof S.dabWide === 'object' ? S.dabWide : {}; }
-const dabWide = () => dabWideOf(S.dabWide?.[PIC?.pitch], PIC?.pitch);
+// the gap a brush's own since 2026-11-22, the evening, as the width (the 2 mm's −0.2, the owner's): one gap before it, kept for the 3 and the 5 it was set on
+if (DABS) {
+  S.dabRun = dabRunOf(S.dabRun); S.dabWide = S.dabWide && typeof S.dabWide === 'object' ? S.dabWide : {}; S.dabGaps = S.dabGaps && typeof S.dabGaps === 'object' ? S.dabGaps : {};
+  if (typeof S.dabGap === 'number') { S.dabGaps = { 3: S.dabGap, 5: S.dabGap, ...S.dabGaps }; delete S.dabGap; }
+}
+const dabWide = () => dabWideOf(S.dabWide?.[PIC?.pitch], PIC?.pitch), dabGap = () => dabGapOf(S.dabGaps?.[PIC?.pitch], PIC?.pitch);
 S.frames = Object.fromEntries(Object.entries(S.frames ?? {}).map(([k, f]) => [k, cleanFrame(f)]).filter(([, f]) => f));
 
 // ---------- the library ----------
@@ -68,7 +72,7 @@ const opts0 = () => ({ ...DEFAULTS, speed: S.speed, travel: S.travel, tail: S.ta
 // where the canvas may lie: from plotRun's carriage, the path not yet pressed into a wall
 const RANGE = new Map();
 function rangeOf() {
-  const key = JSON.stringify([S.speed, S.tail, S.dipEvery, S.dipLap, S.over, S.press, DABS ? [S.dabGap, S.dabRun] : 0]), had = RANGE.get(pk());
+  const key = JSON.stringify([S.speed, S.tail, S.dipEvery, S.dipLap, S.over, S.press, DABS ? [dabGap(), S.dabRun] : 0]), had = RANGE.get(pk());
   if (had?.key === key) return had;
   const P = plan(), R = rowsOf(PIC, P, S.dipEvery, S.dipLap, CANON_RUN, R3RUN), r = plotRun({ ...opts0(), rows: R.ps.length }, R.groups.map(g => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: null })));
   const out = { key, ...placeRange(PIC, r.carriage, reach()) };
@@ -115,14 +119,14 @@ const PLAN = new Map(), RUNS = new Map();
 // written in the journal's DRAG (`join`), so FROM THE BREAK makes a run of before it again as it ran, its cells one by one
 let JOIN_RUN = 'all', STROKE_RUN = STROKE_DROPS;   // and a long stroke's drops (formgplan.js, STROKE_DROPS, 2026-11-17's evening), the journal's `strokeDrops`
 function plan() {                                                                     // the list's colours
-  const key = JSON.stringify([S.over, S.dipLap, CANON_RUN ? S.dipEvery : 0, JOIN_RUN, STROKE_RUN, DABS ? [S.dabGap, S.dabRun] : 0]);
-  if (PLAN.get(pk())?.key !== key) PLAN.set(pk(), { key, passes: DABS ? passesV(PIC, { gap: S.dabGap, run: S.dabRun }) : passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : { join: JOIN_RUN, strokeDrops: STROKE_RUN }) }) });
+  const key = JSON.stringify([S.over, S.dipLap, CANON_RUN ? S.dipEvery : 0, JOIN_RUN, STROKE_RUN, DABS ? [dabGap(), S.dabRun] : 0]);
+  if (PLAN.get(pk())?.key !== key) PLAN.set(pk(), { key, passes: DABS ? passesV(PIC, { gap: dabGap(), run: S.dabRun }) : passesOf(PIC, { over: S.over, lap: S.dipLap, ...(CANON_RUN ? { canon: true, every: S.dipEvery } : { join: JOIN_RUN, strokeDrops: STROKE_RUN }) }) });
   return PLAN.get(pk()).passes;
 }
 // the run from a line of the list on; the pause before the second layer's first says what it is
 function paintRun(from = 0) {
   if (!PIC) return EMPTY;
-  const mk = marksNow(), key = JSON.stringify([pk(), S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from, mk ? mk.strips.map(q => q.no) : 0, JOIN_RUN, STROKE_RUN, DABS ? [S.dabGap, S.dabRun] : 0]);
+  const mk = marksNow(), key = JSON.stringify([pk(), S.speed, S.travel, S.tail, S.wipe, S.press, S.dipEvery, S.dipLap, S.over, hereNow(), dipCup(), from, mk ? mk.strips.map(q => q.no) : 0, JOIN_RUN, STROKE_RUN, DABS ? [dabGap(), S.dabRun] : 0]);
   if (RUNS.has(key)) return RUNS.get(key);
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
@@ -196,7 +200,7 @@ async function start(key, blocks, info, log) {
   } catch { $('#runState').textContent = 'start rembrandt.py'; }
 }
 // rembrandt.py knows OPM-N's brush by its page (PENCIL_PAGES: the elbow may rest on the canvas just above its aim): FORM-G's the same brush, so the same page, its own `tab` in the journal; rembrandt.py as it was
-const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...(CANON_RUN ? {} : { join: JOIN_RUN, strokeDrops: STROKE_RUN }), ...(DABS ? { dabs: { brush: PIC.pitch, gap: S.dabGap, run: S.dabRun, wide: dabWide() } } : {}), ...o });
+const logOf = (o = {}) => ({ page: 'opmn', tab: TAB, label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''}`, here: hereNow(), ...(PIC.frame ? { frame: { ...PIC.frame, edgeLeft: frameHome().left, edgeBottom: frameHome().bottom } } : {}), ...(CANON_RUN ? {} : { join: JOIN_RUN, strokeDrops: STROKE_RUN }), ...(DABS ? { dabs: { brush: PIC.pitch, gap: dabGap(), run: S.dabRun, wide: dabWide() } } : {}), ...o });
 // the iPhone's rows; every colour its line in the whole list, n of `of`, and a run from a later line `whole`: the picture's mm before it, the run's, all of it, the whole's seconds —
 // so the remote's PROGRESS reads the whole picture, as the page's (rembrandt.py passes a colour on as it is)
 // A run from the break (C, cutOf): the board's per cent is of what is left after the cut, so `whole` takes the run's share before it into mm0 — linear, as the remote reads it
@@ -224,7 +228,7 @@ $('#btnDrag').onclick = async () => {
   if (walls(R)) return warn(walls(R));
   S.view = 'drag'; RUN_PRESS = S.press; save(); showKeys(); kick();
   await start('drag', R.blocks, { seconds: R.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from },
-    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R, from), from, full: R.blocks.length, ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
+    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: setNow(), cup: dipCup(), travel: S.travel, remote: remoteRows(R, from), from, full: R.blocks.length, ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(R.seconds) }));
 };
 
 // ---------- FROM THE BREAK ----------
@@ -237,6 +241,8 @@ $('#btnDrag').onclick = async () => {
 // the part before it); a flight whose stretch had painted all before the break, the next one. Before it, the run's own opening (the elbow up, the shoulder at 0,
 // the wrist at 0). Nothing before the cut is painted again; the jar the break was in goes in the cup first.
 const ENDS = ['done', 'stopped', 'error'], PLAN_KEYS = ['speed', 'travel', 'tail', 'wipe', 'press', 'dipEvery', 'dipLap', 'over', 'dabGap', 'dabRun'];
+// the settings a run is written with in the journal: the page's, its place, GOGH's gap the picture's brush's (a brush's own since 2026-11-22), so FROM THE BREAK compares it
+const nowOf = q => q === 'dabGap' && DABS ? dabGap() : S[q], setNow = () => ({ ...S, place: placeNow(), ...(DABS ? { dabGap: dabGap() } : {}) });
 async function lastBreak() {
   let text;
   try { const r = await fetch('/logs/runs.jsonl', { cache: 'no-store' }); if (!r.ok) return null; text = await r.text(); } catch { return null; }
@@ -297,7 +303,7 @@ function breakPlanAs(B) {
   if (k < 0) return no('it broke off after the last row: nothing is left to paint');
   const C = cutOf(R, k), row = R.blocks[k].row, info = R.rows[row - 1] ?? {}, line = info.pass ?? 0, jar = name(R.passes[line]);
   const cell = info.cells?.[0]?.[0], later = R.passes.slice(line + 1).map(name);
-  const diffs = PLAN_KEYS.filter(q => set[q] !== undefined && set[q] !== S[q]).map(q => `${q} ${set[q]} then, ${S[q]} now`);
+  const diffs = PLAN_KEYS.filter(q => set[q] !== undefined && set[q] !== nowOf(q)).map(q => `${q} ${set[q]} then, ${nowOf(q)} now`);
   const pct = C.paint ? C.before / C.paint * 100 : 0;
   const say = `The journal: ${B.at}, ${B.why} — at step ${at + 1} of ${full}, ${R.rows[(R.blocks[at]?.row || row) - 1]?.label ?? info.label ?? ''}.`
     + `\n\nOn from step ${k + 1}: ${info.label ?? `row ${row}`}. Put ${jar} in the cup: the elbow up, the shoulder at 0, then the brush flies there from home, dips and paints on — ${jar} to its end${later.length ? `, then ${later.length} line${later.length === 1 ? '' : 's'} more: ${later.join(', ')}` : ''}. Nothing before it is painted again; ${fmt(pct, 0)} % of this run's paint lies behind it.`
@@ -313,7 +319,7 @@ async function fromBreak(BP) {
   const { R, C, from, B } = BP;
   S.view = 'drag'; RUN_PRESS = S.press; save(); showKeys(); kick();
   await start('drag', C.blocks, { seconds: C.seconds, rows: R.rows, passes: R.passes.map(q => q.pencil), from, cut: C, full: R.blocks },
-    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: { ...S, place: placeNow() }, cup: dipCup(), travel: S.travel, remote: remoteRows(R, from, C),
+    logOf({ pass: 'drag', ...(pressOk() ? { pressed_bottom_mm: Math.round(pressOk() * 10) / 10 } : {}), settings: setNow(), cup: dipCup(), travel: S.travel, remote: remoteRows(R, from, C),
       from, full: R.blocks.length, cut: C.offset, pre: C.pre, ...(CANON_RUN ? {} : { join: B.st.join ?? null, strokeDrops: B.st.strokeDrops ?? null }), resume: { of: B.st.at, broke: B.at, at_block: BP.at, from_block: BP.k, row: BP.row, colour: BP.jar, cell: BP.cell ?? null },
       ...(from ? { from_colour: jarOf(R.passes[0].pencil)?.name ?? R.passes[0].pencil } : {}), estimate_s: Math.round(C.seconds) }));
 }
@@ -348,7 +354,7 @@ if ($('#btnBw')) $('#btnBw').onclick = async () => {
   const at = penAt();
   S.view = 'contour'; RUN_PRESS = S.press; save(); showKeys(); kick();
   await start('bw', R.blocks, { seconds: R.seconds, rows: R.rows, passes: [], bw: R.kind },
-    logOf({ pass: 'draw bw', label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''} · DRAW BW, the pen · ${R.kind === 'all' ? 'every border' : 'the outline'}`, settings: { ...S, place: placeNow() }, debug: { lines: c.dbg.lines, downs: c.dbg.downs, ups: c.dbg.ups, press: at.press, glide: at.glide }, estimate_s: Math.round(R.seconds) }));
+    logOf({ pass: 'draw bw', label: `${NAME} · ${PIC.title}${PIC.frame ? ` · frame ${frameSize()}` : ''} · DRAW BW, the pen · ${R.kind === 'all' ? 'every border' : 'the outline'}`, settings: setNow(), debug: { lines: c.dbg.lines, downs: c.dbg.downs, ups: c.dbg.ups, press: at.press, glide: at.glide }, estimate_s: Math.round(R.seconds) }));
 };
 // the second layer in words: a late jar first (the orange, Jar 6: README's canon, 2026-11-11), then the jars again
 // and a jar `last` after them (v.4's shadow, 2026-11-13)
@@ -504,19 +510,19 @@ function setElbow(deg) {
 }
 $('#brushSl').oninput = e => setElbow(+e.target.value);
 // GOGH's sliders: the gap and the run into the plan (the next DRAG; a run on keeps its own), the width onto the screen
-const DAB_SAY = { gap: v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)} mm`, wide: v => `${fmt(v, 1)} mm`, run: v => `${20 + 2 * v} mm` };
+const DAB_SAY = { gap: v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)} mm`, wide: v => `${fmt(v, 1)} mm`, run: v => `${dabOf(PIC?.pitch).aim + 2 * v} mm` };   // a standard dab of the picture's brush with its run on
 function showDabs() {
   if (!DABS || !$('#gapSl')) return;
-  const v = { gap: S.dabGap, wide: dabWide(), run: S.dabRun };
+  const v = { gap: dabGap(), wide: dabWide(), run: S.dabRun };
   for (const k of ['gap', 'wide', 'run']) { const sl = $(`#${k}Sl`); if (document.activeElement !== sl) sl.value = v[k]; $(`#${k}Now`).textContent = DAB_SAY[k](v[k]); }
-  $('#dabRead').innerHTML = PIC ? `The brush <b>${fmt(PIC.pitch, 0)} mm</b>, the picture's (GEN-V cuts it for one). Gap ${DAB_SAY.gap(S.dabGap)} and run +${S.dabRun} · +${S.dabRun} mm: live during a DRAG, from the next dab; the width is the screen's alone (est.).` : '';
+  $('#dabRead').innerHTML = PIC ? `The brush <b>${fmt(PIC.pitch, 0)} mm</b>, the picture's (GEN-V cuts it for one). Gap ${DAB_SAY.gap(dabGap())} and run +${S.dabRun} · +${S.dabRun} mm: live during a DRAG, from the next dab; the width is the screen's alone (est.).` : '';
 }
 function setDab(k, v) {
   if (!DABS) return;
-  const was = k === 'gap' ? S.dabGap : k === 'run' ? S.dabRun : dabWide();
-  const now = k === 'gap' ? dabGapOf(v) : k === 'run' ? dabRunOf(v) : dabWideOf(v, PIC?.pitch);
+  const was = k === 'gap' ? dabGap() : k === 'run' ? S.dabRun : dabWide();
+  const now = k === 'gap' ? dabGapOf(v, PIC?.pitch) : k === 'run' ? dabRunOf(v) : dabWideOf(v, PIC?.pitch);
   if (now === was) return showDabs();
-  if (k === 'gap') S.dabGap = now; else if (k === 'run') S.dabRun = now; else S.dabWide = { ...S.dabWide, [PIC.pitch]: now };
+  if (k === 'gap') S.dabGaps = { ...S.dabGaps, [PIC.pitch]: now }; else if (k === 'run') S.dabRun = now; else S.dabWide = { ...S.dabWide, [PIC.pitch]: now };
   if (k === 'wide') { save(); showDabs(); kick(); return; }
   settle();
   if (lastSt && LIVE.includes(lastSt.state) && !swapLive(k)) warn(`${k === 'gap' ? 'Gap' : 'Run'}: from the next DRAG — the run on is not this page's DRAG.`);
@@ -529,12 +535,12 @@ function swapLive(k) {
   if (!DABS || VIEW || RUN_KEY !== 'drag' || !RUN_INFO || S.pic !== S.runPic) return false;
   clearTimeout(swapT);
   swapT = setTimeout(async () => {
-    const what = k === 'gap' ? `Gap ${DAB_SAY.gap(S.dabGap)}` : `Run ${DAB_SAY.run(S.dabRun)}`;
+    const what = k === 'gap' ? `Gap ${DAB_SAY.gap(dabGap())}` : `Run ${DAB_SAY.run(S.dabRun)}`;
     const R = paintRun(RUN_INFO.from ?? 0), C = RUN_INFO.cut ? cutOf(R, RUN_INFO.cut.k) : null, B = C ? C.blocks : R.blocks;
     if (!lastSt || !LIVE.includes(lastSt.state)) return;
     if (B.length !== lastSt.blocks) return warn(`${what}: not live — the plan here is not the one that runs (${B.length} steps, ${lastSt.blocks} there); from the next DRAG.`);
     try {
-      const r = await fetch('/run/swap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: B, log: { by: k, dabs: { gap: S.dabGap, run: S.dabRun } } }) });
+      const r = await fetch('/run/swap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ blocks: B, log: { by: k, dabs: { gap: dabGap(), run: S.dabRun } } }) });
       if (r.status === 404) return warn(`${what}: not live — restart rembrandt.py (it learnt /run/swap on 2026-11-22); from the next DRAG.`);
       const q = await r.json().catch(() => null);
       if (!r.ok || !q?.ok) return warn(`${what}: not live — ${esc(q?.message ?? r.status)}; from the next DRAG.`);
@@ -545,7 +551,7 @@ function swapLive(k) {
   return true;
 }
 document.querySelectorAll('.dabsl input[data-dab]').forEach(sl => { sl.oninput = () => setDab(sl.dataset.dab, +sl.value); });
-document.querySelectorAll('.dabsl button[data-dab]').forEach(b => { b.onclick = () => { const k = b.dataset.dab, v = k === 'gap' ? S.dabGap : k === 'run' ? S.dabRun : dabWide(); setDab(k, v + +b.dataset.step); }; });
+document.querySelectorAll('.dabsl button[data-dab]').forEach(b => { b.onclick = () => { const k = b.dataset.dab, v = k === 'gap' ? dabGap() : k === 'run' ? S.dabRun : dabWide(); setDab(k, v + +b.dataset.step); }; });
 document.querySelectorAll('#elbowBrush [data-btrim]').forEach(b => { b.onclick = () => setElbow(S.press + +b.dataset.btrim); });
 
 // ---------- the screen: the canvas as it lies on the machine, the reach over it ----------
@@ -588,7 +594,7 @@ function drawDabs(c) {
     const j = jarOf(P.pencil), own = PIC.jars.find(q => q.id === (j.jar ?? j.id)) ?? j;
     c.strokeStyle = j.hex; c.globalAlpha = !only || only === P.pencil ? 1 : 0.1;
     c.beginPath();
-    for (const q of own.cells) for (const [x, a, b] of q.legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), S.dabGap, w); c.moveTo(sx(x), sy(t)); c.lineTo(sx(x), sy(u)); }
+    for (const q of own.cells) for (const [x, a, b] of q.legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), dabGap(), w); c.moveTo(sx(x), sy(t)); c.lineTo(sx(x), sy(u)); }
     c.stroke();
   }
   c.globalAlpha = 1;
@@ -830,7 +836,7 @@ function readOf(id) {
   try {
     const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n0 = P.filter(q => q.layer === 0).length, n1 = P.filter(q => q.layer <= 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
     const out = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${all.reduce((a, q) => a + q.legs.length, 0)} legs.`
-      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + (DABS ? ` Dabs: every leg a dab of its own, ≈ ${PIC.dab?.aim ?? 20} mm, the brush ${fmt(PIC.pitch, 0)} mm, a dip each, one stroke down, nothing after it; gap ${DAB_SAY.gap(S.dabGap)}, run +${S.dabRun} · +${S.dabRun} mm.` : '') + (DABS ? '' : ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way${P.some(q => q.fill === 'mixed') ? `; ${P.filter(q => q.fill === 'mixed').length} lines of both, each cell its own colour's` : ''}.`)
+      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + (DABS ? ` Dabs: every leg a dab of its own, ≈ ${PIC.dab?.aim ?? 20} mm, the brush ${fmt(PIC.pitch, 0)} mm, a dip each, one stroke down, nothing after it; gap ${DAB_SAY.gap(dabGap())}, run +${S.dabRun} · +${S.dabRun} mm.` : '') + (DABS ? '' : ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way${P.some(q => q.fill === 'mixed') ? `; ${P.filter(q => q.fill === 'mixed').length} lines of both, each cell its own colour's` : ''}.`)
       + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${layer2Say(P)}, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
       + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
     READS.set(id, out);

@@ -2,8 +2,8 @@
 // GEN-F, with the same functionality … let us call it GEN-V (as Vincent :)". GEN-F's page (genf.js) as it is — the format, the colours, three screens side by
 // side, the ground, APPROVE — its sketch GOGH's: every column cut into dabs of ≈ 20 mm, one jar each, upright, as bricks. No motion blur: a dab is a dab.
 // Moves nothing on the machine: GOGH's plotRun only counts the run's time, the cup at hand, the canvas in the middle of the reach (est.).
-import { GEN, GEN_FORMATS, formatOf, fieldOf, bareMask, boxOf, binsOf } from './genfplan.js';
-import { DAB, DAB_UI, sketchV, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabWideOf, brushOf } from './goghplan.js';
+import { GEN, fieldOf, bareMask, boxOf, binsOf } from './genfplan.js';
+import { DAB_UI, GENV_FORMATS, formatV as formatOf, dabOf, sketchV, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabWideOf, brushOf } from './goghplan.js';
 import { rowsOf, R3, FORMG } from './formgplan.js';
 import { plotRun, DEFAULTS, ELBOW_HOVER } from './strokes.js';
 import { reach } from './machine.js';
@@ -15,16 +15,19 @@ const $ = s => document.querySelector(s), KEEP = 'rembrandt.genv.v01';
 const fmt = (v, d = 1) => Number(v).toFixed(d), esc = v => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const hm = t => { const m = Math.round((t || 0) / 60); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 const SLOTS = [12, 20, 30];   // fewer than GEN-F's: a dab is a whole dip of one jar, the eye mixes them (est.)
-const S = { format: GEN_FORMATS[0].id, slots: SLOTS, focus: 1, view: 'sketch', ground: 'white', brush: GEN.pitch, gap: DAB.gap, wide: {} };   // the brush, mm; the gap; the width on the screen, a brush's own
+const S = { format: '40x40', slots: SLOTS, focus: 1, view: 'sketch', ground: 'white', brush: GEN.pitch, gaps: {}, wide: {} };   // the brush, mm; the gap and the width on the screen, a brush's own
 const BG = { white: '#FBFAF7', black: '#161514' };   // OPM-N's ground, GEN-F's: the bare canvas on the screen, not painted
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEEP) || 'null') ?? {}); } catch { }
-if (!GEN_FORMATS.some(f => f.id === S.format)) S.format = GEN_FORMATS[0].id;
+if (!GENV_FORMATS.some(f => f.id === S.format)) S.format = '40x40';
 if (!BG[S.ground]) S.ground = 'white';
 const kOf = v => Math.min(GEN.colours[1], Math.max(GEN.colours[0], Math.round(+v) || 20));
 S.slots = [0, 1, 2].map(i => kOf(Array.isArray(S.slots) ? S.slots[i] : SLOTS[i]));
 S.focus = [0, 1, 2].includes(S.focus) ? S.focus : 1;
-S.brush = brushOf(S.brush); S.gap = dabGapOf(S.gap); S.wide = S.wide && typeof S.wide === 'object' ? S.wide : {};
-const wideNow = () => dabWideOf(S.wide[S.brush], S.brush);
+S.brush = brushOf(S.brush); S.wide = S.wide && typeof S.wide === 'object' ? S.wide : {};
+// the gap a brush's own since 2026-11-22, the evening (the 2 mm's −0.2, the owner's): one gap before it, kept for the 3 and the 5 it was set on
+S.gaps = S.gaps && typeof S.gaps === 'object' ? S.gaps : {};
+if (typeof S.gap === 'number') { S.gaps = { 3: S.gap, 5: S.gap, ...S.gaps }; delete S.gap; }
+const wideNow = () => dabWideOf(S.wide[S.brush], S.brush), gapNow = () => dabGapOf(S.gaps[S.brush], S.brush);
 const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catch { } };
 
 // ---------- the picture, kept in this browser so a reload keeps it (GEN-F's its own) ----------
@@ -89,7 +92,7 @@ function buildSlot(i) {
 const DIP_S = 5.5;   // a dip from the cup at hand, s (GEN-F's, est.): a new frame's canvas has no Here, its dips added
 function runOf(pic, frame = formatOf(S.format).frame) {
   try {
-    const P = passesV(pic, { gap: S.gap }), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf }), W = reach();
+    const P = passesV(pic, { gap: gapNow() }), R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf }), W = reach();
     const here = { x: (W.x.min + W.x.max) / 2, y: (W.y.min + W.y.max) / 2 };
     const r = plotRun({ ...DEFAULTS, speed: 25, travel: 100, tail: 3, lift: true, ink: true, snake: true, pause: false, cup: cupOf({ hand: { on: true } }), hover: ELBOW_HOVER, press: 0, noDipUnder: 0, rows: R.ps.length, ...(frame ? {} : { here }) },
       R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: k ? 'the next jar' : null })));
@@ -112,11 +115,11 @@ function estimateAll() {
 // ---------- the panel ----------
 function panel() {
   const f = formatOf(S.format), F = fieldOf(f), SK = cur();
-  $('#formats').innerHTML = GEN_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}${q.frame ? ' frame' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as GOGH lays it${q.frame ? ` — for a new frame: today the brush reaches ${GEN.across} × ${GEN.along} mm; a sketch to look at, nothing to run` : ''}">${q.w / 10} × ${q.h / 10}${q.frame ? '<i>new frame</i>' : ''}</button>`).join('');
+  $('#formats').innerHTML = GENV_FORMATS.map(q => `<button class="btn${q.id === S.format ? ' on' : ''}${q.frame ? ' frame' : ''}" data-f="${q.id}" title="A canvas ${q.w / 10} × ${q.h / 10} cm: ${q.w / 10} across Y, ${q.h / 10} along X, as GOGH lays it${q.frame ? ` — for a new frame: today the brush reaches ${GEN.across} × ${GEN.along} mm; a sketch to look at, nothing to run` : ''}${q.test ? ' — for tests, LAB\'s canvas' : ''}">${q.w / 10} × ${q.h / 10}${q.frame ? '<i>new frame</i>' : q.test ? '<i>tests</i>' : ''}</button>`).join('');
   $('#fieldRead').innerHTML = (f.frame ? `<span class="warn">For a new frame:</span> today the brush reaches ${GEN.across} × ${GEN.along} mm; the field here the canvas itself, 30 mm in, ${F.w} × ${F.h} mm (est.)` : `The field the brush reaches on it: ${F.w} × ${F.h} mm (est.)`)
     + (SK ? `; the picture <b>${SK.W} × ${SK.R} mm</b>, ${SK.fit.N} columns ${SK.fit.pitch} mm apart, in the middle.` : '.');
-  $('#brushes').innerHTML = DAB_UI.brush.map(b => `<button class="btn${b === S.brush ? ' on' : ''}" data-b="${b}" title="The brush ${b} mm: the picture's columns ${b} mm apart, every dab ${b} mm wide — ${b === 5 ? 'FORM-G\'s, the brush on the machine now' : 'the new brushes, finer, more dabs and more time'}">${b} mm</button>`).join('');
-  for (const [k, v, say] of [['gap', S.gap, x => `${x > 0 ? '+' : x < 0 ? '−' : ''}${fmt(Math.abs(x), 1)} mm`], ['wide', wideNow(), x => `${fmt(x, 1)} mm`]]) { const sl = $(`#${k}Sl`); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = say(v); }
+  $('#brushes').innerHTML = DAB_UI.brush.map(b => `<button class="btn${b === S.brush ? ' on' : ''}" data-b="${b}" title="The brush ${b} mm: the picture's columns ${b} mm apart, every dab ${b} mm wide, ${dabOf(b).min} … ${dabOf(b).max} mm long, ≈ ${dabOf(b).aim} — ${b === 5 ? 'FORM-G\'s, the brush on the machine now' : b === 2 ? 'the sharpest of the new brushes (GOGH/IMG_3395): it holds little paint, its longest stroke 15 mm (IMG_3390)' : 'the new brushes, finer, more dabs and more time'}">${b} mm</button>`).join('');
+  for (const [k, v, say] of [['gap', gapNow(), x => `${x > 0 ? '+' : x < 0 ? '−' : ''}${fmt(Math.abs(x), 1)} mm`], ['wide', wideNow(), x => `${fmt(x, 1)} mm`]]) { const sl = $(`#${k}Sl`); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = say(v); }
   $('#kNow').textContent = S.slots[S.focus]; $('#kSl').value = S.slots[S.focus];
   $('#kSay').textContent = `screen ${S.focus + 1}${SK ? ` → ${SK.pic.jars.length} jars` : ''}`;
   const lo = GEN.colours[0], hi = GEN.colours[1];
@@ -130,7 +133,7 @@ function panel() {
   if (!SK) { $('#sketchRead').innerHTML = 'Open a picture on the left.'; $('#jarList').innerHTML = ''; $('#jarsHint').textContent = ''; $('#stats').textContent = `${f.w / 10} × ${f.h / 10} cm`; return; }
   const long = Math.max(f.w, f.h), e = SK.est, n = SK.pic.jars.length;
   $('#sketchRead').innerHTML = `<b>Screen ${S.focus + 1}:</b> <b>${SK.asked}</b> colours asked, ${SK.made} paint a dab; <b>${n} jars</b> by the canon of the jars (a jar with less line than the canvas's long side, ${long / 10} cm, into its nearest; ΔE 25 at most)`
-    + `${SK.kept.length ? `, ${SK.kept.length} short kept, nothing near` : ''}. <b>${SK.dabs} dabs</b> of the ${SK.fit.pitch} mm brush, ${DAB.min} … ${DAB.max} mm, ≈ ${DAB.aim}, a dip each; `
+    + `${SK.kept.length ? `, ${SK.kept.length} short kept, nothing near` : ''}. <b>${SK.dabs} dabs</b> of the ${SK.fit.pitch} mm brush, ${dabOf(SK.fit.pitch).min} … ${dabOf(SK.fit.pitch).max} mm, ≈ ${dabOf(SK.fit.pitch).aim}, a dip each; `
     + (e ? (e.fail ? `<span class="warn">the time not counted: ${esc(e.fail)}</span>` : `${fmt(e.mm / 1000, 1)} m of brush, ${e.lines} lines of the list, ${e.dips} dips, <b>≈ ${hm(e.seconds)}</b> on the machine, the jars' changes by hand apart.`) : 'counting the time …')
     + ' A sketch: every dab flat in its jar\'s colour, no brush model (est.).';
   $('#jarsHint').textContent = `${n}, light to dark`;
@@ -148,7 +151,7 @@ const cellsOf = rc => { const n = BASE && S.view !== 'picture' ? 3 : 1, w = rc.w
 // a dab as GOGH lays it, flat: the brush's width, its ends round, a hair of the canvas between two in a column (est.)
 function dabsPath(g, j, X, Y, w) {
   g.beginPath();
-  for (const c of j.cells) for (const [x, top, bot] of c.legs) { const [a, b] = dabOnScreen(top, bot, S.gap, w); g.moveTo(X(x), Y(a)); g.lineTo(X(x), Y(b)); }
+  for (const c of j.cells) for (const [x, top, bot] of c.legs) { const [a, b] = dabOnScreen(top, bot, gapNow(), w); g.moveTo(X(x), Y(a)); g.lineTo(X(x), Y(b)); }
 }
 function draw() {
   const cv = $('#cv'), dpr = devicePixelRatio || 1, rc = cv.getBoundingClientRect();
@@ -225,12 +228,12 @@ cv.addEventListener('dblclick', () => { V.fit = true; kick(); });
 $('#formats').onclick = e => { const b = e.target.closest('[data-f]'); if (!b || b.dataset.f === S.format) return; S.format = b.dataset.f; save(); V.fit = true; build(); };
 $('#brushes').onclick = e => { const b = e.target.closest('[data-b]'); if (!b || +b.dataset.b === S.brush) return; S.brush = brushOf(b.dataset.b); save(); V.fit = true; pick = null; build(); };
 function setDab(k, v) {
-  const now = k === 'gap' ? dabGapOf(v) : dabWideOf(v, S.brush);
-  if (k === 'gap') { if (now === S.gap) return panel(); S.gap = now; SL.forEach(sk => { if (sk) sk.est = null; }); save(); panel(); kick(); estimateAll(); }
+  const now = k === 'gap' ? dabGapOf(v, S.brush) : dabWideOf(v, S.brush);
+  if (k === 'gap') { if (now === gapNow()) return panel(); S.gaps = { ...S.gaps, [S.brush]: now }; SL.forEach(sk => { if (sk) sk.est = null; }); save(); panel(); kick(); estimateAll(); }
   else { if (now === wideNow()) return panel(); S.wide = { ...S.wide, [S.brush]: now }; save(); panel(); kick(); }
 }
 document.querySelectorAll('.dabsl input[data-dab]').forEach(sl => { sl.oninput = () => setDab(sl.dataset.dab, +sl.value); });
-document.querySelectorAll('.dabsl button[data-dab]').forEach(b => { b.onclick = () => setDab(b.dataset.dab, (b.dataset.dab === 'gap' ? S.gap : wideNow()) + +b.dataset.step); });
+document.querySelectorAll('.dabsl button[data-dab]').forEach(b => { b.onclick = () => setDab(b.dataset.dab, (b.dataset.dab === 'gap' ? gapNow() : wideNow()) + +b.dataset.step); });
 $('#kSl').oninput = () => { $('#kNow').textContent = $('#kSl').value; };
 $('#kSl').onchange = () => { S.slots[S.focus] = kOf($('#kSl').value); save(); buildSlot(S.focus); };
 $('#kMarks').onclick = e => { const b = e.target.closest('[data-slot]'); if (b) choose(+b.dataset.slot); };
@@ -250,17 +253,17 @@ export function approvalOf(src, sk, s, when = new Date()) {
   return {
     tool: 'GEN-V', note: 'A sketch in dabs the owner approved, for GOGH: the format, the colours, the jars and every dab. Flat colours, no brush model (est.). GOGH/generator/genvpic.py makes it a card of GOGH\'s library.',
     approved: when.toISOString(), image: { name: src.name, w: src.w, h: src.h, box: [src.box.x, src.box.y, src.box.w, src.box.h].map(v => Math.round(v)), ground: src.ground },
-    format: s.format, colours: sk.k, screen: s.screen, ground: s.ground, brush: sk.fit.pitch, gap: s.gap, wide: s.wideNow, made: sk.made, picture_mm: [sk.W, sk.R], columns: sk.fit.N, left: sk.fit.left, top: sk.fit.top,
+    format: s.format, colours: sk.k, screen: s.screen, ground: s.ground, brush: sk.fit.pitch, gap: s.gapNow, wide: s.wideNow, made: sk.made, picture_mm: [sk.W, sk.R], columns: sk.fit.N, left: sk.fit.left, top: sk.fit.top,
     jars: sk.pic.jars.map(j => ({ name: j.name, hex: j.hex, dabs: j.cells.reduce((a, c) => a + c.legs.length, 0), line_m: +(sk.lines[j.id] / 1000).toFixed(2) })),
     out: sk.out.map(q => ({ hex: q.hex, line_m: +(q.line / 1000).toFixed(2), into: by[q.into], de: +q.de.toFixed(1) })),
     counts: { dabs: sk.dabs, stacks: sk.cells, ...(sk.est && !sk.est.fail ? { brush_m: +(sk.est.mm / 1000).toFixed(1), lines: sk.est.lines, dips: sk.est.dips, minutes_est: Math.round(sk.est.seconds / 60) } : {}) },
-    gen: GEN, dab: DAB, pic: sk.pic,
+    gen: GEN, dab: dabOf(sk.fit.pitch), pic: sk.pic,
   };
 }
 $('#btnApprove').onclick = async () => {
   const SK = pick !== null ? SL[pick] : null;
   if (!SK) return;
-  const name = `${SRC.name.replace(/\.[^.]+$/, '')} · GEN-V · ${S.format} · ${SK.fit.pitch} mm · ${SK.k}.json`, body = JSON.stringify(approvalOf(SRC, SK, { ...S, screen: pick + 1, wideNow: wideNow() }), null, 1);
+  const name = `${SRC.name.replace(/\.[^.]+$/, '')} · GEN-V · ${S.format} · ${SK.fit.pitch} mm · ${SK.k}.json`, body = JSON.stringify(approvalOf(SRC, SK, { ...S, screen: pick + 1, wideNow: wideNow(), gapNow: gapNow() }), null, 1);
   const said = t => { $('#approveRead').innerHTML = t; };
   if (window.showSaveFilePicker) {
     try {

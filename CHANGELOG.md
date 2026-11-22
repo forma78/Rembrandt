@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GEN-V: the 2 mm brush and a 20 × 20 for tests; GOGH's gap a brush's own** (2026-11-22, the evening; the new brushes come, `GOGH/IMG_3390` …
+  `IMG_3395`; the owner: "add a 2 mm button to GEN-V and a 20 × 20 cm format for tests"; of the 2 mm's strokes by a ruler: "I could not stretch it to
+  20 mm … the longest stroke is 15 mm. But that is enough for us"; "I make the adjustment for exactly the new 2 mm brush", the gap −0.2). The brush
+  2, 3 or 5 mm; the 2 mm's dabs 8 … 15 mm, ≈ 12 (est., `DAB_BRUSH`, `dabOf`), the 3 and the 5 as before. The gap a brush's own on GEN-V and GOGH, as
+  the width: the 2 mm's −0.2, the 3 and the 5 keep the one gap set before; the journal writes the run's own, FROM THE BREAK compares it. Width ·
+  screen from 1 mm. GEN-V's formats `GENV_FORMATS`, a 20 × 20 in front (field 140 × 140, est.), GEN-F's untouched. `genvpic.py` renders a card with
+  its sketch's gap and width. The six photos full size, the HEIC deleted.
+
 - **GOGH's four sliders; the gap and the run live through rembrandt.py's /run/swap** (2026-11-22; the owner: "three sliders on the principle
   of ELBOW LIVE · BRUSH … Oh, I need a fourth"; of making them live: "I allow changing it"; of the 3 mm brush's ≈ 15 h: "if they buy the one made
   in 15 hours, so much the better for us"). GEN-V: the brush, 3 or 5 mm, the picture's columns its width apart (`fitV`), the brush in its file's

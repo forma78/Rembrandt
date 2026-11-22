@@ -22,8 +22,8 @@ OUT = os.path.join(APP, 'gogh')
 SHELF = os.path.join(APP, 'formg', 'porsche-red-k.json')
 NEAR = 8.0          # a jar of his within so much of a sketch colour, CIELAB ΔE76, its hint (est.)
 PPM = 3             # the render, px a mm
-WIDE = 0.96         # a dab's width, of the pitch (GEN-V's)
-GAP = 0.6           # mm of canvas between two dabs in a column (GEN-V's, est.)
+WIDE = 0.96         # a dab's width, of the pitch (GEN-V's), when the sketch gives none
+GAP = 0.6           # mm of canvas between two dabs in a column (GEN-V's, est.), when the sketch gives none; its own since 2026-11-22 (the 2 mm's −0.2)
 GESSO = '#FBFAF7'
 
 
@@ -40,15 +40,16 @@ def dE(a, b):
     return sum((p - q) ** 2 for p, q in zip(lab(a), lab(b))) ** 0.5
 
 
-def render(pic, path):
+def render(pic, path, gap=GAP, wide=None):
+    """gap, wide: the sketch's own, GEN-V's sliders as approved (mm)"""
     W, H, p = pic['w'], pic['h'], pic['pitch']
     im = Image.new('RGB', (round(W * PPM), round(H * PPM)), GESSO)
     d = ImageDraw.Draw(im)
-    r = WIDE * p / 2
+    r = (wide or WIDE * p) / 2
     for j in pic['jars']:
         for c in j['cells']:
             for x, a, b in c['legs']:
-                top, bot = max(a, b) - GAP / 2, min(a, b) + GAP / 2
+                top, bot = max(a, b) - gap / 2, min(a, b) + gap / 2
                 if top - bot < 2 * r:
                     m = (top + bot) / 2
                     d.ellipse([(x - r) * PPM, (H - m - r) * PPM, (x + r) * PPM, (H - m + r) * PPM], fill=j['hex'])
@@ -74,7 +75,7 @@ def make(sketch_path, pid, title, sub, local=False, out=OUT):
     pic.update(id=pid, title=title, sub=sub, image=f'gogh/{pid}.jpg')
     os.makedirs(out, exist_ok=True)
     json.dump(pic, open(os.path.join(out, f'{pid}.json'), 'w'), separators=(',', ':'))
-    render(pic, os.path.join(out, f'{pid}.jpg'))
+    render(pic, os.path.join(out, f'{pid}.jpg'), sk.get('gap', GAP), sk.get('wide'))
     if local:
         lp = os.path.join(out, 'local.json')
         ids = json.load(open(lp))['ids'] if os.path.exists(lp) else []

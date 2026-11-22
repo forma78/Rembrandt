@@ -3,8 +3,8 @@
 // down the picture, nothing after it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { GEN, formatOf, fitOf, bareMask, boxOf, binsOf } from '../src/genfplan.js';
-import { DAB, DAB_UI, dabsOf, stacksOf, sketchV, dabLeg, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabRunOf, dabWideOf, brushOf } from '../src/goghplan.js';
+import { GEN, formatOf, fieldOf, fitOf, bareMask, boxOf, binsOf } from '../src/genfplan.js';
+import { DAB, DAB_UI, DAB_BRUSH, dabOf, GENV_FORMATS, formatV, dabsOf, stacksOf, sketchV, dabLeg, passesV, dabRunsOf, dabLine, fitV, dabOnScreen, dabGapOf, dabRunOf, dabWideOf, brushOf } from '../src/goghplan.js';
 import { rowsOf, R3, FORMG } from '../src/formgplan.js';
 
 // a picture W × H px: a white ground, a red disc with a dark band across it, its left half lighter (genfplan.test.js's)
@@ -20,7 +20,7 @@ function disc(W, H) {
   return px;
 }
 function sketch(fid = '40x40', K = 12, W = 300, H = 300, pitch = GEN.pitch) {
-  const f = formatOf(fid), work = disc(W, H), { mask } = bareMask(work, W, H), box = boxOf(mask, W, H), fit = pitch === GEN.pitch ? fitOf(f, box.w, box.h) : fitV(f, box.w, box.h, pitch);
+  const f = formatV(fid), work = disc(W, H), { mask } = bareMask(work, W, H), box = boxOf(mask, W, H), fit = pitch === GEN.pitch ? fitOf(f, box.w, box.h) : fitV(f, box.w, box.h, pitch);
   const PW = fit.N * pitch, R = fit.R, rgba = new Uint8ClampedArray(PW * R * 4), m = new Uint8Array(PW * R);
   for (let y = 0; y < R; y++) for (let x = 0; x < PW; x++) {
     const sx = Math.min(W - 1, Math.floor(box.x + (x + 0.5) * box.w / PW)), sy = Math.min(H - 1, Math.floor(box.y + (y + 0.5) * box.h / R)), s = sy * W + sx;
@@ -82,12 +82,15 @@ test('a dab on the machine: 3 mm in from its ends, top to bottom; the J3 gives t
   assert.deepEqual(dabLeg(7.5, 300, 280, { gap: -0.6 }), [[7.5, 297.3], [7.5, 282.7]], 'squeezed: 0.3 longer at each end');
 });
 
-test('the sliders: gap −0.6 … +0.6 by 0.1, run 0 … 4 by 1, the width on the screen 2 … 8 by 0.1, the brush 3 or 5', () => {
-  assert.deepEqual(DAB_UI, { brush: [3, 5], gap: [-0.6, 0.6, 0.1], wide: [2, 8, 0.1], run: [0, 4, 1] });
+test('the sliders: gap −0.6 … +0.6 by 0.1, run 0 … 4 by 1, the width on the screen 1 … 8 by 0.1, the brush 2, 3 or 5', () => {
+  assert.deepEqual(DAB_UI, { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [0, 4, 1] });
   assert.equal(dabGapOf(undefined), 0.6); assert.equal(dabGapOf(-2), -0.6); assert.equal(dabGapOf(0.44), 0.4); assert.equal(dabGapOf(-0.05), 0);
   assert.equal(dabRunOf(undefined), 0); assert.equal(dabRunOf(9), 4); assert.equal(dabRunOf(2.4), 2); assert.equal(dabRunOf(-1), 0);
   assert.equal(dabWideOf(undefined), 4.8, '0.96 of the 5 mm brush'); assert.equal(dabWideOf(undefined, 3), 2.9); assert.equal(dabWideOf(5.63), 5.6); assert.equal(dabWideOf(12), 8);
-  assert.equal(brushOf(3), 3); assert.equal(brushOf('5'), 5); assert.equal(brushOf(4), GEN.pitch);
+  assert.equal(brushOf(3), 3); assert.equal(brushOf('5'), 5); assert.equal(brushOf(2), 2); assert.equal(brushOf(4), GEN.pitch);
+  // a brush's own gap: the 2 mm's −0.2 (the owner's), the 3 and the 5 0.6; its width 0.96 of it, 1.9 for the 2 mm
+  assert.equal(dabGapOf(undefined, 2), -0.2); assert.equal(dabGapOf(undefined, 3), 0.6); assert.equal(dabGapOf(undefined, 5), 0.6); assert.equal(dabGapOf(0.3, 2), 0.3);
+  assert.equal(dabWideOf(undefined, 2), 1.9); assert.equal(dabWideOf(0.4, 2), 1);
 });
 
 test('the run: a 20 mm dab runs 20, 22, 24, 26, 28 mm on the machine — 1 mm earlier at its top and 1 later at its bottom a step; the picture as it is', () => {
@@ -163,4 +166,31 @@ test('the sliders change only where the brush goes: the same steps, every L and 
     });
     assert.ok(most <= 4.6 + 1e-6 && most <= 5, `${gap} · ${run}: ${most} mm`);
   }
+});
+
+// The 2 mm (the owner, 2026-11-22, the evening, the new brushes, GOGH/IMG_3395.jpg; IMG_3390.jpg: "the longest stroke is 15 mm. But that is enough for us"),
+// and a 20 × 20 for tests ("a 20 × 20 cm format for tests")
+test('the brush 2 mm: columns 2 mm apart, its dabs 8 … 15 mm, ≈ 12 — none longer than the 15 it can paint', () => {
+  assert.deepEqual(DAB_BRUSH[2], { aim: 12, min: 8, max: 15, gap: -0.2 });
+  assert.deepEqual([3, 5].map(b => [dabOf(b).min, dabOf(b).max, dabOf(b).aim]), [[12, 24, 20], [12, 24, 20]], 'the 3 and the 5 as they were');
+  const S2 = sketch('40x40', 12, 300, 300, 2), legs = S2.pic.jars.flatMap(j => j.cells.flatMap(c => c.legs)), L = legs.map(([, a, b]) => a - b);
+  assert.equal(S2.pic.pitch, 2); assert.deepEqual(S2.pic.dab, { aim: 12, min: 8, max: 15, brush: 2 });
+  assert.ok(L.every(v => v <= 15 + 0.11), `the longest ${Math.max(...L)} mm`);
+  const mean = L.reduce((a, v) => a + v, 0) / L.length;
+  assert.ok(mean >= 10 && mean <= 14, `mean ${mean.toFixed(1)} mm`);
+  assert.ok(S2.dabs > SK.dabs * 3, `${S2.dabs} dabs against ${SK.dabs} of the 5 mm`);
+  // on the machine the same trim: a 15 mm dab sent 9 mm, at its gap −0.2 9.2, the J3 giving the 3 + 3 back
+  assert.deepEqual(dabLeg(5, 300, 285, { gap: dabGapOf(undefined, 2) }), [[5, 297.1], [5, 287.9]]);
+});
+
+test('GEN-V\'s formats: a 20 × 20 for tests in front of GEN-F\'s, its field 140 × 140; GEN-F\'s own untouched', () => {
+  assert.deepEqual(GENV_FORMATS.map(f => f.id), ['20x20', '40x40', '60x60', '60x80', '70x100', '90x120', '100x150']);
+  assert.ok(formatV('20x20').test); assert.equal(formatV('nope').id, '40x40', 'an unknown one: the 40 × 40, as before');
+  assert.deepEqual(fieldOf(formatV('20x20')), { w: 140, h: 140 });
+  assert.ok(!formatOf('20x20').test, 'GEN-F has no 20 × 20');
+  const T = sketch('20x20', 12, 300, 300, 2);
+  assert.equal(T.pic.w, 200); assert.equal(T.pic.h, 200);
+  const [x0, y0, x1, y1] = T.pic.box;
+  assert.ok(x0 >= 30 - 1e-6 && y0 >= 30 - 1e-6 && x1 <= 170 + 1e-6 && y1 <= 170 + 1e-6, `within the field: ${T.pic.box}`);
+  assert.ok(T.dabs > 100, `${T.dabs} dabs`);
 });

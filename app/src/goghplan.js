@@ -11,7 +11,7 @@
 // A picture is FORM-G's json, every leg a dab: { …, kind: 'dabs', jars: [{ id, name, code, hex, coats: 1, cells: [{ n, legs: [[x, top, bottom]] }] }] },
 // a cell a stack of a jar's dabs end to end in one column, the cells in the order the brush goes to them (the nearest next). Made by GEN-V (genv.js) and
 // GOGH/generator/genvpic.py; run by FORM-G's page with data-tab="gogh" (formg.js).
-import { GEN, paletteOf, hexOfLab, fieldOf } from './genfplan.js';
+import { GEN, GEN_FORMATS, paletteOf, hexOfLab, fieldOf } from './genfplan.js';
 import { jarsByCanvas } from './canon.js';
 import { seqOf, FORMG } from './formgplan.js';
 
@@ -22,17 +22,27 @@ export const GOGH_LIB = [];   // the library: a name here, its json and jpg in a
 // not in rows; trim: the leg on the machine so many mm in from the dab's ends — the brush lands on the move, the J3 lands it 3 mm earlier and lifts it
 // 3 mm later (canon.js, ELBOW_J3), the paint runs on past the leg (IMG_3377: 8 mm marks, J3's 14 mm on the machine, dabs of 13 … 17)
 export const DAB = { aim: 20, min: 12, max: 24, crumb: 6, len: 3, stagger: 300, near: 2, trim: 3, gap: 0.6, run: 0, wide: 0.96 };
+// a brush's own dab over DAB. The 2 mm (the owner, 2026-11-22, the evening, the new brushes come, the sharpest circled in green, GOGH/IMG_3395.jpg; his
+// strokes by a ruler, IMG_3390.jpg: "I could not stretch it to 20 mm. All as you warned: a brush this narrow does not hold much paint, so the longest stroke
+// is 15 mm. But that is enough for us"): its dabs 8 … 15 mm, ≈ 12 (est.); its gap −0.2, his own setting for it ("I make the adjustment for exactly the new
+// 2 mm brush")
+export const DAB_BRUSH = { 2: { aim: 12, min: 8, max: 15, gap: -0.2 } };
+export const dabOf = (pitch = GEN.pitch) => ({ ...DAB, ...(DAB_BRUSH[pitch] ?? {}) });
+// GEN-V's formats: GEN-F's, and a 20 × 20 for tests in front (the owner, 2026-11-22: "a 20 × 20 cm format for tests"), LAB's canvas; its field 30 mm in
+export const GENV_FORMATS = [{ id: '20x20', w: 200, h: 200, test: true }, ...GEN_FORMATS];
+export const formatV = id => GENV_FORMATS.find(f => f.id === id) ?? GENV_FORMATS.find(f => f.id === '40x40');
 // The owner's four sliders (2026-11-22: "three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"), mm, [min, max, step]:
-//   brush: the brush's width, GEN-V's — a picture's columns are its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3 mm");
+//   brush: the brush's width, GEN-V's — a picture's columns are its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3 mm"); the 2 mm
+//        since the evening ("add a 2 mm button to GEN-V");
 //   gap: dab to dab in a column, the plan's and the screen's — every dab gap / 2 shorter at both ends, minus longer ("from −0.6 to +0.6 mm, so your
-//        default hair can be squeezed in tests"); 0.6 the hair GEN-V drew;
+//        default hair can be squeezed in tests"); 0.6 the hair GEN-V drew; a brush's own, −0.2 the 2 mm's (DAB_BRUSH);
 //   wide: a dab's width on the screen alone, of the brush at first ("we cannot simply widen the dab, it depends on how thick the paint is and how much of it
-//        hangs on the brush … this slider will just show approximately what we will see on the canvas"), est.;
+//        hangs on the brush … this slider will just show approximately what we will see on the canvas"), est.; a brush's own, from 1 mm for the 2 mm;
 //   run: mm the brush runs on past a dab at both ends, the machine's alone — it lands earlier and lifts later, the picture as it is ("+1 mm at the top and
 //        +1 mm at the bottom … a standard dab 20 mm … 22, 24, 26 and 28 mm, four options")
-export const DAB_UI = { brush: [3, 5], gap: [-0.6, 0.6, 0.1], wide: [2, 8, 0.1], run: [0, 4, 1] };
+export const DAB_UI = { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [0, 4, 1] };
 const inRange = (v, [lo, hi, st]) => { const q = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st; return +q.toFixed(2) || 0; };
-export const dabGapOf = v => inRange(v ?? DAB.gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? DAB.wide * pitch, DAB_UI.wide);
+export const dabGapOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? DAB.wide * pitch, DAB_UI.wide);
 export const brushOf = v => DAB_UI.brush.includes(+v) ? +v : GEN.pitch;
 // genfplan.js's fitOf on a brush's columns: as large as the field lets it, its aspect kept, N columns `pitch` apart, R mm along, centred on the canvas
 export function fitV(f, iw, ih, pitch = GEN.pitch) {
@@ -124,7 +134,8 @@ export const dabLine = j => j.cells.reduce((t, c) => t + c.legs.reduce((a, l) =>
 // → { pic: the picture's json, the jars by the canon of the canvas's long side (canon.js); raw: before it; out, kept: the canon's; asked, made; dabs; pal }
 // o.pal: the jars given (CIELAB) in place of k-means; o.names, o.hexes: their names and colours, by the palette's index
 export function sketchV(B, fit, f, K, o = {}) {
-  const pal = o.pal ?? paletteOf(B, K, o), dabs = dabsOf(B, pal, o), lum = pal.map(p => p[0]), pitch = fit.pitch ?? GEN.pitch;
+  const pitch = fit.pitch ?? GEN.pitch, D = { ...dabOf(pitch), ...(o.dab ?? {}) };   // the brush's own dab: the 2 mm's 8 … 15
+  const pal = o.pal ?? paletteOf(B, K, o), dabs = dabsOf(B, pal, { ...o, dab: D }), lum = pal.map(p => p[0]);
   const xs = c => +(fit.left + pitch * (c + 0.5)).toFixed(2), up = mm => +(f.h - fit.top - mm).toFixed(1);
   const by = pal.map(() => []);
   for (const q of dabs) by[q.k].push([xs(q.c), up(q.a), up(q.b)]);
@@ -132,7 +143,7 @@ export function sketchV(B, fit, f, K, o = {}) {
   const jars = order.map((k, i) => ({ id: `c${k}`, name: o.names?.[k] ?? `Colour ${i + 1}`, code: '', hex: o.hexes?.[k] ?? hexOfLab(pal[k]), coats: 1, cells: stacksOf(by[k]).map((s, n) => ({ n: n + 1, legs: s })) }));
   const all = dabs.map(q => [xs(q.c), up(q.a), up(q.b)]), X = all.map(l => l[0]), Y = all.flatMap(l => [l[1], l[2]]);
   const raw = { id: o.id ?? 'gen-v', title: o.title ?? 'GEN-V sketch', sub: `sketch in dabs, ${f.w / 10} × ${f.h / 10}, the brush ${pitch} mm, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch, columns: B.N, kind: 'dabs',
-    dab: { aim: DAB.aim, min: DAB.min, max: DAB.max, brush: pitch }, box: all.length ? [Math.min(...X) - pitch / 2, Math.min(...Y), Math.max(...X) + pitch / 2, Math.max(...Y)] : [0, 0, 0, 0], jars };
+    dab: { aim: D.aim, min: D.min, max: D.max, brush: pitch }, box: all.length ? [Math.min(...X) - pitch / 2, Math.min(...Y), Math.max(...X) + pitch / 2, Math.max(...Y)] : [0, 0, 0, 0], jars };
   const C = o.canon === false ? { pic: raw, out: [], kept: [] } : jarsByCanvas(raw, Math.max(f.w, f.h), dabLine);
   let n = 0;   // a jar that took another's dabs: its cells laid again, so its stacks and its order are its own
   const pic = { ...C.pic, jars: C.pic.jars.map(({ took, ...j }) => ({ ...j, name: o.names ? j.name : `Colour ${++n}`, cells: stacksOf(j.cells.flatMap(c => c.legs)).map((s, i) => ({ n: i + 1, legs: s })) })) };
