@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH: its references** (2026-11-22; the owner: "painting in strokes, like real painting … in GOGH there will be no long strokes! All of them
+  drops of 2 cm, as on IMG_3377"; of the painters he showed: "they stay on the disk, they must not go to GitHub"). `GOGH/`: his photos of FORM-G's
+  cola on canvas, full size off the HEIC ("I allow deleting them, keep the JPEGs"), their crops `01.png` … `04.png` (the second run's rings round
+  bare canvas), `screen.png`, MARKS' slip of whole dabs (`IMG_3377.jpg`), each in `GOGH/README.md`; Van Gogh, Signac on this Mac alone (`.gitignore`).
 - **HOLO2: THE JARS with 🔄, the panel trimmed** (2026-11-20; the owner: "the brush width — why do we need it? there is a clear canon, it is 5 mm …
   in general there is a lot here … but the line's own width matters"; "most important — THE JARS as in FORM-G, so that I can change the paints").
   THE JARS: the picture's jars, Run 1's then Run 2's, light to dark, their dabs and metres; a jar's 🔄 every jar of his, the nearest first (ΔE), a click

@@ -88,3 +88,13 @@ FORM-G/generator/*.pkl
 /GEN-F/Crumpled Coca-Cola*
 /FORM-G/Crumpled Coca-Cola*
 /FORM-G/generator/cola.py
+# GOGH (2026-11-22): the painters shown for it — Van Gogh, Signac, the third named Pissarro — on this Mac alone (the owner: "they stay on the disk,
+# they must not go to GitHub, they are for you to look at")
+/GOGH/van gogh.jpg
+/GOGH/Paul Signac.jpg
+/GOGH/Camille Pissarro.webp
+# GOGH's pictures of a brand or of others' works, as FORM-G's: on this Mac alone (app/gogh/local.json the list)
+/app/gogh/local.json
+/app/gogh/cola*
+/GOGH/Crumpled Coca-Cola*
+/GOGH/generator/__pycache__/
