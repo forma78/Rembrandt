@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's plan: a picture in dabs** (2026-11-22; the owner: FORM-G's second run "takes the painted layer off completely"; the short legs "did
+  not spread, because they are short"). `goghplan.js`: every column's stretches of paint cut into dabs of 12 … 24 mm, ≈ 20, by a dynamic programme —
+  each the jar nearest its mean, an end near one in the column to its left dearer, so they lie as bricks; the miss carried on (`dabsOf`); a jar's
+  dabs in stacks, the nearest next (`stacksOf`); GEN-V's sketch with the canon of the jars (`sketchV`); the run, every dab on a dip of its own, 3 mm
+  in from its ends, nothing after it (`dabLeg`, `passesV`, `dabRunsOf`). `formgplan.js`'s `rowsOf` takes another tab's runs (`o.brush`), FORM-G's
+  as it was. Tests.
 - **GOGH: its references** (2026-11-22; the owner: "painting in strokes, like real painting … in GOGH there will be no long strokes! All of them
   drops of 2 cm, as on IMG_3377"; of the painters he showed: "they stay on the disk, they must not go to GitHub"). `GOGH/`: his photos of FORM-G's
   cola on canvas, full size off the HEIC ("I allow deleting them, keep the JPEGs"), their crops `01.png` … `04.png` (the second run's rings round

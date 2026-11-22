@@ -388,9 +388,10 @@ export const j3Runs = (runs, j3 = ELBOW_J3, o = {}) => runs.map(r => {
   const lo = o.floor ?? -Infinity, hi = o.ceil ?? Infinity;
   return { ...r, pts: elbowEndsOf(r.pts, j3).map(([x, y]) => [x, Math.min(hi, Math.max(lo, y))]) };
 });
-// o: { slack, j3, floor, ceil } — FORM-G's R3 and its picture's legs' reach; none, as before (OPM-G); o.marks: marksOf's strips, every line's marks before its cells
+// o: { slack, j3, floor, ceil } — FORM-G's R3 and its picture's legs' reach; none, as before (OPM-G); o.marks: marksOf's strips, every line's marks before its cells;
+// o.brush: passes → the brush's runs, another tab's in brushRuns' place (GOGH's dabs, goghplan.js's dabRunsOf, 2026-11-22)
 export const rowsOf = (pic, passes, every = FORMG.every, lap = FORMG.lap, canon = false, o = {}) => {
-  const runs = withMarks(brushRuns(passes, every, lap, canon, o.slack ?? 0.25), passes, seqOf(pic), o.marks);
+  const runs = withMarks(o.brush ? o.brush(passes) : brushRuns(passes, every, lap, canon, o.slack ?? 0.25), passes, seqOf(pic), o.marks);
   return idleRowsOf(passes, seqOf(pic), { cw: pic.w, ch: pic.h }, every, lap, o.j3 ? j3Runs(runs, o.j3, o) : runs);
 };
 
