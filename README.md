@@ -94,7 +94,7 @@ Rembrandt/
     library.html     Library (from RUBENS)
     prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js; and the top row, every tab ticked in or out, 2026-10-27, src/tabs.js)
     style.css        RUBENS tokens
-    rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git)
+    rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git); POST /run/swap since 2026-11-22, GOGH's live gap and run
     remote.html      the iPhone's remote, /remote: DIP, ⏮ Back · ⏭ Skip · ▶️ Go to, Pause · Continue, 🟥 STOP, the colour and the cell now (OPM-N, 2026-11-02; its key by the QR code on OPM-N); its Progress tab, the yellow LCD, when the next paint change falls and a mini-screen of the picture (2026-11-04)
     src/             ES modules, no build step
     test/            node --test
@@ -468,8 +468,23 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
 4. On the machine a dab's leg 3 mm in from both its ends, the J3's 3 + 3 (canon.js) giving them back: 14 mm sent, 20 on the machine, as
    MARKS' 8 mm made 14 and painted 13 … 17 (est.). Every lift a dip's: "DRAG Snake before DRAG Air" holds.
 
-`src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`); GOGH's page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its
-generator, as GEN-F FORM-G's.
+5. **Four sliders** (the owner, the same night: "three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"):
+   - **the brush**, GEN-V's, 3 or 5 mm — a picture's columns its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3
+     mm"; of the cola's ≈ 15 h with it: "if they buy the one made in 15 hours, so much the better for us");
+   - **the gap**, dab to dab in a column, −0.6 … +0.6 mm, 0.6 at first — every dab half of it shorter at both ends, minus longer ("so your
+     default hair can be squeezed in tests"), the plan's and the screen's;
+   - **the width**, the screen's alone, 2 … 8 mm — "we cannot simply widen the dab, it depends on how thick the paint is and how much of it
+     hangs on the brush … this slider will just show approximately what we will see on the canvas";
+   - **the run**, the machine's alone, +0 … +4 mm at both ends — the brush lands earlier and lifts later, the picture as it is: a 20 mm dab
+     runs 20, 22, 24, 26, 28 ("four options, checked by tests").
+
+   The gap and the run live during a DRAG (the owner: "I allow changing it", of `rembrandt.py`): the page makes the plan again and
+   `rembrandt.py`'s POST `/run/swap` puts it in place of the run's own steps, only where nothing but where the brush goes differs — the same
+   steps, the elbow's, the dips' and the pauses' as they were, every L and M `SWAP_MM` (5) at most apart (`swap_refuses`); the dab painting
+   then as it was sent, the next one on the new.
+
+`src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `fitV`, `dabOnScreen`); GOGH's page FORM-G's (`formg.js`,
+`data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 
 ## Working rules
 
