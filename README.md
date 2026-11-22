@@ -534,6 +534,15 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     from the journal: the picture's DRAG runs on GOGH since the last 💎 — from, to, runs, dabs, jars in the order dipped, the runs' seconds
     (`rembrandt.py`'s `gogh_passport`, `gogh_diamond_add`; `app/gogh/diamonds.json`, in git, the canvases' record).
 
+13. **ELBOW LIVE · JAR, and the panel in modules** (the owner, the same night, of the jar's fill, `GOGH/IMG_3280.jpg` a brush sunk in a full jar,
+    `IMG_3294.jpg` a low one: "not only the press on the canvas, but the moment the brush dips in the jar … ELBOW LIVE · BRUSH plus the jar, one module;
+    and all these [gap, width, run] another"). The elbow's angle in the paint, INK-Y's `dip`, a slider by ELBOW LIVE · BRUSH: written to `ink.json`, and
+    during a DRAG `rembrandt.py`'s POST `/run/jar` from the next dip on (`Runner.set_jar`, `_jar_block`: the plan's `paint` block and the server's own dips,
+    the fork a degree either side), by half degrees within his +14 … +16° (2026-11-03) — so far a 2° span, the servo landing anywhere in its 1° fork:
+    wider only on his word. GOGH's panel: Progress; Elbow live (the brush, the jar); The dabs (gap, width, run); The canvas; The brush.
+    **The press test**, `app/gogh/press-test-20`: Jar 19's thickest cluster of the bear's head, the flood's, six times, a line a block, the pause before
+    each its own press and jar (est. ≈ 34 min).
+
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 

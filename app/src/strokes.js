@@ -562,7 +562,7 @@ export function landingCheck(blocks, press, glide, least = 0.2) {
 export function handDip(c, row) {
   const mid = f => (f[0] + f[1]) / 2, d = { row, dip: true }, v = elbowV(c), up = { kind: 'arm', cmd: `J 2 ${mid(c.up)}${v}`, fork: c.up, ...d };
   return [up, { kind: 'joint', joint: 'shoulder', deg: mid(c.to), speed: c.swing, fork: c.to, rim: mid(c.up), up: c.up, ...d },
-    { kind: 'arm', cmd: `J 2 ${c.dip}${v}`, fork: c.paint, ...d }, { kind: 'wait', s: c.dwell, ...d },
+    { kind: 'arm', cmd: `J 2 ${c.dip}${v}`, fork: c.paint, paint: true, ...d }, { kind: 'wait', s: c.dwell, ...d },   // paint: rembrandt.py's ELBOW LIVE · JAR may put its own angle there (2026-11-22)
     { ...up }, { kind: 'joint', joint: 'shoulder', deg: 0, speed: c.swing, within: SHOULDER_WITHIN, ...d }];
 }
 const elbowV = c => c?.hand && c.elbow ? ` ${c.elbow}` : '';

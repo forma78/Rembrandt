@@ -1212,6 +1212,7 @@ class Runner:
         self._pause = False              # Pause asked for; Continue clears it
         self._pencil = False             # that pause the pencil's, p-pause: nothing lifted (DACHE, 2026-10-27)
         self.trim = 0.0                  # ELBOW LIVE: degrees on every W 2 as it is sent (2026-10-28)
+        self.jar = None                  # ELBOW LIVE · JAR: the elbow's angle in the paint, from the next dip on (2026-11-22); None — the plan's
         self.page = None                 # the page that started the run (its log note): a pencil's, the elbow may rest
         self._wbase = {}                 # the joints where a move's W were taken from (_arm_steps)
         # OPM-N's DIP (the owner, 2026-11-01: "I will press the button 'dip into paint' as the
@@ -1250,6 +1251,26 @@ class Runner:
             self.trim = t
         self.log({"event": "trim", "deg": t, "block": self.block})
         return t
+
+    def set_jar(self, deg):
+        # ELBOW LIVE · JAR (the owner, 2026-11-22, the night, IMG_3280: the brush drowned in a full jar; IMG_3294: a low one, its white tip
+        # showing — "not only the press on the canvas, but the moment the brush dips in the jar"): the elbow's angle in the paint from the
+        # next dip on, within his own PAINT_FLOOR … PAINT_TOP (2026-11-03: "at most +14° +16°"), its fork a degree either side as the plan's
+        d = float(deg)
+        if not math.isfinite(d):
+            raise ValueError(deg)
+        j = max(PAINT_FLOOR, min(PAINT_TOP, round(d * 2) / 2))
+        with self.lock:
+            self.jar = j
+        self.log({"event": "jar", "deg": j, "block": self.block})
+        return j
+
+    def _jar_block(self, b):
+        # a dip's block into the paint (the plan's `paint`), the live angle in place of the plan's: "J 2 <deg>[ <speed>]", its fork about it
+        if self.jar is None or not b.get("paint"):
+            return b["cmd"], b.get("fork")
+        p = b["cmd"].split()
+        return " ".join(["J", "2", f"{self.jar:g}", *p[3:]]), (max(PAINT_FLOOR, self.jar - 1), min(PAINT_TOP, self.jar + 1))
 
     def swap(self, blocks, note=None):
         # GOGH's live gap and run (the owner, 2026-11-22: the sliders "on the
@@ -1297,7 +1318,7 @@ class Runner:
                     "blocks": len(self.blocks), "painted_mm": round(self.painted, 1),
                     "paint_mm": round(self.paint_total, 1), "percent": round(pct, 1),
                     "x_mm": mm("x", 0), "y_mm": mm("y", 1), "brush_on": self.brush_on,
-                    "started": self.started, "trim": self.trim, "row": self.row,
+                    "started": self.started, "trim": self.trim, "jar": self.jar, "row": self.row,
                     "in_row": round(self.painted - self.row_base.get(self.row, self.painted), 1),
                     "dips": self.dips, "cup": bool(self.cup), "silent": self._silent,
                     "pace_s": self.pace(), "run_s": round(self._pace_s), "run_steps": self._pace_n,
@@ -1383,7 +1404,7 @@ class Runner:
             self.blocks, self.block, self.painted = list(blocks), 0, 0.0
             self.paint_total = sum(b.get("paintMM") or 0 for b in blocks if b.get("kind") == "move")
             self.state, self.message, self._stop, self._pause, self._pencil = "running", "", None, False, False
-            self.started, self.trim = time.time(), 0.0
+            self.started, self.trim, self.jar = time.time(), 0.0, None
             self.page = note.get("page") if isinstance(note, dict) else None
             self.cup = cup_of(note.get("cup")) if isinstance(note, dict) else None
             t = note.get("travel") if isinstance(note, dict) else None
@@ -1756,7 +1777,7 @@ class Runner:
                 if b.get("dip") and (b["kind"] == "move" or (b["kind"] == "joint" and b.get("rim") is not None)):
                     self.log({"event": "dip", "by": "plan", **self._dip_note()})   # the plan's own, for the journal: to the cup, or the shoulder to the jar at hand
                 if b["kind"] == "arm":
-                    self._arm(b["cmd"], b.get("fork"))
+                    self._arm(*self._jar_block(b))
                 elif b["kind"] == "joint":
                     if b.get("dip") and b.get("rim") is not None and not self._stop:
                         self._mark_swing(b)      # over the jar as far as a stop is concerned, from the turn's start
@@ -2206,7 +2227,8 @@ class Runner:
             self._joint(b)
         if self._stop:
             return
-        self._arm(f"J 2 {c['dip']:g}{v}", c["paint"])
+        dip = c["dip"] if self.jar is None else self.jar                    # ELBOW LIVE · JAR, as the plan's dips
+        self._arm(f"J 2 {dip:g}{v}", c["paint"] if self.jar is None else (max(PAINT_FLOOR, dip - 1), min(PAINT_TOP, dip + 1)))
         self._wait(c["dwell"])
         if self._stop:
             return
@@ -2905,6 +2927,12 @@ class Handler(SimpleHTTPRequestHandler):
             except (KeyError, IndexError, ValueError):
                 return self.reply(400, "trim: /run/trim?deg=<degrees>")
             return self.reply(200, json.dumps({"ok": True, "trim": t}), "application/json")
+        if path == "/run/jar":
+            try:
+                j = RUNNER.set_jar(parse_qs(urlparse(self.path).query)["deg"][0])
+            except (KeyError, IndexError, ValueError):
+                return self.reply(400, "jar: /run/jar?deg=<degrees>")
+            return self.reply(200, json.dumps({"ok": True, "jar": j}), "application/json")
         if path == "/run/swap":
             try:
                 sent = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0)))

@@ -6,7 +6,7 @@ import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWid
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
-import { cupOf, cupProblem, dipAt, SWING_MIN, SWING_MAX, ELBOW_V_MIN, ELBOW_V_MAX, ELBOW_V_NONE } from './ink.js';
+import { cupOf, cupProblem, dipAt, SWING_MIN, SWING_MAX, ELBOW_V_MIN, ELBOW_V_MAX, ELBOW_V_NONE, PAINT_LO, PAINT_HI } from './ink.js';
 import { DOT_MM, NO_DIP, cornerDots, testSay } from './band.js';
 import { testPrefs } from './prefs.js';
 import { segments, sticks } from './lcd.js';
@@ -524,6 +524,34 @@ function showElbow() {
   if (document.activeElement !== sl) sl.value = S.press;
   $('#brushNow').textContent = sgn(S.press);
   $('#elbowBrush').classList.toggle('live', dragLive());
+  showJar();
+}
+// ELBOW LIVE · JAR (the owner, 2026-11-22, the night, IMG_3280: the brush drowned in a full jar, IMG_3294: a low one, its white tip showing — "not only the
+// press on the canvas, but the moment the brush dips in the jar … ELBOW LIVE · BRUSH plus the jar, one module"): INK-Y's `dip`, the elbow's angle in the
+// paint, his fork +14 … +16° (2026-11-03), lower deeper; the next run's from ink.json, and during a DRAG rembrandt.py's /run/jar from the next dip on
+function showJar() {
+  const sl = $('#jarSl'); if (!sl) return;
+  sl.min = PAINT_LO; sl.max = PAINT_HI;
+  const v = lastSt && LIVE.includes(lastSt.state) && Number.isFinite(lastSt.jar) ? lastSt.jar : cup().dip;
+  if (document.activeElement !== sl) sl.value = v;
+  $('#jarNow').textContent = sgn(v);
+  $('#elbowJar').classList.toggle('live', dragLive());
+}
+let jarT = null;
+function setJar(v) {
+  const q = Math.min(PAINT_HI, Math.max(PAINT_LO, Math.round(v * 2) / 2));
+  INK = { ...INK, hand: { ...(INK.hand ?? {}), dip: q } }; showJar(); settle();
+  clearTimeout(jarT); jarT = setTimeout(async () => {
+    try { const r = await fetch('/ink', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(INK, null, 2) }); if (!r.ok) warn(`The jar not saved: ${await r.text()}`); } catch { return warn('The jar not saved: start rembrandt.py'); }
+    if (lastSt && LIVE.includes(lastSt.state)) {
+      try { const r = await fetch(`/run/jar?deg=${q}`, { method: 'POST' }); $('#runState').innerHTML = r.ok ? '' : `<span class="warn">ELBOW LIVE · JAR: ${esc(await r.text())}</span>`; } catch { warn('start rembrandt.py'); }
+    }
+  }, 150);
+}
+if ($('#jarSl')) {
+  $('#jarSl').oninput = e => { $('#jarNow').textContent = sgn(+e.target.value); };
+  $('#jarSl').onchange = e => setJar(+e.target.value);
+  document.querySelectorAll('[data-jar]').forEach(b => { b.onclick = () => setJar((lastSt && LIVE.includes(lastSt.state) && Number.isFinite(lastSt.jar) ? lastSt.jar : cup().dip) + +b.dataset.jar); });
 }
 function setElbow(deg) {
   if (VIEW) return;

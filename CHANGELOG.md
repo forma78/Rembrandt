@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **ELBOW LIVE · JAR; GOGH's panel in modules; the press test** (2026-11-22, the night; the owner: "this is acrylic, not watercolour" — no slower
+  lift; of `GOGH/IMG_3280`, `IMG_3294`: "the jar's fill tells on the drops … not only the press on the canvas, but the moment the brush dips in the
+  jar"; "ELBOW LIVE · BRUSH plus the jar, one module"; "draw right in GOGH a test screen 20 × 20 … repeat the cluster … the press … six times").
+  The elbow's angle in the paint live (`/run/jar`, `Runner.set_jar`, `_jar_block`; the plan's dip block `paint`), INK-Y's `dip` written with it,
+  his +14 … +16° by half degrees. Modules: Elbow live (brush, jar), The dabs (gap, width, run, their (i)). `app/gogh/press-test-20`, Jar 19's
+  cluster six times, a line a block, in GOGH_LIB. Found on the way: the canvas's zero moved ≈ 8 mm across at the flash of 21:05 (Jar 15 on, by the
+  photo laid over the plan): after a flash, home at the stops, not `/restore`, and TEST before DRAG.
+
 - **💎 on GOGH's pictures, a canvas finished each, its passport from the journal** (2026-11-22, the night; the owner: "by every picture a place as an
   NFT, with such an icon 💎. If a picture was painted two or three times, they are simply added: 💎💎💎"; "only a separate row in the block").
   LIB-V's +💎 and a 💎 taken away; the row on LIB-V's cards and GOGH's; `rembrandt.py`: `gogh_passport` (the picture's DRAG runs on GOGH since the

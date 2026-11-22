@@ -49,6 +49,20 @@ old canvas on purpose, so as not to mind experimenting." The arm by then at 125 
 | `IMG_3410.jpg` | The arm at the canvas, the red jar at hand on its bracket: the head's dabs, big glossy red blobs where the brushes were tried. |
 | `IMG_3411.jpg` | The whole 20 × 20: the bear's ears and face readable from a step back; neat drops and combs, and the tried brushes' heavy red blobs at the top. |
 
+## The jar's fill and the press test (2026-11-22, the night)
+
+The owner, of a flood not to be cured by a slower lift ("this is acrylic, not watercolour: once the brush has caught the thick paint it will not run
+off"): "IMG_3280 — look at the brush closely. It has sunk completely in the jar … judging by the last flood, the jar's fill tells on the drops. We never
+took it into account. IMG_3294 — the brush barely touches the paint, its white tip shows … not only the press on the canvas, but the moment the brush dips
+in the jar." Hence ELBOW LIVE · JAR, and the press test, `app/gogh/press-test-20`: Jar 19's cluster he circled (`Screenshot 2026-11-22 at 11.22.13 PM.png`)
+six times, "in different variations … the press".
+
+| file | what it shows |
+|---|---|
+| `IMG_3280.jpg` | An earlier canvas, the old brush in a full jar of dark brown at hand: sunk to its ferrule. |
+| `IMG_3294.jpg` | The same jar lower: the brush's white tip just touching the paint. |
+| `Screenshot 2026-11-22 at 11.22.13 PM.png` | GOGH's plan, Jar 19's dabs on the forehead circled: the cluster the press test repeats, 48 dabs, 50 × 45 mm. |
+
 ## The flood (2026-11-22, the night)
 
 The owner: "too much paint pours, maybe from the higher speed. I circled it here — it is simply a flood"; "the canvas is 20 × 20 cm, easy to lay a grid

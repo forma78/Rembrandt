@@ -125,9 +125,9 @@ FastAccelStepper pinned at 1.3.4 (why: `platformio.ini`).
    speed 115200 (at 460800 the CP2102N gave "Corrupt data"). No driver is
    needed on macOS. The board flashes on USB alone, without the 12 V — the
    safe way to try code.
-4. Start `rubens.py`. The board has forgotten the axis zero; the carriage
-   has not moved: put the place back (`/restore`), or find home at the stops
-   and Set home on the Calibration tab.
+4. Start `rubens.py`. The board has forgotten the axis zero: **find home at the stops** and Set home on the Calibration tab. `/restore`
+   only if the carriage surely has not moved: on 2026-11-22 it did, ≈ 8 mm across while the board was flashed (its drivers let go), and
+   `/restore` put the old zero on the moved carriage — every jar after it 8 mm off (GOGH's bear's head). Then TEST before a DRAG.
 5. Then in the air, then with a pencil, then paint.
 
 ## The board
