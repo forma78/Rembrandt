@@ -17,7 +17,9 @@ import { seqOf, FORMG } from './formgplan.js';
 
 // orange-bear: a gummy bear, 40 × 40, the 2 mm brush's test (the owner, 2026-11-22, the evening: "the bear can be made as orange_bear.png — for the GOGH
 // tab"; "it is a 40 × 40 test"), GEN-V's screen 1, 10 colours, 2683 dabs
-export const GOGH_LIB = ['orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
+// orange-bear-20: the bear's head, 20 × 20, the 2 mm brush's first test on the machine (the owner, the same evening: "add 20 × 20 cm to GOGH and we make the
+// first test"), GEN-V's screen 2, 14 colours → 13 jars, margins 6, 1285 dabs
+export const GOGH_LIB = ['orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,

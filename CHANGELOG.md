@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH: the bear's head on 20 × 20, the 2 mm brush's first test** (2026-11-22, the evening; the owner: "add 20 × 20 cm to GOGH and we make the
+  first test"). `app/gogh/orange-bear-20`, from GEN-V's sketch as approved: 13 jars (seven ≈ his Jar 5, 9, 13, 16, 19, 21, 24 as hints), 1285 dabs,
+  ≈ 3 h 44 by GOGH's PROGRESS (est.), its look +0.1 · 2.9. First in the library. MARKS: no room on the canvas, 6 mm round the picture.
+
 - **GEN-V: the 2 mm's field 556 across Y; Margins · zoom, 0 … 20 mm** (2026-11-22, the evening; the owner: "540 — there we are being careful …
   for the 2 mm brush it is far too big a reserve … We can easily make 556 mm — add 16 mm, 8 mm a side"; "a margins slider on all the formats … a zoom
   for the picture, from 0 to 20 mm"; "only for GEN-V"; "Margins · zoom — yes, great"). Past the reach the field the canvas as far as the brush

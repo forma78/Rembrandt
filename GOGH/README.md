@@ -45,6 +45,10 @@ The owner: "the bear can be made as orange_bear.png — for the GOGH tab"; "it i
 
 | `bear-20-20.png` | His screenshot of a 20 × 20 sketch on GEN-V, the bear's head in the 140 × 140 field 30 mm in, its dashed contour: "there must be none … 200 × 200 mm we print without trouble". GEN-V edge to edge since. |
 
+| `orange-bear-details · GEN-V · 20x20 · 2 mm · 10.json` | A first 20 × 20 of the bear's head, 10 colours, edge to edge; not taken. |
+| `orange-bear-details 2 · GEN-V · 20x20 · 2 mm · 14.json` | The 20 × 20 he approved for the first test on the machine ("add 20 × 20 cm to GOGH and we make the first test"): screen 2, 14 colours → 13 jars, Margins · zoom 6, the gap +0.1, the width 2.9; 1285 dabs, ≈ 3 h 44 (est.). The card `app/gogh/orange-bear-20`. |
+| `Screenshot 2026-11-22 at 6.18.48 PM.png` | His screenshot of that screen on GEN-V. |
+
 The card: `app/gogh/orange-bear.json`, `.jpg` (genvpic.py, true to the sketch; its `look` the gap and the width as approved). The picture it was
 made from is not here.
 
