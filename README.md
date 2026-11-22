@@ -555,8 +555,8 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
 15. **TEST a tap at each corner itself** (the owner, 2026-11-23, the night: BL to BR measured 19 cm, "but there should be 20, no?" — every dot of
     TEST a 6 mm stroke toward the centre, the brush touching its middle ≈ 3 mm in; offered a tap: "of course!"): on GOGH, the canvas's corners by
     Preferences' margin, the carriage at the corner, the elbow down to the press (ELBOW LIVE · BRUSH) and at once up, nothing along the canvas; one dip
-    at the first corner, TL twice with its wait, home (`tapRun`). Found the same night: across Y he measured 190 for 200, along X 200 — Y losing steps or
-    its 60-tooth pulley slipping at Travel 115 mm/s; to be told by a TEST at Travel 40.
+    at the first corner, TL twice with its wait, home (`tapRun`). The owner, at once: "now exactly 20 cm" — across Y too, where the strokes had read
+    190: the dots' geometry, not the axis.
 
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
