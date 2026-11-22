@@ -19,6 +19,21 @@ its generator GEN-V, `app/genv.html`; the canon: README, "GOGH: a dab, a dip, no
 
 The photos full size, off the owner's HEIC (2026-11-22, "I allow deleting them, keep the JPEGs").
 
+## The new brushes (2026-11-22, the evening)
+
+Three rubber brushes now: the 2 mm, the 3 and the 5. The owner: "the new brushes have come. There are interesting data in them"; the 2 mm "we need
+for GOGH"; "I could not stretch [its stroke] to 20 mm. All as you warned: a brush this narrow does not hold much paint, so the longest stroke is
+15 mm. But that is enough for us". GEN-V's 2 mm since then, its dabs 8 … 15 mm, ≈ 12 (est.); a 20 × 20 for tests.
+
+| file | what it shows |
+|---|---|
+| `IMG_3395.jpg` | The three brushes against a canvas's edge: the 2 mm, a sharp cone, circled in green — "the sharpest"; the two flat ones under it, the right one with paint at its root. |
+| `IMG_3394.jpg` | The same three, not circled. |
+| `IMG_3393.jpg` | The sharp 2 mm (blue handle) beside a flat one, over the strokes of `IMG_3392`. |
+| `IMG_3391.jpg` | The sharp 2 mm in the hand over a sheet of strokes by a ruler, the jars beside it (the blue, a white). |
+| `IMG_3392.jpg` | The sheet by the ruler (cm): grey and burgundy dabs of a flat brush, 10 … 11 mm, then blue strokes of the 2 mm. |
+| `IMG_3390.jpg` | The 2 mm's blue strokes by the ruler, the ones he measured in green: 11 … 14 mm — "the longest stroke is 15 mm"; flat-brush grey legs above them, a blue patch below. |
+
 ## On this Mac alone (`.gitignore`)
 
 - `van gogh.jpg` (The Starry Night), `Paul Signac.jpg` (The Pine Tree at Saint-Tropez), `Camille Pissarro.webp` (by its
