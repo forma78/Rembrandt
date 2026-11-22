@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The panel: no notes on it, everything under (i) (canon); GOGH's TEST at the canvas's own corners** (2026-11-22, the evening; the owner:
+  "it is forbidden to make noise and mush in the control panel … all of it is needed, but under the pop-up info button (i)"; of TEST's "TL X 195 ·
+  Y 7 …": "strange coordinates. It must be TL X 200 Y 0 … TR 200, as in the picture", Preferences' TEST, margin 0). The canvas's reads — the walls,
+  the frame, MARKS — behind its (i) always, a warning colouring it, steady (past the walls alone); GOGH's sliders' line behind an (i) by Gap;
+  LIBRARY-V's note behind Progress's (i); GEN-V's field and sketch reads behind theirs, its approval a short line. GOGH's TEST, HOLO's: the canvas's
+  own corners Preferences' margin in, TL twice, where the canvas lies within the reach; the dots said on the canvas, mm from its bottom left
+  corner (TL X 200 · Y 0 on a 20 × 20), its place from home below; a dot on a wall allowed, past it not; "past the walls" in tenths under 1 mm.
+
 - **GEN-V's 🐾 APPROVE straight into LIBRARY-V and GOGH's library; LIBRARY-V** (2026-11-22, the evening; the owner: "why do I download to the
   desktop at all … on the principle of library.html, without extra moves: I press APPROVE (add a paw 🐾, by the way) and the picture appears in
   Library-V"; of `rembrandt.py`: "yes, add it"; "a LIBRARY-V tab, and GOGH"). GEN-V makes the card (`cardOfSketch`, the same as `genvpic.py`'s for

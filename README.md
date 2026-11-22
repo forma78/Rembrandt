@@ -515,6 +515,21 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 
+## The panel: no notes on it — everything under (i) (canon)
+
+The owner, 2026-11-22, the evening, of GOGH's canvas section (the walls, the frame and MARKS written out under it) and the line under its sliders:
+"it is forbidden to make noise and mush in the control panel. No explanatory notes in the UI / UX on my own — all of it is needed, but under the pop-up
+info button (i)"; of the sliders' line: "it is obvious as it is".
+
+1. **The panel shows keys, sliders, fields and their values; nothing written out beside them.** What explains — how a slider works, where the walls
+   are, why MARKS have no room, what a frame does, what a screen will cost — goes behind an **(i)** by the heading it belongs to (`<button class="info"
+   data-for="#…">`), closed at first.
+2. **A warning too**: its text behind the (i), the (i) its colour, steady (`.info.warn`; "No blinking"); the key that would do harm refuses when pressed,
+   with its reason, as before. Only what stops a run colours it — MARKS with no room does not.
+3. A result after a press stays a line, short (🐾 Approved → LIBRARY-V); its detail a tooltip.
+
+On GOGH, LIBRARY-V, FORM-G's family (`formg.js`'s `canvasReads`) and GEN-V since that evening; a new tab or key by it from the start.
+
 ## Working rules
 
 - **`git pull` first. What the machine did comes in two ways**, both

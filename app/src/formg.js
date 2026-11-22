@@ -7,7 +7,8 @@ import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, TAIL_MIN, handDip, landingC
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
 import { cupOf, cupProblem, dipAt } from './ink.js';
-import { DOT_MM, NO_DIP } from './band.js';
+import { DOT_MM, NO_DIP, cornerDots, testSay } from './band.js';
+import { testPrefs } from './prefs.js';
 import { segments, sticks } from './lcd.js';
 import { lampSwitch } from './lamp.js';
 import { qrSvg } from './qr.js';
@@ -158,8 +159,8 @@ function pressOk() {
 }
 function walls(P_) {
   if (!P_) return '';
-  if (P_.gone) return `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls, ${P_.gone} legs gone: move the canvas, as below.`;
-  return P_.pastWall > 0.05 && !pressOk() ? `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls: move the canvas, as below.` : '';
+  if (P_.gone) return `The brush would go ${fmt(P_.pastWall, 0)} mm past the walls, ${P_.gone} legs gone: move the canvas (The canvas, its i).`;
+  return P_.pastWall > 0.05 && !pressOk() ? `The brush would go ${fmt(P_.pastWall, P_.pastWall < 1 ? 1 : 0)} mm past the walls: move the canvas (The canvas, its i).` : '';
 }
 // DRAW BW (the owner, 2026-11-10: "before working with the paints, a DRAW BW key as in OPM-N: I just put a pen in the brush's place and first trace on paper, the contour,
 // to centre the canvas and study all the details"): formgplan.js's contourOf, every border between two colours once, in one pen, as OPM-N's DRAW BW: the pen pressed on
@@ -414,13 +415,30 @@ function askDraw(passes, text, o = {}) {
     box.onclick = e => { if (e.target === box) end(false); };
   });
 }
-// TEST: a dot at each corner of the picture's box, the canvas laid by them; a 70 × 100's own corners are past the walls
+// TEST: a dot at each corner of the picture's box, the canvas laid by them; a 70 × 100's own corners are past the walls.
+// GOGH's (the owner, 2026-11-22, the evening, of the 20 × 20, its TEST "TL X 195 · Y 7 … BR X 23 · Y 193": "strange coordinates. It must be TL X 200 Y 0 … TR
+// 200, as in the picture" — Preferences' TEST, margin 0, "a dot at each corner itself … of the canvas"): HOLO's — band.js's cornerDots, the canvas's own corners
+// Preferences' margin in (0 the corner itself), TL twice with its wait, where the canvas lies within the reach; a canvas past it the picture's box, as FORM-G's.
+// A dot's mm: on the canvas, from its bottom left corner, [across, up]
+const TEST_IN = 0;   // mm inside the walls: on a wall allowed, a 20 × 20 laid at home's Y 0 its corners there (margin 0); past it not (HOLO's 0.2, the place's)
 function testRun() {
-  const b = plan().flatMap(q => q.byCell.flatMap(c => c.legs.flat())), xs = b.map(q => q[0]), ys = b.map(q => q[1]);
-  if (!b.length) return null;
-  const x0 = Math.min(...ys) - PIC.h / 2, x1 = Math.max(...ys) - PIC.h / 2, y0 = Math.min(...xs) - PIC.w / 2, y1 = Math.max(...xs) - PIC.w / 2;
-  const dots = [['TL', x1, y0], ['TR', x1, y1], ['BR', x0, y1], ['BL', x0, y0]].map(([name, x, y]) => { const d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name, at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l } }; });
-  return { ...plotRun(runOpts(dots.length), [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1 }]), why: null }]), dots };
+  let dots = null, by = 'box', off = [];
+  if (DABS) {
+    const R = reach(), h = hereNow(), fits = PIC.w <= R.y.max - R.y.min - 2 * TEST_IN && PIC.h <= R.x.max - R.x.min - 2 * TEST_IN;
+    const past = q => { const x = h.x + q.x, y = h.y + q.y; return Math.max(R.x.min + TEST_IN - x, x - (R.x.max - TEST_IN), R.y.min + TEST_IN - y, y - (R.y.max - TEST_IN), 0); };
+    const c = fits ? cornerDots(PIC.w, PIC.h).dots : [];
+    if (c.length) {
+      dots = c.map(d => ({ ...d, mm: [PIC.w / 2 + d.at.y, PIC.h / 2 + d.at.x] })); by = 'canvas';
+      off = dots.filter(d => past(d.at) > 0 || past(d.to) > 0).map(d => ({ name: d.name, mm: Math.max(past(d.at), past(d.to)) }));
+    }
+  }
+  if (!dots) {
+    const b = plan().flatMap(q => q.byCell.flatMap(c => c.legs.flat())), xs = b.map(q => q[0]), ys = b.map(q => q[1]);
+    if (!b.length) return null;
+    const x0 = Math.min(...ys) - PIC.h / 2, x1 = Math.max(...ys) - PIC.h / 2, y0 = Math.min(...xs) - PIC.w / 2, y1 = Math.max(...xs) - PIC.w / 2;
+    dots = [['TL', x1, y0], ['TR', x1, y1], ['BR', x0, y1], ['BL', x0, y0]].map(([name, x, y]) => { const d = Math.hypot(x, y) || 1, l = Math.min(DOT_MM, d); return { name, at: { x, y }, to: { x: x - x / d * l, y: y - y / d * l }, mm: [PIC.w / 2 + y, PIC.h / 2 + x] }; });
+  }
+  return { ...plotRun(runOpts(dots.length), [{ key: 'TEST', ps: dots.map((d, i) => [{ t: 'L', a: d.at, b: d.to, tilt: 0, row: i + 1, ...(d.wait !== undefined ? { wait: d.wait } : {}) }]), why: null }]), dots, by, off };
 }
 // POINTS · Jar 0 (formgplan.js's pointsOf): TEST's run, a dot at each of the picture's outermost points, in the white, to lay the canvas by and check it with a ruler
 // and first a dot at the canvas's very middle, a short stroke along X across it (the owner, 2026-11-16: "maybe put a dot right in the centre? It will help me":
@@ -454,10 +472,16 @@ $('#btnTest').onclick = async () => {
   const here = hereNow(), T = testRun();
   if (!T) return warn('Nothing to paint.');
   if (cupProblem(cup())) return warn(`TEST dips in ${cupName()}: ${cupProblem(cup())}`);
+  if (T.off.length) return warn(`TEST: ${T.off.map(d => `${d.name} ${fmt(d.mm, 1)} mm`).join(', ')} past the walls — the canvas's corners out of the brush's reach: move the canvas (The canvas) by as much.`);
   if (T.fault) return warn(`Not run: the test is wrong — ${T.fault}.`);
   if (walls(T)) return warn(walls(T));
-  if (!confirm(`TEST: one dip in the cup, then a dot at each corner of ${PIC.frame ? 'what the frame paints' : "the picture's box"} — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`)) return;
-  await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), dots: T.dots.map(d => ({ name: d.name, x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
+  const P = testPrefs(), c = placeNow(), onCanvas = d => `${d.name} X ${fmt(d.mm[1], 0)} · Y ${fmt(d.mm[0], 0)}`;
+  const say = T.by === 'canvas'
+    ? `TEST: one dip in the cup, then ${testSay()} of the ${PIC.w / 10} × ${PIC.h / 10} canvas (Preferences) — on the canvas, mm from its bottom left corner, X up, Y across: ${T.dots.map(onCanvas).join(', ')}; TL to TR ${fmt(PIC.w - 2 * P.margin, 0)} mm, BL to TL ${fmt(PIC.h - 2 * P.margin, 0)} mm — and home.\n\n`
+      + `On the machine: the canvas's left edge ${c.edgeLeft} mm, its bottom edge ${c.edgeBottom} mm from home (The canvas), so TL at X ${fmt(here.x + T.dots[0].at.x, 0)} · Y ${fmt(here.y + T.dots[0].at.y, 0)} from home.`
+    : `TEST: one dip in the cup, then a dot at each corner of ${PIC.frame ? 'what the frame paints' : "the picture's box"} — ${T.dots.map(d => `${d.name} X ${fmt(here.x + d.at.x, 0)} · Y ${fmt(here.y + d.at.y, 0)}`).join(', ')} — and home.`;
+  if (!confirm(say)) return;
+  await start('test', T.blocks, { seconds: T.seconds, rows: T.dots.map(d => ({ label: `TEST · ${d.name}` })) }, logOf({ pass: 'test', cup: cup(), by: T.by, margin: T.by === 'canvas' ? testPrefs().margin : null, dots: T.dots.map(d => ({ name: d.name, mm: d.mm.map(v => +v.toFixed(1)), x: +(here.x + d.at.x).toFixed(1), y: +(here.y + d.at.y).toFixed(1) })), estimate_s: Math.round(T.seconds) }));
 };
 const post = async path => { if (VIEW) return ''; try { const r = await fetch(path, { method: 'POST' }); return await r.text(); } catch { return 'start rembrandt.py'; } };
 $('#btnHome').onclick = () => start('home', homeBlocks(S.travel), { seconds: 0, rows: [{ label: 'HOME' }] }, logOf({ label: `${NAME} · HOME` }));
@@ -821,13 +845,18 @@ function showMarks() {
     + mk.missing.map(q => `No ${q.side} strip (${q.no}): ${q.why}.`).join(' ');
   canvasReads();
 }
-// The canvas's two reads, the walls and MARKS, behind its (i) (the owner, 2026-11-11: "hide these two poems, about the canvas and
-// the Marks, under an (i)"); one with a warning shows all the same
+// The canvas's reads, the walls, the frame and MARKS, behind its (i) (the owner, 2026-11-11: "hide these two poems, about the canvas and
+// the Marks, under an (i)"); since 2026-11-22, the evening, a warning too (README, "The panel: no notes on it": "it is forbidden to make noise and mush in
+// the control panel … all of it is needed, but under the pop-up info button (i)"): the (i) its colour, steady, the text behind it
 let CANVAS_INFO = false;
 function canvasReads() {
-  for (const id of ['#placeRead', '#marksRead']) { const p = $(id); if (p) p.hidden = !CANVAS_INFO && !p.querySelector('.warn'); }
+  const ids = ['#placeRead', '#frameRead', '#marksRead'];
+  for (const id of ids) { const p = $(id); if (p) p.hidden = !CANVAS_INFO; }
   $('#canvasInfo')?.classList.toggle('on', CANVAS_INFO);
+  $('#canvasInfo')?.classList.toggle('warn', !!$('#placeRead')?.querySelector('.warn'));   // past the walls alone: MARKS with no room is no fault, it would colour it always
 }
+// any other read behind its own (i): <button class="info" data-for="#dabRead">
+document.querySelectorAll('.info[data-for]').forEach(b => { b.onclick = () => { const t = $(b.dataset.for); if (!t) return; t.hidden = !t.hidden; b.classList.toggle('on', !t.hidden); }; });
 if ($('#canvasInfo')) $('#canvasInfo').onclick = () => { CANVAS_INFO = !CANVAS_INFO; canvasReads(); };
 if ($('#btnMarks')) $('#btnMarks').onclick = () => {
   if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: MARKS stay as they are till it ends or stops.');

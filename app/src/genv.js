@@ -133,7 +133,7 @@ function panel() {
   const ok = pick !== null && !!SL[pick];
   $('#btnApprove').disabled = !ok;
   $('#btnApprove').textContent = ok ? `🐾 APPROVE ${pick + 1} · ${SL[pick].k} colours` : '🐾 APPROVE';
-  if (BASE && !ok && !/Approved/.test($('#approveRead').textContent)) $('#approveRead').innerHTML = 'Choose a screen first — 1, 2 or 3: a click on it, or on its mark under the slider.';
+  if (BASE && !ok && !/Approved/.test($('#approveRead').textContent)) $('#approveRead').innerHTML = 'Choose a screen: 1, 2 or 3.';
   if (!SK) { $('#sketchRead').innerHTML = 'Open a picture on the left.'; $('#jarList').innerHTML = ''; $('#jarsHint').textContent = ''; $('#stats').textContent = `${f.w / 10} × ${f.h / 10} cm`; return; }
   const long = Math.max(f.w, f.h), e = SK.est, n = SK.pic.jars.length;
   $('#sketchRead').innerHTML = `<b>Screen ${S.focus + 1}:</b> <b>${SK.asked}</b> colours asked, ${SK.made} paint a dab; <b>${n} jars</b> by the canon of the jars (a jar with less line than the canvas's long side, ${long / 10} cm, into its nearest; ΔE 25 at most)`
@@ -309,16 +309,18 @@ $('#btnApprove').onclick = async () => {
       const o = await r.json().catch(() => ({}));
       if (!r.ok || !o.ok) return said(`<span class="warn">Not approved: ${esc(o.message || r.status)}</span>`);
       BC?.postMessage({ approved: o.id });
-      return said(`🐾 Approved: <b>${esc(o.title)}</b> — in <a href="libv.html">LIBRARY-V</a> now, and first in GOGH's library (a reload of GOGH shows it — not during a run). The sketch: GOGH/${esc(o.sketch)}.`);
+      return said(`<span title="First in GOGH's library too (a reload of GOGH shows it, not during a run). The sketch: GOGH/${esc(o.sketch)}">🐾 Approved: <b>${esc(o.title)}</b> → <a href="libv.html">LIBRARY-V</a></span>`);
     }
     // a rembrandt.py of before: the file, as till now
     const body = JSON.stringify(sk, null, 1), a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([body], { type: 'application/json' })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    said(`Approved: <b>${esc(name)}</b> in Downloads — rembrandt.py is the one before 🐾: restart it (not during a run), and APPROVE puts a picture straight in LIBRARY-V.`);
+    said(`<span title="rembrandt.py is the one before 🐾: restart it (not during a run), and APPROVE puts a picture straight in LIBRARY-V">Approved: <b>${esc(name)}</b> → Downloads · <span class="warn">restart rembrandt.py</span></span>`);
   } catch (e) { said(`<span class="warn">Not approved: ${esc(e?.message || e)}</span>`); }
   finally { btn.disabled = pick === null || !SL[pick]; }
 };
 
+// a read behind its (i) (README, "The panel: no notes on it"): <button class="info" data-for="#fieldRead">
+document.querySelectorAll('.info[data-for]').forEach(b => { b.onclick = () => { const t = $(b.dataset.for); if (!t) return; t.hidden = !t.hidden; b.classList.toggle('on', !t.hidden); }; });
 lampSwitch($('#lamp'));
 panel(); draw();
 lastPic().then(p => { if (p?.blob && !SRC) openPic(p.blob, p.name); });

@@ -118,7 +118,7 @@
   </aside>
   <aside class="panel">
     <section class="sec">
-      <h3>Progress <span id="lamp"></span></h3>
+      <h3>Progress <button class="info" data-for="#lgSay" title="What LIBRARY-V is">i</button> <span id="lamp"></span></h3>
       <div class="lcd" id="lcd" aria-live="polite"></div>
       <p class="runstate" id="runState"></p>
       <div class="runkeys deck" hidden>
@@ -140,7 +140,7 @@
         <button class="tog" data-view="drag" title="The dabs in their jars' colours, as wide as the brush, each its own">Drag</button>
         <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell, the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
       </div>
-      <p class="lg-say">A library to look at: nothing here goes to the machine — GOGH paints on as it is, its jars too. GEN-V's 🐾 APPROVE puts a picture here at once.</p>
+      <p class="lg-say" id="lgSay" hidden>A library to look at: nothing here goes to the machine — GOGH paints on as it is, its jars too. GEN-V's 🐾 APPROVE puts a picture here at once.</p>
       <div class="grid4 keys" hidden><button class="btn" id="btnRemote" title="The iPhone's remote: DIP, Pause · Continue and STOP from the iPhone, the colour and the cell on it — its address with the key as a QR code; the iPhone on the same Wi-Fi">iPhone remote</button></div>
       <div class="remotebox" id="remoteBox" hidden></div>
       <div class="elbowlive" id="elbowBrush" hidden>
@@ -150,7 +150,7 @@
       <!-- the owner's sliders, 2026-11-22 ("three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"): the brush GEN-V's, a picture's columns;
            here the gap and the run, live during a DRAG (rembrandt.py's /run/swap); the width the screen's alone (goghplan.js, DAB_UI) -->
       <div class="elbowlive dabsl" id="dabGap" title="Gap · dab to dab in a column: every dab half of it shorter at both ends, minus longer — the plan and the screen; live during a DRAG, from the next dab (rembrandt.py's /run/swap). 0.6 the hair GEN-V draws">
-        <div class="elh"><span class="elk">Gap · dab to dab</span><span class="elv" id="gapNow">+0.6 mm</span></div>
+        <div class="elh"><span class="elk">Gap · dab to dab <button class="info" data-for="#dabRead" title="The brush, the gap and the run: what they do">i</button></span><span class="elv" id="gapNow">+0.6 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="gap" data-step="-0.1" title="0.1 mm less: the dabs closer, then over each other">▼</button><input class="slider" type="range" id="gapSl" data-dab="gap" min="-0.6" max="0.6" step="0.1"><button class="btn" data-dab="gap" data-step="0.1" title="0.1 mm more between two dabs">▲</button></div>
       </div>
       <div class="elbowlive dabsl" id="dabWide" title="Width · on the screen alone: how wide a dab will lie — the thickness of the paint and how much hangs on the brush decide it on the canvas, not this; Picture shows it (est.)">
@@ -161,7 +161,7 @@
         <div class="elh"><span class="elk" id="runSay">Run · a 20 mm dab</span><span class="elv" id="runNow">20 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="run" data-step="-1" title="1 mm less at both ends">▼</button><input class="slider" type="range" id="runSl" data-dab="run" min="0" max="4" step="1"><button class="btn" data-dab="run" data-step="1" title="1 mm more at both ends: lands earlier, lifts later">▲</button></div>
       </div>
-      <p class="read" id="dabRead"></p>
+      <p class="read" id="dabRead" hidden></p>
     </section>
     <section class="sec" hidden>
       <h3>The canvas <span class="hint">from home, mm · a picture its own</span> <button class="info" id="canvasInfo" title="Where the canvas may lie for this picture, the walls; MARKS: where to tape the paper strips">i</button></h3>
@@ -172,7 +172,7 @@
       <p class="read" id="placeRead" hidden></p>
       <!-- F, the frame (the owner, 2026-11-08: "a 20 × 20 cm piece first, how many paints mix"; OPM-W's F carried over): only what lies in it is run, at its place from home -->
       <div class="grid4 keys"><button class="btn" id="btnFrame" title="F, the frame: a drag on the picture round a piece to try first, or a click, a 200 × 200 there — only the legs in it are run, at their place from home, its canvas laid there. With F on, a drag in the frame moves it, a click in it takes it away (F)">▭ Frame · F</button><button class="btn" id="btnNoFrame" title="The frame taken away: the whole picture">Whole picture</button></div>
-      <p class="read" id="frameRead"></p>
+      <p class="read" id="frameRead" hidden></p>
       <!-- MARKS (the owner, 2026-11-11, FORM-G/IMG_2683: "typographic marks along the canvas's edges: every colour, when we change the jar, the machine dips once, then makes a mark on four sides") -->
       <div class="grid4 keys"><button class="btn" id="btnMarks" aria-pressed="true" title="MARKS, the printer's marks at the middles of the canvas's edges, on paper strips taped there: after every change of jar, before its first cell, one dip, then a mark in its cell on every strip — 1 the left, 2 the top, 3 the right, 4 the bottom, where the brush reaches beside the picture. A jar's first coat in the row at the edge's side, its second coat next to it. A click turns them off or on">▦ Marks</button></div>
       <p class="read" id="marksRead" hidden></p>

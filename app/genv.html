@@ -101,20 +101,20 @@
   </aside>
   <aside class="panel">
     <section class="sec">
-      <h3>Format <span class="hint">the canvas, cm</span></h3>
+      <h3>Format <span class="hint">the canvas, cm</span> <button class="info" data-for="#fieldRead" title="The field, the picture, the columns">i</button></h3>
       <div class="gf-formats" id="formats"></div>
       <!-- Margins · zoom (the owner, 2026-11-22, the evening: "a margins slider on all the formats … a zoom for the picture, from 0 to 20 mm"): a format's own -->
       <div class="elbowlive dabsl" title="Margins · zoom: mm off every side of the field the brush reaches — on the 20 × 20 and the 40 × 40 the canvas itself — the picture as large as the rest lets it, in the middle; a format's own. 0 the largest">
         <div class="elh"><span class="elk">Margins · zoom</span><span class="elv" id="marginNow">0 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="margin" data-step="-1">▼</button><input class="slider" type="range" id="marginSl" data-dab="margin" min="0" max="20" step="1"><button class="btn" data-dab="margin" data-step="1">▲</button></div>
       </div>
-      <p class="read" id="fieldRead"></p>
+      <p class="read" id="fieldRead" hidden></p>
       <!-- the brush (the owner, 2026-11-22: "now always 5 mm, but I ordered new brushes, there is a 3 mm"): the picture's columns its width apart -->
       <h3 class="gv-h">Brush <span class="hint">the columns, mm</span></h3>
       <div class="gf-formats" id="brushes"></div>
     </section>
     <section class="sec">
-      <h3>Colours <span class="hint">jars asked, 10 … 100</span> <span id="lamp"></span></h3>
+      <h3>Colours <span class="hint">jars asked, 10 … 100</span> <button class="info" data-for="#sketchRead" title="The screen chosen: its jars, its dabs, its time on the machine">i</button> <span id="lamp"></span></h3>
       <div class="gf-count"><b id="kNow">20</b><span id="kSay"></span></div>
       <input class="slider" type="range" id="kSl" min="10" max="100" step="1" value="20" aria-label="Colours">
       <div class="gf-marks" id="kMarks" aria-label="The three screens"></div>
@@ -132,7 +132,7 @@
         <div class="elh"><span class="elk">Width · screen</span><span class="elv" id="wideNow">4.8 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="wide" data-step="-0.1">▼</button><input class="slider" type="range" id="wideSl" data-dab="wide" min="1" max="8" step="0.1"><button class="btn" data-dab="wide" data-step="0.1">▲</button></div>
       </div>
-      <p class="read" id="sketchRead"></p>
+      <p class="read" id="sketchRead" hidden></p>
             <button class="btn" id="btnApprove" disabled title="🐾 APPROVE the screen chosen (a click on it, or on its mark under the slider): the sketch into Rembrandt/GOGH/ and its card at once in LIBRARY-V and first in GOGH's library — nothing downloaded (rembrandt.py's /genv/approve; nothing moves on the machine)">🐾 APPROVE</button>
       <p class="read" id="approveRead"></p>
     </section>
