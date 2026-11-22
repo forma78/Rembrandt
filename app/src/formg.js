@@ -559,7 +559,8 @@ document.querySelectorAll('#elbowBrush [data-btrim]').forEach(b => { b.onclick =
 // ---------- the screen: the canvas as it lies on the machine, the reach over it ----------
 const cv = $('#cv'), stage = $('#stage'), ctx = cv.getContext('2d');
 let K = 1, OX = 0, OY = 0, fitted = '', only = null, PLAY = null, NOW = null;
-const PLAY_MS = 180000;
+// GOGH's 20 times faster, 9 s (the owner, 2026-11-22, the evening: "▶ Play — please make the drawing speed 20 times faster :) In GOGH it goes very slowly")
+const PLAY_MS = DABS ? 180000 / 20 : 180000;
 function fit() {
   const r = stage.getBoundingClientRect(), m = 26, k = Math.min((r.width - 2 * m) / PIC.w, (r.height - 2 * m) / PIC.h);
   K = k; OX = (r.width - PIC.w * k) / 2; OY = (r.height - PIC.h * k) / 2;

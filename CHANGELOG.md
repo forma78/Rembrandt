@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's ▶ Play 20 times faster: 9 s** (2026-11-22, the evening; the owner: "▶ Play — please make the drawing speed 20 times faster :) In
+  GOGH it goes very slowly"). The same clock, slow at first; FORM-G's and the others' 3 min as before.
+
 - **GEN-V: the 20 × 20 and the 40 × 40 edge to edge** (2026-11-22, the evening; the owner, of a 20 × 20 sketch in a field of 140 × 140,
   `GOGH/bear-20-20.png`: "there must be none. Margins only for 60 × 60 and up, our limit is physical, 550 mm. But 200 × 200 mm we print without
   trouble … 40 × 40 too, without the limiting contour"). A canvas within the reach (540 × 855) its whole self the field, no dashed contour on the
