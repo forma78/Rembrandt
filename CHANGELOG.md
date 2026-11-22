@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's first card of the 2 mm brush: the gummy bear, a 40 × 40 test** (2026-11-22, the evening; the owner: "the bear can be made as
+  orange_bear.png — for the GOGH tab"; "it is a 40 × 40 test"). `app/gogh/orange-bear`, from GEN-V's sketch as approved: 10 jars (four ≈ his
+  Jar 9, 16, 19, 21 as hints), 2683 dabs, ≈ 7 h 51 by GOGH's PROGRESS (est.). GOGH: a card's `look` — GEN-V's gap and width as approved —
+  its sliders' start until moved (genvpic.py writes it); Run's label the picture's brush's dab (a 12 mm dab for the 2 mm); the footer's brush
+  the picture's.
+
 - **GEN-V: the 2 mm brush and a 20 × 20 for tests; GOGH's gap a brush's own** (2026-11-22, the evening; the new brushes come, `GOGH/IMG_3390` …
   `IMG_3395`; the owner: "add a 2 mm button to GEN-V and a 20 × 20 cm format for tests"; of the 2 mm's strokes by a ruler: "I could not stretch it to
   20 mm … the longest stroke is 15 mm. But that is enough for us"; "I make the adjustment for exactly the new 2 mm brush", the gap −0.2). The brush

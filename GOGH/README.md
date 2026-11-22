@@ -34,6 +34,18 @@ for GOGH"; "I could not stretch [its stroke] to 20 mm. All as you warned: a brus
 | `IMG_3392.jpg` | The sheet by the ruler (cm): grey and burgundy dabs of a flat brush, 10 … 11 mm, then blue strokes of the 2 mm. |
 | `IMG_3390.jpg` | The 2 mm's blue strokes by the ruler, the ones he measured in green: 11 … 14 mm — "the longest stroke is 15 mm"; flat-brush grey legs above them, a blue patch below. |
 
+## The gummy bear, the 2 mm brush's test (2026-11-22, the evening)
+
+The owner: "the bear can be made as orange_bear.png — for the GOGH tab"; "it is a 40 × 40 test".
+
+| file | what it is |
+|---|---|
+| `Glossy Red-Orange Gummy Bear · GEN-V · 40x40 · 2 mm · 10.json` | GEN-V's sketch he approved: 40 × 40, the 2 mm brush, screen 1, 10 colours, the gap −0.2, the width 2.3; 2683 dabs, ≈ 7 h 48 by GEN-V (est.). |
+| `orange_bear.png` | His screenshot of that screen on GEN-V: the card is to look so. |
+
+The card: `app/gogh/orange-bear.json`, `.jpg` (genvpic.py, true to the sketch; its `look` the gap and the width as approved). The picture it was
+made from is not here.
+
 ## On this Mac alone (`.gitignore`)
 
 - `van gogh.jpg` (The Starry Night), `Paul Signac.jpg` (The Pine Tree at Saint-Tropez), `Camille Pissarro.webp` (by its
