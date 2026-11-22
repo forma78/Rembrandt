@@ -49,6 +49,19 @@ old canvas on purpose, so as not to mind experimenting." The arm by then at 125 
 | `IMG_3410.jpg` | The arm at the canvas, the red jar at hand on its bracket: the head's dabs, big glossy red blobs where the brushes were tried. |
 | `IMG_3411.jpg` | The whole 20 × 20: the bear's ears and face readable from a step back; neat drops and combs, and the tried brushes' heavy red blobs at the top. |
 
+## The flood (2026-11-22, the night)
+
+The owner: "too much paint pours, maybe from the higher speed. I circled it here — it is simply a flood"; "the canvas is 20 × 20 cm, easy to lay a grid
+and compare with the journal. It was Jar 19." Jar 19 (Colour 11, 208 dabs, the jar with most) at the shoulder 195°/s, the elbow 180°/s, 0.1 s in the
+paint, the board flashed (its J that fast for real, its acceleration by its speed); the jars before 21:05 (the elbow up out of the paint at 28°/s) neat drops.
+
+| file | what it shows |
+|---|---|
+| `Screenshot 2026-11-22 at 10.56.09 PM.png` | GOGH's plan, Jar 19's dabs in red over the picture faded; circled where they lie thick: the forehead's band, the left ridge, the bottom row. |
+| `IMG_3412.jpg`, `IMG_3413.jpg` | The canvas close: a raspberry-red mass, glossy, one puddle over the dabs before it, its runs down. |
+| `IMG_3415.jpg` | The 20 × 20 whole on the wall, the flood across the head. |
+| `IMG_3415 · Jar 19 overlay.png` | Claude's: `IMG_3415` laid square by the canvas's corners, 4 px a mm, a 20 mm grid, and Jar 19's every dab of the plan outlined: the flood where they stand in neighbouring columns and stacks; its lone dabs at the edges drops as before. |
+
 ## The gummy bear, the 2 mm brush's test (2026-11-22, the evening)
 
 The owner: "the bear can be made as orange_bear.png — for the GOGH tab"; "it is a 40 × 40 test".
