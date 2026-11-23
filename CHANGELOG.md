@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 2, blocks 5 and 6 read close** (2026-11-23; the owner, of `GOGH/dab-screen-canvas.png`: "now only this one to discuss"). Off the
+  close photos, `IMG_3435` and `IMG_3438`: the lone dabs land evenly, within ±0.2 mm; the patch's columns clump, 3 and 4 mm on average as planned
+  but ≈ 2.8 / 3.6 inside a group and 5.5 … 6.5 between groups: a wet neighbour within the head's ≈ 5 mm pulls the next column (est.). The six
+  blocks' overlay fattens the paint across; widths off the close photos. `GOGH/IMG_3435 · block 5 overlay.png` in git.
+
 - **Press test 2 read: the screen laid over the canvas; calibration as a canon** (2026-11-23, the night; the owner: "all six modules with the overlay —
   blue the screen, pink the paint on the canvas"; "write the adjustment into the canon, as a rule of calibration"; of the test: "it should have begun
   with it, not with the bear"). README, "GOGH: a dab …", 16: TEST, the press test a block a setting, the whole canvas square on, the overlay, and what it
