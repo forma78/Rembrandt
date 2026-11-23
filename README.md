@@ -233,6 +233,11 @@ is on, `rembrandt.py` refuses a turn of the shoulder with the elbow out of
 its fork up, the elbow below +14° with the shoulder off 0, and the wrist
 with the shoulder off 0 — a run's or a jog's.
 
+**The shoulder back at +0.6 … +0.9°** (Press test 3, 2026-11-23, `GOGH/README.md`): coming back from the jar the servo stops short of 0, a dip
+in five, the same at 40°/s as at 195°/s — the servo, not the speed; at the tip ≈ 3.6 mm a degree (est.), so that dab lies 2 … 3 mm to the
+right. Left as it is, the cause known; no carriage compensation (the owner: "that would complicate the already complicated code. I fear it
+would create yet another threat of error. And then — they do come back. Let us leave it as it is for now, but we will know the cause").
+
 ## How to lay a module — the rubber brush (canon)
 
 The owner, 2026-11-05, of a Colour Shaper soft no. 2, a rubber tip, on

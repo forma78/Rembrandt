@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **README, How to dip: the shoulder back at +0.6 … +0.9°, left as it is** (2026-11-23; the owner, of a carriage compensation: "that would
+  complicate the already complicated code … they do come back. Let us leave it as it is for now, but we will know the cause").
+
 - **Press test 3: the lower drops astray — the shoulder back at +0.7°** (2026-11-23, the day; the owner, of No. 6: "the lower drops in the lower row
   went astray, first in the first column, then in the fourth"). The journal: those dips' shoulder stood at +0.7° (`near`), four in block 6, and those
   four dabs 2.2 … 2.7 mm to the right on the photo: ≈ 3.6 mm a degree at the tip (est.). The lone rows 30 mm by his ruler (`GOGH/IMG_3465.jpg`): the
