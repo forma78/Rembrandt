@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The headlight v.2: his 13 jars, a line each, columns 4 mm** (2026-11-23, the night; the owner: "not changing the colours … we do not need so many shades
+  for the test"; "no, the other way, closer!"). `headlight-nib-20-v2` first in GOGH_LIB; his brush's edits of v.1 and the 4 mm porsche kept. A drop's profile
+  clamped at its ends: a rounding hair past it drew a 38 mm wide line on a card's picture (`dropOf`). Tested.
+
 - **The headlight in the owner's named jars** (2026-11-23, the night; the owner: "random colours … all my colours are named"; "better rename Indicator to
   Jar 6"). `headlight-nib-20` in the red classic's 19 jars by their physical hexes; the picture's orange by Jar 6, first in Layer 2 (`led.py`'s orange jar).
 

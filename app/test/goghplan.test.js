@@ -414,7 +414,7 @@ test('the headlight for the nib: every dab a stamp, the stamps\' way 4.2 (seedJ3
   const { GOGH_LIB, passesV, dabRunsOf, isSeed } = await import('../src/goghplan.js');
   const { rowsOf, R3, FORMG } = await import('../src/formgplan.js');
   const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/headlight-nib-20.json'), 'utf8'));
-  assert.equal(GOGH_LIB[0], 'headlight-nib-20');
+  assert.ok(GOGH_LIB.includes('headlight-nib-20'));
   assert.ok(pic.jars.every(j => j.stamp) && pic.dab.seed === 6 && pic.dab.seedJ3 === 2 && pic.preset.run === -1);
   const P = passesV(pic, { gap: pic.preset.gap, run: pic.preset.run }), runs = dabRunsOf(P);
   assert.ok(runs.every(r => r.beyond === false), 'stamps');
@@ -427,4 +427,25 @@ test('the headlight for the nib: every dab a stamp, the stamps\' way 4.2 (seedJ3
   const ways = R.ps.map(g => +Math.hypot(g[0].b.x - g[0].a.x, g[0].b.y - g[0].a.y).toFixed(2));
   assert.ok(ways.filter(w => Math.abs(w - 4.2) < 1e-6).length >= 180, 'the stamps 4.2 mm');
   assert.ok(Math.max(...ways) <= 10.01, `a leg at most 12 − 2 at RUN 10: ${Math.max(...ways)}`);
+});
+
+// a drop's profile read past its end by rounding (2026-11-23, the night: a 38 mm wide line across the headlight's picture): never wider than its own width
+test('a drop never wider than its width — the profile clamped at its ends', async () => {
+  const { dropOf } = await import('../src/goghplan.js');
+  const q = dropOf(45, 113.88, 103, { gap: 0.2, run: 0, seed: 6, seedJ3: 2, wide: 3.5 }), xs = q.map(p => p[0]);
+  assert.ok(Math.max(...xs) - Math.min(...xs) <= 3.5 + 1e-9, `${Math.max(...xs) - Math.min(...xs)}`);
+});
+
+test('the headlight v.2: his 13 jars as he set them by 🔄, a line each a layer, columns 4 mm apart, Jar 6 first in Layer 2', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { GOGH_LIB, passesV } = await import('../src/goghplan.js');
+  const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/headlight-nib-20-v2.json'), 'utf8'));
+  assert.equal(GOGH_LIB[0], 'headlight-nib-20-v2');
+  const P = passesV(pic, { gap: 0.2, run: -1 }), name = q => pic.jars.find(j => j.id === q.pencil).name, one = P.filter(q => q.layer === 1).map(name), two = P.filter(q => q.layer === 2).map(name);
+  assert.deepEqual(one, ['Jar 1', 'Jar 5', 'Jar 7', 'Jar 22', 'Jar 23', 'Jar 29', 'Jar 30', 'Jar 31', 'Jar 34', 'Jar 38', 'Jar 43', 'Black'], 'a line each');
+  assert.equal(two[0], 'Jar 6');
+  const xs = [...new Set(pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))))].sort((a, b) => a - b);
+  assert.ok(xs.slice(1).every((x, i) => Math.abs(x - xs[i] - 4) < 1e-6), 'columns 4 mm apart');
+  assert.ok(pic.jars.every(j => j.stamp) && pic.preset.run === -1);
 });

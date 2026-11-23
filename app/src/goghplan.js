@@ -37,7 +37,9 @@ import { seqOf, FORMG } from './formgplan.js';
 // to set at all. Let them be preset"): block 6 alone at its place, seeds as stamps (`stamp`, no lift beyond), its `preset` put on the sliders when chosen
 // headlight-nib-20, the headlight for the spatula nib (the owner, 2026-11-23, the night, the stamps a victory: "shall we make a new picture for the headlight
 // test?"; Kuzya's "an enlarged headlight with a bit of the wing on 20 × 20"): for-LAB's crop in 1 and ½, columns 5 mm, every dab a stamp, two layers, preset
-export const GOGH_LIB = ['headlight-nib-20', 'press-stamps-20', 'bear-led-30-3', 'bear-led-30-4', 'porsche-led-20-4', 'porsche-led-20-3', 'porsche-led-20-2', 'press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
+// headlight-nib-20-v2 (the owner, 2026-11-23, the night: "make v.2 of the headlight … not changing the colours … we do not need so many shades for the test"; "no,
+// the other way, closer!"): his jars as he set them by 🔄, a line each, 13 jars; columns 4 mm apart
+export const GOGH_LIB = ['headlight-nib-20-v2', 'headlight-nib-20', 'press-stamps-20', 'bear-led-30-3', 'bear-led-30-4', 'porsche-led-20-4', 'porsche-led-20-3', 'porsche-led-20-2', 'press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,
@@ -119,7 +121,8 @@ export function dropOf(x, a, b, o = {}) {
   const k = Math.min(1, Math.max(0, -run / 3)), base = o.wide ?? DROP.wide;                  // 0 at RUN 12 and over, 1 at RUN 6: the pill to the seed
   const pill = Math.max(1, (s + ELBOW_J3.early - dropTopOf(o.top)) - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run));
   const top = s + ELBOW_J3.early - dropTopOf(o.top), P = pill + (SEED.len + 2 * Math.min(0, run + 3) - (isSeed(a, b, o) && Number.isFinite(o.seedJ3) ? ELBOW_J3.early - o.seedJ3 : 0) - pill) * k, half = (base + (SEED.wide * base / DROP.wide - base) * k) / 2;   // RUN 4: the seed 2 mm shorter (est.)
-  const at = (pr, f) => { const i = Math.max(1, pr.findIndex(q => q[0] >= f)), [f0, w0] = pr[i - 1], [f1, w1] = pr[i]; return w0 + (w1 - w0) * (f1 > f0 ? (f - f0) / (f1 - f0) : 0); };
+  const at = (pr, f) => { f = Math.min(1, Math.max(0, f)); const i = Math.max(1, pr.findIndex(q => q[0] >= f)),   // f clamped: a hair past 1 by rounding drew a 38 mm wide drop (2026-11-23)
+    [f0, w0] = pr[i - 1], [f1, w1] = pr[i]; return w0 + (w1 - w0) * (f1 > f0 ? (f - f0) / (f1 - f0) : 0); };
   const h = d => half * ((1 - k) * at(DROP.profile, d / P) + k * at(SEED.profile, d / P));
   const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...DROP.profile.map(q => q[0] * P), ...SEED.profile.map(q => q[0] * P)])].sort((p, q) => p - q);
   const side = ds.map(d => [d, h(d)]);
