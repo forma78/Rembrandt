@@ -63,6 +63,20 @@ six times, "in different variations … the press".
 | `IMG_3294.jpg` | The same jar lower: the brush's white tip just touching the paint. |
 | `Screenshot 2026-11-22 at 11.22.13 PM.png` | GOGH's plan, Jar 19's dabs on the forehead circled: the cluster the press test repeats, 48 dabs, 50 × 45 mm. |
 
+## Press test 4, the porsche in drops (2026-11-23, the afternoon)
+
+The owner: "leave the GOGH tab as it is, and make GOGH2 with a generator on the new principle. But before doing it globally, I propose Press test 4,
+porsche — for-LAB.png. It is already in LIB-V; it only remains to remake it in drops, and to take the ground off: there, for some reason, 3.4 metres of
+C1, though it is the white ground. We run it quickly as the sixth module, and then GOGH2."
+
+`app/gogh/press-porsche-20` (this Mac alone, in `app/gogh/local.json`, as `for-lab-20x20-2mm-16` it is made from; `for-LAB.png` not in git): GEN-V's
+for-LAB made again as Press test 3's block 6 — columns 6 mm apart (31), dabs of 12 mm end to end, as bricks, the 2 mm brush; Colour 1 (`#FEFDFD`, the
+photo's white ground, 601 dabs, 7.1 m of line on the card) out, the canvas bare there; every dab the nearest of the card's other 13 colours to the
+picture under it, white ground under half of it none. 276 dabs; the canon of the jars (a jar under 200 mm of line to its nearest): 12 colours → 7
+jars, the pinks and the greys of the highlights into the reds, the chrome's grey into Colour 14. The picture 13.5 mm higher than GEN-V placed it, so
+the drops' tails stay on the canvas: the paint 10 … 190 mm. On GOGH's Picture its drops in the jars' own colours (`drop: 'colour'`), the masters
+a yellow hair; Drag the masters, blue. ≈ 30 min (est.).
+
 ## Press test 3, paints (2026-11-23, the day)
 
 The owner, of Press test 2's reading: "take the grey paint Jar 28 … and draw with it a new test, Press test 3 — do not draw the ideal even sausages any

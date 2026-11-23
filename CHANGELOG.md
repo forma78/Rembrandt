@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 4, the porsche in drops** (2026-11-23, the afternoon; the owner: "remake it in drops, and take the ground off … we run it quickly
+  as the sixth module, and then GOGH2"). GEN-V's for-LAB as Press test 3's block 6: columns 6 mm apart, dabs of 12 mm as bricks, the white ground
+  bare, 276 dabs in 7 jars; a card of this Mac alone. A card's `drop: 'colour'` paints GOGH's drops in the jars' own colours (`formg.js`,
+  `drawDrops`); `drop: true` stays the test's pink. `GOGH/README.md`.
+
 ## v.1.2.8 — 2026-11-23 · GOGH's tests: the press, the paints, the drop on the screen
 
 - **v.1.2.8 on every tab and in the saved SVGs** (the owner, 2026-11-23: "you can push v.1.2.8 with a note about the tests, please").
