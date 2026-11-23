@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **1 and ½: GOGH in stripes, legs and seeds in one DRAG** (2026-11-23, the evening; the owner: "maybe simply in stripes, as rgb-led.png … by the principle
+  of 1 and ½ … if a headlight or some small detail, ½ a seed; if a fill as the bonnet, there 1 leg"). `GOGH/generator/led.py`: columns, 12 mm cells in level
+  rows, one leg or two seeds. `goghplan.js`: a card's `dab.seed` — a dab no longer than it laid as a seed (as RUN 6) whatever the RUN, on the machine and
+  on the screen (`isSeed`, `dabLeg`, `dropOf`). The porsche on 20 × 20 at 2, 3 and 4 mm, cards of this Mac alone.
+
 - **Press test 3 again with the new brush, read; the drop a seed at RUN 6** (2026-11-23, the evening; the owner: "`IMG_3469` — all six, and the fifth once
   more `IMG_3470`"). `GOGH/IMG_3469 · six blocks overlay.png`: at RUN 12 the screen's pill as the paint lies (block 3 near exact); at RUN 6 every dab a seed
   ≈ 7 × 3.5 mm whatever its length — `SEED`, the drop turning into it below RUN 12 (`dropOf`); block 6's shifted dabs the shoulder's +0.7° again. The

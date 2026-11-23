@@ -87,6 +87,21 @@ block a little denser, I think 2 mm easily. I will reload the tab and go over it
 read the deviations as `IMG_3463 · six blocks overlay.png`." Press test 3's block 6, its patch 4 mm apart (x 141 … 177; 6 before), the card's picture
 redrawn with the new drops.
 
+### 1 and ½ — the porsche in stripes (2026-11-23, the evening)
+
+The owner: "do we need the chess at all? Maybe simply in stripes, as `rgb-led.png`? … with Kuzya's comments in mind. … on 70 × 100 this is weeks of work.
+But here is something else interesting — do we need to fuss so with the paints now? Such a grid as `rgb-led.png` we have not made yet. I would build it by
+the principle of 1 and ½ — to save time. If a headlight or some small detail, ½ a seed; if a fill as the bonnet, there 1 leg. Here I drew it,
+`Screenshot 2026-11-23 at 4.12.12 PM.png`. … or simply the 2 mm stroke and FORM-G's principle of the drawing, only 2 mm instead of 5. I would then do as in
+FORM-G, vertical lines. Only no paint dragged, short legs and seeds. The porsche with the headlight on 20 × 20, then."
+
+`generator/led.py`: vertical columns, cells of 12 mm in level rows (no chess); a cell one leg where its halves are one jar, else two seeds, ½ each; a part's
+top and bottom by the picture's contour; its jar the one most of its pixels are nearest to, of all GEN-V's colours, the lightest last. **A seed in the
+plan** (`goghplan.js`, the card's `dab.seed`, 6 mm): a dab no longer than it is laid as RUN 6 lays every dab, its way the J3's alone, whatever the RUN —
+so legs and seeds go in one DRAG. for-LAB, 20 × 20, columns 2, 3 or 4 mm apart (`porsche-led-20-2`, `-3`, `-4`, this Mac alone): 1025, 682, 515 dabs,
+≈ 60 % legs; DRAG ≈ 1 h 46, 1 h 10, 54 min (est.). 2 mm nearest GEN-V's card, the columns over each other by 0.6 … 1.5 mm, wet on wet; 3 mm the
+stripes of `rgb-led.png`, the headlight whole; 4 mm the headlight going. `porsche · GEN-V, 1 and ½ at 2, 3, 4 mm.png` the four side by side.
+
 ### Press test 3 again, the new brush, read (2026-11-23, the evening)
 
 The owner: "`IMG_3469` — all six, and the fifth once more `IMG_3470`"; before: "I will photograph it all together and read the deviations as

@@ -105,7 +105,7 @@ export const DROP_UI = { top: [0, 5, 0.5], tip: [0, 25, 0.5] };   // the sliders
 export const dropTopOf = v => inRange(v ?? DROP.top, DROP_UI.top), dropTipOf = v => inRange(v ?? DROP.tip, DROP_UI.tip);
 // a dab's drop → its outline, [[x, y]] clockwise from its top; o: { gap, run, top, tip } — the sliders'; wide, a card's own brush (`dropWide`, est.)
 export function dropOf(x, a, b, o = {}) {
-  const run = dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0 });
+  const run = isSeed(a, b, o) ? -3 : dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0, seed: 0 });
   const k = Math.min(1, Math.max(0, -run / 3)), base = o.wide ?? DROP.wide;                  // 0 at RUN 12 and over, 1 at RUN 6: the pill to the seed
   const pill = Math.max(1, (s + ELBOW_J3.early - dropTopOf(o.top)) - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run));
   const top = s + ELBOW_J3.early - dropTopOf(o.top), P = pill + (SEED.len - pill) * k, half = (base + (SEED.wide * base / DROP.wide - base) * k) / 2;
@@ -218,18 +218,22 @@ export function sketchV(B, fit, f, K, o = {}) {
 // a dab's leg on the machine: painted top to bottom; `gap` / 2 off both its ends (the slider, the plan's), then `trim` in from them (DAB.trim, the J3 gives
 // them back), then `run` on past them (the slider, the machine's alone: the brush lands earlier and lifts later, or, below 0, later and earlier, the leg
 // no shorter than DAB_LEG); a dab too short for the trim, the shortest the brush lands on, about its middle, the run on past it the same
+// A seed in the plan (the owner, 2026-11-23, of a picture in "1 and ½": "if a headlight or some small detail, ½ a seed; if a fill as the bonnet, there 1
+// leg"): a card's `dab.seed`, mm — a dab no longer than it laid as RUN 6 lays every dab, its leg DAB_LEG whatever the RUN, its way the J3's 3 + 3 alone,
+// a seed ≈ 7 × 3.5 mm (SEED); a longer one a leg as before, the RUN its own. o.seed: that threshold, none on a card without it
+export const isSeed = (a, b, o = {}) => !!o.seed && Math.abs(a - b) - dabGapOf(o.gap) <= o.seed + 1e-9;
 export function dabLeg(x, a, b, o = {}) {
   const trim = o.trim ?? DAB.trim, gap = dabGapOf(o.gap), run = dabRunOf(o.run), m = FORMG.minLeg, r3 = v => Math.round(v * 1000) / 1000;
   const top = Math.max(a, b) - gap / 2, bot = Math.min(a, b) + gap / 2, L = top - bot, c = (top + bot) / 2;
   const half = L < m + 2e-9 ? m / 2 : L / 2 - Math.max(0, Math.min(trim, (L - m) / 2));
-  const h = Math.max(DAB_LEG / 2, half + run);
+  const h = isSeed(a, b, o) ? DAB_LEG / 2 : Math.max(DAB_LEG / 2, half + run);
   return [[x, r3(c + h)], [x, r3(c - h)]];
 }
 // the list: FORM-G's (formgplan.js, seqOf) — every jar once, light to dark; a pass a jar, its cells as the picture has them, every leg a dab
 // o: { gap, run, trim } — the sliders'
 export function passesV(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = j.cells.map((c, i) => { const legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, o)); return { num: i + 1, k: legs.length, legs, line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
+    const byCell = j.cells.map((c, i) => { const legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, { ...o, seed: pic.dab?.seed })); return { num: i + 1, k: legs.length, legs, line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
     return { pencil: j.id, layer: j.layer, fill: 'dabs', cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: false, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }

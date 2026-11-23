@@ -317,3 +317,22 @@ test('a drop at RUN 6: a seed, 7 mm long and 3.5 wide whatever the plan\'s lengt
   assert.ok(w(0) < w(-1) && w(-1) < w(-2) && w(-2) < w(-3), 'wider step by step to the seed');
   assert.ok(Math.abs(wid(dropOf(50, 100, 88, { gap: 0.2, run: -3, wide: 5.6 })) - 7) < 1e-6, 'a card\'s own width scaled alike');
 });
+
+// "1 and ½" (the owner, 2026-11-23: "if a headlight or some small detail, ½ a seed; if a fill as the bonnet, there 1 leg"): a card's dab.seed makes a dab no
+// longer than it a seed whatever the RUN — its leg DAB_LEG, its way the J3's alone — and leaves a longer one a leg
+test('1 and ½: a card\'s dab.seed — a dab of ½ a seed on the machine and on the screen, a dab of 1 a leg, the RUN its own', async () => {
+  const { dabLeg, dropOf, passesV, isSeed, DAB_LEG, SEED, DROP } = await import('../src/goghplan.js');
+  const len = l => +(l[0][1] - l[1][1]).toFixed(3);
+  assert.ok(isSeed(106, 100, { seed: 6, gap: 0.2 }) && !isSeed(112, 100, { seed: 6, gap: 0.2 }) && !isSeed(106, 100, { gap: 0.2 }));
+  for (const run of [0, 2, -1]) {
+    assert.equal(len(dabLeg(10, 106, 100, { gap: 0.2, run, seed: 6 })), DAB_LEG, `½ at run ${run}: the seed's leg`);
+    assert.equal(len(dabLeg(10, 112, 100, { gap: 0.2, run, seed: 6 })), len(dabLeg(10, 112, 100, { gap: 0.2, run })), `1 at run ${run}: a leg as ever`);
+  }
+  const ys = q => q.map(p => p[1]), xs = q => q.map(p => p[0]);
+  const s = dropOf(10, 106, 100, { gap: 0.2, seed: 6 }), l = dropOf(10, 112, 100, { gap: 0.2, seed: 6 });
+  assert.ok(Math.abs(Math.max(...ys(s)) - Math.min(...ys(s)) - SEED.len) < 1e-6 && Math.abs(Math.max(...xs(s)) - Math.min(...xs(s)) - SEED.wide) < 1e-6, 'the seed on the screen');
+  assert.ok(Math.abs(Math.max(...xs(l)) - Math.min(...xs(l)) - DROP.wide) < 1e-6, 'the leg a pill');
+  const pic = { id: 't', w: 200, h: 200, pitch: 2, columns: 1, kind: 'dabs', dab: { seed: 6 }, jars: [{ id: 'c0', name: 'C1', hex: '#CC2222', coats: 1, cells: [{ n: 1, legs: [[10, 112, 106], [10, 106, 100]] }, { n: 2, legs: [[14, 112, 100]] }] }] };
+  const P = passesV(pic, { gap: 0.2 });
+  assert.deepEqual(P[0].byCell.map(c => c.legs.map(len)), [[DAB_LEG, DAB_LEG], [len(dabLeg(14, 112, 100, { gap: 0.2 }))]], 'passesV: two seeds, one leg');
+});
