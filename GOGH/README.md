@@ -81,6 +81,12 @@ spacing blind. The code untouched by him.
 
 | `IMG_3467.jpg` | The new brush, two blocks of Press test 3's card (the owner: "look how beautiful it comes out :)) … the third module's settings: GAP +0.2, WIDTH 2.2, RUN 6, DROP · TOP 0.5, DROP · TIP 0.0 … shall we redraw the drops?"). By the journal the run started at RUN 12 and no swap came — blocks 2 and 3 painted the same 725 mm: RUN 6, set in the pause, did not take (a run of −3 makes a short dab's steps fewer, and a live swap takes only the same steps); so the third block too is RUN 12. Its drops pills ≈ 2.8 mm wide, the lone 4 … 10 mm 8.2 … 9.1 mm, 12 mm 13.3, 15 mm 17.9, the patch's 12 mm 11.4 … 12.5, every column apart (scaled by the lone dabs' 6 mm, est.). |
 
+Then the owner, the page reloaded with the new drops: "Aaaa!!! Class 🙌 what a wow 🌟 … when you made me `Screenshot 2026-11-23 at 1.55.01 PM.png` [the matrix's
+porsche, the old brush's leaves] I was a little upset. But now look what we have in the end — neat strokes, fully controllable. Move the sixth module's lower
+block a little denser, I think 2 mm easily. I will reload the tab and go over it in grey once more, the last time. Then I photograph it all together and
+read the deviations as `IMG_3463 · six blocks overlay.png`." Press test 3's block 6, its patch 4 mm apart (x 141 … 177; 6 before), the card's picture
+redrawn with the new drops.
+
 **RUN down to 6** (README, "GOGH: a dab …", 5): the slider −3 … +4, the brush landing later and lifting earlier below 0. **`app/gogh/press-short-20`, Press
 test 5**: Press test 2's six blocks, one jar (Jar 19, as Press test 2's; 🔄 for another), each its lone dabs 4 … 15 mm 6 mm apart and a patch of 10 × 2
 dabs of 12 mm 5 mm apart; a RUN a block — set before DRAG DABS, Start from the block (a RUN below 0 is not taken live). **The drops redrawn for the new
