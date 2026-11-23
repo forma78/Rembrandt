@@ -2465,7 +2465,11 @@ def genv_approve(body, sketches=GOGH_SKETCHES, cards=GOGH_CARDS):
 # GOGH's brush (the owner, 2026-11-23: "can a vertical tools menu be made, with a brush? I marked here the seeds I want to paint over"; "where to keep them?
 # :)) This is GOGH-2's preparation. We put everything on GitHub. With the repainting — I just need orange indicators — this is v.1.2.9"): the page sends a card's
 # jars with its dabs moved between them; here the card's file in app/gogh/ written again — every jar as it was but its cells, nothing added, nothing lost, a
-# jar left with no dab out — and its picture, the page's. Not while a run is on: the run's steps are the card's as it was. Nothing on the machine.
+# jar left with no dab out — and its picture, the page's. + ADD COLOR (the owner, the same evening: "I want one more paint, the light grey Jar 3 … I do not
+# like that there is so much black on it"): a jar of his new to the card, `a<n>`, its name and hex, after the card's own. Not while a run is on: the run's steps are the card's as it was. Nothing on the machine.
+NEW_JAR, HEX6 = re.compile(r"^a[0-9]{1,4}$"), re.compile(r"^#[0-9A-Fa-f]{6}$")
+
+
 def _legs_of(jars):
     return sorted((round(float(x), 3), round(float(a), 3), round(float(b), 3)) for j in jars for c in j.get("cells", []) for x, a, b in c.get("legs", []))
 
@@ -2483,12 +2487,15 @@ def gogh_card_edit(body, cards=GOGH_CARDS, live=False):
     if card.get("kind") != "dabs":
         raise ValueError("not a picture in dabs")
     new, own = body.get("jars"), {j.get("id"): j for j in card.get("jars", [])}
-    if not isinstance(new, list) or not all(isinstance(j, dict) and j.get("id") in own and isinstance(j.get("cells"), list) for j in new):
+    added = lambda j: j.get("id") not in own and NEW_JAR.match(str(j.get("id") or "")) and isinstance(j.get("name"), str) and 0 < len(j["name"]) <= 40 \
+        and HEX6.match(str(j.get("hex") or ""))                                     # + ADD COLOR's: a jar of the owner's, new to the card
+    if not isinstance(new, list) or not all(isinstance(j, dict) and (j.get("id") in own or added(j)) and isinstance(j.get("cells"), list) for j in new):
         raise ValueError("not the card's jars")
     if len({j["id"] for j in new}) != len(new) or _legs_of(new) != _legs_of(card.get("jars", [])):
         raise ValueError("not the card's dabs: none may be added or lost")
     cells = {j["id"]: [{"n": i + 1, "legs": [[x, a, b] for x, a, b in c["legs"]]} for i, c in enumerate(q for q in j["cells"] if q.get("legs"))] for j in new}
-    card["jars"] = [{**j, "cells": cells[j["id"]]} for j in card["jars"] if cells.get(j["id"])]   # the card's own order, a jar with no dab out
+    more = [{"id": j["id"], "name": j["name"], "code": "", "hex": j["hex"].upper(), "coats": 1} for j in new if j["id"] not in own]
+    card["jars"] = [{**j, "cells": cells[j["id"]]} for j in [*card["jars"], *more] if cells.get(j["id"])]   # the card's own order, an added jar after it, a jar with no dab out
     jpg = body.get("jpg")
     if isinstance(jpg, str) and jpg.startswith(JPG_DATA):
         _write(os.path.join(cards, pid + ".jpg"), base64.b64decode(jpg[len(JPG_DATA):], validate=True))

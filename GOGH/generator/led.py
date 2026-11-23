@@ -4,13 +4,19 @@
 # cut into cells UNIT long in level rows, no chess; a cell one leg of one jar where its two halves are the same jar, else two seeds, ½ each, each its own — a
 # seed on the machine as RUN 6 lays it (the card's dab.seed, goghplan.js); a cell's top and bottom, and a half's, where the picture's paint begins and ends
 # under it, the white ground bare; a part's jar the one most of its pixels are nearest to, of all the sketch's colours (no jar canon); the lightest last.
-#   python3 led.py sketch.json picture.png out.json [side mm] [pitch mm] [id] [title] [edges] [unit mm]
+# Two layers (the owner, 2026-11-23, of the gummy bear's head: "our principle of 1 and ½ the other way round … last we lay only the seeds of the lightest and the
+# darkest. Properly as Layer 2. Then the wet on wet is solved too"): with NEAR a cell whose halves' jars lie nearer than it a leg, a fill's
+# near shades not cut into seeds; with `ext` the seeds of the EXT lightest and the EXT darkest jars a line of their own each,
+# `late`, Layer 2, on the dry first layer — the darks first, the lightest the very last; the legs, and every other seed, Layer 1, light to dark as before.
+#   python3 led.py sketch.json picture.png out.json [side mm] [pitch mm] [id] [title] [edges] [unit mm] [ext] [near ΔE]
 import json, sys, numpy as np
 from PIL import Image, ImageDraw
 sk = json.load(open(sys.argv[1])); im0 = Image.open(sys.argv[2]).convert('RGB'); OUT = sys.argv[3]
 SIDE = float(sys.argv[4]) if len(sys.argv) > 4 else 200; PITCH = float(sys.argv[5]) if len(sys.argv) > 5 else 3
 ID = sys.argv[6] if len(sys.argv) > 6 else 'led'; TITLE = sys.argv[7] if len(sys.argv) > 7 else ID; EDGES = sys.argv[8] if len(sys.argv) > 8 else 'tl'
 UNIT = float(sys.argv[9]) if len(sys.argv) > 9 else 12; HALF_ = UNIT / 2
+LAYERS = len(sys.argv) > 10 and sys.argv[10] == 'ext'; EXT = 2   # the lightest and the darkest jars, so many each way (est.)
+NEAR = float(sys.argv[11]) if len(sys.argv) > 11 else 0   # CIELAB ΔE76: a cell's halves nearer than it one leg — a fill's near shades not cut into seeds (est.)
 f0 = sk['format'].split('x'); K_ = SIDE / (float(f0[0]) * 10)
 bx = sk['image'].get('box') or [0, 0, im0.width, im0.height]
 im = np.asarray(im0.crop(tuple(bx))).astype(float) / 255; H, W = im.shape[:2]
@@ -56,20 +62,26 @@ for k in range(N):
         if sp:
             m = (t + b) / 2; A, B = paint_span(x, t, m), paint_span(x, m, b)
             ja = jar_of(x, *A) if A and A[1] - A[0] >= 3 else None; jb = jar_of(x, *B) if B and B[1] - B[0] >= 3 else None
+            if ja is not None and jb is not None and ja != jb and np.linalg.norm(pal[ja] - pal[jb]) < NEAR and sp[1] - sp[0] > HALF_ + 1:
+                ja = jb = jar_of(x, *sp)                                               # two near reds one fill: a leg in the cell's own
             if ja is not None and ja == jb and sp[1] - sp[0] > HALF_ + 1:
-                dabs.append((k, x, sp[0], sp[1], ja)); legs += 1                     # 1: a leg
+                dabs.append((k, x, sp[0], sp[1], ja, 'leg')); legs += 1              # 1: a leg
             else:
                 for part, j in ((A, ja), (B, jb)):                                     # ½ + ½: a seed each, its plan ½ long at the part's top
-                    if part and j is not None: dabs.append((k, x, part[0], min(part[0] + HALF_, part[1] if part[1] - part[0] >= HALF_ else part[0] + HALF_), j)); seeds += 1
+                    if part and j is not None: dabs.append((k, x, part[0], min(part[0] + HALF_, part[1] if part[1] - part[0] >= HALF_ else part[0] + HALF_), j, 'seed')); seeds += 1
         t += UNIT
-jars = []
-for k_, (name, hx) in enumerate(cols):
-    mine = sorted([d for d in dabs if d[4] == k_], key=lambda d: (d[0], d[2] if d[0] % 2 == 0 else -d[2]))   # column by column, a snake
-    if mine: jars.append({'id': f'l{k_}', 'name': name, 'code': '', 'hex': hx, 'coats': 1, **({'last': True} if pal[k_][0] >= LAST else {}),
-                          'cells': [{'n': i + 1, 'legs': [[round(d[1], 2), round(SIDE - d[2], 2), round(SIDE - d[3], 2)]]} for i, d in enumerate(mine)]})
-pic = {'id': ID, 'title': TITLE, 'sub': f"{SIDE / 10:g} × {SIDE / 10:g}: {sk['image'].get('name', '')} in 1 and ½ — columns {PITCH:g} mm apart, cells of {UNIT:g} mm in level rows, a cell one leg or two seeds; all GEN-V's {len(cols)} colours, no jar canon, the lightest last; the 2 mm brush, the new; {legs} legs, {seeds} seeds",
+used = sorted({d[4] for d in dabs}, key=lambda i: -pal[i][0])                 # light to dark
+light_, dark_ = (used[:EXT], used[-EXT:]) if LAYERS else ([], [])
+late = lambda d: d[5] == 'seed' and (d[4] in light_ or d[4] in dark_)
+snake = lambda ds: sorted(ds, key=lambda d: (d[0], d[2] if d[0] % 2 == 0 else -d[2]))   # column by column, a snake
+jar = lambda k_, ds, two: {'id': f'l{k_}' + ('-2' if two else ''), 'name': cols[k_][0], 'code': '', 'hex': cols[k_][1], 'coats': 1,
+                           **({'late': True} if two else {}), **({'last': True} if not LAYERS and pal[k_][0] >= LAST else {}),
+                           'cells': [{'n': i + 1, 'legs': [[round(d[1], 2), round(SIDE - d[2], 2), round(SIDE - d[3], 2)]]} for i, d in enumerate(snake(ds))]}
+jars = [jar(k_, ds, False) for k_ in used if (ds := [d for d in dabs if d[4] == k_ and not late(d)])]
+jars += [jar(k_, ds, True) for k_ in [*dark_, *reversed(light_)] if (ds := [d for d in dabs if d[4] == k_ and late(d)])]   # Layer 2: the darks, then the lights, the lightest last
+pic = {'id': ID, 'title': TITLE, 'sub': f"{SIDE / 10:g} × {SIDE / 10:g}: {sk['image'].get('name', '')} in 1 and ½ — columns {PITCH:g} mm apart, cells of {UNIT:g} mm in level rows, a cell one leg or two seeds; all GEN-V's {len(cols)} colours, no jar canon; " + (f"Layer 2 on the dry first: the seeds of the {EXT} lightest and the {EXT} darkest jars; " if LAYERS else "the lightest last; ") + f"the 2 mm brush, the new; {legs} legs, {seeds} seeds",
        'w': SIDE, 'h': SIDE, 'pitch': 2, 'columns': N, 'kind': 'dabs', 'dab': {'aim': UNIT, 'min': 3, 'max': UNIT, 'brush': 2, 'seed': HALF_},
        'jars': jars, 'image': f'gogh/{ID}.jpg', 'look': {'gap': 0.2, 'wide': 2.2}, 'drop': 'colour'}
 xs = [d[1] for d in dabs]; ys = [SIDE - v for d in dabs for v in d[2:4]]; pic['box'] = [min(xs) - 1, min(ys), max(xs) + 1, max(ys)]
 json.dump(pic, open(OUT, 'w'), separators=(',', ':'))
-print('columns', N, 'dabs', len(dabs), 'legs', legs, 'seeds', seeds, 'jars', len(jars))
+print('columns', N, 'dabs', len(dabs), 'legs', legs, 'seeds', seeds, 'lines', len(jars), 'layer 2', [(j['name'], len(j['cells'])) for j in jars if j.get('late')])

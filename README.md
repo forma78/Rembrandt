@@ -608,6 +608,12 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
       it touches that jar, a cell of its own; let go, the card and its picture written into `app/gogh/` by `rembrandt.py`'s POST `/gogh/card`
       (`gogh_card_edit`: every jar as it was but its cells, no dab added or lost, a jar left with none out); **⌘Z** undoes a stroke; not while a run is on,
       not on a frame's piece (`formg.js`, `brushDown`, `brushAt`, `cardSave`).
+    - **+ ADD COLOR** (the owner, the same evening: "one more paint, the light grey Jar 3 — I will try to redraw the headlights, I do not like that there is so
+      much black on it"): one of his jars, THE JARS' list, a line of its own in the picture, after the card's jars (last in Layer 1), none of its dabs yet —
+      chosen at once, the brush on; its first stroke saves it into the card (`a<n>`, `gogh_card_edit`); DRAG refuses while it has none;
+    - **two layers** (the owner, of the gummy bear's head: "last we lay only the seeds of the lightest and the darkest. Properly as Layer 2. Then the wet on
+      wet is solved too"): `led.py`'s `ext` — the seeds of the two lightest and the two darkest jars a line each, `late`, Layer 2 on the dry first, the darks
+      first, the lightest last; and `near`, a cell's halves of near shades (ΔE76 under 12, est.) one leg.
 
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.

@@ -30,7 +30,10 @@ import { seqOf, FORMG } from './formgplan.js';
 // to 6 mm? Then just make Press test 5"): Press test 2's six blocks, one jar, a RUN a block; its drops the new brush's (DROP)
 // porsche-led-20-4, -3, -2, the porsche with its headlight in 1 and ½ (GOGH-2's start, the owner, 2026-11-23: "by the principle of 1 and ½ … if a headlight or some
 // small detail, ½ a seed; if a fill as the bonnet, there 1 leg"), columns 4, 3 and 2 mm apart (GOGH/generator/led.py); the 4 mm the one painted first
-export const GOGH_LIB = ['porsche-led-20-4', 'porsche-led-20-3', 'porsche-led-20-2', 'press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
+// bear-led-30-3, -4, the gummy bear's head in 1 and ½ on 30 × 30, two layers (the owner, 2026-11-23: "our principle of 1 and ½ the other way round, on the gummy
+// bear head's portrait … last we lay only the seeds of the lightest and the darkest. Properly as Layer 2. Then the wet on wet is solved too"): Layer 2 the seeds
+// of the two lightest and the two darkest jars, on the dry first; a fill's near shades one leg (GOGH/generator/led.py, ext, near 12)
+export const GOGH_LIB = ['bear-led-30-3', 'bear-led-30-4', 'porsche-led-20-4', 'porsche-led-20-3', 'porsche-led-20-2', 'press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,

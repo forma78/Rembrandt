@@ -5,6 +5,12 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **+ ADD COLOR on GOGH** (2026-11-23, the evening; the owner: "one more paint, the light grey Jar 3 … I do not like that there is so much black on it. Make
+  please + add color"). One of his jars a line of its own, after the card's, for the brush; saved with its first dab (`gogh_card_edit` takes `a<n>` with its
+  name and hex, tested); DRAG refuses a jar with no dab. **Restart rembrandt.py.**
+- **The gummy bear's head in 1 and ½, two layers** (2026-11-23, the evening; the owner: "last we lay only the seeds of the lightest and the darkest. Properly
+  as Layer 2"). `led.py`'s `ext` and `near`; `bear-led-30-3` and `-4` on 30 × 30 in GOGH_LIB.
+
 ## v.1.2.9 — 2026-11-23 · GOGH-2's start: the new brush, 1 and ½, the brush on the screen
 
 - **v.1.2.9 on every tab and in the saved SVGs** (the owner, 2026-11-23: "this is v.1.2.9 — make it and push boldly to GitHub").

@@ -49,6 +49,17 @@ class GoghCardTest(unittest.TestCase):
         gogh_card_edit({"id": "porsche-led-20-4", "jars": jars}, cards=self.cards)
         self.assertEqual([j["id"] for j in self.read()["jars"]], ["l1", "l6"])
 
+    def test_a_jar_added(self):
+        jars = [{"id": "l1", "cells": [{"legs": [[10, 150, 138]]}, {"legs": [[14, 150, 144]]}]}, {"id": "l6", "cells": [{"legs": [[18, 150, 138]]}]},
+                {"id": "l9", "cells": []}, {"id": "a1", "name": "Jar 3", "hex": "#a9aaa8", "cells": [{"legs": [[22, 150, 144]]}]}]
+        gogh_card_edit({"id": "porsche-led-20-4", "jars": jars}, cards=self.cards)
+        card = self.read()
+        self.assertEqual([j["id"] for j in card["jars"]], ["l1", "l6", "a1"], "the added jar after the card's own, l9 left with none out")
+        self.assertEqual(card["jars"][2], {"id": "a1", "name": "Jar 3", "code": "", "hex": "#A9AAA8", "coats": 1, "cells": [{"n": 1, "legs": [[22, 150, 144]]}]})
+        for bad in [{"id": "a1", "name": "Jar 3", "hex": "grey"}, {"id": "zz", "name": "Jar 3", "hex": "#A9AAA8"}, {"id": "a1", "hex": "#A9AAA8"}]:
+            with self.assertRaises(ValueError):
+                gogh_card_edit({"id": "porsche-led-20-4", "jars": [*jars[:3], {**bad, "cells": [{"legs": [[22, 150, 144]]}]}]}, cards=self.cards)
+
     def test_refused(self):
         same = [{"id": j["id"], "cells": j["cells"]} for j in CARD["jars"]]
         for body, why in [({"id": "porsche-led-20-4", "jars": same[:2]}, "a dab lost"),

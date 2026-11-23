@@ -336,3 +336,24 @@ test('1 and ½: a card\'s dab.seed — a dab of ½ a seed on the machine and on 
   const P = passesV(pic, { gap: 0.2 });
   assert.deepEqual(P[0].byCell.map(c => c.legs.map(len)), [[DAB_LEG, DAB_LEG], [len(dabLeg(14, 112, 100, { gap: 0.2 }))]], 'passesV: two seeds, one leg');
 });
+
+// 1 and ½ the other way round (the owner, 2026-11-23, of the gummy bear's head: "last we lay only the seeds of the lightest and the darkest. Properly as Layer 2.
+// Then the wet on wet is solved too"): the card's Layer 2 the seeds alone of the two lightest and the two darkest jars, the darks first, the lightest last
+test('the gummy bear in 1 and ½, two layers: Layer 2 the seeds of the two lightest and the two darkest jars alone, on the dry first, the lightest last', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { GOGH_LIB, passesV, isSeed, labOfHex } = { ...(await import('../src/goghplan.js')), labOfHex: (await import('../src/genfplan.js')).labOfHex };
+  for (const id of ['bear-led-30-3', 'bear-led-30-4']) {
+    const pic = JSON.parse(fs.readFileSync(path.join(root, `app/gogh/${id}.json`), 'utf8'));
+    assert.ok(GOGH_LIB.includes(id) && pic.w === 300 && pic.dab.seed === 6);
+    const P = passesV(pic), one = P.filter(q => q.layer === 1), two = P.filter(q => q.layer === 2);
+    assert.ok(one.length && two.length && P.indexOf(two[0]) === one.length, `${id}: Layer 2 after the whole first`);
+    const L = hex => labOfHex(hex)[0], hexOf = q => pic.jars.find(j => j.id === q.pencil).hex;
+    const lights = [...new Set(pic.jars.map(j => j.hex))].sort((a, b) => L(b) - L(a)), ext = new Set([...lights.slice(0, 2), ...lights.slice(-2)]);
+    for (const q of two) {
+      assert.ok(ext.has(hexOf(q)), `${id}: ${q.pencil} one of the extremes`);
+      assert.ok(pic.jars.find(j => j.id === q.pencil).cells.every(c => c.legs.every(([, a, b]) => isSeed(a, b, { seed: 6, gap: pic.look.gap }))), 'seeds alone');
+    }
+    assert.equal(hexOf(two.at(-1)), lights[0], 'the lightest the very last');
+  }
+});

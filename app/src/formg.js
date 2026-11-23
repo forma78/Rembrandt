@@ -229,6 +229,8 @@ $('#btnDrag').onclick = async () => {
   let R = paintRun(), from = 0;
   if (lastSt && LIVE.includes(lastSt.state)) return warn('A run is on: STOP it first.');
   if (!R.rows.length) return warn('Nothing to paint.');
+  const bare = DABS ? plan().filter(q => !q.tracks).map(q => jarOf(q.pencil)?.name ?? q.pencil) : [];   // + ADD COLOR's jar with no dab yet: its pause would ask for it for nothing
+  if (bare.length) return warn(`Not run: ${esc(bare.join(', '))} has no dab yet — paint some with the brush (B), or reload the picture.`);
   if (R.fault) return warn(`Not run: the plan is wrong — ${R.fault}.`);
   if (walls(R)) return warn(walls(R));
   if (cupProblem(cup())) return warn(`DRAG dips in ${cupName()}: ${cupProblem(cup())}`);
@@ -927,6 +929,33 @@ function brushAt(e) {
   card.jars = card.jars.filter(j => j.cells.length); card.jars.forEach(j => j.cells.forEach((c, i) => { c.n = i + 1; }));
   stroke.moved += moved; PIC = picNow(S.pic); SEQ = seqOf(PIC); settle();
 }
+// + ADD COLOR (the owner, 2026-11-23, the evening: "one more paint, the light grey Jar 3 — I will try to redraw the headlights now, I do not like that there is so
+// much black on it. Make please + add color"): one of his jars, THE JARS' list, a line of its own in this picture — after the card's jars, so last in Layer 1 —
+// none of its dabs yet; chosen at once, the brush on. Its first stroke saves the card with it (gogh_card_edit, `a<n>`); a jar left with no dab is not kept
+const addBtn = $('#btnAddJar');
+if (addBtn && DABS) {
+  addBtn.hidden = false;
+  addBtn.onclick = () => {
+    const pop = $('#jarPop'); if (!pop || !PIC) return;
+    if (lastSt && LIVE.includes(lastSt.state)) return warn('+ ADD COLOR: a run is on — STOP it first.');
+    if (S.frames[S.pic]) return warn('+ ADD COLOR: the whole picture only — take the frame away (F).');
+    const have = new Set(LIB[S.pic].jars.map(j => j.name)), mine = myJarsOf(CLASSIC_PLANS, JARS.mine);
+    pop.innerHTML = `<div class="jp-head"><b>+ ADD COLOR</b><button class="jp-x" data-x aria-label="Close">✕</button></div>`
+      + `<div class="jp-grid">${mine.map(q => `<button class="jp-jar" data-add="${esc(q.name)}" data-hex="${q.hex}" title="${esc(q.name)} ${q.hex}${have.has(q.name) ? ' — in this picture already (•): a line of its own all the same' : ''}"><i class="sw" style="background:${q.hex}"></i>${esc(q.name.replace('Jar ', ''))}${have.has(q.name) ? '•' : ''}</button>`).join('')}</div>`;
+    pop.dataset.id = ''; pop.hidden = false;
+    const r = addBtn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = `${Math.max(8, r.left - w - 8)}px`; pop.style.top = `${Math.max(8, Math.min(innerHeight - h - 8, r.top - 12))}px`;
+  };
+  $('#jarPop')?.addEventListener('click', e => {
+    const b = e.target.closest('[data-add]'); if (!b) return;
+    e.stopPropagation(); swapHide();
+    const card = LIB[S.pic], ids = new Set(card.jars.map(j => j.id)); let n = 1; while (ids.has(`a${n}`)) n++;
+    UNDO.push({ pic: S.pic, jars: JSON.stringify(card.jars) });
+    card.jars.push({ id: `a${n}`, name: b.dataset.add, code: '', hex: b.dataset.hex.toUpperCase(), coats: 1, cells: [] });
+    PIC = picNow(S.pic); SEQ = seqOf(PIC); settle(); only = `a${n}`; setTool('brush'); showPanel(); kick();
+    warnAt = Date.now(); $('#runState').innerHTML = `+ ADD COLOR: <b>${esc(b.dataset.add)}</b> in the list, chosen — the brush on: paint its dabs.`;
+  }, true);
+}
 function brushUndo() {
   const u = UNDO.pop(); LIB[S.pic].jars = JSON.parse(u.jars);
   PIC = picNow(S.pic); SEQ = seqOf(PIC); if (!SEQ.some(j => j.id === only)) only = null; settle(); cardSave();
@@ -942,7 +971,7 @@ function cardJpg(pic) {
   return c.toDataURL('image/jpeg', 0.9);
 }
 async function cardSave() {
-  const card = LIB[S.pic], body = { id: card.id, jars: card.jars.map(j => ({ id: j.id, cells: j.cells.map(c => ({ legs: c.legs })) })), jpg: cardJpg(card) };
+  const card = LIB[S.pic], body = { id: card.id, jars: card.jars.map(j => ({ id: j.id, name: j.name, hex: j.hex, cells: j.cells.map(c => ({ legs: c.legs })) })), jpg: cardJpg(card) };
   try {
     const r = await fetch('/gogh/card', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (r.status === 404) return warn('The brush: not saved — restart rembrandt.py (it learnt /gogh/card on 2026-11-23).');

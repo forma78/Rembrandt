@@ -116,6 +116,16 @@ RUN 14 against 6, GAP −0.1 against +0.2, BRUSH +0.3 against +0.8; the owner se
 | `Screenshot 2026-11-23 at 4.46.50 PM.png` | The owner's: GOGH, the 4 mm porsche, seeds circled on the wing's top edge to paint over (the indicators' orange), a column of tools drawn at the picture's left — an arrow, a brush. |
 | `Screenshot 2026-11-23 at 4.55.18 PM.png` | The owner's: `IMG_3472`'s C6 beside the screen's — the leg and the seeds where the plan has them. |
 
+### The gummy bear's head in 1 and ½, two layers (2026-11-23, the evening)
+
+The owner, of laying the seeds after the legs: "a good idea. But honestly, I am tired of this porsche :)) Let us apply our principle of 1 and ½ the other way
+round to the gummy bear head's portrait … last we lay only the seeds of the lightest and the darkest. Properly as Layer 2. Then the wet on wet is solved too."
+`generator/led.py … ext 12` off `orange-bear-details 2`'s sketch, 30 × 30: Layer 1 every leg and the middle jars' seeds, light to dark; Layer 2, after the
+pause "the first layer is done: let it dry", the seeds of C12 and C13 (the darkest), then C1 and C14 (the lightest, the white last); a fill's near reds one leg.
+
+- **`bear-led-30-3`**, columns 3 mm apart: 2307 dabs (1006 legs, 1301 seeds), 18 lines, DRAG ≈ 4 h 07 (est.) — the eyes, the snout, the mouth's highlights read.
+- **`bear-led-30-4`**, 4 mm: 1722 dabs, ≈ 3 h 05 — coarser, the face still there. 20 × 20 at 4 mm (837 dabs) lost the face, not made a card.
+
 ### The 4 mm porsche on canvas, the film (2026-11-23, 18:01)
 
 The owner: "I decided to show you a video … study it, then tell me your thoughts." `Movie on 11-23-26 at 6.01 PM.mov`, 131 s from the carriage, kept on this Mac
