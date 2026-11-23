@@ -449,3 +449,15 @@ test('the headlight v.2: his 13 jars as he set them by 🔄, a line each a layer
   assert.ok(xs.slice(1).every((x, i) => Math.abs(x - xs[i] - 4) < 1e-6), 'columns 4 mm apart');
   assert.ok(pic.jars.every(j => j.stamp) && pic.preset.run === -1);
 });
+
+// the nib's stone (the owner, 2026-11-24, the night: "trim the drops a little to the new nib … neat as mosaic stones"): a rounded rectangle 4.3 mm wide, the way's own
+test('the nib\'s stone: 4.3 mm wide, a stamp 5.7 mm (v.6 on canvas ≈ 6), a leg the way + 1.5 at the preset\'s top 0.5 and tip 2; square sides, round corners', async () => {
+  const { dropOf, NIB } = await import('../src/goghplan.js');
+  const ys = q => q.map(p => p[1]), xs = q => q.map(p => p[0]), len = q => Math.max(...ys(q)) - Math.min(...ys(q));
+  const o = { gap: 0.2, seed: 6, seedJ3: 2, nib: true, wide: NIB.wide, top: 0.5, tip: 2 };
+  const st = dropOf(50, 106, 100, { ...o, run: 0 }), lg = dropOf(50, 112, 100, { ...o, run: 0 }), l10 = dropOf(50, 112, 100, { ...o, run: -1 });
+  assert.ok(Math.abs(len(st) - 5.7) < 1e-6 && Math.abs(len(lg) - 13.3) < 1e-6 && Math.abs(len(l10) - 11.3) < 1e-6, `${len(st)} ${len(lg)} ${len(l10)}`);
+  for (const q of [st, lg]) assert.ok(Math.abs(Math.max(...xs(q)) - Math.min(...xs(q)) - 4.3) < 1e-9, 'the width');
+  const mid = (Math.max(...ys(lg)) + Math.min(...ys(lg))) / 2, at = y => Math.max(...lg.filter(p => Math.abs(p[1] - y) < 0.15).map(p => p[0] - 50));
+  assert.ok(Math.abs(at(mid) - 2.15) < 1e-6 && at(Math.max(...ys(lg)) - 0.1) < 1.8, 'square in the middle, round at the corners');
+});

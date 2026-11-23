@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The nib's stones on the screen** (2026-11-24, the night; the owner, of the headlight being painted: "my God, what precision … neat as mosaic stones, no
+  more seeds … maybe trim the drops a little to the new nib?"). A card's `nib`: every drop a rounded rectangle 4.3 mm wide, the way's own length (`stoneOf`);
+  both headlight cards so. `GOGH/IMG_3499` … `3504`, GPS out. Tested.
+
 - **The headlight v.2: his 13 jars, a line each, columns 4 mm** (2026-11-23, the night; the owner: "not changing the colours … we do not need so many shades
   for the test"; "no, the other way, closer!"). `headlight-nib-20-v2` first in GOGH_LIB; his brush's edits of v.1 and the 4 mm porsche kept. A drop's profile
   clamped at its ends: a rounding hair past it drew a 38 mm wide line on a card's picture (`dropOf`). Tested.

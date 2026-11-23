@@ -743,7 +743,7 @@ const shade = (hex, f = 0.7) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex
 // (`drop: true`); a 3 or 5 mm brush's drop as wide again by its pitch (est.)
 function drawDrops(c, hair = false) {
   const tint = PIC.drop !== true, wide = PIC.dropWide ?? (PIC.pitch > 2 ? DROP_W * PIC.pitch / 2 : undefined);
-  const o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide, seed: PIC.dab?.seed, seedJ3: PIC.dab?.seedJ3 }, lines = plan().map(P => {
+  const o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide, seed: PIC.dab?.seed, seedJ3: PIC.dab?.seedJ3, nib: PIC.nib }, lines = plan().map(P => {
     const path = new Path2D(), legs = ownLegs(P), hex = jarOf(P.pencil).hex, oj = { ...o, allSeeds: !!jarOf(P.pencil)?.seeds };
     for (const [x, t, b] of legs) dropOf(x, t, b, oj).forEach(([u, v], i) => i ? path.lineTo(sx(u), sy(v)) : path.moveTo(sx(u), sy(v)));
     return { path, master: masterPath(legs), a: veil(P), line: tint ? shade(hex) : DROP_LINE, fill: tint ? hex : DROP_FILL };
@@ -970,7 +970,7 @@ function brushUndo() {
 function cardJpg(pic) {
   const k = 600 / Math.max(pic.w, pic.h), c = document.createElement('canvas'); c.width = Math.round(pic.w * k); c.height = Math.round(pic.h * k);
   const g = c.getContext('2d'); g.fillStyle = GESSO; g.fillRect(0, 0, c.width, c.height); g.lineJoin = 'round'; g.lineWidth = 1.6;
-  const o = { gap: pic.look?.gap ?? 0.2, run: 0, seed: pic.dab?.seed, seedJ3: pic.dab?.seedJ3, wide: pic.dropWide };
+  const o = { gap: pic.look?.gap ?? 0.2, run: 0, seed: pic.dab?.seed, seedJ3: pic.dab?.seedJ3, wide: pic.dropWide, nib: pic.nib, top: pic.preset?.top, tip: pic.preset?.tip };
   const paths = seqOf(pic).map(j => { const p = new Path2D(), oj = { ...o, allSeeds: !!j.seeds }; for (const q of j.cells) for (const [x, a, b] of q.legs) dropOf(x, a, b, oj).forEach(([u, v], i) => i ? p.lineTo(u * k, (pic.h - v) * k) : p.moveTo(u * k, (pic.h - v) * k)); return { p, hex: j.hex }; });
   for (const { p, hex } of paths) { g.strokeStyle = shade(hex); g.stroke(p); }
   for (const { p, hex } of paths) { g.fillStyle = hex; g.fill(p); }

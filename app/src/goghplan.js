@@ -115,8 +115,21 @@ export const DROP = { top: 0.5, tip: 2, wide: 2.8, profile: [[0, 0], [0.05, 0.55
 export const SEED = { len: 7, wide: 3.5, profile: [[0, 0], [0.08, 0.6], [0.2, 0.88], [0.4, 1], [0.6, 0.95], [0.8, 0.72], [0.93, 0.4], [1, 0.1]] };
 export const DROP_UI = { top: [0, 5, 0.5], tip: [0, 25, 0.5] };   // the sliders, mm [min, max, step]
 export const dropTopOf = v => inRange(v ?? DROP.top, DROP_UI.top), dropTipOf = v => inRange(v ?? DROP.tip, DROP_UI.tip);
-// a dab's drop → its outline, [[x, y]] clockwise from its top; o: { gap, run, top, tip } — the sliders'; wide, a card's own brush (`dropWide`, est.)
+// The spatula nib's drop (the owner, 2026-11-24, the night: "maybe trim the drops a little to the new nib? They are as FORM-G, only now neat as mosaic stones, no
+// more seeds"; GOGH/IMG_3495, IMG_3504): a card's `nib` — a stone, a rounded rectangle NIB.wide across, its corners NIB.r, from the machine's way's start less
+// the drop's top to its end and the tip past it, the way its own (the RUN's, the stamps' seedJ3); est. by v.6 on canvas, a stamp ≈ 4.3 × 6 mm
+export const NIB = { wide: 4.3, r: 1.4 };
+function stoneOf(x, a, b, o) {
+  const seed = isSeed(a, b, o), [[, s], [, e]] = dabLeg(x, a, b, o), j = dabJ3(a, b, o) ?? (seed && Number.isFinite(o.seedJ3) ? { early: o.seedJ3, late: o.seedJ3 } : ELBOW_J3);
+  const top = s + j.early - dropTopOf(o.top), bot = e - j.late - dropTipOf(o.tip), P = Math.max(1, top - bot), half = (o.wide ?? NIB.wide) / 2, r = Math.min(NIB.r, half, P / 2);
+  const h = d => d < r ? half - r + Math.sqrt(Math.max(0, r * r - (r - d) ** 2)) : d > P - r ? half - r + Math.sqrt(Math.max(0, r * r - (d - P + r) ** 2)) : half;
+  const n = Math.max(12, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...Array.from({ length: 9 }, (_, i) => r * i / 8), ...Array.from({ length: 9 }, (_, i) => P - r * i / 8)])].filter(d => d >= 0 && d <= P).sort((p, q) => p - q);
+  const side = ds.map(d => [d, h(d)]);
+  return [...side.map(([d, w]) => [x + w, top - d]), ...side.reverse().map(([d, w]) => [x - w, top - d])];
+}
+// a dab's drop → its outline, [[x, y]] clockwise from its top; o.nib: the nib's stone; o: { gap, run, top, tip } — the sliders'; wide, a card's own brush (`dropWide`, est.)
 export function dropOf(x, a, b, o = {}) {
+  if (o.nib) return stoneOf(x, a, b, o);
   const run = isSeed(a, b, o) ? -3 : dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0, seed: 0 });
   const k = Math.min(1, Math.max(0, -run / 3)), base = o.wide ?? DROP.wide;                  // 0 at RUN 12 and over, 1 at RUN 6: the pill to the seed
   const pill = Math.max(1, (s + ELBOW_J3.early - dropTopOf(o.top)) - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run));
