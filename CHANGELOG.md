@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's drops redrawn for the new brush** (2026-11-23, the afternoon; the owner, of `GOGH/IMG_3467.jpg`: "look how beautiful it comes out … shall we
+  redraw the drops?"). `DROP`: 2.8 mm wide, a pill — a round head, the widest a third down, a blunt end — top 0.5, tip 2 (est.), off IMG_3466 and IMG_3467 at
+  RUN 12; the old 2 mm brush's leaf in its comment. The run of IMG_3467 was RUN 12 throughout by the journal: RUN 6 set in a pause was not taken live.
+
 - **RUN down to 6 mm; Press test 5 for the new brush** (2026-11-23, the afternoon; the owner, the brush changed after Kuzya's report: "I need a smaller
   stroke now … can we bring the slider down to 6 mm? Then just make Press test 5"). GOGH's RUN −3 … +4: below 0 the brush lands later and lifts
   earlier, the 2 mm's 12 mm dab running 6 at −3, a leg no shorter than 0.2 mm (`DAB_LEG`). `app/gogh/press-short-20`: Press test 2's six blocks in one

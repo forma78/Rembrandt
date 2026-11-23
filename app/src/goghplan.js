@@ -27,7 +27,7 @@ import { seqOf, FORMG } from './formgplan.js';
 // groups as No. 5 and No. 6"; of their patches: "I would set them a little wider still"): a paint a column, two blocks each, the patches 5 mm apart; on the
 // screen its drops (DROP), not the ideal dabs
 // press-short-20, Press test 5 (the owner, 2026-11-23, the brush changed after Kuzya's report: "I need a smaller stroke now … can we bring the slider down
-// to 6 mm? Then just make Press test 5"): Press test 2's six blocks, one jar, a RUN a block; its drops the new brush's, 3 mm wide (IMG_3466, est.)
+// to 6 mm? Then just make Press test 5"): Press test 2's six blocks, one jar, a RUN a block; its drops the new brush's (DROP)
 export const GOGH_LIB = ['press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
@@ -84,27 +84,27 @@ export function fitV(f, iw, ih, pitch = GEN.pitch, margin = 0) {
 }
 // a dab on the screen, GEN-V's Sketch and GOGH's Picture: its painted span `gap` shorter, a round-ended line `wide` mm across → the line's ends, top and bottom
 export function dabOnScreen(top, bot, gap = DAB.gap, wide = DAB.wide * GEN.pitch) { const L = Math.max(0, top - bot - gap), r = Math.min(wide, L) / 2, m = (top + bot) / 2; return [m + L / 2 - r, m - L / 2 + r]; }
-// A drop, the dab as Press test 2 laid it (the owner, 2026-11-23: "do not draw the ideal even sausages any more. Take the red contour and leave the pink
+// A drop, the dab as the brush lays it (the owner, 2026-11-23: "do not draw the ideal even sausages any more. Take the red contour and leave the pink
 // inside"; then: "a barely visible yellow contour of the sausage, the master, and the pink drop with its red contour its phantom slave. So we can correct
 // that drop of 1.5 mm and its tip 13 mm past the end"): the master the plan's dab as the screen draws it (dabOnScreen), the slave the paint, hung on it by
-// two numbers of the screen's alone. On a card with `drop` (Press test 3) so far. The 2 mm brush, Jar 19, JAR +14, BRUSH +0.5 … +0.8, off the close photos
-// GOGH/IMG_3435 (RUN 14) and IMG_3438 (RUN 12), scaled by the lone dabs' 6 mm; mm, est.:
-// Both by the machine's way at RUN 12, the leg and the J3's 3 + 3: on a dab longer than the floor the master's own span; a shorter one's the floor's 9 mm
-// about its middle, its paint higher and lower with it (IMG_3438: the 4 mm dab's head 3 mm over the 10 mm's):
-//   top: the paint's top so far under the way's start (the whole canvas IMG_3441: 0 … 3 under the screen's);
-//   tip: the paint's tip so far past the way's end (the close photos 10.4 … 13.2, more the longer the dab; IMG_3441 ≈ 9), and the RUN's 2 mm a step once
-//        more: its early mm land in the air, its paint goes to the tail (RUN 14 2 mm longer than 12, the top where it was). The lengths here 19.5 · 20.3 ·
-//        25.3 mm for the 4 · 10 · 15 mm dabs at RUN 12, 21.5 · 27.3 at 14; the close photos 19.3 · 18.7 · 26.3, 20.2 · 28.5;
-//   wide: the widest, 4 … 5 mm; head: so far under the top, the top pointed as a leaf's; end: the tip's width, of the widest — 3 … 4 mm across at half
-export const DROP = { top: 1.5, tip: 12, wide: 4.6, head: 6, end: 0.1 };
+// two numbers of the screen's alone. On a card with `drop`. Both by the machine's way at RUN 12, the leg and the J3's 3 + 3: on a dab longer than the floor
+// the master's own span, a shorter one's the floor's 9 mm about its middle:
+//   top: the paint's top so far under the way's start; tip: the paint's tip so far past the way's end, and the RUN's 2 mm a step once more;
+//   wide: the widest; profile: the half-width down the drop, [share of its length, share of the widest].
+// The new brush (the owner, 2026-11-23, after Kuzya's report; "look how beautiful it comes out … shall we redraw the drops?"), off GOGH/IMG_3466 and
+// IMG_3467 at RUN 12, scaled by the lone dabs' 6 mm, est.: ≈ 2.8 mm wide (2.5 … 3.1), a pill — the head round, the widest a third down, a slight taper,
+// the end blunt; the paint ≈ the way + 1 … 3 mm (4 … 10 mm dabs 8.2 … 13.3 mm, 12 mm 13.3 … 15.2, 15 mm 17.9 … 20.6, a patch's 12 mm 12.0 … 14.0); top 0.5
+// the owner's on the screen. The old 2 mm brush's of Press test 2 (IMG_3435, IMG_3438, IMG_3441): 4.6 mm, a leaf — the top pointed, the widest 6 mm down,
+// a needle's tail — top 1.5, tip 12.
+export const DROP = { top: 0.5, tip: 2, wide: 2.8, profile: [[0, 0], [0.05, 0.55], [0.15, 0.85], [0.3, 1], [0.5, 0.93], [0.7, 0.87], [0.85, 0.78], [0.95, 0.55], [1, 0.3]] };
 export const DROP_UI = { top: [0, 5, 0.5], tip: [0, 25, 0.5] };   // the sliders, mm [min, max, step]
 export const dropTopOf = v => inRange(v ?? DROP.top, DROP_UI.top), dropTipOf = v => inRange(v ?? DROP.tip, DROP_UI.tip);
 // a dab's drop → its outline, [[x, y]] clockwise from its top; o: { gap, run, top, tip } — the sliders'; wide, a card's own brush (`dropWide`, est.)
 export function dropOf(x, a, b, o = {}) {
   const run = dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0 });
-  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = Math.max(1, top - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run)), H = Math.min(DROP.head, P / 3), half = (o.wide ?? DROP.wide) / 2;
-  const h = d => d <= H ? half * Math.sin(Math.PI / 2 * d / H) ** 0.6 : half * (1 - (1 - DROP.end) * ((d - H) / (P - H)) ** 1.6);
-  const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), H])].sort((p, q) => p - q);
+  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = Math.max(1, top - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run)), half = (o.wide ?? DROP.wide) / 2, pr = DROP.profile;
+  const h = d => { const f = d / P, i = Math.max(1, pr.findIndex(q => q[0] >= f)), [f0, w0] = pr[i - 1], [f1, w1] = pr[i]; return half * (w0 + (w1 - w0) * (f1 > f0 ? (f - f0) / (f1 - f0) : 0)); };
+  const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...pr.map(q => q[0] * P)])].sort((p, q) => p - q);
   const side = ds.map(d => [d, h(d)]);
   return [...side.map(([d, w]) => [x + w, top - d]), ...side.reverse().map(([d, w]) => [x - w, top - d])];
 }

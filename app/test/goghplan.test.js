@@ -237,12 +237,11 @@ test('APPROVE 🐾: the card off the sketch as genvpic.py makes it — the plan 
 // Press test 3 (the owner, 2026-11-23: "do not draw the ideal even sausages any more. Take the red contour and leave the pink inside"; "the master … and
 // the pink drop with its red contour its phantom slave. So we can correct that drop of 1.5 mm and its tip 13 mm past the end"): the slave hung on the
 // master by two numbers — its top under the machine's way's start, its tip past its end (a dab longer than the floor: the master's), the RUN's 2 mm a step
-test('a drop, the slave: its top 1.5 under the way\'s start, its tip 12 past its end, the RUN\'s 2 mm a step — Press test 2\'s lengths; 4.6 mm wide, a leaf\'s head, a tapering tail', async () => {
+test('a drop, the slave, the new brush\'s: its top 0.5 under the way\'s start, its tip 2 past its end, the RUN\'s 2 mm a step; 2.8 mm wide, a pill — a round head, a blunt end', async () => {
   const { dropOf, DROP, dropTopOf, dropTipOf } = await import('../src/goghplan.js');
   const ys = q => q.map(p => p[1]), xs = q => q.map(p => p[0]), len = q => Math.max(...ys(q)) - Math.min(...ys(q));
-  // the 2 mm brush's dabs at GAP +0.2: 4 … 10 mm at the floor, 9 mm of way at RUN 12; 15 mm its own
-  // [mm, run, the way's start, the drop's length]; the close photos IMG_3438 19.3 · 18.7 · 26.3, IMG_3435 20.2 · 28.5 (est.)
-  const close = [[4, 0, 102.5, 19.5], [10, 0, 99.9, 20.3], [15, 0, 99.9, 25.3], [4, 1, 102.5, 21.5], [15, 1, 99.9, 27.3]];
+  // [mm, run, the way's start, the drop's length]; GOGH/IMG_3466 and IMG_3467 at RUN 12: 4 … 10 mm 8.2 … 13.3, 12 mm 13.3 … 15.2, 15 mm 17.9 … 20.6 (est.)
+  const close = [[4, 0, 102.5, 10.5], [10, 0, 99.9, 11.3], [12, 0, 99.9, 13.3], [15, 0, 99.9, 16.3], [4, 1, 102.5, 12.5], [12, -3, 99.9, 7.3]];
   for (const [L, run, start, want] of close) {
     const q = dropOf(50, 100, 100 - L, { gap: 0.2, run });
     assert.ok(Math.abs(Math.max(...ys(q)) - (start - DROP.top)) < 1e-9, `top: ${L} mm, run ${run}: ${Math.max(...ys(q))}`);
@@ -252,14 +251,15 @@ test('a drop, the slave: its top 1.5 under the way\'s start, its tip 12 past its
   }
   // the sliders move the slave alone: the top down, the tip on, the master where it is
   const q0 = dropOf(50, 100, 85, { gap: 0.2 }), q1 = dropOf(50, 100, 85, { gap: 0.2, top: 3, tip: 10 });
-  assert.ok(Math.abs(Math.max(...ys(q0)) - Math.max(...ys(q1)) - 1.5) < 1e-9 && Math.abs(Math.min(...ys(q1)) - Math.min(...ys(q0)) - 2) < 1e-9, "the top 1.5 lower, the tip 2 shorter");
-  assert.equal(dropTopOf(9), 5); assert.equal(dropTopOf(-1), 0); assert.equal(dropTipOf(13.3), 13.5); assert.equal(dropTipOf(), 12);
-  // the shape off the close photos: the head widening to 0.9 of the widest by 4 mm, 3.4 … 4.6 across at half its length, the tail a point
+  assert.ok(Math.abs(Math.max(...ys(q0)) - Math.max(...ys(q1)) - 2.5) < 1e-9 && Math.abs(Math.min(...ys(q0)) - Math.min(...ys(q1)) - 8) < 1e-9, 'the top 2.5 lower, the tip 8 longer');
+  assert.equal(dropTopOf(9), 5); assert.equal(dropTopOf(-1), 0); assert.equal(dropTipOf(13.3), 13.5); assert.equal(dropTipOf(), 2);
+  // the shape off the photos: the head round, the widest a third down, still ≈ 0.9 of it at half, the end blunt; a card's own width
   const at = (q, d) => { const top = Math.max(...ys(q)); return 2 * Math.max(...q.filter(p => Math.abs(top - p[1] - d) < 0.13).map(p => p[0] - 50)); };
-  const q = dropOf(50, 100, 96, { gap: 0.2 });
-  assert.ok(at(q, 0.5) < at(q, 2) && at(q, 2) < at(q, 4) && at(q, 4) > 0.85 * DROP.wide, 'the head');
-  assert.ok(at(q, len(q) / 2) > 3.4 && at(q, len(q) / 2) < 4.6, `half: ${at(q, len(q) / 2)}`);
-  assert.ok(at(q, len(q) - 0.2) < 1, 'the tail a point');
+  const q = dropOf(50, 100, 88, { gap: 0.2 }), P = len(q);
+  assert.ok(at(q, 0.05 * P) < at(q, 0.15 * P) && at(q, 0.15 * P) < at(q, 0.3 * P), 'the head');
+  assert.ok(Math.abs(at(q, 0.3 * P) - DROP.wide) < 0.06 && at(q, 0.5 * P) > 0.88 * DROP.wide, 'the widest a third down, ≈ 0.9 at half');
+  assert.ok(at(q, P - 0.1) > 0.5 && at(q, P - 0.1) < 1.2, `the end blunt: ${at(q, P - 0.1)}`);
+  const w = dropOf(50, 100, 88, { gap: 0.2, wide: 4.6 }).map(p => p[0]); assert.ok(Math.abs(Math.max(...w) - Math.min(...w) - 4.6) < 1e-9, 'a card\'s own width');
 });
 
 test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two blocks a paint, their patches 5 mm apart (block 6 6 mm), drops on the screen, none touching another block', async () => {
@@ -285,13 +285,13 @@ test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two b
   assert.ok(Math.min(...all.map(p => p[0])) > 10 && Math.max(...all.map(p => p[0])) < 190 && Math.min(...all.map(p => p[1])) > 10 && Math.max(...all.map(p => p[1])) < 190, 'within TEST\'s 10 mm margin');
 });
 
-test('Press test 5: the new brush, Press test 2\'s six blocks in one jar — lone dabs 4 … 15 mm, a patch 10 × 2 dabs 5 mm apart; its drops 3 mm wide on the screen', async () => {
+test('Press test 5: the new brush, Press test 2\'s six blocks in one jar — lone dabs 4 … 15 mm, a patch 10 × 2 dabs 5 mm apart; its drops the new brush\'s on the screen', async () => {
   const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
   const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
   const { GOGH_LIB, dropOf, passesV } = await import('../src/goghplan.js');
   const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-short-20.json'), 'utf8'));
   assert.equal(GOGH_LIB[0], 'press-short-20');
-  assert.ok(pic.drop === true && pic.dropWide === 3);
+  assert.ok(pic.drop === true && pic.dropWide === undefined, 'the new brush\'s drop, DROP\'s own');
   assert.deepEqual(passesV(pic).map(P => P.pencil), ['b1', 'b2', 'b3', 'b4', 'b5', 'b6']);
   for (const j of pic.jars) {
     assert.equal(j.name, 'Jar 19');
@@ -300,6 +300,6 @@ test('Press test 5: the new brush, Press test 2\'s six blocks in one jar — lon
     assert.deepEqual(pat.slice(1).map((l, i) => l[0][0] - pat[i][0][0]), Array(9).fill(5));
     assert.ok(pat.every(l => l.length === 2 && l[0][2] === l[1][1]), 'two dabs end to end a column');
   }
-  const q = dropOf(50, 100, 88, { gap: 0.2, wide: pic.dropWide }), xs = q.map(p => p[0]);
-  assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 3) < 1e-9, 'the new brush\'s 3 mm');
+  const q = dropOf(50, 100, 88, { gap: 0.2 }), xs = q.map(p => p[0]);
+  assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 2.8) < 1e-9, 'the new brush\'s 2.8 mm');
 });

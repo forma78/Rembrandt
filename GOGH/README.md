@@ -79,10 +79,13 @@ spacing blind. The code untouched by him.
 |---|---|
 | `IMG_3466.jpg` | The new brush's first block (RUN 12), a ruler under it (cm): the lone dabs ≈ 3 mm wide, 4 … 10 mm ≈ 10 … 13.5 mm long, 12 mm ≈ 15, 15 mm ≈ 20 — the old 2 mm's ≈ 5 mm wide, 18 … 26 long; the tail past the way +1 … +5, not +9; the patch, 5 mm apart, mostly apart (est., by the ruler). |
 
+| `IMG_3467.jpg` | The new brush, two blocks of Press test 3's card (the owner: "look how beautiful it comes out :)) … the third module's settings: GAP +0.2, WIDTH 2.2, RUN 6, DROP · TOP 0.5, DROP · TIP 0.0 … shall we redraw the drops?"). By the journal the run started at RUN 12 and no swap came — blocks 2 and 3 painted the same 725 mm: RUN 6, set in the pause, did not take (a run of −3 makes a short dab's steps fewer, and a live swap takes only the same steps); so the third block too is RUN 12. Its drops pills ≈ 2.8 mm wide, the lone 4 … 10 mm 8.2 … 9.1 mm, 12 mm 13.3, 15 mm 17.9, the patch's 12 mm 11.4 … 12.5, every column apart (scaled by the lone dabs' 6 mm, est.). |
+
 **RUN down to 6** (README, "GOGH: a dab …", 5): the slider −3 … +4, the brush landing later and lifting earlier below 0. **`app/gogh/press-short-20`, Press
 test 5**: Press test 2's six blocks, one jar (Jar 19, as Press test 2's; 🔄 for another), each its lone dabs 4 … 15 mm 6 mm apart and a patch of 10 × 2
-dabs of 12 mm 5 mm apart; a RUN a block, set in the pause before it; on the screen its drops 3 mm wide (`dropWide`, the card's own, est.), the slider
-Drop · tip ≈ 5 for the new brush by IMG_3466 (est.).
+dabs of 12 mm 5 mm apart; a RUN a block — set before DRAG DABS, Start from the block (a RUN below 0 is not taken live). **The drops redrawn for the new
+brush** (`DROP`): 2.8 mm wide, a pill — the head round, the widest a third down, a slight taper, the end blunt; top 0.5 (the owner's), tip 2 past the way's
+end (est.); the paint ≈ the way + 1 … 3 mm: 10.5 mm for a 4 mm dab, 13.3 for 12, 16.3 for 15 (the photos 8.2 … 13.3, 13.3 … 15.2, 17.9 … 20.6).
 
 ## The gummy bear's head as a matrix (2026-11-23, the afternoon)
 
