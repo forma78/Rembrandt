@@ -63,6 +63,25 @@ six times, "in different variations … the press".
 | `IMG_3294.jpg` | The same jar lower: the brush's white tip just touching the paint. |
 | `Screenshot 2026-11-22 at 11.22.13 PM.png` | GOGH's plan, Jar 19's dabs on the forehead circled: the cluster the press test repeats, 48 dabs, 50 × 45 mm. |
 
+## Press test 3, paints (2026-11-23, the day)
+
+The owner, of Press test 2's reading: "take the grey paint Jar 28 … and draw with it a new test, Press test 3 — do not draw the ideal even sausages any
+more. Take the red contour and leave the pink inside. Make six modules again, but in groups as No. 5 and No. 6; we make three new colours and see how
+the paint's viscosity changes. I will not touch ELBOW BRUSH, I will play with JAR ELBOW LIVE and RUN 12–14 mm"; "Jar 28 chosen; the orange Jar 6 and
+the red TAIL LIGHT 14 can go"; of the patches: "I would set them a little wider still"; "the test will show the drops' behaviour, how controllable they
+are". Then, of the screen: "a barely visible yellow contour of the sausage, the master, and the pink drop with its red contour its phantom slave. So we
+can correct that drop of 1.5 mm and its tip 13 mm past the end … the blue sausage is the Drag key, and the overlay the Picture key".
+
+`app/gogh/press-paints-20`: a paint a column, two blocks each, top then bottom — Jar 28 (blocks 1, 2), Jar 6 (3, 4), Jar 14 (5, 6); every block its lone
+dabs 4 · 6 · 8 · 10 · 12 · 15 mm 6 mm apart, 3 mm higher than Press test 2's (the tail at RUN 16 still clear of the patch), and a patch of 10 × 2 dabs of
+12 mm **5 mm apart**; 156 dabs. On GOGH, this card alone (`drop`): **Picture** every dab's slave, the drop Press test 2 laid (`goghplan.js`, `DROP`,
+`dropOf`), pink, the outline of what touches red, its master over it a hair of yellow; **Drag** the masters alone, blue; under The dabs **Drop · top**
+(1.5) and **Drop · tip** (12), the screen's alone. The overlay after it: the photo's paint the blue contour, the screen pink with a red contour.
+
+| file | what it shows |
+|---|---|
+| `../FORM-G/IMG_3172.jpg` | Jar 28, the thick graphite grey, on the Targa's Colour 6 (FORM-G, 2026-11-17, the 5 mm brush, a leg and its run back): every leg two glossy rails along its sides, the canvas's weave bare between them, the ends rounded; the paint stands where the brush pushed it and does not level — Jar 19's red of Press test 2 flowed into a teardrop. |
+
 ## Press test 2, lengths (2026-11-23, the night)
 
 The first press test (`press-test-20`, Jar 19's cluster six times) broke off at its 28th dab — the owner switched the machine off, alarmed — and flooded:

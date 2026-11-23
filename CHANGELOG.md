@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 3, paints: master and slave** (2026-11-23, the day; the owner: "take the grey paint Jar 28 … the orange Jar 6 and the red TAIL
+  LIGHT 14"; "do not draw the ideal even sausages any more. Take the red contour and leave the pink inside"; "a barely visible yellow contour of the
+  sausage, the master, and the pink drop with its red contour its phantom slave"). `app/gogh/press-paints-20`: a paint a column, two blocks each, lone
+  dabs 4 … 15 mm and a patch of 10 × 2 dabs 5 mm apart. On its card GOGH's Picture draws every dab's drop as Press test 2 laid it (`DROP`, `dropOf`:
+  4.6 mm wide, a leaf's head, its top 1.5 under the way's start, its tip 12 past its end and the RUN's 2 mm a step), the master a yellow hair over
+  it; Drag the masters, blue; Drop · top and Drop · tip under The dabs, the screen's alone. README, "GOGH: a dab …", 17.
+
 - **Press test 2, blocks 5 and 6 read close** (2026-11-23; the owner, of `GOGH/dab-screen-canvas.png`: "now only this one to discuss"). Off the
   close photos, `IMG_3435` and `IMG_3438`: the lone dabs land evenly, within ±0.2 mm; the patch's columns clump, 3 and 4 mm on average as planned
   but ≈ 2.8 / 3.6 inside a group and 5.5 … 6.5 between groups: a wet neighbour within the head's ≈ 5 mm pulls the next column (est.). The six

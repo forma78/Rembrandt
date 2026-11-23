@@ -227,3 +227,54 @@ test('APPROVE 🐾: the card off the sketch as genvpic.py makes it — the plan 
   assert.equal(idOfSketch('', '20x20', 2, 12), 'gen-v-20x20-2mm-12');
   assert.match(idOfSketch('x'.repeat(200), '100x150', 3, 100), /^[a-z0-9][a-z0-9-]{0,79}$/, 'rembrandt.py\'s GENV_ID');
 });
+
+// Press test 3 (the owner, 2026-11-23: "do not draw the ideal even sausages any more. Take the red contour and leave the pink inside"; "the master … and
+// the pink drop with its red contour its phantom slave. So we can correct that drop of 1.5 mm and its tip 13 mm past the end"): the slave hung on the
+// master by two numbers — its top under the machine's way's start, its tip past its end (a dab longer than the floor: the master's), the RUN's 2 mm a step
+test('a drop, the slave: its top 1.5 under the way\'s start, its tip 12 past its end, the RUN\'s 2 mm a step — Press test 2\'s lengths; 4.6 mm wide, a leaf\'s head, a tapering tail', async () => {
+  const { dropOf, DROP, dropTopOf, dropTipOf } = await import('../src/goghplan.js');
+  const ys = q => q.map(p => p[1]), xs = q => q.map(p => p[0]), len = q => Math.max(...ys(q)) - Math.min(...ys(q));
+  // the 2 mm brush's dabs at GAP +0.2: 4 … 10 mm at the floor, 9 mm of way at RUN 12; 15 mm its own
+  // [mm, run, the way's start, the drop's length]; the close photos IMG_3438 19.3 · 18.7 · 26.3, IMG_3435 20.2 · 28.5 (est.)
+  const close = [[4, 0, 102.5, 19.5], [10, 0, 99.9, 20.3], [15, 0, 99.9, 25.3], [4, 1, 102.5, 21.5], [15, 1, 99.9, 27.3]];
+  for (const [L, run, start, want] of close) {
+    const q = dropOf(50, 100, 100 - L, { gap: 0.2, run });
+    assert.ok(Math.abs(Math.max(...ys(q)) - (start - DROP.top)) < 1e-9, `top: ${L} mm, run ${run}: ${Math.max(...ys(q))}`);
+    assert.ok(Math.abs(len(q) - want) < 0.051, `${L} mm at RUN ${12 + 2 * run}: ${len(q)}`);
+    assert.ok(Math.abs(Math.max(...xs(q)) - Math.min(...xs(q)) - DROP.wide) < 1e-9, 'the widest');
+    assert.deepEqual(q[0], q[q.length - 1], 'closed, its tip at the top');
+  }
+  // the sliders move the slave alone: the top down, the tip on, the master where it is
+  const q0 = dropOf(50, 100, 85, { gap: 0.2 }), q1 = dropOf(50, 100, 85, { gap: 0.2, top: 3, tip: 10 });
+  assert.ok(Math.abs(Math.max(...ys(q0)) - Math.max(...ys(q1)) - 1.5) < 1e-9 && Math.abs(Math.min(...ys(q1)) - Math.min(...ys(q0)) - 2) < 1e-9, "the top 1.5 lower, the tip 2 shorter");
+  assert.equal(dropTopOf(9), 5); assert.equal(dropTopOf(-1), 0); assert.equal(dropTipOf(13.3), 13.5); assert.equal(dropTipOf(), 12);
+  // the shape off the close photos: the head widening to 0.9 of the widest by 4 mm, 3.4 … 4.6 across at half its length, the tail a point
+  const at = (q, d) => { const top = Math.max(...ys(q)); return 2 * Math.max(...q.filter(p => Math.abs(top - p[1] - d) < 0.13).map(p => p[0] - 50)); };
+  const q = dropOf(50, 100, 96, { gap: 0.2 });
+  assert.ok(at(q, 0.5) < at(q, 2) && at(q, 2) < at(q, 4) && at(q, 4) > 0.85 * DROP.wide, 'the head');
+  assert.ok(at(q, len(q) / 2) > 3.4 && at(q, len(q) / 2) < 4.6, `half: ${at(q, len(q) / 2)}`);
+  assert.ok(at(q, len(q) - 0.2) < 1, 'the tail a point');
+});
+
+test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two blocks a paint, their patches 5 mm apart, drops on the screen, none touching another block', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { GOGH_LIB, dropOf, passesV } = await import('../src/goghplan.js');
+  const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-paints-20.json'), 'utf8'));
+  assert.equal(GOGH_LIB[0], 'press-paints-20');
+  assert.ok(pic.drop && pic.kind === 'dabs' && pic.pitch === 2);
+  assert.deepEqual(pic.jars.map(j => j.name), ['Jar 28', 'Jar 28', 'Jar 6', 'Jar 6', 'Jar 14', 'Jar 14']);
+  assert.deepEqual(passesV(pic).map(P => P.pencil), ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'], 'run in the card\'s order, a block a line');
+  for (const j of pic.jars) {
+    const lone = j.cells.slice(0, 6).map(c => c.legs[0]), patch = j.cells.slice(6).map(c => c.legs);
+    assert.deepEqual(lone.map(([, a, b]) => a - b), [4, 6, 8, 10, 12, 15]);
+    assert.deepEqual(lone.slice(1).map((l, i) => l[0] - lone[i][0]), [6, 6, 6, 6, 6]);
+    assert.equal(patch.length, 10);
+    assert.deepEqual(patch.slice(1).map((l, i) => l[0][0] - patch[i][0][0]), Array(9).fill(5), 'the patch 5 mm apart');
+    // RUN 16 at most: the longest lone drop's tail still 3 mm over the patch's top
+    const tail = Math.min(...dropOf(...lone[5], { gap: pic.look.gap, run: 2 }).map(p => p[1])), head = Math.max(...dropOf(...patch[0][0], { gap: pic.look.gap, run: 2 }).map(p => p[1]));
+    assert.ok(tail - head > 3, `${j.id}: ${tail} over ${head}`);
+  }
+  const all = pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => dropOf(...l, { gap: pic.look.gap, run: 2 })))).flat();
+  assert.ok(Math.min(...all.map(p => p[0])) > 10 && Math.max(...all.map(p => p[0])) < 190 && Math.min(...all.map(p => p[1])) > 10 && Math.max(...all.map(p => p[1])) < 190, 'within TEST\'s 10 mm margin');
+});

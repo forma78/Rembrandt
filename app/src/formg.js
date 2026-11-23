@@ -2,7 +2,7 @@
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
 import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
-import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen } from './goghplan.js';
+import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen, dropOf, dropTopOf, dropTipOf } from './goghplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, ELBOW_UP, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -56,6 +56,7 @@ if (!S.travelV) { if (!(S.travel < 180)) S.travel = TRAVEL; S.travelV = 1; save(
 if (DABS) {
   S.dabRun = dabRunOf(S.dabRun); S.dabWide = S.dabWide && typeof S.dabWide === 'object' ? S.dabWide : {}; S.dabGaps = S.dabGaps && typeof S.dabGaps === 'object' ? S.dabGaps : {};
   if (typeof S.dabGap === 'number') { S.dabGaps = { 3: S.dabGap, 5: S.dabGap, ...S.dabGaps }; delete S.dabGap; }
+  S.dropTop = dropTopOf(S.dropTop); S.dropTip = dropTipOf(S.dropTip);   // the slave's top and tip, the screen's alone (Press test 3, 2026-11-23)
 }
 // a brush's own in this browser first, else the picture's look as GEN-V approved it (genvpic.py's `look`, 2026-11-22: the bear's width 2.3), else the brush's
 const dabWide = () => dabWideOf(S.dabWide?.[PIC?.pitch] ?? PIC?.look?.wide, PIC?.pitch), dabGap = () => dabGapOf(S.dabGaps?.[PIC?.pitch] ?? PIC?.look?.gap, PIC?.pitch);
@@ -625,21 +626,23 @@ function setElbow(deg) {
 }
 $('#brushSl').oninput = e => setElbow(+e.target.value);
 // GOGH's sliders: the gap and the run into the plan (the next DRAG; a run on keeps its own), the width onto the screen
-const DAB_SAY = { gap: v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)} mm`, wide: v => `${fmt(v, 1)} mm`, run: v => `${dabOf(PIC?.pitch).aim + 2 * v} mm` };   // a standard dab of the picture's brush with its run on
+const DAB_SAY = { gap: v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)} mm`, wide: v => `${fmt(v, 1)} mm`, run: v => `${dabOf(PIC?.pitch).aim + 2 * v} mm`, top: v => `${fmt(v, 1)} mm`, tip: v => `${fmt(v, 1)} mm` };   // a standard dab of the picture's brush with its run on
+const dabNow = k => k === 'gap' ? dabGap() : k === 'run' ? S.dabRun : k === 'top' ? S.dropTop : k === 'tip' ? S.dropTip : dabWide();
 function showDabs() {
   if (!DABS || !$('#gapSl')) return;
-  const v = { gap: dabGap(), wide: dabWide(), run: S.dabRun };
-  for (const k of ['gap', 'wide', 'run']) { const sl = $(`#${k}Sl`); if (document.activeElement !== sl) sl.value = v[k]; $(`#${k}Now`).textContent = DAB_SAY[k](v[k]); }
+  const ks = ['gap', 'wide', 'run', ...($('#topSl') ? ['top', 'tip'] : [])];
+  for (const k of ks) { const sl = $(`#${k}Sl`), v = dabNow(k); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = DAB_SAY[k](v); }
+  for (const id of ['#dropTop', '#dropTip']) if ($(id)) $(id).hidden = !PIC?.drop;
   if ($('#runSay')) $('#runSay').textContent = `Run · a ${dabOf(PIC?.pitch).aim} mm dab`;   // the picture's brush's standard dab: 20, the 2 mm's 12
   $('#dabRead').innerHTML = PIC ? `The brush <b>${fmt(PIC.pitch, 0)} mm</b>, the picture's (GEN-V cuts it for one). Gap ${DAB_SAY.gap(dabGap())} and run +${S.dabRun} · +${S.dabRun} mm: live during a DRAG, from the next dab; the width is the screen's alone (est.).` : '';
 }
 function setDab(k, v) {
   if (!DABS) return;
-  const was = k === 'gap' ? dabGap() : k === 'run' ? S.dabRun : dabWide();
-  const now = k === 'gap' ? dabGapOf(v, PIC?.pitch) : k === 'run' ? dabRunOf(v) : dabWideOf(v, PIC?.pitch);
+  const was = dabNow(k);
+  const now = k === 'gap' ? dabGapOf(v, PIC?.pitch) : k === 'run' ? dabRunOf(v) : k === 'top' ? dropTopOf(v) : k === 'tip' ? dropTipOf(v) : dabWideOf(v, PIC?.pitch);
   if (now === was) return showDabs();
-  if (k === 'gap') S.dabGaps = { ...S.dabGaps, [PIC.pitch]: now }; else if (k === 'run') S.dabRun = now; else S.dabWide = { ...S.dabWide, [PIC.pitch]: now };
-  if (k === 'wide') { save(); showDabs(); kick(); return; }
+  if (k === 'gap') S.dabGaps = { ...S.dabGaps, [PIC.pitch]: now }; else if (k === 'run') S.dabRun = now; else if (k === 'top') S.dropTop = now; else if (k === 'tip') S.dropTip = now; else S.dabWide = { ...S.dabWide, [PIC.pitch]: now };
+  if (k === 'wide' || k === 'top' || k === 'tip') { save(); showDabs(); kick(); return; }   // the screen's alone
   settle();
   if (lastSt && LIVE.includes(lastSt.state) && !swapLive(k)) warn(`${k === 'gap' ? 'Gap' : 'Run'}: from the next DRAG — the run on is not this page's DRAG.`);
 }
@@ -667,7 +670,7 @@ function swapLive(k) {
   return true;
 }
 document.querySelectorAll('.dabsl input[data-dab]').forEach(sl => { sl.oninput = () => setDab(sl.dataset.dab, +sl.value); });
-document.querySelectorAll('.dabsl button[data-dab]').forEach(b => { b.onclick = () => { const k = b.dataset.dab, v = k === 'gap' ? dabGap() : k === 'run' ? S.dabRun : dabWide(); setDab(k, v + +b.dataset.step); }; });
+document.querySelectorAll('.dabsl button[data-dab]').forEach(b => { b.onclick = () => { const k = b.dataset.dab; setDab(k, dabNow(k) + +b.dataset.step); }; });
 document.querySelectorAll('#elbowBrush [data-btrim]').forEach(b => { b.onclick = () => setElbow(S.press + +b.dataset.btrim); });
 
 // ---------- the screen: the canvas as it lies on the machine, the reach over it ----------
@@ -705,6 +708,7 @@ function drawLegs(c, passes, dim = 1) {
 // GOGH's Picture (2026-11-22): every dab as it will lie, from the plan, not the card's jpg — the gap off its ends, the width the slider's, round ends; the
 // list's order, the later over the earlier; a jar's row: the others veiled
 function drawDabs(c) {
+  if (PIC.drop) return drawDrops(c);
   const w = dabWide();
   c.lineCap = 'round'; c.lineWidth = Math.max(0.5, w * K);
   for (const P of plan()) {
@@ -714,6 +718,37 @@ function drawDabs(c) {
     for (const q of own.cells) for (const [x, a, b] of q.legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), dabGap(), w); c.moveTo(sx(x), sy(t)); c.lineTo(sx(x), sy(u)); }
     c.stroke();
   }
+  c.globalAlpha = 1;
+}
+// A card with `drop` (Press test 3, the owner, 2026-11-23: "take the red contour and leave the pink inside"; "a barely visible yellow contour of the sausage,
+// the master, and the pink drop with its red contour its phantom slave … the blue sausage is the Drag key, the overlay the Picture key"). Picture: every dab's
+// slave, the drop Press test 2 laid (goghplan.js, dropOf) — the outline of what touches, red, the inside pink: all strokes first, the fill over them — and
+// over it its master, the plan's dab as GOGH draws it, a hair of yellow. Drag: the masters alone, blue. The gap and the run the sliders', the drop's top
+// and tip too (the screen's alone)
+const DROP_LINE = '#EC4899', DROP_FILL = '#FCD6EB', MASTER_HAIR = 'rgba(214,158,0,.55)', MASTER_BLUE = '#2563EB';
+const ownLegs = P => { const j = jarOf(P.pencil), own = PIC.jars.find(q => q.id === (j.jar ?? j.id)) ?? j; return own.cells.flatMap(q => q.legs); };
+const veil = P => !only || only === P.pencil ? 1 : 0.15;
+function masterPath(legs) {
+  const w = dabWide(), r = w / 2, path = new Path2D();
+  for (const [x, a, b] of legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), dabGap(), w); path.moveTo(sx(x + r), sy(t)); path.arc(sx(x), sy(t), r * K, 0, Math.PI, true); path.lineTo(sx(x - r), sy(u)); path.arc(sx(x), sy(u), r * K, Math.PI, 0, true); path.closePath(); }
+  return path;
+}
+function drawDrops(c) {
+  const o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip }, lines = plan().map(P => {
+    const path = new Path2D(), legs = ownLegs(P);
+    for (const [x, t, b] of legs) dropOf(x, t, b, o).forEach(([u, v], i) => i ? path.lineTo(sx(u), sy(v)) : path.moveTo(sx(u), sy(v)));
+    return { path, master: masterPath(legs), a: veil(P) };
+  });
+  c.lineJoin = 'round'; c.lineWidth = Math.max(1.5, 0.5 * K);
+  for (const { path, a } of lines) { c.globalAlpha = a; c.strokeStyle = DROP_LINE; c.stroke(path); }
+  for (const { path, a } of lines) { c.globalAlpha = a; c.fillStyle = DROP_FILL; c.fill(path); }
+  c.lineWidth = 1;
+  for (const { master, a } of lines) { c.globalAlpha = a; c.strokeStyle = MASTER_HAIR; c.stroke(master); }
+  c.globalAlpha = 1;
+}
+function drawMasters(c) {
+  c.lineJoin = 'round'; c.lineWidth = Math.max(1.25, 0.35 * K); c.strokeStyle = MASTER_BLUE;
+  for (const P of plan()) { c.globalAlpha = veil(P); c.stroke(masterPath(ownLegs(P))); }
   c.globalAlpha = 1;
 }
 // Contour: DRAW BW's lines as the pen draws them, over the picture veiled
@@ -738,6 +773,7 @@ function draw() {
     g.imageSmoothingQuality = 'high'; g.drawImage(IMG[S.pic], sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
     if (only) { g.fillStyle = 'rgba(251,250,247,.82)'; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); drawLegs(g, plan().filter(q => q.pencil === only)); }
   } else if (S.view === 'contour') drawContour(g);
+  else if (DABS && PIC.drop && S.view === 'drag') drawMasters(g);
   else drawLegs(g, plan());
   drawMarks(g);
   if (SHOW_PTS) drawPoints(g);

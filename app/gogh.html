@@ -180,6 +180,16 @@
         <div class="elh"><span class="elk" id="runSay">Run · a 20 mm dab</span><span class="elv" id="runNow">20 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="run" data-step="-1" title="1 mm less at both ends">▼</button><input class="slider" type="range" id="runSl" data-dab="run" min="0" max="4" step="1"><button class="btn" data-dab="run" data-step="1" title="1 mm more at both ends: lands earlier, lifts later">▲</button></div>
       </div>
+      <!-- the drop, the slave hung on its master, the screen's alone; a card with `drop` (Press test 3) alone (the owner, 2026-11-23: "so we can correct that
+           drop of 1.5 mm and its tip 13 mm past the end"; goghplan.js, DROP_UI) -->
+      <div class="elbowlive dabsl" id="dropTop" hidden title="Drop · top, the screen's alone: how far the paint's top lies under the plan's dab, its master (est.; 1.5 off Press test 2)">
+        <div class="elh"><span class="elk">Drop · top</span><span class="elv" id="topNow">1.5 mm</span></div>
+        <div class="elrow"><button class="btn" data-dab="top" data-step="-0.5" title="0.5 mm higher, nearer the master's top">▼</button><input class="slider" type="range" id="topSl" data-dab="top" min="0" max="5" step="0.5"><button class="btn" data-dab="top" data-step="0.5" title="0.5 mm lower under the master's top">▲</button></div>
+      </div>
+      <div class="elbowlive dabsl" id="dropTip" hidden title="Drop · tip, the screen's alone: how far the paint's tip runs past where the brush lifts — the master's end on a dab longer than the floor; the RUN adds its own (est.; 13 off Press test 2)">
+        <div class="elh"><span class="elk">Drop · tip</span><span class="elv" id="tipNow">13 mm</span></div>
+        <div class="elrow"><button class="btn" data-dab="tip" data-step="-0.5" title="0.5 mm shorter tail">▼</button><input class="slider" type="range" id="tipSl" data-dab="tip" min="0" max="25" step="0.5"><button class="btn" data-dab="tip" data-step="0.5" title="0.5 mm longer tail">▲</button></div>
+      </div>
       <p class="read" id="dabRead" hidden></p>
     </section>
     <section class="sec">

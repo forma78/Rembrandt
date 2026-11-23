@@ -580,6 +580,13 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     6. **GOGH's screen and GEN-V not yet changed by it**: a dab still drawn as the plan's, 2.2 wide — the adjustment theirs when the owner says
        (paint mechanics: proposed first). GEN-V's 8 … 15 mm dabs of the 2 mm brush come out ≈ 17 … 25 on the canvas.
 
+17. **Master and slave on the screen** (the owner, 2026-11-23, the day: "a barely visible yellow contour of the sausage, the master, and the pink drop
+    with its red contour its phantom slave. So we can correct that drop of 1.5 mm and its tip 13 mm past the end … the blue sausage is the Drag key, and
+    the overlay the Picture key"): the master the plan's dab, the slave the paint as the press test laid it, hung on the master's way by two numbers of
+    the screen's alone — **Drop · top**, the paint's top under the way's start (1.5), and **Drop · tip**, its tip past the way's end (12; the RUN's 2 mm a
+    step more) — read again off every press test's overlay. On Press test 3's card first (`press-paints-20`, `drop`); GOGH's pictures and GEN-V when the
+    numbers hold (`goghplan.js`, `DROP`, `dropOf`; `formg.js`, `drawDrops`, `drawMasters`).
+
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 

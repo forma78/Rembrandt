@@ -12,7 +12,7 @@
 // a cell a stack of a jar's dabs end to end in one column, the cells in the order the brush goes to them (the nearest next). Made by GEN-V (genv.js) and
 // GOGH/generator/genvpic.py; run by FORM-G's page with data-tab="gogh" (formg.js).
 import { GEN, GEN_FORMATS, paletteOf, hexOfLab, labOfHex, fieldOf } from './genfplan.js';
-import { jarsByCanvas } from './canon.js';
+import { jarsByCanvas, ELBOW_J3 } from './canon.js';
 import { seqOf, FORMG } from './formgplan.js';
 
 // orange-bear: a gummy bear, 40 × 40, the 2 mm brush's test (the owner, 2026-11-22, the evening: "the bear can be made as orange_bear.png — for the GOGH
@@ -23,7 +23,10 @@ import { seqOf, FORMG } from './formgplan.js';
 // screen 20 × 20 and for one paint repeat the cluster … in different variations … the press. Such a block fits on the canvas six times"; a line a block
 // press-lengths-20, the press test made again (the owner, 2026-11-23, the night: "just redraw the Press test from zero, with legs of different lengths, so we
 // check the length too"): six blocks, each its lone dabs 4 … 15 mm and a patch of dabs side by side; press-test-20 (Jar 19's cluster six times) its place before
-export const GOGH_LIB = ['press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
+// press-paints-20, Press test 3 (the owner, 2026-11-23: "take the grey paint Jar 28 … the orange Jar 6 and the red TAIL LIGHT 14"; "six modules again, but in
+// groups as No. 5 and No. 6"; of their patches: "I would set them a little wider still"): a paint a column, two blocks each, the patches 5 mm apart; on the
+// screen its drops (DROP), not the ideal dabs
+export const GOGH_LIB = ['press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,
@@ -76,6 +79,30 @@ export function fitV(f, iw, ih, pitch = GEN.pitch, margin = 0) {
 }
 // a dab on the screen, GEN-V's Sketch and GOGH's Picture: its painted span `gap` shorter, a round-ended line `wide` mm across → the line's ends, top and bottom
 export function dabOnScreen(top, bot, gap = DAB.gap, wide = DAB.wide * GEN.pitch) { const L = Math.max(0, top - bot - gap), r = Math.min(wide, L) / 2, m = (top + bot) / 2; return [m + L / 2 - r, m - L / 2 + r]; }
+// A drop, the dab as Press test 2 laid it (the owner, 2026-11-23: "do not draw the ideal even sausages any more. Take the red contour and leave the pink
+// inside"; then: "a barely visible yellow contour of the sausage, the master, and the pink drop with its red contour its phantom slave. So we can correct
+// that drop of 1.5 mm and its tip 13 mm past the end"): the master the plan's dab as the screen draws it (dabOnScreen), the slave the paint, hung on it by
+// two numbers of the screen's alone. On a card with `drop` (Press test 3) so far. The 2 mm brush, Jar 19, JAR +14, BRUSH +0.5 … +0.8, off the close photos
+// GOGH/IMG_3435 (RUN 14) and IMG_3438 (RUN 12), scaled by the lone dabs' 6 mm; mm, est.:
+// Both by the machine's way at RUN 12, the leg and the J3's 3 + 3: on a dab longer than the floor the master's own span; a shorter one's the floor's 9 mm
+// about its middle, its paint higher and lower with it (IMG_3438: the 4 mm dab's head 3 mm over the 10 mm's):
+//   top: the paint's top so far under the way's start (the whole canvas IMG_3441: 0 … 3 under the screen's);
+//   tip: the paint's tip so far past the way's end (the close photos 10.4 … 13.2, more the longer the dab; IMG_3441 ≈ 9), and the RUN's 2 mm a step once
+//        more: its early mm land in the air, its paint goes to the tail (RUN 14 2 mm longer than 12, the top where it was). The lengths here 19.5 · 20.3 ·
+//        25.3 mm for the 4 · 10 · 15 mm dabs at RUN 12, 21.5 · 27.3 at 14; the close photos 19.3 · 18.7 · 26.3, 20.2 · 28.5;
+//   wide: the widest, 4 … 5 mm; head: so far under the top, the top pointed as a leaf's; end: the tip's width, of the widest — 3 … 4 mm across at half
+export const DROP = { top: 1.5, tip: 12, wide: 4.6, head: 6, end: 0.1 };
+export const DROP_UI = { top: [0, 5, 0.5], tip: [0, 25, 0.5] };   // the sliders, mm [min, max, step]
+export const dropTopOf = v => inRange(v ?? DROP.top, DROP_UI.top), dropTipOf = v => inRange(v ?? DROP.tip, DROP_UI.tip);
+// a dab's drop → its outline, [[x, y]] clockwise from its top; o: { gap, run, top, tip } — the sliders'
+export function dropOf(x, a, b, o = {}) {
+  const run = dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0 });
+  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = Math.max(1, top - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run)), H = Math.min(DROP.head, P / 3), half = DROP.wide / 2;
+  const h = d => d <= H ? half * Math.sin(Math.PI / 2 * d / H) ** 0.6 : half * (1 - (1 - DROP.end) * ((d - H) / (P - H)) ** 1.6);
+  const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), H])].sort((p, q) => p - q);
+  const side = ds.map(d => [d, h(d)]);
+  return [...side.map(([d, w]) => [x + w, top - d]), ...side.reverse().map(([d, w]) => [x - w, top - d])];
+}
 
 // ---------- the dabs: every column cut into dabs of one jar each ----------
 // B: genfplan.js's binsOf (N columns, R mm along from the picture's top), pal: the jars in CIELAB. Every stretch of a column the picture paints cut by a
