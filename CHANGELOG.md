@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **RUN down to 6 mm; Press test 5 for the new brush** (2026-11-23, the afternoon; the owner, the brush changed after Kuzya's report: "I need a smaller
+  stroke now … can we bring the slider down to 6 mm? Then just make Press test 5"). GOGH's RUN −3 … +4: below 0 the brush lands later and lifts
+  earlier, the 2 mm's 12 mm dab running 6 at −3, a leg no shorter than 0.2 mm (`DAB_LEG`). `app/gogh/press-short-20`: Press test 2's six blocks in one
+  jar, a RUN a block; a card's own drop width on the screen (`dropWide`, 3 mm by `GOGH/IMG_3466.jpg`, est.). Kuzya's report in `GOGH/README.md`.
+
 - **GOGH's round matrix for any GEN-V sketch; the gummy bear's head on 30 × 30 and 50 × 50** (2026-11-23, the afternoon; the owner: "try such a gummy
   bear head on 30 × 30, please"). `GOGH/generator/matrix.py`: a dab's colour the one most of its pixels are nearest to, all the sketch's colours, the
   highlights last. On 30 × 30 no face — a feature ≈ one drop; on 50 × 50 the bear reads (2734 dabs, ≈ 5 h, est.). Cards on this Mac alone.

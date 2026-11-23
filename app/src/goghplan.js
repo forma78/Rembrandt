@@ -26,7 +26,9 @@ import { seqOf, FORMG } from './formgplan.js';
 // press-paints-20, Press test 3 (the owner, 2026-11-23: "take the grey paint Jar 28 … the orange Jar 6 and the red TAIL LIGHT 14"; "six modules again, but in
 // groups as No. 5 and No. 6"; of their patches: "I would set them a little wider still"): a paint a column, two blocks each, the patches 5 mm apart; on the
 // screen its drops (DROP), not the ideal dabs
-export const GOGH_LIB = ['press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
+// press-short-20, Press test 5 (the owner, 2026-11-23, the brush changed after Kuzya's report: "I need a smaller stroke now … can we bring the slider down
+// to 6 mm? Then just make Press test 5"): Press test 2's six blocks, one jar, a RUN a block; its drops the new brush's, 3 mm wide (IMG_3466, est.)
+export const GOGH_LIB = ['press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,
@@ -66,8 +68,11 @@ export const fieldV = (f, pitch = GEN.pitch, margin = 0) => { const F = reachV(f
 //   wide: a dab's width on the screen alone, of the brush at first ("we cannot simply widen the dab, it depends on how thick the paint is and how much of it
 //        hangs on the brush … this slider will just show approximately what we will see on the canvas"), est.; a brush's own, from 1 mm for the 2 mm;
 //   run: mm the brush runs on past a dab at both ends, the machine's alone — it lands earlier and lifts later, the picture as it is ("+1 mm at the top and
-//        +1 mm at the bottom … a standard dab 20 mm … 22, 24, 26 and 28 mm, four options")
-export const DAB_UI = { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [0, 4, 1] };
+//        +1 mm at the bottom … a standard dab 20 mm … 22, 24, 26 and 28 mm, four options"); below 0 since 2026-11-23, the new brush (the owner: "I need a
+//        smaller stroke now … can we bring the slider down to 6 mm?"): it lands later and lifts earlier, the 2 mm's 12 mm dab running 6, 8, 10 at −3, −2, −1;
+//        a leg no shorter than DAB_LEG (the J3's 3 + 3 still on it)
+export const DAB_UI = { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-3, 4, 1] };
+export const DAB_LEG = 0.2;   // mm, the shortest leg a negative run leaves, so it keeps its way down (est.)
 const inRange = (v, [lo, hi, st]) => { const q = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st; return +q.toFixed(2) || 0; };
 export const dabGapOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? DAB.wide * pitch, DAB_UI.wide);
 export const brushOf = v => DAB_UI.brush.includes(+v) ? +v : GEN.pitch;
@@ -94,10 +99,10 @@ export function dabOnScreen(top, bot, gap = DAB.gap, wide = DAB.wide * GEN.pitch
 export const DROP = { top: 1.5, tip: 12, wide: 4.6, head: 6, end: 0.1 };
 export const DROP_UI = { top: [0, 5, 0.5], tip: [0, 25, 0.5] };   // the sliders, mm [min, max, step]
 export const dropTopOf = v => inRange(v ?? DROP.top, DROP_UI.top), dropTipOf = v => inRange(v ?? DROP.tip, DROP_UI.tip);
-// a dab's drop → its outline, [[x, y]] clockwise from its top; o: { gap, run, top, tip } — the sliders'
+// a dab's drop → its outline, [[x, y]] clockwise from its top; o: { gap, run, top, tip } — the sliders'; wide, a card's own brush (`dropWide`, est.)
 export function dropOf(x, a, b, o = {}) {
   const run = dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0 });
-  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = Math.max(1, top - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run)), H = Math.min(DROP.head, P / 3), half = DROP.wide / 2;
+  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = Math.max(1, top - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run)), H = Math.min(DROP.head, P / 3), half = (o.wide ?? DROP.wide) / 2;
   const h = d => d <= H ? half * Math.sin(Math.PI / 2 * d / H) ** 0.6 : half * (1 - (1 - DROP.end) * ((d - H) / (P - H)) ** 1.6);
   const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), H])].sort((p, q) => p - q);
   const side = ds.map(d => [d, h(d)]);
@@ -204,13 +209,14 @@ export function sketchV(B, fit, f, K, o = {}) {
 
 // ---------- the run, GOGH's ----------
 // a dab's leg on the machine: painted top to bottom; `gap` / 2 off both its ends (the slider, the plan's), then `trim` in from them (DAB.trim, the J3 gives
-// them back), then `run` on past them (the slider, the machine's alone: the brush lands earlier and lifts later); a dab too short for the trim, the shortest
-// the brush lands on, about its middle, the run on past it the same
+// them back), then `run` on past them (the slider, the machine's alone: the brush lands earlier and lifts later, or, below 0, later and earlier, the leg
+// no shorter than DAB_LEG); a dab too short for the trim, the shortest the brush lands on, about its middle, the run on past it the same
 export function dabLeg(x, a, b, o = {}) {
   const trim = o.trim ?? DAB.trim, gap = dabGapOf(o.gap), run = dabRunOf(o.run), m = FORMG.minLeg, r3 = v => Math.round(v * 1000) / 1000;
   const top = Math.max(a, b) - gap / 2, bot = Math.min(a, b) + gap / 2, L = top - bot, c = (top + bot) / 2;
   const half = L < m + 2e-9 ? m / 2 : L / 2 - Math.max(0, Math.min(trim, (L - m) / 2));
-  return [[x, r3(c + half + run)], [x, r3(c - half - run)]];
+  const h = Math.max(DAB_LEG / 2, half + run);
+  return [[x, r3(c + h)], [x, r3(c - h)]];
 }
 // the list: FORM-G's (formgplan.js, seqOf) — every jar once, light to dark; a pass a jar, its cells as the picture has them, every leg a dab
 // o: { gap, run, trim } — the sliders'

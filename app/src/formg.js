@@ -736,7 +736,7 @@ function masterPath(legs) {
 // A picture's card (`drop: 'colour'`, Press test 4, the owner's for-LAB in drops, 2026-11-23): every drop its jar's colour, its outline the same a shade darker
 const shade = (hex, f = 0.7) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * f).toString(16).padStart(2, '0')).join('');
 function drawDrops(c) {
-  const tint = PIC.drop === 'colour', o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip }, lines = plan().map(P => {
+  const tint = PIC.drop === 'colour', o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide: PIC.dropWide }, lines = plan().map(P => {
     const path = new Path2D(), legs = ownLegs(P), hex = jarOf(P.pencil).hex;
     for (const [x, t, b] of legs) dropOf(x, t, b, o).forEach(([u, v], i) => i ? path.lineTo(sx(u), sy(v)) : path.moveTo(sx(u), sy(v)));
     return { path, master: masterPath(legs), a: veil(P), line: tint ? shade(hex) : DROP_LINE, fill: tint ? hex : DROP_FILL };

@@ -82,10 +82,10 @@ test('a dab on the machine: 3 mm in from its ends, top to bottom; the J3 gives t
   assert.deepEqual(dabLeg(7.5, 300, 280, { gap: -0.6 }), [[7.5, 297.3], [7.5, 282.7]], 'squeezed: 0.3 longer at each end');
 });
 
-test('the sliders: gap −0.6 … +0.6 by 0.1, run 0 … 4 by 1, the width on the screen 1 … 8 by 0.1, the brush 2, 3 or 5', () => {
-  assert.deepEqual(DAB_UI, { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [0, 4, 1] });
+test('the sliders: gap −0.6 … +0.6 by 0.1, run −3 … 4 by 1, the width on the screen 1 … 8 by 0.1, the brush 2, 3 or 5', () => {
+  assert.deepEqual(DAB_UI, { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-3, 4, 1] });
   assert.equal(dabGapOf(undefined), 0.6); assert.equal(dabGapOf(-2), -0.6); assert.equal(dabGapOf(0.44), 0.4); assert.equal(dabGapOf(-0.05), 0);
-  assert.equal(dabRunOf(undefined), 0); assert.equal(dabRunOf(9), 4); assert.equal(dabRunOf(2.4), 2); assert.equal(dabRunOf(-1), 0);
+  assert.equal(dabRunOf(undefined), 0); assert.equal(dabRunOf(9), 4); assert.equal(dabRunOf(2.4), 2); assert.equal(dabRunOf(-1), -1); assert.equal(dabRunOf(-9), -3);
   assert.equal(dabWideOf(undefined), 4.8, '0.96 of the 5 mm brush'); assert.equal(dabWideOf(undefined, 3), 2.9); assert.equal(dabWideOf(5.63), 5.6); assert.equal(dabWideOf(12), 8);
   assert.equal(brushOf(3), 3); assert.equal(brushOf('5'), 5); assert.equal(brushOf(2), 2); assert.equal(brushOf(4), GEN.pitch);
   // a brush's own gap: the 2 mm's −0.2 (the owner's), the 3 and the 5 0.6; its width 0.96 of it, 1.9 for the 2 mm
@@ -93,12 +93,14 @@ test('the sliders: gap −0.6 … +0.6 by 0.1, run 0 … 4 by 1, the width on th
   assert.equal(dabWideOf(undefined, 2), 1.9); assert.equal(dabWideOf(0.4, 2), 1);
 });
 
-test('the run: a 20 mm dab runs 20, 22, 24, 26, 28 mm on the machine — 1 mm earlier at its top and 1 later at its bottom a step; the picture as it is', () => {
+test('the run: a 20 mm dab runs 14 … 28 mm on the machine — 1 mm earlier at its top and 1 later at its bottom a step, below 0 later and earlier; the picture as it is', () => {
   const pic = { id: 't', w: 400, h: 400, pitch: 5, columns: 1, kind: 'dabs', box: [0, 0, 400, 400], jars: [{ id: 'c0', name: 'C1', hex: '#CC2222', coats: 1, cells: [{ n: 1, legs: [[7.5, 300, 280], [7.5, 280, 260]] }] }] };
   const was = JSON.stringify(pic), J = { slack: R3.slack, j3: R3.j3, brush: dabRunsOf };
   const run = (o, k = 0) => { const R = rowsOf(pic, passesV(pic, o), R3.every, FORMG.lap, false, J), m = R.ps[k][0]; return { L: +Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y).toFixed(3), a: m.a, b: m.b }; };
   assert.deepEqual([0, 1, 2, 3, 4].map(r => run({ gap: 0, run: r }).L), [20, 22, 24, 26, 28]);
-  for (const r of [1, 2, 3, 4]) {                                  // the same middle: as much on at the top as at the bottom
+  // below 0 (the owner, 2026-11-23, the new brush: "I need a smaller stroke … can we bring the slider down to 6 mm?"): later down, earlier up
+  assert.deepEqual([-3, -2, -1].map(r => run({ gap: 0, run: r }).L), [14, 16, 18]);
+  for (const r of [-3, -2, -1, 1, 2, 3, 4]) {                                  // the same middle: as much on at the top as at the bottom
     const q = run({ gap: 0, run: r }), z = run({ gap: 0, run: 0 });
     assert.ok(Math.abs((q.a.x + q.b.x) / 2 - (z.a.x + z.b.x) / 2) < 1e-6 && Math.abs(q.a.y - q.b.y) < 1e-6, `run ${r}: about the dab's middle, along X`);
   }
@@ -106,6 +108,10 @@ test('the run: a 20 mm dab runs 20, 22, 24, 26, 28 mm on the machine — 1 mm ea
   assert.equal(run({ gap: 0.6, run: 4 }).L, 27.4);
   assert.equal(JSON.stringify(pic), was, 'the picture untouched');
   assert.equal(rowsOf(pic, passesV(pic, { run: 4 }), R3.every, FORMG.lap, false, J).ps.length, 2, 'a dab a run still');
+  // the 2 mm brush's standard 12 mm dab: 12 at 0, 6 at −3 — its leg no shorter than DAB_LEG, the J3's 3 + 3 on it, still down the picture
+  const leg = r => dabLeg(10, 112, 100, { gap: 0, run: r }), len = r => leg(r)[0][1] - leg(r)[1][1];
+  assert.deepEqual([0, -1, -2, -3].map(r => +(len(r) + 6).toFixed(3)), [12, 10, 8, 6.2]);
+  assert.ok(len(-3) > 0 && Math.abs((leg(-3)[0][1] + leg(-3)[1][1]) / 2 - 106) < 1e-9, 'about the dab\'s middle, top over bottom');
 });
 
 test('the brush 3 mm: GEN-V\'s columns 3 mm apart, more dabs, the same 12 … 24 mm', () => {
@@ -261,7 +267,7 @@ test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two b
   const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
   const { GOGH_LIB, dropOf, passesV } = await import('../src/goghplan.js');
   const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-paints-20.json'), 'utf8'));
-  assert.equal(GOGH_LIB[0], 'press-paints-20');
+  assert.ok(GOGH_LIB.includes('press-paints-20'));
   assert.ok(pic.drop && pic.kind === 'dabs' && pic.pitch === 2);
   assert.deepEqual(pic.jars.map(j => j.name), ['Jar 28', 'Jar 28', 'Jar 6', 'Jar 6', 'Jar 14', 'Jar 14']);
   assert.deepEqual(passesV(pic).map(P => P.pencil), ['b1', 'b2', 'b3', 'b4', 'b5', 'b6'], 'run in the card\'s order, a block a line');
@@ -277,4 +283,23 @@ test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two b
   }
   const all = pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => dropOf(...l, { gap: pic.look.gap, run: 2 })))).flat();
   assert.ok(Math.min(...all.map(p => p[0])) > 10 && Math.max(...all.map(p => p[0])) < 190 && Math.min(...all.map(p => p[1])) > 10 && Math.max(...all.map(p => p[1])) < 190, 'within TEST\'s 10 mm margin');
+});
+
+test('Press test 5: the new brush, Press test 2\'s six blocks in one jar — lone dabs 4 … 15 mm, a patch 10 × 2 dabs 5 mm apart; its drops 3 mm wide on the screen', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { GOGH_LIB, dropOf, passesV } = await import('../src/goghplan.js');
+  const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-short-20.json'), 'utf8'));
+  assert.equal(GOGH_LIB[0], 'press-short-20');
+  assert.ok(pic.drop === true && pic.dropWide === 3);
+  assert.deepEqual(passesV(pic).map(P => P.pencil), ['b1', 'b2', 'b3', 'b4', 'b5', 'b6']);
+  for (const j of pic.jars) {
+    assert.equal(j.name, 'Jar 19');
+    assert.deepEqual(j.cells.slice(0, 6).map(c => c.legs[0][1] - c.legs[0][2]), [4, 6, 8, 10, 12, 15]);
+    const pat = j.cells.slice(6).map(c => c.legs); assert.equal(pat.length, 10);
+    assert.deepEqual(pat.slice(1).map((l, i) => l[0][0] - pat[i][0][0]), Array(9).fill(5));
+    assert.ok(pat.every(l => l.length === 2 && l[0][2] === l[1][1]), 'two dabs end to end a column');
+  }
+  const q = dropOf(50, 100, 88, { gap: 0.2, wide: pic.dropWide }), xs = q.map(p => p[0]);
+  assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 3) < 1e-9, 'the new brush\'s 3 mm');
 });

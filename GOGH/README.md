@@ -63,6 +63,27 @@ six times, "in different variations … the press".
 | `IMG_3294.jpg` | The same jar lower: the brush's white tip just touching the paint. |
 | `Screenshot 2026-11-22 at 11.22.13 PM.png` | GOGH's plan, Jar 19's dabs on the forehead circled: the cluster the press test repeats, 48 dabs, 50 × 45 mm. |
 
+## The new brush, short strokes, Press test 5 (2026-11-23, the afternoon)
+
+The owner: "unfortunately not yet the effect we need. But we are on the right path and the problem is the brush. … I changed the brush after Kuzya's report.
+I need a smaller stroke now ▲ RUN · A 12 MM DAB 12 MM — can we bring the slider down to 6 mm? Then just make Press test 5."
+
+Kuzya's report, as the owner pasted it (in short): a short stretch of the plan becomes a long spot — the drop model gives 19.5 mm of paint for any 3 … 8 mm
+stretch, 22.3 for 12, so a black cut short at the headlight's edge still runs far past it; on 20 × 20 the headlight ≈ 47 × 24 mm, about two rows; the
+matrix does not reckon the optical mix of neighbours (GEN-V at least carried a column's colour error on); build the next variant on "what will the viewer
+see once all these drops are laid?" — the same print in the reckoning as in the preview, the neighbours' colours chosen by the image they make, the
+headlight's edges and highlights first; the yellow hairs and dark outlines strengthen the grid; next, a headlight enlarged on 20 × 20; do not narrow the
+spacing blind. The code untouched by him.
+
+| file | what it shows |
+|---|---|
+| `IMG_3466.jpg` | The new brush's first block (RUN 12), a ruler under it (cm): the lone dabs ≈ 3 mm wide, 4 … 10 mm ≈ 10 … 13.5 mm long, 12 mm ≈ 15, 15 mm ≈ 20 — the old 2 mm's ≈ 5 mm wide, 18 … 26 long; the tail past the way +1 … +5, not +9; the patch, 5 mm apart, mostly apart (est., by the ruler). |
+
+**RUN down to 6** (README, "GOGH: a dab …", 5): the slider −3 … +4, the brush landing later and lifting earlier below 0. **`app/gogh/press-short-20`, Press
+test 5**: Press test 2's six blocks, one jar (Jar 19, as Press test 2's; 🔄 for another), each its lone dabs 4 … 15 mm 6 mm apart and a patch of 10 × 2
+dabs of 12 mm 5 mm apart; a RUN a block, set in the pause before it; on the screen its drops 3 mm wide (`dropWide`, the card's own, est.), the slider
+Drop · tip ≈ 5 for the new brush by IMG_3466 (est.).
+
 ## The gummy bear's head as a matrix (2026-11-23, the afternoon)
 
 The owner: "interesting. Try such a gummy bear head on 30 × 30, please." `generator/matrix.py`, GOGH's round matrix for any GEN-V sketch (press4_matrix.py's,
