@@ -116,6 +116,24 @@ RUN 14 against 6, GAP −0.1 against +0.2, BRUSH +0.3 against +0.8; the owner se
 | `Screenshot 2026-11-23 at 4.46.50 PM.png` | The owner's: GOGH, the 4 mm porsche, seeds circled on the wing's top edge to paint over (the indicators' orange), a column of tools drawn at the picture's left — an arrow, a brush. |
 | `Screenshot 2026-11-23 at 4.55.18 PM.png` | The owner's: `IMG_3472`'s C6 beside the screen's — the leg and the seeds where the plan has them. |
 
+### The flat brush, the porsches side by side, the nib (2026-11-23, the evening)
+
+The owner: "Claude, you will laugh, but I changed the brush again"; of the porsche: "I did not like it. The whole day lost, much experience gained, but the
+result is not satisfying, unfortunately. So I came across a German calligraphy nib"; "the nib is not classical, it is a spatula, so we go on with acrylic. It works
+as a palette knife. But because the metal is springy, it springs well and yes, gives a stripe as FORM-G, but thinner. Just what we need"; of its holder: "it has a
+thick handle that does not wobble in the clamp's sheath. The earlier brushes were far too unsteady … the fastening is now on three points"; and of the
+shoulder's 0.6 … 0.7° misses: "I have one more suspect: the brush's thin handle".
+
+| file | what it shows |
+|---|---|
+| `IMG_3479.jpg` | The 4 mm porsche (`porsche-led-20-4`) with the 2 mm pill brush, 20 × 20: chains of beads, the headlight's greys, the wet reds run together at the right. |
+| `IMG_3480.jpg` | Two 20 × 20 porsches by a ruler: the pill brush's beads (left) and the flat brush's stripes (right) — long upright bars end to end, the headlight in black, grey and white, the orange along the top. |
+| `IMG_3481.jpg` | Press test 5, the flat brush, blocks 1 … 3 on a board, a ruler across: bars ≈ 3.3 mm wide (est.); the patch's two dabs one column, their ends over each other; block 3 shorter. |
+| `IMG_3482.jpg` | The same close, the ruler under it. |
+| `IMG_3483.jpg`, `IMG_3484.jpg` | The day's test sheets side by side by a steel ruler: the drops of Jar 14, Jar 6, Jar 28 (TOP 0, TIP 0), the flat brush's bars at RUN 12 and 14. |
+| `IMG_3485.jpg` … `IMG_3487.jpg` | The nib: a steel spatula in a thick wooden holder in the arm's clamp, over the jar at hand and the board. |
+| `IMG_3488.jpg` | The holder's fastening, the owner's arrows: three points — two screws below and the clamp's ring above. |
+
 ### The gummy bear's head in 1 and ½, two layers (2026-11-23, the evening)
 
 The owner, of laying the seeds after the legs: "a good idea. But honestly, I am tired of this porsche :)) Let us apply our principle of 1 and ½ the other way
