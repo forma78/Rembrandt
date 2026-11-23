@@ -256,7 +256,7 @@ test('a drop, the slave: its top 1.5 under the way\'s start, its tip 12 past its
   assert.ok(at(q, len(q) - 0.2) < 1, 'the tail a point');
 });
 
-test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two blocks a paint, their patches 5 mm apart, drops on the screen, none touching another block', async () => {
+test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two blocks a paint, their patches 5 mm apart (block 6 6 mm), drops on the screen, none touching another block', async () => {
   const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
   const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
   const { GOGH_LIB, dropOf, passesV } = await import('../src/goghplan.js');
@@ -270,7 +270,7 @@ test('Press test 3: three paints a column each, Jar 28 · Jar 6 · Jar 14, two b
     assert.deepEqual(lone.map(([, a, b]) => a - b), [4, 6, 8, 10, 12, 15]);
     assert.deepEqual(lone.slice(1).map((l, i) => l[0] - lone[i][0]), [6, 6, 6, 6, 6]);
     assert.equal(patch.length, 10);
-    assert.deepEqual(patch.slice(1).map((l, i) => l[0][0] - patch[i][0][0]), Array(9).fill(5), 'the patch 5 mm apart');
+    assert.deepEqual(patch.slice(1).map((l, i) => l[0][0] - patch[i][0][0]), Array(9).fill(j.id === 'b6' ? 6 : 5), 'the patch 5 mm apart, block 6\'s 6');
     // RUN 16 at most: the longest lone drop's tail still 3 mm over the patch's top
     const tail = Math.min(...dropOf(...lone[5], { gap: pic.look.gap, run: 2 }).map(p => p[1])), head = Math.max(...dropOf(...patch[0][0], { gap: pic.look.gap, run: 2 }).map(p => p[1]));
     assert.ok(tail - head > 3, `${j.id}: ${tail} over ${head}`);

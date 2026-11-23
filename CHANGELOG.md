@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 3: block 6's patch 6 mm apart** (2026-11-23, the day; the owner, of the first four blocks, `GOGH/IMG_3459.jpg`: "the bottom legs still
+  stick together in groups … move the last for Jar 14 1 mm apart?"). x 133 … 187, ten columns within the canvas; blocks 1 … 5 as painted.
+
 - **Press test 3, paints: master and slave** (2026-11-23, the day; the owner: "take the grey paint Jar 28 … the orange Jar 6 and the red TAIL
   LIGHT 14"; "do not draw the ideal even sausages any more. Take the red contour and leave the pink inside"; "a barely visible yellow contour of the
   sausage, the master, and the pink drop with its red contour its phantom slave"). `app/gogh/press-paints-20`: a paint a column, two blocks each, lone

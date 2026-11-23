@@ -80,6 +80,7 @@ dabs 4 · 6 · 8 · 10 · 12 · 15 mm 6 mm apart, 3 mm higher than Press test 2'
 
 | file | what it shows |
 |---|---|
+| `IMG_3459.jpg` | The first four blocks (the owner: "a preliminary result, but one can already say that the bottom legs still stick together in groups"), Jar 28 at the left, Jar 6 in the middle: the grey's heads ≈ 7 mm (est., by the lone dabs' 6 mm), so even its lone dabs touch head to head, its patches in groups of 3 … 4; the orange's ≈ 4.5 mm, its lone dabs apart, its patches in twos and threes; its tails long and thin. Block 6's patch made 6 mm apart then (x 133 … 187; the owner: "move the last for Jar 14 1 mm apart?"). |
 | `../FORM-G/IMG_3172.jpg` | Jar 28, the thick graphite grey, on the Targa's Colour 6 (FORM-G, 2026-11-17, the 5 mm brush, a leg and its run back): every leg two glossy rails along its sides, the canvas's weave bare between them, the ends rounded; the paint stands where the brush pushed it and does not level — Jar 19's red of Press test 2 flowed into a teardrop. |
 
 ## Press test 2, lengths (2026-11-23, the night)
