@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 3: the lower drops astray — the shoulder back at +0.7°** (2026-11-23, the day; the owner, of No. 6: "the lower drops in the lower row
+  went astray, first in the first column, then in the fourth"). The journal: those dips' shoulder stood at +0.7° (`near`), four in block 6, and those
+  four dabs 2.2 … 2.7 mm to the right on the photo: ≈ 3.6 mm a degree at the tip (est.). The lone rows 30 mm by his ruler (`GOGH/IMG_3465.jpg`): the
+  27 … 28 read off the photo were the photo's.
+
 - **Press test 3 read: the overlay, the colours turned** (2026-11-23, the day; the owner: "done. Only centre the photo, and then you know what to
   do"). `GOGH/IMG_3463.jpg` (GPS out), squared by the canvas's face and the ruler's millimetres (`IMG_3463 · square.jpg`), and `IMG_3463 · six blocks
   overlay.png`: the screen's slaves pink, the masters a yellow hair, the paint blue. At RUN 12 the drop's TOP ≈ 2 … 4 Jar 28, 2 … 3 Jar 6, ≈ 1 Jar 14;
