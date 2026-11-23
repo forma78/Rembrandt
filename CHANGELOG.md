@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+## v.1.2.8 — 2026-11-23 · GOGH's tests: the press, the paints, the drop on the screen
+
+- **v.1.2.8 on every tab and in the saved SVGs** (the owner, 2026-11-23: "you can push v.1.2.8 with a note about the tests, please").
 - **README, How to dip: the shoulder back at +0.6 … +0.9°, left as it is** (2026-11-23; the owner, of a carriage compensation: "that would
   complicate the already complicated code … they do come back. Let us leave it as it is for now, but we will know the cause").
 
