@@ -91,11 +91,19 @@ picture's paint begins under it and its bottom where it ends (a dab 3 … 12 mm)
 colours but the white ground — the two its canon took out back, `#BC3E12` the indicator's orange and `#6F3735` — no jar canon. 283 dabs, 15 jars,
 ≈ 30 min (est.); the picture 14.8 mm higher, as much canvas over the paint as under it. `generator/press4_matrix.py`.
 
+Then the owner: "better, but still a little mush. `Screenshot 2026-11-23 at 1.59.49 PM.png` — below on for-LAB · dabs we have a white highlight, and on the press
+test it is gone. But that is good, because we understood that we cannot paint the Gummy bear with the current brush. What other ideas? Maybe try 30 × 30 cm?
+I have a canvas lying here. The distance between the sausages can also be 1 mm less." The white had all been the ground, bare, and the drops beside it
+closed over it. **`press-porsche-matrix-30`**: the picture ×1.5 on 30 × 30, in a row 5 mm apart, every other row 2.5 mm aside, rows 12 mm as before; the
+photo's white joined to its top or left edge the ground, bare, the white closed in by the car a highlight, in white (Colour 1), last, over the reds. 776
+dabs, 16 jars, ≈ 1 h 23 min of DRAG (est.), the jars' pauses more; the picture 20.8 mm higher. At 5 mm the columns of Press test 3 clumped in pairs.
+
 | file | what it is |
 |---|---|
 | `Screenshot 2026-11-23 at 1.06.50 PM.png` | The owner's: the column version on GOGH over FORM-G's red classic, its strokes' list: the headlight gone. |
 | `rgb-led.png` | An LED screen's stripes close: FORM-G's lines (from the web, on this Mac alone). |
 | `round-matrix.png` | A round matrix, every row half a pitch aside: GOGH's dabs to come (from the web, on this Mac alone). |
+| `Screenshot 2026-11-23 at 1.59.49 PM.png` | The owner's: the matrix's card beside for-LAB · dabs, its white highlight under the headlight, arrowed. |
 | `contour.png` | The owner's, in blue: GEN-V's card's contour by the car's edge and the headlight, and the column version's, lost. |
 
 ## Press test 3, paints (2026-11-23, the day)

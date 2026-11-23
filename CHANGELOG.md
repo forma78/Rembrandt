@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 4 on 30 × 30, 5 mm; a highlight's white painted** (2026-11-23, the afternoon; the owner: "maybe try 30 × 30 cm? … the distance between the
+  sausages can also be 1 mm less"; of the white highlight lost: "on the press test it is gone"). `press-porsche-matrix-30` (this Mac alone): 776 dabs, 16 jars;
+  the photo's white the ground where it joins its top or left edge, else a highlight in white, last. `GOGH/generator/press4_matrix.py` takes the side, the
+  pitch and the id.
+
 - **Press test 4 as a round matrix; the jar canon FORM-G's alone** (2026-11-23, the afternoon; the owner: "not a hint of the headlight is left";
   "the rule works only for FORM-G … all the more it must not be applied to GOGH"; "go by the pattern of the matrix"; "all the colours of the GEN-V tab").
   `press-porsche-matrix-20` (this Mac alone): every dab a pixel, rows 12 mm apart, in a row 6 mm apart, every other row 3 mm aside, a dab's top and
