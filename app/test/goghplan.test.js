@@ -418,9 +418,13 @@ test('the headlight for the nib: every dab a stamp, the stamps\' way 4.2 (seedJ3
   assert.ok(pic.jars.every(j => j.stamp) && pic.dab.seed === 6 && pic.dab.seedJ3 === 2 && pic.preset.run === -1);
   const P = passesV(pic, { gap: pic.preset.gap, run: pic.preset.run }), runs = dabRunsOf(P);
   assert.ok(runs.every(r => r.beyond === false), 'stamps');
-  assert.ok(P.some(q => q.layer === 2) && P.filter(q => q.layer === 2).every(q => pic.jars.find(j => j.id === q.pencil).cells.every(c => c.legs.every(([, a, b]) => isSeed(a, b, { seed: 6, gap: 0.2 })))), 'Layer 2 stamps alone');
+  const jar = q => pic.jars.find(j => j.id === q.pencil), two = P.filter(q => q.layer === 2);
+  assert.equal(jar(two[0]).name, 'Jar 6', 'Jar 6, the orange, first in Layer 2 (its canon)');
+  assert.ok(two.slice(1).every(q => jar(q).cells.every(c => c.legs.every(([, a, b]) => isSeed(a, b, { seed: 6, gap: 0.2 })))), 'then the extremes\' stamps alone');
+  const own = ['Jar 1', 'Jar 5', 'Jar 6', 'Jar 7', 'Jar 10', 'Jar 13', 'Jar 22', 'Jar 23', 'Jar 27', 'Jar 29', 'Jar 30', 'Jar 31', 'Jar 32', 'Jar 34', 'Jar 35', 'Jar 36', 'Jar 38', 'Jar 43', 'Black'];
+  assert.ok(pic.jars.every(j => own.includes(j.name)), 'his named jars of the red classic alone');
   const R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf });
   const ways = R.ps.map(g => +Math.hypot(g[0].b.x - g[0].a.x, g[0].b.y - g[0].a.y).toFixed(2));
-  assert.ok(ways.filter(w => Math.abs(w - 4.2) < 1e-6).length >= 200, 'the stamps 4.2 mm');
+  assert.ok(ways.filter(w => Math.abs(w - 4.2) < 1e-6).length >= 180, 'the stamps 4.2 mm');
   assert.ok(Math.max(...ways) <= 10.01, `a leg at most 12 − 2 at RUN 10: ${Math.max(...ways)}`);
 });

@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The headlight in the owner's named jars** (2026-11-23, the night; the owner: "random colours … all my colours are named"; "better rename Indicator to
+  Jar 6"). `headlight-nib-20` in the red classic's 19 jars by their physical hexes; the picture's orange by Jar 6, first in Layer 2 (`led.py`'s orange jar).
+
 - **The headlight for the nib** (2026-11-23, the night; the owner, of the stamps: "hurrah! victory!!! … shall we make a new picture for the headlight test?").
   `headlight-nib-20`: for-LAB's headlight enlarged on 20 × 20 (Kuzya's advice), 1 and ½ in stamps, columns 5 mm, two layers, preset; a card's `dab.seedJ3`, its
   stamps' own J3 (the way 4.2). First in GOGH_LIB. `GOGH/IMG_3493` … `3496`, GPS out.

@@ -8,7 +8,7 @@
 # darkest. Properly as Layer 2. Then the wet on wet is solved too"): with NEAR a cell whose halves' jars lie nearer than it a leg, a fill's
 # near shades not cut into seeds; with `ext` the seeds of the EXT lightest and the EXT darkest jars a line of their own each,
 # `late`, Layer 2, on the dry first layer — the darks first, the lightest the very last; the legs, and every other seed, Layer 1, light to dark as before.
-#   python3 led.py sketch.json picture.png out.json [side mm] [pitch mm] [id] [title] [edges] [unit mm] [ext] [near ΔE]
+#   python3 led.py sketch.json picture.png out.json [side mm] [pitch mm] [id] [title] [edges] [unit mm] [ext] [near ΔE] [orange jar's name]
 import json, sys, numpy as np
 from PIL import Image, ImageDraw
 sk = json.load(open(sys.argv[1])); im0 = Image.open(sys.argv[2]).convert('RGB'); OUT = sys.argv[3]
@@ -16,6 +16,8 @@ SIDE = float(sys.argv[4]) if len(sys.argv) > 4 else 200; PITCH = float(sys.argv[
 ID = sys.argv[6] if len(sys.argv) > 6 else 'led'; TITLE = sys.argv[7] if len(sys.argv) > 7 else ID; EDGES = sys.argv[8] if len(sys.argv) > 8 else 'tl'
 UNIT = float(sys.argv[9]) if len(sys.argv) > 9 else 12; HALF_ = UNIT / 2
 LAYERS = len(sys.argv) > 10 and sys.argv[10] == 'ext'; EXT = 2   # the lightest and the darkest jars, so many each way (est.)
+ORANGE = sys.argv[12] if len(sys.argv) > 12 else ''   # the jar the picture's orange is painted by, its name (the owner's Jar 6): a part a third of it orange its
+# (hue over 45°, chroma over 40, est.) — the photo's indicator darker than his paint, by colour alone nearer a red (2026-11-23, the headlight)
 NEAR = float(sys.argv[11]) if len(sys.argv) > 11 else 0   # CIELAB ΔE76: a cell's halves nearer than it one leg — a fill's near shades not cut into seeds (est.)
 f0 = sk['format'].split('x'); K_ = SIDE / (float(f0[0]) * 10)
 bx = sk['image'].get('box') or [0, 0, im0.width, im0.height]
@@ -41,12 +43,14 @@ pal = np.array([lab(hexrgb(h)) for _, h in cols]); LAST, HIGH = 90, 0.25
 X0, Y0 = sk['left'] * K_, sk['top'] * K_; PW, PH = sk['picture_mm'][0] * K_, sk['picture_mm'][1] * K_
 px = lambda x: (x - X0) / PW * W; py = lambda yt: (yt - Y0) / PH * H
 light = [i for i in range(len(pal)) if pal[i][0] >= LAST]
+ORANGE_K = next((i for i, c in enumerate(cols) if c[0] == ORANGE), None)
 def jar_of(x, a, b):                       # the part's jar: a highlight if a quarter of it is the lightest, else the one most pixels are nearest to
     u0, u1 = max(0, int(px(x - PITCH / 2))), min(W, int(np.ceil(px(x + PITCH / 2)))); v0, v1 = int(py(a)), min(H, int(np.ceil(py(b))))
     q = L[v0:v1, u0:u1][~bg[v0:v1, u0:u1]]
     if not len(q): return None
     cnt = np.bincount(np.argmin(((q[:, None, :] - pal[None]) ** 2).sum(-1), 1), minlength=len(pal))
     if light and cnt[light].sum() >= HIGH * len(q): return max(light, key=lambda i: cnt[i])
+    if ORANGE and ORANGE_K is not None and ((np.degrees(np.arctan2(q[:, 2], q[:, 1])) > 45) & (np.hypot(q[:, 1], q[:, 2]) > 40)).mean() >= 1 / 3: return ORANGE_K
     return int(np.argmax(np.where([i in light for i in range(len(pal))], -1, cnt)))
 def paint_span(x, a, b):                   # where the picture's paint begins and ends on the part's axis
     u0, u1 = max(0, int(px(x - PITCH / 4))), min(W, int(np.ceil(px(x + PITCH / 4)))); v0, v1 = int(py(a)), min(H, int(np.ceil(py(b))))
