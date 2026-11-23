@@ -97,14 +97,21 @@ export function dabOnScreen(top, bot, gap = DAB.gap, wide = DAB.wide * GEN.pitch
 // the owner's on the screen. The old 2 mm brush's of Press test 2 (IMG_3435, IMG_3438, IMG_3441): 4.6 mm, a leaf — the top pointed, the widest 6 mm down,
 // a needle's tail — top 1.5, tip 12.
 export const DROP = { top: 0.5, tip: 2, wide: 2.8, profile: [[0, 0], [0.05, 0.55], [0.15, 0.85], [0.3, 1], [0.5, 0.93], [0.7, 0.87], [0.85, 0.78], [0.95, 0.55], [1, 0.3]] };
+// RUN 6, the run −3 (Press test 3 again, GOGH/IMG_3469, IMG_3470, blocks 4 … 6): every dab a seed, whatever the plan's length — 4 … 15 mm all 6.4 … 7.6 mm
+// long, 3.4 … 3.7 wide, an almond, the head round, the tail pointed; its top where the pill's is. Between RUN 12 and 6 the pill turns into the seed by the
+// run (est., RUN 10 and 8 not measured yet)
+export const SEED = { len: 7, wide: 3.5, profile: [[0, 0], [0.08, 0.6], [0.2, 0.88], [0.4, 1], [0.6, 0.95], [0.8, 0.72], [0.93, 0.4], [1, 0.1]] };
 export const DROP_UI = { top: [0, 5, 0.5], tip: [0, 25, 0.5] };   // the sliders, mm [min, max, step]
 export const dropTopOf = v => inRange(v ?? DROP.top, DROP_UI.top), dropTipOf = v => inRange(v ?? DROP.tip, DROP_UI.tip);
 // a dab's drop → its outline, [[x, y]] clockwise from its top; o: { gap, run, top, tip } — the sliders'; wide, a card's own brush (`dropWide`, est.)
 export function dropOf(x, a, b, o = {}) {
   const run = dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0 });
-  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = Math.max(1, top - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run)), half = (o.wide ?? DROP.wide) / 2, pr = DROP.profile;
-  const h = d => { const f = d / P, i = Math.max(1, pr.findIndex(q => q[0] >= f)), [f0, w0] = pr[i - 1], [f1, w1] = pr[i]; return half * (w0 + (w1 - w0) * (f1 > f0 ? (f - f0) / (f1 - f0) : 0)); };
-  const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...pr.map(q => q[0] * P)])].sort((p, q) => p - q);
+  const k = Math.min(1, Math.max(0, -run / 3)), base = o.wide ?? DROP.wide;                  // 0 at RUN 12 and over, 1 at RUN 6: the pill to the seed
+  const pill = Math.max(1, (s + ELBOW_J3.early - dropTopOf(o.top)) - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run));
+  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = pill + (SEED.len - pill) * k, half = (base + (SEED.wide * base / DROP.wide - base) * k) / 2;
+  const at = (pr, f) => { const i = Math.max(1, pr.findIndex(q => q[0] >= f)), [f0, w0] = pr[i - 1], [f1, w1] = pr[i]; return w0 + (w1 - w0) * (f1 > f0 ? (f - f0) / (f1 - f0) : 0); };
+  const h = d => half * ((1 - k) * at(DROP.profile, d / P) + k * at(SEED.profile, d / P));
+  const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...DROP.profile.map(q => q[0] * P), ...SEED.profile.map(q => q[0] * P)])].sort((p, q) => p - q);
   const side = ds.map(d => [d, h(d)]);
   return [...side.map(([d, w]) => [x + w, top - d]), ...side.reverse().map(([d, w]) => [x - w, top - d])];
 }

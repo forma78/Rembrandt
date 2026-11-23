@@ -87,6 +87,30 @@ block a little denser, I think 2 mm easily. I will reload the tab and go over it
 read the deviations as `IMG_3463 · six blocks overlay.png`." Press test 3's block 6, its patch 4 mm apart (x 141 … 177; 6 before), the card's picture
 redrawn with the new drops.
 
+### Press test 3 again, the new brush, read (2026-11-23, the evening)
+
+The owner: "`IMG_3469` — all six, and the fifth once more `IMG_3470`"; before: "I will photograph it all together and read the deviations as
+`IMG_3463 · six blocks overlay.png`". By the journal: blocks 1 … 3 RUN 12, the crimson; block 4 RUN 6, the crimson, its lone row first at RUN 12 (that run
+stopped at its 7th dab); blocks 5 and 6 RUN 6, the grey — block 6's patch still 6 mm apart: the run went on from its pause, not reloaded, so the 4 mm
+never reached it. GAP +0.2, BRUSH +0.8, JAR 14 throughout.
+
+| file | what it is |
+|---|---|
+| `IMG_3469.jpg` | The whole canvas, six blocks, a ruler along its bottom. |
+| `IMG_3470.jpg` | Block 5 close, a ruler under it: the grey seeds. |
+| `IMG_3469 · square.jpg` | Claude's: `IMG_3469` squared by the canvas's face. |
+| `IMG_3469 · six blocks overlay.png` | Claude's, as `IMG_3463`'s: the screen's drops pink, the masters a yellow hair, the paint blue. x by all 36 lone dabs (plan x = 0.962 · face x + 6.93, ±0.7 mm; the ruler 0.952), each block shifted by its own; **y a row of blocks by its RUN 12 blocks, their top set 0.5 under the way's start** (the screen's TOP, the owner's) — the face gives no machine y better than a few mm, so a TOP read here is not absolute. |
+
+Read off it (est.):
+
+- **RUN 12, the pill**: block 3 drawn as it lies — the lone 4 … 10 mm dabs 8.0 … 8.8 mm (the model 10.5), 12 mm 12.9 (13.3), 15 mm 17.6 (16.3); the patch's
+  two dabs one column, every column apart at 5 mm; 2.4 … 2.6 mm wide (the model 2.8).
+- **RUN 6, the seed**: every dab 6.4 … 7.6 mm long, 3.4 … 3.7 wide, whatever its plan's length 4 … 15 mm — an almond, its head round, its tail pointed, at
+  the pill's top; a patch's two dabs two seeds a few mm apart, a grid. **The drop drawn so since** (`SEED`: 7 × 3.5; RUN 10 and 8 between, not measured).
+- Block 2's first three lone dabs nearly bare: the first after its jar's pause.
+- Block 6: the shoulder back at +0.7° on column 3's lower dab, 4's two and 5's upper (the journal) — those 2 … 3 mm to the right, as before.
+- **For the next test, marks for y**: a dot at known places off the blocks (the corners, 10 mm in), so the overlay's y is the machine's, not the face's.
+
 **RUN down to 6** (README, "GOGH: a dab …", 5): the slider −3 … +4, the brush landing later and lifting earlier below 0. **`app/gogh/press-short-20`, Press
 test 5**: Press test 2's six blocks, one jar (Jar 19, as Press test 2's; 🔄 for another), each its lone dabs 4 … 15 mm 6 mm apart and a patch of 10 × 2
 dabs of 12 mm 5 mm apart; a RUN a block — set before DRAG DABS, Start from the block (a RUN below 0 is not taken live). **The drops redrawn for the new

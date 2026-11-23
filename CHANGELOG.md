@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 3 again with the new brush, read; the drop a seed at RUN 6** (2026-11-23, the evening; the owner: "`IMG_3469` — all six, and the fifth once
+  more `IMG_3470`"). `GOGH/IMG_3469 · six blocks overlay.png`: at RUN 12 the screen's pill as the paint lies (block 3 near exact); at RUN 6 every dab a seed
+  ≈ 7 × 3.5 mm whatever its length — `SEED`, the drop turning into it below RUN 12 (`dropOf`); block 6's shifted dabs the shoulder's +0.7° again. The
+  overlay's y by the RUN 12 blocks (the face gives no machine y): marks for y proposed for the next test.
+
 - **Press test 3, block 6's patch 4 mm apart, the new brush** (2026-11-23; the owner: "neat strokes, fully controllable. Move the sixth module's lower
   block a little denser, I think 2 mm easily"). x 141 … 177 (6 mm before); the card's picture redrawn with the new drops.
 

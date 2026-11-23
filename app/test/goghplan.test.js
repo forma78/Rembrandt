@@ -241,7 +241,7 @@ test('a drop, the slave, the new brush\'s: its top 0.5 under the way\'s start, i
   const { dropOf, DROP, dropTopOf, dropTipOf } = await import('../src/goghplan.js');
   const ys = q => q.map(p => p[1]), xs = q => q.map(p => p[0]), len = q => Math.max(...ys(q)) - Math.min(...ys(q));
   // [mm, run, the way's start, the drop's length]; GOGH/IMG_3466 and IMG_3467 at RUN 12: 4 … 10 mm 8.2 … 13.3, 12 mm 13.3 … 15.2, 15 mm 17.9 … 20.6 (est.)
-  const close = [[4, 0, 102.5, 10.5], [10, 0, 99.9, 11.3], [12, 0, 99.9, 13.3], [15, 0, 99.9, 16.3], [4, 1, 102.5, 12.5], [12, -3, 99.9, 7.3]];
+  const close = [[4, 0, 102.5, 10.5], [10, 0, 99.9, 11.3], [12, 0, 99.9, 13.3], [15, 0, 99.9, 16.3], [4, 1, 102.5, 12.5]];
   for (const [L, run, start, want] of close) {
     const q = dropOf(50, 100, 100 - L, { gap: 0.2, run });
     assert.ok(Math.abs(Math.max(...ys(q)) - (start - DROP.top)) < 1e-9, `top: ${L} mm, run ${run}: ${Math.max(...ys(q))}`);
@@ -302,4 +302,18 @@ test('Press test 5: the new brush, Press test 2\'s six blocks in one jar — lon
   }
   const q = dropOf(50, 100, 88, { gap: 0.2 }), xs = q.map(p => p[0]);
   assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - 2.8) < 1e-9, 'the new brush\'s 2.8 mm');
+});
+
+test('a drop at RUN 6: a seed, 7 mm long and 3.5 wide whatever the plan\'s length (IMG_3469, IMG_3470); between RUN 12 and 6 the pill turns into it', async () => {
+  const { dropOf, DROP, SEED } = await import('../src/goghplan.js');
+  const ys = q => q.map(p => p[1]), xs = q => q.map(p => p[0]), len = q => Math.max(...ys(q)) - Math.min(...ys(q)), wid = q => Math.max(...xs(q)) - Math.min(...xs(q));
+  for (const L of [4, 6, 8, 10, 12, 15]) {
+    const q = dropOf(50, 100, 100 - L, { gap: 0.2, run: -3 }), p = dropOf(50, 100, 100 - L, { gap: 0.2, run: 0 });
+    assert.ok(Math.abs(len(q) - SEED.len) < 1e-6 && Math.abs(wid(q) - SEED.wide) < 1e-6, `${L} mm at RUN 6: ${len(q)} × ${wid(q)}`);
+    assert.ok(Math.abs(Math.max(...ys(q)) - Math.max(...ys(p))) < 1e-9, 'its top the pill\'s');
+    assert.ok(Math.abs(wid(p) - DROP.wide) < 1e-6, 'RUN 12 still the pill');
+  }
+  const w = r => wid(dropOf(50, 100, 88, { gap: 0.2, run: r }));
+  assert.ok(w(0) < w(-1) && w(-1) < w(-2) && w(-2) < w(-3), 'wider step by step to the seed');
+  assert.ok(Math.abs(wid(dropOf(50, 100, 88, { gap: 0.2, run: -3, wide: 5.6 })) - 7) < 1e-6, 'a card\'s own width scaled alike');
 });
