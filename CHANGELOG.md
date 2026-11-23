@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 5's block 6 in seeds; a jar's `seeds`** (2026-11-23, the night; the owner: "make short drops for the sixth module … IMG_3470, we did it in
+  the day"). A jar with `seeds` lays every dab as RUN 6 does, whatever the RUN (`isSeed`'s `allSeeds`); Press test 5's block 6 so. `GOGH/IMG_3491.jpg`, the nib.
+
 - **GOGH's RUN down to 4 mm** (2026-11-23, the evening; the owner: "can we make ¼ at all? 6 mm and 4 mm?"). Below 6 the J3's 3 + 3 shortened by what the
   leg cannot give (`dabJ3`; `j3Runs` takes a run's own `j3`): the 12 mm dab's way 4 mm at RUN 4; the screen's seed 2 mm shorter (est.). Tested.
 

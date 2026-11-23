@@ -372,3 +372,17 @@ test('RUN down to 4: what the leg cannot give the J3 gives — the 12 mm dab run
   assert.equal(dabJ3(106, 100, { gap: 0.2, run: -4, seed: 6 }), null, 'a seed as RUN 6 lays it');
   assert.ok(Math.abs(dabLeg(10, 112, 100, { gap: 0, run: -4 })[0][1] - dabLeg(10, 112, 100, { gap: 0, run: -3 })[0][1]) < 1e-9, 'the leg at its floor');
 });
+
+// a jar's seeds (the owner, 2026-11-23, the night: "make short drops for the sixth module"): Press test 5's block 6 every dab a seed, whatever the RUN
+test('a jar\'s seeds: Press test 5\'s block 6 every dab a seed at any RUN — its leg DAB_LEG, the J3 the canon\'s; blocks 1 … 5 their RUN\'s', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { passesV, DAB_LEG } = await import('../src/goghplan.js');
+  const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-short-20.json'), 'utf8'));
+  assert.deepEqual(pic.jars.map(j => !!j.seeds), [false, false, false, false, false, true]);
+  for (const run of [4, 0, -2, -4]) {
+    const P = passesV(pic, { gap: 0.2, run }), len = l => +(l[0][1] - l[1][1]).toFixed(3);
+    assert.ok(P[5].byCell.every(c => c.legs.every(l => len(l) === DAB_LEG) && !c.j3), `block 6 seeds at run ${run}`);
+    assert.ok(P[0].byCell.some(c => c.legs.some(l => len(l) > DAB_LEG)) || run <= -3, `block 1 its RUN's at run ${run}`);
+  }
+});

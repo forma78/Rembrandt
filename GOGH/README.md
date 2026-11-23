@@ -133,6 +133,7 @@ shoulder's 0.6 … 0.7° misses: "I have one more suspect: the brush's thin hand
 | `IMG_3483.jpg`, `IMG_3484.jpg` | The day's test sheets side by side by a steel ruler: the drops of Jar 14, Jar 6, Jar 28 (TOP 0, TIP 0), the flat brush's bars at RUN 12 and 14. |
 | `IMG_3485.jpg` … `IMG_3487.jpg` | The nib: a steel spatula in a thick wooden holder in the arm's clamp, over the jar at hand and the board. |
 | `IMG_3488.jpg` | The holder's fastening, the owner's arrows: three points — two screws below and the clamp's ring above. |
+| `IMG_3491.jpg` | The nib's Press test 5 on a board, a ruler over it (the owner: "with a ruler, as you like :)"): flat bars ≈ 4 mm wide, the lone 4 … 15 mm ≈ 10 … 14 mm long at RUN 4 (the journal's 21:15 and 21:18 runs, GAP 0, BRUSH +0.4, est.); the patch's two dabs one column, their joint a step. Then: "make short drops for the sixth module … IMG_3470, we did it in the day" — block 6 a jar of `seeds`, every dab as RUN 6 lays it whatever the RUN. |
 
 ### The gummy bear's head in 1 and ½, two layers (2026-11-23, the evening)
 

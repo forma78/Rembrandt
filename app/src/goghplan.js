@@ -227,7 +227,9 @@ export function sketchV(B, fit, f, K, o = {}) {
 // A seed in the plan (the owner, 2026-11-23, of a picture in "1 and ½": "if a headlight or some small detail, ½ a seed; if a fill as the bonnet, there 1
 // leg"): a card's `dab.seed`, mm — a dab no longer than it laid as RUN 6 lays every dab, its leg DAB_LEG whatever the RUN, its way the J3's 3 + 3 alone,
 // a seed ≈ 7 × 3.5 mm (SEED); a longer one a leg as before, the RUN its own. o.seed: that threshold, none on a card without it
-export const isSeed = (a, b, o = {}) => !!o.seed && Math.abs(a - b) - dabGapOf(o.gap) <= o.seed + 1e-9;
+// a jar's `seeds` (the owner, 2026-11-23, the night: "make short drops for the sixth module … IMG_3470, we did it in the day"): every dab of it a seed, as RUN 6
+// lays it, whatever the RUN and its length — a test block of seeds beside blocks of legs (o.allSeeds)
+export const isSeed = (a, b, o = {}) => !!o.allSeeds || (!!o.seed && Math.abs(a - b) - dabGapOf(o.gap) <= o.seed + 1e-9);
 // the J3 a dab's own (the owner, 2026-11-23, the evening: "can we make ¼ at all? 6 mm and 4 mm?"): a run so far below 0 that the leg is at its floor, DAB_LEG,
 // takes the rest off the J3's 3 + 3 — at most all of it — so the way on the machine is the dab's length + 2 · run; null, the canon's J3 (ELBOW_J3), else and
 // for a seed, as RUN 6 lays it
@@ -250,7 +252,7 @@ export function dabLeg(x, a, b, o = {}) {
 // o: { gap, run, trim } — the sliders'
 export function passesV(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = j.cells.map((c, i) => { const so = { ...o, seed: pic.dab?.seed }, legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, so)), j3 = c.legs.map(([, a, b]) => dabJ3(a, b, so)); return { num: i + 1, k: legs.length, legs, ...(j3.some(Boolean) ? { j3 } : {}), line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
+    const byCell = j.cells.map((c, i) => { const so = { ...o, seed: pic.dab?.seed, allSeeds: !!j.seeds }, legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, so)), j3 = c.legs.map(([, a, b]) => dabJ3(a, b, so)); return { num: i + 1, k: legs.length, legs, ...(j3.some(Boolean) ? { j3 } : {}), line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
     return { pencil: j.id, layer: j.layer, fill: 'dabs', cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: false, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
