@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 3 read: the overlay, the colours turned** (2026-11-23, the day; the owner: "done. Only centre the photo, and then you know what to
+  do"). `GOGH/IMG_3463.jpg` (GPS out), squared by the canvas's face and the ruler's millimetres (`IMG_3463 · square.jpg`), and `IMG_3463 · six blocks
+  overlay.png`: the screen's slaves pink, the masters a yellow hair, the paint blue. At RUN 12 the drop's TOP ≈ 2 … 4 Jar 28, 2 … 3 Jar 6, ≈ 1 Jar 14;
+  its TIP ≈ 11 … 12, ≈ 10, ≈ 9 (est., y ±2 mm); the patches clump in twos at 5 mm, in threes at 6 mm. `GOGH/README.md`.
+
 - **Press test 3: block 6's patch 6 mm apart** (2026-11-23, the day; the owner, of the first four blocks, `GOGH/IMG_3459.jpg`: "the bottom legs still
   stick together in groups … move the last for Jar 14 1 mm apart?"). x 133 … 187, ten columns within the canvas; blocks 1 … 5 as painted.
 
