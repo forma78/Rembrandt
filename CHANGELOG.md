@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's RUN down to 4 mm** (2026-11-23, the evening; the owner: "can we make ¼ at all? 6 mm and 4 mm?"). Below 6 the J3's 3 + 3 shortened by what the
+  leg cannot give (`dabJ3`; `j3Runs` takes a run's own `j3`): the 12 mm dab's way 4 mm at RUN 4; the screen's seed 2 mm shorter (est.). Tested.
+
 - **GOGH's PAINT view** (2026-11-23, the evening; the owner: "a new key: PAINT — and in it, just there, the light yellow contour from DRAG … in Picture no yellow
   contour"). Picture · Paint · Drag · ▶ Play: every picture's drops with the masters' hair on Paint, none on Picture.
 

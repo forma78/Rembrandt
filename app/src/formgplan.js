@@ -386,7 +386,7 @@ export const R3 = { every: CANON.ride, slack: 0, j3: ELBOW_J3 };
 export const j3Runs = (runs, j3 = ELBOW_J3, o = {}) => runs.map(r => {
   if (r.idle || !j3) return r;
   const lo = o.floor ?? -Infinity, hi = o.ceil ?? Infinity;
-  return { ...r, pts: elbowEndsOf(r.pts, j3).map(([x, y]) => [x, Math.min(hi, Math.max(lo, y))]) };
+  return { ...r, pts: elbowEndsOf(r.pts, r.j3 ?? j3).map(([x, y]) => [x, Math.min(hi, Math.max(lo, y))]) };   // a run's own J3 first (GOGH's RUN below 6, goghplan.js's dabJ3)
 });
 // o: { slack, j3, floor, ceil } — FORM-G's R3 and its picture's legs' reach; none, as before (OPM-G); o.marks: marksOf's strips, every line's marks before its cells;
 // o.brush: passes → the brush's runs, another tab's in brushRuns' place (GOGH's dabs, goghplan.js's dabRunsOf, 2026-11-22)

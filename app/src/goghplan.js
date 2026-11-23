@@ -75,8 +75,9 @@ export const fieldV = (f, pitch = GEN.pitch, margin = 0) => { const F = reachV(f
 //   run: mm the brush runs on past a dab at both ends, the machine's alone — it lands earlier and lifts later, the picture as it is ("+1 mm at the top and
 //        +1 mm at the bottom … a standard dab 20 mm … 22, 24, 26 and 28 mm, four options"); below 0 since 2026-11-23, the new brush (the owner: "I need a
 //        smaller stroke now … can we bring the slider down to 6 mm?"): it lands later and lifts earlier, the 2 mm's 12 mm dab running 6, 8, 10 at −3, −2, −1;
-//        a leg no shorter than DAB_LEG (the J3's 3 + 3 still on it)
-export const DAB_UI = { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-3, 4, 1] };
+//        a leg no shorter than DAB_LEG (the J3's 3 + 3 still on it); down to −4 since the same evening (the owner: "can we make ¼ at all? 6 mm and 4 mm?"):
+//        what the leg cannot give the J3 gives — its 3 mm at each end less by it (dabJ3), the 12 mm dab running 4
+export const DAB_UI = { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-4, 4, 1] };
 export const DAB_LEG = 0.2;   // mm, the shortest leg a negative run leaves, so it keeps its way down (est.)
 const inRange = (v, [lo, hi, st]) => { const q = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st; return +q.toFixed(2) || 0; };
 export const dabGapOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? DAB.wide * pitch, DAB_UI.wide);
@@ -113,7 +114,7 @@ export function dropOf(x, a, b, o = {}) {
   const run = isSeed(a, b, o) ? -3 : dabRunOf(o.run), [[, s], [, e]] = dabLeg(x, a, b, { ...o, run: 0, seed: 0 });
   const k = Math.min(1, Math.max(0, -run / 3)), base = o.wide ?? DROP.wide;                  // 0 at RUN 12 and over, 1 at RUN 6: the pill to the seed
   const pill = Math.max(1, (s + ELBOW_J3.early - dropTopOf(o.top)) - (e - ELBOW_J3.late - dropTipOf(o.tip) - 2 * run));
-  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = pill + (SEED.len - pill) * k, half = (base + (SEED.wide * base / DROP.wide - base) * k) / 2;
+  const top = s + ELBOW_J3.early - dropTopOf(o.top), P = pill + (SEED.len + 2 * Math.min(0, run + 3) - pill) * k, half = (base + (SEED.wide * base / DROP.wide - base) * k) / 2;   // RUN 4: the seed 2 mm shorter (est.)
   const at = (pr, f) => { const i = Math.max(1, pr.findIndex(q => q[0] >= f)), [f0, w0] = pr[i - 1], [f1, w1] = pr[i]; return w0 + (w1 - w0) * (f1 > f0 ? (f - f0) / (f1 - f0) : 0); };
   const h = d => half * ((1 - k) * at(DROP.profile, d / P) + k * at(SEED.profile, d / P));
   const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...DROP.profile.map(q => q[0] * P), ...SEED.profile.map(q => q[0] * P)])].sort((p, q) => p - q);
@@ -227,6 +228,17 @@ export function sketchV(B, fit, f, K, o = {}) {
 // leg"): a card's `dab.seed`, mm — a dab no longer than it laid as RUN 6 lays every dab, its leg DAB_LEG whatever the RUN, its way the J3's 3 + 3 alone,
 // a seed ≈ 7 × 3.5 mm (SEED); a longer one a leg as before, the RUN its own. o.seed: that threshold, none on a card without it
 export const isSeed = (a, b, o = {}) => !!o.seed && Math.abs(a - b) - dabGapOf(o.gap) <= o.seed + 1e-9;
+// the J3 a dab's own (the owner, 2026-11-23, the evening: "can we make ¼ at all? 6 mm and 4 mm?"): a run so far below 0 that the leg is at its floor, DAB_LEG,
+// takes the rest off the J3's 3 + 3 — at most all of it — so the way on the machine is the dab's length + 2 · run; null, the canon's J3 (ELBOW_J3), else and
+// for a seed, as RUN 6 lays it
+export function dabJ3(a, b, o = {}) {
+  if (isSeed(a, b, o)) return null;
+  const trim = o.trim ?? DAB.trim, gap = dabGapOf(o.gap), run = dabRunOf(o.run), m = FORMG.minLeg, L = Math.max(a, b) - Math.min(a, b) - gap;
+  const half = L < m + 2e-9 ? m / 2 : L / 2 - Math.max(0, Math.min(trim, (L - m) / 2)), d = DAB_LEG / 2 - (half + run);
+  if (d <= 1e-9 || run >= 0) return null;
+  const k = Math.min(ELBOW_J3.early, ELBOW_J3.late, d), r3 = v => Math.round(v * 1000) / 1000;
+  return { early: r3(ELBOW_J3.early - k), late: r3(ELBOW_J3.late - k) };
+}
 export function dabLeg(x, a, b, o = {}) {
   const trim = o.trim ?? DAB.trim, gap = dabGapOf(o.gap), run = dabRunOf(o.run), m = FORMG.minLeg, r3 = v => Math.round(v * 1000) / 1000;
   const top = Math.max(a, b) - gap / 2, bot = Math.min(a, b) + gap / 2, L = top - bot, c = (top + bot) / 2;
@@ -238,12 +250,12 @@ export function dabLeg(x, a, b, o = {}) {
 // o: { gap, run, trim } — the sliders'
 export function passesV(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = j.cells.map((c, i) => { const legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, { ...o, seed: pic.dab?.seed })); return { num: i + 1, k: legs.length, legs, line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
+    const byCell = j.cells.map((c, i) => { const so = { ...o, seed: pic.dab?.seed }, legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, so)), j3 = c.legs.map(([, a, b]) => dabJ3(a, b, so)); return { num: i + 1, k: legs.length, legs, ...(j3.some(Boolean) ? { j3 } : {}), line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
     return { pencil: j.id, layer: j.layer, fill: 'dabs', cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: false, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
 // the brush's runs: every dab a run of its own, on a dip of its own at its top, down to its bottom and the lift beyond — nothing after it
-export const dabRunsOf = passes => passes.flatMap((P, k) => P.byCell.flatMap(c => c.legs.map((l, i) => ({ pass: k, num: c.num, pts: l, say: `dab${c.legs.length > 1 ? ` ${i + 1}/${c.legs.length}` : ''}`, dip: true, idle: false, beyond: true, dab: true }))));
+export const dabRunsOf = passes => passes.flatMap((P, k) => P.byCell.flatMap(c => c.legs.map((l, i) => ({ pass: k, num: c.num, pts: l, say: `dab${c.legs.length > 1 ? ` ${i + 1}/${c.legs.length}` : ''}`, dip: true, idle: false, beyond: true, dab: true, ...(c.j3?.[i] ? { j3: c.j3[i] } : {}) }))));   // a dab's own J3 (dabJ3)
 
 // ---------- APPROVE 🐾: the card, GEN-V's page making it (2026-11-22, the evening) ----------
 // The owner: "why do I download to the desktop at all … I press APPROVE (add a paw 🐾, by the way) and the picture appears in Library-V". GOGH/generator/

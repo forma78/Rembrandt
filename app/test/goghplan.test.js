@@ -82,10 +82,10 @@ test('a dab on the machine: 3 mm in from its ends, top to bottom; the J3 gives t
   assert.deepEqual(dabLeg(7.5, 300, 280, { gap: -0.6 }), [[7.5, 297.3], [7.5, 282.7]], 'squeezed: 0.3 longer at each end');
 });
 
-test('the sliders: gap −0.6 … +0.6 by 0.1, run −3 … 4 by 1, the width on the screen 1 … 8 by 0.1, the brush 2, 3 or 5', () => {
-  assert.deepEqual(DAB_UI, { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-3, 4, 1] });
+test('the sliders: gap −0.6 … +0.6 by 0.1, run −4 … 4 by 1, the width on the screen 1 … 8 by 0.1, the brush 2, 3 or 5', () => {
+  assert.deepEqual(DAB_UI, { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-4, 4, 1] });
   assert.equal(dabGapOf(undefined), 0.6); assert.equal(dabGapOf(-2), -0.6); assert.equal(dabGapOf(0.44), 0.4); assert.equal(dabGapOf(-0.05), 0);
-  assert.equal(dabRunOf(undefined), 0); assert.equal(dabRunOf(9), 4); assert.equal(dabRunOf(2.4), 2); assert.equal(dabRunOf(-1), -1); assert.equal(dabRunOf(-9), -3);
+  assert.equal(dabRunOf(undefined), 0); assert.equal(dabRunOf(9), 4); assert.equal(dabRunOf(2.4), 2); assert.equal(dabRunOf(-1), -1); assert.equal(dabRunOf(-9), -4);
   assert.equal(dabWideOf(undefined), 4.8, '0.96 of the 5 mm brush'); assert.equal(dabWideOf(undefined, 3), 2.9); assert.equal(dabWideOf(5.63), 5.6); assert.equal(dabWideOf(12), 8);
   assert.equal(brushOf(3), 3); assert.equal(brushOf('5'), 5); assert.equal(brushOf(2), 2); assert.equal(brushOf(4), GEN.pitch);
   // a brush's own gap: the 2 mm's −0.2 (the owner's), the 3 and the 5 0.6; its width 0.96 of it, 1.9 for the 2 mm
@@ -356,4 +356,19 @@ test('the gummy bear in 1 and ½, two layers: Layer 2 the seeds of the two light
     }
     assert.equal(hexOf(two.at(-1)), lights[0], 'the lightest the very last');
   }
+});
+
+// ¼ (the owner, 2026-11-23, the evening: "can we make ¼ at all? 6 mm and 4 mm?"): below RUN 6 the J3 gives what the leg cannot — the way on the machine the dab's
+// length + 2 · run, the 2 mm brush's 12 mm dab 8 · 6 · 4 at RUN 8 · 6 · 4
+test('RUN down to 4: what the leg cannot give the J3 gives — the 12 mm dab runs 6 and 4 on the machine; a long dab and a seed as before', async () => {
+  const { dabJ3, dabLeg, passesV, dabRunsOf } = await import('../src/goghplan.js');
+  const { rowsOf, R3, FORMG } = await import('../src/formgplan.js');
+  const pic = { id: 't', w: 200, h: 200, pitch: 2, columns: 1, kind: 'dabs', jars: [{ id: 'c0', name: 'C1', hex: '#CC2222', coats: 1, cells: [{ n: 1, legs: [[10, 112, 100]] }, { n: 2, legs: [[20, 150, 130]] }] }] };
+  const way = (run, k) => { const R = rowsOf(pic, passesV(pic, { gap: 0, run }), R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf }), m = R.ps[k][0]; return +Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y).toFixed(3); };
+  assert.deepEqual([0, -1, -2, -3, -4].map(r => way(r, 0)), [12, 10, 8, 6, 4], 'the 12 mm dab');
+  assert.deepEqual([0, -2, -4].map(r => way(r, 1)), [20, 16, 12], 'a 20 mm dab: the leg gives it all, the J3 as ever');
+  assert.equal(dabJ3(112, 100, { gap: 0, run: -2 }), null);
+  assert.deepEqual(dabJ3(112, 100, { gap: 0, run: -4 }), { early: 1.9, late: 1.9 }, "the leg 0.2 + 1.9 + 1.9 = 4");
+  assert.equal(dabJ3(106, 100, { gap: 0.2, run: -4, seed: 6 }), null, 'a seed as RUN 6 lays it');
+  assert.ok(Math.abs(dabLeg(10, 112, 100, { gap: 0, run: -4 })[0][1] - dabLeg(10, 112, 100, { gap: 0, run: -3 })[0][1]) < 1e-9, 'the leg at its floor');
 });

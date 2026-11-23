@@ -504,7 +504,8 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
    - **the run**, the machine's alone, +0 … +4 mm at both ends — the brush lands earlier and lifts later, the picture as it is: a 20 mm dab
      runs 20, 22, 24, 26, 28 ("four options, checked by tests"). **Down to −3 since 2026-11-23**, the new brush (the owner: "I need a smaller stroke
      now … can we bring the slider down to 6 mm?"): it lands later and lifts earlier, the 2 mm's 12 mm dab running 6, 8, 10; a leg no shorter than
-     0.2 mm (`DAB_LEG`), the J3's 3 + 3 on it.
+     0.2 mm (`DAB_LEG`), the J3's 3 + 3 on it. **Down to −4 the same evening** (the owner: "can we make ¼ at all? 6 mm and 4 mm?"): what the leg cannot give
+     the J3 gives, its 3 mm at each end less (`dabJ3`, a run's own `j3` in `j3Runs`) — the 12 mm dab running 8, 6, 4; a long dab and a seed as before.
 
    The gap and the run live during a DRAG (the owner: "I allow changing it", of `rembrandt.py`): the page makes the plan again and
    `rembrandt.py`'s POST `/run/swap` puts it in place of the run's own steps, only where nothing but where the brush goes differs — the same
