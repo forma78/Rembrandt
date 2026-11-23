@@ -614,6 +614,11 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     - **two layers** (the owner, of the gummy bear's head: "last we lay only the seeds of the lightest and the darkest. Properly as Layer 2. Then the wet on
       wet is solved too"): `led.py`'s `ext` — the seeds of the two lightest and the two darkest jars a line each, `late`, Layer 2 on the dry first, the darks
       first, the lightest last; and `near`, a cell's halves of near shades (ΔE76 under 12, est.) one leg.
+    - **THE JARS at the left, the cards' ×** (the owner, the same evening: "let us move the paint jars to the left, nearer the library of pictures. The brush and
+      the arrow go up. So it is easier to choose the colours — and the Progress panel opposite"; "crosses (x) on the cards … so that they hide in LIB-V. If
+      needed, in LIB-V you click on them, they come back. There are many now and I get confused"): on GOGH THE JARS a column between the library and the
+      picture, the tools at the picture's top left; a card's × hides it — this browser's list, `rembrandt.gogh.hidden.v01` — LIB-V showing the hidden under
+      their own line, a click bringing one back; a run's own picture never hidden.
 
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.

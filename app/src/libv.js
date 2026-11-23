@@ -9,6 +9,10 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const when = iso => { const d = new Date(iso); return Number.isFinite(+d) ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : ''; };
 const PICS = {};
+// hidden on GOGH (the owner, 2026-11-23: "crosses (x) on the cards … so that they hide in LIB-V. If needed, in LIB-V you click on them, they come back"):
+// GOGH's × puts a card's id in this browser's list, a click on it here takes it out; GOGH told by the `storage` event
+const HIDE_KEY = 'rembrandt.gogh.hidden.v01';
+const hiddenNow = () => { try { const v = JSON.parse(localStorage.getItem(HIDE_KEY) ?? '[]'); return Array.isArray(v) ? v : []; } catch { return []; } };
 let GEMS = {};   // 💎: { pic: [ { n, at, from, to, runs, dabs, jars, seconds } ] }, rembrandt.py's diamonds.json
 const hm = s => `${Math.floor(s / 3600)} h ${String(Math.round(s / 60) % 60).padStart(2, '0')} min`;
 const gemSay = g => `💎 №${g.n} · ${g.at} · ${g.dabs} dabs · ${g.jars?.length ?? 0} jars · ${hm(g.seconds)}${g.from ? ` · ${g.from} → ${g.to}` : ''}`;
@@ -22,8 +26,11 @@ export async function load() {
   try { const r = await fetch('/gogh/library', { cache: 'no-store' }); lib = r.ok ? await r.json() : null; } catch { }
   GEMS = lib?.diamonds ?? {};
   const local = lib?.local ?? [], ids = [...local, ...GOGH_LIB.filter(id => !local.includes(id))];
-  const cards = (await Promise.all(ids.map(async id => ({ id, p: await pic(id), mine: local.includes(id) })))).filter(q => q.p);
-  $('#grid').innerHTML = cards.length ? cards.map(picCard).join('') : '<p class="none">Nothing yet: GEN-V, 🐾 APPROVE.</p>';
+  const cards = (await Promise.all(ids.map(async id => ({ id, p: await pic(id), mine: local.includes(id) })))).filter(q => q.p), hid = new Set(hiddenNow());
+  const shown = cards.filter(q => !hid.has(q.id)), gone = cards.filter(q => hid.has(q.id));
+  $('#grid').innerHTML = shown.length ? shown.map(picCard).join('') : '<p class="none">Nothing yet: GEN-V, 🐾 APPROVE.</p>';
+  $('#hidSplit').hidden = !gone.length;
+  $('#hidden').innerHTML = gone.map(q => picCard(q).replace('title="Open on GOGH"', 'data-unhide title="Hidden on GOGH: a click brings it back"')).join('');
   const jars = lib?.jars ?? [];
   for (const j of jars) await pic(j.pic);
   $('#split').hidden = !jars.length;
@@ -69,6 +76,10 @@ async function onCard(e) {
     else BC?.postMessage({ gem: pid });
     return load();
   }
+  if (el.hasAttribute('data-unhide') && !del) {
+    try { localStorage.setItem(HIDE_KEY, JSON.stringify(hiddenNow().filter(id => id !== pid))); } catch { }
+    return load();
+  }
   if (del) {
     const kind = del.dataset.del, key = kind === 'pic' ? el.dataset.pic : el.dataset.jars;
     if (!confirm(`Delete «${name}» from LIB-V?\n\nIt goes to app/gogh/.deleted/ on this Mac.`)) return;
@@ -80,6 +91,8 @@ async function onCard(e) {
 }
 $('#grid').addEventListener('click', onCard);
 $('#jars').addEventListener('click', onCard);
+$('#hidden').addEventListener('click', onCard);
+addEventListener('storage', e => { if (e.key === HIDE_KEY) load(); });
 const BC = typeof BroadcastChannel === 'function' ? new BroadcastChannel('rembrandt.genv') : null;
 if (BC) BC.onmessage = () => load();   // 🐾 APPROVE on GEN-V, 💾 SAVE on GOGH, a 💎 on another LIB-V
 addEventListener('focus', load);

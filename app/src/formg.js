@@ -944,7 +944,7 @@ if (addBtn && DABS) {
       + `<div class="jp-grid">${mine.map(q => `<button class="jp-jar" data-add="${esc(q.name)}" data-hex="${q.hex}" title="${esc(q.name)} ${q.hex}${have.has(q.name) ? ' — in this picture already (•): a line of its own all the same' : ''}"><i class="sw" style="background:${q.hex}"></i>${esc(q.name.replace('Jar ', ''))}${have.has(q.name) ? '•' : ''}</button>`).join('')}</div>`;
     pop.dataset.id = ''; pop.hidden = false;
     const r = addBtn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
-    pop.style.left = `${Math.max(8, r.left - w - 8)}px`; pop.style.top = `${Math.max(8, Math.min(innerHeight - h - 8, r.top - 12))}px`;
+    pop.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left < innerWidth / 2 ? r.right + 8 : r.left - w - 8))}px`; pop.style.top = `${Math.max(8, Math.min(innerHeight - h - 8, r.top - 12))}px`;
   };
   $('#jarPop')?.addEventListener('click', e => {
     const b = e.target.closest('[data-add]'); if (!b) return;
@@ -1121,6 +1121,14 @@ const popHide = () => { $('#libPop').hidden = true; };
 function markRun(at) { [...$('#runList').children].forEach(q => { const i = q.dataset.i === undefined ? -2 : +q.dataset.i; q.classList.toggle('now', i === at); q.classList.toggle('done', at >= 0 && i >= 0 && i < at); }); }
 function settle() { RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); PENRUNS.clear(); MARKSNOW.clear(); save(); showKeys(); showPanel(); showDabs(); kick(); }
 $('#lib').onclick = async e => {
+  const x = e.target.closest('[data-hide]');
+  if (x) {
+    const id = x.dataset.hide;
+    if (lastSt && LIVE.includes(lastSt.state) && S.runPic === id) return warn('A run of it is on: it stays in the library till the run ends or stops.');
+    try { localStorage.setItem(HIDE_KEY, JSON.stringify([...new Set([...hiddenNow(), id])])); } catch { }
+    if (S.pic === id) { const next = LIBRARY.find(q => LIB[q] && q !== id && !hiddenNow().includes(q)); if (next) choose(next); }
+    libDraw(); warnAt = Date.now(); $('#runState').textContent = `${LIB[id]?.title ?? id}: hidden — LIB-V brings it back.`; return;
+  }
   const b = e.target.closest('.fg-card'); if (!b) return;
   if (lastSt && LIVE.includes(lastSt.state) && S.runPic && b.dataset.id !== S.runPic) return warn(`A run of ${esc(LIB[S.runPic]?.title ?? S.runPic)} is on: the library stays on it till the run ends or stops — the board's steps are read by its plan, its jars by its names.`);
   choose(b.dataset.id);
@@ -1128,7 +1136,7 @@ $('#lib').onclick = async e => {
 // a picture chosen in the library; while a run is on, the page keeps to the run's own (the owner, 2026-11-11: the classic's v.1 running, its v.2 card clicked to
 // look at it — the LCD read the board's steps by v.2's plan, "Jar 1 · 1/63", 0 %, and v.2's jar numbers, one ahead of v.1's from its Jar 2 on, were taken for
 // the run's: "the 7th is orange and the 8th grey")
-function choose(id) { playStop(); popHide(); only = null; S.pic = id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); showDabs(); save(); }
+function choose(id) { playStop(); popHide(); only = null; S.pic = id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); showDabs(); save(); if (DABS && !VIEW) libDraw(); }
 function runPicture(st) {                                                             // a page opened during a run: back on its picture
   if (st && LIVE.includes(st.state) && S.runPic && S.pic !== S.runPic && LIB[S.runPic]) choose(S.runPic);
   // and its run's lines, the line it started from with them (PROGRESS, the LCD's jar), when the plan here gives the very blocks the board has
@@ -1306,7 +1314,7 @@ function swapShow(btn) {
     + (now ? `<button class="jp-back" data-back>↩ Back to the picture's own: ${esc(own.name)}</button>` : '');
   pop.hidden = false;
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
-  pop.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left - w - 8 > 8 ? r.left - w - 8 : r.right - w))}px`;
+  pop.style.left = `${Math.max(8, Math.min(innerWidth - w - 8, r.left < innerWidth / 2 ? r.right + 8 : r.left - w - 8 > 8 ? r.left - w - 8 : r.right - w))}px`;   // THE JARS at the left (GOGH, 2026-11-23): over the picture
   pop.style.top = `${Math.max(8, Math.min(innerHeight - h - 8, r.top - 12))}px`;
   pop.dataset.id = id;
 }
@@ -1438,6 +1446,17 @@ async function openHash(h, st) {
   catch (e) { warn(`LIB-V: ${esc(file)} not read (${esc(e?.message ?? e)}).`); }
 }
 
+// a card hidden to LIB-V (the owner, 2026-11-23: "how about crosses (x) on the cards … so that they hide in LIB-V. If needed, in LIB-V you click on them, they
+// come back. There are many now and I get confused"): GOGH's × puts its id in this browser's list, LIB-V's click takes it out — the two pages' own, a
+// `storage` event telling the other; a run's own picture never hidden
+const HIDE_KEY = 'rembrandt.gogh.hidden.v01';
+const hiddenNow = () => { try { const v = JSON.parse(localStorage.getItem(HIDE_KEY) ?? '[]'); return Array.isArray(v) ? v : []; } catch { return []; } };
+function libDraw() {
+  const hid = DABS && !VIEW ? new Set(hiddenNow()) : new Set(), shown = LIBRARY.filter(id => LIB[id] && (!hid.has(id) || id === S.pic || id === S.runPic));
+  $('#lib').innerHTML = shown.map(id => `<div class="fg-item">${DABS && !VIEW ? `<button class="fg-hide" data-hide="${id}" title="Hide it: to LIB-V, where a click brings it back" aria-label="Hide">×</button>` : ''}<button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b>${DABS ? `<span class="gems" data-gems="${id}">${gemsOf(id)}</span>` : ''}<span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
+  $('#lib').querySelectorAll('.fg-card').forEach(b => b.classList.toggle('on', b.dataset.id === S.pic));
+}
+if (DABS && !VIEW) addEventListener('storage', e => { if (e.key === HIDE_KEY && LIBRARY.length && LIB[LIBRARY[0]]) libDraw(); });
 // ---------- start ----------
 lampSwitch($('#lamp'));
 (async () => {
@@ -1460,7 +1479,7 @@ lampSwitch($('#lamp'));
   }
   // every card its canvas (the owner, 2026-11-10: "better to sign them: I thought our red Porsche was 60 × 80, and it is 70 × 100"; a picture is planned for its own size, never scaled)
   if (DABS) await gemsLoad();
-  $('#lib').innerHTML = LIBRARY.map(id => `<div class="fg-item"><button class="fg-card" data-id="${id}"><img src="${LIB[id].image}" alt=""><b>${esc(LIB[id].title)}</b>${DABS ? `<span class="gems" data-gems="${id}">${gemsOf(id)}</span>` : ''}<span class="sz">${LIB[id].w / 10} × ${LIB[id].h / 10} cm</span></button><button class="info" data-read="${id}" aria-label="About ${esc(LIB[id].title)}">i</button></div>`).join('');
+  libDraw();
   // each 911's v.1 off the library (the owner, 2026-11-11: "leave only v.2"): a page left on a v.1 opens its v.2; the classic's place on the canvas, the owner's canon for
   // the 70 × 100 (left −60, bottom −68), carried to its v.2 once — the same outline to the mm, the same pen outline and PRESS_OK
   const GONE = { 'porsche-red': 'porsche-red-k', 'porsche-race': 'porsche-race-k' };

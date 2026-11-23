@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH: THE JARS at the left, the tools up; a card's × hides it to LIB-V** (2026-11-23, the evening; the owner: "let us move the paint jars to the left,
+  nearer the library … the Progress panel opposite"; "crosses (x) on the cards … so that they hide in LIB-V … a click on them, they come back"). The hidden
+  kept in this browser, LIB-V's own line for them; the jar pickers open over the picture.
+
 - **+ ADD COLOR on GOGH** (2026-11-23, the evening; the owner: "one more paint, the light grey Jar 3 … I do not like that there is so much black on it. Make
   please + add color"). One of his jars a line of its own, after the card's, for the brush; saved with its first dab (`gogh_card_edit` takes `a<n>` with its
   name and hex, tested); DRAG refuses a jar with no dab. **Restart rembrandt.py.**

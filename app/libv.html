@@ -9,6 +9,8 @@
 <style>
   .card .badge{position:absolute;left:8px;top:8px;padding:1px 6px;border-radius:4px;background:var(--panel);color:var(--mute);font:600 9px var(--mono);letter-spacing:.1em;text-transform:uppercase}
   .card{position:relative}
+  #hidden .card{opacity:.6}   /* hidden on GOGH (2026-11-23): a click brings it back */
+  #hidden .card:hover{opacity:1}
   /* 💎, a canvas finished each (2026-11-22): a row of its own, +💎 at its end */
   .card .gems{display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-top:6px;font-size:14px;line-height:18px}
   .card .gems b{font-weight:normal;cursor:pointer}
@@ -40,12 +42,14 @@
 
 <main class="lib">
   <section class="lib-grid" id="grid" aria-live="polite"></section>
+  <div class="lib-split" id="hidSplit" hidden><span>Hidden on GOGH · a click brings one back</span></div>
+  <section class="lib-grid" id="hidden" aria-live="polite"></section>
   <div class="lib-split" id="split" hidden><span>Jars</span></div>
   <section class="lib-grid" id="jars" aria-live="polite"></section>
 </main>
 
 <footer class="status">
-  <span id="hint">LIB-V: GOGH's pictures, GEN-V's 🐾 APPROVE first; below the line every 💾 SAVE of a picture's jars. Click one to open it on GOGH.</span>
+  <span id="hint">LIB-V: GOGH's pictures, GEN-V's 🐾 APPROVE first; below the line every 💾 SAVE of a picture's jars. Click one to open it on GOGH; a hidden one, to bring it back.</span>
   <span id="count"></span>
 </footer>
 

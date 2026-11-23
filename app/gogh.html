@@ -9,11 +9,20 @@
 <style>
   /* FORM-G: the library on the left, the picture, the machine's panel in the right corner (the owner, 2026-11-06: "one picture to a row, not two, and a little smaller";
      2026-11-11: "the panel on the RIGHT, the library on the LEFT, please" — the library had been between the picture and the panel) */
-  body.type{grid-template-columns:132px minmax(0,1fr) 340px}
-  body.type .top{grid-column:1/3}
-  body.type .stage{grid-column:2;grid-row:2/4}
-  body.type .panel{grid-column:3}
-  body.type .status{grid-column:1/4}
+  body.type{grid-template-columns:132px 236px minmax(0,1fr) 340px}
+  body.type .top{grid-column:1/4}
+  body.type .stage{grid-column:3;grid-row:2/4}
+  body.type .panel{grid-column:4}
+  body.type .status{grid-column:1/5}
+  /* THE JARS a column of their own beside the library (the owner, 2026-11-23: "let us move the paint jars to the left, nearer the library of pictures. The brush
+     and the arrow go up. So it is easier to choose the colours — and the Progress panel opposite") */
+  .fg-jarside{grid-column:2;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-right:1px solid var(--line);background:#F2F0EC}
+  html.night .fg-jarside{background:#2A2C2F}
+  .fg-jarside .sec{border:0;padding:0;margin:0;background:none;box-shadow:none}
+  .fg-jarside h3{margin:0 0 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  /* a card hidden to LIB-V (the owner, 2026-11-23: "crosses (x) on the cards … so they hide in LIB-V; when needed, a click on them in LIB-V brings them back") */
+  .fg-item .fg-hide{position:absolute;right:5px;top:5px;width:20px;height:20px;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--key);color:var(--mute);font:600 12px/18px var(--mono);cursor:pointer;opacity:.75;z-index:1}
+  .fg-item .fg-hide:hover{opacity:1;color:var(--ink)}
   .fg-shelf{grid-column:1;grid-row:2/4;min-height:0;overflow-y:auto;padding:12px 10px 16px;border-right:1px solid var(--line);background:#ECEAE6}
   html.night .fg-shelf{background:#26282B}
   .fg-shelf h3{margin:0 0 10px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
@@ -23,7 +32,7 @@
   #cv.drag{cursor:grabbing}
   #cv.frame{cursor:crosshair}
   /* the tools, a column at the picture's left (the owner, 2026-11-23: "can a vertical tools menu be made, with a brush?"): the hand, the brush */
-  .gtools{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:2}
+  .gtools{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:8px;z-index:2}   /* up, the jars at its left now (2026-11-23) */
   .gtools button{width:40px;height:40px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--key);box-shadow:var(--raise);color:var(--ink);display:grid;place-items:center;cursor:pointer}
   .gtools button.on{outline:2px solid var(--orange);outline-offset:1px}
   .gtools svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -90,6 +99,7 @@
   #runList li.fg-sep:hover{background:none}
   @media (max-width: 760px), (max-height: 500px) {                                  /* a phone: the library a row under the picture */
     .fg-shelf{order:3;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px}
+    .fg-jarside{order:4;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px}
     .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
     .fg-item{width:104px}
   }
@@ -129,6 +139,17 @@
   <aside class="fg-shelf" aria-label="The library">
     <h3>The library</h3>
     <div class="fg-lib" id="lib"></div>
+  </aside>
+  <aside class="fg-jarside" aria-label="The jars">
+    <section class="sec">
+      <h3>The jars <span class="hint" id="jarsHint"></span></h3>
+      <!-- 💾 SAVE · 📂 LOAD (the owner, 2026-11-19: "different versions of the colours with different sets of paints"): a picture's jars as a file; here it is painted by, so LOAD not while a run is on -->
+      <div class="grid4 keys jarsio"><button class="btn" id="btnJarsSave" title="💾 SAVE: this picture's jars as a file — every colour and the jar of yours it is painted by (THE JARS' 🔄) — a version to keep, wherever you choose">💾 SAVE</button><button class="btn" id="btnJarsLoad" title="📂 LOAD: a picture's jars saved by 💾 SAVE here — GOGH paints by them from then on (jars.json); not while a run is on">📂 LOAD</button></div>
+      <input type="file" id="jarsFile" accept="application/json,.json" hidden>
+      <p class="read jarsread" id="jarsRead"></p>
+      <button class="btn addjar" id="btnAddJar" hidden title="+ ADD COLOR: one of your jars a line of its own in this picture, last in Layer 1 — none of its dabs yet; choose it, then the brush (B) gives it the dabs it touches. Not while a run is on">+ ADD COLOR</button>
+      <ol id="runList"></ol>
+    </section>
   </aside>
   <aside class="panel">
     <section class="sec">
@@ -242,15 +263,6 @@
         <div class="elrow"><button class="btn" data-bk="dwell" data-step="-0.1">▼</button><input class="slider" type="range" id="dwellSl" data-bk="dwell" min="0" max="3" step="0.1"><button class="btn" data-bk="dwell" data-step="0.1">▲</button></div>
       </div>
       <p class="read" id="brushRead" hidden></p>
-    </section>
-    <section class="sec">
-      <h3>The jars <span class="hint" id="jarsHint"></span></h3>
-      <!-- 💾 SAVE · 📂 LOAD (the owner, 2026-11-19: "different versions of the colours with different sets of paints"): a picture's jars as a file; here it is painted by, so LOAD not while a run is on -->
-      <div class="grid4 keys jarsio"><button class="btn" id="btnJarsSave" title="💾 SAVE: this picture's jars as a file — every colour and the jar of yours it is painted by (THE JARS' 🔄) — a version to keep, wherever you choose">💾 SAVE</button><button class="btn" id="btnJarsLoad" title="📂 LOAD: a picture's jars saved by 💾 SAVE here — GOGH paints by them from then on (jars.json); not while a run is on">📂 LOAD</button></div>
-      <input type="file" id="jarsFile" accept="application/json,.json" hidden>
-      <p class="read jarsread" id="jarsRead"></p>
-      <button class="btn addjar" id="btnAddJar" hidden title="+ ADD COLOR: one of your jars a line of its own in this picture, last in Layer 1 — none of its dabs yet; choose it, then the brush (B) gives it the dabs it touches. Not while a run is on">+ ADD COLOR</button>
-      <ol id="runList"></ol>
     </section>
   </aside>
 </main>
