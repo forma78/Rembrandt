@@ -77,6 +77,27 @@ jars, the pinks and the greys of the highlights into the reds, the chrome's grey
 the drops' tails stay on the canvas: the paint 10 … 190 mm. On GOGH's Picture its drops in the jars' own colours (`drop: 'colour'`), the masters
 a yellow hair; Drag the masters, blue. ≈ 30 min (est.).
 
+Then the owner, of it on GOGH (`Screenshot 2026-11-23 at 1.06.50 PM.png`): "not a hint of the headlight is left. It is simply some mush. The reasons are two.
+The rule (a jar under 200 mm of line goes to its nearest) works only for FORM-G, and it stops with the arrival of GEN-F — there is a slider there and I
+choose the number of colours by hand. All the more it must not be applied to GOGH. … FORM-G's linear principle does not suit us: there we drew lines
+and they made the effect of `rgb-led.png`, an RGB LED. Now I propose to go by the PATTERN of the matrix, `round-matrix.png` … on a 20 × 20 only a certain
+number of blue sausages can fit … they make a smooth contour as a matrix in a television. `contour.png`: at first we have a smooth contour by the car's
+edge and the headlight, but in the current Press test 4 it has gone. There are many white stripes too, but they will go with a chess arrangement of the
+strokes. … And all the colours of the GEN-V tab are to be used."
+
+**`app/gogh/press-porsche-matrix-20`**, Press test 4 again, the column version out of the library (its file kept): every dab a pixel of its own — rows
+12 mm apart, in a row 6 mm apart, every other row 3 mm aside, so a row's heads fall into the last row's white between its tails; a dab's top where the
+picture's paint begins under it and its bottom where it ends (a dab 3 … 12 mm), so the contour stays; its colour the nearest of all of GEN-V's 16
+colours but the white ground — the two its canon took out back, `#BC3E12` the indicator's orange and `#6F3735` — no jar canon. 283 dabs, 15 jars,
+≈ 30 min (est.); the picture 14.8 mm higher, as much canvas over the paint as under it. `generator/press4_matrix.py`.
+
+| file | what it is |
+|---|---|
+| `Screenshot 2026-11-23 at 1.06.50 PM.png` | The owner's: the column version on GOGH over FORM-G's red classic, its strokes' list: the headlight gone. |
+| `rgb-led.png` | An LED screen's stripes close: FORM-G's lines (from the web, on this Mac alone). |
+| `round-matrix.png` | A round matrix, every row half a pitch aside: GOGH's dabs to come (from the web, on this Mac alone). |
+| `contour.png` | The owner's, in blue: GEN-V's card's contour by the car's edge and the headlight, and the column version's, lost. |
+
 ## Press test 3, paints (2026-11-23, the day)
 
 The owner, of Press test 2's reading: "take the grey paint Jar 28 … and draw with it a new test, Press test 3 — do not draw the ideal even sausages any

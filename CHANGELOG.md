@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 4 as a round matrix; the jar canon FORM-G's alone** (2026-11-23, the afternoon; the owner: "not a hint of the headlight is left";
+  "the rule works only for FORM-G … all the more it must not be applied to GOGH"; "go by the pattern of the matrix"; "all the colours of the GEN-V tab").
+  `press-porsche-matrix-20` (this Mac alone): every dab a pixel, rows 12 mm apart, in a row 6 mm apart, every other row 3 mm aside, a dab's top and
+  bottom by the picture's contour, all 15 of GEN-V's colours but the white ground; 283 dabs. `GOGH/generator/press4_matrix.py`; README, "How many jars".
+
 - **Press test 4, the porsche in drops** (2026-11-23, the afternoon; the owner: "remake it in drops, and take the ground off … we run it quickly
   as the sixth module, and then GOGH2"). GEN-V's for-LAB as Press test 3's block 6: columns 6 mm apart, dabs of 12 mm as bricks, the white ground
   bare, 276 dabs in 7 jars; a card of this Mac alone. A card's `drop: 'colour'` paints GOGH's drops in the jars' own colours (`formg.js`,

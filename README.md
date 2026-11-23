@@ -311,6 +311,10 @@ do not change the look; so under 20 cm. It can go into the canon."
 `src/canon.js`, `jarsByCanvas`. On LAB's real 3 (200 mm: 33 jars → 19); FORM-G's pictures (1 m)
 with the canon's switch there, after real 3.
 
+**FORM-G's alone** (the owner, 2026-11-23, of GOGH's Press test 4, the headlight lost: "the rule works only for FORM-G, and it stops with the arrival
+of GEN-F — there is a slider there and I choose the number of colours by hand. All the more it must not be applied to GOGH"). GEN-F and GEN-V still apply
+it in their code at v.1.2.8; GOGH's pictures to come keep every colour GEN-V gives.
+
 ## The orange, Jar 6, first in Layer 2 (canon)
 
 The owner, 2026-11-11, after the red classic's first jars on canvas, the orange painted between the

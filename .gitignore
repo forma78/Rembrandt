@@ -104,3 +104,7 @@ FORM-G/generator/*.pkl
 # GOGH's robot (2026-11-22): Mickey's ears, Daft Punk's helmet, Nike's sneakers — others' marks, on this Mac alone as the cola and Mickey
 /GOGH/recreate-this-exact-robot*
 /app/gogh/recreate-this-exact-robot*
+
+# web images shown for GOGH2 (2026-11-23), not ours
+/GOGH/rgb-led.png
+/GOGH/round-matrix.png
