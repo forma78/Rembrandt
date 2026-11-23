@@ -1142,7 +1142,19 @@ $('#lib').onclick = async e => {
 // a picture chosen in the library; while a run is on, the page keeps to the run's own (the owner, 2026-11-11: the classic's v.1 running, its v.2 card clicked to
 // look at it — the LCD read the board's steps by v.2's plan, "Jar 1 · 1/63", 0 %, and v.2's jar numbers, one ahead of v.1's from its Jar 2 on, were taken for
 // the run's: "the 7th is orange and the 8th grey")
-function choose(id) { playStop(); popHide(); only = null; S.pic = id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); showDabs(); save(); if (DABS && !VIEW) libDraw(); }
+// a card's `preset` (the owner, 2026-11-23, the night: "no settings to set at all. Let them be preset"): chosen, its RUN, GAP, ELBOW LIVE · BRUSH and the drop's
+// top and tip put on the sliders — not while a run is on; the sliders his again after it
+function presetOf(id) {
+  const q = LIB[id]?.preset; if (!DABS || !q || (lastSt && LIVE.includes(lastSt.state))) return '';
+  const pitch = LIB[id].pitch, said = [];
+  if (Number.isFinite(q.run)) { S.dabRun = dabRunOf(q.run); said.push(`RUN ${DAB_SAY.run(S.dabRun)}`); }
+  if (Number.isFinite(q.gap)) { S.dabGaps = { ...S.dabGaps, [pitch]: dabGapOf(q.gap, pitch) }; said.push(`GAP ${DAB_SAY.gap(dabGapOf(q.gap, pitch))}`); }
+  if (Number.isFinite(q.press)) { S.press = Math.max(PRESS_MIN, Math.min(PRESS_MAX, q.press)); said.push(`BRUSH ${sgn(S.press)}`); }
+  if (Number.isFinite(q.top)) S.dropTop = dropTopOf(q.top);
+  if (Number.isFinite(q.tip)) S.dropTip = dropTipOf(q.tip);
+  return said.join(' · ');
+}
+function choose(id) { const pre = presetOf(id); playStop(); popHide(); only = null; S.pic = id; PIC = picNow(S.pic); SEQ = seqOf(PIC); frameTool(false); fitted = ''; layout(); showKeys(); showPanel(); showDabs(); save(); if (DABS && !VIEW) libDraw();  if (pre) { showElbow(); warnAt = Date.now(); $('#runState').textContent = `Preset: ${pre}.`; } }
 function runPicture(st) {                                                             // a page opened during a run: back on its picture
   if (st && LIVE.includes(st.state) && S.runPic && S.pic !== S.runPic && LIB[S.runPic]) choose(S.runPic);
   // and its run's lines, the line it started from with them (PROGRESS, the LCD's jar), when the plan here gives the very blocks the board has

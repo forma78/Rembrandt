@@ -360,7 +360,7 @@ test('the gummy bear in 1 and ½, two layers: Layer 2 the seeds of the two light
 
 // ¼ (the owner, 2026-11-23, the evening: "can we make ¼ at all? 6 mm and 4 mm?"): below RUN 6 the J3 gives what the leg cannot — the way on the machine the dab's
 // length + 2 · run, the 2 mm brush's 12 mm dab 8 · 6 · 4 at RUN 8 · 6 · 4
-test('RUN down to 4: what the leg cannot give the J3 gives — the 12 mm dab runs 6 and 4 on the machine; a long dab and a seed as before', async () => {
+test('RUN down to 4: what the leg cannot give the J3 gives — the 12 mm dab runs 6 and 4 on the machine; a long dab as before, a seed shorter at RUN 4 alone', async () => {
   const { dabJ3, dabLeg, passesV, dabRunsOf } = await import('../src/goghplan.js');
   const { rowsOf, R3, FORMG } = await import('../src/formgplan.js');
   const pic = { id: 't', w: 200, h: 200, pitch: 2, columns: 1, kind: 'dabs', jars: [{ id: 'c0', name: 'C1', hex: '#CC2222', coats: 1, cells: [{ n: 1, legs: [[10, 112, 100]] }, { n: 2, legs: [[20, 150, 130]] }] }] };
@@ -369,7 +369,8 @@ test('RUN down to 4: what the leg cannot give the J3 gives — the 12 mm dab run
   assert.deepEqual([0, -2, -4].map(r => way(r, 1)), [20, 16, 12], 'a 20 mm dab: the leg gives it all, the J3 as ever');
   assert.equal(dabJ3(112, 100, { gap: 0, run: -2 }), null);
   assert.deepEqual(dabJ3(112, 100, { gap: 0, run: -4 }), { early: 1.9, late: 1.9 }, "the leg 0.2 + 1.9 + 1.9 = 4");
-  assert.equal(dabJ3(106, 100, { gap: 0.2, run: -4, seed: 6 }), null, 'a seed as RUN 6 lays it');
+  assert.equal(dabJ3(106, 100, { gap: 0.2, run: -3, seed: 6 }), null, 'a seed at RUN 6 as RUN 6 lays it');
+  assert.deepEqual(dabJ3(106, 100, { gap: 0.2, run: -4, seed: 6 }), { early: 2, late: 2 }, 'a seed at RUN 4 its J3 a mm shorter at each end (the nib, v.6)');
   assert.ok(Math.abs(dabLeg(10, 112, 100, { gap: 0, run: -4 })[0][1] - dabLeg(10, 112, 100, { gap: 0, run: -3 })[0][1]) < 1e-9, 'the leg at its floor');
 });
 
@@ -382,7 +383,26 @@ test('a jar\'s seeds: Press test 5\'s block 6 every dab a seed at any RUN — it
   assert.deepEqual(pic.jars.map(j => !!j.seeds), [false, false, false, false, false, true]);
   for (const run of [4, 0, -2, -4]) {
     const P = passesV(pic, { gap: 0.2, run }), len = l => +(l[0][1] - l[1][1]).toFixed(3);
-    assert.ok(P[5].byCell.every(c => c.legs.every(l => len(l) === DAB_LEG) && !c.j3), `block 6 seeds at run ${run}`);
+    assert.ok(P[5].byCell.every(c => c.legs.every(l => len(l) === DAB_LEG) && (!c.j3 || run < -3)), `block 6 seeds at run ${run}`);
     assert.ok(P[0].byCell.some(c => c.legs.some(l => len(l) > DAB_LEG)) || run <= -3, `block 1 its RUN's at run ${run}`);
   }
+});
+
+// Press test 5 v.6 (the owner, 2026-11-23, the night, the spatula nib: "make a new test picture v.6 and only the last, sixth module … let them be preset"): block
+// 6 alone, its seeds stamps — no lift beyond, the tip's way the dab's own — RUN 4 preset: the way 4.2 mm
+test('Press test 5 v.6: block 6 alone, seeds as stamps — no lift beyond, the way 4.2 mm at its preset RUN 4; the preset on the card', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { GOGH_LIB, passesV, dabRunsOf } = await import('../src/goghplan.js');
+  const { rowsOf, R3, FORMG } = await import('../src/formgplan.js');
+  const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-stamps-20.json'), 'utf8')), b5 = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-short-20.json'), 'utf8')).jars[5];
+  assert.equal(GOGH_LIB[0], 'press-stamps-20');
+  assert.deepEqual(pic.preset, { run: -4, gap: 0.2, press: 0.8, top: 0.5, tip: 2 });
+  assert.equal(pic.jars.length, 1); assert.deepEqual(pic.jars[0].cells, b5.cells, 'block 6 at its own place');
+  const P = passesV(pic, { gap: pic.preset.gap, run: pic.preset.run }), runs = dabRunsOf(P);
+  assert.ok(runs.length === 26 && runs.every(r => r.beyond === false), 'stamps: no lift beyond');
+  const R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf });
+  for (const g of R.ps) { const m = g[0]; assert.ok(Math.abs(Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y) - 4.2) < 1e-6, `the way ${Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y)}`); }
+  const R0 = rowsOf(pic, passesV(pic, { gap: 0.2, run: 0 }), R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf }), m0 = R0.ps[0][0];
+  assert.ok(Math.abs(Math.hypot(m0.b.x - m0.a.x, m0.b.y - m0.a.y) - 6.2) < 1e-6, 'at RUN 12 a seed\'s 6.2 as ever');
 });

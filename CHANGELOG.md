@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 5 v.6: stamps, and a card's preset** (2026-11-23, the night; the owner, the nib's bars long at RUN 4: "somewhere a bug … make a new test picture
+  v.6 and only the last, sixth module. No settings to set at all. Let them be preset"). The bars were the plan's 8 mm lift past every dab, which the springy
+  nib paints. A jar's `stamp`: no lift beyond (`dabRunsOf`); a card's `preset` put on RUN, GAP, ELBOW LIVE · BRUSH and the drop when chosen (`presetOf`);
+  a seed below RUN 6 shorter. `press-stamps-20` first in GOGH_LIB. Tested.
+
 - **Press test 5's block 6 in seeds; a jar's `seeds`** (2026-11-23, the night; the owner: "make short drops for the sixth module … IMG_3470, we did it in
   the day"). A jar with `seeds` lays every dab as RUN 6 does, whatever the RUN (`isSeed`'s `allSeeds`); Press test 5's block 6 so. `GOGH/IMG_3491.jpg`, the nib.
 

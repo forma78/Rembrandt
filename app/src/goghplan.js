@@ -33,7 +33,9 @@ import { seqOf, FORMG } from './formgplan.js';
 // bear-led-30-3, -4, the gummy bear's head in 1 and ½ on 30 × 30, two layers (the owner, 2026-11-23: "our principle of 1 and ½ the other way round, on the gummy
 // bear head's portrait … last we lay only the seeds of the lightest and the darkest. Properly as Layer 2. Then the wet on wet is solved too"): Layer 2 the seeds
 // of the two lightest and the two darkest jars, on the dry first; a fill's near shades one leg (GOGH/generator/led.py, ext, near 12)
-export const GOGH_LIB = ['bear-led-30-3', 'bear-led-30-4', 'porsche-led-20-4', 'porsche-led-20-3', 'porsche-led-20-2', 'press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
+// press-stamps-20, Press test 5 v.6 (the owner, 2026-11-23, the night, the spatula nib: "make a new test picture v.6 and only the last, sixth module. No settings
+// to set at all. Let them be preset"): block 6 alone at its place, seeds as stamps (`stamp`, no lift beyond), its `preset` put on the sliders when chosen
+export const GOGH_LIB = ['press-stamps-20', 'bear-led-30-3', 'bear-led-30-4', 'porsche-led-20-4', 'porsche-led-20-3', 'porsche-led-20-2', 'press-short-20', 'press-paints-20', 'press-lengths-20', 'orange-bear-20', 'orange-bear'];   // the library: a name here, its json and jpg in app/gogh/; this Mac's own pictures (gogh/local.json, gitignored) in front of it
 // mm, est.: aim, min, max — a dab's length (the owner: "drops of 2 cm"; IMG_3377's measure 13 … 17 mm off an 8 mm mark), the shortest a column's stretch is
 // cut into, the longest; crumb: a stretch of the picture shorter than this left bare; len: what a mm off `aim` costs, squared, in CIELAB ΔE² (a dab's
 // colour against the picture's, summed a mm); stagger: what a dab's end costs `near` mm from one in the column to its left, so the dabs lie as bricks,
@@ -234,7 +236,7 @@ export const isSeed = (a, b, o = {}) => !!o.allSeeds || (!!o.seed && Math.abs(a 
 // takes the rest off the J3's 3 + 3 — at most all of it — so the way on the machine is the dab's length + 2 · run; null, the canon's J3 (ELBOW_J3), else and
 // for a seed, as RUN 6 lays it
 export function dabJ3(a, b, o = {}) {
-  if (isSeed(a, b, o)) return null;
+  if (isSeed(a, b, o)) { const k = Math.min(ELBOW_J3.early, ELBOW_J3.late, -3 - dabRunOf(o.run)); return k > 0 ? { early: ELBOW_J3.early - k, late: ELBOW_J3.late - k } : null; }   // a seed below RUN 6 shorter too
   const trim = o.trim ?? DAB.trim, gap = dabGapOf(o.gap), run = dabRunOf(o.run), m = FORMG.minLeg, L = Math.max(a, b) - Math.min(a, b) - gap;
   const half = L < m + 2e-9 ? m / 2 : L / 2 - Math.max(0, Math.min(trim, (L - m) / 2)), d = DAB_LEG / 2 - (half + run);
   if (d <= 1e-9 || run >= 0) return null;
@@ -252,12 +254,14 @@ export function dabLeg(x, a, b, o = {}) {
 // o: { gap, run, trim } — the sliders'
 export function passesV(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = j.cells.map((c, i) => { const so = { ...o, seed: pic.dab?.seed, allSeeds: !!j.seeds }, legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, so)), j3 = c.legs.map(([, a, b]) => dabJ3(a, b, so)); return { num: i + 1, k: legs.length, legs, ...(j3.some(Boolean) ? { j3 } : {}), line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
+    const byCell = j.cells.map((c, i) => { const so = { ...o, seed: pic.dab?.seed, allSeeds: !!j.seeds }, legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, so)), j3 = c.legs.map(([, a, b]) => dabJ3(a, b, so)); return { num: i + 1, k: legs.length, legs, ...(j3.some(Boolean) ? { j3 } : {}), ...(j.stamp ? { stamp: true } : {}), line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
     return { pencil: j.id, layer: j.layer, fill: 'dabs', cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: false, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
-// the brush's runs: every dab a run of its own, on a dip of its own at its top, down to its bottom and the lift beyond — nothing after it
-export const dabRunsOf = passes => passes.flatMap((P, k) => P.byCell.flatMap(c => c.legs.map((l, i) => ({ pass: k, num: c.num, pts: l, say: `dab${c.legs.length > 1 ? ` ${i + 1}/${c.legs.length}` : ''}`, dip: true, idle: false, beyond: true, dab: true, ...(c.j3?.[i] ? { j3: c.j3[i] } : {}) }))));   // a dab's own J3 (dabJ3)
+// the brush's runs: every dab a run of its own, on a dip of its own at its top, down to its bottom and the lift beyond — nothing after it. A jar's `stamp` (the
+// owner, 2026-11-23, the night, the spatula nib: "somewhere a bug … old settings do not let the short drops through"): no lift beyond — the brush lands over
+// the first half of its way and lifts over the last, not 8 mm past it (strokes.js, SWEEP_TAIL): a springy nib touches all the way down and up
+export const dabRunsOf = passes => passes.flatMap((P, k) => P.byCell.flatMap(c => c.legs.map((l, i) => ({ pass: k, num: c.num, pts: l, say: `dab${c.legs.length > 1 ? ` ${i + 1}/${c.legs.length}` : ''}`, dip: true, idle: false, beyond: !c.stamp, dab: true, ...(c.j3?.[i] ? { j3: c.j3[i] } : {}) }))));   // a dab's own J3 (dabJ3); a stamp no lift beyond
 
 // ---------- APPROVE 🐾: the card, GEN-V's page making it (2026-11-22, the evening) ----------
 // The owner: "why do I download to the desktop at all … I press APPROVE (add a paw 🐾, by the way) and the picture appears in Library-V". GOGH/generator/
