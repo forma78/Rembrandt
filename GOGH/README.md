@@ -116,6 +116,20 @@ RUN 14 against 6, GAP −0.1 against +0.2, BRUSH +0.3 against +0.8; the owner se
 | `Screenshot 2026-11-23 at 4.46.50 PM.png` | The owner's: GOGH, the 4 mm porsche, seeds circled on the wing's top edge to paint over (the indicators' orange), a column of tools drawn at the picture's left — an arrow, a brush. |
 | `Screenshot 2026-11-23 at 4.55.18 PM.png` | The owner's: `IMG_3472`'s C6 beside the screen's — the leg and the seeds where the plan has them. |
 
+### The 4 mm porsche on canvas, the film (2026-11-23, 18:01)
+
+The owner: "I decided to show you a video … study it, then tell me your thoughts." `Movie on 11-23-26 at 6.01 PM.mov`, 131 s from the carriage, kept on this Mac
+(287 MB, not in git): `porsche-led-20-4` from its C12, 28 dabs in 3 min 12 s (6.9 s a dab; the journal), RUN 12, BRUSH +0.4, JAR 14. Read off its frames
+(every 2 s, est.):
+
+- the columns are the stripes of `rgb-led.png`: a leg a bead with its head, the column's cells a chain of beads end to end, a hair of white canvas between
+  columns; the seeds round dots among them;
+- every paint its own drop: the light mauves and pinks (C4, C5) round blots ≈ 5 … 6 mm, the reds ≈ 3 — as the grey of Press test 3; the screen draws one drop
+  for all;
+- light to dark buries the light: the pale pinks under the reds' heads at the bottom left, half covered — the details laid first, the fill over them;
+- wet on wet, C12 beside the still wet C11 runs into ribbons here and there; the 4 mm gap mostly holds;
+- the camera rides the shoulder: every dab it swings to the jar and back, a blink every 7 s, the swing's frames blurred.
+
 ### Press test 3 again, the new brush, read (2026-11-23, the evening)
 
 The owner: "`IMG_3469` — all six, and the fifth once more `IMG_3470`"; before: "I will photograph it all together and read the deviations as
