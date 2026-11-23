@@ -69,10 +69,39 @@ The first press test (`press-test-20`, Jar 19's cluster six times) broke off at 
 the RUN at 18 mm on 12 mm dabs, every dab of a stack over its neighbour by ≈ 6 mm, the jar at +14. The owner: "just redraw the Press test from zero, with
 legs of different lengths, so we check the length too"; of `IMG_3426`: "what is good in this picture — one can already see which legs it paints".
 `app/gogh/press-lengths-20`: six blocks, each its lone dabs 4 · 6 · 8 · 10 · 12 · 15 mm 6 mm apart and a patch of 10 columns × 2 dabs of 12 mm side by side.
+Its runs, by the journal (`logs/runs.jsonl`) and the owner's pencil on the canvas:
+
+| block | RUN | BRUSH | JAR | what came |
+|---|---|---|---|---|
+| 1 | 18 | +0.5 | 14 | Laid on the first press test's block 1 (x 9–57, y 127–172; this one x 13–43, y 125–176): Claude placed it there, nothing of it to read. |
+| 2 | 18 | +0.5 | 16 | `IMG_3427`: the owner's "best test in GOGH's whole history". |
+| 3 | 18 | +2.0, +1.0 from the 4th dab | 18 the lone dabs (pencil), 17 the patch's columns 2–8, 16 its last two | `IMG_3430`: dry, the paint broken after 15–19 mm, the lengths those of block 2. |
+| 4 | 14 | +0.8 | 14 | `IMG_3431`: neat drops, ≈ 5 mm wide, 18–25 mm. `IMG_3433`: its patch one slab, the columns 2 mm apart too close. |
+| 5 | 14 | +0.8 | 14 | GAP +0.2. Its patch 3 mm apart: still one mass, in two groups (`IMG_3435`). |
+| 6 | 12 | +0.8 | 14 | GAP +0.2. Its patch 4 mm apart: three groups, 4 · 3 · 3 columns (`IMG_3438`). The lone dabs 4 … 10 mm alike, 17 mm: the shortest the machine lays now. |
+
+The owner after block 4: "let us change the spacing of the bottom ones in the fifth and sixth module … they stand too close; the bottom row 1 mm sparser" — blocks 5 and 6's patch columns 3 mm apart (77 … 104, 141 … 168), blocks 1–4 as painted; then, of block 5: "block 6 to 4 mm" (141 … 177).
 
 | file | what it shows |
 |---|---|
 | `IMG_3426.jpg` | The first press test's block 1, 28 dabs, a ruler (cm, upside down) on top: the block ≈ 48 mm wide (50 planned), its right stack of three 12 mm dabs ≈ 56 mm from head to tail, a stack of two ≈ 33 mm — longer by the RUN and the paint's tail. |
+| `IMG_3427.jpg` | Block 2 whole (RUN 18, JAR 16, BRUSH +0.5), block 1 on the old flood to its left, a ruler on top (cm, upside down), ≈ 26 px a mm. The lone dabs 4 · 6 · 8 · 10 mm all ≈ 24 mm long — one way for all four, 15 mm, the floor (minLeg 3 + RUN 3 + 3 + J3 3 + 3) — the 12 ≈ 28 and the 15 ≈ 31 (ways 17.7, 20.7): every dab ≈ 9–10 mm longer than its way, its head ≈ 6 mm wide, glossy, its tail streaked. The patch 22.5 × 41 mm (planned 21 wide, its columns' way 29.7) one even layer, nothing run. Below, TEST BRUSH's stroke (15 mm, no dip): 19 mm, ≈ 2.5 mm wide. The owner: "in fact the best test in GOGH's whole history!" |
+| `Screenshot 2026-11-23 at 1.01.45 AM.png` | The owner's: `IMG_3427`'s block beside GOGH's plan of it, the same scale. |
+| `Movie on 11-23-26 at 12.57 AM.mov` | From the carriage, 57 s, block 2's patch painted: a dab each ≈ 7 s, the columns joining into one layer. 125 MB, kept on this Mac, not in git. |
+| `IMG_3430.jpg` | Block 3, the owner's pencil by it (+1.0°, +16, +18). The lone dabs ≈ 24 · 24 · 24 · 24 · 27 · 31 mm as block 2's, but dry: a glossy head ≈ 3 mm, then dry streaks, a dot at the end. The patch's last two columns (JAR 16) full, those at 17 streaked: the length is the way's, not the paint's. |
+| `IMG_3431.jpg` | Block 4's lone dabs (no ruler; 6 mm apart for a scale): 18.3 · 18.8 · 19.2 · 19.6 · 22.8 · 25 mm for ways 11 · 11 · 11 · 11.7 · 13.7 · 16.7 — every dab its way + 7–9 mm, as blocks 2 and 3; plump, ≈ 5 mm wide, a point at the end, nothing run at JAR 14. |
+| `IMG_3433.jpg` | Block 4 whole: the lone dabs of `IMG_3431` and the patch, ≈ 21 × 32 mm, its ten columns 2 mm apart run into one slab, the first a little apart. |
+| `Movie on 11-23-26 at 1.17 AM.mov` | From the carriage, 69 s, block 5 begun (RUN 14, BRUSH +0.8, JAR 14, GAP +0.2): the whole canvas in view at its end — blocks 1 (on the old flood) … 4, block 5's lone dabs and TEST BRUSH's stroke above them. 151 MB, kept on this Mac, not in git. |
+| `Screenshot 2026-11-23 at 1.20.05 AM.png` | The owner's, from the carriage's camera: block 5's patch, its columns 3 mm apart (the machine stepped 3.0 mm, read off `/run`), still run together — in two groups. |
+| `IMG_3434.jpg` | Blocks 4 and 5 and TEST BRUSH's old stroke above block 5, the canvas's bottom edge. |
+| `IMG_3435.jpg` | Block 5 close, a ruler under it: the lone dabs plump, ≈ 4 mm wide; the patch in two groups, 4 and 6 columns. |
+| `IMG_3436.jpg` | Block 5, a ruler upright by it from the canvas's bottom edge. |
+| `Screenshot 2026-11-23 at 1.23.03 AM.png` | The owner's: block 5's photo beside GOGH's plan of it (RUN 14, GAP +0.2): on the screen ten columns apart, on the canvas two groups. |
+| `Movie on 11-23-26 at 1.29 AM.mov` | From the carriage, 164 s, block 6 painted (RUN 12): a dab, a dip, ≈ 7 s each. 360 MB, kept on this Mac, not in git. |
+| `IMG_3438.jpg` | Block 6 close, a ruler over it, the canvas's bottom-right corner with TEST's taps. |
+| `IMG_3439.jpg` | Block 6 and the canvas's right edge, a ruler upright by it. |
+| `IMG_3441.jpg` | The whole canvas, square on, its four edges in the frame (the owner: "so you do not suffer over the differences; in fact it is not all that bad"; of TEST's taps: "20 cm everywhere in the end"). |
+| `IMG_3441 · six blocks overlay.png` | Claude's: every block, GOGH's screen in blue over the paint in pink (the owner: "all six modules with the overlay — blue the screen, pink the paint on the canvas"). `IMG_3441` laid square by the canvas's edges, 200 × 200 mm, y as they give it; each block's x by its six lone dabs (the photo's perspective off, ±3 mm across the canvas). The adjustment read off it: README, "GOGH: a dab …", 16. |
 
 ## The flood (2026-11-22, the night)
 

@@ -5,6 +5,13 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Press test 2 read: the screen laid over the canvas; calibration as a canon** (2026-11-23, the night; the owner: "all six modules with the overlay —
+  blue the screen, pink the paint on the canvas"; "write the adjustment into the canon, as a rule of calibration"; of the test: "it should have begun
+  with it, not with the bear"). README, "GOGH: a dab …", 16: TEST, the press test a block a setting, the whole canvas square on, the overlay, and what it
+  read for the 2 mm brush — the paint's top at the screen's, its tail ≈ 14 mm past it, ≈ 5 … 6 mm wide for the screen's 2.2, columns apart only from
+  ≈ 6 mm; the lone dabs 4 … 10 mm alike, 17 mm at RUN 12. `GOGH/IMG_3441 · six blocks overlay.png`; the night's photos (GPS out) in `GOGH/README.md`.
+  The test's blocks 5 and 6 painted their patches 3 and 4 mm apart (the owner: "the bottom row 1 mm sparser"; "block 6 to 4 mm"), its picture redrawn.
+
 - **Press test 2, lengths** (2026-11-23, the night; the owner: "just redraw the Press test from zero, with legs of different lengths, so we check the
   length too"). `app/gogh/press-lengths-20` in `press-test-20`'s place: six blocks, a line a block; each its lone dabs 4 · 6 · 8 · 10 · 12 · 15 mm 6 mm
   apart and a patch of 10 × 2 dabs of 12 mm side by side; 156 dabs. The first test's block 1 (`GOGH/IMG_3426.jpg`): ≈ 48 mm wide for 50, a stack of

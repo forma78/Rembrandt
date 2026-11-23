@@ -559,6 +559,27 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     at the first corner, TL twice with its wait, home (`tapRun`). The owner, at once: "now exactly 20 cm" — across Y too, where the strokes had read
     190: the dots' geometry, not the axis.
 
+16. **Calibration: the press test first, the screen laid over the canvas** (the owner, 2026-11-23, the night, after `press-lengths-20` run: "it should
+    have begun with it, not with the bear"; "write the adjustment into the canon, as a rule of calibration — useful for the future"). Before a picture
+    on a new brush, jar or press:
+    1. **TEST** at the canvas's corners (its taps 20 cm apart each way).
+    2. **The press test** (`press-lengths-20`): six blocks, one thing changed a block — RUN, BRUSH or JAR — set in the pause before it, the journal
+       keeping it (`dabs`, `press`, the `jar` events), pencil by the block on the canvas.
+    3. **The whole canvas photographed square on**, its four edges in the frame (`GOGH/IMG_3441.jpg`); a ruler is not needed.
+    4. **The overlay**: GOGH's screen dabs in blue (each block its RUN and GAP, the width 2.2) over the paint in pink, the photo laid by the
+       canvas's edges for y, each block by its six lone dabs for x (`GOGH/IMG_3441 · six blocks overlay.png`).
+    5. **The adjustment read off it** — the 2 mm brush, JAR +14 … +16, BRUSH +0.5 … +0.8, RUN 12 … 18 (blocks 2, 4, 5, 6; block 1 lay on the old
+       flood, block 3 dry at JAR 18):
+       - **the top** where the screen's is, 0 … 3 mm lower (≈ 1.5): the brush lands at the plan's top, J3's early 3 mm in the air;
+       - **the tail ≈ 14 mm past the screen's end** (12 … 15; ≈ 11 for the 15 mm dab): a dab on the canvas the screen's + 12 … 14 mm. The lone
+         dabs 4 · 6 · 8 · 10 mm alike (the floor: FORMG.minLeg 3 + RUN + J3 3 + 3): 17 mm at RUN 12, 19 at RUN 14, 24 at RUN 18; the 15 mm's 22,
+         23, 25 (est.). The RUN moves the length one to one;
+       - **the width ≈ 5 … 6 mm** 4 mm under the top (the screen's 2.2), ≈ 3 at JAR 18;
+       - **columns apart**: 2 and 3 mm one mass, 4 mm in groups of three or four — apart only from ≈ 6 mm, the head's width;
+       - **x**: the dabs where the plan puts them, within ±0.5 mm in a row of six; across the whole canvas not read better than ±3 mm from a photo.
+    6. **GOGH's screen and GEN-V not yet changed by it**: a dab still drawn as the plan's, 2.2 wide — the adjustment theirs when the owner says
+       (paint mechanics: proposed first). GEN-V's 8 … 15 mm dabs of the 2 mm brush come out ≈ 17 … 25 on the canvas.
+
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.
 
