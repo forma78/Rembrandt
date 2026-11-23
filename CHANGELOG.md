@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+## v.1.2.9 — 2026-11-23 · GOGH-2's start: the new brush, 1 and ½, the brush on the screen
+
+- **v.1.2.9 on every tab and in the saved SVGs** (the owner, 2026-11-23: "this is v.1.2.9 — make it and push boldly to GitHub").
 - **GOGH's tools: V the hand, B the brush; 1 and ½ in the library** (2026-11-23, the evening; the owner: "can a vertical tools menu be made, with a brush?";
   "this is GOGH-2's preparation. We put everything on GitHub … I just need orange indicators"). A jar chosen in THE JARS, a drag over the dabs gives them
   its colour; the card and its picture written by `rembrandt.py`'s POST `/gogh/card` (`gogh_card_edit`, tested); ⌘Z. `porsche-led-20-4`, `-3`, `-2` in
