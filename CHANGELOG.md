@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's tools: V the hand, B the brush; 1 and ½ in the library** (2026-11-23, the evening; the owner: "can a vertical tools menu be made, with a brush?";
+  "this is GOGH-2's preparation. We put everything on GitHub … I just need orange indicators"). A jar chosen in THE JARS, a drag over the dabs gives them
+  its colour; the card and its picture written by `rembrandt.py`'s POST `/gogh/card` (`gogh_card_edit`, tested); ⌘Z. `porsche-led-20-4`, `-3`, `-2` in
+  GOGH_LIB. **Restart rembrandt.py** for the brush to save.
+
 - **1 and ½: GOGH in stripes, legs and seeds in one DRAG** (2026-11-23, the evening; the owner: "maybe simply in stripes, as rgb-led.png … by the principle
   of 1 and ½ … if a headlight or some small detail, ½ a seed; if a fill as the bonnet, there 1 leg"). `GOGH/generator/led.py`: columns, 12 mm cells in level
   rows, one leg or two seeds. `goghplan.js`: a card's `dab.seed` — a dab no longer than it laid as a seed (as RUN 6) whatever the RUN, on the machine and

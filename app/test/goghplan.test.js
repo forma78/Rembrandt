@@ -290,7 +290,7 @@ test('Press test 5: the new brush, Press test 2\'s six blocks in one jar — lon
   const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
   const { GOGH_LIB, dropOf, passesV } = await import('../src/goghplan.js');
   const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-short-20.json'), 'utf8'));
-  assert.equal(GOGH_LIB[0], 'press-short-20');
+  assert.ok(GOGH_LIB.includes('press-short-20'));
   assert.ok(pic.drop === true && pic.dropWide === undefined, 'the new brush\'s drop, DROP\'s own');
   assert.deepEqual(passesV(pic).map(P => P.pencil), ['b1', 'b2', 'b3', 'b4', 'b5', 'b6']);
   for (const j of pic.jars) {

@@ -857,10 +857,12 @@ function setFrame(F, said) {
   if (said) $('#hint').textContent = said;
 }
 cv.addEventListener('pointerdown', e => {
+  if (tool === 'brush' && PIC) return brushDown(e);
   if (frameOn && PIC) { const p = toMm(e), F = S.frames[S.pic] ?? null; fgrab = { a: p, f0: F, move: inFrame(F, p), moved: false, f: F }; cv.setPointerCapture(e.pointerId); return; }
   dragFrom = [e.clientX, e.clientY, OX, OY]; cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
+  if (stroke) return brushAt(e);
   if (fgrab) {
     const p = toMm(e), a = fgrab.a;
     if (!fgrab.moved && Math.hypot(p[0] - a[0], p[1] - a[1]) * K < 4) return;
@@ -872,6 +874,7 @@ cv.addEventListener('pointermove', e => {
   if (dragFrom) { OX = dragFrom[2] + e.clientX - dragFrom[0]; OY = dragFrom[3] + e.clientY - dragFrom[1]; kick(); }
 });
 cv.addEventListener('pointerup', () => {
+  if (stroke) { const k = stroke; stroke = null; if (k.moved) cardSave(); else UNDO.pop(); return; }
   dragFrom = null; cv.classList.remove('drag');
   if (!fgrab) return;
   const q = fgrab; fgrab = null; frameTool(false);
@@ -885,6 +888,70 @@ addEventListener('keydown', e => {
   if (e.key.toLowerCase() === 'f') { e.preventDefault(); frameTool(!frameOn); }
   else if (e.key === 'Escape' && frameOn) frameTool(false);
 });
+// GOGH's brush (the owner, 2026-11-23: "can a vertical tools menu be made, with a brush? I marked here the seeds I want to paint over"; of where to keep it: "this is
+// GOGH-2's preparation. We put everything on GitHub. With the repainting — I just need orange indicators — this is v.1.2.9"). V the hand, B the brush: a jar chosen
+// in THE JARS (its row), a drag over the dabs moves every one whose master it touches, within BRUSH_R, into that jar, a cell of its own; let go, the card saved —
+// rembrandt.py's POST /gogh/card (gogh_card_edit) writes it and its picture into app/gogh/; ⌘Z undoes a stroke. Not while a run is on, not on a frame's piece
+const BRUSH_R = 1.5;   // mm (est.)
+let tool = 'hand', stroke = null;
+const UNDO = [], gTools = $('#gTools');
+function setTool(t) { tool = DABS && gTools && t === 'brush' ? 'brush' : 'hand'; gTools?.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === tool)); cv.classList.toggle('brush', tool === 'brush'); }
+gTools?.addEventListener('click', e => { const b = e.target.closest('[data-tool]'); if (b) setTool(b.dataset.tool); });
+addEventListener('keydown', e => {
+  if (!gTools || e.target.closest?.('input, select, textarea') || !$('#drawAsk').hidden) return;
+  if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { if (UNDO.length && UNDO.at(-1).pic === S.pic) { e.preventDefault(); brushUndo(); } return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key.toLowerCase() === 'b') setTool('brush'); else if (e.key.toLowerCase() === 'v' || (e.key === 'Escape' && tool === 'brush')) setTool('hand');
+});
+function brushDown(e) {
+  if (lastSt && LIVE.includes(lastSt.state)) return warn('The brush: a run is on — STOP it first.');
+  if (S.frames[S.pic]) return warn('The brush: the whole picture only — take the frame away (F).');
+  if (!only || !LIB[S.pic]?.jars.some(j => j.id === only)) return warn('The brush: choose its jar first — a row of THE JARS.');
+  UNDO.push({ pic: S.pic, jars: JSON.stringify(LIB[S.pic].jars) }); if (UNDO.length > 50) UNDO.shift();
+  stroke = { moved: 0 }; cv.setPointerCapture(e.pointerId); brushAt(e);
+}
+function brushAt(e) {
+  const card = LIB[S.pic], to = card?.jars.find(j => j.id === only); if (!to) return;
+  const [px, py] = toMm(e); let moved = 0;
+  for (const j of card.jars) {
+    if (j === to) continue;
+    for (const c of j.cells) {
+      const keep = [];
+      for (const l of c.legs) { const [x, a, b] = l; if (Math.abs(x - px) <= BRUSH_R && py >= Math.min(a, b) - BRUSH_R && py <= Math.max(a, b) + BRUSH_R) { to.cells.push({ n: 0, legs: [l] }); moved++; } else keep.push(l); }
+      c.legs = keep;
+    }
+    j.cells = j.cells.filter(c => c.legs.length);
+  }
+  if (!moved) return;
+  to.cells.sort((p, q) => p.legs[0][0] - q.legs[0][0] || Math.max(q.legs[0][1], q.legs[0][2]) - Math.max(p.legs[0][1], p.legs[0][2]));   // column by column, from the top
+  card.jars = card.jars.filter(j => j.cells.length); card.jars.forEach(j => j.cells.forEach((c, i) => { c.n = i + 1; }));
+  stroke.moved += moved; PIC = picNow(S.pic); SEQ = seqOf(PIC); settle();
+}
+function brushUndo() {
+  const u = UNDO.pop(); LIB[S.pic].jars = JSON.parse(u.jars);
+  PIC = picNow(S.pic); SEQ = seqOf(PIC); if (!SEQ.some(j => j.id === only)) only = null; settle(); cardSave();
+}
+// the card's picture as the screen shows it, its drops in its own jars' colours, 600 px on its long side: the library's card
+function cardJpg(pic) {
+  const k = 600 / Math.max(pic.w, pic.h), c = document.createElement('canvas'); c.width = Math.round(pic.w * k); c.height = Math.round(pic.h * k);
+  const g = c.getContext('2d'); g.fillStyle = GESSO; g.fillRect(0, 0, c.width, c.height); g.lineJoin = 'round'; g.lineWidth = 1.6;
+  const o = { gap: pic.look?.gap ?? 0.2, run: 0, seed: pic.dab?.seed, wide: pic.dropWide };
+  const paths = seqOf(pic).map(j => { const p = new Path2D(); for (const q of j.cells) for (const [x, a, b] of q.legs) dropOf(x, a, b, o).forEach(([u, v], i) => i ? p.lineTo(u * k, (pic.h - v) * k) : p.moveTo(u * k, (pic.h - v) * k)); return { p, hex: j.hex }; });
+  for (const { p, hex } of paths) { g.strokeStyle = shade(hex); g.stroke(p); }
+  for (const { p, hex } of paths) { g.fillStyle = hex; g.fill(p); }
+  return c.toDataURL('image/jpeg', 0.9);
+}
+async function cardSave() {
+  const card = LIB[S.pic], body = { id: card.id, jars: card.jars.map(j => ({ id: j.id, cells: j.cells.map(c => ({ legs: c.legs })) })), jpg: cardJpg(card) };
+  try {
+    const r = await fetch('/gogh/card', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (r.status === 404) return warn('The brush: not saved — restart rembrandt.py (it learnt /gogh/card on 2026-11-23).');
+    const q = await r.json().catch(() => null);
+    if (!r.ok || !q?.ok) return warn(`The brush: not saved — ${esc(String(q?.message ?? r.status))}.`);
+    const img = document.querySelector(`#lib .fg-card[data-id="${card.id}"] img`); if (img) img.src = `${card.image}?v=${Date.now()}`;
+    warnAt = Date.now(); $('#runState').textContent = `The brush: saved, ${q.dabs} dabs in ${q.jars.length} jars.`;   // a short line, held as a warning is
+  } catch { warn('The brush: not saved — start rembrandt.py.'); }
+}
 cv.addEventListener('dblclick', () => { if (PIC) { fit(); kick(); } });
 new ResizeObserver(layout).observe(stage);
 

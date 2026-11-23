@@ -2462,6 +2462,40 @@ def genv_approve(body, sketches=GOGH_SKETCHES, cards=GOGH_CARDS):
     return {"ok": True, "id": pid, "sketch": file, "title": card.get("title", pid)}
 
 
+# GOGH's brush (the owner, 2026-11-23: "can a vertical tools menu be made, with a brush? I marked here the seeds I want to paint over"; "where to keep them?
+# :)) This is GOGH-2's preparation. We put everything on GitHub. With the repainting — I just need orange indicators — this is v.1.2.9"): the page sends a card's
+# jars with its dabs moved between them; here the card's file in app/gogh/ written again — every jar as it was but its cells, nothing added, nothing lost, a
+# jar left with no dab out — and its picture, the page's. Not while a run is on: the run's steps are the card's as it was. Nothing on the machine.
+def _legs_of(jars):
+    return sorted((round(float(x), 3), round(float(a), 3), round(float(b), 3)) for j in jars for c in j.get("cells", []) for x, a, b in c.get("legs", []))
+
+
+def gogh_card_edit(body, cards=GOGH_CARDS, live=False):
+    """{id, jars: [{id, cells: [{legs}]}], jpg?} → {ok, id, jars, dabs}; ValueError when the dabs are not the card's own, or a run is on"""
+    if live:
+        raise ValueError("a run is on: STOP first, then the brush")
+    pid = str((body or {}).get("id") or "")
+    if not GENV_ID.match(pid):
+        raise ValueError("not a card's id")
+    path = os.path.join(cards, pid + ".json")
+    with open(path, encoding="utf-8") as f:
+        card = json.load(f)
+    if card.get("kind") != "dabs":
+        raise ValueError("not a picture in dabs")
+    new, own = body.get("jars"), {j.get("id"): j for j in card.get("jars", [])}
+    if not isinstance(new, list) or not all(isinstance(j, dict) and j.get("id") in own and isinstance(j.get("cells"), list) for j in new):
+        raise ValueError("not the card's jars")
+    if len({j["id"] for j in new}) != len(new) or _legs_of(new) != _legs_of(card.get("jars", [])):
+        raise ValueError("not the card's dabs: none may be added or lost")
+    cells = {j["id"]: [{"n": i + 1, "legs": [[x, a, b] for x, a, b in c["legs"]]} for i, c in enumerate(q for q in j["cells"] if q.get("legs"))] for j in new}
+    card["jars"] = [{**j, "cells": cells[j["id"]]} for j in card["jars"] if cells.get(j["id"])]   # the card's own order, a jar with no dab out
+    jpg = body.get("jpg")
+    if isinstance(jpg, str) and jpg.startswith(JPG_DATA):
+        _write(os.path.join(cards, pid + ".jpg"), base64.b64decode(jpg[len(JPG_DATA):], validate=True))
+    _write(path, json.dumps(card, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    return {"ok": True, "id": pid, "jars": card["jars"], "dabs": len(_legs_of(card["jars"]))}
+
+
 # LIB-V (the owner, 2026-11-22, the evening, of Library's page: "make Library-V as here"; of THE JARS' 💾 SAVE, a file in Downloads: "what do
 # I do with it? I need it in the library"): GOGH's pictures — this Mac's in app/gogh/local.json, GEN-V's 🐾 APPROVE's — and every 💾 SAVE of a
 # picture's jars, app/gogh/jars/, out of git as the drawings of library/; × moves one into app/gogh/.deleted/
@@ -2873,6 +2907,13 @@ class Handler(SimpleHTTPRequestHandler):
             except (ValueError, TypeError, AttributeError, OSError) as e:
                 return self.reply(400, json.dumps({"ok": False, "message": str(e) or "not a picture's jars"}), "application/json")
             return self.reply(200, json.dumps({"ok": True, "file": name}), "application/json")
+        if path == "/gogh/card":
+            # GOGH's brush: a card's dabs given other jars of its own (gogh_card_edit); nothing on the machine, not while a run is on
+            try:
+                out = gogh_card_edit(json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0) or 0))), live=RUNNER.state in LIVE)
+            except (ValueError, TypeError, AttributeError, OSError, KeyError) as e:
+                return self.reply(409 if "run is on" in str(e) else 400, json.dumps({"ok": False, "message": str(e) or "not the card's jars"}), "application/json")
+            return self.reply(200, json.dumps(out), "application/json")
         if path == "/genv/approve":
             # GEN-V's APPROVE 🐾: the sketch into GOGH/, its card into GOGH's library (genv_approve); nothing on the machine
             try:

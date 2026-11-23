@@ -95,7 +95,7 @@ Rembrandt/
     library.html     Library (from RUBENS)
     prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js; and the top row, every tab ticked in or out, 2026-10-27, src/tabs.js)
     style.css        RUBENS tokens
-    rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git); POST /run/swap since 2026-11-22, GOGH's live gap and run; POST /genv/approve the same evening, GEN-V's 🐾 APPROVE into GOGH/ and GOGH's library (nothing on the machine); GET /gogh/library, POST /gogh/jars, DELETE /gogh/pic/…, /gogh/jars/…, LIB-V's
+    rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git); POST /run/swap since 2026-11-22, GOGH's live gap and run; POST /genv/approve the same evening, GEN-V's 🐾 APPROVE into GOGH/ and GOGH's library (nothing on the machine); GET /gogh/library, POST /gogh/jars, DELETE /gogh/pic/…, /gogh/jars/…, LIB-V's; POST /gogh/card since 2026-11-23, GOGH's brush (a card's dabs given other jars of its own; nothing on the machine, not while a run is on)
     remote.html      the iPhone's remote, /remote: DIP, ⏮ Back · ⏭ Skip · ▶️ Go to, Pause · Continue, 🟥 STOP, the colour and the cell now (OPM-N, 2026-11-02; its key by the QR code on OPM-N); its Progress tab, the yellow LCD, when the next paint change falls and a mini-screen of the picture (2026-11-04)
     src/             ES modules, no build step
     test/            node --test
@@ -597,6 +597,17 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     the screen's alone — **Drop · top**, the paint's top under the way's start (1.5), and **Drop · tip**, its tip past the way's end (12; the RUN's 2 mm a
     step more) — read again off every press test's overlay. On Press test 3's card first (`press-paints-20`, `drop`); GOGH's pictures and GEN-V when the
     numbers hold (`goghplan.js`, `DROP`, `dropOf`; `formg.js`, `drawDrops`, `drawMasters`).
+
+17b. **1 and ½, and the brush** (the owner, 2026-11-23, the evening: "maybe simply in stripes, as rgb-led.png … by the principle of 1 and ½ … if a headlight or
+    some small detail, ½ a seed; if a fill as the bonnet, there 1 leg"; then: "can a vertical tools menu be made, with a brush? I marked here the seeds I want to
+    paint over"; of where to keep the changes: "this is GOGH-2's preparation. We put everything on GitHub. With the repainting — I just need orange indicators —
+    this is v.1.2.9"):
+    - **a seed in the plan**: a card's `dab.seed` — a dab no longer than it laid as RUN 6 lays every dab, ≈ 7 × 3.5 mm, whatever the RUN; a longer one a
+      leg, the RUN its own; so legs and seeds go in one DRAG (`isSeed`, `dabLeg`, `dropOf`); `GOGH/generator/led.py` makes such a card off a GEN-V sketch;
+    - **the tools**, a column at the picture's left: **V** the hand, **B the brush** — a jar chosen in THE JARS (its row), a drag over the dabs gives every one
+      it touches that jar, a cell of its own; let go, the card and its picture written into `app/gogh/` by `rembrandt.py`'s POST `/gogh/card`
+      (`gogh_card_edit`: every jar as it was but its cells, no dab added or lost, a jar left with none out); **⌘Z** undoes a stroke; not while a run is on,
+      not on a frame's piece (`formg.js`, `brushDown`, `brushAt`, `cardSave`).
 
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.

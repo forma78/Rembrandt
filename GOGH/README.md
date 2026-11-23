@@ -102,6 +102,20 @@ so legs and seeds go in one DRAG. for-LAB, 20 × 20, columns 2, 3 or 4 mm apart 
 ≈ 60 % legs; DRAG ≈ 1 h 46, 1 h 10, 54 min (est.). 2 mm nearest GEN-V's card, the columns over each other by 0.6 … 1.5 mm, wet on wet; 3 mm the
 stripes of `rgb-led.png`, the headlight whole; 4 mm the headlight going. `porsche · GEN-V, 1 and ½ at 2, 3, 4 mm.png` the four side by side.
 
+### The brush, v.1.2.9 (2026-11-23, the evening)
+
+The owner: "can a vertical tools menu be made, with a brush? I marked here the seeds I want to paint over, `Screenshot 2026-11-23 at 4.46.50 PM.png`"; "where to
+keep them? :)) This is GOGH-2's preparation. We put everything on GitHub. With the repainting — I just need orange indicators — this is v.1.2.9, make it and
+push boldly". On GOGH the tools at the picture's left, V the hand and B the brush (README, "GOGH: a dab …", 17b); the 1 and ½ porsches into GOGH_LIB, in git.
+Before it, the run of `porsche-led-20-4`: "the brush no longer presses as before" (`IMG_3472.jpg`, its C6) — by the journal JAR 14.5 against block 5's 14.0,
+RUN 14 against 6, GAP −0.1 against +0.2, BRUSH +0.3 against +0.8; the owner set block 5's back: "works!"
+
+| file | what it shows |
+|---|---|
+| `IMG_3472.jpg` | The 4 mm porsche's C6, the grey: thin drops, dry tails, on a coarse weave. |
+| `Screenshot 2026-11-23 at 4.46.50 PM.png` | The owner's: GOGH, the 4 mm porsche, seeds circled on the wing's top edge to paint over (the indicators' orange), a column of tools drawn at the picture's left — an arrow, a brush. |
+| `Screenshot 2026-11-23 at 4.55.18 PM.png` | The owner's: `IMG_3472`'s C6 beside the screen's — the leg and the seeds where the plan has them. |
+
 ### Press test 3 again, the new brush, read (2026-11-23, the evening)
 
 The owner: "`IMG_3469` — all six, and the fifth once more `IMG_3470`"; before: "I will photograph it all together and read the deviations as

@@ -22,6 +22,12 @@
   #cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
   #cv.drag{cursor:grabbing}
   #cv.frame{cursor:crosshair}
+  /* the tools, a column at the picture's left (the owner, 2026-11-23: "can a vertical tools menu be made, with a brush?"): the hand, the brush */
+  .gtools{position:absolute;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:2}
+  .gtools button{width:40px;height:40px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--key);box-shadow:var(--raise);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+  .gtools button.on{outline:2px solid var(--orange);outline-offset:1px}
+  .gtools svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  #cv.brush{cursor:crosshair}
   .fg-lib{display:flex;flex-direction:column;gap:10px}
   .fg-item{position:relative;flex:none}
   .fg-card{display:flex;flex-direction:column;gap:5px;width:100%;box-sizing:border-box;padding:5px 5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
@@ -114,7 +120,11 @@
 </header>
 
 <main>
-  <section class="stage" id="stage"><canvas id="cv"></canvas></section>
+  <section class="stage" id="stage"><canvas id="cv"></canvas>
+    <div class="gtools" id="gTools">
+      <button class="on" data-tool="hand" title="V · the hand: a drag moves the picture, the wheel zooms"><svg viewBox="0 0 20 20"><path d="M5 3l10 6.5-4.6 1.1 2.6 5.2-1.9.9-2.6-5.2L5 14.5z"/></svg></button>
+      <button data-tool="brush" title="B · the brush: a jar chosen in THE JARS, a drag over the dabs gives them its colour, the card saved; ⌘Z undoes; not while a run is on"><svg viewBox="0 0 20 20"><path d="M16.5 2.8l.7.7-6.6 8.2-2.3-2.3z"/><path d="M7.7 10.1c-1.6-.2-3 .9-3 2.6 0 1.3-.5 2.3-1.9 2.8 2.8 1.4 6.4.7 7.1-2.5z"/></svg></button>
+    </div></section>
   <aside class="fg-shelf" aria-label="The library">
     <h3>The library</h3>
     <div class="fg-lib" id="lib"></div>
@@ -258,7 +268,7 @@
 </div>
 
 <footer class="status">
-  <span id="hint">GOGH — paintings in dabs, a dip a dab, the brush the picture's, 2, 3 or 5 mm. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its dabs; F a frame round a piece.</span>
+  <span id="hint">GOGH — paintings in dabs, a dip a dab, the brush the picture's, 2, 3 or 5 mm. A pinch or the wheel zooms, a drag moves, a double click fits; a jar's row shows its dabs; F a frame round a piece; B the brush, V the hand.</span>
   <span id="stats"></span>
 </footer>
 <script type="module" src="src/formg.js"></script>
