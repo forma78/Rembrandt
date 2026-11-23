@@ -619,6 +619,9 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
       needed, in LIB-V you click on them, they come back. There are many now and I get confused"): on GOGH THE JARS a column between the library and the
       picture, the tools at the picture's top left; a card's × hides it — this browser's list, `rembrandt.gogh.hidden.v01` — LIB-V showing the hidden under
       their own line, a click bringing one back; a run's own picture never hidden.
+    - **PAINT, a view key** (the owner, the same evening: "for all the pictures in GOGH a new key: PAINT — and in it, just there, the light yellow contour
+      from DRAG … in Picture no yellow contour, so I do not get confused when zoomed far out"): Picture · Paint · Drag · ▶ Play — Picture the drops alone (a
+      card in drops; else the dabs as GEN-V drew them), Paint every picture's drops with the masters' yellow hair, Drag the masters.
 
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.

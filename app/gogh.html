@@ -59,6 +59,7 @@
   .fg-grid input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:4px;padding:5px 6px;font:12px var(--mono)}
   #runList{max-height:none;margin:6px 0 0;padding:0;list-style:none}
   .jarsio{margin:2px 0 4px}
+  #views .tog{flex:1;white-space:nowrap;padding-left:4px;padding-right:4px}   /* Picture · Paint · Drag · ▶ Play (2026-11-23) */
   .addjar{width:100%;margin:2px 0 6px}   /* + ADD COLOR (2026-11-23): GOGH's, a jar of the owner's into the picture for the brush */
   .jarsread{margin:0 0 6px;font-size:10.5px;overflow-wrap:anywhere}
   #runList li{display:grid;grid-template-columns:22px 16px minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:3px 4px;border-radius:4px;font-size:11.5px;cursor:pointer}
@@ -171,7 +172,8 @@
         <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
       </div>
       <div class="toggles looks" id="views">
-        <button class="tog" data-view="picture" title="The painting as GEN-V sketched it: every dab flat in its jar's colour (est.)">Picture</button>
+        <button class="tog" data-view="picture" title="The painting: every dab as the brush lays it where the picture is drawn in drops, else as GEN-V sketched it — no yellow (est.)">Picture</button>
+        <button class="tog" data-view="paint" title="PAINT: every dab as the brush lays it, its drop in its jar's colour, the plan's dab over it a hair of yellow — the drop against the plan">Paint</button>
         <button class="tog" data-view="drag" title="The dabs in their jars' colours, as wide as the brush, each its own">Drag</button>
         <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell, the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
       </div>

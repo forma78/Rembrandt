@@ -2,7 +2,7 @@
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
 import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
-import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen, dropOf, dropTopOf, dropTipOf } from './goghplan.js';
+import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen, dropOf, dropTopOf, dropTipOf, DROP } from './goghplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, ELBOW_UP, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -45,7 +45,7 @@ const save = () => { try { localStorage.setItem(KEEP, JSON.stringify(S)); } catc
 const R3RUN = CANON_RUN ? {} : { slack: R3.slack, j3: R3.j3, ...(DABS ? { brush: dabRunsOf } : {}) };   // GOGH's: its dabs in brushRuns' place, the J3 on them
 if (!CANON_RUN && !S.r3) { if (S.dipEvery === FORMG.every) S.dipEvery = R3.every; S.r3 = 1; save(); }
 if (!Number.isFinite(S.penSpeed)) S.penSpeed = PEN.speed;
-if (S.view === 'contour' && !document.querySelector('[data-view="contour"]')) S.view = 'picture';   // DRAW BW and its Contour view gone from FORM-G (2026-11-16)
+if ((S.view === 'contour' || S.view === 'paint') && !document.querySelector(`[data-view="${S.view}"]`)) S.view = 'picture';   // DRAW BW and its Contour view gone from FORM-G (2026-11-16)
 // the carriage's travel, the brush up (the owner, 2026-11-10, the X belt slipped "with a crack" several times and the headlights came out in the canvas's middle:
 // the run's first move, home to the top of a 70 × 100, ~830 mm at the 180 mm/s FORM-G had taken from OPM-N, the jar on the carriage; "we must lower it"):
 // TRAVEL, the firmware's own default, once in place of the old 180 (OPM-G's too: the same carriage, the same jar); FORM-G's field of its own since (Travel,
@@ -727,7 +727,7 @@ function drawDabs(c) {
 // slave, the drop Press test 2 laid (goghplan.js, dropOf) — the outline of what touches, red, the inside pink: all strokes first, the fill over them — and
 // over it its master, the plan's dab as GOGH draws it, a hair of yellow. Drag: the masters alone, blue. The gap and the run the sliders', the drop's top
 // and tip too (the screen's alone)
-const DROP_LINE = '#EC4899', DROP_FILL = '#FCD6EB', MASTER_HAIR = 'rgba(214,158,0,.55)', MASTER_BLUE = '#2563EB';
+const DROP_W = DROP.wide, DROP_LINE = '#EC4899', DROP_FILL = '#FCD6EB', MASTER_HAIR = 'rgba(214,158,0,.55)', MASTER_BLUE = '#2563EB';
 const ownLegs = P => { const j = jarOf(P.pencil), own = PIC.jars.find(q => q.id === (j.jar ?? j.id)) ?? j; return own.cells.flatMap(q => q.legs); };
 const veil = P => !only || only === P.pencil ? 1 : 0.15;
 function masterPath(legs) {
@@ -737,8 +737,13 @@ function masterPath(legs) {
 }
 // A picture's card (`drop: 'colour'`, Press test 4, the owner's for-LAB in drops, 2026-11-23): every drop its jar's colour, its outline the same a shade darker
 const shade = (hex, f = 0.7) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * f).toString(16).padStart(2, '0')).join('');
-function drawDrops(c) {
-  const tint = PIC.drop === 'colour', o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide: PIC.dropWide, seed: PIC.dab?.seed }, lines = plan().map(P => {
+// PAINT (the owner, 2026-11-23, the evening: "for all the pictures in GOGH a new key: PAINT — and in it, just there, the light yellow contour from DRAG … and in
+// Picture no yellow contour, so I do not get confused when zoomed far out"): every picture's drops, a card with `drop` or not, the masters' yellow hair over
+// them; Picture the drops alone where the card has them, else the dabs as GEN-V drew them. A card's drops its jars' colours, Press test 3's pink alone
+// (`drop: true`); a 3 or 5 mm brush's drop as wide again by its pitch (est.)
+function drawDrops(c, hair = false) {
+  const tint = PIC.drop !== true, wide = PIC.dropWide ?? (PIC.pitch > 2 ? DROP_W * PIC.pitch / 2 : undefined);
+  const o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide, seed: PIC.dab?.seed }, lines = plan().map(P => {
     const path = new Path2D(), legs = ownLegs(P), hex = jarOf(P.pencil).hex;
     for (const [x, t, b] of legs) dropOf(x, t, b, o).forEach(([u, v], i) => i ? path.lineTo(sx(u), sy(v)) : path.moveTo(sx(u), sy(v)));
     return { path, master: masterPath(legs), a: veil(P), line: tint ? shade(hex) : DROP_LINE, fill: tint ? hex : DROP_FILL };
@@ -747,7 +752,7 @@ function drawDrops(c) {
   for (const { path, a, line } of lines) { c.globalAlpha = a; c.strokeStyle = line; c.stroke(path); }
   for (const { path, a, fill } of lines) { c.globalAlpha = a; c.fillStyle = fill; c.fill(path); }
   c.lineWidth = 1;
-  for (const { master, a } of lines) { c.globalAlpha = a; c.strokeStyle = MASTER_HAIR; c.stroke(master); }
+  if (hair) for (const { master, a } of lines) { c.globalAlpha = a; c.strokeStyle = MASTER_HAIR; c.stroke(master); }
   c.globalAlpha = 1;
 }
 function drawMasters(c) {
@@ -773,6 +778,7 @@ function draw() {
   g.strokeStyle = 'rgba(36,34,31,.35)'; g.lineWidth = 1; g.strokeRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
   if (PLAY) { g.drawImage(PLAY.cv, sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); }
   else if (DABS && S.view === 'picture') drawDabs(g);
+  else if (DABS && S.view === 'paint') drawDrops(g, true);
   else if (S.view === 'picture' && IMG[S.pic]?.complete) {
     g.imageSmoothingQuality = 'high'; g.drawImage(IMG[S.pic], sx(0), sy(PIC.h), PIC.w * K, PIC.h * K);
     if (only) { g.fillStyle = 'rgba(251,250,247,.82)'; g.fillRect(sx(0), sy(PIC.h), PIC.w * K, PIC.h * K); drawLegs(g, plan().filter(q => q.pencil === only)); }

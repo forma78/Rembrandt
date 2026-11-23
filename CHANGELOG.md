@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's PAINT view** (2026-11-23, the evening; the owner: "a new key: PAINT — and in it, just there, the light yellow contour from DRAG … in Picture no yellow
+  contour"). Picture · Paint · Drag · ▶ Play: every picture's drops with the masters' hair on Paint, none on Picture.
+
 - **GOGH: THE JARS at the left, the tools up; a card's × hides it to LIB-V** (2026-11-23, the evening; the owner: "let us move the paint jars to the left,
   nearer the library … the Progress panel opposite"; "crosses (x) on the cards … so that they hide in LIB-V … a click on them, they come back"). The hidden
   kept in this browser, LIB-V's own line for them; the jar pickers open over the picture.
