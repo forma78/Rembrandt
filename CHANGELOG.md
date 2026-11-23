@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH's round matrix for any GEN-V sketch; the gummy bear's head on 30 × 30 and 50 × 50** (2026-11-23, the afternoon; the owner: "try such a gummy
+  bear head on 30 × 30, please"). `GOGH/generator/matrix.py`: a dab's colour the one most of its pixels are nearest to, all the sketch's colours, the
+  highlights last. On 30 × 30 no face — a feature ≈ one drop; on 50 × 50 the bear reads (2734 dabs, ≈ 5 h, est.). Cards on this Mac alone.
+
 - **Press test 4 on 30 × 30, 5 mm; a highlight's white painted** (2026-11-23, the afternoon; the owner: "maybe try 30 × 30 cm? … the distance between the
   sausages can also be 1 mm less"; of the white highlight lost: "on the press test it is gone"). `press-porsche-matrix-30` (this Mac alone): 776 dabs, 16 jars;
   the photo's white the ground where it joins its top or left edge, else a highlight in white, last. `GOGH/generator/press4_matrix.py` takes the side, the

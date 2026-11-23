@@ -63,6 +63,20 @@ six times, "in different variations … the press".
 | `IMG_3294.jpg` | The same jar lower: the brush's white tip just touching the paint. |
 | `Screenshot 2026-11-22 at 11.22.13 PM.png` | GOGH's plan, Jar 19's dabs on the forehead circled: the cluster the press test repeats, 48 dabs, 50 × 45 mm. |
 
+## The gummy bear's head as a matrix (2026-11-23, the afternoon)
+
+The owner: "interesting. Try such a gummy bear head on 30 × 30, please." `generator/matrix.py`, GOGH's round matrix for any GEN-V sketch (press4_matrix.py's,
+made general): every dab a pixel, rows 12 mm apart, in a row 5 mm, every other row 2.5 mm aside, its top and bottom by the picture's contour; its colour the one
+most of its pixels are nearest to (not the mean, which made mush), of all the sketch's colours and the one its canon took out (`#FAF0F1`, the highlights'); a
+dab a quarter of it highlight a highlight, the lightest (L* 90 and over) last; the ground, where it joins the top, left and right, bare. From the sketch's
+own picture, `orange-bear-details 2.png`, copied here on the owner's word from his Dropbox (not in git).
+
+- **`bear-matrix-30`**, 30 × 30: 1019 dabs, 14 jars, DRAG ≈ 1 h 49 min (est.). The silhouette and the ears, but no face: an eye or the snout ≈ 20 mm, a single
+  drop of the 2 mm brush (≈ 5 × 20 mm).
+- The same in 6 colours, far apart in lightness: a little cleaner, still no face — the number of colours not the cause.
+- **`bear-matrix-50`**, 50 × 50: 2734 dabs, 14 jars, DRAG ≈ 4 h 56 min (est.): the bear reads — the ears' rings, the eyes' highlights, the snout, the
+  mouth — every feature 2 … 3 drops. The scale decides. Both cards on this Mac alone; `bear · matrix · 30, 30 in 6 colours, 50.png` the three side by side.
+
 ## Press test 4, the porsche in drops (2026-11-23, the afternoon)
 
 The owner: "leave the GOGH tab as it is, and make GOGH2 with a generator on the new principle. But before doing it globally, I propose Press test 4,
