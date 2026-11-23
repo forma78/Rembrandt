@@ -396,7 +396,7 @@ test('Press test 5 v.6: block 6 alone, seeds as stamps — no lift beyond, the w
   const { GOGH_LIB, passesV, dabRunsOf } = await import('../src/goghplan.js');
   const { rowsOf, R3, FORMG } = await import('../src/formgplan.js');
   const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-stamps-20.json'), 'utf8')), b5 = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/press-short-20.json'), 'utf8')).jars[5];
-  assert.equal(GOGH_LIB[0], 'press-stamps-20');
+  assert.ok(GOGH_LIB.includes('press-stamps-20'));
   assert.deepEqual(pic.preset, { run: -4, gap: 0.2, press: 0.8, top: 0.5, tip: 2 });
   assert.equal(pic.jars.length, 1); assert.deepEqual(pic.jars[0].cells, b5.cells, 'block 6 at its own place');
   const P = passesV(pic, { gap: pic.preset.gap, run: pic.preset.run }), runs = dabRunsOf(P);
@@ -405,4 +405,22 @@ test('Press test 5 v.6: block 6 alone, seeds as stamps — no lift beyond, the w
   for (const g of R.ps) { const m = g[0]; assert.ok(Math.abs(Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y) - 4.2) < 1e-6, `the way ${Math.hypot(m.b.x - m.a.x, m.b.y - m.a.y)}`); }
   const R0 = rowsOf(pic, passesV(pic, { gap: 0.2, run: 0 }), R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf }), m0 = R0.ps[0][0];
   assert.ok(Math.abs(Math.hypot(m0.b.x - m0.a.x, m0.b.y - m0.a.y) - 6.2) < 1e-6, 'at RUN 12 a seed\'s 6.2 as ever');
+});
+
+// the headlight for the nib (2026-11-23, the night): 1 and ½ in stamps — the legs the fill, the stamps the detail, their way 4.2 by the card's seedJ3; two layers
+test('the headlight for the nib: every dab a stamp, the stamps\' way 4.2 (seedJ3 2), the legs the RUN\'s; Layer 2 the extremes\' stamps; its preset', async () => {
+  const fs = await import('node:fs'), path = await import('node:path'), { fileURLToPath } = await import('node:url');
+  const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const { GOGH_LIB, passesV, dabRunsOf, isSeed } = await import('../src/goghplan.js');
+  const { rowsOf, R3, FORMG } = await import('../src/formgplan.js');
+  const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/headlight-nib-20.json'), 'utf8'));
+  assert.equal(GOGH_LIB[0], 'headlight-nib-20');
+  assert.ok(pic.jars.every(j => j.stamp) && pic.dab.seed === 6 && pic.dab.seedJ3 === 2 && pic.preset.run === -1);
+  const P = passesV(pic, { gap: pic.preset.gap, run: pic.preset.run }), runs = dabRunsOf(P);
+  assert.ok(runs.every(r => r.beyond === false), 'stamps');
+  assert.ok(P.some(q => q.layer === 2) && P.filter(q => q.layer === 2).every(q => pic.jars.find(j => j.id === q.pencil).cells.every(c => c.legs.every(([, a, b]) => isSeed(a, b, { seed: 6, gap: 0.2 })))), 'Layer 2 stamps alone');
+  const R = rowsOf(pic, P, R3.every, FORMG.lap, false, { slack: R3.slack, j3: R3.j3, brush: dabRunsOf });
+  const ways = R.ps.map(g => +Math.hypot(g[0].b.x - g[0].a.x, g[0].b.y - g[0].a.y).toFixed(2));
+  assert.ok(ways.filter(w => Math.abs(w - 4.2) < 1e-6).length >= 200, 'the stamps 4.2 mm');
+  assert.ok(Math.max(...ways) <= 10.01, `a leg at most 12 − 2 at RUN 10: ${Math.max(...ways)}`);
 });

@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The headlight for the nib** (2026-11-23, the night; the owner, of the stamps: "hurrah! victory!!! … shall we make a new picture for the headlight test?").
+  `headlight-nib-20`: for-LAB's headlight enlarged on 20 × 20 (Kuzya's advice), 1 and ½ in stamps, columns 5 mm, two layers, preset; a card's `dab.seedJ3`, its
+  stamps' own J3 (the way 4.2). First in GOGH_LIB. `GOGH/IMG_3493` … `3496`, GPS out.
+
 - **Press test 5 v.6: stamps, and a card's preset** (2026-11-23, the night; the owner, the nib's bars long at RUN 4: "somewhere a bug … make a new test picture
   v.6 and only the last, sixth module. No settings to set at all. Let them be preset"). The bars were the plan's 8 mm lift past every dab, which the springy
   nib paints. A jar's `stamp`: no lift beyond (`dabRunsOf`); a card's `preset` put on RUN, GAP, ELBOW LIVE · BRUSH and the drop when chosen (`presetOf`);
