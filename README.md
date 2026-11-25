@@ -2,8 +2,8 @@
 
 For Claude in VS Code, and for the owner.
 
-Rembrandt plans paintings for the machine CNCDM-001: which tube, how much,
-where, in which layer. It is the successor of RUBENS (`Forma78/Rubens`,
+Rembrandt plans paintings for **Emile**, the machine (CNCDM-001; named so on
+2026-11-25, with v.1.3.0): which tube, how much, where, in which layer. It is the successor of RUBENS (`Forma78/Rubens`,
 frozen at v0.1.3) and reuses its Calibration and Job.
 
 ## Read in this order
@@ -60,7 +60,7 @@ Rembrandt/
     formg.html       FORM-G (Points · Jar 0, a dot of white at each outermost point to centre the canvas by, 2026-11-16), a library of finished paintings (and on this Mac alone the pictures of others' works, formg/local.json, gitignored, 2026-11-16), no photo and no drawing tools: a picture's plan in formg/, OPM-N's DRAG SNAKE to the command — since 2026-11-17 drops first, then the snake: a zone's every leg its drops, one every 35 mm, then one snake over the cell on no dip, its turns square, and at once back over its legs; a stroke a dip a leg, then the leg again the same way (README's canon; v.1.2.5, the owner's best so far); THE JARS' 🔄, a colour painted by one of his numbered jars, app/formg/jars.json — its question with Start from, BACK ONE JAR (a jar again from its own pause, BACK ONE CELL's place since 2026-11-13) and the iPhone's remote; the brush fixed at 5 mm, the jars given; F, OPM-W's frame, a piece run alone at its place from home; DRAW BW, the contour in a pen in the brush's holder, every border between two colours once, to lay the canvas by and study the picture on paper first; its run as LAB's real 3, a dip every 79 mm and the J3 compensation (new, 2026-11-06, the frame 2026-11-08, DRAW BW and real 3's run 2026-11-10; MARKS, the printer's marks at the middles of the canvas's edges, a jar's one dip and its marks after every change of jar, 2026-11-11; src/formgplan.js, src/formg.js; FORM-G/generator)
     genf.html        GEN-F, the creative workshop (FORM-G is the library of finished works): a picture in — its plain ground left bare — FORM-G's grid of 5 mm legs out, a sketch on three screens side by side, each its own colours, the one chosen approved; the format (40 × 40, 60 × 60, 60 × 80, 70 × 100; 90 × 120 and 100 × 150 for a new frame), the colours asked (10 … 100), the canon of the jars on them; GROUND, white or black, the bare canvas on the screen; Motion blur, a layer under the picture, every column smeared along itself in the picture's own jars, its Opacity OPM's raster of them, the share of the columns that paint; the time by FORM-G's own run, est.; APPROVE saves it to GEN-F/ for the final work in FORM-G/generator. Moves nothing on the machine (new, 2026-11-16, v.1.2.4; src/genfplan.js, src/genf.js)
     gogh.html        GOGH, painting in dabs (the owner, 2026-11-22: "painting in strokes, like real painting"; "in GOGH we copy FORM-G's functionality fully … the one difference: no long strokes! All of them drops of 2 cm"): FORM-G's page, all of it — TEST, PAUSE, POINTS · JAR 0, DRAG DABS in DRAG SNAKE's place, BACK ONE JAR, STOP, HOME, Picture · Drag · ▶ Play, the iPhone's remote, ELBOW LIVE, THE JARS' 🔄 (FORM-G's jars.json), MARKS, F — its library app/gogh/, made by GEN-V; every leg a dab: a dip, one stroke ≈ 20 mm down the picture, the brush up, nothing over it (README's canon "GOGH: a dab, a dip, nothing after it") (new, 2026-11-22; src/formg.js with data-tab="gogh", src/goghplan.js; GOGH/)
-    genv.html        GEN-V, GOGH's generator (the owner, 2026-11-22: "a new picture generator as GEN-F, with the same functionality … let us call it GEN-V (as Vincent :)"): GEN-F's page — the format (and a 20 × 20 for tests, a 30 × 30 since 2026-11-25), the colours on three screens, the ground, APPROVE — the brush 2, 3 or 5 mm; its sketch GOGH's dabs, every column cut into dabs of 12 … 24 mm, ≈ 20 (the 2 mm's 8 … 15, ≈ 12), one jar each, as bricks; no motion blur; APPROVE saves it into GOGH/ for GOGH/generator/genvpic.py. Moves nothing on the machine (new, 2026-11-22; src/goghplan.js, src/genv.js)
+    genv.html        GEN-V, GOGH's generator (the owner, 2026-11-22: "a new picture generator as GEN-F, with the same functionality … let us call it GEN-V (as Vincent :)"): GEN-F's page — the format (and a 20 × 20 for tests, a 30 × 30 since 2026-11-25), the colours on three screens, the ground, APPROVE — the brush 3, 4 (the metal nib, since 2026-11-25; the 2 mm off) or 5 mm; its sketch GOGH's dabs, every column cut into dabs of 12 … 24 mm, ≈ 20 (the nib's 6 … 15, ≈ 12), one jar each, as bricks; no motion blur; APPROVE saves it into GOGH/ for GOGH/generator/genvpic.py. Moves nothing on the machine (new, 2026-11-22; src/goghplan.js, src/genv.js)
     libv.html        LIB-V, GOGH's library as Library's page (the owner, 2026-11-22: "make Library-V as here"; of 💾 SAVE's file in Downloads: "I need it in the library"): GOGH's pictures as cards, this Mac's first (GEN-V's 🐾 APPROVE, newest first), then GOGH_LIB's, and below the line every 💾 SAVE of a picture's jars on GOGH (app/gogh/jars/, out of git); a click opens it on GOGH (its jars as 📂 LOAD), × one of this Mac's into app/gogh/.deleted/ (src/libv.js; rembrandt.py's /gogh/library, /gogh/jars)
     libg.html        LIB-G, FORM-G's library to look at, while it paints or not (the owner, 2026-11-19: "while a picture is being painted I cannot switch between the pictures in the library at all … so that I can study the files in peace"): FORM-G's page with data-tab="libg", its pictures, the views, ▶ Play, the (i), THE JARS' 🔄; no machine — no run looked at, nothing sent; its jars FORM-G's to start from, its changes in this browser alone, never jars.json; 💾 SAVE · 📂 LOAD, a picture's jars as a file, a version with another set of paints (FORM-G's own 💾 · 📂 too, its LOAD into jars.json, not while a run is on) (new, 2026-11-19; src/formg.js)
     holo.html        HOLO, vertical legs alone in two runs: the brush lays even puddles of paint from the cup at hand, then drags them — run 1 the light, run 2 the shadow on the dry first; FORM-G's page, a library of cloud-Claude's pictures (40 × 40, 60 × 60) in the owner's jars, ▶ Play, every picture's v.2 after it, its edges ragged (2026-11-14, `HOLO-Claude/generator/holo_v2.py`); FORM-G's machine keys — TEST, PAUSE, DRAW BW (the pen along the strokes as the brush lays them), BACK ONE JAR, STOP, HOME, the iPhone's remote, ELBOW LIVE — since 2026-11-14; RUN 1 · RUN 2 not wired yet, after LAB's sheet; the warm 40 × 40's V4, every pass of both runs a group at a time: run 1 by LAB's + idle 6.0, its snake a stroke a leg, its idle snake legs + 1; run 2 Air, its dots on one side, legs + 1 tracks from them (2026-11-15, `HOLO-Claude/HOLO/001-40x40-v4.md`) (new, 2026-11-12; HOLO-Claude/HOLO.md; src/holoplan.js, src/holo.js; app/holo/, made by HOLO-Claude/generator)
@@ -95,7 +95,7 @@ Rembrandt/
     library.html     Library (from RUBENS)
     prefs.html       Preferences, the gear after Library: what holds for every tab, in this browser — TEST's margin and its dots at TL (new, 2026-10-20; src/prefs.js; and the top row, every tab ticked in or out, 2026-10-27, src/tabs.js)
     style.css        RUBENS tokens
-    rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git); POST /run/swap since 2026-11-22, GOGH's live gap and run; POST /genv/approve the same evening, GEN-V's 🐾 APPROVE into GOGH/ and GOGH's library (nothing on the machine); GET /gogh/library, POST /gogh/jars, DELETE /gogh/pic/…, /gogh/jars/…, LIB-V's; POST /gogh/card since 2026-11-23, GOGH's brush (a card's dabs given other jars of its own; nothing on the machine, not while a run is on)
+    rembrandt.py     server and USB board (from rubens.py); on the home Wi-Fi too since 2026-11-02, from another address only /remote with the key of remote.key (not in git); POST /run/swap since 2026-11-22, GOGH's live gap and run; POST /genv/approve the same evening, GEN-V's 🐾 APPROVE into GOGH/ and GOGH's library (nothing on the machine); GET /gogh/library, POST /gogh/jars, DELETE /gogh/pic/…, /gogh/jars/…, LIB-V's; POST /gogh/card since 2026-11-23, GOGH's brush (a card's dabs given other jars of its own; since 2026-11-25 a background's lines too; nothing on the machine, not while a run is on)
     remote.html      the iPhone's remote, /remote: DIP, ⏮ Back · ⏭ Skip · ▶️ Go to, Pause · Continue, 🟥 STOP, the colour and the cell now (OPM-N, 2026-11-02; its key by the QR code on OPM-N); its Progress tab, the yellow LCD, when the next paint change falls and a mini-screen of the picture (2026-11-04)
     src/             ES modules, no build step
     test/            node --test
@@ -315,6 +315,10 @@ with the canon's switch there, after real 3.
 of GEN-F — there is a slider there and I choose the number of colours by hand. All the more it must not be applied to GOGH"). GEN-F and GEN-V still apply
 it in their code at v.1.2.8; GOGH's pictures to come keep every colour GEN-V gives.
 
+**And GEN-V's, kept** (the owner, 2026-11-25, asked whether to take it out of GEN-V: "the canon need not be taken out, it would be a catastrophe altogether … we
+keep it as the apple of our eye — the colours as on the picture"; its slider, 10 … 100 shades: "we need them. I will mix the paints by them"). Not to be offered
+again. Next, on his word: COLORS and numbered jars for a GEN-V picture's colours.
+
 ## The orange, Jar 6, first in Layer 2 (canon)
 
 The owner, 2026-11-11, after the red classic's first jars on canvas, the orange painted between the
@@ -491,7 +495,7 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
    MARKS' 8 mm made 14 and painted 13 … 17 (est.). Every lift a dip's: "DRAG Snake before DRAG Air" holds.
 
 5. **Four sliders** (the owner, the same night: "three sliders on the principle of ELBOW LIVE · BRUSH … Oh, I need a fourth"):
-   - **the brush**, GEN-V's, 2, 3 or 5 mm — a picture's columns its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3
+   - **the brush**, GEN-V's, 3, 4 or 5 mm (2, 3 or 5 till 2026-11-25: 18 below) — a picture's columns its brush apart ("now always 5 mm, but I ordered new brushes, there is a 3
      mm"; of the cola's ≈ 15 h with it: "if they buy the one made in 15 hours, so much the better for us"). **The 2 mm, the sharpest, its dabs
      8 … 15 mm, ≈ 12** (est.; the same evening, the brushes come, `GOGH/IMG_3395.jpg`, the three of them, the 2 mm circled; his strokes by a
      ruler, `IMG_3390.jpg`: "I could not stretch it to 20 mm. All as you warned: a brush this narrow does not hold much paint, so the longest
@@ -631,6 +635,29 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
       pictures on the left too — I bring the cursor to the vertical frame and can pull it, as a column's width in a table in Excel"): the library on GOGH,
       FORM-G, LIB-G and HOLO, its pictures growing with it, and GOGH's THE JARS; a double click on the edge, its width as at first; the picture keeps 280 px at
       least. COLORS as wide as the window, or as either edge of its sections is pulled (`src/cols.js`).
+
+18. **The 4 mm, the metal nib; the 2 mm off** (the owner, 2026-11-25: "what is missing is a 4 mm brush. The 2 mm can go, we will never have it … we add a 4 mm
+    stroke, because exactly such a nib is in our machine"; of the headlight v.2 dry, `GOGH/IMG_3611` … `3613`: "look only at the stroke's width"): GEN-V's brush
+    3, **4**, 5 mm, the 4 its first. Read off the dry headlight (est.): a lone leg of a 12 mm cell 10.1 … 10.6 × 4.1 … 4.6 mm at RUN 10 … 12, a lone ½ of
+    Layer 1 7.2 × 4.1, of the thick Layer 2 8 × 5.5; on paper (`IMG_3494`) a stamp 4.4 wide. So a 4 mm picture:
+    - columns 4 mm apart, dabs 6 … 15 mm, ≈ 12, a stone 4.3 wide on the screen, GAP +0.2, RUN 12 preset (`DAB_BRUSH[4]`, `NIB_MM`); across Y 556;
+    - **every dab a stamp**, no lift beyond (a card's `nib`: every jar of it, + ADD COLOR's and the background's too — the headlight v.2's added Jar 7 had none,
+      and its bars ran 8 mm past their dabs); a dab of 7 mm or less a ½, the headlight's own, its way 4.2 mm (`seed` 7.5, `seedJ3` 2);
+    - **the ½ on top, Layer 2** (the owner: "you remember that the ½ strokes go on top now, as layer 2?"), as on the headlights: the ½ of the two lightest jars
+      and of the two darkest a line of their own, on the dry first layer, the darks first, the lightest last (`halvesLate`); the middle jars' ½ in Layer 1. One 🔄
+      for a jar's both lines (`of`).
+19. **GOGH draws what GEN-V drew** (the owner, 2026-11-25: "bring the strokes in GOGH to what I see in GEN-V — there are the old drops there now, seeds"; "where do
+    the old strokes of the piglet come from — it is a mistake. It is for the brush with the rubber tip, we cancelled it in the end and do not use it"; "the headlight
+    came out ideal"): one stone on both screens (`tileOf`), the plan's dab, as wide as Width, outlined as the headlight's on a 4 mm picture; on GOGH Drop · top and
+    Drop · tip a picture's own, 0 at first, and RUN 12 when chosen. The press tests' cards (`drop`) as they were measured.
+20. **The background, G, the wide brush** (the owner, 2026-11-25, `GOGH/background.png`: "a wide brush for the background appears. Round the object on the canvas we
+    can now paint a background, in the same strokes, making the picture's depth and a more professional effect … it does not repaint the figure that is there, it is
+    as if a layer UNDER the figure. Not a solid fill but as a brush in Photoshop, a large diameter"; "the background can be painted in any colour, a click beside on
+    THE JARS — the same principle as the thin brush"): the third tool. A jar chosen in THE JARS (none: the lightest), a drag lays the picture's own dabs — its columns,
+    as bricks, 6 … 15 mm, 2 mm under the figure's edge — wherever the canvas is bare and the circle covers their middles; ⌥ takes them away; [ ] or − + the circle,
+    10 … 120 mm (40 at first); ⌘Z; + ADD COLOR's jar for the background alone too. A line of its own, `g<n>` (`ground`, `of` its jar), layer 0: run first, a pause
+    to dry, the figure over it; MARKS none then (the paper would lie on it). Saved by `rembrandt.py`'s POST `/gogh/card` (`gogh_card_edit`: the figure's dabs checked
+    as before, a background's free). `goghplan.js`, `groundOf`; `formg.js`, `groundDown`, `groundAt`, `groundUp`.
 
 `src/goghplan.js` (`dabsOf`, `sketchV`, `dabLeg`, `passesV`, `dabRunsOf`, `DAB_UI`, `DAB_BRUSH`, `dabOf`, `fitV`, `dabOnScreen`, `GENV_FORMATS`, `fieldV`, `cardOfSketch`, `idOfSketch`); GOGH's
 page FORM-G's (`formg.js`, `data-tab="gogh"`), GEN-V its generator, as GEN-F FORM-G's.

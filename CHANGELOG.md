@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+## v.1.3.0 — 2026-11-25 · Emile: the nib's 4 mm, the background
+
+- **v.1.3.0; the machine's name, Emile** (the owner, 2026-11-25: "an update for the version v.1.3.0 — the CNC drawing machine gets a name. It — rather he — is called
+  Emile from now on. The tab GOGH is the main one"). By the version on every tab; in the glossary.
+
 - **GOGH: the background's wide brush, G** (2026-11-25; the owner, `GOGH/background.png`: "a wide brush for the background … a layer UNDER the figure … as a brush in
   Photoshop, a large diameter"). The picture's own dabs as bricks, wherever the canvas is bare, in any jar of THE JARS, run first; ⌥ erases, [ ] the size, ⌘Z.
   `rembrandt.py`'s `gogh_card_edit` takes it. **Restart rembrandt.py.** Tested.

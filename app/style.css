@@ -46,7 +46,7 @@ body{display:grid;grid-template-columns:100%;grid-template-rows:56px 1fr 30px;he
 .brand{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
 .logo{font-weight:700;font-size:20px;letter-spacing:.32em}
 .sub{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
-.ver{font:11px var(--mono);color:var(--orange)}
+.ver{font:11px var(--mono);color:var(--orange);white-space:nowrap}
 .top-mid{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 .field{white-space:nowrap;display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .field select{text-transform:none;letter-spacing:0;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:5px 8px;font-size:13px}
