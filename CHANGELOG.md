@@ -5,6 +5,9 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH the home** (2026-11-25; the owner: "make the GOGH tab the main one, index.html"). `index.html` goes on to `gogh.html`; GOGH, GEN-V, LIB-V the first
+  of the top row. Tested.
+
 - **The nib's stones on the screen** (2026-11-24, the night; the owner, of the headlight being painted: "my God, what precision … neat as mosaic stones, no
   more seeds … maybe trim the drops a little to the new nib?"). A card's `nib`: every drop a rounded rectangle 4.3 mm wide, the way's own length (`stoneOf`);
   both headlight cards so. `GOGH/IMG_3499` … `3504`, GPS out. Tested.

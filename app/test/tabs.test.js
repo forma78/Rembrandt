@@ -12,7 +12,7 @@ const APP = new URL('../', import.meta.url);
 
 test('the row at first: SMKN, BIAS and ALU off with the tabs hidden before; Calibration and Library always', () => {
   const row = shown({}).filter(q => q.shown).map(q => q.name);
-  assert.deepEqual(row, ['OPM-N', 'FORM-G', 'GEN-F', 'GOGH', 'GEN-V', 'LIB-V', 'LIB-G', 'HOLO', 'HOLO2', 'OPM-G', 'ST-JOHN', 'BLEND', 'DACHE', 'PRISMA', 'OPM', 'OPM-B', 'OPM-S', 'OPM-W', 'OPM-P', 'FORM', 'ALU-CUT', 'CCD', 'Ink', 'INK-Y', 'LAB', 'LAB-H', 'COLORS', 'Calibration', 'Library']);
+  assert.deepEqual(row, ['GOGH', 'GEN-V', 'LIB-V', 'OPM-N', 'FORM-G', 'GEN-F', 'LIB-G', 'HOLO', 'HOLO2', 'OPM-G', 'ST-JOHN', 'BLEND', 'DACHE', 'PRISMA', 'OPM', 'OPM-B', 'OPM-S', 'OPM-W', 'OPM-P', 'FORM', 'ALU-CUT', 'CCD', 'Ink', 'INK-Y', 'LAB', 'LAB-H', 'COLORS', 'Calibration', 'Library']);
   assert.deepEqual(TABS.filter(q => q.always).map(q => q.href), ['calibration.html', 'library.html']);
   const mine = shown({ 'bias.html': true, 'ink.html': false, 'library.html': false });
   assert.ok(mine.find(q => q.href === 'bias.html').shown && !mine.find(q => q.href === 'ink.html').shown, 'the owner\'s ticks over it');
@@ -37,11 +37,11 @@ test('Preferences keep the ticks, a page and in or out, nothing else; TEST\'s as
   assert.deepEqual({ ...cleanPrefs({}), tabs: undefined }, { ...PREFS_NEW, tabs: undefined });
 });
 
-test('the home page goes on to OPM-N, a save\'s address with it; INKA off the row, its page kept (2026-11-04)', () => {
+test('the home page goes on to GOGH (2026-11-25; OPM-N before it), an address with it; INKA off the row, its page kept (2026-11-04)', () => {
   const s = fs.readFileSync(new URL('index.html', APP), 'utf8');
-  assert.match(s, /location\.replace\('opmn\.html' \+ location\.search \+ location\.hash\)/);
+  assert.match(s, /location\.replace\('gogh\.html' \+ location\.search \+ location\.hash\)/);
   assert.ok(!s.includes('class="tabs"'), 'no page of its own');
-  assert.equal(TABS[0].href, 'opmn.html');
+  assert.deepEqual(TABS.slice(0, 4).map(q => q.href), ['gogh.html', 'genv.html', 'libv.html', 'opmn.html']);
   assert.equal(TABS.find(q => q.href === 'inka.html').on, false);
   assert.ok(fs.readFileSync(new URL('inka.html', APP), 'utf8').includes('data-tab="inka"'));
 });

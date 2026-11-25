@@ -45,7 +45,7 @@ Rembrandt/
   firmware/
     CNCDM-001/       the board's firmware (from RUBENS, Rembrandt's since 2026-10-02)
   app/
-    index.html       Rembrandt's home: goes on to OPM-N, opmn.html (2026-11-04)
+    index.html       Rembrandt's home: goes on to GOGH, gogh.html (2026-11-25; to OPM-N from 2026-11-04)
     inka.html        INKA, Inca patterns: tiles a spiral each, the brush on through a figure without a lift, a wipe between figures (new, 2026-10-17; the first tab, index.html, from 2026-10-19 to 11-04, then off the top row; INKA/)
     stjohn.html      ST-JOHN, INKA with ⌘, St. John's Arms: four lobes, every loop round all of them from the top left lobe's window out, their inner sides across the middle (new, 2026-10-19; INKA's inka.js and inkaplan.js; St_John/)
     blend.html       BLEND, INKA with Illustrator's blend: keys and Steps shapes between every two, every shape a loop of the brush, the outermost first and every next over it, the core filled (new, 2026-10-26; INKA's inka.js and inkaplan.js, its blendplan.js; BLEND/)
