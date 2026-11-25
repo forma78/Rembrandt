@@ -189,13 +189,13 @@ test('the brush 2 mm: columns 2 mm apart, its dabs 8 … 15 mm, ≈ 12 — none 
   assert.deepEqual(dabLeg(5, 300, 285, { gap: dabGapOf(undefined, 2) }), [[5, 297.1], [5, 287.9]]);
 });
 
-test('GEN-V\'s formats: a 20 × 20 for tests in front of GEN-F\'s; the 20 × 20 and the 40 × 40 edge to edge, no margin; GEN-F\'s own untouched', () => {
-  assert.deepEqual(GENV_FORMATS.map(f => f.id), ['20x20', '40x40', '60x60', '60x80', '70x100', '90x120', '100x150']);
-  assert.ok(formatV('20x20').test); assert.equal(formatV('nope').id, '40x40', 'an unknown one: the 40 × 40, as before');
+test('GEN-V\'s formats: a 20 × 20 for tests and a 30 × 30 in front of GEN-F\'s; the 20 × 20, the 30 × 30 and the 40 × 40 edge to edge, no margin; GEN-F\'s own untouched', () => {
+  assert.deepEqual(GENV_FORMATS.map(f => f.id), ['20x20', '30x30', '40x40', '60x60', '60x80', '70x100', '90x120', '100x150']);
+  assert.ok(formatV('20x20').test); assert.ok(!formatV('30x30').test, 'the 30 × 30 a canvas, not a test (2026-11-25)'); assert.deepEqual(fieldV(formatV('30x30'), 2), { w: 300, h: 300 }); assert.equal(formatV('nope').id, '40x40', 'an unknown one: the 40 × 40, as before');
   // the field the whole canvas where the canvas lies within the reach (the owner: "margins only for 60 × 60 and up … 200 × 200 mm we print without
   // trouble … 40 × 40 too, without the limiting contour"); 60 × 60 and up GEN-F's, 30 mm in
   assert.deepEqual(fieldV(formatV('20x20')), { w: 200, h: 200 }); assert.deepEqual(fieldV(formatV('40x40')), { w: 400, h: 400 });
-  assert.deepEqual(['20x20', '40x40', '60x60', '60x80', '70x100', '90x120'].map(id => wholeV(formatV(id))), [true, true, false, false, false, false]);
+  assert.deepEqual(['20x20', '30x30', '40x40', '60x60', '60x80', '70x100', '90x120'].map(id => wholeV(formatV(id))), [true, true, true, false, false, false, false]);
   for (const id of ['90x120', '100x150']) assert.deepEqual(fieldV(formatV(id)), fieldOf(formatOf(id)), `${id}: a new frame's, GEN-F's field`);
   // past the reach the canvas as far as the brush reaches it, across Y its brush's: 540, the 2 mm's 556 ("add 16 mm, 8 mm a side"; "only for GEN-V")
   assert.deepEqual(fieldV(formatV('60x60')), { w: 540, h: 600 }); assert.deepEqual(fieldV(formatV('60x60'), 2), { w: 556, h: 600 }); assert.deepEqual(fieldV(formatV('70x100'), 2), { w: 556, h: 855 });
@@ -206,7 +206,7 @@ test('GEN-V\'s formats: a 20 × 20 for tests in front of GEN-F\'s; the 20 × 20 
   const Z = sketch('20x20', 12, 300, 300, 2), Zm = (() => { const f = formatV('20x20'), F = fitV(f, 300, 300, 2, 20); return F; })();
   assert.ok(Zm.N * 2 <= 160 && Zm.R <= 160 && Zm.left >= 20 - 1e-6 && Zm.top >= 20, `20 mm in: ${Zm.N * 2} × ${Zm.R}, left ${Zm.left}, top ${Zm.top}`);
   assert.ok(Z.fit.N > Zm.N, 'smaller with the margins');
-  assert.ok(!formatOf('20x20').test, 'GEN-F has no 20 × 20');
+  assert.ok(!formatOf('20x20').test, 'GEN-F has no 20 × 20'); assert.notEqual(formatOf('30x30').id, '30x30', 'nor a 30 × 30');
   const T = sketch('20x20', 12, 300, 300, 2);
   assert.equal(T.pic.w, 200); assert.equal(T.pic.h, 200);
   const [x0, y0, x1, y1] = T.pic.box;

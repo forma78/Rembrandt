@@ -5,6 +5,8 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GEN-V: 30 × 30** (2026-11-25; the owner: "add the format 30 × 30 to the generator GEN-V"), edge to edge, after the 20 × 20. Tested.
+
 - **GOGH the home** (2026-11-25; the owner: "make the GOGH tab the main one, index.html"). `index.html` goes on to `gogh.html`; GOGH, GEN-V, LIB-V the first
   of the top row. Tested.
 

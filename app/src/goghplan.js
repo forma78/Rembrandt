@@ -53,7 +53,8 @@ export const DAB = { aim: 20, min: 12, max: 24, crumb: 6, len: 3, stagger: 300, 
 export const DAB_BRUSH = { 2: { aim: 12, min: 8, max: 15, gap: -0.2 } };
 export const dabOf = (pitch = GEN.pitch) => ({ ...DAB, ...(DAB_BRUSH[pitch] ?? {}) });
 // GEN-V's formats: GEN-F's, and a 20 × 20 for tests in front (the owner, 2026-11-22: "a 20 × 20 cm format for tests"), LAB's canvas; its field 30 mm in
-export const GENV_FORMATS = [{ id: '20x20', w: 200, h: 200, test: true }, ...GEN_FORMATS];
+// A 30 × 30 after it (the owner, 2026-11-25, of the piglet: "add the format 30 × 30 to the generator GEN-V"): within the reach, edge to edge
+export const GENV_FORMATS = [{ id: '20x20', w: 200, h: 200, test: true }, { id: '30x30', w: 300, h: 300 }, ...GEN_FORMATS];
 export const formatV = id => GENV_FORMATS.find(f => f.id === id) ?? GENV_FORMATS.find(f => f.id === '40x40');
 // GEN-V's field: the whole canvas where the canvas lies within the reach (the owner, the same evening, of a 20 × 20 test, "the field 140 × 140": "you
 // made margins … there must be none. Margins only for 60 × 60 and up, our limit is physical, 550 mm. But 200 × 200 mm we print without trouble … 40 × 40
