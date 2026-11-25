@@ -461,3 +461,13 @@ test('the nib\'s stone: 4.3 mm wide, a stamp 5.7 mm (v.6 on canvas ≈ 6), a leg
   const mid = (Math.max(...ys(lg)) + Math.min(...ys(lg))) / 2, at = y => Math.max(...lg.filter(p => Math.abs(p[1] - y) < 0.15).map(p => p[0] - 50));
   assert.ok(Math.abs(at(mid) - 2.15) < 1e-6 && at(Math.max(...ys(lg)) - 0.1) < 1.8, 'square in the middle, round at the corners');
 });
+
+// the piglet, 2026-11-25 ("add to the new pictures from GEN-V / LIB-V the function Drop TIP + Drop TOP"): a drop by its profiles' own points, the same shape
+test('a drop drawn by its profiles\' points alone, as many at any length; top and tip move its two ends on a GEN-V picture\'s dab', async () => {
+  const { dropOf, DROP, SEED } = await import('../src/goghplan.js');
+  const at = new Set([...DROP.profile, ...SEED.profile].map(q => q[0])).size;
+  for (const L of [8, 12, 15]) assert.equal(dropOf(50, 100, 100 - L, { gap: -0.1 }).length, 2 * at);
+  const ends = o => { const y = dropOf(50, 100, 88, { gap: -0.1, wide: 2.4, ...o }).map(q => q[1]); return [Math.max(...y), Math.min(...y)]; };
+  const [t0, b0] = ends({ top: 0.5, tip: 2 }), [t1, b1] = ends({ top: 4, tip: 12 });
+  assert.ok(Math.abs(t0 - t1 - 3.5) < 1e-9 && Math.abs(b0 - b1 - 10) < 1e-9);
+});

@@ -138,10 +138,11 @@ export function dropOf(x, a, b, o = {}) {
   const at = (pr, f) => { f = Math.min(1, Math.max(0, f)); const i = Math.max(1, pr.findIndex(q => q[0] >= f)),   // f clamped: a hair past 1 by rounding drew a 38 mm wide drop (2026-11-23)
     [f0, w0] = pr[i - 1], [f1, w1] = pr[i]; return w0 + (w1 - w0) * (f1 > f0 ? (f - f0) / (f1 - f0) : 0); };
   const h = d => half * ((1 - k) * at(DROP.profile, d / P) + k * at(SEED.profile, d / P));
-  const n = Math.max(8, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...DROP.profile.map(q => q[0] * P), ...SEED.profile.map(q => q[0] * P)])].sort((p, q) => p - q);
-  const side = ds.map(d => [d, h(d)]);
+  const side = DROP_AT.map(f => [f * P, h(f * P)]);
   return [...side.map(([d, w]) => [x + w, top - d]), ...side.reverse().map(([d, w]) => [x - w, top - d])];
 }
+// a drop's outline by its profiles' own points: straight between them, so nothing lies between to be drawn (every 0.25 mm till 2026-11-25, ≈ 150 points a drop for 34)
+const DROP_AT = [...new Set([...DROP.profile, ...SEED.profile].map(q => q[0]))].sort((p, q) => p - q);
 
 // ---------- the dabs: every column cut into dabs of one jar each ----------
 // B: genfplan.js's binsOf (N columns, R mm along from the picture's top), pal: the jars in CIELAB. Every stretch of a column the picture paints cut by a

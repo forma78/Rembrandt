@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **Drop · top and Drop · tip on every picture of GOGH** (2026-11-25; the owner, of the piglet: "add to the new pictures from GEN-V / LIB-V the function Drop
+  TIP + Drop TOP"). Picture draws a GEN-V picture's dabs as drops, as wide as Width. The drops made once and drawn at any zoom (Paint of the piglet's 5407:
+  0.61 s a frame before, 0.18 after), a drop's outline by its profiles' own points, the same to 1e-13 mm. Tested.
+
 - **GEN-V: 30 × 30** (2026-11-25; the owner: "add the format 30 × 30 to the generator GEN-V"), edge to edge, after the 20 × 20. Tested.
 
 - **GOGH the home** (2026-11-25; the owner: "make the GOGH tab the main one, index.html"). `index.html` goes on to `gogh.html`; GOGH, GEN-V, LIB-V the first

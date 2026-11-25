@@ -597,8 +597,10 @@ strokes! All of them drops of 2 cm, as on IMG_3377".
     with its red contour its phantom slave. So we can correct that drop of 1.5 mm and its tip 13 mm past the end … the blue sausage is the Drag key, and
     the overlay the Picture key"): the master the plan's dab, the slave the paint as the press test laid it, hung on the master's way by two numbers of
     the screen's alone — **Drop · top**, the paint's top under the way's start (1.5), and **Drop · tip**, its tip past the way's end (12; the RUN's 2 mm a
-    step more) — read again off every press test's overlay. On Press test 3's card first (`press-paints-20`, `drop`); GOGH's pictures and GEN-V when the
-    numbers hold (`goghplan.js`, `DROP`, `dropOf`; `formg.js`, `drawDrops`, `drawMasters`).
+    step more) — read again off every press test's overlay. On Press test 3's card first (`press-paints-20`, `drop`); **on every
+    picture of GOGH since 2026-11-25** (the owner, of the piglet: "add to the new pictures from GEN-V / LIB-V the function Drop TIP + Drop TOP, these two
+    sliders are not there now"): a GEN-V picture's Picture in drops as wide as Width, no outline; GEN-V's own sketch still the plan's dabs (`goghplan.js`,
+    `DROP`, `dropOf`; `formg.js`, `drawDabs`, `drawDrops`, `drawMasters`; the drops made once for the sliders as they are, `pathOf`, drawn at any zoom).
 
 17b. **1 and ½, and the brush** (the owner, 2026-11-23, the evening: "maybe simply in stripes, as rgb-led.png … by the principle of 1 and ½ … if a headlight or
     some small detail, ½ a seed; if a fill as the bonnet, there 1 leg"; then: "can a vertical tools menu be made, with a brush? I marked here the seeds I want to

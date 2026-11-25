@@ -172,7 +172,7 @@
         <button class="btn" id="btnHome" title="HOME: the brush up, the carriage back to home — the bottom left corner; when nothing runs">HOME</button>
       </div>
       <div class="toggles looks" id="views">
-        <button class="tog" data-view="picture" title="The painting: every dab as the brush lays it where the picture is drawn in drops, else as GEN-V sketched it — no yellow (est.)">Picture</button>
+        <button class="tog" data-view="picture" title="The painting: every dab a drop, as the brush lays it — its top by Drop · top, its tail by Drop · tip; a GEN-V picture's as wide as Width, a test card's as its press test measured — no yellow (est.)">Picture</button>
         <button class="tog" data-view="paint" title="PAINT: every dab as the brush lays it, its drop in its jar's colour, the plan's dab over it a hair of yellow — the drop against the plan">Paint</button>
         <button class="tog" data-view="drag" title="The dabs in their jars' colours, as wide as the brush, each its own">Drag</button>
         <button class="tog" id="btnPlay" title="The run as it will go, a jar after another, cell after cell, the screen above following it: how far, the time left (est.), the jar now and the next. A view: it moves nothing on the machine">▶ Play</button>
@@ -214,13 +214,14 @@
         <div class="elh"><span class="elk" id="runSay">Run · a 20 mm dab</span><span class="elv" id="runNow">20 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="run" data-step="-1" title="1 mm less at both ends: lands later, lifts earlier">▼</button><input class="slider" type="range" id="runSl" data-dab="run" min="-4" max="4" step="1"><button class="btn" data-dab="run" data-step="1" title="1 mm more at both ends: lands earlier, lifts later">▲</button></div>
       </div>
-      <!-- the drop, the slave hung on its master, the screen's alone; a card with `drop` (Press test 3) alone (the owner, 2026-11-23: "so we can correct that
-           drop of 1.5 mm and its tip 13 mm past the end"; goghplan.js, DROP_UI) -->
-      <div class="elbowlive dabsl" id="dropTop" hidden title="Drop · top, the screen's alone: how far the paint's top lies under the plan's dab, its master (est.; 1.5 off Press test 2)">
+      <!-- the drop, the slave hung on its master, the screen's alone (the owner, 2026-11-23: "so we can correct that drop of 1.5 mm and its tip 13 mm past the
+           end"; goghplan.js, DROP_UI); a card with `drop` (Press test 3) alone till 2026-11-25, every picture's since ("add to the new pictures from GEN-V /
+           LIB-V the function Drop TIP + Drop TOP") -->
+      <div class="elbowlive dabsl" id="dropTop" hidden title="Drop · top, the screen's alone: how far the paint's top lies under the plan's dab, its master (est.; 0.5 the new brush's)">
         <div class="elh"><span class="elk">Drop · top</span><span class="elv" id="topNow">1.5 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="top" data-step="-0.5" title="0.5 mm higher, nearer the master's top">▼</button><input class="slider" type="range" id="topSl" data-dab="top" min="0" max="5" step="0.5"><button class="btn" data-dab="top" data-step="0.5" title="0.5 mm lower under the master's top">▲</button></div>
       </div>
-      <div class="elbowlive dabsl" id="dropTip" hidden title="Drop · tip, the screen's alone: how far the paint's tip runs past where the brush lifts — the master's end on a dab longer than the floor; the RUN adds its own (est.; 13 off Press test 2)">
+      <div class="elbowlive dabsl" id="dropTip" hidden title="Drop · tip, the screen's alone: how far the paint's tip runs past where the brush lifts — the master's end on a dab longer than the floor; the RUN adds its own (est.; 2 the new brush's)">
         <div class="elh"><span class="elk">Drop · tip</span><span class="elv" id="tipNow">13 mm</span></div>
         <div class="elrow"><button class="btn" data-dab="tip" data-step="-0.5" title="0.5 mm shorter tail">▼</button><input class="slider" type="range" id="tipSl" data-dab="tip" min="0" max="25" step="0.5"><button class="btn" data-dab="tip" data-step="0.5" title="0.5 mm longer tail">▲</button></div>
       </div>

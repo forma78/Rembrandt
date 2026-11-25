@@ -634,7 +634,7 @@ function showDabs() {
   if (!DABS || !$('#gapSl')) return;
   const ks = ['gap', 'wide', 'run', ...($('#topSl') ? ['top', 'tip'] : [])];
   for (const k of ks) { const sl = $(`#${k}Sl`), v = dabNow(k); if (document.activeElement !== sl) sl.value = v; $(`#${k}Now`).textContent = DAB_SAY[k](v); }
-  for (const id of ['#dropTop', '#dropTip']) if ($(id)) $(id).hidden = !PIC?.drop;
+  for (const id of ['#dropTop', '#dropTip']) if ($(id)) $(id).hidden = !PIC;   // every picture's since 2026-11-25; a card with `drop` alone before it
   if ($('#runSay')) $('#runSay').textContent = `Run · a ${dabOf(PIC?.pitch).aim} mm dab`;   // the picture's brush's standard dab: 20, the 2 mm's 12
   $('#dabRead').innerHTML = PIC ? `The brush <b>${fmt(PIC.pitch, 0)} mm</b>, the picture's (GEN-V cuts it for one). Gap ${DAB_SAY.gap(dabGap())} and run +${S.dabRun} · +${S.dabRun} mm: live during a DRAG, from the next dab; the width is the screen's alone (est.).` : '';
 }
@@ -707,21 +707,11 @@ function drawLegs(c, passes, dim = 1) {
   }
   c.globalAlpha = 1;
 }
-// GOGH's Picture (2026-11-22): every dab as it will lie, from the plan, not the card's jpg — the gap off its ends, the width the slider's, round ends; the
-// list's order, the later over the earlier; a jar's row: the others veiled
-function drawDabs(c) {
-  if (PIC.drop) return drawDrops(c);
-  const w = dabWide();
-  c.lineCap = 'round'; c.lineWidth = Math.max(0.5, w * K);
-  for (const P of plan()) {
-    const j = jarOf(P.pencil), own = PIC.jars.find(q => q.id === (j.jar ?? j.id)) ?? j;
-    c.strokeStyle = j.hex; c.globalAlpha = !only || only === P.pencil ? 1 : 0.1;
-    c.beginPath();
-    for (const q of own.cells) for (const [x, a, b] of q.legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), dabGap(), w); c.moveTo(sx(x), sy(t)); c.lineTo(sx(x), sy(u)); }
-    c.stroke();
-  }
-  c.globalAlpha = 1;
-}
+// GOGH's Picture (2026-11-22): every dab as it will lie, from the plan, not the card's jpg; the list's order, the later over the earlier; a jar's row: the
+// others veiled. Since 2026-11-25 every picture's dabs its drops, so Drop · top and Drop · tip work on it (the owner, of the piglet: "add to the new pictures
+// from GEN-V / LIB-V the function Drop TIP + Drop TOP, these two sliders are not there now"): a card with `drop` as it was; a GEN-V picture's drops as wide as
+// Width, no outline, so its colours are the jars' — till then capsules, the drop's two numbers not in them
+const drawDabs = c => drawDrops(c, false, PIC.drop ? {} : { wide: dabWide(), line: false });
 // A card with `drop` (Press test 3, the owner, 2026-11-23: "take the red contour and leave the pink inside"; "a barely visible yellow contour of the sausage,
 // the master, and the pink drop with its red contour its phantom slave … the blue sausage is the Drag key, the overlay the Picture key"). Picture: every dab's
 // slave, the drop Press test 2 laid (goghplan.js, dropOf) — the outline of what touches, red, the inside pink: all strokes first, the fill over them — and
@@ -730,35 +720,52 @@ function drawDabs(c) {
 const DROP_W = DROP.wide, DROP_LINE = '#EC4899', DROP_FILL = '#FCD6EB', MASTER_HAIR = 'rgba(214,158,0,.55)', MASTER_BLUE = '#2563EB';
 const ownLegs = P => { const j = jarOf(P.pencil), own = PIC.jars.find(q => q.id === (j.jar ?? j.id)) ?? j; return own.cells.flatMap(q => q.legs); };
 const veil = P => !only || only === P.pencil ? 1 : 0.15;
-function masterPath(legs) {
+function masterPath(legs) {                                                           // mm, the canvas's own, up
   const w = dabWide(), r = w / 2, path = new Path2D();
-  for (const [x, a, b] of legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), dabGap(), w); path.moveTo(sx(x + r), sy(t)); path.arc(sx(x), sy(t), r * K, 0, Math.PI, true); path.lineTo(sx(x - r), sy(u)); path.arc(sx(x), sy(u), r * K, Math.PI, 0, true); path.closePath(); }
+  for (const [x, a, b] of legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), dabGap(), w); path.moveTo(x + r, t); path.arc(x, t, r, 0, Math.PI); path.lineTo(x - r, u); path.arc(x, u, r, Math.PI, 2 * Math.PI); path.closePath(); }
   return path;
 }
+// a jar's drops and masters as paths in mm, made once for the plan and the sliders as they are, drawn at any zoom by the canvas's own transform: a picture of
+// 5400 dabs was made again dab by dab for every frame, 0.6 s each (2026-11-25, the piglet on 60 × 60)
+const PATHS = new Map();
+function pathOf(kind, P, key, make) {
+  const k = `${kind}|${P.pencil}`, had = PATHS.get(k);
+  if (had && had.key === key && had.P === P) return had.path;
+  const path = make();
+  PATHS.set(k, { key, P, path });
+  return path;
+}
+const masterOf = P => pathOf('master', P, `${pk()}|${dabGap()}|${dabWide()}`, () => masterPath(ownLegs(P)));
+const onMm = (c, draw) => { c.save(); c.transform(K, 0, 0, -K, OX, OY + PIC.h * K); draw(); c.restore(); };   // the canvas's mm as the screen has them (sx, sy)
 // A picture's card (`drop: 'colour'`, Press test 4, the owner's for-LAB in drops, 2026-11-23): every drop its jar's colour, its outline the same a shade darker
 const shade = (hex, f = 0.7) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * f).toString(16).padStart(2, '0')).join('');
 // PAINT (the owner, 2026-11-23, the evening: "for all the pictures in GOGH a new key: PAINT — and in it, just there, the light yellow contour from DRAG … and in
 // Picture no yellow contour, so I do not get confused when zoomed far out"): every picture's drops, a card with `drop` or not, the masters' yellow hair over
-// them; Picture the drops alone where the card has them, else the dabs as GEN-V drew them. A card's drops its jars' colours, Press test 3's pink alone
-// (`drop: true`); a 3 or 5 mm brush's drop as wide again by its pitch (est.)
-function drawDrops(c, hair = false) {
-  const tint = PIC.drop !== true, wide = PIC.dropWide ?? (PIC.pitch > 2 ? DROP_W * PIC.pitch / 2 : undefined);
-  const o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide, seed: PIC.dab?.seed, seedJ3: PIC.dab?.seedJ3, nib: PIC.nib }, lines = plan().map(P => {
-    const path = new Path2D(), legs = ownLegs(P), hex = jarOf(P.pencil).hex, oj = { ...o, allSeeds: !!jarOf(P.pencil)?.seeds };
-    for (const [x, t, b] of legs) dropOf(x, t, b, oj).forEach(([u, v], i) => i ? path.lineTo(sx(u), sy(v)) : path.moveTo(sx(u), sy(v)));
-    return { path, master: masterPath(legs), a: veil(P), line: tint ? shade(hex) : DROP_LINE, fill: tint ? hex : DROP_FILL };
+// them; Picture the drops alone. A card's drops its jars' colours, Press test 3's pink alone (`drop: true`); a 3 or 5 mm brush's drop as wide again by its
+// pitch (est.). as: { wide, line } — Picture's of a GEN-V picture, the Width slider's and no outline (drawDabs)
+function drawDrops(c, hair = false, as = {}) {
+  const tint = PIC.drop !== true, wide = as.wide ?? PIC.dropWide ?? (PIC.pitch > 2 ? DROP_W * PIC.pitch / 2 : undefined);
+  const o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide, seed: PIC.dab?.seed, seedJ3: PIC.dab?.seedJ3, nib: PIC.nib }, key = `${pk()}|${JSON.stringify(o)}`, lines = plan().map(P => {
+    const j = jarOf(P.pencil), path = pathOf(as.wide ? 'dab' : 'drop', P, key, () => {
+      const q = new Path2D(), oj = { ...o, allSeeds: !!j?.seeds };
+      for (const [x, t, b] of ownLegs(P)) { dropOf(x, t, b, oj).forEach(([u, v], i) => i ? q.lineTo(u, v) : q.moveTo(u, v)); }
+      return q;
+    });
+    return { path, master: hair ? masterOf(P) : null, a: veil(P), line: tint ? shade(j.hex) : DROP_LINE, fill: tint ? j.hex : DROP_FILL };
   });
-  c.lineJoin = 'round'; c.lineWidth = Math.max(1.5, 0.5 * K);
-  for (const { path, a, line } of lines) { c.globalAlpha = a; c.strokeStyle = line; c.stroke(path); }
-  for (const { path, a, fill } of lines) { c.globalAlpha = a; c.fillStyle = fill; c.fill(path); }
-  c.lineWidth = 1;
-  if (hair) for (const { master, a } of lines) { c.globalAlpha = a; c.strokeStyle = MASTER_HAIR; c.stroke(master); }
-  c.globalAlpha = 1;
+  onMm(c, () => {
+    c.lineJoin = 'round'; c.lineWidth = Math.max(1.5, 0.5 * K) / K;
+    if (as.line !== false) for (const { path, a, line } of lines) { c.globalAlpha = a; c.strokeStyle = line; c.stroke(path); }
+    for (const { path, a, fill } of lines) { c.globalAlpha = a; c.fillStyle = fill; c.fill(path); }
+    c.lineWidth = 1 / K;
+    if (hair) for (const { master, a } of lines) { c.globalAlpha = a; c.strokeStyle = MASTER_HAIR; c.stroke(master); }
+  });
 }
 function drawMasters(c) {
-  c.lineJoin = 'round'; c.lineWidth = Math.max(1.25, 0.35 * K); c.strokeStyle = MASTER_BLUE;
-  for (const P of plan()) { c.globalAlpha = veil(P); c.stroke(masterPath(ownLegs(P))); }
-  c.globalAlpha = 1;
+  onMm(c, () => {
+    c.lineJoin = 'round'; c.lineWidth = Math.max(1.25, 0.35 * K) / K; c.strokeStyle = MASTER_BLUE;
+    for (const P of plan()) { c.globalAlpha = veil(P); c.stroke(masterOf(P)); }
+  });
 }
 // Contour: DRAW BW's lines as the pen draws them, over the picture veiled
 const linePath = (c, l) => { c.beginPath(); l.forEach((q, i) => i ? c.lineTo(sx(q[0]), sy(q[1])) : c.moveTo(sx(q[0]), sy(q[1]))); };
