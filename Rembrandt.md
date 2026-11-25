@@ -20,7 +20,7 @@ Read this first. Every word below means exactly this, in code, UI and talk.
 |---|---|
 | **Rembrandt** | This program. |
 | **RUBENS** | The previous program, repo `Forma78/Rubens`, frozen at v0.1.3. Source of the Calibration and Job code. |
-| **Machine** · **Emile** | CNCDM-001, named **Emile** (Эмиль) by the owner on 2026-11-25, with v.1.3.0 ("the CNC drawing machine gets a name. It — rather he — is called Emile from now on"); he. 2020 frame, two NEMA17 belt axes (X, Y), the arm on the carriage (shoulder J1, elbow J2, wrist J3), spring-mounted tool holder, camera on the bracket. |
+| **Machine** · **Emile** | CNCDM-001, named **Emile** by the owner on 2026-11-25, with v.1.3.0 ("the CNC drawing machine gets a name. It — rather he — is called Emile from now on"); he. 2020 frame, two NEMA17 belt axes (X, Y), the arm on the carriage (shoulder J1, elbow J2, wrist J3), spring-mounted tool holder, camera on the bracket. |
 | **Create** | The tab where a painting is planned. Never touches the hardware. Hidden from the top row since 2026-10-04, NOLAN in its place (§1); the page stays, `create.html` since 2026-10-06 (`index.html` is TYPE), and the Library still opens a painting on it. |
 | **NOLAN** | The tab that paints ribbons, in Create's place from 2026-10-04, off the top row since 2026-10-19 (§1); the page stays. Its task: `NOLAN.md`. The only tab where the hand works too (§1). |
 | **New Yuri** | The tab that paints letters as rings of circles, after NOLAN on 2026-10-06, off the top row the same day (§1, §8); the page stays, and the Library opens its saves there. Named by the owner. |
