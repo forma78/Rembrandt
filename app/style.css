@@ -648,6 +648,16 @@ body.type .status{grid-column:1/4;grid-row:4}
 .type .zk.pct{min-width:78px;font:600 12px var(--mono);letter-spacing:.02em;background:var(--key-on);box-shadow:var(--press)}
 .type .zk:disabled{opacity:.4;cursor:default}
 
+/* a column's edge, pulled as a table's in Excel (src/cols.js, 2026-11-25): GOGH's, FORM-G's, LIB-G's and HOLO's library, GOGH's jars; COLORS' sections */
+.colgrip{z-index:4;width:11px;cursor:col-resize;touch-action:none;outline:0}
+.colgrip::after{content:"";position:absolute;left:5px;top:0;bottom:0;width:2px;margin-left:-1px;background:none}
+.colgrip:hover::after,.colgrip:focus-visible::after,.colgrip.on::after{background:var(--orange)}
+body.type .colgrip{position:relative;grid-row:2/4;justify-self:end;margin-right:-5px}
+main.colors .colgrip{position:absolute;top:14px;bottom:14px}
+main.colors .colgrip.left{left:-5px}
+main.colors .colgrip.right{right:-5px}
+html.colpull,html.colpull *{cursor:col-resize!important;user-select:none}
+
 /* ALU (2026-10-08): LOVE's page; the tubes a strip by the Tools, the pipes and their editors in the panel */
 .alu .tool svg .dash{stroke-dasharray:2 2.6}
 .alu .tool svg .bold{stroke-width:2.6}
@@ -768,6 +778,7 @@ html.night :is([data-tab="ccd"],[data-tab="bias"],[data-tab="loom"],[data-tab="i
   .love .tools .ground{flex-direction:row}
   :is([data-tab="opms"],[data-tab="opmw"],[data-tab="opmp"],[data-tab="opmn"],[data-tab="form"]) .tools .tcol{display:contents}
   .panel{order:4;border-left:0;overflow:visible;padding-bottom:16px}
+  .colgrip{display:none}
   .status{order:5;flex:none;flex-wrap:wrap;gap:4px 16px;padding:8px 12px}
   .status #hint,.status #stats,.adjust .status #hint,.adjust .status #stats{white-space:normal;flex:1 1 100%}
 }

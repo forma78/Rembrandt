@@ -6,13 +6,14 @@
 <title>Rembrandt · COLORS</title>
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<script src="src/cols.js"></script>   <!-- the columns' widths, dragged by their edge (2026-11-25) -->
 <style>
   /* COLORS: the library — a card a jar (Kuzya's card), the scale, the paints on the shelf */
   main.colors{display:block;overflow-y:auto;background:var(--stage);padding:14px 16px 40px}
-  main.colors > .sec{max-width:1240px;margin:12px auto 0}
+  main.colors > .sec{position:relative;max-width:var(--colors-w,none);margin:12px auto 0}   /* as wide as the window, or as its edges were pulled (src/cols.js, 2026-11-25; 1240 px before) */
   .cnav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 4px}
   .cnav a{text-decoration:none}
-  .lead{margin:0;font-size:13px;line-height:1.45;color:var(--ink)}
+  .lead{margin:0;max-width:1180px;font-size:13px;line-height:1.45;color:var(--ink)}
   .lead b{font-weight:600}
   .order{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0;padding:0;list-style:none;counter-reset:o}
   .order li{counter-increment:o;display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:7px;background:var(--well);font-size:12px}
@@ -60,6 +61,7 @@
   .pcard.idle .use{color:var(--mute)}   /* not in real 3: the words greyed, never the colour */
   @media (max-width:640px){
     main.colors{padding:10px 12px 30px}
+    main.colors > .sec{max-width:none}
     .kuzya{grid-template-columns:repeat(6,1fr)}
     .jrows{grid-template-columns:82px 1fr}
   }

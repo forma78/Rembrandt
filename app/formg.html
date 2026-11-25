@@ -6,10 +6,11 @@
 <title>Rembrandt · FORM-G</title>
 <link rel="stylesheet" href="style.css">
 <script>try { if (localStorage.getItem('rembrandt.lamp.v01') === 'night') document.documentElement.classList.add('night'); } catch (e) { }   // the night theme before the page draws (src/lamp.js)</script>
+<script src="src/cols.js"></script>   <!-- the columns' widths, dragged by their edge (2026-11-25) -->
 <style>
   /* FORM-G: the library on the left, the picture, the machine's panel in the right corner (the owner, 2026-11-06: "one picture to a row, not two, and a little smaller";
      2026-11-11: "the panel on the RIGHT, the library on the LEFT, please" — the library had been between the picture and the panel) */
-  body.type{grid-template-columns:132px minmax(0,1fr) 340px}
+  body.type{grid-template-columns:var(--lib-w,132px) minmax(0,1fr) 340px}
   body.type .top{grid-column:1/3}
   body.type .stage{grid-column:2;grid-row:2/4}
   body.type .panel{grid-column:3}
@@ -26,7 +27,7 @@
   .fg-item{position:relative;flex:none}
   .fg-card{display:flex;flex-direction:column;gap:5px;width:100%;box-sizing:border-box;padding:5px 5px 6px;border:1px solid var(--line);border-radius:8px;background:var(--key);box-shadow:var(--raise);color:var(--ink);font:inherit;text-align:left;cursor:pointer;min-width:0}
   .fg-card.on{outline:2px solid var(--orange);outline-offset:1px}
-  .fg-card img{display:block;width:100%;height:92px;object-fit:contain;background:#FBFAF7;border-radius:5px}
+  .fg-card img{display:block;width:100%;height:calc(var(--lib-w,132px)*.697);object-fit:contain;background:#FBFAF7;border-radius:5px}
   .fg-card b{font:600 11px/16px var(--mono);letter-spacing:.06em;padding-right:20px}
   .fg-card .sz{margin-top:-4px;font:500 10px/14px var(--mono);letter-spacing:.04em;color:var(--mute);padding-right:20px}   /* the canvas, cm: every picture its own size, never scaled (2026-11-10) */
   .fg-item .info{position:absolute;right:6px;bottom:6px;margin:0}
@@ -77,6 +78,7 @@
     .fg-shelf{order:3;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px}
     .fg-lib{flex-direction:row;overflow-x:auto;padding:2px}
     .fg-item{width:104px}
+    .fg-card img{height:92px}
   }
 </style>
 </head>

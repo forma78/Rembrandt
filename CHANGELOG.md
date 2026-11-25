@@ -5,6 +5,11 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **The columns dragged by their edge; COLORS as wide as the window** (2026-11-25; the owner: "a way to stretch the tab COLORS horizontally, wide; now it is
+  fixed"; "THE LIBRARY … I bring the cursor to the vertical frame and can pull it, as a column's width in a table in Excel"). `src/cols.js`: the library on
+  GOGH, FORM-G, LIB-G and HOLO, its pictures growing with it, GOGH's THE JARS, COLORS' sections by either edge; a double click, as at first; kept in this
+  browser, a tab's own. Tested.
+
 - **Drop · top and Drop · tip on every picture of GOGH** (2026-11-25; the owner, of the piglet: "add to the new pictures from GEN-V / LIB-V the function Drop
   TIP + Drop TOP"). Picture draws a GEN-V picture's dabs as drops, as wide as Width. The drops made once and drawn at any zoom (Paint of the piglet's 5407:
   0.61 s a frame before, 0.18 after), a drop's outline by its profiles' own points, the same to 1e-13 mm. Tested.
