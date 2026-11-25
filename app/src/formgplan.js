@@ -119,7 +119,7 @@ export function myJarsOf(plans, mine = {}) {
 export function withJars(pic, swaps = {}) {
   const key = Object.keys(swaps).length ? JSON.stringify(swaps) : '';
   if (!key) return pic;
-  return { ...pic, jars: pic.jars.map(j => swaps[j.id] ? { ...j, name: swaps[j.id].name, hex: swaps[j.id].hex, was: { name: j.name, hex: j.hex } } : j), jarsKey: key };
+  return { ...pic, jars: pic.jars.map(j => { const q = swaps[j.id] ?? swaps[j.of]; return q ? { ...j, name: q.name, hex: q.hex, was: { name: j.name, hex: j.hex } } : j; }), jarsKey: key };   // `of`: a GEN-V picture's Layer 2 line, its jar's swap its own (2026-11-25)
 }
 
 // POINTS (the owner, 2026-11-16, `FORM-G/mickey-1.png`, green crosses at the figure's outermost points: "this is Jar 0, the white … so I do not soil the canvas.

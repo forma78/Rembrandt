@@ -50,7 +50,12 @@ export const DAB = { aim: 20, min: 12, max: 24, crumb: 6, len: 3, stagger: 300, 
 // strokes by a ruler, IMG_3390.jpg: "I could not stretch it to 20 mm. All as you warned: a brush this narrow does not hold much paint, so the longest stroke
 // is 15 mm. But that is enough for us"): its dabs 8 … 15 mm, ≈ 12 (est.); its gap −0.2, his own setting for it ("I make the adjustment for exactly the new
 // 2 mm brush")
-export const DAB_BRUSH = { 2: { aim: 12, min: 8, max: 15, gap: -0.2 } };
+// The 4 mm, the metal nib (the owner, 2026-11-25: "we add a 4 mm stroke, because exactly such a nib is in our machine"; of the 2 mm: "it can go, we will never have
+// it"), by the headlight v.2, dry (GOGH/IMG_3611 … 3613): a lone leg of a 12 mm cell 10.1 … 10.6 × 4.1 … 4.6 mm at RUN 10 … 12, a lone ½ of layer 1 7.2 × 4.1, of
+// the thick layer 2 8 × 5.5; on paper (IMG_3494) a stamp 4.4 wide (est.). So its stones 4.3 wide on the screen, its dabs 6 … 15 mm, ≈ 12 — 1 and ½ — one no
+// longer than `seed` a ½: a stamp of the headlight's own way, 4.2 mm (seedJ3 2); every dab a stamp, no lift beyond (a card's `nib`)
+export const NIB_MM = 4;
+export const DAB_BRUSH = { 2: { aim: 12, min: 8, max: 15, gap: -0.2 }, [NIB_MM]: { aim: 12, min: 6, max: 15, gap: 0.2, wide: 4.3 / NIB_MM, seed: 7.5, seedJ3: 2 } };   // 7.5: a 7 mm dab a ½ and an 8 mm a leg at any GAP near 0
 export const dabOf = (pitch = GEN.pitch) => ({ ...DAB, ...(DAB_BRUSH[pitch] ?? {}) });
 // GEN-V's formats: GEN-F's, and a 20 × 20 for tests in front (the owner, 2026-11-22: "a 20 × 20 cm format for tests"), LAB's canvas; its field 30 mm in
 // A 30 × 30 after it (the owner, 2026-11-25, of the piglet: "add the format 30 × 30 to the generator GEN-V"): within the reach, edge to edge
@@ -61,7 +66,8 @@ export const formatV = id => GENV_FORMATS.find(f => f.id === id) ?? GENV_FORMATS
 // too, without the limiting contour"): the 20 × 20 and the 40 × 40 edge to edge; a canvas past the reach (GEN.across × GEN.along) GEN-F's field, 30 mm in
 // Across Y a brush's own (the owner, the same evening: "540 — there we are being careful. Yes, it held while the brush was 5 mm. But for the 2 mm brush it is far
 // too big a reserve. Why? We can easily make 556 mm — add 16 mm, 8 mm a side"; "only for GEN-V"): the 2 mm 556, the others GEN.across, 540. Along X GEN.along.
-export const ACROSS_V = { 2: 556 };
+// the nib's 4 mm the same 556: its carriage 552 mm, less than the 2 mm's 554 counted on GOGH's carriage (est.)
+export const ACROSS_V = { 2: 556, 4: 556 };
 export const acrossV = (pitch = GEN.pitch) => ACROSS_V[pitch] ?? GEN.across;
 // Margins · zoom (the owner, the same evening: "I would like to place the picture on 20 × 20 and 40 × 40 myself … a margins slider on all the formats, on
 // 60 × 60 and 70 × 100 too! Make such a zoom for the picture, from 0 to 20 mm"; "Scale, or call it as you like"; of "Margins · zoom": "yes, great"): mm off the field's every side, the picture
@@ -84,11 +90,11 @@ export const fieldV = (f, pitch = GEN.pitch, margin = 0) => { const F = reachV(f
 //        smaller stroke now … can we bring the slider down to 6 mm?"): it lands later and lifts earlier, the 2 mm's 12 mm dab running 6, 8, 10 at −3, −2, −1;
 //        a leg no shorter than DAB_LEG (the J3's 3 + 3 still on it); down to −4 since the same evening (the owner: "can we make ¼ at all? 6 mm and 4 mm?"):
 //        what the leg cannot give the J3 gives — its 3 mm at each end less by it (dabJ3), the 12 mm dab running 4
-export const DAB_UI = { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-4, 4, 1] };
+export const DAB_UI = { brush: [3, NIB_MM, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-4, 4, 1] };
 export const DAB_LEG = 0.2;   // mm, the shortest leg a negative run leaves, so it keeps its way down (est.)
 const inRange = (v, [lo, hi, st]) => { const q = Math.round(Math.min(hi, Math.max(lo, +v || 0)) / st) * st; return +q.toFixed(2) || 0; };
-export const dabGapOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? DAB.wide * pitch, DAB_UI.wide);
-export const brushOf = v => DAB_UI.brush.includes(+v) ? +v : GEN.pitch;
+export const dabGapOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).gap, DAB_UI.gap), dabRunOf = v => inRange(v ?? DAB.run, DAB_UI.run), dabWideOf = (v, pitch = GEN.pitch) => inRange(v ?? dabOf(pitch).wide * pitch, DAB_UI.wide);
+export const brushOf = v => DAB_UI.brush.includes(+v) ? +v : NIB_MM;   // the nib, the brush on the machine, where none is kept, or the 2 mm's (off GEN-V since 2026-11-25)
 // genfplan.js's fitOf on a brush's columns: as large as the field lets it (GEN-V's, fieldV), its aspect kept, N columns `pitch` apart, R mm along, centred on
 // the canvas
 export function fitV(f, iw, ih, pitch = GEN.pitch, margin = 0) {
@@ -122,11 +128,23 @@ export const dropTopOf = v => inRange(v ?? DROP.top, DROP_UI.top), dropTipOf = v
 export const NIB = { wide: 4.3, r: 1.4 };
 function stoneOf(x, a, b, o) {
   const seed = isSeed(a, b, o), [[, s], [, e]] = dabLeg(x, a, b, o), j = dabJ3(a, b, o) ?? (seed && Number.isFinite(o.seedJ3) ? { early: o.seedJ3, late: o.seedJ3 } : ELBOW_J3);
-  const top = s + j.early - dropTopOf(o.top), bot = e - j.late - dropTipOf(o.tip), P = Math.max(1, top - bot), half = (o.wide ?? NIB.wide) / 2, r = Math.min(NIB.r, half, P / 2);
+  return stoneAt(x, s + j.early - dropTopOf(o.top), e - j.late - dropTipOf(o.tip), o.wide ?? NIB.wide);
+}
+// a rounded rectangle, its corners NIB.r, from top down to bot, mm → its outline, [[x, y]]
+function stoneAt(x, top, bot, wide) {
+  const P = Math.max(1, top - bot), half = wide / 2, r = Math.min(NIB.r, half, P / 2);
   const h = d => d < r ? half - r + Math.sqrt(Math.max(0, r * r - (r - d) ** 2)) : d > P - r ? half - r + Math.sqrt(Math.max(0, r * r - (d - P + r) ** 2)) : half;
-  const n = Math.max(12, Math.ceil(P / 0.25)), ds = [...new Set([...Array.from({ length: n + 1 }, (_, i) => P * i / n), ...Array.from({ length: 9 }, (_, i) => r * i / 8), ...Array.from({ length: 9 }, (_, i) => P - r * i / 8)])].filter(d => d >= 0 && d <= P).sort((p, q) => p - q);
+  const ds = [...new Set([...Array.from({ length: 9 }, (_, i) => r * i / 8), ...Array.from({ length: 9 }, (_, i) => P - r * i / 8)])].filter(d => d >= 0 && d <= P).sort((p, q) => p - q);   // its corners' points, straight between them
   const side = ds.map(d => [d, h(d)]);
   return [...side.map(([d, w]) => [x + w, top - d]), ...side.reverse().map(([d, w]) => [x - w, top - d])];
+}
+// A GEN-V picture's stone, on GEN-V's sketch and on GOGH's screen alike (the owner, 2026-11-25: "bring the strokes in GOGH to what I see in GEN-V — there are the
+// old drops there now, seeds; yesterday we changed the brush for the metal one and the strokes look like a mosaic"): the plan's own dab, the gap off it, as wide
+// as Width, its corners the nib's; on GOGH the RUN's steps on a leg (a ½ its own way whatever the RUN), Drop · top under it and Drop · tip past it, 0 at first —
+// so a picture opens on GOGH as GEN-V drew it (the drops of a press test's card, dropOf and stoneOf, hang on the machine's way)
+export function tileOf(x, a, b, o = {}) {
+  const g = dabGapOf(o.gap) / 2, run = isSeed(a, b, o) ? 0 : dabRunOf(o.run ?? 0);
+  return stoneAt(x, Math.max(a, b) - g + run - (o.top ?? 0), Math.min(a, b) + g - run - (o.tip ?? 0), o.wide ?? NIB.wide);
 }
 // a dab's drop → its outline, [[x, y]] clockwise from its top; o.nib: the nib's stone; o: { gap, run, top, tip } — the sliders'; wide, a card's own brush (`dropWide`, est.)
 export function dropOf(x, a, b, o = {}) {
@@ -235,10 +253,11 @@ export function sketchV(B, fit, f, K, o = {}) {
   const jars = order.map((k, i) => ({ id: `c${k}`, name: o.names?.[k] ?? `Colour ${i + 1}`, code: '', hex: o.hexes?.[k] ?? hexOfLab(pal[k]), coats: 1, cells: stacksOf(by[k]).map((s, n) => ({ n: n + 1, legs: s })) }));
   const all = dabs.map(q => [xs(q.c), up(q.a), up(q.b)]), X = all.map(l => l[0]), Y = all.flatMap(l => [l[1], l[2]]);
   const raw = { id: o.id ?? 'gen-v', title: o.title ?? 'GEN-V sketch', sub: `sketch in dabs, ${f.w / 10} × ${f.h / 10}, the brush ${pitch} mm, ${K} colours asked (est.)`, w: f.w, h: f.h, pitch, columns: B.N, kind: 'dabs',
-    dab: { aim: D.aim, min: D.min, max: D.max, brush: pitch }, box: all.length ? [Math.min(...X) - pitch / 2, Math.min(...Y), Math.max(...X) + pitch / 2, Math.max(...Y)] : [0, 0, 0, 0], jars };
+    dab: { aim: D.aim, min: D.min, max: D.max, brush: pitch, ...(D.seed ? { seed: D.seed, seedJ3: D.seedJ3 } : {}) }, ...(pitch === NIB_MM ? { nib: true, preset: { run: 0 } } : {}), box: all.length ? [Math.min(...X) - pitch / 2, Math.min(...Y), Math.max(...X) + pitch / 2, Math.max(...Y)] : [0, 0, 0, 0], jars };
   const C = o.canon === false ? { pic: raw, out: [], kept: [] } : jarsByCanvas(raw, Math.max(f.w, f.h), dabLine);
   let n = 0;   // a jar that took another's dabs: its cells laid again, so its stacks and its order are its own
-  const pic = { ...C.pic, jars: C.pic.jars.map(({ took, ...j }) => ({ ...j, name: o.names ? j.name : `Colour ${++n}`, cells: stacksOf(j.cells.flatMap(c => c.legs)).map((s, i) => ({ n: i + 1, legs: s })) })) };
+  const named = { ...C.pic, jars: C.pic.jars.map(({ took, ...j }) => ({ ...j, name: o.names ? j.name : `Colour ${++n}`, cells: cellsOf(j.cells.flatMap(c => c.legs)) })) };
+  const pic = D.seed ? halvesLate(named, D.seed, dabGapOf(undefined, pitch)) : named;
   return { pic, raw, out: C.out, kept: C.kept, asked: K, made: jars.length, dabs: dabs.length, pal };
 }
 

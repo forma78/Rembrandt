@@ -82,12 +82,12 @@ test('a dab on the machine: 3 mm in from its ends, top to bottom; the J3 gives t
   assert.deepEqual(dabLeg(7.5, 300, 280, { gap: -0.6 }), [[7.5, 297.3], [7.5, 282.7]], 'squeezed: 0.3 longer at each end');
 });
 
-test('the sliders: gap −0.6 … +0.6 by 0.1, run −4 … 4 by 1, the width on the screen 1 … 8 by 0.1, the brush 2, 3 or 5', () => {
-  assert.deepEqual(DAB_UI, { brush: [2, 3, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-4, 4, 1] });
+test('the sliders: gap −0.6 … +0.6 by 0.1, run −4 … 4 by 1, the width on the screen 1 … 8 by 0.1, the brush 3, 4 or 5', () => {
+  assert.deepEqual(DAB_UI, { brush: [3, 4, 5], gap: [-0.6, 0.6, 0.1], wide: [1, 8, 0.1], run: [-4, 4, 1] });
   assert.equal(dabGapOf(undefined), 0.6); assert.equal(dabGapOf(-2), -0.6); assert.equal(dabGapOf(0.44), 0.4); assert.equal(dabGapOf(-0.05), 0);
   assert.equal(dabRunOf(undefined), 0); assert.equal(dabRunOf(9), 4); assert.equal(dabRunOf(2.4), 2); assert.equal(dabRunOf(-1), -1); assert.equal(dabRunOf(-9), -4);
   assert.equal(dabWideOf(undefined), 4.8, '0.96 of the 5 mm brush'); assert.equal(dabWideOf(undefined, 3), 2.9); assert.equal(dabWideOf(5.63), 5.6); assert.equal(dabWideOf(12), 8);
-  assert.equal(brushOf(3), 3); assert.equal(brushOf('5'), 5); assert.equal(brushOf(2), 2); assert.equal(brushOf(4), GEN.pitch);
+  assert.equal(brushOf(3), 3); assert.equal(brushOf('5'), 5); assert.equal(brushOf(4), 4); assert.equal(brushOf(2), 4, 'the 2 mm off GEN-V since 2026-11-25: the nib'); assert.equal(brushOf(undefined), 4);
   // a brush's own gap: the 2 mm's −0.2 (the owner's), the 3 and the 5 0.6; its width 0.96 of it, 1.9 for the 2 mm
   assert.equal(dabGapOf(undefined, 2), -0.2); assert.equal(dabGapOf(undefined, 3), 0.6); assert.equal(dabGapOf(undefined, 5), 0.6); assert.equal(dabGapOf(0.3, 2), 0.3);
   assert.equal(dabWideOf(undefined, 2), 1.9); assert.equal(dabWideOf(0.4, 2), 1);
@@ -442,12 +442,13 @@ test('the headlight v.2: his 13 jars as he set them by 🔄, a line each a layer
   const { GOGH_LIB, passesV } = await import('../src/goghplan.js');
   const pic = JSON.parse(fs.readFileSync(path.join(root, 'app/gogh/headlight-nib-20-v2.json'), 'utf8'));
   assert.equal(GOGH_LIB[0], 'headlight-nib-20-v2');
-  const P = passesV(pic, { gap: 0.2, run: -1 }), name = q => pic.jars.find(j => j.id === q.pencil).name, one = P.filter(q => q.layer === 1).map(name), two = P.filter(q => q.layer === 2).map(name);
+  const P = passesV(pic, { gap: 0.2, run: -1 }), name = q => pic.jars.find(j => j.id === q.pencil).name, one = P.filter(q => q.layer === 1 && !/^a\d+$/.test(q.pencil)).map(name), two = P.filter(q => q.layer === 2).map(name);
   assert.deepEqual(one, ['Jar 1', 'Jar 5', 'Jar 7', 'Jar 22', 'Jar 23', 'Jar 29', 'Jar 30', 'Jar 31', 'Jar 34', 'Jar 38', 'Jar 43', 'Black'], 'a line each');
   assert.equal(two[0], 'Jar 6');
   const xs = [...new Set(pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[0]))))].sort((a, b) => a - b);
   assert.ok(xs.slice(1).every((x, i) => Math.abs(x - xs[i] - 4) < 1e-6), 'columns 4 mm apart');
-  assert.ok(pic.jars.every(j => j.stamp) && pic.preset.run === -1);
+  assert.ok(pic.nib && pic.preset.run === -1);
+  assert.ok(P.every(q => q.byCell.every(c => c.stamp)), 'every jar a stamp, + ADD COLOR\'s too (2026-11-25: a1 had none, its bars 8 mm long past the dab)');
 });
 
 // the nib's stone (the owner, 2026-11-24, the night: "trim the drops a little to the new nib … neat as mosaic stones"): a rounded rectangle 4.3 mm wide, the way's own
@@ -458,7 +459,7 @@ test('the nib\'s stone: 4.3 mm wide, a stamp 5.7 mm (v.6 on canvas ≈ 6), a leg
   const st = dropOf(50, 106, 100, { ...o, run: 0 }), lg = dropOf(50, 112, 100, { ...o, run: 0 }), l10 = dropOf(50, 112, 100, { ...o, run: -1 });
   assert.ok(Math.abs(len(st) - 5.7) < 1e-6 && Math.abs(len(lg) - 13.3) < 1e-6 && Math.abs(len(l10) - 11.3) < 1e-6, `${len(st)} ${len(lg)} ${len(l10)}`);
   for (const q of [st, lg]) assert.ok(Math.abs(Math.max(...xs(q)) - Math.min(...xs(q)) - 4.3) < 1e-9, 'the width');
-  const mid = (Math.max(...ys(lg)) + Math.min(...ys(lg))) / 2, at = y => Math.max(...lg.filter(p => Math.abs(p[1] - y) < 0.15).map(p => p[0] - 50));
+  const mid = (Math.max(...ys(lg)) + Math.min(...ys(lg))) / 2, side = lg.filter(p => p[0] > 50).sort((p, q) => q[1] - p[1]), at = y => { const i = side.findIndex(p => p[1] <= y), [x1, y1] = side[i], [x0, y0] = side[Math.max(0, i - 1)]; return (y0 === y1 ? x1 : x0 + (x1 - x0) * (y - y0) / (y1 - y0)) - 50; };
   assert.ok(Math.abs(at(mid) - 2.15) < 1e-6 && at(Math.max(...ys(lg)) - 0.1) < 1.8, 'square in the middle, round at the corners');
 });
 
@@ -470,4 +471,34 @@ test('a drop drawn by its profiles\' points alone, as many at any length; top an
   const ends = o => { const y = dropOf(50, 100, 88, { gap: -0.1, wide: 2.4, ...o }).map(q => q[1]); return [Math.max(...y), Math.min(...y)]; };
   const [t0, b0] = ends({ top: 0.5, tip: 2 }), [t1, b1] = ends({ top: 4, tip: 12 });
   assert.ok(Math.abs(t0 - t1 - 3.5) < 1e-9 && Math.abs(b0 - b1 - 10) < 1e-9);
+});
+
+// the 4 mm, the metal nib (the owner, 2026-11-25: "we add a 4 mm stroke, because exactly such a nib is in our machine"; the 2 mm "can go")
+test('GEN-V\'s 4 mm, the nib: dabs 6 … 15 mm, every one a stamp, a ½ the headlight\'s own way 4.2 mm; the ½ of the 2 lightest and 2 darkest Layer 2, darks first, the lightest last; nothing lost', async () => {
+  const { NIB_MM, HALF_EXT, paintsOf, tileOf, isSeed, NIB } = await import('../src/goghplan.js'), { withJars } = await import('../src/formgplan.js');
+  assert.equal(NIB_MM, 4); assert.equal(dabGapOf(undefined, 4), 0.2); assert.equal(dabWideOf(undefined, 4), 4.3); assert.equal(acrossV(4), 556);
+  const q = sketch('30x30', 14, 300, 300, 4), pic = q.pic, all = p => p.jars.flatMap(j => j.cells.flatMap(c => c.legs)).map(l => l.join()).sort(), L = pic.jars.flatMap(j => j.cells.flatMap(c => c.legs.map(l => l[1] - l[2])));
+  assert.ok(pic.nib && pic.pitch === 4 && pic.preset.run === 0); assert.deepEqual(pic.dab, { aim: 12, min: 6, max: 15, brush: 4, seed: 7.5, seedJ3: 2 });
+  assert.ok(Math.min(...L) >= 6 - 1e-6 && Math.max(...L) <= 15 + 1e-6, `${Math.min(...L)} … ${Math.max(...L)}`);
+  assert.deepEqual(all(pic), all(q.raw), 'the canon and the layers move dabs between lines, none added or lost');
+  assert.ok(dabRunsOf(passesV(pic, { gap: 0.2, run: 0 })).every(r => r.dip && !r.beyond && !r.idle), 'a dip a dab, no lift beyond');
+  // the layers, on six jars light to dark: the ½ (6 mm) of the two lightest and the two darkest out of Layer 1, the middle ones' in it
+  const { halvesLate } = await import('../src/goghplan.js'), hex = ['#FFFFFF', '#E0E0E0', '#B0B0B0', '#808080', '#404040', '#101010'];
+  const six = { w: 200, h: 200, pitch: 4, nib: true, kind: 'dabs', dab: { seed: 7.5, seedJ3: 2 }, jars: hex.map((h, i) => ({ id: `c${i}`, name: `Colour ${i + 1}`, code: '', hex: h, coats: 1, cells: [{ n: 1, legs: [[10 + 20 * i, 150, 138]] }, { n: 2, legs: [[10 + 20 * i, 100, 94]] }, { n: 3, legs: [[10 + 20 * i, 80, 73]] }] })) };
+  six.jars[5].cells = six.jars[5].cells.slice(1);                                    // the darkest ½ alone: no line of it in Layer 1
+  const H = halvesLate(six, 7.5, 0.2), late = H.jars.filter(j => j.late), base = H.jars.filter(j => !j.late), isHalf = l => isSeed(l[1], l[2], { seed: 7.5, gap: 0.2 });
+  assert.deepEqual(all(H), all(six)); assert.equal(HALF_EXT, 2); assert.equal(paintsOf(H), 6);
+  assert.deepEqual(base.map(j => j.id), ['c0', 'c1', 'c2', 'c3', 'c4']); assert.deepEqual(late.map(j => [j.id, j.of]), [['c5-2', 'c5'], ['c4-2', 'c4'], ['c1-2', 'c1'], ['c0-2', 'c0']], 'the darks first, the lightest last');
+  assert.ok(late.every(j => j.name === six.jars.find(q => q.id === j.of).name && j.cells.every(c => c.legs.every(isHalf))));
+  assert.ok(['c0', 'c1', 'c4'].every(id => base.find(j => j.id === id).cells.every(c => !c.legs.some(isHalf))) && base.find(j => j.id === 'c2').cells.some(c => c.legs.some(isHalf)));
+  const P = passesV(H, { gap: 0.2, run: 0 });
+  assert.deepEqual(P.map(p => p.layer), [1, 1, 1, 1, 1, 2, 2, 2, 2]);
+  for (const p of P.filter(q => q.layer === 2)) assert.ok(p.byCell.every(c => c.stamp && c.legs.every(l => Math.abs(l[0][1] - l[1][1] - 0.2) < 1e-6) && c.j3.every(z => z.early === 2 && z.late === 2)), 'a ½ 0.2 + 2 + 2, the way 4.2');
+  const W = withJars(H, { c0: { name: 'Jar 1', hex: '#E6E5DF' } });
+  assert.deepEqual(W.jars.filter(j => (j.of ?? j.id) === 'c0').map(j => j.name), ['Jar 1', 'Jar 1'], 'one 🔄 for both its layers');
+  // the screen's stone: GEN-V's dab to the mm at RUN 12 and the drop's 0 · 0; the RUN on a leg alone; top and tip its two ends
+  const ys = (a, b, o) => { const y = tileOf(50, a, b, { gap: 0.2, wide: 4.3, seed: 7.5, ...o }).map(p => p[1]); return [Math.max(...y), Math.min(...y)].map(v => +v.toFixed(6)); };
+  assert.deepEqual(ys(100, 88), [99.9, 88.1]); assert.deepEqual(ys(100, 88, { run: -1 }), [98.9, 89.1]); assert.deepEqual(ys(100, 94, { run: -1 }), [99.9, 94.1], 'a ½ whatever the RUN');
+  assert.deepEqual(ys(100, 88, { top: 1, tip: 2 }), [98.9, 86.1]);
+  const xs = tileOf(50, 100, 88, { gap: 0.2 }).map(p => p[0]); assert.ok(Math.abs(Math.max(...xs) - Math.min(...xs) - NIB.wide) < 1e-9);
 });

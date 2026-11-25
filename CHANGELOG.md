@@ -5,6 +5,10 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GEN-V's 4 mm, the metal nib; the 2 mm off; the ½ on top, Layer 2** (2026-11-25; the owner: "we add a 4 mm stroke, because exactly such a nib is in our machine";
+  "you remember that the ½ strokes go on top now, as layer 2?"). Dabs 6 … 15 mm, every one a stamp, a ½ the headlight's own way; the ½ of the two lightest and the
+  two darkest jars a line of their own, late. Read off the headlight v.2 dry (`GOGH/IMG_3611` … `3613`). The canon of the jars kept on GEN-V (his word). Tested.
+
 - **The columns dragged by their edge; COLORS as wide as the window** (2026-11-25; the owner: "a way to stretch the tab COLORS horizontally, wide; now it is
   fixed"; "THE LIBRARY … I bring the cursor to the vertical frame and can pull it, as a column's width in a table in Excel"). `src/cols.js`: the library on
   GOGH, FORM-G, LIB-G and HOLO, its pictures growing with it, GOGH's THE JARS, COLORS' sections by either edge; a double click, as at first; kept in this
