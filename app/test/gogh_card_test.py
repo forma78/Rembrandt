@@ -60,6 +60,28 @@ class GoghCardTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 gogh_card_edit({"id": "porsche-led-20-4", "jars": [*jars[:3], {**bad, "cells": [{"legs": [[22, 150, 144]]}]}]}, cards=self.cards)
 
+    def test_a_background(self):
+        same = [{"id": j["id"], "cells": j["cells"]} for j in CARD["jars"]]
+        g1 = {"id": "g1", "name": "C2", "hex": "#dcbdbb", "ground": True, "of": "l1", "cells": [{"legs": [[50, 30, 18], [50, 18, 6]]}]}
+        out = gogh_card_edit({"id": "porsche-led-20-4", "jars": [g1, *same], "jpg": JPG}, cards=self.cards)
+        self.assertEqual(out["dabs"], 6)
+        card = self.read()
+        self.assertEqual([j["id"] for j in card["jars"]], ["g1", "l1", "l6", "l9"], "before the figure's jars")
+        self.assertEqual(card["jars"][0], {"id": "g1", "name": "C2", "code": "", "hex": "#DCBDBB", "coats": 1, "under": True, "ground": True, "of": "l1", "cells": [{"n": 1, "legs": [[50, 30, 18], [50, 18, 6]]}]})
+        # its dabs its own: another stroke, less of it, a second colour, none — the figure's the same
+        gogh_card_edit({"id": "porsche-led-20-4", "jars": [{"id": "g1", "cells": [{"legs": [[50, 30, 18]]}]}, {"id": "g2", "name": "Jar 3", "hex": "#A9AAA8", "ground": True, "cells": [{"legs": [[54, 40, 28]]}]}, *same]}, cards=self.cards)
+        self.assertEqual([(j["id"], len(j["cells"])) for j in self.read()["jars"]][:2], [("g2", 1), ("g1", 1)])
+        with self.assertRaises(ValueError, msg="the figure's dab lost beside a background"):
+            gogh_card_edit({"id": "porsche-led-20-4", "jars": [{"id": "g1", "cells": [{"legs": [[50, 30, 18]]}]}, {"id": "g2", "cells": []}, *same[:2]]}, cards=self.cards)
+        for legs, why in [([[50, 230, 218]], "off the canvas"), ([[50, 60, 10]], "too long"), ([[50, 18, 30]], "upside down"), ([[50, 30, 18], [50, 30, 18]], "twice")]:
+            with self.assertRaises(ValueError, msg=why):
+                gogh_card_edit({"id": "porsche-led-20-4", "jars": [{"id": "g1", "cells": [{"legs": legs}]}, {"id": "g2", "cells": []}, *same]}, cards=self.cards)
+        for bad in [{"id": "g3", "name": "C2", "hex": "#DCBDBB"}, {"id": "g3", "ground": True, "hex": "#DCBDBB"}, {"id": "x3", "ground": True, "name": "C2", "hex": "#DCBDBB"}]:
+            with self.assertRaises(ValueError, msg="not a background's line"):
+                gogh_card_edit({"id": "porsche-led-20-4", "jars": [{**bad, "cells": [{"legs": [[60, 30, 18]]}]}, {"id": "g1", "cells": []}, {"id": "g2", "cells": []}, *same]}, cards=self.cards)
+        gogh_card_edit({"id": "porsche-led-20-4", "jars": [{"id": "g1", "cells": []}, {"id": "g2", "cells": []}, *same]}, cards=self.cards)
+        self.assertEqual(self.read()["jars"], CARD["jars"], "all of it taken away: the card as it was")
+
     def test_refused(self):
         same = [{"id": j["id"], "cells": j["cells"]} for j in CARD["jars"]]
         for body, why in [({"id": "porsche-led-20-4", "jars": same[:2]}, "a dab lost"),

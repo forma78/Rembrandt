@@ -87,13 +87,14 @@ const lengthOf = pts => pts.slice(1).reduce((t, q, i) => t + Math.hypot(q[0] - p
 // A jar `last` (the red classic's v.4, its shadow; the owner, 2026-11-13: "just draw me the shadow, about 10 cm to the side"): after every other line, its second coat
 // at once after its first, so Start from its first line runs it alone on a picture already painted
 // A jar `under` (GEN-F's motion blur, its layer under the picture; the owner, 2026-11-16, sending mickey 2 with blur 110 · 90 % to FORM-G): before all of them,
-// light to dark, one coat, layer 0; then, on the dry layer under, the picture as before
+// light to dark, one coat, layer 0; then, on the dry layer under, the picture as before. GOGH's background too (`ground`, its wide brush, 2026-11-25)
 export const seqOf = pic => {
   // a jar's second coat its picture's cells alone, not the motion blur's stripes laid with it (`under` cells, genfpic.py, 2026-11-16): those one coat
   const two = js => js.filter(j => j.coats === 2).map(j => ({ ...j, id: `${j.id}:2`, jar: j.id, name: `${j.name} · layer 2`, layer: 2, coat: 2, cells: j.cells.filter(c => !c.under) })).filter(j => j.cells.length);
-  const under = pic.jars.filter(j => j.under), main = pic.jars.filter(j => !j.under);
+  const lum = h => 0.2126 * parseInt(h.slice(1, 3), 16) + 0.7152 * parseInt(h.slice(3, 5), 16) + 0.0722 * parseInt(h.slice(5, 7), 16);
+  const under = [...pic.jars.filter(j => j.under && !j.ground), ...pic.jars.filter(j => j.ground).sort((p, q) => lum(q.hex) - lum(p.hex))], main = pic.jars.filter(j => !j.under);
   const first = main.filter(j => !j.last), now = first.filter(j => !j.late), late = first.filter(j => j.late), last = main.filter(j => j.last);
-  return [...under.map(j => ({ ...j, name: `${j.name} · under`, layer: 0, coat: 1 })), ...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
+  return [...under.map(j => ({ ...j, name: `${j.name} · ${j.ground ? 'background' : 'under'}`, layer: 0, coat: 1 })), ...now.map(j => ({ ...j, layer: 1, coat: 1 })), ...late.map(j => ({ ...j, layer: 2, coat: 1 })), ...two(first), ...last.flatMap(j => [{ ...j, layer: 2, coat: 1 }, ...two([j])])];
 };
 // ---------- THE JARS: a picture's colours in the owner's own numbered jars (2026-11-17) ----------
 // The owner, 2026-11-17: "I am adding colours little by little. Into the palette: Colour 1 = Jar 49 (yes, the new one, white-yellow now), Colour 3 = Jar 51,

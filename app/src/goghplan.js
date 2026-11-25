@@ -261,6 +261,58 @@ export function sketchV(B, fit, f, K, o = {}) {
   return { pic, raw, out: C.out, kept: C.kept, asked: K, made: jars.length, dabs: dabs.length, pal };
 }
 
+export const cellsOf = legs => stacksOf(legs).map((s, i) => ({ n: i + 1, legs: s }));
+// The ½ on top, Layer 2 (the owner, 2026-11-23, of the gummy bear's head: "last we lay only the seeds of the lightest and the darkest. Properly as Layer 2. Then the
+// wet on wet is solved too"; 2026-11-25: "you remember that the ½ strokes go on top now, as layer 2?"): the ½ of the HALF_EXT lightest jars and of the HALF_EXT
+// darkest a line of their own each, `late`, on the dry first layer — the darks first, the lightest the very last (led.py's ext, the headlights'); every leg and
+// the middle jars' ½ Layer 1, light to dark. `of`: the jar it is — its colour and its 🔄 the same (withJars)
+export const HALF_EXT = 2;
+export function halvesLate(pic, seed, gap) {
+  const n = pic.jars.length, isHalf = ([, a, b]) => isSeed(a, b, { seed, gap }), ext = pic.jars.map((_, i) => i < HALF_EXT || i >= n - HALF_EXT);
+  const parts = pic.jars.map((j, i) => { const legs = j.cells.flatMap(c => c.legs), half = ext[i] ? legs.filter(isHalf) : []; return { j, half, rest: half.length ? legs.filter(l => !isHalf(l)) : null }; });
+  const first = parts.filter(q => !q.rest || q.rest.length).map(({ j, rest }) => rest ? { ...j, cells: cellsOf(rest) } : j);
+  const late = parts.filter(q => q.half.length).map(({ j, half }) => ({ ...j, id: `${j.id}-2`, of: j.id, late: true, cells: cellsOf(half) }));
+  return { ...pic, jars: [...first, ...late.reverse()] };   // light to dark reversed: the darkest first, the lightest last
+}
+// ---------- the background, GOGH's wide brush (2026-11-25) ----------
+// The owner, 2026-11-25, GOGH/background.png: "a wide brush for the background appears. Round the object on the canvas we can now paint a background, in the same
+// strokes, making the picture's depth … it does not repaint the figure that is there, it is a layer UNDER the figure. Not a solid fill but as a brush in Photoshop,
+// a large diameter (I drew a circle)"; his little bricks in the corner. So the dabs it may lay are the picture's own, one set for the whole canvas, whatever the
+// strokes: columns on the figure's, `step` apart, every bare stretch of a column cut into dabs of `aim` — 6 … 15 mm as the nib's — at brick places (`phase`, a
+// column's after its neighbour's); a stretch's end at the figure `tuck` mm under it, so no canvas shows at its edge, one narrower than `slit` left bare; on the
+// canvas as far as the brush reaches. The circle takes a dab when its middle lies in it. A jar `under`, `ground`: layer 0, before the figure, the figure over it
+export const GROUND = { aim: 12, min: 6, max: 15, tuck: 2, slit: 3, phase: [0, 6, 3, 9], d: 40, dUi: [10, 120, 5] };   // mm, est.; d: the circle's diameter at first
+export const groundD = v => inRange(v ?? GROUND.d, GROUND.dUi);
+export function groundOf(pic) {
+  const G = GROUND, fig = pic.jars.filter(j => !j.under).flatMap(j => j.cells.flatMap(c => c.legs)), want = pic.nib ? NIB_MM : pic.pitch;
+  const xs = [...new Set(fig.map(l => Math.round(l[0] * 100) / 100))].sort((a, b) => a - b), gaps = xs.slice(1).map((x, i) => x - xs[i]).filter(d => d > 0.5), least = gaps.length ? Math.min(...gaps) : want;
+  const step = least * Math.max(1, Math.ceil((want - 0.01) / least)), W = Math.min(pic.w, acrossV(pic.pitch)), H = Math.min(pic.h, GEN.along), x0 = (pic.w - W) / 2, y0 = (pic.h - H) / 2, y1 = y0 + H;
+  const at = xs.length ? xs[0] : pic.w / 2, r1 = v => Math.round(v * 10) / 10, out = [];
+  for (let x = at - Math.floor((at - (x0 + step / 2) + 1e-6) / step) * step, k = Math.round((x - at) / step); x <= x0 + W - step / 2 + 1e-6; x += step, k++) {
+    const busy = fig.filter(l => Math.abs(l[0] - x) < step * 0.6).map(l => [Math.min(l[1], l[2]), Math.max(l[1], l[2])]).sort((p, q) => p[0] - q[0]), bare = [];
+    let y = y0;
+    for (const [lo, hi] of busy) { if (lo > y) bare.push([y, lo]); y = Math.max(y, hi); }
+    if (y < y1) bare.push([y, y1]);
+    const brick = G.phase[((k % 4) + 4) % 4];
+    for (const [a, b] of bare) {
+      if (b - a < G.slit - 1e-6) continue;
+      let lo = a > y0 + 1e-6 ? a - G.tuck : a, hi = b < y1 - 1e-6 ? b + G.tuck : b;
+      if (hi - lo < G.min) { const c = Math.min(y1 - G.min / 2, Math.max(y0 + G.min / 2, (lo + hi) / 2)); lo = c - G.min / 2; hi = c + G.min / 2; }
+      const cuts = [lo];
+      for (let c = brick + G.aim * Math.ceil((lo + G.min - brick) / G.aim); c <= hi - G.min + 1e-6; c += G.aim) cuts.push(c);
+      cuts.push(hi);
+      for (let i = 1; i < cuts.length; i++) {
+        const p = cuts[i - 1], q = cuts[i], m = q - p > G.max ? 2 : 1;
+        for (let z = 0; z < m; z++) out.push([Math.round(x * 100) / 100, r1(p + (z + 1) * (q - p) / m), r1(p + z * (q - p) / m)]);
+      }
+    }
+  }
+  return out;
+}
+export const legKey = l => `${Math.round(l[0] * 100) / 100}|${Math.round(Math.max(l[1], l[2]) * 10) / 10}|${Math.round(Math.min(l[1], l[2]) * 10) / 10}`;
+// how many paints a picture asks for: its lines, a Layer 2's with its jar's
+export const paintsOf = pic => new Set(pic.jars.map(j => j.of ?? j.id)).size;
+
 // ---------- the run, GOGH's ----------
 // a dab's leg on the machine: painted top to bottom; `gap` / 2 off both its ends (the slider, the plan's), then `trim` in from them (DAB.trim, the J3 gives
 // them back), then `run` on past them (the slider, the machine's alone: the brush lands earlier and lifts later, or, below 0, later and earlier, the leg
@@ -296,14 +348,14 @@ export function dabLeg(x, a, b, o = {}) {
 // o: { gap, run, trim } — the sliders'
 export function passesV(pic, o = {}) {
   return seqOf(pic).map(j => {
-    const byCell = j.cells.map((c, i) => { const so = { ...o, seed: pic.dab?.seed, seedJ3: pic.dab?.seedJ3, allSeeds: !!j.seeds }, legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, so)), j3 = c.legs.map(([, a, b]) => dabJ3(a, b, so)); return { num: i + 1, k: legs.length, legs, ...(j3.some(Boolean) ? { j3 } : {}), ...(j.stamp ? { stamp: true } : {}), line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
+    const byCell = j.cells.map((c, i) => { const so = { ...o, seed: pic.dab?.seed, seedJ3: pic.dab?.seedJ3, allSeeds: !!j.seeds }, legs = c.legs.map(([x, a, b]) => dabLeg(x, a, b, so)), j3 = c.legs.map(([, a, b]) => dabJ3(a, b, so)); return { num: i + 1, k: legs.length, legs, own: c.legs, ...(j3.some(Boolean) ? { j3 } : {}), ...(j.stamp || pic.nib ? { stamp: true } : {}), line: [], over: 0, end: 0, mm: legs.reduce((t, l) => t + Math.abs(l[1][1] - l[0][1]), 0) }; });
     return { pencil: j.id, layer: j.layer, fill: 'dabs', cells: byCell.length, byCell, tracks: byCell.reduce((a, q) => a + q.k, 0), rows: 0, rays: 0, rubs: 1, idle: false, strokes: [], mm: byCell.reduce((a, q) => a + q.mm, 0) };
   });
 }
 // the brush's runs: every dab a run of its own, on a dip of its own at its top, down to its bottom and the lift beyond — nothing after it. A jar's `stamp` (the
 // owner, 2026-11-23, the night, the spatula nib: "somewhere a bug … old settings do not let the short drops through"): no lift beyond — the brush lands over
 // the first half of its way and lifts over the last, not 8 mm past it (strokes.js, SWEEP_TAIL): a springy nib touches all the way down and up
-export const dabRunsOf = passes => passes.flatMap((P, k) => P.byCell.flatMap(c => c.legs.map((l, i) => ({ pass: k, num: c.num, pts: l, say: `dab${c.legs.length > 1 ? ` ${i + 1}/${c.legs.length}` : ''}`, dip: true, idle: false, beyond: !c.stamp, dab: true, ...(c.j3?.[i] ? { j3: c.j3[i] } : {}) }))));   // a dab's own J3 (dabJ3); a stamp no lift beyond
+export const dabRunsOf = passes => passes.flatMap((P, k) => P.byCell.flatMap(c => c.legs.map((l, i) => ({ pass: k, num: c.num, pts: l, say: `dab${c.legs.length > 1 ? ` ${i + 1}/${c.legs.length}` : ''}`, dip: true, idle: false, beyond: !c.stamp, dab: true, ...(c.own ? { own: c.own[i] } : {}), ...(c.j3?.[i] ? { j3: c.j3[i] } : {}) }))));   // a dab's own J3 (dabJ3); a stamp no lift beyond
 
 // ---------- APPROVE 🐾: the card, GEN-V's page making it (2026-11-22, the evening) ----------
 // The owner: "why do I download to the desktop at all … I press APPROVE (add a paw 🐾, by the way) and the picture appears in Library-V". GOGH/generator/

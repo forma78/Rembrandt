@@ -2468,6 +2468,7 @@ def genv_approve(body, sketches=GOGH_SKETCHES, cards=GOGH_CARDS):
 # jar left with no dab out — and its picture, the page's. + ADD COLOR (the owner, the same evening: "I want one more paint, the light grey Jar 3 … I do not
 # like that there is so much black on it"): a jar of his new to the card, `a<n>`, its name and hex, after the card's own. Not while a run is on: the run's steps are the card's as it was. Nothing on the machine.
 NEW_JAR, HEX6 = re.compile(r"^a[0-9]{1,4}$"), re.compile(r"^#[0-9A-Fa-f]{6}$")
+GROUND_JAR, GROUND_MAX, GROUND_LEG = re.compile(r"^g[0-9]{1,4}$"), 20000, 30   # a background's line; its dabs at most; the longest, mm (the page's own are 6 … 15)
 
 
 def _legs_of(jars):
@@ -2487,15 +2488,22 @@ def gogh_card_edit(body, cards=GOGH_CARDS, live=False):
     if card.get("kind") != "dabs":
         raise ValueError("not a picture in dabs")
     new, own = body.get("jars"), {j.get("id"): j for j in card.get("jars", [])}
-    added = lambda j: j.get("id") not in own and NEW_JAR.match(str(j.get("id") or "")) and isinstance(j.get("name"), str) and 0 < len(j["name"]) <= 40 \
-        and HEX6.match(str(j.get("hex") or ""))                                     # + ADD COLOR's: a jar of the owner's, new to the card
-    if not isinstance(new, list) or not all(isinstance(j, dict) and (j.get("id") in own or added(j)) and isinstance(j.get("cells"), list) for j in new):
+    named = lambda j: isinstance(j.get("name"), str) and 0 < len(j["name"]) <= 40 and HEX6.match(str(j.get("hex") or ""))
+    # + ADD COLOR's: a jar of the owner's, new to the card; the background's (GOGH's wide brush, 2026-11-25): a line under the figure, its dabs its own
+    added = lambda j: j.get("id") not in own and NEW_JAR.match(str(j.get("id") or "")) and named(j)
+    ground = lambda j: bool(own.get(j.get("id"), {}).get("ground")) or (j.get("id") not in own and GROUND_JAR.match(str(j.get("id") or "")) and j.get("ground") is True and named(j)
+        and (j.get("of") is None or (isinstance(j["of"], str) and 0 < len(j["of"]) <= 40)))
+    if not isinstance(new, list) or not all(isinstance(j, dict) and (j.get("id") in own or added(j) or ground(j)) and isinstance(j.get("cells"), list) for j in new):
         raise ValueError("not the card's jars")
-    if len({j["id"] for j in new}) != len(new) or _legs_of(new) != _legs_of(card.get("jars", [])):
+    figure = lambda jars: [j for j in jars if not ground(j)]
+    if len({j["id"] for j in new}) != len(new) or _legs_of(figure(new)) != _legs_of(figure(card.get("jars", []))):
         raise ValueError("not the card's dabs: none may be added or lost")
+    under, w, h = _legs_of([j for j in new if ground(j)]), float(card.get("w") or 0), float(card.get("h") or 0)
+    if len(under) > GROUND_MAX or len(set(under)) != len(under) or not all(0 <= x <= w and -0.1 <= b < a <= h + 0.1 and 1 <= a - b <= GROUND_LEG for x, a, b in under):
+        raise ValueError("not a background's dabs: on the canvas, upright, %d mm at most, each once" % GROUND_LEG)
     cells = {j["id"]: [{"n": i + 1, "legs": [[x, a, b] for x, a, b in c["legs"]]} for i, c in enumerate(q for q in j["cells"] if q.get("legs"))] for j in new}
-    more = [{"id": j["id"], "name": j["name"], "code": "", "hex": j["hex"].upper(), "coats": 1} for j in new if j["id"] not in own]
-    card["jars"] = [{**j, "cells": cells[j["id"]]} for j in [*card["jars"], *more] if cells.get(j["id"])]   # the card's own order, an added jar after it, a jar with no dab out
+    more = [{"id": j["id"], "name": j["name"], "code": "", "hex": j["hex"].upper(), "coats": 1, **({"under": True, "ground": True, **({"of": j["of"]} if j.get("of") else {})} if ground(j) else {})} for j in new if j["id"] not in own]
+    card["jars"] = [{**j, "cells": cells[j["id"]]} for j in [*(j for j in more if j.get("ground")), *card["jars"], *(j for j in more if not j.get("ground"))] if cells.get(j["id"])]   # the card's own order, a background before it, an added jar after it, a jar with no dab out
     jpg = body.get("jpg")
     if isinstance(jpg, str) and jpg.startswith(JPG_DATA):
         _write(os.path.join(cards, pid + ".jpg"), base64.b64decode(jpg[len(JPG_DATA):], validate=True))

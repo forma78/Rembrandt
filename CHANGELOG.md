@@ -5,6 +5,14 @@ Machine measurements stay in RUBENS: `../Rubens/CALIBRATION.md`.
 
 ## Unreleased
 
+- **GOGH: the background's wide brush, G** (2026-11-25; the owner, `GOGH/background.png`: "a wide brush for the background … a layer UNDER the figure … as a brush in
+  Photoshop, a large diameter"). The picture's own dabs as bricks, wherever the canvas is bare, in any jar of THE JARS, run first; ⌥ erases, [ ] the size, ⌘Z.
+  `rembrandt.py`'s `gogh_card_edit` takes it. **Restart rembrandt.py.** Tested.
+
+- **GOGH draws what GEN-V drew** (2026-11-25; the owner: "where do the old strokes of the piglet come from — it is a mistake. It is for the brush with the rubber
+  tip"). One stone on both screens, Play too; Drop · top and tip a picture's own, 0 at first; RUN 12 when chosen. + ADD COLOR's jar on a nib's card a stamp (its
+  bars were 8 mm long past the dab). Tested.
+
 - **GEN-V's 4 mm, the metal nib; the 2 mm off; the ½ on top, Layer 2** (2026-11-25; the owner: "we add a 4 mm stroke, because exactly such a nib is in our machine";
   "you remember that the ½ strokes go on top now, as layer 2?"). Dabs 6 … 15 mm, every one a stamp, a ½ the headlight's own way; the ½ of the two lightest and the
   two darkest jars a line of their own, late. Read off the headlight v.2 dry (`GOGH/IMG_3611` … `3613`). The canon of the jars kept on GEN-V (his word). Tested.

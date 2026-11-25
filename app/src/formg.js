@@ -2,7 +2,7 @@
 // copied here so that OPM-N stays as it was; no form to draw, no palette to choose, the brush fixed (the owner, 2026-11-06).
 import { STROKE_DROPS, FORMG, FORMG_LIB, OPMG_LIB, PRESS_OK, pointsOf, seqOf, passesOf, rowsOf, brushRuns, placeRange, framedPic, cleanFrame, R3, contourOf, PEN, MARKS, stripsOf, marksOf, withMarks, myJarsOf, withJars, CLASSIC, JAR_NAME } from './formgplan.js';
 import { deltaE } from './canon.js';
-import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen, dropOf, dropTopOf, dropTipOf, DROP } from './goghplan.js';
+import { GOGH_LIB, passesV, dabRunsOf, DAB_UI, dabOf, dabGapOf, dabRunOf, dabWideOf, dabOnScreen, dropOf, dropTopOf, dropTipOf, DROP, tileOf, groundOf, groundD, GROUND, legKey, cellsOf, paintsOf } from './goghplan.js';
 import { plotRun, DEFAULTS, homeBlocks, ELBOW_HOVER, ELBOW_UP, TAIL_MIN, handDip, landingCheck, handDipS } from './strokes.js';
 import { reach } from './machine.js';
 import { wipeBlocks, WIPE_NEW, machinePiece } from './inkaplan.js';
@@ -57,7 +57,10 @@ if (DABS) {
   S.dabRun = dabRunOf(S.dabRun); S.dabWide = S.dabWide && typeof S.dabWide === 'object' ? S.dabWide : {}; S.dabGaps = S.dabGaps && typeof S.dabGaps === 'object' ? S.dabGaps : {};
   if (typeof S.dabGap === 'number') { S.dabGaps = { 3: S.dabGap, 5: S.dabGap, ...S.dabGaps }; delete S.dabGap; }
   S.dropTop = dropTopOf(S.dropTop); S.dropTip = dropTipOf(S.dropTip);   // the slave's top and tip, the screen's alone (Press test 3, 2026-11-23)
+  S.drops = S.drops && typeof S.drops === 'object' ? S.drops : {}; S.groundD = groundD(S.groundD);
 }
+// a GEN-V picture's top and tip its own, 0 at first: it opens as GEN-V drew it (2026-11-25); a press test's card by the two above, its preset's
+const dropNow = () => PIC?.drop ? { top: S.dropTop, tip: S.dropTip } : { top: 0, tip: 0, ...(S.drops?.[PIC?.id] ?? {}) };
 // a brush's own in this browser first, else the picture's look as GEN-V approved it (genvpic.py's `look`, 2026-11-22: the bear's width 2.3), else the brush's
 const dabWide = () => dabWideOf(S.dabWide?.[PIC?.pitch] ?? PIC?.look?.wide, PIC?.pitch), dabGap = () => dabGapOf(S.dabGaps?.[PIC?.pitch] ?? PIC?.look?.gap, PIC?.pitch);
 S.frames = Object.fromEntries(Object.entries(S.frames ?? {}).map(([k, f]) => [k, cleanFrame(f)]).filter(([, f]) => f));
@@ -100,7 +103,7 @@ const frameHome = () => ({ left: Math.round(placeNow().edgeLeft + PIC.frame.x0),
 // picture only — none in a frame (its own small canvas), none on OPM-G. S.marks: the switch, on at first
 const MARKSNOW = new Map();
 function marksNow() {
-  if (CANON_RUN || !PIC || PIC.frame || S.marks === false) return null;
+  if (CANON_RUN || !PIC || PIC.frame || S.marks === false || PIC.jars.some(j => j.ground)) return null;   // a background is painted where the paper strips would lie (2026-11-25)
   const W = reach(), c = placeNow(), key = JSON.stringify([pk(), c, SEQ.length]);
   if (!MARKSNOW.has(key)) {
     const on = { x0: Math.max(0, -c.edgeLeft), x1: Math.min(PIC.w, W.y.max - W.y.min - c.edgeLeft), y0: Math.max(0, -c.edgeBottom), y1: Math.min(PIC.h, W.x.max - W.x.min - c.edgeBottom) };
@@ -137,7 +140,7 @@ function paintRun(from = 0) {
   const passes = plan().slice(from);
   if (!passes.length) return EMPTY;
   const R = rowsOf(PIC, passes, S.dipEvery, S.dipLap, CANON_RUN, { ...R3RUN, marks: mk?.M }), name = id => jarOf(id)?.name ?? id;
-  const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : passes[k].layer === 2 && passes[k - 1].layer === 1 ? `the first layer is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : passes[k].layer === 1 && passes[k - 1].layer === 0 ? `the layer under is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` })));
+  const r = plotRun({ ...runOpts(R.ps.length), press: S.press, noDipUnder: 0 }, R.groups.map((g, k) => ({ key: 'DRAG', ps: g.map(i => R.ps[i]), why: !k ? null : passes[k].layer === 2 && passes[k - 1].layer === 1 ? `the first layer is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : passes[k].layer === 1 && passes[k - 1].layer === 0 ? `the ${jarOf(passes[k - 1].pencil)?.ground ? 'background' : 'layer under'} is done: let it dry. Then wipe the brush, put ${name(passes[k].pencil)} in the cup, Continue` : `wipe the brush, put ${name(passes[k].pencil)} in the cup, then Continue` })));
   const n = plan().length, rows = from ? R.info.map(q => ({ ...q, label: q.label.replace(/^(\d+)\/\d+ · /, (_, k) => `${from + +k}/${n} · `) })) : R.info;   // a line's number in the whole list, a run from a later line too
   const out = { key, ...r, blocks: wipeBlocks(r.blocks, S.wipe), rows, lifts: R.lifts, mm: passes.reduce((a, q) => a + q.mm, 0), passes };
   if (RUNS.size > 6) RUNS.clear();
@@ -629,7 +632,7 @@ function setElbow(deg) {
 $('#brushSl').oninput = e => setElbow(+e.target.value);
 // GOGH's sliders: the gap and the run into the plan (the next DRAG; a run on keeps its own), the width onto the screen
 const DAB_SAY = { gap: v => `${v > 0 ? '+' : v < 0 ? '−' : ''}${fmt(Math.abs(v), 1)} mm`, wide: v => `${fmt(v, 1)} mm`, run: v => `${dabOf(PIC?.pitch).aim + 2 * v} mm`, top: v => `${fmt(v, 1)} mm`, tip: v => `${fmt(v, 1)} mm` };   // a standard dab of the picture's brush with its run on
-const dabNow = k => k === 'gap' ? dabGap() : k === 'run' ? S.dabRun : k === 'top' ? S.dropTop : k === 'tip' ? S.dropTip : dabWide();
+const dabNow = k => k === 'gap' ? dabGap() : k === 'run' ? S.dabRun : k === 'top' || k === 'tip' ? dropNow()[k] : dabWide();
 function showDabs() {
   if (!DABS || !$('#gapSl')) return;
   const ks = ['gap', 'wide', 'run', ...($('#topSl') ? ['top', 'tip'] : [])];
@@ -643,7 +646,7 @@ function setDab(k, v) {
   const was = dabNow(k);
   const now = k === 'gap' ? dabGapOf(v, PIC?.pitch) : k === 'run' ? dabRunOf(v) : k === 'top' ? dropTopOf(v) : k === 'tip' ? dropTipOf(v) : dabWideOf(v, PIC?.pitch);
   if (now === was) return showDabs();
-  if (k === 'gap') S.dabGaps = { ...S.dabGaps, [PIC.pitch]: now }; else if (k === 'run') S.dabRun = now; else if (k === 'top') S.dropTop = now; else if (k === 'tip') S.dropTip = now; else S.dabWide = { ...S.dabWide, [PIC.pitch]: now };
+  if (k === 'gap') S.dabGaps = { ...S.dabGaps, [PIC.pitch]: now }; else if (k === 'run') S.dabRun = now; else if ((k === 'top' || k === 'tip') && !PIC?.drop) S.drops = { ...S.drops, [PIC.id]: { ...dropNow(), [k]: now } }; else if (k === 'top') S.dropTop = now; else if (k === 'tip') S.dropTip = now; else S.dabWide = { ...S.dabWide, [PIC.pitch]: now };
   if (k === 'wide' || k === 'top' || k === 'tip') { save(); showDabs(); kick(); return; }   // the screen's alone
   settle();
   if (lastSt && LIVE.includes(lastSt.state) && !swapLive(k)) warn(`${k === 'gap' ? 'Gap' : 'Run'}: from the next DRAG — the run on is not this page's DRAG.`);
@@ -709,9 +712,10 @@ function drawLegs(c, passes, dim = 1) {
 }
 // GOGH's Picture (2026-11-22): every dab as it will lie, from the plan, not the card's jpg; the list's order, the later over the earlier; a jar's row: the
 // others veiled. Since 2026-11-25 every picture's dabs its drops, so Drop · top and Drop · tip work on it (the owner, of the piglet: "add to the new pictures
-// from GEN-V / LIB-V the function Drop TIP + Drop TOP, these two sliders are not there now"): a card with `drop` as it was; a GEN-V picture's drops as wide as
-// Width, no outline, so its colours are the jars' — till then capsules, the drop's two numbers not in them
-const drawDabs = c => drawDrops(c, false, PIC.drop ? {} : { wide: dabWide(), line: false });
+// from GEN-V / LIB-V the function Drop TIP + Drop TOP, these two sliders are not there now"): a card with `drop` as it was; a GEN-V picture's GEN-V's stones
+// (goghplan.js, tileOf), as wide as Width — the same evening, in place of the rubber brush's seeds of the morning (the owner: "where do the old strokes of the
+// piglet come from — it is a mistake. It is for the brush with the rubber tip, we cancelled it in the end"; "the headlight came out ideal")
+const drawDabs = c => drawDrops(c, false);
 // A card with `drop` (Press test 3, the owner, 2026-11-23: "take the red contour and leave the pink inside"; "a barely visible yellow contour of the sausage,
 // the master, and the pink drop with its red contour its phantom slave … the blue sausage is the Drag key, the overlay the Picture key"). Picture: every dab's
 // slave, the drop Press test 2 laid (goghplan.js, dropOf) — the outline of what touches, red, the inside pink: all strokes first, the fill over them — and
@@ -719,7 +723,7 @@ const drawDabs = c => drawDrops(c, false, PIC.drop ? {} : { wide: dabWide(), lin
 // and tip too (the screen's alone)
 const DROP_W = DROP.wide, DROP_LINE = '#EC4899', DROP_FILL = '#FCD6EB', MASTER_HAIR = 'rgba(214,158,0,.55)', MASTER_BLUE = '#2563EB';
 const ownLegs = P => { const j = jarOf(P.pencil), own = PIC.jars.find(q => q.id === (j.jar ?? j.id)) ?? j; return own.cells.flatMap(q => q.legs); };
-const veil = P => !only || only === P.pencil ? 1 : 0.15;
+const veil = P => !only || tool === 'ground' || only === P.pencil ? 1 : 0.15;   // the background's brush: the figure seen whole, whatever the jar chosen
 function masterPath(legs) {                                                           // mm, the canvas's own, up
   const w = dabWide(), r = w / 2, path = new Path2D();
   for (const [x, a, b] of legs) { const [t, u] = dabOnScreen(Math.max(a, b), Math.min(a, b), dabGap(), w); path.moveTo(x + r, t); path.arc(x, t, r, 0, Math.PI); path.lineTo(x - r, u); path.arc(x, u, r, Math.PI, 2 * Math.PI); path.closePath(); }
@@ -742,23 +746,29 @@ const shade = (hex, f = 0.7) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex
 // PAINT (the owner, 2026-11-23, the evening: "for all the pictures in GOGH a new key: PAINT — and in it, just there, the light yellow contour from DRAG … and in
 // Picture no yellow contour, so I do not get confused when zoomed far out"): every picture's drops, a card with `drop` or not, the masters' yellow hair over
 // them; Picture the drops alone. A card's drops its jars' colours, Press test 3's pink alone (`drop: true`); a 3 or 5 mm brush's drop as wide again by its
-// pitch (est.). as: { wide, line } — Picture's of a GEN-V picture, the Width slider's and no outline (drawDabs)
-function drawDrops(c, hair = false, as = {}) {
-  const tint = PIC.drop !== true, wide = as.wide ?? PIC.dropWide ?? (PIC.pitch > 2 ? DROP_W * PIC.pitch / 2 : undefined);
-  const o = { gap: dabGap(), run: S.dabRun, top: S.dropTop, tip: S.dropTip, wide, seed: PIC.dab?.seed, seedJ3: PIC.dab?.seedJ3, nib: PIC.nib }, key = `${pk()}|${JSON.stringify(o)}`, lines = plan().map(P => {
-    const j = jarOf(P.pencil), path = pathOf(as.wide ? 'dab' : 'drop', P, key, () => {
-      const q = new Path2D(), oj = { ...o, allSeeds: !!j?.seeds };
-      for (const [x, t, b] of ownLegs(P)) { dropOf(x, t, b, oj).forEach(([u, v], i) => i ? q.lineTo(u, v) : q.moveTo(u, v)); }
-      return q;
-    });
-    return { path, master: hair ? masterOf(P) : null, a: veil(P), line: tint ? shade(j.hex) : DROP_LINE, fill: tint ? j.hex : DROP_FILL };
+// pitch (est.). A GEN-V picture's (no `drop`): its stones (tileOf), outlined as the headlight's where the nib paints it; the background (layer 0, `ground`) first,
+// every stone of it outlined, a hair, over its own fill — white on white, else it is not seen — and while its brush is down as it will lie (GROUND_LIVE)
+const shapeOpts = () => ({ gap: dabGap(), run: S.dabRun, ...dropNow(), wide: PIC.drop ? PIC.dropWide ?? (PIC.pitch > 2 ? DROP_W * PIC.pitch / 2 : undefined) : dabWide(), seed: PIC.dab?.seed, seedJ3: PIC.dab?.seedJ3, nib: PIC.nib });
+const shapeOf = (x, a, b, o) => PIC.drop ? dropOf(x, a, b, o) : tileOf(x, a, b, o);
+function shapesPath(legs, o) {
+  const q = new Path2D();
+  for (const [x, t, b] of legs) { shapeOf(x, t, b, o).forEach(([u, v], i) => i ? q.lineTo(u, v) : q.moveTo(u, v)); if (!PIC.drop) q.closePath(); }
+  return q;
+}
+function drawDrops(c, hair = false) {
+  const tint = PIC.drop !== true, outline = PIC.drop || PIC.nib, o = shapeOpts(), key = `${pk()}|${JSON.stringify(o)}`, lines = plan().map(P => {
+    const j = jarOf(P.pencil), path = pathOf('drop', P, key, () => shapesPath(ownLegs(P), { ...o, allSeeds: !!j?.seeds }));
+    return { path, ground: !!j.ground, master: hair ? masterOf(P) : null, a: veil(P), line: tint ? shade(j.hex) : DROP_LINE, fill: tint ? j.hex : DROP_FILL };
   });
+  const main = lines.filter(q => !q.ground), under = stroke?.ground ? stroke.lines(o) : lines.filter(q => q.ground);
   onMm(c, () => {
-    c.lineJoin = 'round'; c.lineWidth = Math.max(1.5, 0.5 * K) / K;
-    if (as.line !== false) for (const { path, a, line } of lines) { c.globalAlpha = a; c.strokeStyle = line; c.stroke(path); }
-    for (const { path, a, fill } of lines) { c.globalAlpha = a; c.fillStyle = fill; c.fill(path); }
+    c.lineJoin = 'round';
+    for (const { path, a, fill } of under) { c.globalAlpha = a; c.fillStyle = fill; c.fill(path); c.strokeStyle = shade(fill, 0.8); c.lineWidth = 1 / K; c.stroke(path); }
+    c.lineWidth = Math.max(1.5, 0.5 * K) / K;
+    if (outline) for (const { path, a, line } of main) { c.globalAlpha = a; c.strokeStyle = line; c.stroke(path); }
+    for (const { path, a, fill } of main) { c.globalAlpha = a; c.fillStyle = fill; c.fill(path); }
     c.lineWidth = 1 / K;
-    if (hair) for (const { master, a } of lines) { c.globalAlpha = a; c.strokeStyle = MASTER_HAIR; c.stroke(master); }
+    if (hair) for (const { master, a } of main) { c.globalAlpha = a; c.strokeStyle = MASTER_HAIR; c.stroke(master); }
   });
 }
 function drawMasters(c) {
@@ -873,10 +883,13 @@ function setFrame(F, said) {
 }
 cv.addEventListener('pointerdown', e => {
   if (tool === 'brush' && PIC) return brushDown(e);
+  if (tool === 'ground' && PIC) return groundDown(e);
   if (frameOn && PIC) { const p = toMm(e), F = S.frames[S.pic] ?? null; fgrab = { a: p, f0: F, move: inFrame(F, p), moved: false, f: F }; cv.setPointerCapture(e.pointerId); return; }
   dragFrom = [e.clientX, e.clientY, OX, OY]; cv.setPointerCapture(e.pointerId); cv.classList.add('drag');
 });
 cv.addEventListener('pointermove', e => {
+  ringAt(e);
+  if (stroke?.ground) return groundAt(e);
   if (stroke) return brushAt(e);
   if (fgrab) {
     const p = toMm(e), a = fgrab.a;
@@ -889,6 +902,7 @@ cv.addEventListener('pointermove', e => {
   if (dragFrom) { OX = dragFrom[2] + e.clientX - dragFrom[0]; OY = dragFrom[3] + e.clientY - dragFrom[1]; kick(); }
 });
 cv.addEventListener('pointerup', () => {
+  if (stroke?.ground) return groundUp();
   if (stroke) { const k = stroke; stroke = null; if (k.moved) cardSave(); else UNDO.pop(); return; }
   dragFrom = null; cv.classList.remove('drag');
   if (!fgrab) return;
@@ -910,13 +924,15 @@ addEventListener('keydown', e => {
 const BRUSH_R = 1.5;   // mm (est.)
 let tool = 'hand', stroke = null;
 const UNDO = [], gTools = $('#gTools');
-function setTool(t) { tool = DABS && gTools && t === 'brush' ? 'brush' : 'hand'; gTools?.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === tool)); cv.classList.toggle('brush', tool === 'brush'); }
+function setTool(t) { tool = DABS && gTools && (t === 'brush' || t === 'ground') ? t : 'hand'; gTools?.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === tool)); cv.classList.toggle('brush', tool !== 'hand'); groundShow(); kick(); }
 gTools?.addEventListener('click', e => { const b = e.target.closest('[data-tool]'); if (b) setTool(b.dataset.tool); });
 addEventListener('keydown', e => {
   if (!gTools || e.target.closest?.('input, select, textarea') || !$('#drawAsk').hidden) return;
   if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { if (UNDO.length && UNDO.at(-1).pic === S.pic) { e.preventDefault(); brushUndo(); } return; }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if (e.key.toLowerCase() === 'b') setTool('brush'); else if (e.key.toLowerCase() === 'v' || (e.key === 'Escape' && tool === 'brush')) setTool('hand');
+  if (e.key.toLowerCase() === 'b') setTool('brush'); else if (e.key.toLowerCase() === 'v' || (e.key === 'Escape' && tool !== 'hand')) setTool('hand');
+  else if (e.code === 'KeyG' && $('#gRing')) setTool('ground');
+  else if (tool === 'ground' && (e.code === 'BracketLeft' || e.code === 'BracketRight')) groundSize(S.groundD + (e.code === 'BracketLeft' ? -1 : 1) * GROUND.dUi[2]);
 });
 function brushDown(e) {
   if (lastSt && LIVE.includes(lastSt.state)) return warn('The brush: a run is on — STOP it first.');
@@ -929,7 +945,7 @@ function brushAt(e) {
   const card = LIB[S.pic], to = card?.jars.find(j => j.id === only); if (!to) return;
   const [px, py] = toMm(e); let moved = 0;
   for (const j of card.jars) {
-    if (j === to) continue;
+    if (j === to || !!j.under !== !!to.under) continue;                                // the figure's dabs into the figure's jars, the background's into its own (2026-11-25)
     for (const c of j.cells) {
       const keep = [];
       for (const l of c.legs) { const [x, a, b] = l; if (Math.abs(x - px) <= BRUSH_R && py >= Math.min(a, b) - BRUSH_R && py <= Math.max(a, b) + BRUSH_R) { to.cells.push({ n: 0, legs: [l] }); moved++; } else keep.push(l); }
@@ -941,6 +957,68 @@ function brushAt(e) {
   to.cells.sort((p, q) => p.legs[0][0] - q.legs[0][0] || Math.max(q.legs[0][1], q.legs[0][2]) - Math.max(p.legs[0][1], p.legs[0][2]));   // column by column, from the top
   card.jars = card.jars.filter(j => j.cells.length); card.jars.forEach(j => j.cells.forEach((c, i) => { c.n = i + 1; }));
   stroke.moved += moved; PIC = picNow(S.pic); SEQ = seqOf(PIC); settle();
+}
+// The background's wide brush, G (the owner, 2026-11-25, GOGH/background.png; goghplan.js, groundOf: the dabs it may lay): a jar chosen in THE JARS — none, the
+// lightest, the white — and a drag lays, wherever the canvas is bare, the dabs whose middles the circle covers, in that jar; the figure untouched, over them;
+// ⌥ and a drag takes them away; [ and ], or − and +, the circle's size; ⌘Z a stroke. A jar's background a line of its own, `g<n>`, `of` the jar it is (its 🔄 the
+// same), layer 0: run first, to dry under the figure. Let go, the card saved (rembrandt.py's gogh_card_edit takes a `ground` line since 2026-11-25)
+const GDABS = new Map();   // a picture's own set of them
+const groundLegs = () => { const id = S.pic; if (!GDABS.has(id)) GDABS.set(id, groundOf(LIB[id]).map(l => ({ key: legKey(l), leg: l, x: l[0], y: (l[1] + l[2]) / 2 }))); return GDABS.get(id); };
+function groundSize(d) { S.groundD = groundD(d); save(); groundShow(); }
+function groundShow() {
+  const on = tool === 'ground', box = $('#gSize'), ring = $('#gRing');
+  if (box) { box.hidden = !on; $('#gNow').textContent = `${S.groundD ?? GROUND.d}`; }
+  if (ring) { if (!on) ring.hidden = true; const d = (S.groundD ?? GROUND.d) * K; ring.style.width = ring.style.height = `${d}px`; }
+}
+function ringAt(e) {
+  const ring = $('#gRing'); if (!ring || tool !== 'ground') return;
+  const [px, py] = toPt(e), d = S.groundD * K;
+  ring.hidden = false; ring.style.width = ring.style.height = `${d}px`; ring.style.transform = `translate(${px - d / 2}px,${py - d / 2}px)`;
+}
+cv.addEventListener('pointerleave', () => { if ($('#gRing') && !stroke) $('#gRing').hidden = true; });
+cv.addEventListener('wheel', e => ringAt(e), { passive: true });
+$('#gSize')?.addEventListener('click', e => { const b = e.target.closest('[data-gd]'); if (b) groundSize(S.groundD + +b.dataset.gd * GROUND.dUi[2]); });
+function groundDown(e) {
+  if (lastSt && LIVE.includes(lastSt.state)) return warn('The background: a run is on — STOP it first.');
+  if (S.frames[S.pic]) return warn('The background: the whole picture only — take the frame away (F).');
+  const card = LIB[S.pic], row = SEQ.find(j => j.id === only) ?? SEQ.find(j => !j.ground);   // no row chosen: the lightest, the first of the list
+  if (!row) return;
+  const own = card.jars.find(j => j.id === (row.jar ?? row.id)), of = own?.ground ? null : own?.of ?? own?.id;
+  const bare = own && !own.ground && !own.cells.length;                                // + ADD COLOR's, for the background alone: the line itself goes
+  const to = own?.ground ? own : card.jars.find(j => j.ground && (j.of ? j.of === of : j.name === own.name && j.hex === own.hex)) ?? null;
+  let n = 1; while (card.jars.some(j => j.id === `g${n}`)) n++;
+  const id = to?.id ?? `g${n}`, hex = row.hex, at = new Map();
+  for (const j of card.jars) if (j.ground) for (const c of j.cells) for (const l of c.legs) at.set(legKey(l), { leg: l, id: j.id });
+  UNDO.push({ pic: S.pic, jars: JSON.stringify(card.jars) }); if (UNDO.length > 50) UNDO.shift();
+  const hexOf = k => k === id ? hex : (SEQ.find(j => j.id === k)?.hex ?? '#FFFFFF');
+  stroke = { ground: true, id, to, of: bare ? null : of, bare: bare ? own.id : null, name: bare ? own.name : own?.name ?? row.name, hex: own?.hex ?? row.hex, at, moved: 0, erase: e.altKey, last: null,
+    lines: o => { const by = new Map(); for (const { leg, id: k } of at.values()) { if (!by.has(k)) by.set(k, []); by.get(k).push(leg); } return [...by].map(([k, legs]) => ({ path: shapesPath(legs, o), a: 1, fill: hexOf(k) })); } };
+  cv.setPointerCapture(e.pointerId); groundAt(e);
+}
+function groundAt(e) {
+  const p = toMm(e), q = stroke.last ?? p, R = S.groundD / 2, n = Math.max(1, Math.ceil(Math.hypot(p[0] - q[0], p[1] - q[1]) / Math.max(1, R / 2)));
+  let moved = 0;
+  for (const d of groundLegs()) {
+    let hit = false;
+    for (let i = 1; i <= n && !hit; i++) hit = Math.hypot(d.x - (q[0] + (p[0] - q[0]) * i / n), d.y - (q[1] + (p[1] - q[1]) * i / n)) <= R;
+    if (!hit) continue;
+    const had = stroke.at.get(d.key);
+    if (stroke.erase) { if (had) { stroke.at.delete(d.key); moved++; } }
+    else if (had?.id !== stroke.id) { stroke.at.set(d.key, { leg: d.leg, id: stroke.id }); moved++; }
+  }
+  stroke.last = p; stroke.moved += moved; if (moved) kick();
+}
+function groundUp() {
+  const k = stroke; stroke = null;
+  if (!k.moved) { UNDO.pop(); return kick(); }
+  const card = LIB[S.pic], by = new Map();
+  for (const { leg, id } of k.at.values()) { if (!by.has(id)) by.set(id, []); by.get(id).push(leg); }
+  if (!k.to && by.has(k.id)) card.jars.unshift({ id: k.id, name: k.name, code: '', hex: k.hex, coats: 1, under: true, ground: true, ...(k.of ? { of: k.of } : {}), cells: [] });
+  for (const j of card.jars) if (j.ground) j.cells = cellsOf(by.get(j.id) ?? []);
+  card.jars = card.jars.filter(j => !(j.ground && !j.cells.length) && !(k.bare && j.id === k.bare && !j.cells.length));   // a background line left with none out, and + ADD COLOR's empty one it took its paint from
+  if (k.bare && by.has(k.id)) only = k.id;
+  if (!card.jars.some(j => j.id === only) && !SEQ.some(j => j.id === only && card.jars.some(q => q.id === (j.jar ?? j.id)))) only = null;
+  PIC = picNow(S.pic); SEQ = seqOf(PIC); settle(); cardSave();
 }
 // + ADD COLOR (the owner, 2026-11-23, the evening: "one more paint, the light grey Jar 3 — I will try to redraw the headlights now, I do not like that there is so
 // much black on it. Make please + add color"): one of his jars, THE JARS' list, a line of its own in this picture — after the card's jars, so last in Layer 1 —
@@ -965,8 +1043,8 @@ if (addBtn && DABS) {
     const card = LIB[S.pic], ids = new Set(card.jars.map(j => j.id)); let n = 1; while (ids.has(`a${n}`)) n++;
     UNDO.push({ pic: S.pic, jars: JSON.stringify(card.jars) });
     card.jars.push({ id: `a${n}`, name: b.dataset.add, code: '', hex: b.dataset.hex.toUpperCase(), coats: 1, cells: [] });
-    PIC = picNow(S.pic); SEQ = seqOf(PIC); settle(); only = `a${n}`; setTool('brush'); showPanel(); kick();
-    warnAt = Date.now(); $('#runState').innerHTML = `+ ADD COLOR: <b>${esc(b.dataset.add)}</b> in the list, chosen — the brush on: paint its dabs.`;
+    PIC = picNow(S.pic); SEQ = seqOf(PIC); settle(); only = `a${n}`; if (tool !== 'ground') setTool('brush'); showPanel(); kick();
+    warnAt = Date.now(); $('#runState').innerHTML = `+ ADD COLOR: <b>${esc(b.dataset.add)}</b> in the list, chosen — ${tool === 'ground' ? 'paint the background by it' : 'the brush on: paint its dabs'}.`;
   }, true);
 }
 function brushUndo() {
@@ -977,19 +1055,19 @@ function brushUndo() {
 function cardJpg(pic) {
   const k = 600 / Math.max(pic.w, pic.h), c = document.createElement('canvas'); c.width = Math.round(pic.w * k); c.height = Math.round(pic.h * k);
   const g = c.getContext('2d'); g.fillStyle = GESSO; g.fillRect(0, 0, c.width, c.height); g.lineJoin = 'round'; g.lineWidth = 1.6;
-  const o = { gap: pic.look?.gap ?? 0.2, run: 0, seed: pic.dab?.seed, seedJ3: pic.dab?.seedJ3, wide: pic.dropWide, nib: pic.nib, top: pic.preset?.top, tip: pic.preset?.tip };
-  const paths = seqOf(pic).map(j => { const p = new Path2D(), oj = { ...o, allSeeds: !!j.seeds }; for (const q of j.cells) for (const [x, a, b] of q.legs) dropOf(x, a, b, oj).forEach(([u, v], i) => i ? p.lineTo(u * k, (pic.h - v) * k) : p.moveTo(u * k, (pic.h - v) * k)); return { p, hex: j.hex }; });
-  for (const { p, hex } of paths) { g.strokeStyle = shade(hex); g.stroke(p); }
+  const o = { gap: pic.look?.gap ?? 0.2, run: 0, seed: pic.dab?.seed, seedJ3: pic.dab?.seedJ3, wide: pic.drop ? pic.dropWide : dabWideOf(pic.look?.wide, pic.pitch), nib: pic.nib, top: pic.preset?.top, tip: pic.preset?.tip }, shape = pic.drop ? dropOf : tileOf;
+  const paths = seqOf(pic).map(j => { const p = new Path2D(), oj = { ...o, allSeeds: !!j.seeds }; for (const q of j.cells) for (const [x, a, b] of q.legs) shape(x, a, b, oj).forEach(([u, v], i) => i ? p.lineTo(u * k, (pic.h - v) * k) : p.moveTo(u * k, (pic.h - v) * k)); return { p, hex: j.hex }; });
+  if (pic.drop || pic.nib) for (const { p, hex } of paths) { g.strokeStyle = shade(hex); g.stroke(p); }
   for (const { p, hex } of paths) { g.fillStyle = hex; g.fill(p); }
   return c.toDataURL('image/jpeg', 0.9);
 }
 async function cardSave() {
-  const card = LIB[S.pic], body = { id: card.id, jars: card.jars.map(j => ({ id: j.id, name: j.name, hex: j.hex, cells: j.cells.map(c => ({ legs: c.legs })) })), jpg: cardJpg(card) };
+  const card = LIB[S.pic], body = { id: card.id, jars: card.jars.map(j => ({ id: j.id, name: j.name, hex: j.hex, ...(j.ground ? { ground: true, ...(j.of ? { of: j.of } : {}) } : {}), cells: j.cells.map(c => ({ legs: c.legs })) })), jpg: cardJpg(card) };
   try {
     const r = await fetch('/gogh/card', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (r.status === 404) return warn('The brush: not saved — restart rembrandt.py (it learnt /gogh/card on 2026-11-23).');
     const q = await r.json().catch(() => null);
-    if (!r.ok || !q?.ok) return warn(`The brush: not saved — ${esc(String(q?.message ?? r.status))}.`);
+    if (!r.ok || !q?.ok) return warn(`The brush: not saved — ${esc(String(q?.message ?? r.status))}${card.jars.some(j => j.ground) && /not the card/.test(String(q?.message ?? '')) ? ' — restart rembrandt.py: it learnt the background on 2026-11-25' : ''}.`);
     const img = document.querySelector(`#lib .fg-card[data-id="${card.id}"] img`); if (img) img.src = `${card.image}?v=${Date.now()}`;
     warnAt = Date.now(); $('#runState').textContent = `The brush: saved, ${q.dabs} dabs in ${q.jars.length} jars.`;   // a short line, held as a warning is
   } catch { warn('The brush: not saved — start rembrandt.py.'); }
@@ -1011,8 +1089,8 @@ $('#btnPlay').onclick = () => {
   const passes = plan(), list = [], s = 2, off = document.createElement('canvas'), c = off.getContext('2d');
   let mm = 0;
   for (const r of withMarks(DABS ? dabRunsOf(passes) : brushRuns(passes, S.dipEvery, S.dipLap, CANON_RUN, R3RUN.slack), passes, SEQ, marksNow()?.M)) {
-    const hex = jarOf(passes[r.pass].pencil).hex;
-    r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle, dab: !!r.dab, mark: r.mark ? r.say : null }); });
+    const hex = jarOf(passes[r.pass].pencil).hex, o = r.own ? { ...shapeOpts(), allSeeds: !!jarOf(passes[r.pass].pencil)?.seeds } : null;
+    r.pts.slice(1).forEach((b, i) => { const a = r.pts[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L > 0) list.push({ a, b, from: mm, to: (mm += L), hex, n: r.pass, num: r.num, idle: r.idle, dab: !!r.dab, ...(r.own ? { own: r.own, o } : {}), mark: r.mark ? r.say : null }); });
   }
   if (!list.length) return;
   off.width = PIC.w * s; off.height = PIC.h * s; c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = PIC.pitch * s * 0.92;
@@ -1025,7 +1103,7 @@ $('#btnPlay').onclick = () => {
     Q.want = u < 1 ? mm * u * u : mm;
     while (Q.i < list.length && list[Q.i].from <= Q.want) {
       const q = list[Q.i], f = Math.min(1, (Q.want - q.from) / (q.to - q.from)), p = [q.a[0] + (q.b[0] - q.a[0]) * f, q.a[1] + (q.b[1] - q.a[1]) * f], o = Q.at ?? q.a;
-      if (q.dab) { if (f >= 1) { c.fillStyle = q.hex; c.beginPath(); c.ellipse((q.a[0] + q.b[0]) / 2 * s, (PIC.h - (q.a[1] + q.b[1]) / 2) * s, PIC.pitch * 0.6 * s, (Math.abs(q.b[1] - q.a[1]) / 2 + PIC.pitch * 0.3) * s, 0, 0, 7); c.fill(); } }   // a drop, as HOLO draws a puddle
+      if (q.dab) { if (f >= 1) { c.fillStyle = q.hex; c.beginPath(); if (q.own) shapeOf(...q.own, q.o).forEach(([u, v], i) => { if (i) c.lineTo(u * s, (PIC.h - v) * s); else c.moveTo(u * s, (PIC.h - v) * s); }); else c.ellipse((q.a[0] + q.b[0]) / 2 * s, (PIC.h - (q.a[1] + q.b[1]) / 2) * s, PIC.pitch * 0.6 * s, (Math.abs(q.b[1] - q.a[1]) / 2 + PIC.pitch * 0.3) * s, 0, 0, 7); c.fill(); } }   // a dab as Picture draws it (2026-11-25; an ellipse before)
       else if (!q.idle) { c.strokeStyle = q.hex; c.beginPath(); c.moveTo(o[0] * s, (PIC.h - o[1]) * s); c.lineTo(p[0] * s, (PIC.h - p[1]) * s); c.stroke(); }
       Q.q = q; Q.tip = p;
       if (f < 1) { Q.at = p; break; }
@@ -1062,8 +1140,8 @@ function showPanel() {
     : 'No frame: the whole picture. F, or Frame, lays one round a piece to try first, at its place from home: a click a 200 × 200 there, a drag any size.';
   for (const [id, k] of [['#fSpeed', 'speed'], ['#fEvery', 'dipEvery'], ['#fLap', 'dipLap'], ['#fOver', 'over'], ['#fPen', 'penSpeed'], ['#fTravel', 'travel']]) if ($(id) && document.activeElement !== $(id)) $(id).value = S[k];
   if ($('#bwRead')) { const O = penRun('outline'), A = penRun('all'); $('#bwRead').innerHTML = O.lines ? `DRAW BW: the outline alone ${fmt(O.mm / 1000, 1)} m, ≈ ${hm(O.seconds)}; every border ${A.lines} lines, ${fmt(A.mm / 1000, 1)} m, ≈ ${hm(A.seconds)} (est.).` : ''; }
-  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 0 && !i ? '<li class="fg-sep">Under · the motion blur, first</li>' : ''}${q.layer === 1 && P[i - 1]?.layer === 0 ? '<li class="fg-sep">The picture · over the dry layer under</li>' : ''}${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}${j.was ? ` in place of ${esc(j.was.name)}` : ''}:${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush${q.fill ? `; ${FILL_SAY[q.fill]}` : ''}. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.name)}${j.was ? ` <em>${esc(j.was.name)}</em>` : ''}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${FILL_WORD[q.fill]} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span>${JARS_ON ? `<button class="swap" data-swap="${esc(j.jar ?? j.id)}" title="🔄 Replace: paint ${esc(j.was?.name ?? j.name)} with one of your jars, or name the new jar you mixed for it" aria-label="Replace ${esc(j.name)}">🔄</button>` : ''}</li>`; }).join('');
-  $('#jarsHint').textContent = two ? `${P.length} lines, ${PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
+  $('#runList').innerHTML = P.map((q, i) => { const j = jarOf(q.pencil); return `${q.layer === 0 && !i ? `<li class="fg-sep">${j.ground ? 'Background · under the figure, first' : 'Under · the motion blur, first'}</li>` : ''}${q.layer === 1 && P[i - 1]?.layer === 0 ? `<li class="fg-sep">${jarOf(P[i - 1].pencil)?.ground ? 'The picture · over the dry background' : 'The picture · over the dry layer under'}</li>` : ''}${q.layer === 2 && P[i - 1].layer === 1 ? '<li class="fg-sep">Layer 2 · over the dry first layer</li>' : ''}${j.last && !jarOf(P[i - 1]?.pencil)?.last ? '<li class="fg-sep">Last · over the finished picture</li>' : ''}<li data-id="${esc(j.id)}" data-i="${i}" class="${only === j.id ? 'only' : ''}" title="${esc(j.name)}${j.was ? ` in place of ${esc(j.was.name)}` : ''}:${q.cells} cells, ${q.tracks} legs, ${fmt(q.mm / 1000, 1)} m of brush${q.fill ? `; ${FILL_SAY[q.fill]}` : ''}. A click shows its legs"><span class="no">${i + 1}</span><i class="sw" style="background:${j.hex}"></i><span class="nm">${esc(j.ground ? j.name.replace(/ · background$/, '') : j.name)}${j.was ? ` <em>${esc(j.was.name)}</em>` : ''}${j.code ? ` <em>${esc(j.code)}</em>` : ''}</span><span class="tg">${q.fill ? `${FILL_WORD[q.fill]} · ` : ''}${q.mm >= 1000 ? `${fmt(q.mm / 1000, 1)} m` : `${Math.round(q.mm)} mm`}</span>${JARS_ON ? `<button class="swap" data-swap="${esc(j.jar ?? j.id)}" title="🔄 Replace: paint ${esc(j.was?.name ?? j.name)} with one of your jars, or name the new jar you mixed for it" aria-label="Replace ${esc(j.name)}">🔄</button>` : ''}</li>`; }).join('');
+  $('#jarsHint').textContent = two || P.some(q => q.layer === 0) ? `${P.length} lines, ${DABS ? paintsOf(PIC) : PIC.jars.length} jars, light to dark` : `${P.length}, light to dark`;
   $('#stats').textContent = `${PIC.w / 10} × ${PIC.h / 10} cm${PIC.frame ? ` · frame ${frameSize()} mm` : ''}`;
   jarsRead();
   showBrush();
@@ -1075,6 +1153,7 @@ function showMarks() {
   b.classList.toggle('on', S.marks !== false); b.setAttribute('aria-pressed', String(S.marks !== false));
   if (S.marks === false) { r.innerHTML = 'MARKS off: no marks at the edges.'; return canvasReads(); }
   if (PIC.frame) { r.innerHTML = 'MARKS: none in a frame — the whole picture only.'; return canvasReads(); }
+  if (PIC.jars.some(j => j.ground)) { r.innerHTML = 'MARKS: none — the background is painted where the paper would lie.'; return canvasReads(); }
   const mk = marksNow(), mm = v => fmt(v, 0);
   r.innerHTML = (mk.strips.length ? `<b>MARKS</b>, ${mk.n} cells a strip, a jar's first coat at the edge's side, its second next to it; after every jar change one dip, then its marks in this order. Tape the paper: `
     + mk.strips.map(s => `<b>${sideSay(s)}</b> ${mm(s.box[0])}–${mm(s.box[2])} → · ${mm(s.box[1])}–${mm(s.box[3])} ↑${Math.abs(s.shift) >= 0.5 ? ` (${mm(Math.abs(s.shift))} mm ${s.side === 'left' || s.side === 'right' ? (s.shift > 0 ? 'above' : 'below') : (s.shift > 0 ? 'right of' : 'left of')} the middle: the reach)` : ''}`).join('; ') + ' mm from the canvas\'s left and bottom edges (the white strips on the screen; est.). ' : '<span class="warn">MARKS: no room for a strip anywhere.</span> ')
@@ -1107,7 +1186,7 @@ function readOf(id) {
   try {
     const all = PIC.jars.flatMap(j => j.cells), P = plan(), R = paintRun(), n0 = P.filter(q => q.layer === 0).length, n1 = P.filter(q => q.layer <= 1).length, two = P.length - n1, t2 = two ? paintRun(n1).seconds : 0;
     const out = `<b>${esc(PIC.title)}</b>, ${esc(PIC.sub)}: ${PIC.columns} columns ${fmt(PIC.pitch, 0)} mm apart, ${PIC.jars.length} jars, ${all.length} cells, ${all.reduce((a, q) => a + q.legs.length, 0)} legs.`
-      + (n0 ? ` <b>Under first:</b> the motion blur, ${n0} lines, to dry before the picture.` : '') + (DABS ? ` Dabs: every leg a dab of its own, ≈ ${PIC.dab?.aim ?? 20} mm, the brush ${fmt(PIC.pitch, 0)} mm, a dip each, one stroke down, nothing after it; gap ${DAB_SAY.gap(dabGap())}, run +${S.dabRun} · +${S.dabRun} mm.` : '') + (DABS ? '' : ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way${P.some(q => q.fill === 'mixed') ? `; ${P.filter(q => q.fill === 'mixed').length} lines of both, each cell its own colour's` : ''}.`)
+      + (n0 ? ` <b>Under first:</b> the ${DABS ? 'background' : 'motion blur'}, ${n0} lines, to dry before the picture.` : '') + (DABS ? ` Dabs: every leg a dab of its own, ≈ ${PIC.dab?.aim ?? 20} mm, the brush ${fmt(PIC.pitch, 0)} mm, a dip each, one stroke down, nothing after it; gap ${DAB_SAY.gap(dabGap())}, run +${S.dabRun} · +${S.dabRun} mm.` : '') + (DABS ? '' : ` Drops first: ${P.filter(q => q.fill === 'zone').length} zone lines, their drops on dips of their own, then one snake a cell and back; ${P.filter(q => q.fill === 'strokes').length} stroke lines, a dip a leg, each leg again the same way${P.some(q => q.fill === 'mixed') ? `; ${P.filter(q => q.fill === 'mixed').length} lines of both, each cell its own colour's` : ''}.`)
       + (two ? ` <b>Two layers:</b> ${n1} lines of the list, ≈ ${hm(R.seconds - t2)} (est.), the first layer to dry, then ${layer2Say(P)}, ≈ ${hm(t2)} (est.).` : ` One layer, ≈ ${hm(R.seconds)} (est.).`)
       + ` ${fmt(R.mm / 1000, 1)} m of brush, ${R.dips} dips, the jars' changes by hand apart.`;
     READS.set(id, out);
@@ -1132,7 +1211,7 @@ const popHide = () => { $('#libPop').hidden = true; };
   addEventListener('pointerdown', e => { if (!inf(e)) popHide(); });                  // a finger has no hover: a tap on the (i) shows it, a tap elsewhere takes it away
 }
 function markRun(at) { [...$('#runList').children].forEach(q => { const i = q.dataset.i === undefined ? -2 : +q.dataset.i; q.classList.toggle('now', i === at); q.classList.toggle('done', at >= 0 && i >= 0 && i < at); }); }
-function settle() { RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); PENRUNS.clear(); MARKSNOW.clear(); save(); showKeys(); showPanel(); showDabs(); kick(); }
+function settle() { PATHS.clear(); RUNS.clear(); PLAN.clear(); RANGE.clear(); READS.clear(); PENRUNS.clear(); MARKSNOW.clear(); save(); showKeys(); showPanel(); showDabs(); kick(); }
 $('#lib').onclick = async e => {
   const x = e.target.closest('[data-hide]');
   if (x) {
@@ -1152,7 +1231,8 @@ $('#lib').onclick = async e => {
 // a card's `preset` (the owner, 2026-11-23, the night: "no settings to set at all. Let them be preset"): chosen, its RUN, GAP, ELBOW LIVE · BRUSH and the drop's
 // top and tip put on the sliders — not while a run is on; the sliders his again after it
 function presetOf(id) {
-  const q = LIB[id]?.preset; if (!DABS || !q || (lastSt && LIVE.includes(lastSt.state))) return '';
+  const q = LIB[id]?.preset ?? (LIB[id]?.drop ? null : { run: 0 }); if (!DABS ||   // a GEN-V picture's RUN its dab's own length, so it looks as on GEN-V (2026-11-25)
+     !q || (lastSt && LIVE.includes(lastSt.state))) return '';
   const pitch = LIB[id].pitch, said = [];
   if (Number.isFinite(q.run)) { S.dabRun = dabRunOf(q.run); said.push(`RUN ${DAB_SAY.run(S.dabRun)}`); }
   if (Number.isFinite(q.gap)) { S.dabGaps = { ...S.dabGaps, [pitch]: dabGapOf(q.gap, pitch) }; said.push(`GAP ${DAB_SAY.gap(dabGapOf(q.gap, pitch))}`); }
